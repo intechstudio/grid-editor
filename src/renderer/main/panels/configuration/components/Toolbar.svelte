@@ -104,8 +104,8 @@
 
   let selectedAction = undefined;
 
-  function handleToolbarButtonHover(buttonText) {
-    selectedAction = buttonText;
+  function handleToolbarButtonHover(buttonText, hotkeyText) {
+    selectedAction = [buttonText, hotkeyText];
   }
 
   function handleToolbarButtonBlur() {
@@ -113,7 +113,10 @@
   }
 
   const modifier =
-    ctxProcess.platform() == "darwin" ? ["Cmd ⌘", "Alt ⌥"] : ["Ctrl", "Alt"];
+    ctxProcess.platform() == "darwin" ||
+    window.navigator.platform.indexOf("Mac") != -1
+      ? ["Cmd ⌘", "Alt ⌥"]
+      : ["Ctrl", "Alt"];
 
   function handleClearElement() {
     dispatch("clear-element");
@@ -123,19 +126,21 @@
 <app-action-multi-select class="w-full flex flex-row justify-between -mb-2">
   <!-- When any of the array elements is true -->
   <div class="flex flex-col w-full text-white">
-    <span class="text-gray-500 text-sm">Action: </span>
-    <span
-      class="text-sm"
+    <span class="text-gray-500 text-sm flex-wrap">Action: </span>
+    <div
+      class="flex flex-col text-sm"
       class:invisible={typeof selectedAction === "undefined"}
-      >{selectedAction}</span
     >
+      <span>{selectedAction?.at(0)}</span>
+      <span>{selectedAction?.at(1)}</span>
+    </div>
   </div>
   <div class="flex flex-col flex-wrap w-full items-end">
     <div class="flex flex-row">
       <MoltenToolbarButton
         on:click={handleCopyAll}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Copy Element (${modifier[0]} + C)`)}
+          handleToolbarButtonHover("Copy Element", `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
         iconPath={"copy_all"}
@@ -146,7 +151,7 @@
       <MoltenToolbarButton
         on:click={handleOverwriteAll}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Overwrite Element (${modifier[0]} + V)`)}
+          handleToolbarButtonHover(`Overwrite Element`, `(${modifier[0]} + V)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
         iconPath={"paste_all"}
@@ -160,7 +165,8 @@
         on:click={handleDiscard}
         on:mouseenter={() =>
           handleToolbarButtonHover(
-            `Discard Element Changes (${modifier[0]} + Shift + D)`
+            `Discard Element Changes`,
+            `(${modifier[0]} + Shift + D)`
           )}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
@@ -176,7 +182,7 @@
       <MoltenToolbarButton
         on:click={handleClearElement}
         on:mouseenter={() =>
-          handleToolbarButtonHover("Clear Element (Shift + Delete)")}
+          handleToolbarButtonHover(`Clear Element`, `(Shift + Delete)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
           shift: true,
@@ -191,7 +197,7 @@
       <MoltenToolbarButton
         on:click={handleCopyClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Copy Action(s) (${modifier[0]} + C)`)}
+          handleToolbarButtonHover(`Copy Action(s)`, `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
         disabled={!isSelection}
@@ -202,7 +208,7 @@
       <MoltenToolbarButton
         on:click={handlePasteClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Paste Action(s) (${modifier[0]} + V)`)}
+          handleToolbarButtonHover(`Paste Action(s)`, `(${modifier[0]} + V)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
         disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
@@ -213,7 +219,7 @@
       <MoltenToolbarButton
         on:click={handleCutClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Cut Action(s) (${modifier[0]} + X)`)}
+          handleToolbarButtonHover(`Cut Action(s)`, `(${modifier[0]} + X)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyX" }}
         disabled={!isSelection}
@@ -225,7 +231,8 @@
         on:click={handleConvertToCodeBlockClicked}
         on:mouseenter={() =>
           handleToolbarButtonHover(
-            `Merge Action(s) into Code (${modifier[0]} + Shift + M)`
+            `Merge Action(s) into Code`,
+            `(${modifier[0]} + Shift + M)`
           )}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
@@ -241,7 +248,7 @@
       <MoltenToolbarButton
         on:click={handleRemoveClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Remove Action(s) (Delete)`)}
+          handleToolbarButtonHover(`Remove Action(s)`, `(Delete)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
           code: "Delete",
@@ -260,7 +267,7 @@
       callback: handleSelectAllClicked,
     }}
     on:mouseenter={() =>
-      handleToolbarButtonHover(`Select All (${modifier[0]} + A)`)}
+      handleToolbarButtonHover(`Select All`, `(${modifier[0]} + A)`)}
     on:mouseleave={handleToolbarButtonBlur}
   >
     <Options

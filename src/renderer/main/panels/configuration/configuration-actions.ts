@@ -332,11 +332,21 @@ export function pasteActions(index: number | undefined) {
     throw `Paste: Invalid clipboard type ${clipboard?.key}`;
   }
 
-  configManager.update((s) => {
-    s.forEach((e) => (e.selected = false));
-    s.insert(index, ...get(appClipboard)!.payload.map((e) => e.makeCopy()));
-    return s;
-  });
+  try {
+    configManager.update((s) => {
+      const temp = s.makeCopy();
+      temp.forEach((e) => (e.selected = false));
+      temp.insert(
+        index,
+        ...get(appClipboard)!.payload.map((e) => e.makeCopy())
+      );
+      temp.checkLength();
+      return temp;
+    });
+  } catch (e) {
+    return Promise.reject(e);
+  }
+  return Promise.resolve();
 }
 
 export function removeActions() {

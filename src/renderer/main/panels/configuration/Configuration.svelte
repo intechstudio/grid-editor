@@ -237,8 +237,19 @@
 
   function handlePaste(e) {
     let { index } = e.detail;
-    pasteActions(index);
-    sendCurrentConfigurationToGrid();
+    pasteActions(index)
+      .then(() => {
+        sendCurrentConfigurationToGrid();
+      })
+      .catch((e) => {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "config-limit-reached",
+          message: `Paste failed! Config limit reached, shorten your code, or delete actions!`,
+        });
+      });
+
     Analytics.track({
       event: "Config Action",
       payload: { click: "Paste" },
