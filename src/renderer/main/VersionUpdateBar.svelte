@@ -22,7 +22,6 @@
   }
 
   window.electron.updater.onAppUpdate((_event, value) => {
-    console.log(value.code);
     switch (value.code) {
       case "update-available": {
         version = value.version;
@@ -61,8 +60,6 @@
   function handleDownloadClicked(e) {
     window.electron.openInBrowser(configuration.EDITOR_DOWNLOAD_URL);
   }
-
-  $: console.log(state);
 </script>
 
 <container class:hidden={state === UpdateState.UPTODATE} class="relative">

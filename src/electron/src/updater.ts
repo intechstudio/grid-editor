@@ -86,7 +86,7 @@ function init() {
     buildVariables.BUILD_ENV === "alpha" ||
     buildVariables.BUILD_ENV === "production"
   ) {
-    updateTimeout = setInterval(checkForUpdates, 10000);
+    updateTimeout = setTimeout(checkForUpdates, 5000);
   } else {
     console.log("Checking for updates is disabled...");
   }
@@ -101,11 +101,10 @@ autoUpdater.on("error", (error) => {
 });
 
 function disableUpdating() {
-  clearInterval(updateTimeout);
+  clearTimeout(updateTimeout);
 }
 
 function installUpdate() {
-  clearInterval(updateTimeout);
   autoUpdater.checkForUpdatesAndNotify();
 }
 
@@ -116,7 +115,6 @@ function handleUpdateAvailable(info) {
     code: "update-available",
     version: info,
   });
-  let test = 6;
 }
 
 autoUpdater.on("download-progress", (progressObj) => {
