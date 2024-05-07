@@ -275,15 +275,7 @@ function createWriteBuffer() {
       }
 
       await sleep(10);
-      sendToGrid(current, sendImmediate)
-        .then(resolve)
-        .catch(reject)
-        .finally(() => {
-          _write_buffer.update((s) => {
-            s.shift();
-            return s;
-          });
-        });
+      sendToGrid(current, sendImmediate).then(resolve).catch(reject);
     });
   }
 
@@ -375,6 +367,12 @@ function createWriteBuffer() {
           console.log("Rejected:", obj.descr.class_name);
           console.log("Reason:", e);
           reject(e);
+        })
+        .finally(() => {
+          _write_buffer.update((s) => {
+            s.shift();
+            return s;
+          });
         });
     });
   }
