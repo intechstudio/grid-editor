@@ -108,7 +108,7 @@
         snap={"full"}
       />
       <MoltenPushButton
-        text="Try Virtual Mode!"
+        text="Add Virtual Module"
         style="accept"
         snap={"full"}
         click={handleAddVirtualModuleClicked}

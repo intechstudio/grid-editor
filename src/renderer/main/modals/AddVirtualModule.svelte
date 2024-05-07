@@ -33,7 +33,7 @@
 
   let selectedModule: number = -1;
 
-  function handleAddClicked(e) {
+  function handleAddClicked() {
     const rt = get(runtime);
     if (typeof rt.find((e) => e.dx === dx && e.dy === dy) !== "undefined") {
       runtime.destroy_module(dx, dy);
@@ -60,14 +60,17 @@
   function handleModuleClicked(index: number) {
     selectedModule = index;
   }
+
+  function handleModuleDoubleClicked(index: number) {
+    handleModuleClicked(index);
+    handleAddClicked();
+  }
 </script>
 
 <MoltenModal width={500}>
   <div slot="content">
     <div class="flex flex-col">
-      <div class="flex w-full text-4xl opacity-90 pb-2">
-        Welcome to Virtual Mode!
-      </div>
+      <div class="flex w-full text-4xl opacity-90 pb-2">Add Virtual Module</div>
       <p>
         In virtual mode you can check out the features of Grid Editor. Add your
         chosen module as a preview, and get started!
@@ -91,6 +94,7 @@
                 class:hover:border-emerald-600={index !== selectedModule}
                 class:border-emerald-300={index === selectedModule}
                 on:click={() => handleModuleClicked(index)}
+                on:dblclick={() => handleModuleDoubleClicked(index)}
               >
                 <div
                   style="
@@ -116,7 +120,7 @@
       </div>
       <div class="flex flex-row gap-2 pt-4 ml-auto">
         <MoltenPushButton
-          text="Get Started!"
+          text="Add Module"
           click={handleAddClicked}
           style={"accept"}
           disabled={selectedModule === -1}
