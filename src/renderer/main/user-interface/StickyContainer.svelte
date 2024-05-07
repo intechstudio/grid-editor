@@ -46,11 +46,11 @@
     {#if selectedModule?.architecture === Architecture.VIRTUAL}
       <MoltenPushButton
         text="Change Module"
-        on:click={handleChangeModuleClicked}
+        click={handleChangeModuleClicked}
       />
       <MoltenPushButton
         text="Remove Module"
-        on:click={handleRemoveModuleClicked}
+        click={handleRemoveModuleClicked}
       />
     {/if}
   </div>
