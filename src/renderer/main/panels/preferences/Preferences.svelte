@@ -373,7 +373,7 @@
         shows.
       </BlockBody>
       <MeltCheckbox
-        bind:target={$appSettings.persistent.nightlyFirmware}
+        bind:target={$appSettings.persistent.showPCB}
         title={"Enabled"}
       />
     </Block>
@@ -385,8 +385,8 @@
         features and fixes. We suggest always staying on a Stable Firmware!
       </BlockBody>
       <MeltCheckbox
-        bind:target={$appSettings.persistent.showPCB}
-        title={"Show PCB"}
+        bind:target={$appSettings.persistent.nightlyFirmware}
+        title={"Enabled"}
       />
     </Block>
 
