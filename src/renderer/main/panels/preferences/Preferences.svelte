@@ -397,6 +397,18 @@
         shows.
       </BlockBody>
       <MeltCheckbox
+        bind:target={$appSettings.persistent.nightlyFirmware}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
+      <BlockTitle>Nightly Firmware Update</BlockTitle>
+      <BlockBody>
+        The Nightly Firmware version contains new, but potentially unstable
+        features and fixes. We suggest always staying on a Stable Firmware!
+      </BlockBody>
+      <MeltCheckbox
         bind:target={$appSettings.persistent.showPCB}
         title={"Show PCB"}
       />

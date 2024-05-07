@@ -289,6 +289,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     <button
       on:click={firmwareNightlyDownload}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+      class:hidden={!$appSettings.persistent.nightlyFirmware}
     >
       Update (Nightly)
     </button>
