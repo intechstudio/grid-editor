@@ -1,4 +1,7 @@
 <script>
+  import { Architecture } from "./../../protocol/grid-protocol.ts";
+  import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
+  import { modal } from "./../modals/modal.store.ts";
   import { watchResize } from "svelte-watch-resize";
   import { writable } from "svelte/store";
   import { runtime } from "../../runtime/runtime.store.js";
@@ -7,6 +10,7 @@
   import { fade, fly } from "svelte/transition";
   import { derived } from "svelte/store";
   import { createEventDispatcher } from "svelte";
+  import AddModuleButton from "./AddModuleButton.svelte";
 
   export let component;
 
@@ -29,6 +33,8 @@
   let rotation = 0;
   let rotationBuffer = 0;
   let trueRotation = 0;
+
+  let layoutMargin = { left: 0, right: 0, top: 0, bottom: 0 };
 
   $: calculateRotation($appSettings.persistent.moduleRotation);
 
@@ -91,8 +97,8 @@
     devices.update((s) => {
       const dim = getGridDimensions();
       const { min_x, min_y, max_y, max_x } = dim;
-      s = [];
 
+      s = [];
       rt.forEach((device, i) => {
         let connection_top = 0;
         let connection_bottom = 0;
@@ -124,6 +130,26 @@
         obj.gridY = y + 1;
         s.push(obj);
       });
+
+      layoutMargin = {
+        left:
+          s.find((e) => e.dx == min_x)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+        right:
+          s.find((e) => e.dx == max_x)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+        top:
+          s.find((e) => e.dy == max_y)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+        bottom:
+          s.find((e) => e.dy == min_y)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+      };
+
       return s;
     });
   }
@@ -140,6 +166,13 @@
   function handleIntroStart() {
     calculateLayoutDimensions(rotation, $scalingPercent);
   }
+
+  function handleAddModuleButtonClicked(x, y) {
+    modal.show({
+      component: AddVirtualModule,
+      args: { dx: x, dy: y },
+    });
+  }
 </script>
 
 <layout-container
@@ -149,7 +182,11 @@
   use:watchResize={handleResize}
 >
   <div
-    style="width: {layoutWidth}px;  height: {layoutHeight}px;"
+    style="width: {layoutWidth +
+      layoutMargin.left +
+      layoutMargin.right}px;  height: {layoutHeight +
+      layoutMargin.top +
+      layoutMargin.bottom}px;"
     class="relative"
   >
     <div
@@ -168,6 +205,7 @@
         >
           {#each $devices as device (device.id)}
             {@const [x, y] = [device.gridX, device.gridY]}
+
             <div
               in:fly|global={{
                 x: device.fly_x_direction * 100,
@@ -181,7 +219,57 @@
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
               id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+              class="relative"
             >
+              {#if device.architecture === "virtual"}
+                <!-- LEFT -->
+                {#if typeof $devices.find((e) => e.dx === device.dx - 1 && e.dy === device.dy) === "undefined"}
+                  <div
+                    class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 h-full"
+                  >
+                    <AddModuleButton
+                      on:click={() =>
+                        handleAddModuleButtonClicked(device.dx - 1, device.dy)}
+                    />
+                  </div>
+                {/if}
+
+                <!-- RIGHT -->
+                {#if typeof $devices.find((e) => e.dx === device.dx + 1 && e.dy === device.dy) === "undefined"}
+                  <div
+                    class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2 h-full"
+                  >
+                    <AddModuleButton
+                      on:click={() =>
+                        handleAddModuleButtonClicked(device.dx + 1, device.dy)}
+                    />
+                  </div>
+                {/if}
+
+                <!-- BOTTOM -->
+                {#if typeof $devices.find((e) => e.dy === device.dy - 1 && e.dx === device.dx) === "undefined"}
+                  <div
+                    class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2 w-full"
+                  >
+                    <AddModuleButton
+                      on:click={() =>
+                        handleAddModuleButtonClicked(device.dx, device.dy - 1)}
+                    />
+                  </div>
+                {/if}
+
+                <!-- TOP -->
+                {#if typeof $devices.find((e) => e.dy === device.dy + 1 && e.dx === device.dx) === "undefined"}
+                  <div
+                    class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
+                  >
+                    <AddModuleButton
+                      on:click={() =>
+                        handleAddModuleButtonClicked(device.dx, device.dy + 1)}
+                    />
+                  </div>
+                {/if}
+              {/if}
               <Device
                 {device}
                 width={deviceWidth}

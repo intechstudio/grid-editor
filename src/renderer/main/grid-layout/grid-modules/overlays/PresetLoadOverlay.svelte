@@ -6,9 +6,6 @@
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
-  import { scale } from "svelte/transition";
-  import { elasticOut } from "svelte/easing";
-  import Button from "../elements/Button.svelte";
 
   export let device = undefined;
   export let visible = false;
@@ -49,6 +46,22 @@
   function handlePresetLoad(e) {
     const { success } = e.detail;
     loaded = success;
+    if (!success) {
+      return;
+    }
+
+    const { dx, dy } = ConfigTarget.getCurrent().device;
+    if (dx !== device.dx || dy !== device.dy) {
+      const ui = get(user_input);
+      console.log(device.dx, device.dy);
+      user_input.set({
+        dx: device.dx,
+        dy: device.dy,
+        pagenumber: ui.pagenumber,
+        elementnumber: ui.elementnumber,
+        eventtype: ui.eventtype,
+      });
+    }
   }
 
   let isChanged = false;
