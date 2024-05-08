@@ -447,7 +447,7 @@
                     }}
                   />
 
-                  <div class="z-20 flex items-center mr-2">
+                  <div class="z-20 flex items-center mx-2">
                     <Options
                       {index}
                       bind:selected={config.selected}

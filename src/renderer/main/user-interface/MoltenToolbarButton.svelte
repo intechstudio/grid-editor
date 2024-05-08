@@ -40,27 +40,25 @@
   }
 </script>
 
-<container class="relative">
-  <button
-    bind:this={buttonElement}
-    use:shortcutAction={shortcut}
-    class:selected
-    on:click={handleClick}
-    on:mouseenter={handleMouseEnter}
-    on:mouseleave={handleMouseLeave}
-    {disabled}
-    class="{$appSettings.persistent.colorfulToolbar
-      ? 'colorful-toolbar-button'
-      : 'toolbar-button'} focus:outline-none p-1"
-    class:toolbar-button-disabled={disabled &&
-      !$appSettings.persistent.colorfulToolbar}
-    class:colorful-toolbar-button-disabled={disabled &&
-      $appSettings.persistent.colorfulToolbar}
-    style="--color: {color};"
-  >
-    <SvgIcon width={14} height={14} {iconPath} />
-  </button>
-</container>
+<button
+  bind:this={buttonElement}
+  use:shortcutAction={shortcut}
+  class:selected
+  on:click={handleClick}
+  on:mouseenter={handleMouseEnter}
+  on:mouseleave={handleMouseLeave}
+  {disabled}
+  class="{$appSettings.persistent.colorfulToolbar
+    ? 'colorful-toolbar-button'
+    : 'toolbar-button'} focus:outline-none p-1"
+  class:toolbar-button-disabled={disabled &&
+    !$appSettings.persistent.colorfulToolbar}
+  class:colorful-toolbar-button-disabled={disabled &&
+    $appSettings.persistent.colorfulToolbar}
+  style="--color: {color};"
+>
+  <SvgIcon width={14} height={14} {iconPath} />
+</button>
 
 <style>
   .toolbar-button {

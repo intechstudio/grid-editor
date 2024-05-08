@@ -123,20 +123,25 @@
   }
 </script>
 
-<app-action-multi-select class="w-full flex flex-row justify-between -mb-2">
+<app-action-multi-select
+  class="grid grid-cols-[1fr_auto_auto] items-center -mb-2"
+>
   <!-- When any of the array elements is true -->
-  <div class="flex flex-col w-full text-white">
-    <span class="text-gray-500 text-sm flex-wrap">Action: </span>
-    <div
-      class="flex flex-col text-sm"
+  <div class="grid grid-cols-1 self-start">
+    <span class="text-gray-500 text-sm truncate">Action: </span>
+    <span
+      class="text-white text-sm truncate"
       class:invisible={typeof selectedAction === "undefined"}
+      >{selectedAction?.at(0)}</span
     >
-      <span>{selectedAction?.at(0)}</span>
-      <span>{selectedAction?.at(1)}</span>
-    </div>
+    <span
+      class="text-white text-sm truncate"
+      class:invisible={typeof selectedAction === "undefined"}
+      >{selectedAction?.at(1)}</span
+    >
   </div>
-  <div class="flex flex-col flex-wrap w-full items-end">
-    <div class="flex flex-row">
+  <div class="flex flex-col">
+    <div class="flex flex-wrap justify-end">
       <MoltenToolbarButton
         on:click={handleCopyAll}
         on:mouseenter={() =>
@@ -193,7 +198,7 @@
         color={"#A020F0"}
       />
     </div>
-    <div class="flex flex-row">
+    <div class="flex flex-wrap justify-end">
       <MoltenToolbarButton
         on:click={handleCopyClicked}
         on:mouseenter={() =>
@@ -260,7 +265,7 @@
     </div>
   </div>
   <button
-    class="flex items-center ml-auto mr-2"
+    class="w-fit h-fit mx-2"
     use:shortcut={{
       control: true,
       code: "KeyA",
