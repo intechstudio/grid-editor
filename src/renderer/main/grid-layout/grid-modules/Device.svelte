@@ -11,6 +11,7 @@
   import EN16 from "./devices/EN16.svelte";
   import EF44 from "./devices/EF44.svelte";
   import TEK2 from "./devices/TEK2.svelte";
+  import TEK1 from "./devices/TEK1.svelte";
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
@@ -59,6 +60,7 @@
       { type: "EN16", component: EN16 },
       { type: "EF44", component: EF44 },
       { type: "TEK2", component: TEK2 },
+      { type: "TEK1", component: TEK1 },
     ];
     const index = components.findIndex((e) => e.type === device?.type);
     device.type = components[index].type;
