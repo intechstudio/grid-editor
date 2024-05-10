@@ -208,7 +208,7 @@ export const stringManipulation = {
 
   minifyScript: function (value: string) {
     var code = value;
-    const minified = minify(code);
+    const minified = luamin.minify(code);
     return minified;
   },
 
