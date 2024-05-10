@@ -1,7 +1,7 @@
-import { tooltip_content } from "./tooltip-content.json.js";
+import { tooltip_content } from "../user-interface/tooltip/tooltip-content.json";
 import type { Action } from "svelte/action";
 
-export const setTooltip: Action<HTMLElement, any> = (
+export const tooltip: Action<HTMLElement, any> = (
   node: HTMLElement,
   options: any
 ): void => {
@@ -19,12 +19,13 @@ export const setTooltip: Action<HTMLElement, any> = (
     const sibling = document.createElement("div");
     node.parentNode?.insertBefore(sibling, node.nextSibling);
 
-    const Tooltip = (await import("./Tooltip.svelte")).default;
+    const MoltenTooltip = (await import("@intechstudio/grid-uikit"))
+      .MoltenTooltip;
 
     options.referenceElement = node;
     options.text = text;
 
-    new Tooltip({
+    new MoltenTooltip({
       target: sibling,
       props: options,
     });

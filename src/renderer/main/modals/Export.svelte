@@ -2,7 +2,7 @@
   import { modal } from "./modal.store";
   import { configManager } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
-  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
   function handleCopy() {
@@ -52,7 +52,7 @@
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
-    <MoltenPushButton on:click={handleCopy} text="Copy" style="accept">
+    <MoltenPushButton click={handleCopy} text="Copy" style="accept">
       <MoltenPopup slot="popup" text="Copied to clipboard!" />
     </MoltenPushButton>
   </div>

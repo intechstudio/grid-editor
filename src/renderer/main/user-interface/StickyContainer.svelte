@@ -6,7 +6,7 @@
   import Pages from "../panels/configuration/components/Pages.svelte";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
-  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { virtual_runtime } from "../../runtime/virtual-engine";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
   import { runtime } from "../../runtime/runtime.store.js";
@@ -37,7 +37,7 @@
     {#if typeof $selectedConfigStore?.configType !== "undefined"}
       <MoltenPushButton
         text="Close Overlay"
-        on:click={() => {
+        click={() => {
           selectedConfigStore.set(undefined);
           moduleOverlay.close();
         }}
@@ -46,11 +46,11 @@
     {#if selectedModule?.architecture === Architecture.VIRTUAL}
       <MoltenPushButton
         text="Change Module"
-        on:click={handleChangeModuleClicked}
+        click={handleChangeModuleClicked}
       />
       <MoltenPushButton
         text="Remove Module"
-        on:click={handleRemoveModuleClicked}
+        click={handleRemoveModuleClicked}
       />
     {/if}
   </div>

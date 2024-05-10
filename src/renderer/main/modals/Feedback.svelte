@@ -6,9 +6,7 @@
   import { backOut } from "svelte/easing";
   import MoltenModal from "./MoltenModal.svelte";
   import { Analytics } from "../../runtime/analytics.js";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   let textArea = undefined;
   let inputField = undefined;
@@ -118,10 +116,10 @@
         </div>
       </div>
       <MoltenPushButton
-        on:click={sendFeedback}
+        click={sendFeedback}
         id="close-btn"
         text={"Submit Feedback!"}
-        style={ButtonStyle.ACCEPT}
+        style={"accept"}
       />
     </div>
 

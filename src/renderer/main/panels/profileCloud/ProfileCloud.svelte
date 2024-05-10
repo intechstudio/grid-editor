@@ -17,7 +17,7 @@
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { modal } from "../../modals/modal.store";
   import UserLogin from "../../modals/UserLogin.svelte";
-  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -426,7 +426,7 @@
         </div>
         {#if error.type === "default"}
           <MoltenPushButton
-            on:click={loadOfflineProfileCloud}
+            click={loadOfflineProfileCloud}
             text="Load Offline"
           />
         {/if}

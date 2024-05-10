@@ -22,11 +22,7 @@
   import { NumberToEventType } from "../../../../protocol/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
-  import MoltenPushButton, {
-    ButtonSnap,
-    ButtonStyle,
-  } from "../../preferences/MoltenPushButton.svelte";
-  import { MoltenInput } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -404,9 +400,9 @@
           <MoltenPushButton
             on:click={handlePaste}
             disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
-            style={ButtonStyle.ACCEPT}
+            style={"accept"}
             text={"Paste"}
-            snap={ButtonSnap.FULL}
+            snap={"full"}
           />
         </wrapper>
       </menu>
