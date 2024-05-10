@@ -41,9 +41,7 @@
   export let access_tree;
 
   import LineEditor from "../main/user-interface/LineEditor.svelte";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../main/panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   let sidebarWidth;
 
@@ -229,10 +227,10 @@
       <div class="text-sm text-red-500">Parenthesis must be closed!</div>
     {/if}
     <MoltenPushButton
-      on:click={sendData}
+      click={sendData}
       disabled={Boolean(!commitState || parenthesisError || variableNameError)}
       text={"Commit"}
-      style={ButtonStyle.ACCEPT}
+      style={"accept"}
     />
   </div>
 

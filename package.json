@@ -2,7 +2,7 @@
   "name": "grid-editor",
   "productName": "Grid Editor",
   "description": "Powerful Editor software for Intech Studio products.",
-  "version": "1.2.53",
+  "version": "1.2.54",
   "engines": {
     "node": ">=18.16.1"
   },
@@ -39,8 +39,8 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
-    "@intechstudio/grid-uikit": "^0.0.4",
     "@types/jest": "^29.5.12",
+    "@intechstudio/grid-uikit": "^0.0.8",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",

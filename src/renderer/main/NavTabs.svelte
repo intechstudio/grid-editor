@@ -1,7 +1,6 @@
 <script>
+  import { tooltip } from "./_actions/tooltip.ts";
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
-
-  import { setTooltip } from "./user-interface/tooltip/Tooltip.ts";
 
   let selectedRightTab = "Configuration";
   let selectedLeftTab = "ProfileCloud";
@@ -80,7 +79,7 @@
     -->
 
     <button
-      use:setTooltip={{
+      use:tooltip={{
         nowrap: true,
         placement: "right",
         duration: 75,
@@ -116,7 +115,7 @@
     </button>
 
     <button
-      use:setTooltip={{
+      use:tooltip={{
         nowrap: true,
         placement: "right",
         duration: 75,
@@ -174,7 +173,7 @@
 
   <div class="flex flex-col">
     <button
-      use:setTooltip={{
+      use:tooltip={{
         nowrap: true,
         placement: "right",
         duration: 75,
@@ -209,7 +208,7 @@
     </button>
 
     <button
-      use:setTooltip={{
+      use:tooltip={{
         nowrap: true,
         placement: "right",
         duration: 75,
@@ -269,7 +268,7 @@
     </button>
 
     <button
-      use:setTooltip={{
+      use:tooltip={{
         nowrap: true,
         placement: "right",
         duration: 75,
@@ -320,7 +319,7 @@
     </button>
 
     <button
-      use:setTooltip={{
+      use:tooltip={{
         nowrap: true,
         placement: "right",
         instant: true,
@@ -364,7 +363,7 @@
 
     {#if $appSettings.persistent.websocketMonitorEnabled === true}
       <button
-        use:setTooltip={{
+        use:tooltip={{
           nowrap: true,
           placement: "right",
           duration: 75,

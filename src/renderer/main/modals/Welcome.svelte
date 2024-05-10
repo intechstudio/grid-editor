@@ -3,9 +3,7 @@
   import { modal } from "./modal.store";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -234,12 +232,11 @@
         </div>
 
         <MoltenPushButton
-          on:click={() => {
+          click={() => {
             modal.close();
           }}
           id="close-btn"
           text={"Close"}
-          style={ButtonStyle.NORMAL}
         />
       </div>
     </div>

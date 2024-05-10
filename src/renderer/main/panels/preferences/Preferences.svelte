@@ -19,7 +19,6 @@
     MoltenInput,
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
-
   const configuration = window.ctxProcess.configuration();
 
   async function selectDirectory() {

@@ -12,9 +12,7 @@
   import { grid } from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../../panels/configuration/Configuration.store";
-  import MoltenPushButton, {
-    ButtonSnap,
-  } from "../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   // ok but slow nice
 
@@ -407,10 +405,6 @@
     </Splitpanes>
   </div>
   <div class="flex pt-4 pb-12">
-    <MoltenPushButton
-      text="Clear All"
-      snap={ButtonSnap.FULL}
-      on:click={onClearClicked}
-    />
+    <MoltenPushButton text="Clear All" snap={"full"} click={onClearClicked} />
   </div>
 </div>

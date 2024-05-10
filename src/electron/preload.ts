@@ -107,6 +107,8 @@ contextBridge.exposeInMainWorld("electron", {
     changePort: (port) => ipcRenderer.invoke("websocketChangePort", { port }),
   },
   restartPackageManager: () => ipcRenderer.send("restartPackageManager"),
+  installUpdate: () => ipcRenderer.send("installUpdate"),
+  disableUpdating: () => ipcRenderer.send("disableUpdating"),
   overlay: (payload) => ipcRenderer.invoke("overlay", { payload }),
 });
 
