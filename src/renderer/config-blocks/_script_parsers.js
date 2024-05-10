@@ -6,7 +6,6 @@ function splitExpression(expression) {
 
   for (var i = 0; i < expression.length; i++) {
     var char = expression.charAt(i);
-
     if (
       (char === "," && parenthesisCount === 0 && bracketCount === 0) ||
       i === expression.length - 1
@@ -28,6 +27,10 @@ function splitExpression(expression) {
         bracketCount--;
       }
     }
+  }
+
+  if (expression.charAt(expression.length - 1) === ",") {
+    parts.push("");
   }
 
   return parts;
