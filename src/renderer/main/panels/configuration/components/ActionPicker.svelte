@@ -40,7 +40,6 @@
   let actionPickerTimestamp = 0;
   let options = [];
   let filteredOptions = [];
-  let pasteEnabled = false;
   let searchValue = "";
   let searchBar;
 
@@ -77,8 +76,6 @@
       handleClose();
     }
   }
-
-  $: pasteEnabled = $appActionClipboard.length > 0;
 
   $: handleSearchValueChange(searchValue);
 
