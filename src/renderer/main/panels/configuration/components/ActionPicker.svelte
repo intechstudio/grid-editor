@@ -1,13 +1,15 @@
 <script>
   import SvgIcon from "./../../../user-interface/SvgIcon.svelte";
+  import {
+    ClipboardKey,
+    appClipboard,
+  } from "./../../../../runtime/clipboard.store.ts";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
 
   import { clickOutside } from "../../../_actions/click-outside.action";
 
   import { Analytics } from "../../../../runtime/analytics.js";
-
-  import { appActionClipboard } from "../../../../runtime/runtime.store";
 
   import { getAllComponents } from "../../../../lib/_configs";
   import {
@@ -404,7 +406,7 @@
 
           <MoltenPushButton
             on:click={handlePaste}
-            disabled={!pasteEnabled}
+            disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
             style={ButtonStyle.ACCEPT}
             text={"Paste"}
             snap={ButtonSnap.FULL}

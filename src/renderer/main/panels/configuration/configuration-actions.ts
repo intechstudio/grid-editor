@@ -1,12 +1,5 @@
-import {
-  appActionClipboard,
-  logger,
-} from "./../../../runtime/runtime.store.js";
-import {
-  runtime,
-  user_input,
-  controlElementClipboard,
-} from "../../../runtime/runtime.store.js";
+import { logger } from "./../../../runtime/runtime.store.js";
+import { runtime, user_input } from "../../../runtime/runtime.store.js";
 import {
   configManager,
   ConfigTarget,
@@ -16,8 +9,13 @@ import {
 import {
   EventType,
   EventTypeToNumber,
+  grid,
 } from "../../../protocol/grid-protocol.ts";
 import { get } from "svelte/store";
+import {
+  ClipboardKey,
+  appClipboard,
+} from "../../../runtime/clipboard.store.ts";
 
 function handleError(e: any) {
   switch (e.type) {
@@ -106,9 +104,12 @@ export async function copyElement({ dx, dy, page, element }) {
         data.push({ eventType: target!.eventType, configs: list });
       }
 
-      controlElementClipboard.set({
-        elementType: current.elementType,
-        data: data,
+      appClipboard.set({
+        key: ClipboardKey.ELEMENT,
+        payload: {
+          elementType: current.elementType,
+          data: data,
+        },
       });
       logger.set({
         type: "success",
@@ -124,7 +125,11 @@ export async function copyElement({ dx, dy, page, element }) {
 }
 
 export async function overwriteElement({ dx, dy, page, element }) {
-  let clipboard: any = get(controlElementClipboard);
+  const clipboard = get(appClipboard);
+  if (clipboard?.key !== ClipboardKey.ELEMENT) {
+    throw `Overwrite Element: Invalid clipboard type ${clipboard?.key}`;
+  }
+
   const current = ConfigTarget.create({
     device: {
       dx: dx,
@@ -144,7 +149,7 @@ export async function overwriteElement({ dx, dy, page, element }) {
       eventType: eventtype,
       page: current!.page,
     });
-    const list = clipboard.data.find(
+    const list = clipboard!.payload.data.find(
       (e: any) => e.eventType === eventtype
     ).configs;
     promises.push(list.sendTo({ target: target }));
@@ -310,7 +315,10 @@ export function copyActions() {
   const clipboard: ConfigObject[] = get(configManager)
     .makeCopy()
     .filter((e) => e.selected);
-  appActionClipboard.set(clipboard);
+  appClipboard.set({
+    key: ClipboardKey.ACTION_BLOCKS,
+    payload: clipboard,
+  });
 }
 
 export function pasteActions(index: number | undefined) {
@@ -318,12 +326,27 @@ export function pasteActions(index: number | undefined) {
     index = get(configManager).length;
   }
 
-  configManager.update((s) => {
-    s.forEach((e) => (e.selected = false));
-    s.insert(index, ...get(appActionClipboard).map((e) => e.makeCopy()));
+  const clipboard = get(appClipboard);
 
-    return s;
-  });
+  if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
+    throw `Paste: Invalid clipboard type ${clipboard?.key}`;
+  }
+
+  try {
+    configManager.update((s) => {
+      const temp = s.makeCopy();
+      temp.forEach((e) => (e.selected = false));
+      temp.insert(
+        index,
+        ...get(appClipboard)!.payload.map((e) => e.makeCopy())
+      );
+      temp.checkLength();
+      return temp;
+    });
+  } catch (e) {
+    return Promise.reject(e);
+  }
+  return Promise.resolve();
 }
 
 export function removeActions() {
@@ -335,4 +358,55 @@ export function removeActions() {
 export function cutActions() {
   copyActions();
   removeActions();
+}
+
+export function clearElement(
+  dx: number,
+  dy: number,
+  pageNumber: number,
+  elementNumber: number
+) {
+  const rt = get(runtime);
+  const device: any = rt.find((e: any) => e.dx === dx && e.dy === dy);
+  const page: any = device?.pages.find((e: any) => e.pageNumber === pageNumber);
+  const type = page.control_elements.find(
+    (e: any) => e.elementIndex === elementNumber
+  ).type;
+  const events = grid.get_element_events(type).map((e) => {
+    return {
+      value: Number(e.value),
+      config: e.defaultConfig,
+      stored: e.defaultConfig,
+    };
+  });
+
+  const current = ConfigTarget.create({
+    device: {
+      dx: dx,
+      dy: dy,
+    },
+    page: pageNumber,
+    element: elementNumber,
+    eventType: EventTypeToNumber(EventType.INIT),
+  });
+
+  const promises: Promise<void>[] = [];
+  for (const e of current!.events ?? ([] as any[])) {
+    const eventtype = e.type;
+    const target = ConfigTarget.create({
+      device: current!.device,
+      element: current!.element,
+      eventType: eventtype,
+      page: current!.page,
+    });
+    const defaultConfig = events.find(
+      (e: any) => e.value === eventtype
+    )?.config;
+    const list = ConfigList.createFromActionString(defaultConfig);
+    promises.push(list.sendTo({ target: target }));
+  }
+
+  return Promise.all(promises).then(() => {
+    configManager.refresh();
+  });
 }
