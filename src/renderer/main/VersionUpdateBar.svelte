@@ -1,5 +1,5 @@
 <script lang="ts">
-  import MoltenPushButton from "./panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const ipcRenderer = window.sketchyAPI;
   const configuration = window.ctxProcess.configuration();
