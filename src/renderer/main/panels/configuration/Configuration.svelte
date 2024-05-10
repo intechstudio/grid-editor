@@ -11,7 +11,11 @@
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
-  import { logger, user_input } from "../../../runtime/runtime.store.js";
+  import {
+    logger,
+    runtime,
+    user_input,
+  } from "../../../runtime/runtime.store.js";
 
   import {
     ConfigTarget,
@@ -478,14 +482,16 @@
             {/key}
           </config-list>
         </div>
-        <div class="w-full flex justify-between mb-3">
-          <AddActionButton
-            index={$configManager.length}
-            on:paste={handlePaste}
-            on:new-config={handleConfigInsertion}
-          />
-          <ExportConfigs />
-        </div>
+        {#if $runtime.length > 0}
+          <div class="w-full flex justify-between mb-3">
+            <AddActionButton
+              index={$configManager.length}
+              on:paste={handlePaste}
+              on:new-config={handleConfigInsertion}
+            />
+            <ExportConfigs />
+          </div>
+        {/if}
       </configs>
     </container>
   {/key}
