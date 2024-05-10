@@ -1,4 +1,5 @@
 <script>
+  import { ClipboardKey } from "./../../../runtime/clipboard.store.ts";
   import { runtime } from "./../../../runtime/runtime.store.js";
   import { Analytics } from "./../../../runtime/analytics.js";
   import {
@@ -27,10 +28,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import {
-    user_input,
-    controlElementClipboard,
-  } from "../../../runtime/runtime.store.js";
+  import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";
@@ -45,7 +43,9 @@
     overwriteElement,
     copyElement,
     discardElement,
+    clearElement,
   } from "../../../main/panels/configuration/configuration-actions";
+  import { appClipboard } from "../../../runtime/clipboard.store";
 
   export let device = undefined;
   export let width = 225;
@@ -208,6 +208,19 @@
       mandatory: false,
     });
   }
+
+  function handleClearElement() {
+    const ui = get(user_input);
+    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
+      console.warn(e);
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Clear Element" },
+      mandatory: false,
+    });
+  }
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -255,17 +268,14 @@
               text: "Overwrite Element",
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => {
-                const clipboard = $controlElementClipboard;
+                const clipboard = get(appClipboard);
                 const current = ConfigTarget.getCurrent();
-                let overwriteElementEnabled = false;
-                if (
-                  typeof clipboard !== "undefined" &&
-                  typeof current !== "undefined"
-                ) {
-                  overwriteElementEnabled =
-                    current.elementType === clipboard.elementType;
+
+                if (clipboard?.key !== ClipboardKey.ELEMENT) {
+                  return true;
                 }
-                return !overwriteElementEnabled;
+
+                return current.elementType !== clipboard.elementType;
               },
             },
             {
@@ -283,6 +293,10 @@
                 });
                 return !target.hasChanges();
               },
+            },
+            {
+              text: "Clear Element",
+              handler: handleClearElement,
             },
           ],
         }}

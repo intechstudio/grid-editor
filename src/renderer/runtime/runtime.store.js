@@ -32,11 +32,6 @@ const setIntervalAsync = (fn, ms) => {
 
 let selection_changed_timestamp = 0;
 
-/** @type {import("svelte/store").Writable<any>} */
-export const controlElementClipboard = writable(undefined);
-/** @type {import("svelte/store").Writable<ConfigObject[]>} */
-export const appActionClipboard = writable([]);
-
 export const elementPositionStore = writable({});
 export const elementNameStore = writable({});
 export const ledColorStore = writable({});

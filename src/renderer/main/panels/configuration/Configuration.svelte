@@ -48,6 +48,7 @@
     discardElement,
     overwriteElement,
     copyElement,
+    clearElement,
   } from "./configuration-actions";
 
   //////////////////////////////////////////////////////////////////////////////
@@ -236,8 +237,19 @@
 
   function handlePaste(e) {
     let { index } = e.detail;
-    pasteActions(index);
-    sendCurrentConfigurationToGrid();
+    pasteActions(index)
+      .then(() => {
+        sendCurrentConfigurationToGrid();
+      })
+      .catch((e) => {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "config-limit-reached",
+          message: `Paste failed! Config limit reached, shorten your code, or delete actions!`,
+        });
+      });
+
     Analytics.track({
       event: "Config Action",
       payload: { click: "Paste" },
@@ -257,6 +269,7 @@
 
   function handleCut(e) {
     cutActions();
+    sendCurrentConfigurationToGrid();
     Analytics.track({
       event: "Config Action",
       payload: { click: "Cut" },
@@ -329,6 +342,19 @@
     const config = configs[index];
     selectAction(index, !config.selected);
   }
+
+  function handleClearElement() {
+    const ui = get(user_input);
+    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
+      console.warn(e);
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Clear Element" },
+      mandatory: false,
+    });
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col bg-primary">
@@ -355,6 +381,7 @@
             on:copy-all={handleCopyElement}
             on:overwrite-all={handleOverwriteElement}
             on:discard={handleDiscardElement}
+            on:clear-element={handleClearElement}
           />
         </div>
 
@@ -420,7 +447,7 @@
                     }}
                   />
 
-                  <div class="z-20 flex items-center mr-2">
+                  <div class="z-20 flex items-center mx-2">
                     <Options
                       {index}
                       bind:selected={config.selected}
