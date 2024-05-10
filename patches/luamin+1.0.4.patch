@@ -1,16 +1,36 @@
 diff --git a/node_modules/luamin/luamin.js b/node_modules/luamin/luamin.js
-index a37f6b1..3fe77f3 100644
+index a37f6b1..044106e 100644
 --- a/node_modules/luamin/luamin.js
 +++ b/node_modules/luamin/luamin.js
-@@ -1,4 +1,7 @@
+@@ -1,24 +1,28 @@
  /*! https://mths.be/luamin v1.0.4 by @mathias */
+-;(function(root) {
 +
 +const { adsense } = require('googleapis/build/src/apis/adsense');
 +
- ;(function(root) {
++//;(function(root) {
  
  	// Detect free variables `exports`
-@@ -18,7 +21,8 @@
+-	var freeExports = typeof exports == 'object' && exports;
++	//var freeExports = typeof exports == 'object' && exports;
+ 
+ 	// Detect free variable `module`
+-	var freeModule = typeof module == 'object' && module &&
+-		module.exports == freeExports && module;
++	//var freeModule = typeof module == 'object' && module &&
++	//	module.exports == freeExports && module;
+ 
+ 	// Detect free variable `global`, from Node.js or Browserified code,
+ 	// and use it as `root`
+-	var freeGlobal = typeof global == 'object' && global;
+-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+-		root = freeGlobal;
+-	}
++	//var freeGlobal = typeof global == 'object' && global;
++	//if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
++	//	root = freeGlobal;
++	//}
+ 
  	/*--------------------------------------------------------------------------*/
  
  	var luaparse = root.luaparse || require('luaparse');
@@ -70,7 +90,19 @@ index a37f6b1..3fe77f3 100644
  
  			result = 'local ';
  
-@@ -638,7 +646,11 @@
+@@ -614,7 +622,10 @@
+ 		return result;
+ 	};
+ 
+-	var minify = function(argument) {
++	console.log("ASD")
++
++	export var minify = function(argument) {
++		console.log("ASD")
+ 		// `argument` can be a Lua code snippet (string)
+ 		// or a luaparse-compatible AST (object)
+ 		var ast = typeof argument == 'string'
+@@ -638,11 +649,16 @@
  			throw Error('Missing required AST property: `globals`');
  		}
  
@@ -83,3 +115,16 @@ index a37f6b1..3fe77f3 100644
  	};
  
  	/*--------------------------------------------------------------------------*/
+ 
++	/*
+ 	var luamin = {
+ 		'version': '1.0.4',
+ 		'minify': minify
+@@ -667,5 +683,5 @@
+ 	} else { // in Rhino or a web browser
+ 		root.luamin = luamin;
+ 	}
+-
+-}(this));
++	*/
++//}(this));
