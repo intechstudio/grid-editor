@@ -1,5 +1,6 @@
 import { grid } from "../../protocol/grid-protocol";
-import * as luamin from "lua-format";
+import { formatText } from "lua-fmt";
+import * as luamin from "luamin";
 
 export const stringManipulation = {
   initialize: function (inputSet = []) {
@@ -7,7 +8,7 @@ export const stringManipulation = {
     let regex_human = {};
     let lookup = [];
 
-    let functions = { pattern: [], values: {} };
+    //let functions = { pattern: [], values: {} };
 
     // create type fields for different lua parts
     let newarr = [inputSet[0].type];
@@ -41,6 +42,7 @@ export const stringManipulation = {
         });
     });
 
+    /*
     // function could be used for validation purpose, currently not used.
     inputSet.forEach((obj, i) => {
       if (obj.parameters !== undefined) {
@@ -53,6 +55,7 @@ export const stringManipulation = {
     }
 
     functions.pattern = functions.pattern.join("|");
+    */
 
     let function_types = [];
     for (const key in regex_human) {
@@ -70,8 +73,8 @@ export const stringManipulation = {
     //console.log(this.VALIDATOR);
   },
 
-  splitShortScript: function (script, mode) {
-    let lookupType;
+  splitShortScript: function (script: string, mode: string) {
+    let lookupType: any;
 
     switch (mode) {
       case "short":
@@ -107,11 +110,11 @@ export const stringManipulation = {
     // if unknown
     pattern.push(`${"(?<other>([a-zA-Z]+))"}`);
     // create full pattern
-    pattern = pattern.join("|");
+    const regExPattern = pattern.join("|");
 
-    const regex = new RegExp(pattern, "g");
+    const regex = new RegExp(regExPattern, "g");
 
-    let m;
+    let m: any;
     let arr = [];
     while ((m = regex.exec(script)) !== null) {
       // This is necessary to avoid infinite loops with zero-width matches
@@ -127,7 +130,7 @@ export const stringManipulation = {
     return arr;
   },
 
-  humanize: function (script) {
+  humanize: function (script: string) {
     // We should heaviliy consider handling spaces and returns better!
 
     const splitArray = this.splitShortScript(script, "short");
@@ -141,101 +144,14 @@ export const stringManipulation = {
     return humanized;
   },
 
-  blockCommentToLineComment: function (script) {
-    // Regular expression to match Lua block comments
-    var blockCommentRegex = /--\[\[\s*([\s\S]*?)\s*--\]\]/g;
-
-    // Replace each block comment with equivalent line comments
-    var convertedCode = script.replace(blockCommentRegex, function (match, p1) {
-      // Split the block comment into lines and add '-- ' to each line
-      var lines = p1.split("\n");
-      var commentedLines = lines.map(function (line) {
-        return "-- " + line.trim();
-      });
-
-      // Join the lines back together with newline characters
-      return commentedLines.join("\n");
-    });
-
-    return convertedCode;
-  },
-
-  lineCommentToNoComment: function (script) {
-    const short_lines2 = script.split("\n");
-
-    // Covert line comments to global comment variables
-    short_lines2.forEach((element, index) => {
-      let trimmed = element.trim();
-
-      let lineCommentStartIndex = trimmed.indexOf("--");
-
-      if (lineCommentStartIndex !== -1) {
-        let beginning = trimmed.substring(0, lineCommentStartIndex);
-        let comment = trimmed
-          .substring(lineCommentStartIndex + 2, trimmed.length)
-          .trim();
-
-        let gotReturnChar = false;
-        if (comment.indexOf("\r") == comment.length - 1) {
-          gotReturnChar = true;
-          comment = comment.substring(0, comment.length - 1);
-        }
-
-        if (lineCommentStartIndex > 2) {
-          comment = "$" + comment;
-        }
-        let commentEncoded = ' COMMENT="' + window.btoa(comment) + '"';
-
-        if (gotReturnChar) {
-          commentEncoded += "\r";
-        }
-
-        short_lines2[index] = beginning + commentEncoded;
-      }
-    });
-
-    return short_lines2.join("\n");
-  },
-
-  noCommentToLineComment: function (script) {
-    let lines = script.split("\n");
-
-    let lines2 = [];
-
-    lines.forEach((element, index) => {
-      if (element.indexOf("COMMENT = ") !== -1) {
-        let parts = element.split("COMMENT = ");
-        //console.log("parts", parts);
-        parts[1] = window.atob(parts[1].split('"')[1]);
-        //console.log("parts", parts);
-
-        if (parts[1].substring(0, 1) === "$") {
-          parts[1] = parts[1].substring(1);
-          let result = parts.join("--");
-          //console.log(result);
-          //console.log("$$$$");
-          lines2[lines2.length - 1] += result;
-        } else {
-          let result = parts.join("--");
-          //console.log(result);
-          lines2.push(result);
-        }
-      } else {
-        lines2.push(element);
-      }
-    });
-
-    return lines2.join("\n");
-  },
-
-  shortify(script) {
+  shortify(script: string) {
     // We should heaviliy consider handling spaces and returns better!
     const splitArray = this.splitShortScript(script, "human");
     const shorted = this.splitArrayToString(splitArray, "short");
     return shorted;
   },
 
-  typeCheck: function (type, value) {
+  typeCheck: function (type: string, value: string) {
     let bool = false;
 
     const blacklist = ["if", "else", "elseif", "end"];
@@ -250,9 +166,9 @@ export const stringManipulation = {
     return bool;
   },
 
-  splitArrayToString: function (splitArray, direction) {
-    let returnFormat;
-    let lookupFormat;
+  splitArrayToString: function (splitArray: any[], direction: string) {
+    let returnFormat: string;
+    let lookupFormat: string;
 
     switch (direction) {
       case "human": {
@@ -271,7 +187,7 @@ export const stringManipulation = {
 
     splitArray.forEach((element) => {
       const found = this.VALIDATOR.lookup.find(
-        (lookup_element) => lookup_element[lookupFormat] == element.value
+        (lookup_element: any) => lookup_element[lookupFormat] == element.value
       );
 
       try {
@@ -290,41 +206,22 @@ export const stringManipulation = {
     return string;
   },
 
-  compressScript: function (script) {
-    let code = script;
-    //Step 1
-    code = stringManipulation.shortify(code);
-
-    //Step 2
-    code = stringManipulation.blockCommentToLineComment(code);
-    code = stringManipulation.lineCommentToNoComment(code);
-
-    //Step 3
-    const result = luamin.Minify(code, {
-      RenameVariables: false,
-      RenameGlobals: false,
-      SolveMath: false,
-    });
-
-    return result.trim();
+  minifyScript: function (value: string) {
+    var code = value;
+    const minified = luamin.minify(code);
+    return minified;
   },
 
-  expandScript: function (script) {
-    let code = script;
-    //Step 1
-    code = luamin.Beautify(code, {
-      RenameVariables: false,
-      RenameGlobals: false,
-      SolveMath: false,
-    });
+  compressScript: function (script: string) {
+    const short = stringManipulation.shortify(script);
+    const minified = this.minifyScript(short);
+    return minified;
+  },
 
-    //Step 2
-    code = stringManipulation.noCommentToLineComment(code);
-
-    //Step 3
-    const result = stringManipulation.humanize(String(code));
-
-    return result.trim();
+  expandScript: function (script: string) {
+    const human = stringManipulation.humanize(script);
+    const formatted = formatText(human);
+    return formatted;
   },
 };
 
