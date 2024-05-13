@@ -36,10 +36,10 @@
     "svelte-preprocess": "^5.0.3",
     "tailwindcss": "^3.1.8",
     "vite-plugin-commonjs": "^0.6.0",
-    "vite-plugin-monaco-editor": "^1.1.0"
+    "vite-plugin-monaco-editor": "^1.1.0",
+    "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@types/jest": "^29.5.12",
     "@intechstudio/grid-uikit": "^0.0.8",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
@@ -54,7 +54,6 @@
     "googleapis": "^100.0.0",
     "grid-protocol": "^1.2.36",
     "is-online": "^10.0.0",
-    "jest": "^29.7.0",
     "lua-fmt": "^2.6.0",
     "luamin": "^1.0.4",
     "luaparse": "^0.3.0",
@@ -95,7 +94,7 @@
     "gen:buildVars:prod": "node ./build-scripts/prod-buildVars.js",
     "preinstall": "node ./build-scripts/check-node-version.js",
     "postinstall": "electron-builder install-app-deps && patch-package",
-    "test": "mocha && npx jest",
+    "test": "mocha && vitest run",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
     "electron-dev": "run-s gen:buildVars:dev electron:dev",
     "format": "prettier --write .",
