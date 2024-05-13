@@ -1,6 +1,6 @@
 import { grid } from "../../protocol/grid-protocol";
 import { formatText } from "lua-fmt";
-import * as luamin from "luamin";
+import { minify } from "luamin";
 
 export const stringManipulation = {
   initialize: function (inputSet = []) {
