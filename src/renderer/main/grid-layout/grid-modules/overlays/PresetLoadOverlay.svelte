@@ -120,11 +120,7 @@
               class:icon-corner-cut-l={isLeftCut}
               class:scale-50={elementNumber == 255}
             >
-              <SvgIcon
-                class="text-white"
-                iconPath={loaded ? "tick" : "download"}
-                displayMode={"static"}
-              />
+              <SvgIcon fill="#FFF" iconPath={loaded ? "tick" : "download"} />
             </button>
           {/if}
         </div>
