@@ -12,7 +12,20 @@ export const shortcut = (node: HTMLElement, params?: ShortcutParameter) => {
     setHandler = () => {
       removeHandler();
       if (!params) return;
+
       handler = (e: KeyboardEvent) => {
+        // Check if the event target is an input, textarea, or contenteditable element
+        const target = e.target as HTMLElement;
+        const isInputField =
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable;
+
+        // If the target is an input field, textarea, or contenteditable, allow default behavior
+        if (isInputField) {
+          return;
+        }
+
         if (
           !!params.alt != e.altKey ||
           !!params.shift != e.shiftKey ||
