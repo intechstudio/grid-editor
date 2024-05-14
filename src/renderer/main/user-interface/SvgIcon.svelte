@@ -2,7 +2,6 @@
   export let iconPath: string = "";
   export let width: number = 15;
   export let height: number = 15;
-  export let fill: string | undefined = undefined;
 
   let rawSvg: string;
 
@@ -15,7 +14,7 @@
   }
 </script>
 
-<svg style="width: {width}px; height: {height}px; fill: {fill};">
+<svg style="width: {width}px; height: {height}px;">
   <g>
     {@html rawSvg}
   </g>
