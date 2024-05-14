@@ -1,8 +1,8 @@
 diff --git a/node_modules/luamin/luamin.js b/node_modules/luamin/luamin.js
-index a37f6b1..a69b5c8 100644
+index a37f6b1..9088a7a 100644
 --- a/node_modules/luamin/luamin.js
 +++ b/node_modules/luamin/luamin.js
-@@ -1,24 +1,28 @@
+@@ -1,24 +1,29 @@
  /*! https://mths.be/luamin v1.0.4 by @mathias */
 -;(function(root) {
 +
@@ -36,12 +36,13 @@ index a37f6b1..a69b5c8 100644
 -	var luaparse = root.luaparse || require('luaparse');
 -	luaparse.defaultOptions.comments = false;
 +	import * as luaparse from "luaparse"
++import { rsort } from "semver";
 +	luaparse.defaultOptions.comments = true;
 +	luaparse.defaultOptions.locations = true;
  	luaparse.defaultOptions.scope = true;
  	var parse = luaparse.parse;
  
-@@ -123,6 +127,7 @@
+@@ -123,6 +128,7 @@
  	var identifierMap;
  	var identifiersInUse;
  	var generateIdentifier = function(originalName) {
@@ -49,14 +50,14 @@ index a37f6b1..a69b5c8 100644
  		// Preserve `self` in methods
  		if (originalName == 'self') {
  			return originalName;
-@@ -244,16 +249,16 @@
+@@ -244,16 +250,16 @@
  				? generateIdentifier(expression.name)
  				: expression.name;
  
 -		} else if (
 -			expressionType == 'StringLiteral' ||
 +		} else if (expressionType == 'StringLiteral') {
-+			result = "'" + expression.value + "'";
++			result = expression.raw;
 +		}
 +		else if(
  			expressionType == 'NumericLiteral' ||
@@ -70,6 +71,14 @@ index a37f6b1..a69b5c8 100644
  		} else if (
  			expressionType == 'LogicalExpression' ||
  			expressionType == 'BinaryExpression'
+@@ -413,7 +419,6 @@
+ 			throw TypeError('Unknown expression type: `' + expressionType + '`');
+ 
+ 		}
+-
+ 		return result;
+ 	};
+ 
 @@ -428,7 +433,6 @@
  	var formatStatement = function(statement) {
  		var result = '';
@@ -100,7 +109,7 @@ index a37f6b1..a69b5c8 100644
  		// `argument` can be a Lua code snippet (string)
  		// or a luaparse-compatible AST (object)
  		var ast = typeof argument == 'string'
-@@ -638,11 +646,16 @@
+@@ -638,11 +646,17 @@
  			throw Error('Missing required AST property: `globals`');
  		}
  
@@ -109,7 +118,8 @@ index a37f6b1..a69b5c8 100644
 +		const sorted = expressions.sort(function(a, b) {
 +			return a.loc.start.line - b.loc.start.line || a.loc.start.column - b.loc.start.column;
 +		})
-+		return formatStatementList(sorted);
++		const res = formatStatementList(sorted);
++		return res;
  	};
  
  	/*--------------------------------------------------------------------------*/
@@ -118,7 +128,7 @@ index a37f6b1..a69b5c8 100644
  	var luamin = {
  		'version': '1.0.4',
  		'minify': minify
-@@ -667,5 +680,5 @@
+@@ -667,5 +681,5 @@
  	} else { // in Rhino or a web browser
  		root.luamin = luamin;
  	}
