@@ -73,8 +73,8 @@
           Grid Editor version {version} is ready to be downloaded.
         </div>
       </div>
-      <MoltenPushButton on:click={handleInstallUpdate} text="Download" />
-      <MoltenPushButton on:click={handleCloseClicked} text="Close" />
+      <MoltenPushButton click={handleInstallUpdate} text="Download" />
+      <MoltenPushButton click={handleCloseClicked} text="Close" />
     {/if}
     {#if state === UpdateState.DOWNLOADING}
       <div class="flex flex-col">
@@ -90,8 +90,8 @@
         <p class="text-white font-bold">Update Successful!</p>
         <p class="text-white">It will be installed on restart. Restart now?</p>
       </div>
-      <MoltenPushButton on:click={restartApp} text="Restart" />
-      <MoltenPushButton on:click={handleCloseClicked} text="Close" />
+      <MoltenPushButton click={restartApp} text="Restart" />
+      <MoltenPushButton click={handleCloseClicked} text="Close" />
     {/if}
 
     {#if state === UpdateState.ERROR}
@@ -102,8 +102,8 @@
           system!
         </p>
       </div>
-      <MoltenPushButton on:click={handleDownloadClicked} text="Download" />
-      <MoltenPushButton on:click={handleCloseClicked} text="Close" />
+      <MoltenPushButton click={handleDownloadClicked} text="Download" />
+      <MoltenPushButton click={handleCloseClicked} text="Close" />
     {/if}
   </div>
 </container>

@@ -398,7 +398,7 @@
           </div>
 
           <MoltenPushButton
-            on:click={handlePaste}
+            click={handlePaste}
             disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
             style={"accept"}
             text={"Paste"}
