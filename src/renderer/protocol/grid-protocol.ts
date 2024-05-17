@@ -9,6 +9,8 @@ export enum ModuleType {
   PBF4 = "PBF4",
   PO16 = "PO16",
   TEK2 = "TEK2",
+  TEK1 = "TEK1",
+  PB44 = "PB44",
 }
 
 export enum EventType {
@@ -249,7 +251,7 @@ function createNestedObject(base: any, names: any, value: any) {
   // to avoid array property overwriting
 
   if (value == "epva") {
-    console.log(base, names, value);
+    //console.log(base, names, value);
   }
 
   let _names = [...names];
@@ -580,6 +582,19 @@ const moduleElements: { [key in ModuleType]: ElementType[] } = {
     ...Array(8).fill(ElementType.BUTTON),
     ...Array(2).fill(ElementType.ENDLESS),
     ...Array(245), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
+  ],
+  [ModuleType.TEK1]: [
+    ...Array(8).fill(ElementType.BUTTON),
+    ...Array(1).fill(ElementType.ENDLESS),
+    ...Array(4).fill(ElementType.BUTTON),
+    ...Array(242), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
+  ],
+  [ModuleType.PB44]: [
+    ...Array(8).fill(ElementType.POTMETER),
+    ...Array(8).fill(ElementType.BUTTON),
+    ...Array(239), // Filling with undefined values until index 254
     ElementType.SYSTEM, // Add system element at index 255
   ],
 };

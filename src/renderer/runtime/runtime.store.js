@@ -32,11 +32,6 @@ const setIntervalAsync = (fn, ms) => {
 
 let selection_changed_timestamp = 0;
 
-/** @type {import("svelte/store").Writable<any>} */
-export const controlElementClipboard = writable(undefined);
-/** @type {import("svelte/store").Writable<ConfigObject[]>} */
-export const appActionClipboard = writable([]);
-
 export const elementPositionStore = writable({});
 export const elementNameStore = writable({});
 export const ledColorStore = writable({});
@@ -480,18 +475,26 @@ function create_runtime() {
           });
         }
 
-        let lastDate = get(heartbeat).find(
+        const lastDate = get(heartbeat).find(
           (device) => device.id == controller.id
-        ).alive;
-        let newDate = Date.now();
-        get(heartbeat).find((device) => device.id == controller.id).alive =
-          newDate;
+        )?.alive;
+        if (lastDate) {
+          let newDate = Date.now();
 
-        //console.log(newDate - lastDate)
-        if (get(appSettings).persistent.heartbeatDebugEnabled) {
-          const key1 = `Hearbeat (${controller.dx}, ${controller.dy})`;
+          heartbeat.update((store) => {
+            const device = store.find((device) => device.id == controller.id);
+            if (device) {
+              device.alive = newDate;
+            }
+            return store;
+          });
 
-          add_datapoint(key1, newDate - lastDate);
+          //console.log(newDate - lastDate)
+          if (get(appSettings).persistent.heartbeatDebugEnabled) {
+            const key1 = `Hearbeat (${controller.dx}, ${controller.dy})`;
+
+            add_datapoint(key1, newDate - lastDate);
+          }
         }
       }
       // device not found, add it to runtime and get page count from grid
@@ -1212,7 +1215,7 @@ const grid_heartbeat_interval_handler = async function () {
       return;
     }
 
-    const alive = get(heartbeat).find((e) => e.id == device.id).alive;
+    const alive = get(heartbeat).find((e) => e.id == device.id)?.alive;
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
@@ -1221,7 +1224,7 @@ const grid_heartbeat_interval_handler = async function () {
         : heartbeat_grid_ms * 3;
     const elapsedTime = Date.now() - alive;
 
-    if (elapsedTime > elapsedTimeLimit) {
+    if (!alive || elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
       heartbeat.update((heartbeat) => {

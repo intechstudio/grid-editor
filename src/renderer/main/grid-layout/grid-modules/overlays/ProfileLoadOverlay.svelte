@@ -1,8 +1,11 @@
 <script>
+  import { get } from "svelte/store";
+  import { user_input } from "./../../../../runtime/runtime.store.js";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
+  import { ConfigTarget } from "../../../panels/configuration/Configuration.store";
 
   export let device = undefined;
   export let visible = false;
@@ -29,6 +32,22 @@
   function handleProfileLoad(e) {
     const { success } = e.detail;
     loadedState = success ? 2 : 0;
+
+    if (!success) {
+      return;
+    }
+
+    const { dx, dy } = ConfigTarget.getCurrent().device;
+    if (dx !== device.dx || dy !== device.dy) {
+      const ui = get(user_input);
+      user_input.set({
+        dx: device.dx,
+        dy: device.dy,
+        pagenumber: ui.pagenumber,
+        elementnumber: ui.elementnumber,
+        eventtype: ui.eventtype,
+      });
+    }
   }
 </script>
 
@@ -53,24 +72,20 @@
               {#if loadedState === 0}
                 <span class="text-white mr-2">Load Profile</span>
                 <SvgIcon
-                  class="text-white"
+                  fill="#FFF"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
               {:else if loadedState === 1}
                 <span class="text-white mr-2">Loading...</span>
                 <SvgIcon
-                  class="text-white"
+                  fill="#FFF"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
               {:else if loadedState === 2}
                 <span class="text-white">Loaded!</span>
-                <SvgIcon
-                  class="text-white"
-                  iconPath={"tick"}
-                  displayMode={"static"}
-                />
+                <SvgIcon fill="#FFF" iconPath={"tick"} displayMode={"static"} />
               {/if}
             </button>
           {/key}

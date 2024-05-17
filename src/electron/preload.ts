@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld("electron", {
     findBootloaderPath: () => ipcRenderer.invoke("findBootloaderPath"),
     firmwareDownload: (targetFolder, arch, product) =>
       ipcRenderer.invoke("firmwareDownload", { targetFolder }),
+    firmwareNightlyDownload: (targetFolder, arch, product) =>
+      ipcRenderer.invoke("firmwareNightlyDownload", { targetFolder }),
   },
   serial: {
     restartSerialCheckInterval: () =>
@@ -105,6 +107,8 @@ contextBridge.exposeInMainWorld("electron", {
     changePort: (port) => ipcRenderer.invoke("websocketChangePort", { port }),
   },
   restartPackageManager: () => ipcRenderer.send("restartPackageManager"),
+  installUpdate: () => ipcRenderer.send("installUpdate"),
+  disableUpdating: () => ipcRenderer.send("disableUpdating"),
   overlay: (payload) => ipcRenderer.invoke("overlay", { payload }),
 });
 

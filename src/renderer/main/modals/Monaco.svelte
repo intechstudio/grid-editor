@@ -1,6 +1,6 @@
 <script>
   import { watchResize } from "svelte-watch-resize";
-  import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
   import { grid } from "../../protocol/grid-protocol";
   import { modal } from "./modal.store";
@@ -14,7 +14,6 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import * as luamin from "lua-format";
   import { stringManipulation } from "../../main/user-interface/_string-operations";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -193,17 +192,13 @@
 
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
-            on:click={handleCommit}
+            click={handleCommit}
             disabled={!commitEnabled}
             text="Commit"
             style="accept"
           />
 
-          <MoltenPushButton
-            on:click={handleClose}
-            text="Close"
-            style="normal"
-          />
+          <MoltenPushButton click={handleClose} text="Close" style="normal" />
         </div>
       </div>
     </div>

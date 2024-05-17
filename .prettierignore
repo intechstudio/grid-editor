@@ -1,7 +1,6 @@
 src/renderer/runtime/intech_lua.json
 dist/*
 dist-web/*
-src/renderer/assets/*
 build/*
 build-assets/*
 src/external/grid-protocol/*

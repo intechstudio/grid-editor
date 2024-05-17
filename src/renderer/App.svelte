@@ -20,8 +20,6 @@
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
 
-  import Updater from "./shared/updater/Updater.svelte";
-
   import { windowSize } from "./runtime/window-size";
 
   import { authStore } from "$lib/auth.store";
@@ -39,7 +37,10 @@
     setDocumentAnimationsEnabled,
     reduced_motion_store,
   } from "../renderer/runtime/animations";
+
   import { instructions } from "./serialport/instructions";
+  import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
+
 
   console.log("Hello from Svelte main.js");
 
@@ -259,13 +260,11 @@
     <svelte:component this={$modal?.component} />
   {/if}
 
-  <!-- Update notification -->
-  <Updater />
-
   <div class="flex flex-col w-full h-full">
     <FirmwareCheck />
 
     <ErrorConsole />
+    <VersionUpdateBar />
 
     <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">

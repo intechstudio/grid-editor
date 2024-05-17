@@ -49,9 +49,7 @@
 
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../main/panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -146,10 +144,10 @@
       </div>
     {/key}
     <MoltenPushButton
-      on:click={sendData}
+      click={sendData}
       disabled={!commitState}
       text={"Commit"}
-      style={ButtonStyle.ACCEPT}
+      style={"accept"}
     />
   </div>
 

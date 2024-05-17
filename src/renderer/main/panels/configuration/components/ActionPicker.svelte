@@ -1,12 +1,15 @@
 <script>
+  import SvgIcon from "./../../../user-interface/SvgIcon.svelte";
+  import {
+    ClipboardKey,
+    appClipboard,
+  } from "./../../../../runtime/clipboard.store.ts";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
 
   import { clickOutside } from "../../../_actions/click-outside.action";
 
   import { Analytics } from "../../../../runtime/analytics.js";
-
-  import { appActionClipboard } from "../../../../runtime/runtime.store";
 
   import { getAllComponents } from "../../../../lib/_configs";
   import {
@@ -19,10 +22,7 @@
   import { NumberToEventType } from "../../../../protocol/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
-  import MoltenPushButton, {
-    ButtonSnap,
-    ButtonStyle,
-  } from "../../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -33,14 +33,19 @@
 
   let offset = 0;
   const dispatch = createEventDispatcher();
-  //let promptValue = "";
   let actionPickerTimestamp = 0;
   let options = [];
-  let pasteEnabled = false;
+  let filteredOptions = [];
+  let searchValue = "";
+  let searchBar;
 
   onMount(() => {
     referenceElement.addEventListener("click", handleReferenceElementClick);
     actionPickerTimestamp = Date.now();
+    const focusSearchBar = searchBar?.focus;
+    if (typeof focusSearchBar !== "undefined") {
+      focusSearchBar();
+    }
   });
 
   // Clean up the event listener when the component is destroyed
@@ -68,7 +73,7 @@
     }
   }
 
-  $: pasteEnabled = $appActionClipboard.length > 0;
+  $: handleSearchValueChange(searchValue);
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
@@ -234,7 +239,6 @@
 
   function handleReferenceElementClick(e) {
     const width = e.target.clientWidth;
-    const offsetX = e.offsetX;
     offset = -width;
   }
 
@@ -243,6 +247,7 @@
   }
 
   function handleClose(e) {
+    console.log("close");
     dispatch("close");
   }
 
@@ -286,84 +291,118 @@
     });
     handleClose();
   }
+
+  function handleSearchValueChange(value) {
+    const searchTerms = value.trim().toLowerCase().split(" ");
+    filteredOptions = options.map((option) =>
+      Object({
+        category: option.category,
+        components: option.components.filter((e) => {
+          const name = (
+            typeof e.information.menuName === "undefined"
+              ? e.information.displayName
+              : e.information.menuName
+          ).toLocaleLowerCase();
+
+          for (const term of searchTerms) {
+            if (name.indexOf(term.toLocaleLowerCase()) === -1) {
+              return false;
+            }
+          }
+          return true;
+        }),
+      })
+    );
+    filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
+  }
+
+  function handleKeydown(e) {
+    if (e.code !== "Enter") {
+      return;
+    }
+    const component = filteredOptions[0]?.components[0];
+    if (typeof component === "undefined") {
+      return;
+    }
+    handleAddAction({ component });
+  }
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
+
 <container style="z-index: 666;">
-  <Popover isOpen={true} id="tooltip" {referenceElement} placement={"left"}>
+  <Popover isOpen={true} {referenceElement} placement={"left"}>
     <pick-action
       use:clickOutside={{ useCapture: true }}
       on:click-outside={handleClickOutside}
       class="flex w-96"
-      style={`max-height: calc(100vh - 27px); `}
+      style={`max-height: calc(100vh - 27px); width: 20vw;`}
     >
       <menu
         id="action-menu"
         class="shadow-md rounded-md bg-primary border border-gray-700 p-4"
-        style="max-height: 35rem;"
+        style="height: 35rem; width: 20vw;"
       >
-        <wrapper class="flex flex-col flex-grow h-full">
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <div
-            on:click={handleClose}
-            id="close-btn"
-            style="top:8px; right:8px;"
-            class="absolute right-0 p-1 cursor-pointer not-draggable hover:bg-secondary"
-          >
-            <svg
-              class="w-5 h-5 p-1 fill-current text-gray-500"
-              viewBox="0 0 29 29"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-              />
-              <path
-                d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-              />
-            </svg>
+        <wrapper class="flex flex-col w-full h-full gap-2">
+          <div class="flex flex-col flex-grow">
+            <div class="flex flex-row justify-between">
+              <span class="text-gray-500 text-sm self-end"> Search: </span>
+              <button
+                on:click={handleClose}
+                id="close-btn"
+                class="hover:bg-secondary fill-gray-500 p-1 rounded mb-1"
+              >
+                <SvgIcon width={10} height={10} iconPath={"close"} />
+              </button>
+            </div>
+            <MoltenInput bind:this={searchBar} bind:target={searchValue} />
           </div>
 
-          <div class="flex flex-col w-full overflow-y-auto mb-2">
-            {#each options as option}
-              <div class="text-gray-500 text-sm">
-                {option.category[0].toUpperCase() + option.category.slice(1)}
-              </div>
+          <div class="flex flex-col w-full h-full overflow-y-auto">
+            {#if filteredOptions.length > 0}
+              {#each filteredOptions as option}
+                <div class="text-gray-500 text-sm">
+                  {option.category[0].toUpperCase() + option.category.slice(1)}
+                </div>
 
-              <div class="w-full flex justify-start py-1 h-full flex-wrap">
-                {#each option.components as component}
-                  <!-- svelte-ignore a11y-click-events-have-key-events -->
-                  <!-- svelte-ignore a11y-no-static-element-interactions -->
-                  <div
-                    style="--action-color: {component.information.color};"
-                    on:click={() => handleAddAction({ component })}
-                    class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
-                  >
-                    <div class="w-6 h-6 p-0.5 m-0.5">
-                      {@html component.information.icon}
-                    </div>
+                <div class="w-full flex justify-start py-1 flex-wrap">
+                  {#each option.components as component}
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y-no-static-element-interactions -->
                     <div
-                      class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
+                      style="--action-color: {component.information.color};"
+                      on:click={() => handleAddAction({ component })}
+                      class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
                     >
-                      {#if typeof component.information.menuName === "undefined"}
-                        {component.information.displayName}
-                      {:else}
-                        {component.information.menuName}
-                      {/if}
+                      <div class="w-6 h-6 p-0.5 m-0.5">
+                        {@html component.information.icon}
+                      </div>
+                      <div
+                        class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
+                      >
+                        {#if typeof component.information.menuName === "undefined"}
+                          {component.information.displayName}
+                        {:else}
+                          {component.information.menuName}
+                        {/if}
+                      </div>
                     </div>
-                  </div>
-                {/each}
+                  {/each}
+                </div>
+              {/each}
+            {:else}
+              <div class="flex items-center justify-center w-full h-full">
+                <span class="text-gray-500">No results</span>
               </div>
-            {/each}
+            {/if}
           </div>
 
           <MoltenPushButton
-            on:click={handlePaste}
-            disabled={!pasteEnabled}
-            style={ButtonStyle.ACCEPT}
+            click={handlePaste}
+            disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
+            style={"accept"}
             text={"Paste"}
-            snap={ButtonSnap.FULL}
+            snap={"full"}
           />
         </wrapper>
       </menu>
