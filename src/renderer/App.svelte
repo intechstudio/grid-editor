@@ -41,7 +41,6 @@
   import { instructions } from "./serialport/instructions";
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
 
-
   console.log("Hello from Svelte main.js");
 
   const configuration = window.ctxProcess.configuration();
