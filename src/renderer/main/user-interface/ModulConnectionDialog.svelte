@@ -41,11 +41,12 @@
 <div class={$$props.class}>
   <div class="flex flex-col bg-primary rounded-md shadow-xl w-64 p-4 relative">
     {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
-      <div class="flex flex-col gap-2">
-        <span class="text-xl text-white text-center">Connect your modules!</span
+      <div class="flex flex-col">
+        <span class="text-xl text-white text-center mb-4"
+          >Connect your modules!</span
         >
         <SvgIcon width={"100%"} height={25} fill={"#FFF"} iconPath="disabled" />
-        <span class="text-white text-sm">
+        <span class="text-white text-sm mt-4">
           Enable module connection by enabling Grid Editor to access USB!
         </span>
       </div>
