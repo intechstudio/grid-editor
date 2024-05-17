@@ -178,13 +178,6 @@
         disabled={!isChanges}
         text="Discard All"
       />
-
-      <MoltenPushButton
-        on:click={() => {
-          instructions.sendImmediateToGrid(0, 0, "<?lua print(0,1,2,3) ?>");
-        }}
-        text="Immediate"
-      />
     </div>
     <div
       use:tooltip={{
