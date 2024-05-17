@@ -65,9 +65,7 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       },
     },
     serial: {
-      restartSerialCheckInterval: async () => {
-        return {};
-      },
+      restartSerialCheckInterval: async () => {},
     },
     websocket: {
       onReceive: async () => {},

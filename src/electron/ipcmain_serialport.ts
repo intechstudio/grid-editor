@@ -1,8 +1,10 @@
-const { setIntervalAsync, clearIntervalAsync } = require("set-interval-async");
+import { setIntervalAsync, clearIntervalAsync } from "set-interval-async";
 
 export const serial = {
   mainWindow: undefined,
 };
+
+const RECONNECT_INTERVAL = 1000;
 
 let port_disovery_interval;
 
@@ -14,12 +16,16 @@ let port_disovery_interval;
  */
 
 // Basic serial usage
-async function listSerialPorts() {
+async function attemptSerialConnection() {
+  console.log("Attmepting to connect serial port...");
   if (serial.mainWindow !== undefined) {
     try {
       const timeoutPromise = new Promise((res) =>
         setTimeout(() => res("Serial port connect request timed out!"), 1000)
-      );
+      ).then((e) => {
+        //If the timeout function returns first, do the error handling
+        throw e;
+      });
 
       //Always return with a false if successful
       const portRequestPromise =
@@ -30,11 +36,6 @@ async function listSerialPorts() {
 
       //Check which async function return first
       const result = await Promise.race([timeoutPromise, portRequestPromise]);
-
-      //If the timeout function returns first, do the error handling
-      if (typeof result === "string") {
-        throw new Error(result);
-      }
     } catch (e) {
       console.log(e);
     }
@@ -42,11 +43,11 @@ async function listSerialPorts() {
 }
 
 export function restartSerialCheckInterval() {
-  if (typeof port_disovery_interval !== "undefined") {
-    clearIntervalAsync(port_disovery_interval);
-  }
-
-  port_disovery_interval = setIntervalAsync(listSerialPorts, 1000);
+  clearIntervalAsync(port_disovery_interval);
+  port_disovery_interval = setIntervalAsync(
+    attemptSerialConnection,
+    RECONNECT_INTERVAL
+  );
 }
 
 restartSerialCheckInterval();
