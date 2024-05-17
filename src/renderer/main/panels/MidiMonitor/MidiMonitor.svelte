@@ -289,10 +289,10 @@
                   <div class="flex items-center">
                     {#if message.data.direction == "REPORT"}
                       <span>RX</span>
-                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_left" />
                     {:else}
                       <span>TX</span>
-                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_right" />
                     {/if}
                   </div>
                 </div>
@@ -316,9 +316,9 @@
                   <div class="flex flex-row text-white">
                     <span>{midi.device.name}</span>
                     {#if midi.data.direction == "REPORT"}
-                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_left" />
                     {:else}
-                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_right" />
                     {/if}
                   </div>
                   <span>Ch: {midi.data.channel}</span>
@@ -384,9 +384,9 @@
                     <div class="flex flex-row text-white">
                       <span>{sysex.device.name}</span>
                       {#if sysex.data.direction == "REPORT"}
-                        <SvgIcon class="scale-75" iconPath="arrow_left" />
+                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
                       {:else}
-                        <SvgIcon class="scale-75" iconPath="arrow_right" />
+                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
                       {/if}
                     </div>
 

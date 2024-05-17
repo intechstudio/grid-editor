@@ -1,0 +1,12 @@
+diff --git a/node_modules/lua-fmt/dist/src/printer.js b/node_modules/lua-fmt/dist/src/printer.js
+index 67cdca3..205f5c6 100644
+--- a/node_modules/lua-fmt/dist/src/printer.js
++++ b/node_modules/lua-fmt/dist/src/printer.js
+@@ -52,6 +52,7 @@ function printStringLiteral(path, options) {
+     if (literal.raw.startsWith('[[') || literal.raw.startsWith('[=')) {
+         return literal.raw;
+     }
++    return literal.raw;
+     const raw = literal.raw.slice(1, -1);
+     let preferredQuotemark = options.quotemark;
+     const preferredQuoteCharacter = options_1.getStringQuotemark(preferredQuotemark);

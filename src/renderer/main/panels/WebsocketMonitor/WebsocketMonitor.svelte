@@ -142,7 +142,7 @@
     class="w-full cursor-default min-h-36 h-36 bg-secondary rounded px-1 my-2 text-white font-mono"
   />
 
-  <MoltenPushButton text="Send" on:click={sendMessage} />
+  <MoltenPushButton text="Send" click={sendMessage} />
 
   <div class="flex text-white items-center">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
