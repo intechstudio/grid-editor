@@ -18,3 +18,10 @@ test("Default configuration compression/expansion", function () {
     }
   });
 });
+
+// test minifier single quote handling patch
+test("Minifier", function () {
+  let luaString = `local str="hello('(d'"`;
+  const compressed = stringManipulation.compressScript(luaString);
+  expect(compressed).toMatch(luaString);
+});
