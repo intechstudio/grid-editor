@@ -19,7 +19,7 @@
   } from "../Configuration.store";
 
   import { lastOpenedActionblocksInsert } from "../Configuration.store";
-  import { NumberToEventType } from "../../../../protocol/grid-protocol";
+  import { NumberToEventType } from "grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";

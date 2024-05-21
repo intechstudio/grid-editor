@@ -2,7 +2,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
-  import { grid } from "../../protocol/grid-protocol";
+  import { grid } from "grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
@@ -14,7 +14,7 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import { stringManipulation } from "../../main/user-interface/_string-operations";
+  import { GridScript } from "grid-protocol";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
 
@@ -49,7 +49,7 @@
     editedConfig = editedList[$monaco_store.index];
 
     //To be displayed in Editor
-    const code_preview = stringManipulation.expandScript(editedConfig.script);
+    const code_preview = GridScript.expandScript(editedConfig.script);
 
     //Set initial code length
     scriptLength = editedList.toConfigScript().length;
@@ -84,7 +84,7 @@
 
       try {
         //Throws error on syntax error
-        editedConfig.script = stringManipulation.compressScript(editor_code);
+        editedConfig.script = GridScript.compressScript(editor_code);
 
         //Calculate length (this already includes the new value of referenceConfig)
         scriptLength = editedList.toConfigScript().length;
@@ -124,7 +124,7 @@
   function handleCommit() {
     try {
       const editor_code = editor.getValue();
-      const minifiedCode = stringManipulation.compressScript(editor_code);
+      const minifiedCode = GridScript.compressScript(editor_code);
 
       $committed_code_store = {
         script: minifiedCode,

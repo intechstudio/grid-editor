@@ -40,7 +40,7 @@
 </script>
 
 <script>
-  import { stringManipulation } from "../main/user-interface/_string-operations";
+  import { GridScript } from "grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
@@ -100,7 +100,7 @@
   });
 
   function displayConfigScript(script) {
-    codePreview.innerHTML = stringManipulation.expandScript(script);
+    codePreview.innerHTML = GridScript.expandScript(script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
       tabSize: 2,

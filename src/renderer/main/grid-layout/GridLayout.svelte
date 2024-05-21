@@ -1,5 +1,5 @@
 <script>
-  import { Architecture } from "./../../protocol/grid-protocol.ts";
+  import { Architecture } from "grid-protocol";
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
   import { modal } from "./../modals/modal.store.ts";
   import { watchResize } from "svelte-watch-resize";

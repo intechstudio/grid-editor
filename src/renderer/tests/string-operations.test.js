@@ -1,5 +1,5 @@
-import { grid, ModuleType } from "../protocol/grid-protocol";
-import { stringManipulation } from "../main/user-interface/_string-operations";
+import { grid, ModuleType } from "grid-protocol";
+import { GridScript } from "grid-protocol";
 import { test, expect } from "vitest";
 
 test("Default configuration compression/expansion", function () {
@@ -11,8 +11,8 @@ test("Default configuration compression/expansion", function () {
         const defaultConfig = event.defaultConfig
           .split("<?lua ")[1]
           .split(" ?>")[0];
-        const expanded = stringManipulation.expandScript(defaultConfig);
-        const compressed = stringManipulation.compressScript(expanded);
+        const expanded = GridScript.expandScript(defaultConfig);
+        const compressed = GridScript.compressScript(expanded);
         expect(compressed).toMatch(defaultConfig);
       });
     }
@@ -22,6 +22,6 @@ test("Default configuration compression/expansion", function () {
 // test minifier single quote handling patch
 test("Minifier", function () {
   let luaString = `local str="hello('(d'"`;
-  const compressed = stringManipulation.compressScript(luaString);
+  const compressed = GridScript.compressScript(luaString);
   expect(compressed).toMatch(luaString);
 });
