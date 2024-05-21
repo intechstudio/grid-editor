@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { grid, ModuleType, ElementType } from "grid-protocol";
-import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
+import * as grid_protocol from "../../../node_modules/grid-protocol/src/grid_protocol_bot.json";
 import {
   InstructionClass,
   InstructionClassName,

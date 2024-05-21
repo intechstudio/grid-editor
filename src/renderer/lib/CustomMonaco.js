@@ -4,7 +4,7 @@ import {
 } from "monaco-editor";
 
 import { writable, get } from "svelte/store";
-import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
+import * as grid_protocol from "../../../node_modules/grid-protocol/src/grid_protocol_bot.json";
 
 let hoverTips = {};
 export const monaco_elementtype = writable();
