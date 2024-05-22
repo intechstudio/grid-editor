@@ -9,9 +9,7 @@
   import { ModuleType } from "./../../protocol/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "./MoltenModal.svelte";
   import { modal } from "./modal.store";
   import { get } from "svelte/store";
@@ -123,12 +121,12 @@
       <div class="flex flex-row gap-2 pt-4 ml-auto">
         <MoltenPushButton
           text="Add Module"
-          on:click={handleAddClicked}
-          style={ButtonStyle.ACCEPT}
+          click={handleAddClicked}
+          style={"accept"}
           disabled={selectedModule === -1}
         />
         {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
-          <MoltenPushButton text="Cancel" on:click={handleCancelClicked} />
+          <MoltenPushButton text="Cancel" click={handleCancelClicked} />
         {/if}
       </div>
     </div>

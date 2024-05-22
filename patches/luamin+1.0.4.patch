@@ -1,0 +1,138 @@
+diff --git a/node_modules/luamin/luamin.js b/node_modules/luamin/luamin.js
+index a37f6b1..9088a7a 100644
+--- a/node_modules/luamin/luamin.js
++++ b/node_modules/luamin/luamin.js
+@@ -1,24 +1,29 @@
+ /*! https://mths.be/luamin v1.0.4 by @mathias */
+-;(function(root) {
++
++//const { adsense } = require('googleapis/build/src/apis/adsense');
++
++//;(function(root) {
+ 
+ 	// Detect free variables `exports`
+-	var freeExports = typeof exports == 'object' && exports;
++	//var freeExports = typeof exports == 'object' && exports;
+ 
+ 	// Detect free variable `module`
+-	var freeModule = typeof module == 'object' && module &&
+-		module.exports == freeExports && module;
++	//var freeModule = typeof module == 'object' && module &&
++	//	module.exports == freeExports && module;
+ 
+ 	// Detect free variable `global`, from Node.js or Browserified code,
+ 	// and use it as `root`
+-	var freeGlobal = typeof global == 'object' && global;
+-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+-		root = freeGlobal;
+-	}
++	//var freeGlobal = typeof global == 'object' && global;
++	//if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
++	//	root = freeGlobal;
++	//}
+ 
+ 	/*--------------------------------------------------------------------------*/
+ 
+-	var luaparse = root.luaparse || require('luaparse');
+-	luaparse.defaultOptions.comments = false;
++	import * as luaparse from "luaparse"
++import { rsort } from "semver";
++	luaparse.defaultOptions.comments = true;
++	luaparse.defaultOptions.locations = true;
+ 	luaparse.defaultOptions.scope = true;
+ 	var parse = luaparse.parse;
+ 
+@@ -123,6 +128,7 @@
+ 	var identifierMap;
+ 	var identifiersInUse;
+ 	var generateIdentifier = function(originalName) {
++		return originalName;
+ 		// Preserve `self` in methods
+ 		if (originalName == 'self') {
+ 			return originalName;
+@@ -244,16 +250,16 @@
+ 				? generateIdentifier(expression.name)
+ 				: expression.name;
+ 
+-		} else if (
+-			expressionType == 'StringLiteral' ||
++		} else if (expressionType == 'StringLiteral') {
++			result = expression.raw;
++		}
++		else if(
+ 			expressionType == 'NumericLiteral' ||
+ 			expressionType == 'BooleanLiteral' ||
+ 			expressionType == 'NilLiteral' ||
+ 			expressionType == 'VarargLiteral'
+ 		) {
+-
+ 			result = expression.raw;
+-
+ 		} else if (
+ 			expressionType == 'LogicalExpression' ||
+ 			expressionType == 'BinaryExpression'
+@@ -413,7 +419,6 @@
+ 			throw TypeError('Unknown expression type: `' + expressionType + '`');
+ 
+ 		}
+-
+ 		return result;
+ 	};
+ 
+@@ -428,7 +433,6 @@
+ 	var formatStatement = function(statement) {
+ 		var result = '';
+ 		var statementType = statement.type;
+-
+ 		if (statementType == 'AssignmentStatement') {
+ 
+ 			// left-hand side
+@@ -448,7 +452,11 @@
+ 				}
+ 			});
+ 
+-		} else if (statementType == 'LocalStatement') {
++		} 
++		else if (statementType == 'Comment'){
++			result = joinStatements(result, statement.raw + " ");
++		}
++		else if (statementType == 'LocalStatement') {
+ 
+ 			result = 'local ';
+ 
+@@ -614,7 +622,7 @@
+ 		return result;
+ 	};
+ 
+-	var minify = function(argument) {
++	export var minify = function(argument) {
+ 		// `argument` can be a Lua code snippet (string)
+ 		// or a luaparse-compatible AST (object)
+ 		var ast = typeof argument == 'string'
+@@ -638,11 +646,17 @@
+ 			throw Error('Missing required AST property: `globals`');
+ 		}
+ 
+-		return formatStatementList(ast.body);
++		const expressions = [...ast.body, ...ast.comments];
++		const sorted = expressions.sort(function(a, b) {
++			return a.loc.start.line - b.loc.start.line || a.loc.start.column - b.loc.start.column;
++		})
++		const res = formatStatementList(sorted);
++		return res;
+ 	};
+ 
+ 	/*--------------------------------------------------------------------------*/
+ 
++	/*
+ 	var luamin = {
+ 		'version': '1.0.4',
+ 		'minify': minify
+@@ -667,5 +681,5 @@
+ 	} else { // in Rhino or a web browser
+ 		root.luamin = luamin;
+ 	}
+-
+-}(this));
++	*/
++//}(this));

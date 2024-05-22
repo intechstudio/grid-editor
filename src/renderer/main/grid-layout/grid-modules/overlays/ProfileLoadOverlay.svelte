@@ -72,24 +72,20 @@
               {#if loadedState === 0}
                 <span class="text-white mr-2">Load Profile</span>
                 <SvgIcon
-                  class="text-white"
+                  fill="#FFF"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
               {:else if loadedState === 1}
                 <span class="text-white mr-2">Loading...</span>
                 <SvgIcon
-                  class="text-white"
+                  fill="#FFF"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
               {:else if loadedState === 2}
                 <span class="text-white">Loaded!</span>
-                <SvgIcon
-                  class="text-white"
-                  iconPath={"tick"}
-                  displayMode={"static"}
-                />
+                <SvgIcon fill="#FFF" iconPath={"tick"} displayMode={"static"} />
               {/if}
             </button>
           {/key}

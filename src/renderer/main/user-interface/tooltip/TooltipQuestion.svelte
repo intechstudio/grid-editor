@@ -1,11 +1,11 @@
 <script>
-  import { setTooltip } from "./Tooltip";
+  import { tooltip } from "./../../_actions/tooltip.ts";
 
   export let key = "";
 </script>
 
 <div
-  use:setTooltip={{
+  use:tooltip={{
     key: key,
     placement: "top",
     class: "p-4 w-60",

@@ -12,9 +12,7 @@
   import { grid } from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../../panels/configuration/Configuration.store";
-  import MoltenPushButton, {
-    ButtonSnap,
-  } from "../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   // ok but slow nice
 
@@ -291,10 +289,10 @@
                   <div class="flex items-center">
                     {#if message.data.direction == "REPORT"}
                       <span>RX</span>
-                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_left" />
                     {:else}
                       <span>TX</span>
-                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_right" />
                     {/if}
                   </div>
                 </div>
@@ -318,9 +316,9 @@
                   <div class="flex flex-row text-white">
                     <span>{midi.device.name}</span>
                     {#if midi.data.direction == "REPORT"}
-                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_left" />
                     {:else}
-                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                      <SvgIcon fill="#FFF" iconPath="arrow_right" />
                     {/if}
                   </div>
                   <span>Ch: {midi.data.channel}</span>
@@ -386,9 +384,9 @@
                     <div class="flex flex-row text-white">
                       <span>{sysex.device.name}</span>
                       {#if sysex.data.direction == "REPORT"}
-                        <SvgIcon class="scale-75" iconPath="arrow_left" />
+                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
                       {:else}
-                        <SvgIcon class="scale-75" iconPath="arrow_right" />
+                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
                       {/if}
                     </div>
 
@@ -407,10 +405,6 @@
     </Splitpanes>
   </div>
   <div class="flex pt-4 pb-12">
-    <MoltenPushButton
-      text="Clear All"
-      snap={ButtonSnap.FULL}
-      on:click={onClearClicked}
-    />
+    <MoltenPushButton text="Clear All" snap={"full"} click={onClearClicked} />
   </div>
 </div>

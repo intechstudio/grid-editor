@@ -161,6 +161,37 @@ export class GridInstructions implements Instructions {
     return promise;
   }
 
+  sendImmediateToGrid(dx: number, dy: number, script: string): Promise<any> {
+    //TODO: Promise reject handling should do this
+    if (script.length >= grid.getProperty("CONFIG_LENGTH")) {
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "configlength",
+        message: `Script is too long! ${script.length} characters`,
+      });
+    }
+
+    let buffer_element: BufferElement = {
+      id: uuidv4(),
+      descr: {
+        brc_parameters: {
+          DX: dx,
+          DY: dy,
+        },
+        class_name: InstructionClassName.IMMEDIATE,
+        class_instr: InstructionClass.EXECUTE,
+        class_parameters: {
+          ACTIONLENGTH: script.length,
+          ACTIONSTRING: script,
+        },
+      },
+    };
+
+    const promise = writeBuffer.add_last(buffer_element);
+    return promise;
+  }
+
   changeActivePage(page: number): Promise<any> {
     let buffer_element: BufferElement = {
       id: uuidv4(),

@@ -5,9 +5,7 @@
   import { Analytics } from "../../runtime/analytics";
   import { writeBuffer } from "../../runtime/engine.store.ts";
   import { logger } from "../../runtime/runtime.store";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "../modals/MoltenModal.svelte";
 
   let moduleHanging1 = false;
@@ -92,8 +90,8 @@
           >One of your modules is not responding. Abort the active configuration
           process?
         </span>
-        <MoltenPushButton on:click={handleAbortclicked} text="Abort" />
-        <MoltenPushButton on:click={handleWaitClicked} text="Wait" />
+        <MoltenPushButton click={handleAbortclicked} text="Abort" />
+        <MoltenPushButton click={handleWaitClicked} text="Wait" />
       {/if}
       {#if moduleHanging2}
         <span class="text-white w-80"
@@ -105,11 +103,11 @@
           />
         </span>
 
-        <MoltenPushButton on:click={handleAbortclicked} text="Abort" />
+        <MoltenPushButton click={handleAbortclicked} text="Abort" />
         <MoltenPushButton
-          on:click={handleTroubleshoot}
+          click={handleTroubleshoot}
           text="Troubleshooting"
-          style={ButtonStyle.OUTLINED}
+          style={"outlined"}
         />
       {/if}
     {:else}

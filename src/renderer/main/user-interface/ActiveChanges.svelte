@@ -1,16 +1,18 @@
 <script>
+  import { tooltip } from "./../_actions/tooltip.ts";
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store.js";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
   import { configManager } from "./../panels/configuration/Configuration.store.js";
-  import { setTooltip } from "./tooltip/Tooltip.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
-  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+
+  import { instructions } from "./../../serialport/instructions";
 
   let isChanges = false;
   let changes = 0;
@@ -165,27 +167,27 @@
     </div>
 
     <div
-      use:setTooltip={{
+      use:tooltip={{
         key: "configuration_header_clear",
         placement: "top",
         class: "w-60 p-4 z-10",
       }}
     >
       <MoltenPushButton
-        on:click={handleDiscard}
+        click={handleDiscard}
         disabled={!isChanges}
         text="Discard All"
       />
     </div>
     <div
-      use:setTooltip={{
+      use:tooltip={{
         key: "configuration_header_store",
         placement: "top",
         class: "w-60 p-4",
       }}
     >
       <MoltenPushButton
-        on:click={handleStore}
+        click={handleStore}
         disabled={!isChanges}
         text="Store"
         style="accept"
@@ -193,7 +195,7 @@
     </div>
 
     <div
-      use:setTooltip={{
+      use:tooltip={{
         key: "configuration_header_clear",
         placement: "top",
         class: "w-60 p-4",

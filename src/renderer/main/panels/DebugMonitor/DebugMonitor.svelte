@@ -17,7 +17,7 @@
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { configManager } from "../../panels/configuration/Configuration.store";
-  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const configScriptLength = writable(0);
   const syntaxError = writable(false);
@@ -168,35 +168,35 @@
       </div>
     </div>
     <div class="flex items-center justify-end">
-      <MoltenPushButton text="Show Code" on:click={handleShowCode} />
+      <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
-    <MoltenPushButton on:click={clearDebugtext} text="Clear" />
+    <MoltenPushButton click={clearDebugtext} text="Clear" />
     <MoltenPushButton
-      on:click={() => {
+      click={() => {
         display = "DEC";
       }}
       text="DEC"
     />
     <MoltenPushButton
-      on:click={() => {
+      click={() => {
         display = "HEX";
       }}
       text="HEX"
     />
     <MoltenPushButton
-      on:click={() => {
+      click={() => {
         display = "CHAR";
       }}
       text="CHAR"
     />
 
     {#if frozen == false}
-      <MoltenPushButton text="Freeze" on:click={freezeDebugtext} />
+      <MoltenPushButton text="Freeze" click={freezeDebugtext} />
     {:else}
-      <MoltenPushButton text="Unfreeze" on:click={unfreezeDebugtext} />
+      <MoltenPushButton text="Unfreeze" click={unfreezeDebugtext} />
     {/if}
   </div>
   <Splitpanes

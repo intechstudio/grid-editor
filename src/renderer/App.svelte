@@ -1,5 +1,6 @@
 <script>
   import { modal } from "./main/modals/modal.store";
+
   import "./preload-window-config";
 
   import "./app.css";
@@ -42,11 +43,11 @@
     setDocumentAnimationsEnabled,
     reduced_motion_store,
   } from "../renderer/runtime/animations";
+
+  import { instructions } from "./serialport/instructions";
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
 
   console.log("Hello from Svelte main.js");
-
-  const configuration = window.ctxProcess.configuration();
 
   let shapeSelected;
   let colorSelected;
@@ -102,6 +103,16 @@
           case "package-action": {
             if (data.id == "change-page") {
               runtime.change_page(data.num);
+            } else if (data.id == "immediate") {
+              instructions
+                .sendImmediateToGrid(
+                  data.target_dx,
+                  data.target_dy,
+                  data.script
+                )
+                .catch((e) => {
+                  console.warn(e);
+                });
             } else if (data.id == "persist-data") {
               appSettings.update((s) => {
                 const newStorage = structuredClone(
