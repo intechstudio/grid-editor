@@ -237,18 +237,24 @@
         <div class="mx-1">
           {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
             <MoltenPushButton
-              click={downloadPackage(_package.id)}
+              click={() => {
+                downloadPackage(_package.id);
+              }}
               disabled={_package.status == "Downloading"}
               text="Download"
             />
           {:else if _package.canUpdate}
             <MoltenPushButton
-              click={updatePackage(_package.id)}
+              click={() => {
+                updatePackage(_package.id);
+              }}
               text="Update"
             />
           {:else}
             <MoltenPushButton
-              click={uninstallPackage(_package.id)}
+              click={() => {
+                uninstallPackage(_package.id);
+              }}
               text="Uninstall"
             />
           {/if}
