@@ -8,11 +8,6 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
-  import { v4 as uuidv4 } from "uuid";
-  import {
-  writeBuffer,
-  InstructionClass,
-} from "./runtime/engine.store.ts";
 
   import "./runtime/analytics.js";
 
@@ -103,11 +98,11 @@
           case "package-action": {
             if (data.id == "change-page") {
               runtime.change_page(data.num);
-            } else if (data.id == "immediate") {
+            } else if (data.id == "execute-lua-script") {
               instructions
                 .sendImmediateToGrid(
-                  data.target_dx,
-                  data.target_dy,
+                  data.targetDx ?? -127,
+                  data.targetDy ?? -127,
                   data.script
                 )
                 .catch((e) => {
@@ -129,23 +124,6 @@
               });
             } else if (data.id == "remove-action") {
               removePackageAction(data.packageId, data.actionId);
-            } else if (data.id == "execute-lua-action") {
-              let action = data.action;
-              let buffer_element = {
-                id: uuidv4(),
-                descr: {
-                  brc_parameters: data.brc ?? { DX: -127, DY: -127 }, // GLOBAL
-                  class_name: "IMEDIATE",
-                  class_instr: InstructionClass.EXECUTE,
-                  class_parameters: {
-                    ACTIONLENGTH: action.length,
-                    ACTIONSTRING: action,
-                  },
-                },
-                responseRequired: false,
-                sendImmediate: false,
-              };
-              writeBuffer.add_last(buffer_element)
             }
             break;
           }
