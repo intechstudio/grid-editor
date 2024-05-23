@@ -52,7 +52,7 @@
     "firebase": "^9.18.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
-    "grid-protocol": "^1.2.36",
+    "grid-protocol": "1.2.36",
     "is-online": "^10.0.0",
     "lua-fmt": "^2.6.0",
     "luamin": "^1.0.4",

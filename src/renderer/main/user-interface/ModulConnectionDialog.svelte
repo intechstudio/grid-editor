@@ -5,6 +5,7 @@
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
   import SvgIcon from "./SvgIcon.svelte";
+  import { logger } from "../../runtime/runtime.store";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -34,7 +35,14 @@
   }
 
   function handleConnectModules(e) {
-    navigator.intechConnect();
+    navigator.intechConnect().catch((e) => {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "serialerror",
+        message: `Serial connect failed, your browser is not supperted yet.`,
+      });
+    });
   }
 </script>
 
@@ -49,6 +57,9 @@
         <span class="text-white text-sm mt-4">
           Enable module connection by enabling Grid Editor to access USB!
         </span>
+        <span class="text-gray-500 text-sm"
+          >(Only supported in Google Chrome)</span
+        >
       </div>
       <div class="flex flex-col gap-2 mt-4">
         <MoltenPushButton
