@@ -10,23 +10,8 @@ const configuration = window.ctxProcess.configuration();
 console.log(
   "Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true"
 );
-window.electron.serial.restartSerialCheckInterval();
 
-navigator.serial.addEventListener("disconnect", (e) => {
-  if (navigator.debugSerial)
-    console.log("Any Device Disconnect", e, navigator.intechPort);
-  if (navigator.debugSerial) console.log("Restart Discovery Interval");
-
-  window.electron.serial.restartSerialCheckInterval();
-});
-navigator.serial.addEventListener("connect", (e) => {
-  if (navigator.debugSerial)
-    console.log("Any Device Connect", e, navigator.intechPort);
-  if (navigator.debugSerial) console.log("Restart Discovery Interval");
-  window.electron.serial.restartSerialCheckInterval();
-});
-
-export async function testIt() {
+export async function requestPort() {
   if (navigator.debugSerial) console.log("Serial Try Connect");
 
   if (navigator.intechPort === undefined) {
@@ -45,37 +30,20 @@ export async function testIt() {
       },
     ];
 
-    // console.log(navigator.serial)
-
     navigator.serial
       .requestPort({ filters })
       .then((port) => {
-        //console.log('port',port);
-
         port
           .open({ baudRate: 2000000 })
           .then((e) => {
             navigator.intechPort = port;
 
             port.addEventListener("disconnect", (e) => {
-              if (navigator.serialDebug) console.log("The Real Disconnect", e);
+              if (navigator.serialDebug) console.log("Device disconnected:", e);
               navigator.intechPort = undefined;
             });
 
             fetchStream();
-
-            navigator.intechPort = port;
-
-            port.addEventListener("disconnect", (e) => {
-              if (navigator.debugSerial) console.log("The Real Disconnect", e);
-              navigator.intechPort = undefined;
-            });
-
-            fetchStream();
-
-            // port.readable
-            //   .pipeThrough(new TextDecoderStream())
-            //   .pipeTo(appendStream);
           })
           .catch((error) => {
             if (navigator.debugSerial) console.log("Error on Open: ", error);
@@ -83,7 +51,6 @@ export async function testIt() {
       })
       .catch((error) => {
         //no port selected by the user
-        //console.log(error)
         if (navigator.debugSerial) console.log("Error on Request: ", error);
       });
   }
@@ -91,11 +58,11 @@ export async function testIt() {
   return false;
 }
 
-navigator.intechConnect = testIt;
+navigator.intechConnect = requestPort;
 
 let result = [];
 
-function fetchStream() {
+async function fetchStream() {
   console.log("--------serial---------");
 
   if (!navigator.intechPort || !navigator.intechPort.readable) {
@@ -103,25 +70,21 @@ function fetchStream() {
     return;
   }
 
+  console.log(navigator.intechPort.readable, navigator.intechPort);
+
   const reader = navigator.intechPort.readable.getReader();
   let charsReceived = 0;
   let rxBuffer = [];
 
-  // read() returns a promise that resolves
-  // when a value has been received
-  reader
-    .read()
-    .then(function processText({ done, value }) {
-      // Result objects contain two properties:
-      // done  - true if the stream has already given you all its data.
-      // value - some data. Always undefined when done is true.
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+
       if (done) {
         console.log("Stream complete");
-        para.textContent = value;
-        return;
+        break;
       }
 
-      // value for fetch streams is a Uint8Array
       charsReceived += value.length;
       const chunk = value;
 
@@ -137,7 +100,6 @@ function fetchStream() {
       for (let i = 0; i < rxBuffer.length; i++) {
         if (rxBuffer[i] === 10) {
           // newline character found
-
           messageStopIndex = i;
           let currentMessage = rxBuffer.slice(
             messageStartIndex,
@@ -145,10 +107,8 @@ function fetchStream() {
           );
           messageStartIndex = i + 1;
 
-          //decode
-
+          // Decode the message
           debug_lowlevel_store.push_inbound(currentMessage);
-
           let class_array = grid.decode_packet_frame(currentMessage);
           grid.decode_packet_classes(class_array);
 
@@ -159,13 +119,12 @@ function fetchStream() {
       }
 
       rxBuffer = rxBuffer.slice(messageStartIndex);
-
-      // Read some more, and call this function again
-      return reader.read().then(processText);
-    })
-    .catch((e) => {
-      console.log(e);
-    });
+    }
+  } catch (error) {
+    console.warn("Error reading from serial port:", error);
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 navigator.intechFetch = fetchStream;
