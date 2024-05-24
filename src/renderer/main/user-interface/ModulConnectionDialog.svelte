@@ -58,7 +58,7 @@
           Enable module connection by enabling Grid Editor to access USB!
         </span>
         <span class="text-gray-500 text-sm"
-          >(Only supported in Google Chrome)</span
+          >(Only supported in Edge, Opera and Google Chrome)</span
         >
       </div>
       <div class="flex flex-col gap-2 mt-4">
