@@ -38,6 +38,7 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   };
 
   const createContextMenu = async (x: number, y: number) => {
+    contextMenu.close();
     const menu = document.createElement("div");
     document.body.appendChild(menu);
     contextMenu.set({ component: menu, data: options.data });
