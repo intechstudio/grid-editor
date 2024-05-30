@@ -1,5 +1,6 @@
 <script>
   import { modal } from "./main/modals/modal.store";
+
   import "./preload-window-config";
 
   import "./app.css";
@@ -42,8 +43,6 @@
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
 
   console.log("Hello from Svelte main.js");
-
-  const configuration = window.ctxProcess.configuration();
 
   let shapeSelected;
   let colorSelected;
