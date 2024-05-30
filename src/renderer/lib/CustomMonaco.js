@@ -3,8 +3,9 @@ import {
   languages as monaco_languages,
 } from "monaco-editor";
 
+import { grid } from "grid-protocol";
+
 import { writable, get } from "svelte/store";
-import * as grid_protocol from "../../../node_modules/grid-protocol/dist/grid_protocol_bot.json";
 
 let hoverTips = {};
 export const monaco_elementtype = writable();
@@ -308,60 +309,52 @@ function initialize_autocomplete() {
         proposalList.push(proposalItem);
       }
 
-      for (const key in grid_protocol) {
-        if (typeof grid_protocol[key] !== "object") {
-          let proposalItem = {
-            label: "",
-            kind: monaco_languages.CompletionItemKind.Function,
-            documentation: "Documentation",
-            insertText: "",
-            range: range,
-          };
+      grid.lua_function_to_human_map().forEach((value, key) => {
+        let proposalItem = {
+          label: "",
+          kind: monaco_languages.CompletionItemKind.Function,
+          documentation: "Documentation",
+          insertText: "",
+          range: range,
+        };
 
-          if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
-            if (elementtype === "endless" || elementtype === undefined) {
-              proposalItem.label = "self:" + grid_protocol[key];
-              proposalItem.insertText = "self:" + grid_protocol[key] + "()";
-            } else if (elementtype === "system") {
-              proposalItem.label = "element[0]:" + grid_protocol[key];
-              proposalItem.insertText =
-                "element[0]:" + grid_protocol[key] + "()";
-            }
-          } else if (
-            key.startsWith("GRID_LUA_FNC_E") &&
-            key.endsWith("_human")
-          ) {
-            if (elementtype === "encoder" || elementtype === undefined) {
-              proposalItem.label = "self:" + grid_protocol[key];
-              proposalItem.insertText = "self:" + grid_protocol[key] + "()";
-            } else if (elementtype === "system") {
-              proposalItem.label = "element[0]:" + grid_protocol[key];
-              proposalItem.insertText =
-                "element[0]:" + grid_protocol[key] + "()";
-            }
+        if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
+          if (elementtype === "endless" || elementtype === undefined) {
+            proposalItem.label = "self:" + value;
+            proposalItem.insertText = "self:" + value + "()";
+          } else if (elementtype === "system") {
+            proposalItem.label = "element[0]:" + value;
+            proposalItem.insertText = "element[0]:" + value + "()";
           }
-
-          if (key.startsWith("GRID_LUA_FNC_B") && key.endsWith("_human")) {
-            if (elementtype === "button" || elementtype === undefined) {
-              proposalItem.label = "self:" + grid_protocol[key];
-              proposalItem.insertText = "self:" + grid_protocol[key] + "()";
-            }
+        } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
+          if (elementtype === "encoder" || elementtype === undefined) {
+            proposalItem.label = "self:" + value;
+            proposalItem.insertText = "self:" + value + "()";
+          } else if (elementtype === "system") {
+            proposalItem.label = "element[0]:" + value;
+            proposalItem.insertText = "element[0]:" + value + "()";
           }
-
-          if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
-            if (elementtype === "potmeter" || elementtype === undefined) {
-              proposalItem.label = "self:" + grid_protocol[key];
-              proposalItem.insertText = "self:" + grid_protocol[key] + "()";
-            } else if (elementtype === "system") {
-              proposalItem.label = "element[0]:" + grid_protocol[key];
-              proposalItem.insertText =
-                "element[0]:" + grid_protocol[key] + "()";
-            }
-          }
-
-          proposalList.push(proposalItem);
         }
-      }
+
+        if (key.startsWith("GRID_LUA_FNC_B") && key.endsWith("_human")) {
+          if (elementtype === "button" || elementtype === undefined) {
+            proposalItem.label = "self:" + value;
+            proposalItem.insertText = "self:" + value + "()";
+          }
+        }
+
+        if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
+          if (elementtype === "potmeter" || elementtype === undefined) {
+            proposalItem.label = "self:" + value;
+            proposalItem.insertText = "self:" + value + "()";
+          } else if (elementtype === "system") {
+            proposalItem.label = "element[0]:" + value;
+            proposalItem.insertText = "element[0]:" + value + "()";
+          }
+        }
+
+        proposalList.push(proposalItem);
+      });
 
       // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
       // here you could do a server side lookup
@@ -399,42 +392,35 @@ function initialize_autocomplete() {
 function initialize_highlight() {
   const elementtype = get(monaco_elementtype);
 
-  for (const key in grid_protocol) {
-    if (typeof grid_protocol[key] !== "object") {
-      // AUTOCOMPLETE FUNCTIONS
-      if (key.startsWith("GRID_LUA_FNC_G") && key.endsWith("_human")) {
-        language.functions.push(grid_protocol[key]);
-        hoverTips[grid_protocol[key]] =
-          "Global function named " + grid_protocol[key];
-      }
-
-      if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
-        language.functions.push(grid_protocol[key]);
-        hoverTips[grid_protocol[key]] =
-          "Endless function named " + grid_protocol[key];
-      } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
-        language.functions.push(grid_protocol[key]);
-        hoverTips[grid_protocol[key]] =
-          "Encoder function named " + grid_protocol[key];
-      }
-
-      if (key.startsWith("GRID_LUA_FNC_B") && key.endsWith("_human")) {
-        language.functions.push(grid_protocol[key]);
-        hoverTips[grid_protocol[key]] =
-          "Button function named " + grid_protocol[key];
-      }
-
-      if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
-        language.functions.push(grid_protocol[key]);
-        hoverTips[grid_protocol[key]] =
-          "Potmeter function named " + grid_protocol[key];
-      }
-
-      if (key.endsWith("_short")) {
-        language.forbiddens.push(grid_protocol[key]);
-      }
+  grid.lua_function_to_human_map().forEach((value, key) => {
+    // AUTOCOMPLETE FUNCTIONS
+    if (key.startsWith("GRID_LUA_FNC_G") && key.endsWith("_human")) {
+      language.functions.push(value);
+      hoverTips[value] = "Global function named " + value;
     }
-  }
+
+    if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
+      language.functions.push(value);
+      hoverTips[value] = "Endless function named " + value;
+    } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
+      language.functions.push(value);
+      hoverTips[value] = "Encoder function named " + value;
+    }
+
+    if (key.startsWith("GRID_LUA_FNC_B") && key.endsWith("_human")) {
+      language.functions.push(value);
+      hoverTips[value] = "Button function named " + value;
+    }
+
+    if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
+      language.functions.push(value);
+      hoverTips[value] = "Potmeter function named " + value;
+    }
+
+    if (key.endsWith("_short")) {
+      language.forbiddens.push(value);
+    }
+  });
 
   initialize_grammar(); // update highlighting
 }

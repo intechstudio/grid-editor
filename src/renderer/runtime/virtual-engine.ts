@@ -1,6 +1,5 @@
 import { get, writable } from "svelte/store";
 import { grid, ModuleType, ElementType } from "grid-protocol";
-import * as grid_protocol from "../../../node_modules/grid-protocol/dist/grid_protocol_bot.json";
 import {
   InstructionClass,
   InstructionClassName,
@@ -9,27 +8,32 @@ import {
 
 export const VirtualModuleHWCFG = {
   BU16: {
-    hwcfg: grid_protocol.GRID_MODULE_BU16_RevD,
+    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.BU16)
+      .hwcfg,
     type: ModuleType.BU16,
   },
   EF44: {
-    hwcfg: grid_protocol.GRID_MODULE_EF44_RevD,
+    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.EF44)
+      .hwcfg,
     type: ModuleType.EF44,
   },
   EN16: {
-    hwcfg: grid_protocol.GRID_MODULE_EN16_RevD,
+    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.EN16)
+      .hwcfg,
     type: ModuleType.EN16,
   },
   PBF4: {
-    hwcfg: grid_protocol.GRID_MODULE_PBF4_RevD,
+    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.PBF4)
+      .hwcfg,
     type: ModuleType.PBF4,
   },
   PO16: {
-    hwcfg: grid_protocol.GRID_MODULE_PO16_RevD,
+    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.PO16)
+      .hwcfg,
     type: ModuleType.PO16,
   },
   TEK2: {
-    hwcfg: grid_protocol.GRID_MODULE_TEK2_RevA,
+    hwcfg: grid.GRID_MODULE_TEK2_RevA,
     type: ModuleType.TEK2,
   },
 };
