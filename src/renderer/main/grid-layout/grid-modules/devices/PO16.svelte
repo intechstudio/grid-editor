@@ -85,7 +85,7 @@
 </script>
 
 <div
-  data-testid="PO16x:{dx}y:{dy}"
+  data-testid="PO16_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"

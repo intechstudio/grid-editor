@@ -90,7 +90,7 @@
 </script>
 
 <div
-  data-testid="TEK1x:{dx}y:{dy}"
+  data-testid="TEK1_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"

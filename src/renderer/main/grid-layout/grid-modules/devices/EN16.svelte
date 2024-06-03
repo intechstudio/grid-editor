@@ -86,7 +86,7 @@
 </script>
 
 <div
-  data-testid="EN16x:{dx}y:{dy}"
+  data-testid="EN16_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"

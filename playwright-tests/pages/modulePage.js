@@ -9,6 +9,7 @@ export class ModulePage {
     this.removeModuleButton = page.getByRole("button", {
       name: "Remove Module",
     });
+    this.oneModule = page.locator('[id="grid-device-dx\\:0\\;dy\\:0"]');
     this.modules = {
       BU16: page.getByTestId("BU16_dx:0;dy:0"),
       EF44: page.getByTestId("EF44_dx:0;dy:0"),
@@ -26,6 +27,6 @@ export class ModulePage {
     await this.removeModuleButton.click();
   }
   async assertModuleAdded(moduleName) {
-    await expect(this.modules[moduleName].toBeVisible());
+    await expect(this.modules[moduleName]).toBeVisible();
   }
 }

@@ -85,7 +85,7 @@
   }
 </script>
 
-<div data-testid="BU16x:{dx}y:{dy}"
+<div data-testid="BU16_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
