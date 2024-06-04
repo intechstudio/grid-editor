@@ -19,6 +19,15 @@ export class ConnectModulePage {
     await this.virtualModuleButton.click();
   }
 
+  async selectModule(module) {
+    const moduleLocator = this.modules[module];
+    if (moduleLocator) {
+      await moduleLocator.click();
+    } else {
+      throw new Error(`Module ${module} not found`);
+    }
+  }
+
   async addModule(module) {
     const moduleLocator = this.modules[module];
     if (moduleLocator) {
@@ -28,32 +37,4 @@ export class ConnectModulePage {
       throw new Error(`Module ${module} not found`);
     }
   }
-
-  // constructor(page) {
-  //   this.page = page;
-  //   this.addModuleButton = page.locator("button#add-module"); // Adjust the selector
-  //   this.moduleNameInput = page.locator("input#module-name"); // Adjust the selector
-  //   this.saveModuleButton = page.locator("button#save-module"); // Adjust the selector
-  //   this.moduleList = page.locator("div.module-list"); // Adjust the selector
-  //   this.virtualModulesButton = page.locator("button#virtual-modules"); // Adjust the selector
-  //   this.moduleSelect = page.locator("select#module-select"); // Adjust the selector
-  // }
-
-  // async openVirtualModules() {
-  //   await this.virtualModulesButton.click();
-  // }
-
-  // async selectModule(moduleName) {
-  //   await this.moduleSelect.selectOption({ label: moduleName });
-  // }
-
-  // async addVirtualModule(moduleName) {
-  //   await this.addModuleButton.click();
-  //   await this.moduleNameInput.fill(moduleName);
-  //   await this.saveModuleButton.click();
-  // }
-
-  // async assertModuleAdded(moduleName) {
-  //   await expect(this.moduleList).toContainText(moduleName);
-  // }
 }
