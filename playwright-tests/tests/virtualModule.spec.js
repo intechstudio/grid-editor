@@ -60,6 +60,13 @@ test.describe("Module Operations", () => {
     await connectModulePage.addModule(expectModule);
     await expect(modulePage.modules[expectModule]).toBeVisible();
   });
+
+  test("cancel add module", async ({ page }) => {
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.selectModule("TEK2");
+    await page.mouse.click(1, 1);
+    await expect(connectModulePage.virtualModuleButton).toBeVisible();
+  });
 });
 
 test.describe("Add extra module", () => {
