@@ -79,6 +79,11 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       startConfigsWatch: async () => {},
       stopConfigsWatch: async () => {},
       onSendConfigsToRenderer: async () => {},
+      saveConfig: () => {
+        return new Promise((resolve, reject) => {
+          reject("Profile importing is not supported in web mode.");
+        });
+      },
     },
     updater: {
       onAppUpdate: async () => {},
