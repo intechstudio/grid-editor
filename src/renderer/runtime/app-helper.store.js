@@ -41,6 +41,7 @@ const persistentDefaultValues = {
   sendHeartbeatImmediate: false,
   disableAnimations: false,
   colorfulToolbar: false,
+  packageDeveloper: false,
 };
 
 function createSplitPanes() {

@@ -342,6 +342,8 @@ function createWindow() {
   });
 }
 
+let stopPackageManagerTimeout = undefined;
+let restartPackageManagerOnShutdown = true;
 function startPackageManager(
   updatePackageOnStartName: string | undefined = undefined
 ) {
@@ -362,6 +364,7 @@ function startPackageManager(
         version: configuration.EDITOR_VERSION,
         githubPackages: store.get("githubPackages"),
         updatePackageOnStartName,
+        packageDeveloper: store.get("packageDeveloper"),
       },
       [port2]
     );
@@ -372,9 +375,12 @@ function startPackageManager(
       } else if (message.type == "close-window") {
         closePackageWindow(message.windowId);
       } else if (message.type == "shutdown-complete") {
+        clearTimeout(stopPackageManagerTimeout);
         packageManagerProcess?.kill();
         packageManagerProcess = undefined;
-        startPackageManager();
+        if (restartPackageManagerOnShutdown) {
+          startPackageManager();
+        }
       }
       if (
         message.type === "delete-package-folder" ||
@@ -396,6 +402,22 @@ function startPackageManager(
       },
       [port2]
     );
+  }
+}
+
+function stopPackageManager(stopGracefully: boolean = false) {
+  if (!stopGracefully) {
+    packageManagerProcess?.kill();
+    packageManagerProcess = undefined;
+  } else {
+    packageManagerProcess.postMessage({ type: "stop-package-manager" });
+    stopPackageManagerTimeout = setTimeout(() => {
+      packageManagerProcess?.kill();
+      packageManagerProcess = undefined;
+      if (restartPackageManagerOnShutdown) {
+        startPackageManager();
+      }
+    }, 10000);
   }
 }
 
@@ -462,12 +484,25 @@ function closePackageWindow(windowId) {
 }
 
 async function restartPackageManagerProcess() {
+  restartPackageManagerOnShutdown = true;
   if (packageManagerProcess) {
-    packageManagerProcess.postMessage({ type: "stop-package-manager" });
+    stopPackageManager(true);
   } else {
     startPackageManager();
   }
 }
+
+store.onDidChange("packageDeveloper", (newValue) => {
+  if (packageManagerProcess) {
+    packageManagerProcess.postMessage(
+      {
+        type: "set-package-developer",
+        value: newValue ?? false,
+      },
+      []
+    );
+  }
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -706,9 +741,13 @@ ipcMain.on("resetAppSettings", (event, arg) => {
     };
     options.args.unshift("--appimage-extract-and-run");
     log.info("ARGS: ", options);
+    restartPackageManagerOnShutdown = false;
+    stopPackageManager();
     app.relaunch(options);
     app.exit(0);
   } else {
+    restartPackageManagerOnShutdown = false;
+    stopPackageManager();
     app.relaunch({ args: process.argv.slice(1).concat(["--relaunch"]) });
     app.exit(0);
   }
@@ -726,9 +765,13 @@ ipcMain.on("restartApp", (event, arg) => {
     options.execPath = process.env.APPIMAGE;
     options.args.unshift("--appimage-extract-and-run");
     log.info("ARGS: ", options);
+    restartPackageManagerOnShutdown = false;
+    stopPackageManager();
     app.relaunch(options);
     app.exit(0);
   } else {
+    restartPackageManagerOnShutdown = false;
+    stopPackageManager();
     app.relaunch();
     app.exit();
   }
@@ -742,9 +785,13 @@ app.on("window-all-closed", (evt) => {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== "darwin") {
+      restartPackageManagerOnShutdown = false;
+      stopPackageManager();
       app.quit();
     }
   } else {
+    restartPackageManagerOnShutdown = false;
+    stopPackageManager();
     app.quit();
   }
 });

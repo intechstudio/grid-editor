@@ -7,5 +7,6 @@ export const store = new Store({
       height: 800,
     },
     profiles_folder: "",
+    packageDeveloper: false,
   },
 });
