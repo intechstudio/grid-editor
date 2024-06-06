@@ -9,7 +9,7 @@ export class ConfigPage {
 
   async addActionBlock(category, blockName) {
     await this.addActionBlockButton.click();
-    await this.blocks[category][blockName].click();
+    await this.blocks[category][blockName]["block"].click();
   }
   async openAddActionBlock() {
     await this.addActionBlockButton.click();
