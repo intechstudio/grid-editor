@@ -6,10 +6,11 @@ export const blocks = (page) => ({
         .filter({ hasText: "Lookup" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        source: page.getByPlaceholder("Incoming value to match"),
+        input: page.getByPlaceholder("input").first(),
+        output: page.getByPlaceholder("output").first(),
+        destination: page.getByPlaceholder("Variable name to load the"),
+        addNewPair: page.getByText("Add new pair..."),
       },
     },
     Global: {
@@ -18,10 +19,10 @@ export const blocks = (page) => ({
         .filter({ hasText: "Global" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        commit: page.getByRole("button", { name: "Commit" }),
+        var: page.getByPlaceholder("variable name"),
+        i: page.locator("#monaco_container"),
+        addNewPair: page.getByText("Add global variable..."),
       },
     },
     Locals: {
@@ -30,10 +31,10 @@ export const blocks = (page) => ({
         .filter({ hasText: "Locals" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        commit: page.getByRole("button", { name: "Commit" }),
+        var: page.getByPlaceholder("variable name"),
+        i: page.locator("#monaco_container"),
+        addNewPair: page.getByText("Add local variable..."),
       },
     },
     Self: {
@@ -42,10 +43,10 @@ export const blocks = (page) => ({
         .filter({ hasText: "Self" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        commit: page.getByRole("button", { name: "Commit" }),
+        var: page.getByPlaceholder("variable name"),
+        i: page.locator("#monaco_container"),
+        addNewPair: page.getByText("Add self variable..."),
       },
     },
   },
@@ -56,10 +57,11 @@ export const blocks = (page) => ({
         .filter({ hasText: "Start Animation" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        ledNumber: page.getByRole("textbox").first(),
+        Layer: page.getByRole("textbox").nth(1),
+        Phase: page.getByRole("textbox").nth(2),
+        Rate: page.getByRole("textbox").nth(3),
+        Shape: page.getByRole("textbox").nth(4),
       },
     },
     "Stop Animation": {
@@ -68,10 +70,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Stop Animation" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        ledNumber: page.getByRole("textbox").first(),
+        Layer: page.getByRole("textbox").nth(1),
       },
     },
     Color: {
@@ -80,10 +80,14 @@ export const blocks = (page) => ({
         .filter({ hasText: "Color" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        ledNumber: page.getByRole("textbox").first(),
+        Layer: page.getByRole("textbox").nth(1),
+        Red: page.getByRole("textbox").nth(2),
+        Green: page.getByRole("textbox").nth(3),
+        Blue: page.getByRole("textbox").nth(4),
+        Canva: page.locator("#myCanvas"),
+        Random: page.locator(".w-1\\/5"),
+        Beauty: page.locator("#cfg-0").getByRole("checkbox"),
       },
     },
     Intensity: {
