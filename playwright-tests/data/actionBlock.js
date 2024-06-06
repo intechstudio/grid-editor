@@ -19,7 +19,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Global" })
         .nth(2),
       elements: {
-        commit: page.getByRole("button", { name: "Commit" }),
+        Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
         i: page.locator("#monaco_container"),
         addNewPair: page.getByText("Add global variable..."),
@@ -31,7 +31,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Locals" })
         .nth(2),
       elements: {
-        commit: page.getByRole("button", { name: "Commit" }),
+        Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
         i: page.locator("#monaco_container"),
         addNewPair: page.getByText("Add local variable..."),
@@ -43,7 +43,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Self" })
         .nth(2),
       elements: {
-        commit: page.getByRole("button", { name: "Commit" }),
+        Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
         i: page.locator("#monaco_container"),
         addNewPair: page.getByText("Add self variable..."),
@@ -96,10 +96,9 @@ export const blocks = (page) => ({
         .filter({ hasText: "Intensity" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        "LED Number": page.getByRole("textbox").first(),
+        Layer: page.getByRole("textbox").nth(1),
+        Intensity: page.getByRole("textbox").nth(2),
       },
     },
   },
@@ -110,10 +109,10 @@ export const blocks = (page) => ({
         .filter({ hasText: "MIDI" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Channel: page.getByRole("textbox").first(),
+        Command: page.getByRole("textbox").nth(1),
+        Parameter1: page.getByRole("textbox").nth(2),
+        Parameter2: page.getByRole("textbox").nth(3),
       },
     },
     "MIDI 14": {
@@ -122,10 +121,9 @@ export const blocks = (page) => ({
         .filter({ hasText: "MIDI 14" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Channel: page.getByRole("textbox").first(),
+        CC: page.getByRole("textbox").nth(1),
+        "Controller Value": page.getByRole("textbox").nth(2),
       },
     },
     "MIDI SysEX": {
@@ -134,10 +132,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "MIDI SysEX" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Commit: page.getByRole("button", { name: "Commit" }),
+        message: page.getByText("0xF0, 0x41, 0x10, val, 0xF7", { exact: true }),
       },
     },
   },
@@ -148,10 +144,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "GamePad Axis" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Axis: page.getByRole("textbox").first(),
+        Position: page.getByRole("textbox").nth(1),
       },
     },
     "GamePad Button": {
@@ -160,10 +154,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "GamePad Button" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Button: page.getByRole("textbox").first(),
+        State: page.getByRole("textbox").nth(1),
       },
     },
     Keyboard: {
@@ -172,10 +164,12 @@ export const blocks = (page) => ({
         .filter({ hasText: "Keyboard" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Macro: page.locator(".focus\\:border-select-desaturate-20"),
+        "Add Key": page.getByRole("combobox").nth(3),
+        "Delay Key": page.getByRole("spinbutton").first(),
+        "Add Delay": page.getByRole("button", { name: "Add Delay" }),
+        "Defaul Delay": page.getByRole("spinbutton").nth(1),
+        "Clear All": page.getByRole("button", { name: "Clear All" }),
       },
     },
     "Mouse Button": {
@@ -184,10 +178,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Mouse Button" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Button: page.getByRole("textbox").first(),
+        State: page.getByRole("textbox").nth(1),
       },
     },
     "Mouse Move": {
@@ -196,10 +188,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Mouse Move" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Axis: page.getByRole("textbox").first(),
+        Position: page.getByRole("textbox").nth(1),
       },
     },
   },
@@ -210,10 +200,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Button Mode" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Mode: page.getByRole("textbox").first(),
       },
     },
     "Encoder Mode": {
@@ -222,10 +209,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Encoder Mode" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Mode: page.getByRole("textbox").first(),
+        Velocity: page.getByRole("textbox").nth(1),
       },
     },
     "Potmeter Mode": {
@@ -234,10 +219,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Potmeter Mode" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Bit: page.getByRole("textbox").first(),
+        Max: page.getByRole("textbox").nth(1),
       },
     },
   },
@@ -245,10 +228,8 @@ export const blocks = (page) => ({
     If: {
       block: page.locator("#action-menu div").filter({ hasText: "If" }).nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        input: page.locator(".view-line"),
+        end: page.locator("#cfg-1"),
       },
     },
     // Add "If Else" and "Else"
@@ -260,10 +241,13 @@ export const blocks = (page) => ({
         .filter({ hasText: "Repeater Loop" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        input: page.locator("div").filter({ hasText: /^10$/ }).nth(3),
+        times: page.locator("#cfg-0").getByRole("checkbox"),
+        end: page.locator("#cfg-1"),
+        Variable: page.getByRole("textbox").nth(1),
+        Initial: page.getByRole("textbox").nth(2),
+        End: page.getByRole("textbox").nth(3),
+        Increment: page.getByRole("textbox").nth(4),
       },
     },
   },
@@ -274,10 +258,9 @@ export const blocks = (page) => ({
         .filter({ hasText: "Press/Release" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        press: page.locator("#cfg-0"),
+        release: page.locator("#cfg-1"),
+        end: page.locator("#cfg-2"),
       },
     },
   },
@@ -288,10 +271,9 @@ export const blocks = (page) => ({
         .filter({ hasText: "Left/Right Rotate" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        left: page.locator("#cfg-0"),
+        right: page.locator("#cfg-1"),
+        end: page.locator("#cfg-2"),
       },
     },
     "Push & Rotate L R": {
@@ -300,10 +282,11 @@ export const blocks = (page) => ({
         .filter({ hasText: "Push & Rotate L R" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        "push left": page.locator("#cfg-0"),
+        "push right": page.locator("#cfg-1"),
+        "just left": page.locator("#cfg-2"),
+        "just right": page.locator("#cfg-3"),
+        end: page.locator("#cfg-4"),
       },
     },
     "Push & Rotate": {
@@ -312,10 +295,9 @@ export const blocks = (page) => ({
         .filter({ hasText: "Push & Rotate" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        "push rotate": page.locator("#cfg-0"),
+        "kust rotate": page.locator("#cfg-1"),
+        end: page.locator("#cfg-2"),
       },
     },
   },
@@ -326,10 +308,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Code Block" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        input: page.locator("pre"),
+        "Edit Code": page.getByRole("button", { name: "Edit Code" }),
       },
     },
     "Comment Block": {
@@ -338,10 +318,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Comment Block" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        input: page.getByRole("textbox"),
       },
     },
     "Element Name": {
@@ -350,10 +327,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Element Name" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        input: page.getByRole("textbox"),
       },
     },
   },
@@ -364,10 +338,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Clock Source" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        "Element Number": page.getByRole("textbox").first(),
+        Source: page.getByRole("textbox").nth(1),
       },
     },
     Start: {
@@ -376,10 +348,8 @@ export const blocks = (page) => ({
         .filter({ hasText: "Start" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        "Element Number": page.getByRole("textbox").first(),
+        Time: page.getByRole("textbox").nth(1),
       },
     },
     Stop: {
@@ -388,10 +358,7 @@ export const blocks = (page) => ({
         .filter({ hasText: "Stop" })
         .nth(2),
       elements: {
-        element1: null,
-        element2: null,
-        element3: null,
-        element4: null,
+        Stop: page.getByRole("textbox").first(),
       },
     },
   },

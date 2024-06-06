@@ -35,9 +35,9 @@ const blocks = {
 const blockElements = {
   variables: {
     Lookup: ["source", "input", "output", "destination", "addNewPair"],
-    Global: ["commit", "var", "i", "addNewPair"],
-    Locals: ["commit", "var", "i", "addNewPair"],
-    Self: ["commit", "var", "i", "addNewPair"],
+    Global: ["Commit", "var", "i", "addNewPair"],
+    Locals: ["Commit", "var", "i", "addNewPair"],
+    Self: ["Commit", "var", "i", "addNewPair"],
   },
   led: {
     "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],
@@ -52,49 +52,70 @@ const blockElements = {
       "Random",
       "Beauty",
     ],
-    Intensity: ["element1", "element2", "element3", "element4"],
+    Intensity: ["LED Number", "Layer", "Intensity"],
   },
   midi: {
-    MIDI: ["element1", "element2", "element3", "element4"],
-    "MIDI 14": ["element1", "element2", "element3", "element4"],
-    "MIDI SysEX": ["element1", "element2", "element3", "element4"],
+    MIDI: ["Channel", "Command", "Parameter1", "Parameter2"],
+    "MIDI 14": ["Channel", "CC", "Controller Value"],
+    "MIDI SysEX": ["Commit", "message"],
   },
   hid: {
-    "GamePad Axis": ["element1", "element2", "element3", "element4"],
-    "GamePad Button": ["element1", "element2", "element3", "element4"],
-    Keyboard: ["element1", "element2", "element3", "element4"],
-    "Mouse Button": ["element1", "element2", "element3", "element4"],
-    "Mouse Move": ["element1", "element2", "element3", "element4"],
+    "GamePad Axis": ["Axis", "Position"],
+    "GamePad Button": ["Button", "State"],
+    Keyboard: [
+      "Macro",
+      "Add Key",
+      "Delay Key",
+      "Add Delay",
+      "Defaul Delay",
+      "Clear All",
+    ],
+    "Mouse Button": ["Button", "State"],
+    "Mouse Move": ["Axis", "Position"],
   },
   element: {
-    "Button Mode": ["element1", "element2", "element3", "element4"],
-    "Encoder Mode": ["element1", "element2", "element3", "element4"],
-    "Potmeter Mode": ["element1", "element2", "element3", "element4"],
+    "Button Mode": ["Mode"],
+    "Encoder Mode": ["Mode", "Velocity"],
+    "Potmeter Mode": ["Bit", "Max"],
   },
   condition: {
-    If: ["element1", "element2", "element3", "element4"],
+    If: ["input", "end"],
     // Add "If Else" and "Else"
   },
   loop: {
-    "Repeater Loop": ["element1", "element2", "element3", "element4"],
+    "Repeater Loop": [
+      "input",
+      "times",
+      "end",
+      "Variable",
+      "Initial",
+      "End",
+      "Increment",
+    ],
   },
   specialButton: {
-    "Press/Release": ["element1", "element2", "element3", "element4"],
+    "Press/Release": ["press", "release", "end"],
   },
   specialEncoder: {
-    "Left/Right Rotate": ["element1", "element2", "element3", "element4"],
-    "Push & Rotate L R": ["element1", "element2", "element3", "element4"],
-    "Push & Rotate": ["element1", "element2", "element3", "element4"],
+    "Left/Right Rotate": ["left", "right", "end"],
+    "Push & Rotate L R": [
+      "push left",
+      "push right",
+      "just left",
+      "just right",
+      "end",
+    ],
+    "Push & Rotate": ["push rotate", "kust rotate", "end"],
   },
   code: {
-    "Code Block": ["element1", "element2", "element3", "element4"],
-    "Comment Block": ["element1", "element2", "element3", "element4"],
-    "Element Name": ["element1", "element2", "element3", "element4"],
+    "Code Block": ["input", "Edit Code"],
+    "Comment Block": ["input"],
+    "Element Name": ["input"],
   },
   timer: {
-    "Clock Source": ["element1", "element2", "element3", "element4"],
-    Start: ["element1", "element2", "element3", "element4"],
-    Stop: ["element1", "element2", "element3", "element4"],
+    "Clock Source": ["Element Number", "Source"],
+    Start: ["Element Number", "Time"],
+    Stop: ["Stop"],
   },
 };
 
@@ -133,7 +154,13 @@ test.describe("Elements Existence", () => {
           // Remove all actions
           test.beforeAll(async () => {
             await configPage.removeAllActions();
+            await configPage.noActionAddActionButton.isVisible();
             await configPage.addActionBlock(category, blockName);
+            await configPage.addActionBlock(category, blockName);
+            await configPage.addActionBlock(category, blockName);
+            console.log(category);
+            console.log(blockName);
+            //TODO: midire nem kapcsol itt + Loopot kinyitni + Press/release
           });
 
           // Test
