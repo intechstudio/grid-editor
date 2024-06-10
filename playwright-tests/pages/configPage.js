@@ -8,9 +8,19 @@ export class ConfigPage {
     this.noActionAddActionButton = page.getByRole("button", {
       name: "Add Action",
     });
-    this.removeButton = page.locator(
+    this.copyElementButton = page;
+    this.overwriteElementButton = page;
+    this.discradElementButton = page;
+    this.clearElementButton = page;
+
+    this.copyActionButton = page;
+    this.paseActionButton = page;
+    this.cutActionButton = page;
+    this.mergeActionButton = page;
+    this.removeActionButton = page.locator(
       "div:nth-child(2) > div:nth-child(2) > button:nth-child(5)"
     );
+
     this.blocks = blocks(page);
     this.loopTimesSwtich =
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
@@ -34,7 +44,7 @@ export class ConfigPage {
 
   async removeAllActions() {
     await this.selectAllCheckbox.click();
-    await this.removeButton.click();
+    await this.removeActionButton.click();
   }
 
   async openLoopTimes() {
