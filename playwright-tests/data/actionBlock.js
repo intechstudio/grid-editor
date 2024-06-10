@@ -104,10 +104,7 @@ export const blocks = (page) => ({
   },
   midi: {
     MIDI: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "MIDI" })
-        .nth(2),
+      block: page.locator("div:nth-child(6) > div").first(),
       elements: {
         Channel: page.getByRole("textbox").first(),
         Command: page.getByRole("textbox").nth(1),

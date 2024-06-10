@@ -156,10 +156,6 @@ test.describe("Elements Existence", () => {
             await configPage.removeAllActions();
             await configPage.noActionAddActionButton.isVisible();
             await configPage.addActionBlock(category, blockName);
-            await configPage.addActionBlock(category, blockName);
-            await configPage.addActionBlock(category, blockName);
-            console.log(category);
-            console.log(blockName);
             //TODO: midire nem kapcsol itt + Loopot kinyitni + Press/release
           });
 
