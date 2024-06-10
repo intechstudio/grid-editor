@@ -137,7 +137,7 @@ test.describe("Block Existence", () => {
             await modulePage.removeModule();
             await setupModule("BU16");
           }
-          await configPage.openAddActionBlock();
+          await configPage.openActionBlockList();
           const blockElement = configPage.blocks[category][blockName]["block"];
           await expect(blockElement).toBeVisible();
         });
@@ -151,7 +151,6 @@ test.describe("Elements Existence", () => {
     test.describe(`${category} category`, () => {
       for (const [blockName, elementList] of Object.entries(blockData)) {
         test.describe(`${blockName} block`, () => {
-          // Remove all actions
           test.beforeAll(async () => {
             if (blockName == "Press/Release") {
               await modulePage.removeModule();
@@ -159,7 +158,7 @@ test.describe("Elements Existence", () => {
             }
             await configPage.removeAllActions();
             await configPage.noActionAddActionButton.isVisible();
-            await configPage.addActionBlock(category, blockName);
+            await configPage.openAndAddActionBlock(category, blockName);
             if (blockName == "Repeater Loop") {
               configPage.openLoopTimes();
             }
@@ -177,4 +176,22 @@ test.describe("Elements Existence", () => {
       }
     });
   }
+});
+
+test("should find Else If Actions", async () => {
+  const category = "condition";
+  const ElseIf = "Else if";
+  const Else = "Else";
+  await configPage.removeAllActions();
+  await configPage.noActionAddActionButton.isVisible();
+  await configPage.openAndAddActionBlock(category, "If");
+  await configPage.opendAddBlocktoLastSandwitch();
+  await configPage.addActionBlock(category, ElseIf);
+  await configPage.opendAddBlocktoLastSandwitch();
+  await configPage.addActionBlock(category, Else);
+
+  const elementElse = configPage.blocks[category][ElseIf]["elements"]["input"];
+  const elementElseIf = configPage.blocks[category][Else]["elements"]["else"];
+  await expect(elementElse).toBeVisible();
+  await expect(elementElseIf).toBeVisible();
 });

@@ -14,14 +14,22 @@ export class ConfigPage {
     this.blocks = blocks(page);
     this.loopTimesSwtich =
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
+    this.addBlocktoLastSandwitchButton = page
+      .locator("anim-block")
+      .filter({ hasText: "End" })
+      .locator("action-placeholder div")
+      .first();
   }
 
-  async addActionBlock(category, blockName) {
+  async openAndAddActionBlock(category, blockName) {
     await this.addActionBlockButton.click();
     await this.blocks[category][blockName]["block"].click();
   }
-  async openAddActionBlock() {
+  async openActionBlockList() {
     await this.addActionBlockButton.click();
+  }
+  async addActionBlock(category, blockName) {
+    await this.blocks[category][blockName]["block"].click();
   }
 
   async removeAllActions() {
@@ -31,5 +39,9 @@ export class ConfigPage {
 
   async openLoopTimes() {
     await this.loopTimesSwtich.click();
+  }
+
+  async opendAddBlocktoLastSandwitch() {
+    await this.addBlocktoLastSandwitchButton.click();
   }
 }

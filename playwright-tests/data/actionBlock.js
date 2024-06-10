@@ -229,7 +229,21 @@ export const blocks = (page) => ({
         end: page.locator("#cfg-1"),
       },
     },
-    // Add "If Else" and "Else"
+    Else: {
+      block: page.locator("div:nth-child(12) > div").first(),
+      elements: {
+        else: page.locator("#cfg-1"),
+      },
+    },
+    "Else if": {
+      block: page
+        .locator("#action-menu div")
+        .filter({ hasText: "Else if" })
+        .nth(2),
+      elements: {
+        input: page.locator("#cfg-1 #monaco_container"),
+      },
+    },
   },
   loop: {
     "Repeater Loop": {
