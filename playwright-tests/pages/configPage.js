@@ -12,6 +12,8 @@ export class ConfigPage {
       "div:nth-child(2) > div:nth-child(2) > button:nth-child(5)"
     );
     this.blocks = blocks(page);
+    this.loopTimesSwtich =
+      this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
   }
 
   async addActionBlock(category, blockName) {
@@ -25,5 +27,9 @@ export class ConfigPage {
   async removeAllActions() {
     await this.selectAllCheckbox.click();
     await this.removeButton.click();
+  }
+
+  async openLoopTimes() {
+    await this.loopTimesSwtich.click();
   }
 }

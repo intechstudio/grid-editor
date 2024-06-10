@@ -153,10 +153,16 @@ test.describe("Elements Existence", () => {
         test.describe(`${blockName} block`, () => {
           // Remove all actions
           test.beforeAll(async () => {
+            if (blockName == "Press/Release") {
+              await modulePage.removeModule();
+              await setupModule("BU16");
+            }
             await configPage.removeAllActions();
             await configPage.noActionAddActionButton.isVisible();
             await configPage.addActionBlock(category, blockName);
-            //TODO: midire nem kapcsol itt + Loopot kinyitni + Press/release
+            if (blockName == "Repeater Loop") {
+              configPage.openLoopTimes();
+            }
           });
 
           // Test
