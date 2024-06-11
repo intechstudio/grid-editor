@@ -170,6 +170,11 @@
               message: data.message,
               type: data.messageType,
             });
+            break;
+          }
+          case "debug-error": {
+            console.log(`Package error: ${data.error}`);
+            break;
           }
           default: {
             console.info(

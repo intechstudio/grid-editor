@@ -200,6 +200,7 @@
   }
 
   function restartPackageManager() {
+    $appSettings.packageManagerRunning = false;
     window.electron.restartPackageManager();
   }
 </script>
