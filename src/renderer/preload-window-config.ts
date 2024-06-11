@@ -56,6 +56,13 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       restore: () => {},
       isMaximized: () => {},
     },
+    clipboard: {
+      writeText: () => {
+        return new Promise((resolve, reject) => {
+          reject("This feature is not yet supported in web mode.");
+        });
+      },
+    },
     persistentStorage: {
       set: () => {},
       get: async () => {
@@ -81,7 +88,7 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       onSendConfigsToRenderer: async () => {},
       saveConfig: () => {
         return new Promise((resolve, reject) => {
-          reject("Profile importing is not supported in web mode.");
+          reject("This feature is not yet supported in web mode.");
         });
       },
     },
