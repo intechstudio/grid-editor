@@ -325,7 +325,6 @@
           channelMessageWrapper(event, handleSendLogMessage);
           break;
         case "openExternalLink":
-          console.log("asd");
           channelMessageWrapper(event, handleOpenExternalLink);
           break;
       }
