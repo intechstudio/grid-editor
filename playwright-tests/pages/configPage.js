@@ -94,7 +94,7 @@ export class ConfigPage {
   async overwriteElement() {
     await this.overwriteElementButton.click();
   }
-  async discradElement() {
+  async discardElement() {
     await this.discradElementButton.click();
   }
   async clearElement() {

@@ -63,8 +63,16 @@ test.describe("Element Actions", () => {
     );
   });
 
-  test("Discard", async () => {
-    null;
+  test("Discard", async ({ page }) => {
+    const notVisibleComment = "Not Exist";
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(notVisibleComment);
+    await configPage.selectElementEvent("Timer");
+    await configPage.discardElement();
+    await configPage.selectElementEvent("Button");
+
+    await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
   test("Clear", async () => {
     null;
