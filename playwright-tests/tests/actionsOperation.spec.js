@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
   await connectModulePage.addModule("TEK2");
 });
 
-test.describe("Action Block Actions", () => {
+test.describe("Action Block Operations", () => {
   test("Copy and Paste", async () => {
     null;
   });
@@ -34,12 +34,35 @@ test.describe("Action Block Actions", () => {
 });
 
 test.describe("Element Actions", () => {
-  test("Copy", async () => {
-    null;
+  test("Copy and Overwrite", async () => {
+    const initComment = "init pasted";
+    const buttonComment = "button pasted";
+    const timerComment = "timer pasted";
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(buttonComment);
+    await configPage.selectElementEvent("Init");
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(initComment);
+    await configPage.selectElementEvent("Timer");
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(timerComment);
+    await configPage.copyElement();
+    await modulePage.selectModuleElement(3);
+    await configPage.overwriteElement();
+
+    await expect(await configPage.getTextFromComment()).toHaveValue(
+      timerComment
+    );
+    await configPage.selectElementEvent("Init");
+    await expect(await configPage.getTextFromComment()).toHaveValue(
+      initComment
+    );
+    await configPage.selectElementEvent("Button");
+    await expect(await configPage.getTextFromComment()).toHaveValue(
+      buttonComment
+    );
   });
-  test("Overwrite", async () => {
-    null;
-  });
+
   test("Discard", async () => {
     null;
   });

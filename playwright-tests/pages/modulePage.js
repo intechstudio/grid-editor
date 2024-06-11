@@ -18,6 +18,54 @@ export class ModulePage {
       PO16: page.getByTestId("PO16_dx:0;dy:0"),
       TEK2: page.getByTestId("TEK2_dx:0;dy:0"),
     };
+    this.moduleElement = {
+      0: page.locator(".normal-cell-underlay-container > .w-full").first(),
+      1: page.locator(
+        "cell:nth-child(2) > .normal-cell-underlay-container > .w-full"
+      ),
+      2: page.locator(
+        "cell:nth-child(3) > .normal-cell-underlay-container > .w-full"
+      ),
+      3: page.locator(
+        "cell:nth-child(4) > .normal-cell-underlay-container > .w-full"
+      ),
+      4: page.locator(
+        "cell:nth-child(5) > .normal-cell-underlay-container > .w-full"
+      ),
+      5: page.locator(
+        "cell:nth-child(6) > .normal-cell-underlay-container > .w-full"
+      ),
+      6: page.locator(
+        "cell:nth-child(7) > .normal-cell-underlay-container > .w-full"
+      ),
+      7: page.locator(
+        "cell:nth-child(8) > .normal-cell-underlay-container > .w-full"
+      ),
+      8: page.locator(
+        "cell:nth-child(9) > .normal-cell-underlay-container > .w-full"
+      ),
+      9: page.locator(
+        "cell:nth-child(10) > .normal-cell-underlay-container > .w-full"
+      ),
+      10: page.locator(
+        "cell:nth-child(11) > .normal-cell-underlay-container > .w-full"
+      ),
+      11: page.locator(
+        "cell:nth-child(12) > .normal-cell-underlay-container > .w-full"
+      ),
+      12: page.locator(
+        "cell:nth-child(13) > .normal-cell-underlay-container > .w-full"
+      ),
+      13: page.locator(
+        "cell:nth-child(14) > .normal-cell-underlay-container > .w-full"
+      ),
+      14: page.locator(
+        "cell:nth-child(15) > .normal-cell-underlay-container > .w-full"
+      ),
+      15: page.locator(
+        "cell:nth-child(16) > .normal-cell-underlay-container > .w-full"
+      ),
+    };
     this.firstModuleSidesAddButton = {
       right: page.locator(
         '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(2) > .flex'
@@ -34,6 +82,9 @@ export class ModulePage {
       left: page.locator('[id="grid-device-dx\\:-1\\;dy\\:0"]'),
       top: page.locator('[id="grid-device-dx\\:0\\;dy\\:1"]'),
     };
+    this.eventCopiedToast = page.getByRole("button", {
+      name: "✔️ Events are copied! (Click",
+    });
   }
 
   async changeModule() {
@@ -52,5 +103,8 @@ export class ModulePage {
     } else {
       throw new Error(`Module ${module} not found`);
     }
+  }
+  async selectModuleElement(number) {
+    await this.moduleElement[number].click();
   }
 }
