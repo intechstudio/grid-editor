@@ -18,8 +18,19 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("Action Block Operations", () => {
-  test("Copy and Paste", async () => {
-    null;
+  test("Copy and Paste", async ({ page }) => {
+    const expectedComment = "action operation";
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(expectedComment);
+    await configPage.selectAllActions();
+    await configPage.copyAction();
+    await modulePage.selectModuleElement(3);
+    await configPage.selectElementEvent("Timer");
+    await configPage.pasteAction();
+    await expect(await configPage.getTextFromComment()).toHaveValue(
+      expectedComment
+    );
+    await expect(page.locator("#cfg-1")).toBeVisible(); //last action block is comment visible
   });
   test("Cut and Paste", async () => {
     null;
