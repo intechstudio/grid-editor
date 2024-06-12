@@ -410,7 +410,8 @@
   }
 
   function handleMouseOut(e) {
-    window.focus();
+    //Removed due to textArea losing focus when in edit mode
+    //window.focus();
   }
 </script>
 
