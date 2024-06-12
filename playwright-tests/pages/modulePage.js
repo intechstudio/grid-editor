@@ -85,6 +85,12 @@ export class ModulePage {
     this.eventCopiedToast = page.getByRole("button", {
       name: "✔️ Events are copied! (Click",
     });
+
+    this.characterLimitPasteToast = page.getByRole("button", {
+      name: "❌ Paste failed! Config limit",
+    });
+    this.characterLimitAddToast = page.getByText("Modifications can not");
+    this.storeButton = page.getByRole("button", { name: "Store" });
   }
 
   async changeModule() {
@@ -106,5 +112,22 @@ export class ModulePage {
   }
   async selectModuleElement(number) {
     await this.moduleElement[number].click();
+  }
+  async rightClickModuleElement(number) {
+    await this.moduleElement[number].click({ button: "right" });
+  }
+
+  async copyElement() {
+    await this.page.getByText("Copy Element").click();
+  }
+  async overwriteElement() {
+    await this.page.getByText("Overwrite Element").click();
+  }
+
+  async discardElement() {
+    await this.page.getByText("Discard Element Changes").click();
+  }
+  async clearElement() {
+    await this.page.getByText("Clear Element").click();
   }
 }

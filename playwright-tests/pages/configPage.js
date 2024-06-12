@@ -9,6 +9,7 @@ export class ConfigPage {
       name: "Add Action",
     });
 
+    this.firstActionBlock = page.locator("#cfg-0");
     //Element Actions
     this.copyElementButton = page.locator(".toolbar-button").first();
     this.overwriteElementButton = page
@@ -61,6 +62,7 @@ export class ConfigPage {
       .filter({ hasText: "End" })
       .locator("action-placeholder div")
       .first();
+    this.commitCodeButton = page.getByRole("button", { name: "Commit" });
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -107,7 +109,7 @@ export class ConfigPage {
   async pasteAction() {
     await this.paseActionButton.click();
   }
-  async cutActionButton() {
+  async cutAction() {
     await this.cutActionButton.click();
   }
   async mergeAction() {
@@ -130,11 +132,36 @@ export class ConfigPage {
   async addCommentBlock(comment) {
     await this.addActionBlockButton.click();
     await this.blocks["code"]["Comment Block"]["block"].click();
-    await this.blocks["code"]["Comment Block"]["elements"]["input"].fill(
-      comment
-    );
+    if (comment) {
+      await this.blocks["code"]["Comment Block"]["elements"]["input"].fill(
+        comment
+      );
+    }
+  }
+
+  async addAndEditCodeBlock(code) {
+    await this.addActionBlockButton.click();
+    await await this.blocks["code"]["Code Block"]["block"].click();
+    await this.blocks["code"]["Code Block"]["elements"]["Edit Code"].click();
+    await this.page
+      .locator(".view-line")
+      .first()
+      .evaluate((node) => (node.innerText = "Your text here"));
+    //TODO: click in the field and edit
+  }
+
+  async commitCode() {
+    await this.commitCodeButton.click();
   }
   async getTextFromComment() {
     return await this.blocks["code"]["Comment Block"]["elements"]["input"];
+  }
+
+  async getTextFromCode() {
+    return await this.blocks["code"]["Code Block"]["elements"]["input"];
+  }
+
+  async openFirstActionBlock() {
+    await this.firstActionBlock.click();
   }
 }
