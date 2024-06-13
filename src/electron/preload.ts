@@ -112,7 +112,6 @@ contextBridge.exposeInMainWorld("electron", {
   },
   restartPackageManager: () => ipcRenderer.send("restartPackageManager"),
   installUpdate: () => ipcRenderer.send("installUpdate"),
-  disableUpdating: () => ipcRenderer.send("disableUpdating"),
   overlay: (payload) => ipcRenderer.invoke("overlay", { payload }),
 });
 
