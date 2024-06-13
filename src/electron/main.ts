@@ -251,10 +251,6 @@ function createWindow() {
     updater.installUpdate();
   });
 
-  ipcMain.on("disableUpdating", (event) => {
-    updater.disableUpdating();
-  });
-
   console.log("here what is buildVariables.BUILD_ENV");
   if (buildVariables.BUILD_ENV === "development") {
     log.info("Development Mode!");

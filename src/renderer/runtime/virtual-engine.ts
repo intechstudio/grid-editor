@@ -33,7 +33,8 @@ export const VirtualModuleHWCFG = {
     type: ModuleType.PO16,
   },
   TEK2: {
-    hwcfg: grid.GRID_MODULE_TEK2_RevA,
+    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.TEK2)
+      .hwcfg,
     type: ModuleType.TEK2,
   },
 };
