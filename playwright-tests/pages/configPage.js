@@ -63,6 +63,7 @@ export class ConfigPage {
       .locator("action-placeholder div")
       .first();
     this.commitCodeButton = page.getByRole("button", { name: "Commit" });
+    this.closeCodeButton = page.getByRole("button", { name: "Close" });
     this.codeblockInput = page.locator(".view-line").first();
     this.codeBlockCharacterLimitMessage = page.getByText(
       "Config limit reached."
@@ -143,6 +144,11 @@ export class ConfigPage {
     }
   }
 
+  async addCommentBlock() {
+    await this.addActionBlockButton.click();
+    await await this.blocks["code"]["Code Block"]["block"].click();
+  }
+
   async addAndEditCodeBlock(code) {
     await this.addActionBlockButton.click();
     await await this.blocks["code"]["Code Block"]["block"].click();
@@ -165,6 +171,9 @@ export class ConfigPage {
 
   async commitCode() {
     await this.commitCodeButton.click();
+  }
+  async closeCode() {
+    await this.closeCodeButton.click();
   }
   async getTextFromComment() {
     return await this.blocks["code"]["Comment Block"]["elements"]["input"];

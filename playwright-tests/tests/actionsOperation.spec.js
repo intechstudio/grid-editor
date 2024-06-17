@@ -196,3 +196,29 @@ test.describe("Character limit", () => {
     await expect(await configPage.commitCodeButton).toBeDisabled();
   });
 });
+// https://github.com/intechstudio/grid-editor/issues/751
+test("code jump back ", async ({ page }) => {
+  const text = "print('deleted block')";
+  const expectedText = "hello";
+  await configPage.removeAllActions();
+  await configPage.addAndEditCodeBlock(text);
+  await configPage.commitCode();
+  await configPage.closeCode();
+  await configPage.selectElementEvent("Init");
+  await configPage.addCommentBlock();
+  await page.locator(".w-fit > .border-white").click();
+  await page
+    .locator("anim-block")
+    .filter({ hasText: 'Code preview: print("hello")' })
+    .getByRole("button")
+    .nth(2)
+    .click();
+  await page
+    .locator("div:nth-child(2) > div:nth-child(2) > button:nth-child(5)")
+    .click();
+
+  const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
+  await expect(preText).toBeVisible();
+
+  //TODO refactor, with contains(), it slow now
+});
