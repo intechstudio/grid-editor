@@ -27,10 +27,10 @@ const blocks = {
   element: ["Button Mode", "Encoder Mode", "Potmeter Mode"],
   condition: ["If"], // Add "If Else" and "Else"
   loop: ["Repeater Loop"],
-  specialButton: ["Press/Release"],
   specialEncoder: ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
   code: ["Code Block", "Comment Block", "Element Name"],
   timer: ["Clock Source", "Start", "Stop"],
+  specialButton: ["Press/Release"],
 };
 const blockElements = {
   variables: {
@@ -93,9 +93,7 @@ const blockElements = {
       "Increment",
     ],
   },
-  specialButton: {
-    "Press/Release": ["press", "release", "end"],
-  },
+
   specialEncoder: {
     "Left/Right Rotate": ["left", "right", "end"],
     "Push & Rotate L R": [
@@ -116,6 +114,9 @@ const blockElements = {
     "Clock Source": ["Element Number", "Source"],
     Start: ["Element Number", "Time"],
     Stop: ["Stop"],
+  },
+  specialButton: {
+    "Press/Release": ["press", "release", "end"],
   },
 };
 
