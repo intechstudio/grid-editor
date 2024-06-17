@@ -63,6 +63,10 @@ export class ConfigPage {
       .locator("action-placeholder div")
       .first();
     this.commitCodeButton = page.getByRole("button", { name: "Commit" });
+    this.codeblockInput = page.locator(".view-line").first();
+    this.codeBlockCharacterLimitMessage = page.getByText(
+      "Config limit reached."
+    );
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -143,11 +147,20 @@ export class ConfigPage {
     await this.addActionBlockButton.click();
     await await this.blocks["code"]["Code Block"]["block"].click();
     await this.blocks["code"]["Code Block"]["elements"]["Edit Code"].click();
-    await this.page
-      .locator(".view-line")
-      .first()
-      .evaluate((node) => (node.innerText = "Your text here"));
-    //TODO: click in the field and edit
+    await this.page.getByText("Synced with Grid!").click();
+    await this.codeblockInput.click({ clickCount: 1 });
+
+    const isMac = process.platform === "darwin";
+
+    if (isMac) {
+      await this.codeblockInput.press("Meta+A");
+    } else {
+      await this.codeblockInput.press("Control+A");
+    }
+
+    await this.page.waitForTimeout(400);
+    // await this.page.locator(".view-line").first().press("Backspace");
+    await this.codeblockInput.type(code);
   }
 
   async commitCode() {

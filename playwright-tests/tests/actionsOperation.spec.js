@@ -187,8 +187,12 @@ test.describe("Character limit", () => {
     await expect(await modulePage.storeButton).toBeDisabled();
   });
 
-  test.skip("in code", async () => {
+  test("in code", async () => {
     await configPage.removeAllActions();
-    await configPage.addAndEditCodeBlock(characterlimit); // text locator not working
+    await configPage.addAndEditCodeBlock(characterlimit);
+    await expect
+      .soft(await configPage.codeBlockCharacterLimitMessage)
+      .toBeVisible();
+    await expect(await configPage.commitCodeButton).toBeDisabled();
   });
 });
