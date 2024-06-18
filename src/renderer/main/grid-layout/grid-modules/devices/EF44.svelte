@@ -87,7 +87,8 @@
   }
 </script>
 
-<div data-testid="EF44_dx:{dx};dy:{dy}"
+<div
+  data-testid="EF44_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"

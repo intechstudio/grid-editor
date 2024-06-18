@@ -89,7 +89,7 @@
                 >{device.id}</span
               >
               <button
-                data-testid="{device.id}"
+                data-testid={device.id}
                 class="border"
                 class:border-transparent={index !== selectedModule}
                 class:hover:border-emerald-600={index !== selectedModule}
