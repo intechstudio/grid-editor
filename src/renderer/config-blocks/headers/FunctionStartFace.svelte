@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { stringManipulation } from "../../main/user-interface/_string-operations";
   import { parenthesis } from "../_validators";
+  import { GridScript } from "grid-protocol";
 
   export let config;
   export let index;
@@ -17,7 +17,7 @@
   let loaded = false;
 
   $: if (config.script && !loaded) {
-    scriptSegment = stringManipulation.humanize(config.script.slice(9));
+    scriptSegment = GridScript.humanize(config.script.slice(9));
     loaded = true;
   }
 
@@ -27,7 +27,7 @@
 
   function sendData(e) {
     if (parenthesis(e)) {
-      const script = stringManipulation.shortify(e);
+      const script = GridScript.shortify(e);
 
       dispatch("output", {
         short: `fst`,
