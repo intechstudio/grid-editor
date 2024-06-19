@@ -3,7 +3,7 @@
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
   import Toggle from "../../main/user-interface/Toggle.svelte";
-  import { stringManipulation } from "../../main/user-interface/_string-operations";
+  import { GridScript } from "grid-protocol";
   import { Validator } from "../_validators";
   import AtomicInput from "../../main/user-interface/AtomicInput.svelte";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
@@ -85,7 +85,7 @@
 
   function handleInputFieldChange(e, i) {
     data[i].value = e.detail;
-    const shortData = data.map((e) => stringManipulation.shortify(e.value));
+    const shortData = data.map((e) => GridScript.shortify(e.value));
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
     dispatch("output", {
       short: config.short,

@@ -3,4 +3,3 @@ dist/*
 dist-web/*
 build/*
 build-assets/*
-src/external/grid-protocol/*

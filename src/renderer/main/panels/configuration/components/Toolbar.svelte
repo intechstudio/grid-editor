@@ -1,6 +1,4 @@
 <script>
-  import { grid } from "./../../../../protocol/grid-protocol.ts";
-  import { get } from "svelte/store";
   import {
     appClipboard,
     ClipboardKey,

@@ -25,7 +25,7 @@
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import { stringManipulation } from "../main/user-interface/_string-operations";
+  import { GridScript } from "grid-protocol";
 
   import { parenthesis } from "./_validators.js";
 
@@ -100,7 +100,7 @@
 
   function humanizeLocals(segments) {
     return segments.map((elem) => {
-      elem.value = stringManipulation.humanize(elem.value);
+      elem.value = GridScript.humanize(elem.value);
       return elem;
     });
   }
@@ -125,7 +125,7 @@
 
     if (parenthesis(outputCode)) {
       committedCode = outputCode;
-      outputCode = stringManipulation.shortify(outputCode);
+      outputCode = GridScript.shortify(outputCode);
       dispatch("output", { short: "l", script: outputCode });
       commitState = 0;
     }

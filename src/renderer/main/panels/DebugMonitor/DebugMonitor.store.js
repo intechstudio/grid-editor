@@ -1,6 +1,6 @@
-import { writable, get } from "svelte/store";
+import { writable } from "svelte/store";
 import { getDeviceName } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "../../../protocol/grid-protocol";
+import { NumberToEventType } from "grid-protocol";
 
 function createDebugMonitor() {
   const store = writable([]);

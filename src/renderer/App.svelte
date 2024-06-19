@@ -98,11 +98,11 @@
           case "package-action": {
             if (data.id == "change-page") {
               runtime.change_page(data.num);
-            } else if (data.id == "immediate") {
+            } else if (data.id == "execute-lua-script") {
               instructions
                 .sendImmediateToGrid(
-                  data.target_dx,
-                  data.target_dy,
+                  data.targetDx ?? -127,
+                  data.targetDy ?? -127,
                   data.script
                 )
                 .catch((e) => {
@@ -170,6 +170,11 @@
               message: data.message,
               type: data.messageType,
             });
+            break;
+          }
+          case "debug-error": {
+            console.log(`Package error: ${data.error}`);
+            break;
           }
           default: {
             console.info(

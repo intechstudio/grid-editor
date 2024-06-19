@@ -53,7 +53,6 @@
   }
 
   function handleCloseClicked(e) {
-    window.electron.disableUpdating();
     state = UpdateState.UPTODATE;
   }
 

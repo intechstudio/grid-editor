@@ -10,49 +10,17 @@ interface Updater {
   mainWindow: any;
   init: () => void;
   installUpdate: () => void;
-  disableUpdating: () => void;
 }
 
 export const updater: Updater = {
   mainWindow: null,
   init: init,
   installUpdate: installUpdate,
-  disableUpdating: disableUpdating,
 };
-
-// URL of your GitHub repository's releases
-const GITHUB_REPO_OWNER = "intechstudio";
-const GITHUB_REPO_NAME = "grid-editor";
-const GITHUB_RELEASES_URL = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`;
-
-let updateTimeout: any = undefined;
-
-// Function to check for updates without downloading
-async function checkForUpdates() {
-  console.log("Checking for update...");
-  try {
-    const response = await fetch(GITHUB_RELEASES_URL);
-    const releaseInfo = await response.json();
-
-    // Get the latest version from the GitHub release
-    const latestVersion = releaseInfo.tag_name.replace("v", "");
-    const currentVersion = app.getVersion();
-
-    if (latestVersion !== currentVersion) {
-      // An update is available, inform the user
-      handleUpdateAvailable(latestVersion);
-    } else {
-      // No update available
-      console.log("No update available.");
-    }
-  } catch (error) {
-    console.error("Error checking for updates:", error.message);
-  }
-}
 
 function init() {
   autoUpdater.logger = log;
-  autoUpdater.autoDownload = true; // Enable auto download updates in development mode
+  autoUpdater.autoDownload = false;
   autoUpdater.forceDevUpdateConfig = true;
   log.transports.file.level = "info";
 
@@ -86,7 +54,7 @@ function init() {
     buildVariables.BUILD_ENV === "alpha" ||
     buildVariables.BUILD_ENV === "production"
   ) {
-    updateTimeout = setTimeout(checkForUpdates, 5000);
+    setTimeout(() => autoUpdater.checkForUpdates(), 10000); //Give time for main window to initialize
   } else {
     console.log("Checking for updates is disabled...");
   }
@@ -100,22 +68,18 @@ autoUpdater.on("error", (error) => {
   });
 });
 
-function disableUpdating() {
-  clearTimeout(updateTimeout);
-}
-
 function installUpdate() {
-  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.downloadUpdate();
 }
 
-function handleUpdateAvailable(info) {
+autoUpdater.on("update-available", (info) => {
   log.info("update-available...", info);
   // Prompt the user to confirm the update
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-available",
-    version: info,
+    version: info.version,
   });
-}
+});
 
 autoUpdater.on("download-progress", (progressObj) => {
   log.info("update_progress", progressObj);
