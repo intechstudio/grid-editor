@@ -32,6 +32,7 @@ interface Information {
     | "special"
     | "code"
     | "timer"
+    | "function"
     | null;
   displayName: string;
   defaultLua: string;
