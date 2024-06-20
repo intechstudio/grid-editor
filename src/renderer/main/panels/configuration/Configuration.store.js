@@ -324,6 +324,10 @@ export class ConfigTarget {
     return currentTarget;
   }
 
+  watch() {
+    return new ConfigTargetWatcher(this);
+  }
+
   hasChanges() {
     for (const event of this.events) {
       if (event.config !== event.stored) {
