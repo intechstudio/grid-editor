@@ -28,6 +28,8 @@
     type: "composite_part",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    helperText:
+      "Actions here are triggered when the event runs, and no others conditions were met.",
   };
 </script>
 

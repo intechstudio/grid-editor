@@ -42,6 +42,7 @@ const persistentDefaultValues = {
   disableAnimations: false,
   colorfulToolbar: false,
   packageDeveloper: false,
+  actionHelperText: true,
 };
 
 function createSplitPanes() {
