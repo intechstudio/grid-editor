@@ -4,11 +4,12 @@
   import Toggle from "../../user-interface/Toggle.svelte";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
+  import { user_input, runtime } from "../../../runtime/runtime.store.js";
   import {
     elementNameStore,
-    user_input,
-    runtime,
-  } from "../../../runtime/runtime.store.js";
+    getElementName,
+    getElementDefaultName,
+  } from "../../../runtime/element-name.store";
 
   function showControlElementNameOverlay() {
     const show = get(moduleOverlay) !== "control-name-overlay";
@@ -16,20 +17,6 @@
       moduleOverlay.show("control-name-overlay");
     } else {
       moduleOverlay.close();
-    }
-  }
-
-  function getElementName(value) {
-    try {
-      const { dx, dy } = $user_input;
-      const obj = $elementNameStore[dx][dy];
-      if (obj[value] === "") {
-        return undefined;
-      }
-
-      return obj[value];
-    } catch (e) {
-      return undefined;
     }
   }
 
@@ -60,9 +47,9 @@
   }
 
   function renderElementList() {
-    const ui = $user_input;
+    const { dx, dy, pagenumber, elementnumber } = $user_input;
     const device = $runtime.find(
-      (device) => device.dx === ui.dx && device.dy === ui.dy
+      (device) => device.dx === dx && device.dy === dy
     );
     if (typeof device === "undefined") {
       options = [{ title: "No Device", value: -1 }];
@@ -70,34 +57,16 @@
       return;
     }
     const control_elements = device.pages.find(
-      (page) => page.pageNumber === ui.pagenumber
+      (page) => page.pageNumber === pagenumber
     )?.control_elements;
     options = control_elements.map((element) => {
-      const stringName = getElementName(element.elementIndex);
-      if (typeof stringName !== "undefined") {
-        return {
-          title:
-            stringName +
-            ` (${
-              element.type[0].toUpperCase() +
-              element.type.slice(1).toLowerCase()
-            })`,
-          value: element.elementIndex,
-        };
-      } else {
-        return {
-          title: `Element ${
-            element.elementIndex < 255
-              ? element.elementIndex
-              : control_elements.length - 1
-          } (${
-            element.type[0].toUpperCase() + element.type.slice(1).toLowerCase()
-          })`,
-          value: element.elementIndex,
-        };
+      let name = getElementName(dx, dy, pagenumber, element.elementIndex);
+      if (typeof name === "undefined") {
+        name = getElementDefaultName(dx, dy, pagenumber, element.elementIndex);
       }
+      return { title: name, value: element.elementIndex };
     });
-    selectedElementNumber = ui.elementnumber;
+    selectedElementNumber = elementnumber;
   }
 </script>
 

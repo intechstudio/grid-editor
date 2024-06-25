@@ -1,4 +1,5 @@
 <script>
+  import SvgIcon from "./../user-interface/SvgIcon.svelte";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
@@ -17,6 +18,13 @@
   import { GridScript } from "grid-protocol";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
+  import { getDeviceName } from "../../runtime/runtime.store";
+  import {
+    getElementName,
+    getElementDefaultName,
+  } from "../../runtime/element-name.store";
+
+  import { CEEAT } from "grid-protocol";
 
   let monaco_block;
 
@@ -152,6 +160,29 @@
   function handleResize(e) {
     editor?.layout();
   }
+
+  let pathSnippets = [];
+
+  function handleMonacoStoreChange(store) {
+    const { dx, dy, page, element, event, index } = store.path;
+    let elementName = getElementName(dx, dy, page, element);
+    if (typeof elementName === "undefined") {
+      elementName = getElementDefaultName(dx, dy, page, element);
+    }
+
+    let eventName = String(
+      Object.values(CEEAT).find((obj) => obj.value == event).desc
+    );
+    eventName = eventName[0].toUpperCase() + eventName.slice(1).toLowerCase();
+    pathSnippets = [
+      `${getDeviceName(dx, dy)} (${dx}, ${dy})`,
+      elementName,
+      `${eventName} Event`,
+      `#${index} CodeBlock`,
+    ];
+  }
+
+  $: handleMonacoStoreChange($monaco_store);
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -205,8 +236,20 @@
 
     <div
       id="monaco-container"
-      class="{$$props.class} flex h-full w-full bg-black bg-opacity-20 border border-black"
+      class="{$$props.class} flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
     >
+      <div
+        class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
+      >
+        {#each pathSnippets as snippet, i}
+          <span class="text-white text-opacity-85">{snippet}</span>
+          {#if i < pathSnippets.length - 1}
+            <div class="fill-orange-700">
+              <SvgIcon width={8} height={8} iconPath={"arrow_right2"} />
+            </div>
+          {/if}
+        {/each}
+      </div>
       <div bind:this={monaco_block} class="flex w-full h-full" />
     </div>
 

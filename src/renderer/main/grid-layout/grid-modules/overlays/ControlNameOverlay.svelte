@@ -1,6 +1,6 @@
 <script>
   import { appSettings } from "../../../../runtime/app-helper.store.js";
-  import { elementNameStore } from "../../../../runtime/runtime.store.js";
+  import { elementNameStore } from "../../../../runtime/element-name.store";
 
   export let visible = false;
   export let elementNumber = undefined;

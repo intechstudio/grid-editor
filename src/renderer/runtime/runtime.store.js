@@ -12,13 +12,9 @@ import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
-import {
-  ConfigObject,
-  configManager,
-} from "../main/panels/configuration/Configuration.store.js";
-import { forEach } from "lodash";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store.ts";
+import { elementNameStore } from "./element-name.store";
 
 let lastPageActivator = "";
 
@@ -33,7 +29,6 @@ const setIntervalAsync = (fn, ms) => {
 let selection_changed_timestamp = 0;
 
 export const elementPositionStore = writable({});
-export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr) {
@@ -68,32 +63,6 @@ export function update_elementPositionStore(descr) {
   //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
   elementPositionStore.set(eps);
-}
-
-export function update_elementNameStore(descr) {
-  let ens = get(elementNameStore);
-
-  if (ens[descr.brc_parameters.SX] === undefined) {
-    ens[descr.brc_parameters.SX] = {};
-  }
-  if (ens[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined) {
-    ens[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
-  }
-  if (
-    ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-      descr.class_parameters.NUM
-    ] === undefined
-  ) {
-    ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-      descr.class_parameters.NUM
-    ] = -1;
-  }
-
-  ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-    descr.class_parameters.NUM
-  ] = descr.class_parameters.NAME;
-
-  elementNameStore.set(ens);
 }
 
 export function update_elementPositionStore_fromPreview(descr) {

@@ -6,7 +6,6 @@ import {
   runtime,
   user_input,
   wss_send_message,
-  update_elementNameStore,
   update_elementPositionStore,
   update_elementPositionStore_fromPreview,
   update_ledColorStore,
@@ -22,6 +21,7 @@ import {
 import { logger } from "../runtime/runtime.store";
 
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
+import { update_elementNameStore } from "../runtime/element-name.store";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {

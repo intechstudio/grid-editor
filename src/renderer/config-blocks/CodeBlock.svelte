@@ -1,4 +1,6 @@
 <script lang="ts" context="module">
+  import { get } from "svelte/store";
+  import { user_input } from "./../runtime/runtime.store.js";
   import {
     type ActionBlockInformation,
     SyntaxPreprocessor,
@@ -61,6 +63,7 @@
   export let config;
   export let access_tree;
   export let index;
+  let indexBuffer;
 
   let codePreview;
 
@@ -112,6 +115,7 @@
       //evt.preventDefault();
       //codePreview.scrollLeft += evt.deltaY;
     });
+    indexBuffer = index;
   });
 
   $: {
@@ -129,8 +133,42 @@
     }
   }
 
+  function handleIndexChange(value) {
+    const ms = get(monaco_store);
+    if (typeof ms === "undefined") {
+      return;
+    }
+    const { dx, dy, page, element, event, index } = ms.path;
+    if (
+      dx === $user_input.dx &&
+      dy === $user_input.dy &&
+      page === $user_input.pagenumber &&
+      element === $user_input.elementnumber &&
+      event === $user_input.eventtype &&
+      index === indexBuffer
+    ) {
+      monaco_store.update((store) => {
+        store.path.index = value;
+        return store;
+      });
+    }
+  }
+
+  $: handleIndexChange(index);
+
   function open_monaco() {
-    $monaco_store = { config: config.makeCopy(), index: index };
+    $monaco_store = {
+      config: config.makeCopy(),
+      index: index,
+      path: {
+        dx: $user_input.dx,
+        dy: $user_input.dy,
+        page: $user_input.pagenumber,
+        element: $user_input.elementnumber,
+        event: $user_input.eventtype,
+        index: index,
+      },
+    };
     $monaco_elementtype = access_tree.elementtype;
     modal.show({
       component: Monaco,
