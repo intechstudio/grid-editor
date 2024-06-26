@@ -58,12 +58,16 @@ contextBridge.exposeInMainWorld("electron", {
     startConfigsWatch: (configPath, rootDirectory) =>
       ipcRenderer.invoke("startConfigsWatch", { configPath, rootDirectory }),
     stopConfigsWatch: () => ipcRenderer.invoke("stopConfigsWatch"),
-    saveConfig: (configPath, rootDirectory, config) =>
-      ipcRenderer.invoke("saveConfig", {
-        configPath,
-        rootDirectory,
-        config,
-      }),
+    saveConfig: (configPath, rootDirectory, config) => {
+      return new Promise((resolve, reject) => {
+        const res = ipcRenderer.invoke("saveConfig", {
+          configPath,
+          rootDirectory,
+          config,
+        });
+        resolve(res);
+      });
+    },
     deleteConfig: (configPath, rootDirectory, config) =>
       ipcRenderer.invoke("deleteConfig", {
         configPath,
@@ -108,7 +112,6 @@ contextBridge.exposeInMainWorld("electron", {
   },
   restartPackageManager: () => ipcRenderer.send("restartPackageManager"),
   installUpdate: () => ipcRenderer.send("installUpdate"),
-  disableUpdating: () => ipcRenderer.send("disableUpdating"),
   overlay: (payload) => ipcRenderer.invoke("overlay", { payload }),
 });
 

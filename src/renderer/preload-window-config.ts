@@ -56,6 +56,13 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       restore: () => {},
       isMaximized: () => {},
     },
+    clipboard: {
+      writeText: () => {
+        return new Promise((resolve, reject) => {
+          reject("This feature is not yet supported in web mode.");
+        });
+      },
+    },
     persistentStorage: {
       set: () => {},
       get: async () => {
@@ -79,6 +86,11 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       startConfigsWatch: async () => {},
       stopConfigsWatch: async () => {},
       onSendConfigsToRenderer: async () => {},
+      saveConfig: () => {
+        return new Promise((resolve, reject) => {
+          reject("This feature is not yet supported in web mode.");
+        });
+      },
     },
     updater: {
       onAppUpdate: async () => {},

@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { stringManipulation } from "../../main/user-interface/_string-operations";
+  import { GridScript } from "grid-protocol";
   import { parenthesis } from "../_validators";
 
   const dispatch = createEventDispatcher();
@@ -25,7 +25,7 @@
   let scriptSegment = ""; // local script part
 
   $: if (config.script && !loaded) {
-    scriptSegment = stringManipulation.humanize(config.script.slice(7, -5));
+    scriptSegment = GridScript.humanize(config.script.slice(7, -5));
     loaded = true;
   }
 
@@ -35,7 +35,7 @@
 
   function sendData(e) {
     if (parenthesis(e)) {
-      const script = stringManipulation.shortify(e);
+      const script = GridScript.shortify(e);
       dispatch("output", { short: "ei", script: `elseif ${script} then` });
     }
   }

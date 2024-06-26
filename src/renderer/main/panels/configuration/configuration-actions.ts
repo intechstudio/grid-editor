@@ -6,11 +6,7 @@ import {
   ConfigList,
   ConfigObject,
 } from "../../panels/configuration/Configuration.store";
-import {
-  EventType,
-  EventTypeToNumber,
-  grid,
-} from "../../../protocol/grid-protocol.ts";
+import { EventType, EventTypeToNumber, grid } from "grid-protocol";
 import { get } from "svelte/store";
 import {
   ClipboardKey,

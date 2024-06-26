@@ -23,77 +23,111 @@ enum PackageStatus {
   Enabled = "Enabled",
 }
 
+let developerModeEnabled = false;
 let packageFolder: string = "";
 let editorVersion: string = "";
 
 const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
   Object.entries(configuration.RECOMMENDED_PACKAGES)
 );
-
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
 
 process.parentPort.on("message", async (e) => {
-  switch (e.data.type) {
-    case "init": {
-      console.log(`Initialize Package Manager...`);
-      editorVersion = e.data.version;
+  try {
+    switch (e.data.type) {
+      case "init": {
+        editorVersion = e.data.version;
+        developerModeEnabled = e.data.packageDeveloper ?? false;
+        packageFolder = e.data.packageFolder;
+        if (!fs.existsSync(packageFolder)) {
+          fs.mkdirSync(packageFolder, { recursive: true });
+        }
 
-      packageFolder = e.data.packageFolder;
-      if (!fs.existsSync(packageFolder)) {
-        fs.mkdirSync(packageFolder, { recursive: true });
-      }
+        customGithubPackageList = new Map(
+          Object.entries(e.data.githubPackages)
+        );
 
-      customGithubPackageList = new Map(Object.entries(e.data.githubPackages));
-
-      startPackageDirectoryWatcher(packageFolder);
-      updateGithubPackages();
-      if (e.data.updatePackageOnStartName) {
-        await downloadPackage(e.data.updatePackageOnStartName);
-      }
-      const port = e.ports[0];
-      setPackageManagerMessagePort(port);
-      break;
-    }
-    case "set-new-message-port": {
-      const port = e.ports[0];
-      setPackageManagerMessagePort(port);
-      break;
-    }
-    case "refresh-packages": {
-      updateGithubPackages();
-      break;
-    }
-    case "stop-package-manager": {
-      await stopPackageManager();
-      process.parentPort.postMessage({ type: "shutdown-complete" });
-      break;
-    }
-    case "create-package-message-port": {
-      if (!currentlyLoadedPackages[e.data.id]) {
-        messagePort?.postMessage({
-          type: "debug-error",
-          message:
-            "Package not loaded " +
-            e.data.id +
-            ` ${Object.keys(currentlyLoadedPackages)}`,
-        });
+        startPackageDirectoryWatcher(packageFolder);
+        updateGithubPackages();
+        if (e.data.updatePackageOnStartName) {
+          await downloadPackage(e.data.updatePackageOnStartName);
+        }
+        const port = e.ports[0];
+        setPackageManagerMessagePort(port);
         break;
       }
-      await currentlyLoadedPackages[e.data.id].addMessagePort(
-        e.ports?.[0],
-        e.data.senderId
-      );
-      break;
+      case "set-new-message-port": {
+        const port = e.ports[0];
+        setPackageManagerMessagePort(port);
+        break;
+      }
+      case "refresh-packages": {
+        updateGithubPackages();
+        break;
+      }
+      case "stop-package-manager": {
+        await stopPackageManager();
+        process.parentPort.postMessage({ type: "shutdown-complete" });
+        break;
+      }
+      case "set-package-developer": {
+        developerModeEnabled = e.data.value ?? false;
+        break;
+      }
+      case "create-package-message-port": {
+        if (!currentlyLoadedPackages[e.data.id]) {
+          messagePort?.postMessage({
+            type: "debug-error",
+            message:
+              "Package not loaded " +
+              e.data.id +
+              ` ${Object.keys(currentlyLoadedPackages)}`,
+          });
+          break;
+        }
+        await currentlyLoadedPackages[e.data.id].addMessagePort(
+          e.ports?.[0],
+          e.data.senderId
+        );
+        break;
+      }
+      default: {
+        console.log(`Package Manager: Unknown message type of ${e.data.type}`);
+      }
     }
-    default: {
-      console.log(`Package Manager: Unknown message type of ${e.data.type}`);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+process.on("uncaughtExceptionMonitor", (err, origin) => {
+  console.log(
+    "UNCAUGHT PACKAGE MANAGER EXCEPTION, TRYING TO DISABLE PACKAGE AND RESTART"
+  );
+  console.log({ err, origin });
+  process.parentPort.postMessage({ type: "shutdown-complete" });
+  for (let packageName of Object.keys(currentlyLoadedPackages)) {
+    if (err.stack.includes(packageName)) {
+      let packageIndex = currentPackageList.findIndex(
+        (value) => value.id == packageName
+      );
+      console.log({ packageIndex });
+      if (packageIndex != -1) {
+        currentPackageList[packageIndex].status = PackageStatus.Downloaded;
+        messagePort?.postMessage({
+          type: "debug-error",
+          error: `Received uncaught exception from package: ${packageName}, error: ${err}`,
+        });
+      }
     }
   }
+  messagePort?.postMessage({ type: "packages", packages: currentPackageList });
 });
 
 const currentlyLoadedPackages = {};
 const haveBeenLoadedPackages = new Set<string>();
 const downloadingPackages = new Set<string>();
+let currentPackageList = [];
 
 let messagePort: MessagePortMain | undefined = undefined;
 
@@ -221,7 +255,7 @@ async function loadPackage(packageName: string, persistedData: any) {
     notifyListener();
   } catch (e) {
     messagePort?.postMessage({
-      type: "package-error",
+      type: "debug-error",
       error: e.message,
     });
   }
@@ -474,6 +508,7 @@ async function getAvailablePackages() {
       canUpdate: false,
     });
   });
+  currentPackageList = packageList;
   return packageList;
 }
 
@@ -482,21 +517,25 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
     ...recommendedGithubPackageList.entries(),
     ...customGithubPackageList.entries(),
   ]);
-  for (const [packageId, githubPackage] of githubPackageList) {
-    if (!forceRefreshVersion && githubPackage.version != undefined) continue;
+  try {
+    for (const [packageId, githubPackage] of githubPackageList) {
+      if (!forceRefreshVersion && githubPackage.version != undefined) continue;
 
-    const compatiblePackage = await getCompatibleGithubRelease(packageId);
-    if (!compatiblePackage) {
-      customGithubPackageList.delete(packageId);
-      continue;
+      const compatiblePackage = await getCompatibleGithubRelease(packageId);
+      if (!compatiblePackage) {
+        customGithubPackageList.delete(packageId);
+        continue;
+      }
+
+      let version =
+        semver.coerce(compatiblePackage.tag_name) ??
+        semver.coerce(compatiblePackage.name);
+      githubPackage.version = version?.version;
     }
-
-    let version =
-      semver.coerce(compatiblePackage.tag_name) ??
-      semver.coerce(compatiblePackage.name);
-    githubPackage.version = version?.version;
+    notifyListener();
+  } catch (e) {
+    console.log(e);
   }
-  notifyListener();
 }
 
 async function getCompatibleGithubRelease(githubPackageName: string) {
@@ -516,42 +555,57 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
     }
   );
   const packageReleases = await packageReleasesResponse.json();
-  return packageReleases.find((e) => {
-    const description = e.body;
-    const lastLine = description.split("\n").pop() ?? "";
-    if (semver.coerce(lastLine)) {
-      return !semver.gt(semver.coerce(lastLine)!, editorVersion);
-    } else {
-      return true;
-    }
-  });
+  return (
+    packageReleases?.find((e) => {
+      const description = e.body;
+      const lastLine = description.split("\n").pop() ?? "";
+      if (semver.coerce(lastLine)) {
+        return !semver.gt(semver.coerce(lastLine)!, editorVersion);
+      } else {
+        return true;
+      }
+    }) ?? false
+  );
 }
 
 let directoryWatcher: any = null;
+
+function restartIfDeveloperMode() {
+  console.log({ value: developerModeEnabled });
+  if (developerModeEnabled) {
+    stopPackageManager();
+    process.parentPort.postMessage({ type: "shutdown-complete" });
+  }
+}
 
 function startPackageDirectoryWatcher(path: string): void {
   directoryWatcher = chokidar.watch(path, {
     ignored: /[\/\\]\./,
     persistent: true,
     ignoreInitial: true, // Ignore initial events on startup
-    depth: 0, // Only watch the top-level directory
+    depth: 10, // Levels of subdirectories to watch
   });
 
   directoryWatcher
     .on("add", function (path: string) {
       notifyListener();
+      restartIfDeveloperMode();
     })
     .on("change", function (path: string) {
       notifyListener();
+      restartIfDeveloperMode();
     })
     .on("unlink", function (path: string) {
       notifyListener();
+      restartIfDeveloperMode();
     })
     .on("addDir", function (path: string) {
       notifyListener();
+      restartIfDeveloperMode();
     })
     .on("unlinkDir", function (path: string) {
       notifyListener();
+      restartIfDeveloperMode();
     })
     .on("ready", function (path: string) {
       notifyListener();

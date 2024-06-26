@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { appSettings } from "../runtime/app-helper.store.js";
 
-import { grid } from "../protocol/grid-protocol";
+import { grid } from "grid-protocol";
 
 import {
   writeBuffer,

@@ -5,16 +5,15 @@ import {
   user_input,
   getDeviceName,
 } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "../../../protocol/grid-protocol";
+import { NumberToEventType } from "grid-protocol";
 
 import {
   getComponentInformation,
   init_config_block_library,
 } from "../../../lib/_configs";
 
-import { grid } from "../../../protocol/grid-protocol";
+import { grid, GridScript } from "grid-protocol";
 import { v4 as uuidv4 } from "uuid";
-import { formatText } from "lua-fmt";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -87,13 +86,7 @@ export class ConfigObject {
   checkSyntax() {
     const code =
       this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
-
-    try {
-      formatText(code);
-      return true;
-    } catch (e) {
-      return false;
-    }
+    return GridScript.checkSyntax(code);
   }
 
   getSyntaxError() {

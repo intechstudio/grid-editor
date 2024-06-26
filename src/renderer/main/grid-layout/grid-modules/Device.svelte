@@ -32,10 +32,7 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";
-  import {
-    EventType,
-    EventTypeToNumber,
-  } from "../../../protocol/grid-protocol.ts";
+  import { EventType, EventTypeToNumber } from "grid-protocol";
   import { get } from "svelte/store";
   import {
     loadPreset,

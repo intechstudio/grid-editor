@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { stringManipulation } from "../../main/user-interface/_string-operations.ts";
+  import { GridScript } from "grid-protocol";
 
   const dispatch = createEventDispatcher();
 
@@ -21,7 +21,7 @@
   let focus;
 
   function handleValueChange(value) {
-    const newValue = stringManipulation.humanize(String(value));
+    const newValue = GridScript.humanize(String(value));
     if (newValue !== displayText) {
       displayText = newValue;
     }
@@ -48,7 +48,7 @@
   }
 
   function sendData(value) {
-    dispatch("change", stringManipulation.shortify(value));
+    dispatch("change", GridScript.shortify(value));
   }
 
   function handleFocus(e) {

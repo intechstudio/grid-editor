@@ -1,6 +1,6 @@
 import { writable, get, derived } from "svelte/store";
 
-import { grid } from "../protocol/grid-protocol";
+import { grid } from "grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";
