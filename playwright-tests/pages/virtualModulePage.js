@@ -9,6 +9,7 @@ export class VirtualModulePage {
   }
 
   async openVirtualModules() {
+    await this.virtual_module_button.waitFor({ state: "visible" });
     await this.virtual_module_button.click();
   }
   async selectModule(module) {

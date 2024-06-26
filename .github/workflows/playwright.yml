@@ -11,20 +11,27 @@ jobs:
   web-build-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v4
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
           node-version: "18.16.1"
-      - run: npm i && npm run web-build
+
+      - name: Install dependencies and build
+        run: npm install && npm run web-build
+
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests
+
+      - name: Run Playwright tests in headed mode
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test --headed
         env:
           CI: true
-        run: npx playwright test
-      - uses: actions/upload-artifact@v3
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report
