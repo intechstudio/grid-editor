@@ -101,19 +101,7 @@ export class Script {
   }
 
   static toScript({ short, array = [] }) {
-    let code = short; // prepend with type
-    const _unformatted = JSON.stringify(array);
-    [..._unformatted].forEach((e) => {
-      if (e == "[") {
-        code += "(";
-      } else if (e == "]") {
-        code += ")";
-      } else if (e == '"') {
-        /* no return */
-      } else {
-        code += e.trim();
-      }
-    });
+    const code = `${short}(${array.join(",")})`;
     return code;
   }
 }
