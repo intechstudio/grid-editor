@@ -1,6 +1,5 @@
 # Grid Editor
 
-[![Generic badge](https://img.shields.io/badge/Grid_Editor-Beta-blue.svg)](https://github.com/intechstudio/grid-editor/releases/latest)
 [![GitHub release](https://img.shields.io/github/release/intechstudio/grid-editor)](https://github.com/intechstudio/grid-editor/releases/latest)
 
 ## Code formatting using prettier
