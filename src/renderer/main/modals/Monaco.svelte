@@ -1,4 +1,5 @@
 <script>
+  import { runtime } from "./../../runtime/runtime.store.js";
   import SvgIcon from "./../user-interface/SvgIcon.svelte";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
@@ -22,6 +23,7 @@
   import {
     getElementName,
     getElementDefaultName,
+    elementNameStore,
   } from "../../runtime/element-name.store";
 
   import { CEEAT } from "grid-protocol";
@@ -163,8 +165,8 @@
 
   let pathSnippets = [];
 
-  function handleMonacoStoreChange(store) {
-    const { dx, dy, page, element, event, index } = store.path;
+  function updateCodeBlockPath() {
+    const { dx, dy, page, element, event, index } = $monaco_store.path;
     let elementName = getElementName(dx, dy, page, element);
     if (typeof elementName === "undefined") {
       elementName = getElementDefaultName(dx, dy, page, element);
@@ -178,11 +180,20 @@
       `${getDeviceName(dx, dy)} (${dx}, ${dy})`,
       elementName,
       `${eventName} Event`,
-      `#${index} CodeBlock`,
+      `CodeBlock (index: ${index + 1})`,
     ];
   }
 
-  $: handleMonacoStoreChange($monaco_store);
+  $: {
+    if (($monaco_store, $runtime, $elementNameStore)) {
+      try {
+        updateCodeBlockPath();
+      } catch (e) {
+        monaco_store.set(undefined);
+        pathSnippets = ["Deleted action block"];
+      }
+    }
+  }
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -210,6 +221,7 @@
       >
         <div class="flex flex-col">
           <div
+            class:invisible={typeof $monaco_store === "undefined"}
             class="text-right text-sm {unsavedChanges
               ? 'text-yellow-600'
               : 'text-green-500'} "
@@ -224,7 +236,7 @@
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
             click={handleCommit}
-            disabled={!commitEnabled}
+            disabled={!commitEnabled || typeof $monaco_store === "undefined"}
             text="Commit"
             style="accept"
           />

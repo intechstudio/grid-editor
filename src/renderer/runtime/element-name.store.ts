@@ -35,7 +35,6 @@ export function getElementName(
   page: number,
   element: number
 ) {
-  console.log(dx, dy, page, element);
   const _element = get(runtime)
     ?.find((e: any) => e.dx === dx && e.dy === dy)
     ?.pages.find((e: any) => e.pageNumber === page)

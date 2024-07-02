@@ -138,19 +138,21 @@
     if (typeof ms === "undefined") {
       return;
     }
-    const { dx, dy, page, element, event, index } = ms.path;
+    console.log(indexBuffer, value, ms.path.index);
+    const { dx, dy, page, element, event } = ms.path;
     if (
       dx === $user_input.dx &&
       dy === $user_input.dy &&
       page === $user_input.pagenumber &&
       element === $user_input.elementnumber &&
       event === $user_input.eventtype &&
-      index === indexBuffer
+      ms.path.index === indexBuffer
     ) {
       monaco_store.update((store) => {
         store.path.index = value;
         return store;
       });
+      indexBuffer = value;
     }
   }
 

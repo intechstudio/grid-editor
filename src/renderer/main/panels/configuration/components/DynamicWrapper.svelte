@@ -1,7 +1,10 @@
 <script>
+  import { get } from "svelte/store";
+  import { monaco_store } from "./../../../modals/Monaco.store.js";
+  import { user_input } from "./../../../../runtime/runtime.store.js";
   import { getAllComponents } from "../../../../lib/_configs";
 
-  import { createEventDispatcher, onMount } from "svelte";
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
   import { ConfigObject } from "../Configuration.store";
 
   import {
@@ -21,6 +24,25 @@
         });
     } else {
       toggled = true;
+    }
+  });
+
+  onDestroy(() => {
+    const ms = get(monaco_store);
+    if (typeof ms === "undefined") {
+      return;
+    }
+
+    const { dx, dy, page, element, event } = ms.path;
+    if (
+      dx === $user_input.dx &&
+      dy === $user_input.dy &&
+      page === $user_input.pagenumber &&
+      element === $user_input.elementnumber &&
+      event === $user_input.eventtype &&
+      ms.path.index === index
+    ) {
+      monaco_store.set(undefined);
     }
   });
 
