@@ -1,13 +1,6 @@
 <script lang="ts">
-  import EventPanel from "./../../../panels/configuration/EventPanel.svelte";
-  import {
-    CEEAT,
-    NumberToEventType,
-    grid,
-    EventTypeToNumber,
-    ElementType,
-    EventType,
-  } from "grid-protocol";
+  import { tooltip } from "./../../../_actions/tooltip";
+  import { NumberToEventType, grid, EventType } from "grid-protocol";
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
   import { user_input } from "./../../../../runtime/runtime.store.js";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
@@ -114,11 +107,11 @@
     const elementEvents = grid
       .get_element_events(type)
       .map((e) => e.desc)
-      .filter((e) => !filtredEvents.includes(e));
+      .filter((e) => !filtredEvents.includes(e as EventType));
     const configEvents =
       store?.configs?.events
-        .map((e) => NumberToEventType(Number(e.event)))
-        .filter((e) => !filtredEvents.includes(e)) ?? [];
+        .map((e: any) => NumberToEventType(Number(e.event)))
+        .filter((e: any) => !filtredEvents.includes(e)) ?? [];
 
     const compatibleEvents = elementEvents.reduce((acc, value) => {
       if (configEvents.includes(value)) {
@@ -146,12 +139,11 @@
   {#if visible}
     {#if state === State.COMPATIBLE || state === State.MATCHING}
       <div
-        class="w-full h-full"
+        class="w-full h-full relative"
         class:loaded-element={loaded && !isChanged}
         class:element={!loaded && !isChanged}
         class:corner-cut-r={isRightCut}
         class:corner-cut-l={isLeftCut}
-        disabled={loaded}
         style="{elementNumber == 255
           ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
           : 'border-radius: var(--grid-rounding);'} "
@@ -204,40 +196,35 @@
   }
 
   .element {
-    position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
   }
+
   .element::before {
     content: "";
     box-shadow: 0px 300px 0px 1000px var(--preset-disabled-color);
   }
 
   .matching-icon {
-    position: relative;
     overflow: hidden;
     background-color: var(--preset-load-color);
   }
   .matching-icon:hover {
-    position: relative;
     overflow: hidden;
     background-color: var(--preset-load-hover-color);
   }
 
   .compatible-icon {
-    position: relative;
     overflow: hidden;
     background-color: var(--preset-warning-color);
   }
   .compatible-icon:hover {
-    position: relative;
     overflow: hidden;
     background-color: var(--preset-warning-hover-color);
   }
 
   .disabled-element {
-    position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -250,7 +237,6 @@
 
   .icon-corner-cut-l:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     left: -35px;
     width: 46px;
@@ -259,7 +245,6 @@
   }
   .icon-corner-cut-r:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     right: -35px;
     width: 46px;
@@ -269,7 +254,6 @@
 
   .corner-cut-l:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     left: -35px;
     width: 60px;
@@ -278,7 +262,6 @@
   }
   .corner-cut-r:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     right: -35px;
     width: 60px;
