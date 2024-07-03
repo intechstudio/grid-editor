@@ -139,7 +139,7 @@
   {#if visible}
     {#if state === State.COMPATIBLE || state === State.MATCHING}
       <div
-        class="w-full h-full relative"
+        class="w-full h-full relative overflow-hidden"
         class:loaded-element={loaded && !isChanged}
         class:element={!loaded && !isChanged}
         class:corner-cut-r={isRightCut}
@@ -195,17 +195,6 @@
     --preset-disabled-color: rgba(0, 0, 0, 0.1);
   }
 
-  .element {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .element::before {
-    content: "";
-    box-shadow: 0px 300px 0px 1000px var(--preset-disabled-color);
-  }
-
   .matching-icon {
     overflow: hidden;
     background-color: var(--preset-load-color);
@@ -224,7 +213,19 @@
     background-color: var(--preset-warning-hover-color);
   }
 
+  .element {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .element::before {
+    content: "";
+    box-shadow: 0px 300px 0px 1000px var(--preset-disabled-color);
+  }
+
   .disabled-element {
+    position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -237,6 +238,7 @@
 
   .icon-corner-cut-l:before {
     position: absolute;
+    z-index: -1;
     bottom: -35px;
     left: -35px;
     width: 46px;
@@ -245,6 +247,7 @@
   }
   .icon-corner-cut-r:before {
     position: absolute;
+    z-index: -1;
     bottom: -35px;
     right: -35px;
     width: 46px;
@@ -254,6 +257,7 @@
 
   .corner-cut-l:before {
     position: absolute;
+    z-index: -1;
     bottom: -35px;
     left: -35px;
     width: 60px;
@@ -262,6 +266,7 @@
   }
   .corner-cut-r:before {
     position: absolute;
+    z-index: -1;
     bottom: -35px;
     right: -35px;
     width: 60px;
