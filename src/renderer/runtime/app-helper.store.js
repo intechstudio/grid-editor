@@ -96,14 +96,14 @@ function createAppSettingsStore(persistent) {
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
-      major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
-      minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),
-      patch: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH),
+      major: 0,
+      minor: 0,
+      patch: 0,
     },
     firmware_esp32_required: {
-      major: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR),
-      minor: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
-      patch: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
+      major: 0,
+      minor: 0,
+      patch: 0,
     },
     sizeChange: 0,
     activeWindowResult: {
@@ -220,5 +220,14 @@ async function init_appsettings() {
         console.log("stop package");
         window.electron.package.stop("desktopAutomation");
       }*/
+    });
+
+  await window.electron
+    .fetchUrlJSON(configuration.FIRMWARE_JSON_URL)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((e) => {
+      console.error(e);
     });
 }
