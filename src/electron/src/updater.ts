@@ -54,7 +54,7 @@ function init() {
     buildVariables.BUILD_ENV === "alpha" ||
     buildVariables.BUILD_ENV === "production"
   ) {
-    setTimeout(() => autoUpdater.checkForUpdates(), 10000); //Give time for main window to initialize
+    setTimeout(() => autoUpdater.checkForUpdates(), 5000); //Give time for main window to initialize
   } else {
     console.log("Checking for updates is disabled...");
   }
