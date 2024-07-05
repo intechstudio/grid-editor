@@ -96,14 +96,14 @@ function createAppSettingsStore(persistent) {
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
-      major: 0,
-      minor: 0,
-      patch: 0,
+      major: 666,
+      minor: 666,
+      patch: 666,
     },
     firmware_esp32_required: {
-      major: 0,
-      minor: 0,
-      patch: 0,
+      major: 666,
+      minor: 666,
+      patch: 666,
     },
     sizeChange: 0,
     activeWindowResult: {
@@ -225,7 +225,35 @@ async function init_appsettings() {
   await window.electron
     .fetchUrlJSON(configuration.FIRMWARE_JSON_URL)
     .then((res) => {
-      console.log(res);
+      for (const obj of res) {
+        const { ARCHITECTURE, MAJOR, MINOR, PATCH } = obj;
+        switch (ARCHITECTURE) {
+          case "esp32":
+            appSettings.update((store) => {
+              store.firmware_esp32_required = {
+                major: MAJOR,
+                minor: MINOR,
+                patch: PATCH,
+              };
+              return store;
+            });
+            break;
+          case "d51":
+            appSettings.update((store) => {
+              store.firmware_d51_required = {
+                major: MAJOR,
+                minor: MINOR,
+                patch: PATCH,
+              };
+              return store;
+            });
+            break;
+          default:
+            console.warn(
+              `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`
+            );
+        }
+      }
     })
     .catch((e) => {
       console.error(e);
