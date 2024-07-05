@@ -6,7 +6,7 @@
     "PATCH": 36
   },
   {
-    "TYPE": "esp32",
+    "ARCHITECTURE": "esp32",
     "MAJOR": 1,
     "MINOR": 2,
     "PATCH": 36
