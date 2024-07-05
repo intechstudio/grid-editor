@@ -126,6 +126,7 @@
         short: "cb",
         script: $committed_code_store.script,
       });
+      $committed_code_store = {};
     }
   }
 
