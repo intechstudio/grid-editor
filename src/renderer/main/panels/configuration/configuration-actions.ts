@@ -7,7 +7,7 @@ import {
   ConfigObject,
 } from "../../panels/configuration/Configuration.store";
 import { EventType, EventTypeToNumber, grid } from "grid-protocol";
-import { Writable, derived, get, writable } from "svelte/store";
+import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
 
 function handleError(e: any) {
@@ -142,9 +142,13 @@ export async function overwriteElement({ dx, dy, page, element }) {
       eventType: eventtype,
       page: current!.page,
     });
+
     const list = clipboard!.payload.data.find(
       (e: any) => e.eventType === eventtype
-    ).configs;
+    )?.configs;
+    if (typeof list === "undefined") {
+      continue;
+    }
     promises.push(list.sendTo({ target: target }));
   }
   return Promise.all(promises).then(() => {
@@ -410,10 +414,19 @@ export function clearElement(
 
 export function createOverwriteDisabledStore(watched: Writable<ConfigTarget>) {
   return derived([watched, appClipboard], ([$watched, $appClipboard]) => {
-    return (
-      $appClipboard?.key !== ClipboardKey.ELEMENT ||
-      $watched?.elementType !== $appClipboard?.payload.elementType
+    if (
+      typeof $watched === "undefined" ||
+      typeof $appClipboard === "undefined" ||
+      $appClipboard.key === ClipboardKey.ACTION_BLOCKS
+    ) {
+      return true;
+    }
+
+    const compatible = grid.is_element_compatible_with(
+      $appClipboard.payload.elementType,
+      $watched.elementType
     );
+    return !compatible;
   });
 }
 
