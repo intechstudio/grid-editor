@@ -390,22 +390,18 @@ function initialize_autocomplete() {
 }
 
 function initialize_highlight() {
-  const helpers = grid.lua_function_helpers();
   grid.lua_function_to_human_map().forEach((value, key) => {
-    // AUTOCOMPLETE FUNCTIONS
-    if (key.endsWith("_human")) {
-      const res = Array.from(helpers).find(
-        ([k, v]) => k.split("_usage")[0] === key.split("_human")[0]
-      )?.[1];
-      if (res) {
-        language.functions.push(value);
-        hoverTips[value] = res;
-      }
+    //AUTOCOMPLETE FUNCTIONS
+    language.functions.push(value);
+    const helperText = grid.get_lua_function_helper(key);
+    if (typeof helperText !== "undefined") {
+      hoverTips[value] = helperText;
     }
+  });
 
-    if (key.endsWith("_short")) {
-      language.forbiddens.push(value);
-    }
+  grid.lua_function_forbiddens().forEach((value) => {
+    //FORBIDDEN IDENTIFIERS
+    language.forbiddens.push(value);
   });
 
   initialize_grammar(); // update highlighting
