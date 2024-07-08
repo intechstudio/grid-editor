@@ -390,36 +390,18 @@ function initialize_autocomplete() {
 }
 
 function initialize_highlight() {
-  const elementtype = get(monaco_elementtype);
-
   grid.lua_function_to_human_map().forEach((value, key) => {
-    // AUTOCOMPLETE FUNCTIONS
-    if (key.startsWith("GRID_LUA_FNC_G") && key.endsWith("_human")) {
-      language.functions.push(value);
-      hoverTips[value] = "Global function named " + value;
+    //AUTOCOMPLETE FUNCTIONS
+    language.functions.push(value);
+    const helperText = grid.get_lua_function_helper(key);
+    if (typeof helperText !== "undefined") {
+      hoverTips[value] = helperText;
     }
+  });
 
-    if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
-      language.functions.push(value);
-      hoverTips[value] = "Endless function named " + value;
-    } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
-      language.functions.push(value);
-      hoverTips[value] = "Encoder function named " + value;
-    }
-
-    if (key.startsWith("GRID_LUA_FNC_B") && key.endsWith("_human")) {
-      language.functions.push(value);
-      hoverTips[value] = "Button function named " + value;
-    }
-
-    if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
-      language.functions.push(value);
-      hoverTips[value] = "Potmeter function named " + value;
-    }
-
-    if (key.endsWith("_short")) {
-      language.forbiddens.push(value);
-    }
+  grid.lua_function_forbiddens().forEach((value) => {
+    //FORBIDDEN IDENTIFIERS
+    language.forbiddens.push(value);
   });
 
   initialize_grammar(); // update highlighting
