@@ -6,12 +6,7 @@ import {
   ConfigList,
   ConfigObject,
 } from "../../panels/configuration/Configuration.store";
-import {
-  EventType,
-  EventTypeToNumber,
-  NumberToEventType,
-  grid,
-} from "grid-protocol";
+import { EventType, EventTypeToNumber, grid } from "grid-protocol";
 import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
 
@@ -419,7 +414,6 @@ export function clearElement(
 
 export function createOverwriteDisabledStore(watched: Writable<ConfigTarget>) {
   return derived([watched, appClipboard], ([$watched, $appClipboard]) => {
-    const filtredEvents = [EventType.INIT, EventType.TIMER];
     if (
       typeof $watched === "undefined" ||
       typeof $appClipboard === "undefined" ||
@@ -428,25 +422,11 @@ export function createOverwriteDisabledStore(watched: Writable<ConfigTarget>) {
       return true;
     }
 
-    const elementEvents = grid
-      .get_element_events($watched.elementType)
-      .map((e) => e.desc)
-      .filter((e: EventType) => !filtredEvents.includes(e));
-    const configEvents = grid
-      .get_element_events($appClipboard.payload.elementType)
-      .map((e) => e.desc)
-      .filter((e: EventType) => !filtredEvents.includes(e));
-
-    const compatibleEvents = elementEvents.reduce((acc, value) => {
-      if (configEvents.includes(value)) {
-        acc.push(value);
-      }
-      return acc;
-    }, []);
-
-    console.log(compatibleEvents);
-
-    return compatibleEvents.length === 0;
+    const compatible = grid.is_element_compatible_with(
+      $appClipboard.payload.elementType,
+      $watched.elementType
+    );
+    return !compatible;
   });
 }
 

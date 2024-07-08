@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { tooltip } from "./../../../_actions/tooltip";
-  import { NumberToEventType, grid, EventType } from "grid-protocol";
+  import { grid } from "grid-protocol";
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
   import { user_input } from "./../../../../runtime/runtime.store.js";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
@@ -98,34 +97,16 @@
   function handleSelectedConfigChange(store) {
     loaded = false;
 
-    if (store?.configType === "profile") {
+    if (typeof store === "undefined" || store?.configType === "profile") {
       return;
     }
 
-    const filtredEvents = [EventType.INIT, EventType.TIMER];
+    const leftSideCompatible = grid.is_element_compatible_with(type, store.type);
+    const rightSideCompatible = grid.is_element_compatible_with(store.type, type);
 
-    const elementEvents = grid
-      .get_element_events(type)
-      .map((e) => e.desc)
-      .filter((e) => !filtredEvents.includes(e as EventType));
-    const configEvents =
-      store?.configs?.events
-        .map((e: any) => NumberToEventType(Number(e.event)))
-        .filter((e: any) => !filtredEvents.includes(e)) ?? [];
-
-    const compatibleEvents = elementEvents.reduce((acc, value) => {
-      if (configEvents.includes(value)) {
-        acc.push(value);
-      }
-      return acc;
-    }, []);
-
-    if (
-      compatibleEvents.length === configEvents.length &&
-      compatibleEvents.length === elementEvents.length
-    ) {
+    if (leftSideCompatible && rightSideCompatible) {
       state = State.MATCHING;
-    } else if (compatibleEvents.length > 0) {
+    } else if (rightSideCompatible) {
       state = State.COMPATIBLE;
     } else {
       state = State.INCOMPATIBLE;

@@ -448,10 +448,12 @@ function create_configuration_manager() {
         .then((desc) => {
           runtime.element_preset_load(x, y, element, preset).then(() => {
             const ui = get(user_input);
-            createConfigListFrom(ui).then((list) => {
-              setOverride(list);
-              resolve();
-            });
+            if (ui.dx === x && ui.dy === y && ui.elementnumber === element) {
+              createConfigListFrom(ui).then((list) => {
+                setOverride(list);
+                resolve();
+              });
+            }
           });
         })
         .catch((e) => {
@@ -473,7 +475,6 @@ function create_configuration_manager() {
           runtime
             .whole_page_overwrite(x, y, profile)
             .then(() => {
-              const ui = get(user_input);
               createConfigListFrom(ui).then((list) => {
                 setOverride(list);
                 resolve();
