@@ -58,6 +58,7 @@
     type: "composite_open",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    helperText: "Actions here are triggered when the encoder was rotated left.",
   };
 </script>
 

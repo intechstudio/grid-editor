@@ -126,6 +126,18 @@
     </Block>
 
     <Block>
+      <BlockTitle>Action Block Helpers</BlockTitle>
+      <BlockBody
+        >Composite action blocks have text helpers and Add buttons, that can be
+        turned off to save space.</BlockBody
+      >
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.actionHelperText}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Animations</BlockTitle>
       <BlockBody
         >Transition animations can be disabled to improve usability and

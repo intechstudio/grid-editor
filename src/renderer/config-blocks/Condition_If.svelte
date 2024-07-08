@@ -30,5 +30,7 @@
     type: "composite_open",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
+    helperText:
+      "Actions here are triggered when the event runs, and the expression above is true.",
   };
 </script>

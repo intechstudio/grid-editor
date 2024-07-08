@@ -28,5 +28,7 @@
     type: "composite_part",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
+    helperText:
+      "Actions here are triggered when the event runs, the expression above is true, and none of the others before were.",
   };
 </script>

@@ -46,4 +46,5 @@ interface Information {
   rounding?: "top" | "bottom";
   compositeLua?: LuaScript[];
   syntaxPreprocessor?: SyntaxPreprocessor;
+  helperText?: string;
 }
