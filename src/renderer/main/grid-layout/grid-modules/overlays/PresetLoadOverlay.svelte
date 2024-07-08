@@ -101,8 +101,14 @@
       return;
     }
 
-    const leftSideCompatible = grid.is_element_compatible_with(type, store.type);
-    const rightSideCompatible = grid.is_element_compatible_with(store.type, type);
+    const leftSideCompatible = grid.is_element_compatible_with(
+      type,
+      store.type
+    );
+    const rightSideCompatible = grid.is_element_compatible_with(
+      store.type,
+      type
+    );
 
     if (leftSideCompatible && rightSideCompatible) {
       state = State.MATCHING;
