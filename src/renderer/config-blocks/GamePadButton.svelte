@@ -55,7 +55,7 @@
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { configManager } from "../main/panels/configuration/Configuration.store.js";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -147,7 +147,7 @@
   ];
 
   $: if ($configManager) {
-    const index = $configManager.findIndex((e) => e.id === config.id);
+    const index = $configManager.configs.configs.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: $configManager,
       index: index,

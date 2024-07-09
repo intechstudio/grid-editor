@@ -37,7 +37,7 @@
   on:new-config={handleNewConfig}
   on:paste={handlePaste}
 >
-  {#if $configManager.length === 0 && $runtime.length > 0}
+  {#if $configManager.configs.configs.length === 0 && $runtime.length > 0}
     <div
       class="text-white/50 my-5 bg-secondary flex flex-col py-6 px-12 gap-4"
       in:fade={{ delay: 200 }}

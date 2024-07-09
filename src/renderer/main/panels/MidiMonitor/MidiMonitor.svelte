@@ -11,7 +11,7 @@
   } from "./MidiMonitor.store";
   import { grid } from "grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
-  import { configManager } from "../../panels/configuration/Configuration.store";
+  import { configManager } from "../configuration/Configuration.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   // ok but slow nice
@@ -20,8 +20,10 @@
   const syntaxError = writable(false);
 
   $: {
-    configScriptLength.set($configManager.toConfigScript().length);
-    syntaxError.set($configManager.checkSyntax());
+    configScriptLength.set(
+      $configManager.configs.configs.toConfigScript().length
+    );
+    syntaxError.set($configManager.configs.configs.checkSyntax());
   }
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;

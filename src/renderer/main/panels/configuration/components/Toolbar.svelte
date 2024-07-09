@@ -4,7 +4,7 @@
     ClipboardKey,
   } from "./../../../../runtime/clipboard.store.ts";
   import { shortcut } from "./../../../_actions/shortcut.action.ts";
-  import { ConfigTarget } from "./../Configuration.store.js";
+  import { ConfigTarget } from "../Configuration.store";
   import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
@@ -18,18 +18,20 @@
 
   $: {
     selectAllChecked =
-      typeof $configManager.find((e) => !e.selected) === "undefined" &&
-      $configManager.length > 0;
+      typeof $configManager.configs.configs.find((e) => !e.selected) ===
+        "undefined" && $configManager.configs.configs.length > 0;
   }
 
   $: {
-    isSelection = typeof $configManager.find((e) => e.selected) !== "undefined";
+    isSelection =
+      typeof $configManager.configs.configs.find((e) => e.selected) !==
+      "undefined";
   }
 
   function handleConvertToCodeBlockClicked(e) {
     dispatch("convert-to-code-block", {
-      configs: $configManager.filter((e) => e.selected),
-      index: $configManager.findIndex((e) => e.selected), //First selected
+      configs: $configManager.configs.configs.filter((e) => e.selected),
+      index: $configManager.configs.configs.findIndex((e) => e.selected), //First selected
     });
   }
 
@@ -54,7 +56,8 @@
 
   function handleSelectAllClicked(e) {
     const allSelected =
-      typeof $configManager.find((e) => e.selected == false) === "undefined";
+      typeof $configManager.configs.configs.find((e) => e.selected == false) ===
+      "undefined";
     configManager.update((s) => {
       s.forEach((e) => {
         if (isSelection) {

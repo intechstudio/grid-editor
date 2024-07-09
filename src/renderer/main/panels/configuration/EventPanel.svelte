@@ -3,7 +3,7 @@
 
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./Configuration.store.js";
+  import { ConfigTarget } from "./Configuration.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
   import { CEEAT } from "grid-protocol";
 

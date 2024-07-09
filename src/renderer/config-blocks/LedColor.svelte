@@ -163,7 +163,7 @@ A -> B : AB-First step
   let suggestions = [];
 
   $: if ($configManager) {
-    const index = $configManager.findIndex((e) => e.id === config.id);
+    const index = $configManager.configs.configs.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: $configManager,
       index: index,

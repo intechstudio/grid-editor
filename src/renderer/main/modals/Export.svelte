@@ -7,7 +7,7 @@
 
   function handleCopy() {
     const _tempSpan = document.createElement("input");
-    _tempSpan.value = $configManager.toConfigScript();
+    _tempSpan.value = $configManager.configs.configs.toConfigScript();
     _tempSpan.id = "temp-clip";
     document.getElementById("modal-copy-placeholder").append(_tempSpan);
     const _temp = document.querySelector("#temp-clip");
@@ -48,7 +48,7 @@
     </div>
 
     <textarea
-      value={$configManager.toConfigScript()}
+      value={$configManager.configs.configs.toConfigScript()}
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 

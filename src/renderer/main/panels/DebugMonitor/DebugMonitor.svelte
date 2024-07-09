@@ -16,7 +16,7 @@
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { configManager } from "../../panels/configuration/Configuration.store";
+  import { configManager } from "../configuration/Configuration.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const configScriptLength = writable(0);
@@ -32,8 +32,10 @@
   }
 
   $: {
-    configScriptLength.set($configManager.toConfigScript().length);
-    syntaxError.set($configManager.checkSyntax());
+    configScriptLength.set(
+      $configManager.configs.configs.toConfigScript().length
+    );
+    syntaxError.set($configManager.configs.configs.checkSyntax());
   }
 
   let frozen = false;

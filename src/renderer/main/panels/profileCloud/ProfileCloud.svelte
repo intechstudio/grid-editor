@@ -1,5 +1,5 @@
 <script>
-  import { ConfigTarget } from "./../configuration/Configuration.store.js";
+  import { ConfigTarget } from "../configuration/Configuration.store";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";

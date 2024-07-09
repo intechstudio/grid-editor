@@ -21,7 +21,7 @@
     ConfigTarget,
     configManager,
     lastOpenedActionblocksInsert,
-  } from "./Configuration.store.js";
+  } from "./Configuration.store";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
@@ -462,16 +462,16 @@
                 </div></anim-block
               >
             {/each}
-            {#key $configManager.length}
+            {#key $configManager.configs.configs.length}
               {#if typeof $config_drag === "undefined"}
                 <AddAction
-                  index={$configManager.length}
+                  index={$configManager.configs.configs.length}
                   on:paste={handlePaste}
                   on:new-config={handleConfigInsertion}
                 />
               {:else}
                 <DropZone
-                  index={$configManager.length}
+                  index={$configManager.configs.configs.length}
                   drag_target={draggedIndexes}
                   thresholdTop={10}
                   thresholdBottom={0}
@@ -485,7 +485,7 @@
         {#if $runtime.length > 0}
           <div class="w-full flex justify-between mb-3">
             <AddActionButton
-              index={$configManager.length}
+              index={$configManager.configs.configs.length}
               on:paste={handlePaste}
               on:new-config={handleConfigInsertion}
             />

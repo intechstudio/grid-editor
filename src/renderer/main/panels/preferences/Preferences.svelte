@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { configManager } from "./../configuration/Configuration.store.js";
+  import { configManager } from "../configuration/Configuration.store";
   import { logger } from "./../../../runtime/runtime.store.js";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
