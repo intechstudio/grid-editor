@@ -85,7 +85,7 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function sendCurrentConfigurationToGrid() {
-    $configManager
+    $configManager?.configs
       .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
       .catch((e) => handleError(e));
   }
@@ -342,7 +342,7 @@
   }
 
   function handleSelectActionBlock(index) {
-    const configs = get(configManager).configs;
+    const configs = get(configManager)?.configs;
     const config = configs[index];
     selectAction(index, !config.selected);
   }
@@ -391,7 +391,7 @@
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={(this, { configs: $configManager })}
+          use:changeOrder={(this, { configs: $configManager?.configs })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
@@ -401,7 +401,7 @@
           <config-list
             id="cfg-list"
             style="height:{scrollHeight}"
-            use:configListScrollSize={$configManager}
+            use:configListScrollSize={$configManager?.configs}
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
@@ -411,7 +411,7 @@
             }}
             class="flex flex-col w-full h-auto overflow-y-auto"
           >
-            {#each $configManager as config, index (config.id)}
+            {#each $configManager?.configs ?? [] as config, index (config.id)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade|global={{ delay: 0 }}
@@ -462,16 +462,16 @@
                 </div></anim-block
               >
             {/each}
-            {#key $configManager.configs.length}
+            {#key $configManager?.configs.length}
               {#if typeof $config_drag === "undefined"}
                 <AddAction
-                  index={$configManager.configs.length}
+                  index={$configManager?.configs.length}
                   on:paste={handlePaste}
                   on:new-config={handleConfigInsertion}
                 />
               {:else}
                 <DropZone
-                  index={$configManager.configs.length}
+                  index={$configManager?.configs.length}
                   drag_target={draggedIndexes}
                   thresholdTop={10}
                   thresholdBottom={0}
@@ -485,7 +485,7 @@
         {#if $runtime.length > 0}
           <div class="w-full flex justify-between mb-3">
             <AddActionButton
-              index={$configManager.configs.length}
+              index={$configManager?.configs.length}
               on:paste={handlePaste}
               on:new-config={handleConfigInsertion}
             />

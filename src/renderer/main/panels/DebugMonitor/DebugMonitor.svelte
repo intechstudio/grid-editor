@@ -32,8 +32,8 @@
   }
 
   $: {
-    configScriptLength.set($configManager.configs.toConfigScript().length);
-    syntaxError.set($configManager.configs.checkSyntax());
+    configScriptLength.set($configManager?.configs.toConfigScript().length);
+    syntaxError.set($configManager?.configs.checkSyntax());
   }
 
   let frozen = false;

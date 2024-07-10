@@ -162,10 +162,10 @@ A -> B : AB-First step
 
   let suggestions = [];
 
-  $: if ($configManager) {
-    const index = $configManager.configs.findIndex((e) => e.id === config.id);
+  $: if ($configManager?.configs) {
+    const index = $configManager?.configs.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $configManager,
+      configs: $configManager?.configs,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

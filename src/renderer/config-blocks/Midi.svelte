@@ -654,7 +654,7 @@
 
   let suggestions = [];
 
-  $: if ($configManager) {
+  $: if ($configManager?.configs) {
     renderSuggestions();
   }
 
@@ -682,9 +682,9 @@
       suggestions = _suggestions;
     }
 
-    const index = $configManager.configs.findIndex((e) => e.id === config.id);
+    const index = $configManager?.configs.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $configManager,
+      configs: $configManager?.configs,
       index: index,
     });
     suggestions = suggestions.map((s) => [...localDefinitions, ...s]);

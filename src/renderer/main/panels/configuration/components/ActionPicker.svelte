@@ -67,7 +67,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($configManager);
+      options = getAvailableOptions($configManager?.configs);
     } catch (e) {
       handleClose();
     }

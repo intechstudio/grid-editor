@@ -55,7 +55,7 @@
 
   onMount(() => {
     //Make local copies
-    editedList = $configManager.configs.makeCopy();
+    editedList = $configManager?.configs.makeCopy();
     editedConfig = editedList[$monaco_store.index];
 
     //To be displayed in Editor

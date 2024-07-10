@@ -252,7 +252,7 @@ export function insertAction(
   configs: ConfigObject[]
 ) {
   if (typeof index === "undefined") {
-    index = get(configManager).configs.length;
+    index = get(configManager)?.configs.length;
   }
 
   try {
@@ -311,6 +311,7 @@ export function copyActions() {
   const clipboard: ConfigObject[] = get(configManager)
     .configs.makeCopy()
     .filter((e) => e.selected);
+  console.log(clipboard);
   appClipboard.set({
     key: ClipboardKey.ACTION_BLOCKS,
     payload: clipboard,
@@ -319,7 +320,7 @@ export function copyActions() {
 
 export function pasteActions(index: number | undefined) {
   if (typeof index === "undefined") {
-    index = get(configManager).configs.length;
+    index = get(configManager)?.configs.length;
   }
 
   const clipboard = get(appClipboard);
@@ -331,12 +332,12 @@ export function pasteActions(index: number | undefined) {
   try {
     configManager.update((s) => {
       const temp = s.makeCopy();
+      const clipboard = get(appClipboard)!.payload.map((e) => e.makeCopy());
+      console.log(clipboard);
       temp.forEach((e) => (e.selected = false));
-      temp.insert(
-        index,
-        ...get(appClipboard)!.payload.map((e) => e.makeCopy())
-      );
+      temp.insert(index, ...clipboard);
       temp.checkLength();
+
       return temp;
     });
   } catch (e) {
