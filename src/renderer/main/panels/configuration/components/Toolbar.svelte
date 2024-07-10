@@ -18,20 +18,19 @@
 
   $: {
     selectAllChecked =
-      typeof $configManager.configs.configs.find((e) => !e.selected) ===
-        "undefined" && $configManager.configs.configs.length > 0;
+      typeof $configManager.configs.find((e) => !e.selected) === "undefined" &&
+      $configManager.configs.length > 0;
   }
 
   $: {
     isSelection =
-      typeof $configManager.configs.configs.find((e) => e.selected) !==
-      "undefined";
+      typeof $configManager.configs.find((e) => e.selected) !== "undefined";
   }
 
   function handleConvertToCodeBlockClicked(e) {
     dispatch("convert-to-code-block", {
-      configs: $configManager.configs.configs.filter((e) => e.selected),
-      index: $configManager.configs.configs.findIndex((e) => e.selected), //First selected
+      configs: $configManager.configs.filter((e) => e.selected),
+      index: $configManager.configs.findIndex((e) => e.selected), //First selected
     });
   }
 
@@ -56,7 +55,7 @@
 
   function handleSelectAllClicked(e) {
     const allSelected =
-      typeof $configManager.configs.configs.find((e) => e.selected == false) ===
+      typeof $configManager.configs.find((e) => e.selected == false) ===
       "undefined";
     configManager.update((s) => {
       s.forEach((e) => {

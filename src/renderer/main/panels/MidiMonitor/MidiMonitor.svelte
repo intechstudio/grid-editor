@@ -20,10 +20,8 @@
   const syntaxError = writable(false);
 
   $: {
-    configScriptLength.set(
-      $configManager.configs.configs.toConfigScript().length
-    );
-    syntaxError.set($configManager.configs.configs.checkSyntax());
+    configScriptLength.set($configManager.configs.toConfigScript().length);
+    syntaxError.set($configManager.configs.checkSyntax());
   }
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;

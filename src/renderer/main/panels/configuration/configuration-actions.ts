@@ -163,7 +163,7 @@ export async function overwriteElement({ dx, dy, page, element }) {
       userInput: ui,
     });
     ConfigList.createFromTarget(displayed).then((list) => {
-      configManager.set(list);
+      configManager.set({ target: displayed, configs: list });
     });
   });
 }
@@ -214,7 +214,7 @@ export async function discardElement({ dx, dy, page, element }) {
       });
       const displayed = ConfigTarget.createFrom({ userInput: ui });
       const list = await ConfigList.createFromTarget(displayed);
-      configManager.set(list);
+      configManager.set({ target: displayed, configs: list });
 
       logger.set({
         type: "progress",
@@ -252,7 +252,7 @@ export function insertAction(
   configs: ConfigObject[]
 ) {
   if (typeof index === "undefined") {
-    index = get(configManager).length;
+    index = get(configManager).configs.length;
   }
 
   try {
@@ -309,7 +309,7 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
 
 export function copyActions() {
   const clipboard: ConfigObject[] = get(configManager)
-    .makeCopy()
+    .configs.makeCopy()
     .filter((e) => e.selected);
   appClipboard.set({
     key: ClipboardKey.ACTION_BLOCKS,
@@ -319,7 +319,7 @@ export function copyActions() {
 
 export function pasteActions(index: number | undefined) {
   if (typeof index === "undefined") {
-    index = get(configManager).length;
+    index = get(configManager).configs.length;
   }
 
   const clipboard = get(appClipboard);

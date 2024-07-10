@@ -342,7 +342,7 @@
   }
 
   function handleSelectActionBlock(index) {
-    const configs = get(configManager);
+    const configs = get(configManager).configs;
     const config = configs[index];
     selectAction(index, !config.selected);
   }
@@ -462,16 +462,16 @@
                 </div></anim-block
               >
             {/each}
-            {#key $configManager.configs.configs.length}
+            {#key $configManager.configs.length}
               {#if typeof $config_drag === "undefined"}
                 <AddAction
-                  index={$configManager.configs.configs.length}
+                  index={$configManager.configs.length}
                   on:paste={handlePaste}
                   on:new-config={handleConfigInsertion}
                 />
               {:else}
                 <DropZone
-                  index={$configManager.configs.configs.length}
+                  index={$configManager.configs.length}
                   drag_target={draggedIndexes}
                   thresholdTop={10}
                   thresholdBottom={0}
@@ -485,7 +485,7 @@
         {#if $runtime.length > 0}
           <div class="w-full flex justify-between mb-3">
             <AddActionButton
-              index={$configManager.configs.configs.length}
+              index={$configManager.configs.length}
               on:paste={handlePaste}
               on:new-config={handleConfigInsertion}
             />

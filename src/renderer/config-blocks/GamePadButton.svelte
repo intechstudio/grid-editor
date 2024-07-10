@@ -147,7 +147,7 @@
   ];
 
   $: if ($configManager) {
-    const index = $configManager.configs.configs.findIndex((e) => e.id === config.id);
+    const index = $configManager.configs.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: $configManager,
       index: index,
