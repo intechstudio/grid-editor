@@ -1,6 +1,5 @@
 <script lang="ts" context="module">
-  import { get } from "svelte/store";
-  import { user_input } from "./../runtime/runtime.store.js";
+  import { committed_code_store } from "./Committed_Code.store.js";
   import {
     type ActionBlockInformation,
     SyntaxPreprocessor,
@@ -44,7 +43,7 @@
 <script>
   import { GridScript } from "grid-protocol";
 
-  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { onMount } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
@@ -54,16 +53,12 @@
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
-  import { committed_code_store } from "./Committed_Code.store";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
-
-  const dispatch = createEventDispatcher();
 
   export let config;
   export let access_tree;
   export let index;
-  let indexBuffer;
 
   let codePreview;
 
@@ -95,14 +90,25 @@
 </g>
 </svg>`;
 
+  /*
   onDestroy(() => {
+    const codePreview = document.getElementById("codePreview");
     codePreview.removeEventListener("wheel", (evt) => {
       evt.preventDefault();
       codePreview.scrollLeft += evt.deltaY;
     });
-  });
+  });*/
+
+  $: {
+    if ($committed_code_store?.id === config.id) {
+      displayConfigScript(config.script);
+    }
+  }
 
   function displayConfigScript(script) {
+    if (!codePreview || !script) {
+      return;
+    }
     codePreview.innerHTML = GridScript.expandScript(script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
@@ -111,65 +117,13 @@
   }
 
   onMount(() => {
-    codePreview.addEventListener("wheel", (evt) => {
-      //evt.preventDefault();
-      //codePreview.scrollLeft += evt.deltaY;
-    });
-    indexBuffer = index;
+    displayConfigScript(config.script);
   });
-
-  $: {
-    if (codePreview) {
-      displayConfigScript(config.script);
-    }
-  }
-
-  $: if (typeof $committed_code_store !== "undefined") {
-    if ($committed_code_store.index == index) {
-      dispatch("output", {
-        short: "cb",
-        script: $committed_code_store.script,
-      });
-    }
-  }
-
-  function handleIndexChange(value) {
-    const ms = get(monaco_store);
-    if (typeof ms === "undefined") {
-      return;
-    }
-    console.log(indexBuffer, value, ms.path.index);
-    const { dx, dy, page, element, event } = ms.path;
-    if (
-      dx === $user_input.dx &&
-      dy === $user_input.dy &&
-      page === $user_input.pagenumber &&
-      element === $user_input.elementnumber &&
-      event === $user_input.eventtype &&
-      ms.path.index === indexBuffer
-    ) {
-      monaco_store.update((store) => {
-        store.path.index = value;
-        return store;
-      });
-      indexBuffer = value;
-    }
-  }
-
-  $: handleIndexChange(index);
 
   function open_monaco() {
     $monaco_store = {
-      config: config.makeCopy(),
+      config: config,
       index: index,
-      path: {
-        dx: $user_input.dx,
-        dy: $user_input.dy,
-        page: $user_input.pagenumber,
-        element: $user_input.elementnumber,
-        event: $user_input.eventtype,
-        index: index,
-      },
     };
     $monaco_elementtype = access_tree.elementtype;
     modal.show({
@@ -187,9 +141,9 @@
 
     <div class="grid w-full">
       <pre
+        bind:this={codePreview}
         on:dblclick={open_monaco}
         class="bg-secondary opacity-80 my-4 p-2 w-full overflow-x-auto"
-        bind:this={codePreview}
         data-lang="intech_lua"
       />
     </div>

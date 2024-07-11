@@ -8,10 +8,8 @@ import {
 } from "../../panels/configuration/Configuration.store";
 import { EventType, EventTypeToNumber, grid } from "grid-protocol";
 import { get } from "svelte/store";
-import {
-  ClipboardKey,
-  appClipboard,
-} from "../../../runtime/clipboard.store.ts";
+import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
+import { v4 as uuidv4 } from "uuid";
 
 function handleError(e: any) {
   switch (e.type) {
@@ -187,7 +185,7 @@ export async function discardElement({ dx, dy, page, element }) {
     return Promise.reject();
   }
 
-  const promises: Promise<void>[] = [];
+  const promises: Promise<any>[] = [];
   for (const event of current.events ?? ([] as any[])) {
     const stored = event.stored;
     if (!stored) continue;
@@ -251,16 +249,16 @@ export function insertAction(
   index: number | undefined,
   configs: ConfigObject[]
 ) {
+  const cm = get(configManager);
   if (typeof index === "undefined") {
-    index = get(configManager)?.configs.length;
+    index = cm?.configs.length;
   }
 
   try {
     configManager.update((s) => {
-      const list = s.makeCopy();
-      list.insert(index, ...configs);
-      list.checkLength();
-      return list;
+      s.configs.insert(index, ...configs);
+      s.configs.checkLength();
+      return s;
     });
   } catch (e) {
     console.warn(e);
@@ -302,16 +300,14 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
     //Insert CodeBlock into position
     s.insert(index, codeBlock);
     // Remove selected action blocks
-    s = s.filter((config) => !config.selected);
-    return s;
+    return s.filter((config) => !config.selected);
   });
 }
 
 export function copyActions() {
-  const clipboard: ConfigObject[] = get(configManager)
-    .configs.makeCopy()
-    .filter((e) => e.selected);
-  console.log(clipboard);
+  const clipboard: ConfigObject[] = get(configManager).configs.filter(
+    (e) => e.selected
+  );
   appClipboard.set({
     key: ClipboardKey.ACTION_BLOCKS,
     payload: clipboard,
@@ -319,8 +315,9 @@ export function copyActions() {
 }
 
 export function pasteActions(index: number | undefined) {
+  const cm = get(configManager);
   if (typeof index === "undefined") {
-    index = get(configManager)?.configs.length;
+    index = cm?.configs.length;
   }
 
   const clipboard = get(appClipboard);
@@ -331,14 +328,13 @@ export function pasteActions(index: number | undefined) {
 
   try {
     configManager.update((s) => {
-      const temp = s.makeCopy();
-      const clipboard = get(appClipboard)!.payload.map((e) => e.makeCopy());
-      console.log(clipboard);
-      temp.forEach((e) => (e.selected = false));
-      temp.insert(index, ...clipboard);
-      temp.checkLength();
-
-      return temp;
+      const configs: ConfigList = get(appClipboard)!.payload.map(
+        (e) => new ConfigObject({ short: e.short, script: e.script })
+      );
+      s.forEach((e) => (e.selected = false));
+      s.insert(index, ...configs);
+      s.checkLength();
+      return s;
     });
   } catch (e) {
     return Promise.reject(e);

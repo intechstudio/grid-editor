@@ -11,13 +11,16 @@
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
 
   import { monaco_editor } from "../../lib/CustomMonaco";
-  import { committed_code_store } from "../../config-blocks/Committed_Code.store";
   import { monaco_store } from "./Monaco.store";
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
   import { GridScript } from "grid-protocol";
-  import { configManager } from "../panels/configuration/Configuration.store";
+  import {
+    ConfigList,
+    configManager,
+    ConfigObject,
+  } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { getDeviceName } from "../../runtime/runtime.store";
   import {
@@ -25,8 +28,10 @@
     getElementDefaultName,
     elementNameStore,
   } from "../../runtime/element-name.store";
+  import { get } from "svelte/store";
 
   import { CEEAT } from "grid-protocol";
+  import { committed_code_store } from "../../config-blocks/Committed_Code.store.js";
 
   let monaco_block;
 
@@ -55,7 +60,11 @@
 
   onMount(() => {
     //Make local copies
-    editedList = $configManager?.configs.makeCopy();
+    const cm = get(configManager);
+    editedList = new ConfigList();
+    cm.configs.forEach((e) => {
+      editedList.push(new ConfigObject({ short: e.short, script: e.script }));
+    });
     editedConfig = editedList[$monaco_store.index];
 
     //To be displayed in Editor
@@ -131,15 +140,17 @@
       scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
 
-  function handleCommit() {
+  async function handleCommit() {
     try {
+      const id = $monaco_store.config.id;
       const editor_code = editor.getValue();
       const minifiedCode = GridScript.compressScript(editor_code);
-
-      $committed_code_store = {
-        script: minifiedCode,
-        index: $monaco_store.index,
-      };
+      const target = configManager.getContainingTarget(id);
+      const list = configManager.getContainingList(id);
+      const config = list.find((e) => e.id === id);
+      config.script = minifiedCode;
+      committed_code_store.set(config);
+      list.sendTo({ target: target });
 
       commitEnabled = false;
       unsavedChanges = false;
@@ -166,7 +177,8 @@
   let pathSnippets = [];
 
   function updateCodeBlockPath() {
-    const { dx, dy, page, element, event, index } = $monaco_store.path;
+    const path = configManager.getConfigPath($monaco_store.config.id);
+    const { dx, dy, page, element, event, index } = path;
     let elementName = getElementName(dx, dy, page, element);
     if (typeof elementName === "undefined") {
       elementName = getElementDefaultName(dx, dy, page, element);
