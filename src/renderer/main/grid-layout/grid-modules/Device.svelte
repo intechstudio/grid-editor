@@ -222,6 +222,12 @@
       mandatory: false,
     });
   }
+
+  const modifier =
+    ctxProcess.platform() == "darwin" ||
+    window.navigator.platform.indexOf("Mac") != -1
+      ? ["Cmd ⌘", "Alt ⌥"]
+      : ["Ctrl", "Alt"];
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -278,24 +284,28 @@
         use:contextTarget={{
           items: [
             {
-              text: "Copy Element",
+              text: `Copy Element (${modifier[0]} + C)`,
               handler: () => handleCopyElement(elementNumber),
               isDisabled: () => get(copyElementDisabled),
+              iconPath: "copy_all",
             },
             {
-              text: "Overwrite Element",
+              text: `Overwrite Element (${modifier[0]} + V)`,
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => get(overwriteElementDisabled),
+              iconPath: "paste_all",
             },
             {
-              text: "Discard Element Changes",
+              text: `Discard Element Changes (${modifier[0]} + Shift + D)`,
               handler: () => handleDiscardElement(elementNumber),
               isDisabled: () => get(discardElementDisabled),
+              iconPath: "clear_from_device_01",
             },
             {
-              text: "Clear Element",
+              text: `Clear Element (Shift + Delete)`,
               handler: handleClearElement,
               isDisabled: () => get(clearElementDisabled),
+              iconPath: "clear_element",
             },
           ],
         }}

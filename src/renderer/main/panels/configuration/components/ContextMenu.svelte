@@ -1,8 +1,10 @@
 <script lang="ts" context="module">
+  import SvgIcon from "./../../../user-interface/SvgIcon.svelte";
   export interface ContextMenuItem {
     text: string;
     handler: (...args: any[]) => any;
     isDisabled?: () => boolean;
+    iconPath?: string;
   }
 </script>
 
@@ -45,12 +47,22 @@
           typeof item.isDisabled !== "undefined" ? item.isDisabled() : false}
         <button
           class="text-white text-sm {!disabled
-            ? 'text-opacity-75'
-            : 'text-opacity-25'} font-mono whitespace-nowrap w-full px-2 text-left hover:bg-opacity-10 cursor-default"
+            ? 'opacity-75'
+            : 'opacity-25'} flex flex-row gap-2 items-center whitespace-nowrap w-full px-2 text-left hover:bg-opacity-10 cursor-default"
           class:hover:bg-white={!disabled}
           {disabled}
-          on:click={() => handleItemClicked(item)}>{item.text}</button
+          on:click={() => handleItemClicked(item)}
         >
+          {#if typeof item.iconPath !== "undefined"}
+            <SvgIcon
+              width={12}
+              height={12}
+              fill="#FFF"
+              iconPath={item.iconPath}
+            />
+          {/if}
+          <span>{item.text}</span>
+        </button>
       {/each}
     </div>
   </Popover>
