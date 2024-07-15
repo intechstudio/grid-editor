@@ -1,6 +1,6 @@
 import { writable, get } from "svelte/store";
 
-import { grid, EventType } from "grid-protocol";
+import { grid, EventType } from "@intechstudio/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";

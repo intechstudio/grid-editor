@@ -6,7 +6,11 @@ import {
   ConfigList,
   ConfigObject,
 } from "../../panels/configuration/Configuration.store";
-import { EventType, EventTypeToNumber, grid } from "grid-protocol";
+import {
+  EventType,
+  EventTypeToNumber,
+  grid,
+} from "@intechstudio/grid-protocol";
 import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
 

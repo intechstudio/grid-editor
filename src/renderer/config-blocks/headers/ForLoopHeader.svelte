@@ -3,7 +3,7 @@
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
   import Toggle from "../../main/user-interface/Toggle.svelte";
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "../_validators";
   import AtomicInput from "../../main/user-interface/AtomicInput.svelte";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";

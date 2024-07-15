@@ -42,7 +42,7 @@
   import AddActionLine from "./components/AddActionLine.svelte";
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { NumberToEventType } from "grid-protocol";
+  import { NumberToEventType } from "@intechstudio/grid-protocol";
   import {
     selectAction,
     insertAction,
