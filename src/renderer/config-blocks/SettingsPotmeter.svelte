@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import MoltenEnabled from "./../main/user-interface/MoltenEnabled.svelte";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -38,6 +39,8 @@
   let pmo = ""; // local script part
   let pma = "";
 
+  let pmi = "0";
+
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   let loaded = false;
@@ -45,10 +48,20 @@
   $: if (config.script && !loaded) {
     const arr = config.script.split("self:").slice(1);
 
-    pmo = whatsInParenthesis.exec(arr[0])[1];
-    //pmo = pmo[1];
-    pma = whatsInParenthesis.exec(arr[1])[1];
-    //pma = pma[1];
+    const extractParam = (index) => {
+      const param = whatsInParenthesis.exec(arr[index]);
+      return param && param.length > 0 ? param[1] : null;
+    };
+
+    pmo = extractParam(0);
+    pma = extractParam(1);
+
+    const param3 = extractParam(2);
+
+    minEnabled = !!param3;
+    if (minEnabled) {
+      pmi = param3;
+    }
 
     loaded = true;
   }
@@ -57,14 +70,13 @@
     loaded = false;
   });
 
-  $: if (pmo || pma) {
-    sendData(pmo, pma);
-  }
+  $: sendData(pmo, pma, minEnabled ? pmi : undefined);
 
-  function sendData(p1, p2) {
+  function sendData(p1, p2, p3) {
+    const optional = [minEnabled ? `self:pmi(${p3})` : ""];
     dispatch("output", {
       short: "spc",
-      script: `self:pmo(${p1}) self:pma(${p2})`,
+      script: `self:pmo(${p1}) self:pma(${p2}) ${optional.join(" ")}`,
     });
   }
 
@@ -85,53 +97,87 @@
   ];
 
   let suggestionElement = undefined;
+  let minEnabled = false;
 </script>
 
 <potmeter-settings
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+  class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full flex">
-    <div class="w-1/2 flex flex-col">
-      <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1">Bit depth</div>
-        <AtomicInput
-          inputValue={pmo}
-          suggestions={suggestions[0]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            pmo = e.detail;
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
+  <div class="w-full flex flex-row gap-2">
+    <div class="flex flex-col">
+      <div class="text-gray-500 text-sm pb-1">Bit depth</div>
+      <AtomicInput
+        inputValue={pmo}
+        suggestions={suggestions[0]}
+        validator={() => {
+          return new Validator().NotEmpty().Result();
+        }}
+        suggestionTarget={suggestionElement}
+        on:change={(e) => {
+          pmo = e.detail;
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
     </div>
 
-    <div class="w-1/2 flex flex-col">
-      <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1">Max Value</div>
-        <AtomicInput
-          inputValue={pma}
-          suggestions={suggestions[1]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            pma = e.detail;
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
+    <div class="flex flex-col">
+      <div class="text-gray-500 text-sm pb-1">Max Value</div>
+      <AtomicInput
+        inputValue={pma}
+        suggestions={suggestions[1]}
+        validator={() => {
+          return new Validator().NotEmpty().Result();
+        }}
+        suggestionTarget={suggestionElement}
+        on:change={(e) => {
+          pma = e.detail;
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
     </div>
+  </div>
+
+  <div class="flex flex-row gap-2">
+    <span class="text-gray-500 text-sm">Step size:</span>
+    <span class="text-white text-sm"
+      >{Math.floor(
+        (Number(pma) - (minEnabled ? Number(pmi) : 0)) / Number(pmo)
+      )}</span
+    >
+  </div>
+
+  <div class="w-full flex flex-col gap-2">
+    <div class="w-full flex-row flex justify-between items-center">
+      <div class="text-gray-500 text-sm truncate">Optional: Min Value</div>
+      <MoltenEnabled
+        bind:value={minEnabled}
+        style={{ color: "rgba(115, 115, 115, 1)", fontSize: 11 }}
+      />
+    </div>
+
+    <AtomicInput
+      inputValue={pmi}
+      disabled={!minEnabled}
+      validator={() => {
+        return minEnabled
+          ? new Validator().NotEmpty().Result()
+          : new Validator().Result();
+      }}
+      suggestionTarget={suggestionElement}
+      on:change={(e) => {
+        pmi = e.detail;
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+    />
   </div>
 
   <AtomicSuggestions bind:component={suggestionElement} />

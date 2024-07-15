@@ -9,12 +9,12 @@
   export let customClasses = "";
   export let placeholder = "";
   export let suggestionTarget = undefined;
+  export let disabled = false;
   export let validator = () => {
     return true;
   };
 
   let isError = false;
-  let disabled = false;
   let infoValue = "";
   let displayText;
 
@@ -92,7 +92,9 @@
       focus:neumorph focus:rounded-lg
       {isError
       ? 'border-error focus:outline-error'
-      : 'focus:border-select border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
+      : 'focus:border-select border-secondary'} bg-secondary {disabled
+      ? 'text-gray-500'
+      : 'text-white'} py-0.5 pl-2 rounded-none"
   />
 
   <div class=" py-1">

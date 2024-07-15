@@ -11,8 +11,7 @@
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-
-  import { instructions } from "./../../serialport/instructions";
+  import MoltenEnabled from "./MoltenEnabled.svelte";
 
   let isChanges = false;
   let changes = 0;

@@ -1,20 +1,20 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import type { ActionBlockInformation } from "./ActionBlockInformation.js";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
   export const information: ActionBlockInformation = {
-    short: "sec",
-    name: "SettingsEncoder",
+    short: "sen",
+    name: "SettingsEndless",
     rendering: "standard",
     category: "element settings",
     color: "#5F416D",
-    displayName: "Encoder Mode",
-    defaultLua: "self:emo(0) self:ev0(50)",
-    icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
-    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
+    displayName: "Endless Mode",
+    defaultLua: "self:enmo(0) self:env0(50)",
+    icon: `<span class="block w-full text-center italic font-gt-pressura">EN</span>`,
+    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EN</span>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -27,7 +27,7 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { Validator } from "./_validators";
+  import { Validator } from "./_validators.js";
   import MoltenEnabled from "../main/user-interface/MoltenEnabled.svelte";
 
   export let config;
@@ -35,12 +35,12 @@
 
   const dispatch = createEventDispatcher();
 
-  let emo = ""; // local script part
-  let ev0 = "";
+  let enmo = ""; // local script part
+  let env0 = "";
 
-  let emi = "0";
-  let ema = "255";
-  let ese = "100";
+  let enmi = "0";
+  let enma = "255";
+  let ense = "100";
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -54,22 +54,22 @@
       return param && param.length > 0 ? param[1] : null;
     };
 
-    emo = extractParam(0);
-    ev0 = extractParam(1);
+    enmo = extractParam(0);
+    env0 = extractParam(1);
 
     const param3 = extractParam(2);
     const param4 = extractParam(3);
 
     minMaxEnabled = !!param3 || !!param4;
     if (minMaxEnabled) {
-      emi = param3;
-      ema = param4;
+      enmi = param3;
+      enma = param4;
     }
 
     const param5 = extractParam(4);
     sensitivityEnabled = !!param5;
     if (sensitivityEnabled) {
-      ese = param5;
+      ense = param5;
     }
 
     loaded = true;
@@ -80,29 +80,28 @@
   });
 
   $: sendData(
-    emo,
-    ev0,
-    minMaxEnabled ? emi : undefined,
-    minMaxEnabled ? ema : undefined,
-    sensitivityEnabled ? ese : undefined
+    enmo,
+    env0,
+    minMaxEnabled ? enmi : undefined,
+    minMaxEnabled ? enma : undefined,
+    sensitivityEnabled ? ense : undefined
   );
 
   function sendData(p1, p2, p3, p4, p5) {
     const optional = [
-      minMaxEnabled ? `self:emi(${p3}) self:ema(${p4})` : "",
-      sensitivityEnabled ? `self:ese(${p5})` : "",
+      minMaxEnabled ? `self:enmi(${p3}) self:enma(${p4})` : "",
+      sensitivityEnabled ? `self:ense(${p5})` : "",
     ];
     dispatch("output", {
       short: `sec`,
-      script: `self:emo(${p1}) self:ev0(${p2}) ${optional.join(" ")}`,
+      script: `self:enmo(${p1}) self:env0(${p2}) ${optional.join(" ")}`,
     });
   }
 
   const suggestions = [
     [
       { value: "0", info: "Absolute" },
-      { value: "1", info: "Relative BinOffset" },
-      { value: "2", info: "Relative 2's Comp" },
+      { value: "1", info: "Relative" },
     ],
 
     [
@@ -125,14 +124,14 @@
     <div class="flex flex-col">
       <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
       <AtomicInput
-        inputValue={emo}
+        inputValue={enmo}
         suggestions={suggestions[0]}
         validator={() => {
           return new Validator().NotEmpty().Result();
         }}
         suggestionTarget={suggestionElement}
         on:change={(e) => {
-          emo = e.detail;
+          enmo = e.detail;
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -145,14 +144,14 @@
       <div class="flex flex-col">
         <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
         <AtomicInput
-          inputValue={ev0}
+          inputValue={env0}
           suggestions={suggestions[1]}
           validator={() => {
             return new Validator().NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
           on:change={(e) => {
-            ev0 = e.detail;
+            env0 = e.detail;
           }}
           on:validator={(e) => {
             const data = e.detail;
@@ -173,7 +172,7 @@
     </div>
     <div class="flex flex-row gap-2">
       <AtomicInput
-        inputValue={emi}
+        inputValue={enmi}
         disabled={!minMaxEnabled}
         validator={() => {
           return minMaxEnabled
@@ -181,7 +180,7 @@
             : new Validator().Result();
         }}
         on:change={(e) => {
-          emi = e.detail;
+          enmi = e.detail;
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -189,7 +188,7 @@
         }}
       />
       <AtomicInput
-        inputValue={ema}
+        inputValue={enma}
         disabled={!minMaxEnabled}
         validator={() => {
           return minMaxEnabled
@@ -197,7 +196,7 @@
             : new Validator().Result();
         }}
         on:change={(e) => {
-          ema = e.detail;
+          enma = e.detail;
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -217,7 +216,7 @@
     </div>
 
     <AtomicInput
-      inputValue={ese}
+      inputValue={ense}
       disabled={!sensitivityEnabled}
       validator={() => {
         return minMaxEnabled
@@ -225,7 +224,7 @@
           : new Validator().Result();
       }}
       on:change={(e) => {
-        ese = e.detail;
+        ense = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
