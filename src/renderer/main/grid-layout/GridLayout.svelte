@@ -1,10 +1,10 @@
 <script>
-  import { Architecture } from "grid-protocol";
+  import { Architecture } from "@intechstudio/grid-protocol";
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
   import { modal } from "./../modals/modal.store.ts";
   import { watchResize } from "svelte-watch-resize";
   import { writable } from "svelte/store";
-  import { runtime } from "../../runtime/runtime.store.js";
+  import { runtime } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store.js";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";

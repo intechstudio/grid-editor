@@ -5,14 +5,14 @@ import {
   user_input,
   getDeviceName,
 } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "grid-protocol";
+import { NumberToEventType } from "@intechstudio/grid-protocol";
 
 import {
   getComponentInformation,
   init_config_block_library,
 } from "../../../lib/_configs";
 
-import { grid, GridScript } from "grid-protocol";
+import { grid, GridScript } from "@intechstudio/grid-protocol";
 import { v4 as uuidv4 } from "uuid";
 import { ActionBlockInformation } from "../../../config-blocks/ActionBlockInformation";
 import { SvelteComponent } from "svelte";
@@ -425,14 +425,16 @@ function create_configuration_manager(): ConfigManger {
         .then((desc) => {
           runtime.element_preset_load(x, y, element, preset).then(() => {
             const ui = get(user_input);
-            createConfigListFrom(ui).then((list: ConfigList) => {
-              setOverride({
-                target: ConfigTarget.createFrom({ userInput: ui }),
-                configs: list,
-              });
+            if (ui.dx === x && ui.dy === y && ui.elementnumber === element) {
+              createConfigListFrom(ui).then((list: ConfigList) => {
+                setOverride({
+                  target: ConfigTarget.createFrom({ userInput: ui }),
+                  configs: list,
+                });
 
-              resolve(true);
-            });
+                resolve(true);
+              });
+            }
           });
         })
         .catch((e) => {
@@ -454,7 +456,6 @@ function create_configuration_manager(): ConfigManger {
           runtime
             .whole_page_overwrite(x, y, profile)
             .then(() => {
-              const ui = get(user_input);
               createConfigListFrom(ui).then((list: ConfigList) => {
                 setOverride({
                   target: ConfigTarget.createFrom({ userInput: ui }),

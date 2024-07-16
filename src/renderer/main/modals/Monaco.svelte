@@ -1,10 +1,10 @@
 <script>
-  import { runtime } from "./../../runtime/runtime.store.js";
+  import { runtime } from "./../../runtime/runtime.store";
   import SvgIcon from "./../user-interface/SvgIcon.svelte";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
-  import { grid } from "grid-protocol";
+  import { grid } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
@@ -15,12 +15,12 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import { GridScript } from "grid-protocol";
   import {
     ConfigList,
     configManager,
     ConfigObject,
   } from "../panels/configuration/Configuration.store";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { appSettings } from "../../runtime/app-helper.store";
   import { getDeviceName } from "../../runtime/runtime.store";
   import {
@@ -30,7 +30,7 @@
   } from "../../runtime/element-name.store";
   import { get } from "svelte/store";
 
-  import { CEEAT } from "grid-protocol";
+  import { CEEAT } from "@intechstudio/grid-protocol";
   import { committed_code_store } from "../../config-blocks/Committed_Code.store.js";
 
   let monaco_block;

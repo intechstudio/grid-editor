@@ -1,6 +1,4 @@
 <script>
-  import { ClipboardKey } from "./../../../runtime/clipboard.store.ts";
-  import { runtime } from "./../../../runtime/runtime.store.js";
   import { Analytics } from "./../../../runtime/analytics.js";
   import {
     contextMenu,
@@ -28,12 +26,12 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { user_input } from "../../../runtime/runtime.store.js";
+  import { user_input } from "../../../runtime/runtime.store";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";
-  import { EventType, EventTypeToNumber } from "grid-protocol";
-  import { get } from "svelte/store";
+  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+  import { get, writable } from "svelte/store";
   import {
     loadPreset,
     loadProfile,
@@ -42,12 +40,18 @@
     discardElement,
     clearElement,
   } from "../../../main/panels/configuration/configuration-actions";
-  import { appClipboard } from "../../../runtime/clipboard.store";
+  import {
+    createCopyAllDisabledStore,
+    createOverwriteDisabledStore,
+    createDiscardElementDisabledStore,
+    createClearElementDisabledStore,
+  } from "../../panels/configuration/configuration-actions";
 
   export let device = undefined;
   export let width = 225;
 
   let component = undefined;
+  let elementNumber = undefined;
 
   onMount(() => {
     const components = [
@@ -254,46 +258,44 @@
       let:isLeftCut
       let:isRightCut
     >
+      {@const target = writable(
+        ConfigTarget.create({
+          device: {
+            dx: device.dx,
+            dy: device.dy,
+          },
+          page: get(user_input).pagenumber,
+          element: elementNumber,
+          eventType: EventTypeToNumber(EventType.INIT),
+        })
+      )}
+      {@const overwriteElementDisabled = createOverwriteDisabledStore(target)}
+      {@const copyElementDisabled = createCopyAllDisabledStore(target)}
+      {@const discardElementDisabled =
+        createDiscardElementDisabledStore(target)}
+      {@const clearElementDisabled = createClearElementDisabledStore(target)}
       <button
         use:contextTarget={{
           items: [
             {
               text: "Copy Element",
               handler: () => handleCopyElement(elementNumber),
+              isDisabled: () => get(copyElementDisabled),
             },
             {
               text: "Overwrite Element",
               handler: () => handleOverwriteElement(elementNumber),
-              isDisabled: () => {
-                const clipboard = get(appClipboard);
-                const current = ConfigTarget.getCurrent();
-
-                if (clipboard?.key !== ClipboardKey.ELEMENT) {
-                  return true;
-                }
-
-                return current.elementType !== clipboard.elementType;
-              },
+              isDisabled: () => get(overwriteElementDisabled),
             },
             {
               text: "Discard Element Changes",
               handler: () => handleDiscardElement(elementNumber),
-              isDisabled: () => {
-                const target = ConfigTarget.create({
-                  device: {
-                    dx: device.dx,
-                    dy: device.dy,
-                  },
-                  page: get(user_input).pagenumber,
-                  element: elementNumber,
-                  eventType: EventTypeToNumber(EventType.INIT),
-                });
-                return !target.hasChanges();
-              },
+              isDisabled: () => get(discardElementDisabled),
             },
             {
               text: "Clear Element",
               handler: handleClearElement,
+              isDisabled: () => get(clearElementDisabled),
             },
           ],
         }}

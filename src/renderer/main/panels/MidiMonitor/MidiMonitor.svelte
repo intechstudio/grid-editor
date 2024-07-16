@@ -9,7 +9,7 @@
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import { grid } from "grid-protocol";
+  import { grid } from "@intechstudio/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../configuration/Configuration.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";

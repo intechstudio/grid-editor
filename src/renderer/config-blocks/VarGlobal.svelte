@@ -25,7 +25,7 @@
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
 
   import { parenthesis } from "./_validators.js";
 

@@ -1,31 +1,24 @@
 <script>
+  import { derived, writable } from "svelte/store";
+  import { user_input } from "./../../../../runtime/runtime.store";
   import {
-    appClipboard,
-    ClipboardKey,
-  } from "./../../../../runtime/clipboard.store.ts";
+    createCopyAllDisabledStore,
+    createOverwriteDisabledStore,
+    createDiscardElementDisabledStore,
+    createClearElementDisabledStore,
+    createMergeDisabledStore,
+    createCutDisabledStore,
+    createCopyDisabledStore,
+    createPasteDisabledStore,
+    createRemoveDisabledStore,
+  } from "../configuration-actions";
   import { shortcut } from "./../../../_actions/shortcut.action.ts";
-  import { ConfigTarget } from "../Configuration.store";
-  import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
-  import { configManager } from "../Configuration.store";
+  import { ConfigTarget, configManager } from "../Configuration.store";
 
   const dispatch = createEventDispatcher();
-
-  let isSelection = false;
-  let selectAllChecked = false;
-
-  $: {
-    selectAllChecked =
-      typeof $configManager?.configs.find((e) => !e.selected) === "undefined" &&
-      $configManager?.configs.length > 0;
-  }
-
-  $: {
-    isSelection =
-      typeof $configManager?.configs.find((e) => e.selected) !== "undefined";
-  }
 
   function handleConvertToCodeBlockClicked(e) {
     dispatch("convert-to-code-block", {
@@ -39,9 +32,6 @@
   }
 
   function handleCopyClicked(e) {
-    if (!isSelection) {
-      return;
-    }
     dispatch("copy");
   }
 
@@ -59,7 +49,9 @@
       "undefined";
     configManager.update((s) => {
       s.forEach((e) => {
-        if (isSelection) {
+        if (
+          typeof $configManager?.configs.find((e) => e.selected) !== "undefined"
+        ) {
           if (allSelected) {
             e.selected = false;
           } else {
@@ -74,16 +66,10 @@
   }
 
   function handleCopyAll(e) {
-    if (isSelection) {
-      return;
-    }
     dispatch("copy-all");
   }
 
   function handleOverwriteAll(e) {
-    if (isSelection) {
-      return;
-    }
     dispatch("overwrite-all");
   }
 
@@ -91,20 +77,9 @@
     dispatch("discard");
   }
 
-  let discardElementEnabled = false;
-
-  function handleCalculateDiscardEnabled(rt, ui) {
-    const target = ConfigTarget.createFrom({
-      userInput: ui,
-    });
-    discardElementEnabled = target?.hasChanges() ?? false;
-  }
-
-  $: handleCalculateDiscardEnabled($runtime, $user_input);
-
   let selectedAction = undefined;
 
-  function handleToolbarButtonHover(buttonText, hotkeyText) {
+  function setToolbarHoverText(buttonText, hotkeyText) {
     selectedAction = [buttonText, hotkeyText];
   }
 
@@ -121,6 +96,32 @@
   function handleClearElement() {
     dispatch("clear-element");
   }
+
+  const target = writable();
+  $: {
+    target.set(
+      ConfigTarget.createFrom({
+        userInput: $user_input,
+      })
+    );
+  }
+
+  const copyElementDisabled = createCopyAllDisabledStore(target);
+  const overwriteElementDisabled = createOverwriteDisabledStore(target);
+  const discardElementDisabled = createDiscardElementDisabledStore(target);
+  const clearElementDisabled = createClearElementDisabledStore(target);
+  const copyDisabled = createCopyDisabledStore(target);
+  const pasteDisabled = createPasteDisabledStore(target);
+  const cutDisabled = createCutDisabledStore(target);
+  const mergeActionToCodeDisabled = createMergeDisabledStore(target);
+  const removeDisabled = createRemoveDisabledStore(target);
+
+  const selectAllChecked = derived([configManager], ([$configManager]) => {
+    return (
+      typeof $configManager?.configs.find((e) => !e.selected) === "undefined" &&
+      $configManager?.configs.length > 0
+    );
+  });
 </script>
 
 <app-action-multi-select
@@ -145,31 +146,29 @@
       <MoltenToolbarButton
         on:click={handleCopyAll}
         on:mouseenter={() =>
-          handleToolbarButtonHover("Copy Element", `(${modifier[0]} + C)`)}
+          setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
         iconPath={"copy_all"}
-        disabled={isSelection || $runtime.length === 0}
+        disabled={$copyElementDisabled}
         color={"#03cb00"}
       />
 
       <MoltenToolbarButton
         on:click={handleOverwriteAll}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Overwrite Element`, `(${modifier[0]} + V)`)}
+          setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
         iconPath={"paste_all"}
-        disabled={$appClipboard?.key !== ClipboardKey.ELEMENT ||
-          ConfigTarget.createFrom({ userInput: $user_input })?.elementType !==
-            $appClipboard?.payload.elementType}
+        disabled={$overwriteElementDisabled}
         color={"#006cb7"}
       />
 
       <MoltenToolbarButton
         on:click={handleDiscard}
         on:mouseenter={() =>
-          handleToolbarButtonHover(
+          setToolbarHoverText(
             `Discard Element Changes`,
             `(${modifier[0]} + Shift + D)`
           )}
@@ -180,21 +179,21 @@
           code: "KeyD",
         }}
         iconPath={"clear_from_device_01"}
-        disabled={!discardElementEnabled}
+        disabled={$discardElementDisabled}
         color={"#ff2323"}
       />
 
       <MoltenToolbarButton
         on:click={handleClearElement}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Clear Element`, `(Shift + Delete)`)}
+          setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
           shift: true,
           code: "Delete",
         }}
         iconPath={"clear_element"}
-        disabled={$runtime.length === 0}
+        disabled={$clearElementDisabled}
         color={"#A020F0"}
       />
     </div>
@@ -202,10 +201,10 @@
       <MoltenToolbarButton
         on:click={handleCopyClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Copy Action(s)`, `(${modifier[0]} + C)`)}
+          setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
-        disabled={!isSelection}
+        disabled={$copyDisabled}
         iconPath={"copy"}
         color={"#03cb00"}
       />
@@ -213,10 +212,10 @@
       <MoltenToolbarButton
         on:click={handlePasteClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Paste Action(s)`, `(${modifier[0]} + V)`)}
+          setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
-        disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
+        disabled={$pasteDisabled}
         iconPath={"paste"}
         color={"#006cb7"}
       />
@@ -224,10 +223,10 @@
       <MoltenToolbarButton
         on:click={handleCutClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Cut Action(s)`, `(${modifier[0]} + X)`)}
+          setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyX" }}
-        disabled={!isSelection}
+        disabled={$cutDisabled}
         iconPath={"cut"}
         color={"#ff6100"}
       />
@@ -235,7 +234,7 @@
       <MoltenToolbarButton
         on:click={handleConvertToCodeBlockClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(
+          setToolbarHoverText(
             `Merge Action(s) into Code`,
             `(${modifier[0]} + Shift + M)`
           )}
@@ -245,7 +244,7 @@
           shift: true,
           code: "KeyM",
         }}
-        disabled={!isSelection}
+        disabled={$mergeActionToCodeDisabled}
         iconPath={"merge_as_code"}
         color={"#ffcc33"}
       />
@@ -253,12 +252,12 @@
       <MoltenToolbarButton
         on:click={handleRemoveClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Remove Action(s)`, `(Delete)`)}
+          setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
           code: "Delete",
         }}
-        disabled={!isSelection}
+        disabled={$removeDisabled}
         iconPath={"remove"}
         color={"#ff2323"}
       />
@@ -272,12 +271,13 @@
       callback: handleSelectAllClicked,
     }}
     on:mouseenter={() =>
-      handleToolbarButtonHover(`Select All`, `(${modifier[0]} + A)`)}
+      setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
     on:mouseleave={handleToolbarButtonBlur}
   >
     <Options
-      bind:selected={selectAllChecked}
-      halfSelected={isSelection}
+      selected={$selectAllChecked}
+      halfSelected={typeof $configManager?.configs.find((e) => e.selected) !==
+        "undefined"}
       on:selection-change={handleSelectAllClicked}
     />
   </button>

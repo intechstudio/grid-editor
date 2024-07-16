@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { appSettings } from "../runtime/app-helper.store.js";
 
-import { grid } from "grid-protocol";
+import { grid } from "@intechstudio/grid-protocol";
 
 import {
   writeBuffer,
@@ -9,7 +9,7 @@ import {
   InstructionClass,
   InstructionClassName,
 } from "../runtime/engine.store.ts";
-import { logger } from "../runtime/runtime.store.js";
+import { logger } from "../runtime/runtime.store";
 import { v4 as uuidv4 } from "uuid";
 
 export interface Instructions {

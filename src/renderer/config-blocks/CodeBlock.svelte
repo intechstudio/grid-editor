@@ -41,7 +41,7 @@
 </script>
 
 <script>
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
 
   import { onMount } from "svelte";
 

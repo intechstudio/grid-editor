@@ -11,7 +11,7 @@
   } from "./DebugMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
-  import { grid } from "grid-protocol";
+  import { grid } from "@intechstudio/grid-protocol";
   import { writable, readable } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";

@@ -56,7 +56,7 @@
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
 
   import { Script } from "./_script_parsers.js";
-  import { LocalDefinitions } from "../runtime/runtime.store.js";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import { configManager } from "../main/panels/configuration/Configuration.store";

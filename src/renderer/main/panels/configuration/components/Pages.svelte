@@ -3,7 +3,7 @@
     logger,
     runtime,
     user_input,
-  } from "../../../../runtime/runtime.store.js";
+  } from "../../../../runtime/runtime.store";
 
   let selectedPage = undefined;
   function handleSelectPage(page) {

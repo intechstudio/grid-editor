@@ -1,10 +1,10 @@
 <script lang="ts">
   import { configManager } from "../configuration/Configuration.store";
-  import { logger } from "./../../../runtime/runtime.store.js";
+  import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { runtime } from "../../../runtime/runtime.store.js";
+  import { runtime } from "../../../runtime/runtime.store";
 
   import {
     BlockBody,
@@ -123,6 +123,18 @@
           }}
         />
       </BlockRow>
+    </Block>
+
+    <Block>
+      <BlockTitle>Action Block Helpers</BlockTitle>
+      <BlockBody
+        >Composite action blocks have text helpers and Add buttons, that can be
+        turned off to save space.</BlockBody
+      >
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.actionHelperText}
+        title={"Enabled"}
+      />
     </Block>
 
     <Block>

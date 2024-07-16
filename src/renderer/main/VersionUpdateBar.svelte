@@ -1,6 +1,8 @@
 <script lang="ts">
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
+  import { Analytics } from "../runtime/analytics.js";
+
   const ipcRenderer = window.sketchyAPI;
   const configuration = window.ctxProcess.configuration();
 
@@ -41,6 +43,13 @@
       }
 
       case "update-error": {
+        Analytics.track({
+          event: "AppUpdate",
+          payload: {
+            message: "Update Error",
+          },
+          mandatory: false,
+        });
         state = UpdateState.ERROR;
         error = value.error;
         break;
@@ -49,14 +58,35 @@
   });
 
   function handleInstallUpdate() {
+    Analytics.track({
+      event: "AppUpdate",
+      payload: {
+        message: "Start Update",
+      },
+      mandatory: false,
+    });
     window.electron.installUpdate();
   }
 
   function handleCloseClicked(e) {
+    Analytics.track({
+      event: "AppUpdate",
+      payload: {
+        message: "Skip Update",
+      },
+      mandatory: false,
+    });
     state = UpdateState.UPTODATE;
   }
 
   function handleDownloadClicked(e) {
+    Analytics.track({
+      event: "AppUpdate",
+      payload: {
+        message: "Manual Download",
+      },
+      mandatory: false,
+    });
     window.electron.openInBrowser(configuration.EDITOR_DOWNLOAD_URL);
   }
 </script>

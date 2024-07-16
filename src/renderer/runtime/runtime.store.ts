@@ -1,11 +1,11 @@
 import { writable, get, derived } from "svelte/store";
 
-import { grid } from "grid-protocol";
+import { grid, ModuleType } from "@intechstudio/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
-import { createVirtualModule } from "./virtual-engine.ts";
-import { VirtualModuleHWCFG } from "./virtual-engine.ts";
-import { virtual_runtime } from "./virtual-engine.ts";
+import { createVirtualModule } from "./virtual-engine";
+import { VirtualModuleHWCFG } from "./virtual-engine";
+import { virtual_runtime } from "./virtual-engine";
 
 import { Analytics } from "./analytics.js";
 
@@ -13,7 +13,7 @@ import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
 import { modal } from "../main/modals/modal.store";
-import { ProtectedStore } from "./smart-store.store.ts";
+import { ProtectedStore } from "./smart-store.store";
 import { elementNameStore } from "./element-name.store";
 
 let lastPageActivator = "";
@@ -338,7 +338,7 @@ function create_runtime() {
   };
 
   function fetchOrLoadConfig({ dx, dy, page, element, event }) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const _device = get(runtime).find(
         (device) => device.dx == dx && device.dy == dy
       );
@@ -545,7 +545,7 @@ function create_runtime() {
   }
 
   function element_preset_load(x, y, element, preset) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const ui = get(user_input);
       let events = preset.configs.events;
       const promises = [];
@@ -593,7 +593,7 @@ function create_runtime() {
       message: `Profile load started...`,
     });
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       // Reorder array to send system element first
       const index = array.findIndex((obj) => obj.elementIndex === 255);
 
@@ -680,7 +680,7 @@ function create_runtime() {
   }
 
   function send_event_configuration_to_grid(dx, dy, page, element, event) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       let rt = get(_runtime);
 
       let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
@@ -814,7 +814,7 @@ function create_runtime() {
     try {
       const moduleElements = grid.get_module_element_list(moduleType);
 
-      for (const [index, element] of moduleElements.entries()) {
+      for (const [index, element] of Object.entries(moduleElements)) {
         if (typeof element === "undefined") {
           continue;
         }
@@ -863,7 +863,7 @@ function create_runtime() {
       );
       throw "Error creating new module.";
     }
-    moduleType = moduleType.substr(0, 4);
+    moduleType = moduleType.substr(0, 4) as ModuleType;
 
     return {
       // implement the module id rep / req
@@ -951,7 +951,7 @@ function create_runtime() {
   }
 
   function change_page(new_page_number) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if (get(writeBuffer).length > 0) {
         reject("Wait before all operations are finished.");
         return;
@@ -1041,7 +1041,7 @@ function create_runtime() {
       classname: "pageclear",
       message: `Clearing configurations from page...`,
     });
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       instructions
         .sendPageClearToGrid()
         .then(() => {
@@ -1062,9 +1062,9 @@ function create_runtime() {
       classname: "pagediscard",
       message: `Discarding configurations...`,
     });
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       instructions
-        .sendPageDiscardToGrid(index)
+        .sendPageDiscardToGrid()
         .then(() => {
           clear_page_configuration(index);
           resolve();

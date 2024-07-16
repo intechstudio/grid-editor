@@ -4,7 +4,7 @@
   import Toggle from "../../user-interface/Toggle.svelte";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
-  import { user_input, runtime } from "../../../runtime/runtime.store.js";
+  import { user_input, runtime } from "../../../runtime/runtime.store";
   import {
     elementNameStore,
     getElementName,
@@ -76,7 +76,7 @@
       <div class="text-gray-500 text-sm">Element Name</div>
       <TooltipQuestion
         key={"configuration_element_name"}
-        class="ml-2 text-white "
+        class="ml-2 text-white"
       />
     </div>
     <div class="flex flex-row items-center gap-2">

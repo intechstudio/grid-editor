@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Architecture } from "grid-protocol";
-  import { user_input } from "./../../runtime/runtime.store.js";
+  import { Architecture } from "@intechstudio/grid-protocol";
+  import { user_input } from "./../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { modal } from "./../modals/modal.store";
   import Pages from "../panels/configuration/components/Pages.svelte";
@@ -9,7 +9,7 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { virtual_runtime } from "../../runtime/virtual-engine";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
-  import { runtime } from "../../runtime/runtime.store.js";
+  import { runtime } from "../../runtime/runtime.store";
 
   let selectedModule: any = undefined;
 

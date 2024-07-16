@@ -112,14 +112,7 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<wrapper
-  class="flex flex-grow outline-none border {syntaxError
-    ? 'border-error'
-    : 'border-transparent'}"
-  class:rounded-tr-xl={config.information.rounding === "top"}
-  class:rounded-br-xl={config.information.rounding === "bottom"}
-  class:cursor-pointer={ctrlIsDown}
->
+<wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
   {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
@@ -128,8 +121,12 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group/bg-color flex flex-grow h-auto min-h-[32px]"
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {syntaxError
+      ? 'border-error'
+      : 'border-transparent'}"
     id="cfg-{index}"
+    class:rounded-tr-xl={config.information.rounding === "top"}
+    class:rounded-br-xl={config.information.rounding === "bottom"}
     config-name={config.information.name}
     config-type={config.information.type}
     config-id={index}

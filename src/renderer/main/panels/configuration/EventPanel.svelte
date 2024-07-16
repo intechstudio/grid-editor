@@ -1,11 +1,11 @@
 <script>
-  import { user_input, runtime } from "../../../runtime/runtime.store.js";
+  import { user_input, runtime } from "../../../runtime/runtime.store";
 
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
-  import { CEEAT } from "grid-protocol";
+  import { CEEAT } from "@intechstudio/grid-protocol";
 
   const dispatch = createEventDispatcher();
 
