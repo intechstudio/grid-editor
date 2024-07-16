@@ -5,14 +5,14 @@ import {
   user_input,
   getDeviceName,
 } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "grid-protocol";
+import { NumberToEventType } from "@intechstudio/grid-protocol";
 
 import {
   getComponentInformation,
   init_config_block_library,
 } from "../../../lib/_configs";
 
-import { grid, GridScript } from "grid-protocol";
+import { grid, GridScript } from "@intechstudio/grid-protocol";
 import { v4 as uuidv4 } from "uuid";
 
 export let lastOpenedActionblocks = writable([]);

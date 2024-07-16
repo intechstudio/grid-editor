@@ -1,5 +1,5 @@
-import { grid, ModuleType } from "grid-protocol";
-import { GridScript } from "grid-protocol";
+import { grid, ModuleType } from "@intechstudio/grid-protocol";
+import { GridScript } from "@intechstudio/grid-protocol";
 import { test, expect } from "vitest";
 
 test("Default configuration compression/expansion", function () {

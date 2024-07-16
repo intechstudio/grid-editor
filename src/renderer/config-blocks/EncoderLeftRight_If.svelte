@@ -64,7 +64,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { parenthesis } from "./_validators";
 
   export let config;

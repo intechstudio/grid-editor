@@ -3,7 +3,7 @@ import {
   languages as monaco_languages,
 } from "monaco-editor";
 
-import { grid } from "grid-protocol";
+import { grid } from "@intechstudio/grid-protocol";
 
 import { writable, get } from "svelte/store";
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { grid } from "grid-protocol";
+  import { grid } from "@intechstudio/grid-protocol";
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
   import { user_input } from "./../../../../runtime/runtime.store.js";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";

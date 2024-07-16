@@ -40,7 +40,7 @@
 </script>
 
 <script>
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
