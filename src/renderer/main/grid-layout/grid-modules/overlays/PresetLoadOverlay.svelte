@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { grid } from "@intechstudio/grid-protocol";
+  import { grid, EventType } from "@intechstudio/grid-protocol";
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
   import { user_input } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
@@ -78,7 +78,7 @@
       device: { dx: dx, dy: dy },
       page: ui.pagenumber,
       element: elementNumber,
-      eventType: 0,
+      eventType: EventType.INIT,
     });
 
     if (typeof target === "undefined") {

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { Analytics } from "./../../../runtime/analytics.js";
   import {
     contextMenu,
@@ -30,7 +30,11 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";
-  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+  import {
+    EventType,
+    EventTypeToNumber,
+    ModuleType,
+  } from "@intechstudio/grid-protocol";
   import { get, writable } from "svelte/store";
   import {
     loadPreset,
@@ -55,17 +59,20 @@
 
   onMount(() => {
     const components = [
-      { type: "BU16", component: BU16 },
-      { type: "PO16", component: PO16 },
-      { type: "PBF4", component: PBF4 },
-      { type: "EN16", component: EN16 },
-      { type: "EF44", component: EF44 },
-      { type: "TEK2", component: TEK2 },
-      { type: "TEK1", component: TEK1 },
+      { type: ModuleType.BU16, component: BU16 },
+      { type: ModuleType.PO16, component: PO16 },
+      { type: ModuleType.PBF4, component: PBF4 },
+      { type: ModuleType.EN16, component: EN16 },
+      { type: ModuleType.EF44, component: EF44 },
+      { type: ModuleType.TEK2, component: TEK2 },
+      { type: ModuleType.TEK1, component: TEK1 },
     ];
-    const index = components.findIndex((e) => e.type === device?.type);
-    device.type = components[index].type;
-    component = components[index].component;
+    console.log(device);
+    const obj = components.find((e) => {
+      console.log(e.type, device?.type as ModuleType);
+      return e.type === (device?.type as ModuleType);
+    });
+    component = obj.component;
   });
 
   function handleElementClicked(e) {

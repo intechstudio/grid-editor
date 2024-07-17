@@ -1,4 +1,5 @@
 <script>
+  import { EventType } from "@intechstudio/grid-protocol";
   import { ConfigTarget } from "../../../panels/configuration/Configuration.store";
   import { user_input } from "../../../../runtime/runtime.store";
   import { createEventDispatcher } from "svelte";
@@ -24,7 +25,7 @@
       device: { dx: dx, dy: dy },
       page: ui.pagenumber,
       element: elementNumber,
-      eventType: 0,
+      eventType: EventType.INIT,
     });
 
     if (typeof target === "undefined") {

@@ -35,12 +35,12 @@ export function getElementName(
   page: number,
   element: number
 ) {
-  const _element = get(runtime)
-    ?.find((e: any) => e.dx === dx && e.dy === dy)
-    ?.pages.find((e: any) => e.pageNumber === page)
-    ?.control_elements.find((e: any) => e.elementIndex === element);
+  const _element = runtime
+    .getModule(dx, dy)
+    ?.getPage(page)
+    ?.getElement(element);
 
-  const index = _element.elementIndex;
+  const index = _element.getElementIndex();
   try {
     const { dx, dy } = get(user_input);
     const obj = get(elementNameStore)[dx][dy];
@@ -50,7 +50,8 @@ export function getElementName(
     }
 
     return `${name} (${
-      _element.type[0].toUpperCase() + _element.type.slice(1).toLowerCase()
+      _element.getType()[0].toUpperCase() +
+      _element.getType().slice(1).toLowerCase()
     })`;
   } catch (e) {
     return undefined;
@@ -63,13 +64,18 @@ export function getElementDefaultName(
   page: number,
   element: number
 ) {
-  const _elements = get(runtime)
-    ?.find((e: any) => e.dx === dx && e.dy === dy)
-    ?.pages.find((e: any) => e.pageNumber === page)?.control_elements;
+  const _element = runtime
+    .getModule(dx, dy)
+    ?.getPage(page)
+    ?.getElement(element);
 
-  const _element = _elements.find((e: any) => e.elementIndex === element);
+  const _elements = runtime
+    .getModule(dx, dy)
+    ?.getPage(page)
+    ?.getControlElements();
 
   return `Element ${element < 255 ? element : _elements.length - 1} (${
-    _element.type[0].toUpperCase() + _element.type.slice(1).toLowerCase()
+    _element.getType()[0].toUpperCase() +
+    _element.getType().slice(1).toLowerCase()
   })`;
 }

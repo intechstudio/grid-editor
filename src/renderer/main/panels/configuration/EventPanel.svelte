@@ -5,7 +5,7 @@
   import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
-  import { CEEAT } from "@intechstudio/grid-protocol";
+  import { CEEAT, NumberToEventType } from "@intechstudio/grid-protocol";
 
   const dispatch = createEventDispatcher();
 
@@ -49,11 +49,9 @@
 
     //Get events
     events = target.events.map((e) => {
-      const name = String(
-        Object.values(CEEAT).find((obj) => obj.value == e.type).desc
-      );
+      const type = NumberToEventType(e.getType());
       return new Event({
-        name: name[0].toUpperCase() + name.slice(1).toLowerCase(),
+        name: type[0].toUpperCase() + type.slice(1).toLowerCase(),
         type: Number(e.type),
         dx: target.device.dx,
         dy: target.device.dy,
@@ -96,12 +94,11 @@
         <svelte:fragment slot="item" let:value>
           {@const event = events[value]}
           {#if typeof event !== "undefined"}
-            {@const eventData = $runtime
-              .find((e) => e.dx == event.dx && e.dy == event.dy)
-              ?.pages[event.page].control_elements.find(
-                (element) => element.elementIndex == event.element
-              )
-              ?.events.find((e) => e.type == event.type)}
+            {@const eventData = runtime
+              .getModule(event.dx, event.dy)
+              ?.getPage(event.page)
+              ?.getElement(event.element)
+              ?.getEvent(event.type)}
             {@const stored = eventData?.stored}
             {@const config = eventData?.config}
             {#if stored !== config && typeof stored !== "undefined"}

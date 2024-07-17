@@ -4,8 +4,17 @@ import {
   runtime,
   user_input,
   getDeviceName,
+  ElementEvent,
+  ControlElement,
+  Page,
+  Module,
+  ConfigurationList,
 } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "@intechstudio/grid-protocol";
+import {
+  ElementType,
+  EventType,
+  NumberToEventType,
+} from "@intechstudio/grid-protocol";
 
 import {
   getComponentInformation,
@@ -235,15 +244,15 @@ export class ConfigList extends Array {
 
 export class ConfigTarget {
   public device = { dx: undefined, dy: undefined };
-  public page = undefined;
-  public element = undefined;
-  public eventType = undefined;
-  public events = undefined;
-  public elementType = undefined;
+  public page;
+  public element;
+  public eventType: number;
+  public events: ElementEvent[];
+  public elementType: ElementType;
   public id: string;
 
   static create({ device: { dx: dx, dy: dy }, page, element, eventType }) {
-    const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+    const device = runtime.getModule(dx, dy);
 
     if (typeof device === "undefined") {
       //console.warn(`Unknown device at (${dx},${dy})!`);
@@ -258,11 +267,9 @@ export class ConfigTarget {
       target.eventType = eventType;
       target.id = uuidv4();
 
-      const controlElement = device.pages
-        .at(page)
-        .control_elements.find((e) => e.elementIndex == element);
-      target.events = controlElement.events;
-      target.elementType = controlElement.type;
+      const controlElements = device.getPage(page).getElement(element);
+      target.events = controlElements.getEvents();
+      target.elementType = controlElements.getType();
       return target;
     } catch (e) {
       console.warn(`Device was destroyed at (${dx},${dy})!`);
@@ -293,45 +300,36 @@ export class ConfigTarget {
 
   hasChanges() {
     for (const event of this.events) {
-      if (event.config !== event.stored) {
+      if (event.getConfigs() !== event.getStored()) {
         return true;
       }
     }
     return false;
   }
 
-  getEvent() {
+  getEvent(): ElementEvent {
     const element = this.getElement();
-    const event = element.events.find((e) => e.type == this.eventType);
-    return event;
+    return element.getEvent(this.eventType);
   }
 
-  getElement() {
+  getElement(): ControlElement {
     const page = this.getPage();
-    const element = page.control_elements.find(
-      (element) => element.elementIndex == this.element
-    );
-    return element;
+    return page.getElement(this.element);
   }
 
-  getPage() {
+  getPage(): Page {
     const device = this.getDevice();
-    const page = device.pages[this.page];
-    return page;
+    return device.getPage(this.page);
   }
 
-  getDevice() {
-    const rt = get(runtime);
-    const device = rt.find(
-      (e) => e.dx == this.device.dx && e.dy == this.device.dy
-    );
-    return device;
+  getDevice(): Module {
+    return runtime.getModule(this.device.dx, this.device.dy);
   }
 
   getConfig() {
-    return new Promise((resolve, reject) => {
+    return new Promise<ConfigurationList>((resolve, reject) => {
       const event = this.getEvent();
-      if (typeof event.config === "undefined") {
+      if (typeof event.getConfigs() === "undefined") {
         runtime
           .fetchOrLoadConfig({
             dx: this.device.dx,
@@ -340,12 +338,12 @@ export class ConfigTarget {
             element: this.element,
             event: this.eventType,
           })
-          .then(() => {
-            resolve(this.getEvent().config);
+          .then((script: string) => {
+            resolve(script);
           })
           .catch((e) => reject(e));
       } else {
-        resolve(event.config);
+        resolve(event.getConfigs());
       }
     });
   }
@@ -381,6 +379,7 @@ function create_configuration_manager(): ConfigManger {
   const loadAndInit = async () => {
     await init_config_block_library();
     user_input.subscribe((ui) => {
+      console.log(ui);
       createConfigListFrom(ui)
         .then((list: ConfigList) => {
           setOverride({

@@ -34,8 +34,7 @@
   let selectedModule: number = -1;
 
   function handleAddClicked() {
-    const rt = get(runtime);
-    if (typeof rt.find((e) => e.dx === dx && e.dy === dy) !== "undefined") {
+    if (typeof runtime.getModule(dx, dy) !== "undefined") {
       runtime.destroy_module(dx, dy);
     }
     runtime.addVirtualModule({

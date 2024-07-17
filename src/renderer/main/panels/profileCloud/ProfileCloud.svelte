@@ -36,9 +36,7 @@
       return;
     }
 
-    selectedModule = get(runtime)
-      .find((device) => device.dx == ui.dx && device.dy == ui.dy)
-      .id.substr(0, 4);
+    selectedModule = runtime.getModule(ui.dx, ui.dy).getType();
     selectedControlElementType = target.elementType;
     sendSelectedComponentInfos(selectedModule, selectedControlElementType);
   }

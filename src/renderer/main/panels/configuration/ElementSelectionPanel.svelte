@@ -48,17 +48,15 @@
 
   function renderElementList() {
     const { dx, dy, pagenumber, elementnumber } = $user_input;
-    const device = $runtime.find(
-      (device) => device.dx === dx && device.dy === dy
-    );
+    const device = runtime.getModule(dx, dy);
     if (typeof device === "undefined") {
       options = [{ title: "No Device", value: -1 }];
       selectedElementNumber = -1;
       return;
     }
-    const control_elements = device.pages.find(
-      (page) => page.pageNumber === pagenumber
-    )?.control_elements;
+
+    console.log(device, device.getPage(pagenumber));
+    const control_elements = device.getPage(pagenumber)?.getControlElements();
     options = control_elements.map((element) => {
       let name = getElementName(dx, dy, pagenumber, element.elementIndex);
       if (typeof name === "undefined") {

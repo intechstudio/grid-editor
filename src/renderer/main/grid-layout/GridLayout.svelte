@@ -125,7 +125,6 @@
         const obj = structuredClone(device);
         obj.fly_x_direction = connection_right - connection_left;
         obj.fly_y_direction = connection_top - connection_bottom;
-        obj.type = rt[i].id.substr(0, 4);
         obj.gridX = x + 1;
         obj.gridY = y + 1;
         s.push(obj);

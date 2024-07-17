@@ -1,6 +1,21 @@
-import { writable, get, derived } from "svelte/store";
+import {
+  writable,
+  get,
+  Writable,
+  Updater,
+  Subscriber,
+  Unsubscriber,
+} from "svelte/store";
 
-import { grid, ModuleType } from "@intechstudio/grid-protocol";
+import {
+  Architecture,
+  ElementType,
+  EventType,
+  grid,
+  ModuleType,
+  EventTypeToNumber,
+  NumberToEventType,
+} from "@intechstudio/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine";
@@ -15,8 +30,999 @@ import { add_datapoint } from "../serialport/message-stream.store.js";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
 import { elementNameStore } from "./element-name.store";
+import { v4 as uuidv4 } from "uuid";
 
-let lastPageActivator = "";
+export type FirmwareVersion = {
+  major: number;
+  minor: number;
+  patch: number;
+};
+
+export type ModulePosition = {
+  dx: number;
+  dy: number;
+};
+
+export type ModuleMap = {
+  top: ModulePosition;
+  bot: ModulePosition;
+  left: ModulePosition;
+  right: ModulePosition;
+};
+
+export type ConfigurationList = string;
+
+export class Configuration {
+  private short: string;
+  private script: string;
+
+  constructor(short: string, script: string) {
+    this.short = short;
+    this.script = script;
+  }
+
+  public getShort(): string {
+    return this.short;
+  }
+
+  public getScript(): string {
+    return this.script;
+  }
+}
+
+export class ElementEvent {
+  private type: number;
+  private configs: ConfigurationList;
+  private stored: ConfigurationList;
+
+  constructor(type: number) {
+    this.type = type;
+    this.configs = undefined;
+    this.stored = undefined;
+  }
+
+  public getType(): number {
+    return this.type;
+  }
+
+  public getConfigs(): ConfigurationList {
+    return this.configs;
+  }
+
+  public setStored(configs: ConfigurationList) {
+    this.stored = configs;
+  }
+  public getStored(): ConfigurationList {
+    return this.stored;
+  }
+}
+
+export class ControlElement {
+  private elementIndex: number;
+  private events: ElementEvent[] = [];
+  private name: string;
+  private type: number;
+
+  constructor(index: number, type: number) {
+    this.elementIndex = index;
+    this.name = "";
+    this.type = type;
+
+    for (const obj of grid.get_element_events(type)) {
+      const event = new ElementEvent(obj.value);
+      this.events.push(event);
+    }
+  }
+
+  public getEvent(type: number) {
+    return this.events.find((e) => e.getType() === type);
+  }
+
+  public getElementIndex(): number {
+    return this.elementIndex;
+  }
+
+  public getEvents(): ElementEvent[] {
+    return this.events;
+  }
+
+  public getName(): string {
+    return this.name;
+  }
+
+  public getType(): ElementType {
+    return this.type;
+  }
+}
+
+export class Page {
+  private parent?: Module = undefined;
+  private pageNumber: number;
+  private control_elements: ControlElement[];
+
+  constructor(index: number, elements: ControlElement[]) {
+    this.pageNumber = index;
+    this.control_elements = elements;
+  }
+
+  getElement(index: number) {
+    return this.control_elements.find((e) => e.getElementIndex() === index);
+  }
+
+  public getPageNumber(): number {
+    return this.pageNumber;
+  }
+
+  public getControlElements(): ControlElement[] {
+    return this.control_elements;
+  }
+}
+
+export class Module {
+  private architecture: Architecture;
+  private portstate: number;
+  private id: string;
+  private dx: number;
+  private dy: number;
+  private rot: number;
+  private fwVersion: FirmwareVersion;
+  private fwMismatch: boolean;
+  private alive: number;
+  private map: ModuleMap;
+  private pages: Page[] = [];
+  private type: ModuleType;
+
+  constructor(
+    architecture: Architecture,
+    type: ModuleType,
+    portstate: number,
+    dx: number,
+    dy: number,
+    rot: number,
+    fwVersion: FirmwareVersion,
+    fwMismatch: boolean,
+    alive: number,
+    map: ModuleMap
+  ) {
+    this.architecture = architecture;
+    this.portstate = portstate;
+    this.id = uuidv4();
+    this.dx = dx;
+    this.dy = dy;
+    this.rot = rot;
+    this.fwVersion = fwVersion;
+    this.fwMismatch = fwMismatch;
+    this.alive = alive;
+    this.map = map;
+    this.type = type;
+
+    for (const n of [0, 1, 2, 3]) {
+      let elements = [];
+
+      const elementTypes = grid.get_module_element_list(type);
+
+      for (const [index, type] of Object.entries(elementTypes)) {
+        if (typeof type === "undefined") {
+          continue;
+        }
+        const element = new ControlElement(Number(index), type);
+        elements.push(element);
+      }
+
+      const page = new Page(n, elements);
+      this.pages.push(page);
+    }
+  }
+
+  public getPage(index: number) {
+    return this.pages.find((e) => e.getPageNumber() === index);
+  }
+
+  public getArchitecture(): Architecture {
+    return this.architecture;
+  }
+
+  public setPortstate(portstate: number) {
+    this.portstate = portstate;
+  }
+
+  public getPortstate(): number {
+    return this.portstate;
+  }
+
+  public getId(): string {
+    return this.id;
+  }
+
+  public getDx(): number {
+    return this.dx;
+  }
+
+  public getDy(): number {
+    return this.dy;
+  }
+
+  public setRot(rot: number) {
+    this.rot = rot;
+  }
+
+  public getRot(): number {
+    return this.rot;
+  }
+
+  public getFwVersion(): FirmwareVersion {
+    return this.fwVersion;
+  }
+
+  public setFwMismatch(value: boolean) {
+    this.fwMismatch = value;
+  }
+
+  public isFwMismatch(): boolean {
+    return this.fwMismatch;
+  }
+
+  public getAlive(): number {
+    return this.alive;
+  }
+
+  public getMap(): ModuleMap {
+    return this.map;
+  }
+
+  public getPages(): Page[] {
+    return this.pages;
+  }
+
+  public getType(): ModuleType {
+    return this.type;
+  }
+}
+
+export type UUID = string;
+
+class Runtime implements Writable<Module[]> {
+  private internal: Writable<Module[]>;
+
+  constructor(initialValue: Module[]) {
+    this.internal = writable(initialValue);
+  }
+
+  // Subscribe method
+  subscribe(
+    run: Subscriber<Module[]>,
+    invalidate?: (value?: Module[]) => void
+  ): Unsubscriber {
+    return this.internal.subscribe(run, invalidate);
+  }
+
+  // Set method
+  set(value: Module[]) {
+    this.internal.set(value);
+  }
+
+  // Update method
+  update(updater: Updater<Module[]>) {
+    this.internal.update(updater);
+  }
+
+  public getModule(dx: number, dy: number) {
+    return get(this.internal).find((e) => e.getDx() === dx && e.getDy() === dy);
+  }
+
+  public findUpdateDestEvent(dx, dy, page, element, event) {
+    // this elementnumber check refers to uninitialized UI...
+    if (element === -1) {
+      return undefined;
+    }
+
+    return this.getModule(dx, dy)
+      ?.getPage(page)
+      ?.getElement(element)
+      ?.getEvent(event);
+  }
+
+  public fetchOrLoadConfig({ dx, dy, page, element, event }) {
+    return new Promise<string>((resolve, reject) => {
+      const _event = this.getModule(dx, dy)
+        ?.getPage(page)
+        ?.getElement(element)
+        ?.getEvent(event);
+
+      if (typeof _event.getConfigs() !== "undefined") {
+        resolve();
+      } else {
+        instructions
+          .fetchConfigFromGrid(dx, dy, page, element, event)
+          .then((descr) => {
+            const dx = descr.brc_parameters.SX;
+            const dy = descr.brc_parameters.SY;
+            const page = descr.class_parameters.PAGENUMBER;
+            const element = descr.class_parameters.ELEMENTNUMBER;
+            const event = descr.class_parameters.EVENTTYPE;
+            const actionstring = descr.class_parameters.ACTIONSTRING;
+
+            this.update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionstring
+            );
+
+            resolve(actionstring);
+          })
+          .catch((e) => reject(e));
+      }
+    });
+  }
+
+  public isFirmwareMismatch(currentFirmware, requiredFirmware) {
+    // Extract major, minor, and patch versions from current and required firmware
+    const {
+      major: currentMajor,
+      minor: currentMinor,
+      patch: currentPatch,
+    } = currentFirmware;
+    const {
+      major: requiredMajor,
+      minor: requiredMinor,
+      patch: requiredPatch,
+    } = requiredFirmware;
+
+    // Compare major versions
+    if (currentMajor < requiredMajor) {
+      return true; // Firmware mismatch if current major version is lower
+    } else if (currentMajor > requiredMajor) {
+      return false; // No firmware mismatch if current major version is higher
+    }
+
+    // Compare minor versions
+    if (currentMinor < requiredMinor) {
+      return true; // Firmware mismatch if current minor version is lower
+    } else if (currentMinor > requiredMinor) {
+      return false; // No firmware mismatch if current minor version is higher
+    }
+
+    // Compare patch versions
+    if (currentPatch < requiredPatch) {
+      return true; // Firmware mismatch if current patch version is lower
+    } else {
+      return false; // No firmware mismatch if current patch version is equal or higher
+    }
+  }
+
+  public incoming_heartbeat_handler(descr) {
+    const rt = get(this.internal);
+    try {
+      for (const device of rt) {
+        if (device.getArchitecture() === Architecture.VIRTUAL) {
+          const [dx, dy] = [device.getDx(), device.getDy()];
+          this.destroy_module(dx, dy);
+        }
+      }
+      const controller = this.create_module(
+        descr.brc_parameters,
+        descr.class_parameters,
+        false
+      );
+
+      let firstConnection = false;
+      const device = rt.find((device) => device.getId() == controller.getId());
+      if (device) {
+        if (device.getRot() != controller.getRot()) {
+          this.update((store) => {
+            const index = store.findIndex(
+              (device) => device.getId() == controller.getId()
+            );
+            store[index].setRot(controller.getRot());
+            return store;
+          });
+        }
+
+        if (device.getPortstate() != controller.getPortstate()) {
+          this.update((store) => {
+            const index = store.findIndex(
+              (device) => device.getId() == controller.getId()
+            );
+            store[index].setPortstate(controller.getPortstate());
+            return store;
+          });
+        }
+
+        const lastDate = get(heartbeat).find(
+          (device) => device.id == controller.getId()
+        )?.alive;
+        if (lastDate) {
+          let newDate = Date.now();
+
+          heartbeat.update((store) => {
+            const device = store.find(
+              (device) => device.id == controller.getId()
+            );
+            if (device) {
+              device.alive = newDate;
+            }
+            return store;
+          });
+
+          //console.log(newDate - lastDate)
+          if (get(appSettings).persistent.heartbeatDebugEnabled) {
+            const key1 = `Hearbeat (${controller.getDx()}, ${controller.getDy()})`;
+
+            add_datapoint(key1, newDate - lastDate);
+          }
+        }
+      }
+      // device not found, add it to runtime and get page count from grid
+      else {
+        // check if the firmware version of the newly connected device is acceptable
+        console.log("Incoming Device");
+        console.log("Architecture", controller.getArchitecture());
+
+        const as = get(appSettings);
+        const firmware_required =
+          controller.getArchitecture() === "esp32"
+            ? as.firmware_esp32_required
+            : as.firmware_d51_required;
+        controller.setFwMismatch(
+          this.isFirmwareMismatch(controller.getFwVersion(), firmware_required)
+        );
+
+        console.log(
+          "Mismatch: ",
+          controller.isFwMismatch(),
+          "Firmware Version: ",
+          controller.getFwVersion()
+        );
+
+        this.update((store) => {
+          store.push(controller);
+          return store;
+        });
+        heartbeat.update((devices) => {
+          return [...devices, { id: controller.getId(), alive: Date.now() }];
+        });
+
+        firstConnection = get(this.internal).length === 1;
+
+        Analytics.track({
+          event: "Connect Module",
+          payload: {
+            action: "Connect",
+            controller: controller,
+            moduleCount: get(runtime).length,
+          },
+          mandatory: false,
+        });
+      }
+
+      if (firstConnection) {
+        this.setDefaultSelectedElement();
+      }
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  public setDefaultSelectedElement() {
+    const first = this.getModule(0, 0);
+    const [dx, dy] = [first.getDx(), first.getDy()];
+    user_input.set({
+      dx: dx,
+      dy: dy,
+      pagenumber: 0,
+      elementnumber: 0,
+      eventtype: 2,
+    });
+  }
+
+  public element_preset_load(x, y, element, preset) {
+    return new Promise<void>((resolve, reject) => {
+      const ui = get(user_input);
+      let events = preset.configs.events;
+      const promises = [];
+      events.forEach((e) => {
+        const page = ui.pagenumber;
+        const event = e.event;
+
+        this.update((store) => {
+          let dest = this.findUpdateDestEvent(x, y, page, element, event);
+          if (typeof dest !== "undefined") {
+            dest.config = e.config;
+            const promise = instructions.sendConfigToGrid(
+              x,
+              y,
+              page,
+              element,
+              event,
+              e.config
+            );
+
+            promises.push(promise);
+          }
+          return store;
+        });
+      });
+      Promise.all(promises)
+        .then(() => {
+          resolve();
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "elementoverwrite",
+            message: `Overwrite done!`,
+          });
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+  public whole_page_overwrite(x, y, array) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "profileload",
+      message: `Profile load started...`,
+    });
+
+    return new Promise<void>((resolve, reject) => {
+      // Reorder array to send system element first
+      const index = array.findIndex((obj) => obj.elementIndex === 255);
+
+      // Check if the object with id === 255 was found
+      if (index !== -1) {
+        // Remove the object at the found index
+        const objectToMove = array.splice(index, 1)[0];
+
+        // Add the object to the front of the array
+        array.unshift(objectToMove);
+      }
+
+      let ui = structuredClone(get(user_input));
+      const promises = [];
+      array.forEach((elem) => {
+        elem.events.forEach((ev) => {
+          ui.elementnumber = elem.controlElementNumber;
+          ui.eventtype = ev.event;
+
+          const page = ui.pagenumber;
+          const element = ui.elementnumber;
+          const event = ui.eventtype;
+
+          this.update((_runtime) => {
+            let dest = this.findUpdateDestEvent(x, y, page, element, event);
+            if (dest) {
+              dest.config = ev.config.trim();
+            }
+            return _runtime;
+          });
+
+          const promise = instructions.sendConfigToGrid(
+            x,
+            y,
+            page,
+            element,
+            event,
+            ev.config
+          );
+
+          promises.push(promise);
+        });
+      });
+      Promise.all(promises)
+        .then((desc) => {
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "profileload",
+            message: `Profile load complete!`,
+          });
+          resolve();
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+  public update_event_configuration(
+    dx,
+    dy,
+    page,
+    element,
+    event,
+    actionString
+  ) {
+    // config
+    this.update((_runtime) => {
+      let dest = this.findUpdateDestEvent(dx, dy, page, element, event);
+      if (dest) {
+        dest.config = actionString;
+        if (typeof dest.stored === "undefined") {
+          dest.stored = actionString;
+        }
+      }
+      return _runtime;
+    });
+  }
+
+  public send_event_configuration_to_grid(dx, dy, page, element, event) {
+    return new Promise<void>((resolve, reject) => {
+      let dest = this.findUpdateDestEvent(dx, dy, page, element, event);
+      if (dest) {
+        instructions
+          .sendConfigToGrid(dx, dy, page, element, event, dest.config)
+          .then((desc) => {
+            resolve();
+          })
+          .catch((e) => reject(e));
+      } else {
+        reject("DEST not found!");
+      }
+    });
+  }
+
+  // whole element copy: fetches all event configs from a control element
+  public fetch_element_configuration_from_grid(
+    dx,
+    dy,
+    pageNumber,
+    elementNumber
+  ) {
+    const events = this.getModule(dx, dy)
+      ?.getPage(pageNumber)
+      ?.getElement(elementNumber)
+      ?.getEvents();
+
+    const promises = events.map((e) => {
+      const dest = {
+        dx: dx,
+        dy: dy,
+        page: pageNumber,
+        element: elementNumber,
+        event: e.getType(),
+      };
+      const promise = this.fetchOrLoadConfig(dest);
+      return promise;
+    });
+
+    return Promise.all(promises);
+  }
+
+  public fetch_page_configuration_from_grid({ dx, dy, page }) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "profilesave",
+      message: `Preparing configs...`,
+    });
+
+    let device = this.getModule(dx, dy);
+
+    if (typeof device === "undefined") {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "profilesave",
+        message: `No module selected`,
+      });
+
+      return Promise.reject(`No module selected`);
+    }
+
+    const elements = device.getPage(page).getControlElements();
+
+    const fetchArray = [];
+
+    elements.forEach((element) => {
+      element.getEvents().forEach((e) => {
+        if (typeof e.getConfigs() === "undefined") {
+          // put it into the fetchArray
+          fetchArray.push({
+            event: e.getType(),
+            elementIndex: element.getElementIndex(),
+          });
+        }
+      });
+    });
+
+    // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
+    // writeBuffer.clear();
+
+    if (fetchArray.length === 0) {
+      //nothing to do, let's do calback
+      return Promise.resolve();
+    }
+
+    const promises = fetchArray.map((e) => {
+      const promise = this.fetchOrLoadConfig({
+        dx: dx,
+        dy: dy,
+        page: page,
+        element: e.elementIndex,
+        event: e.event,
+      });
+      return promise;
+    });
+
+    return Promise.all(promises);
+  }
+
+  public clear_page_configuration(index) {
+    this.update((store) => {
+      store.forEach((device) => {
+        device
+          .getPage(index)
+          .getControlElements()
+          .forEach((e) => {
+            e.getEvents().map((e) => {
+              const type = e.getType();
+              return new ElementEvent(type);
+            });
+          });
+      });
+      return store;
+    });
+  }
+
+  public create_module(
+    header_param,
+    heartbeat_class_param,
+    virtual = false
+  ): Module {
+    const type = grid.module_type_from_hwcfg(
+      Number(heartbeat_class_param.HWCFG)
+    );
+
+    // generic check, code below if works only if all parameters are provided
+    if (
+      header_param === undefined ||
+      type === undefined ||
+      heartbeat_class_param === undefined
+    ) {
+      console.log(
+        heartbeat_class_param.HWCFG,
+        "ERROR",
+        header_param,
+        type,
+        heartbeat_class_param
+      );
+      throw "Error creating new module.";
+    }
+
+    return new Module(
+      virtual
+        ? Architecture.VIRTUAL
+        : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
+      type,
+      Number(heartbeat_class_param.PORTSTATE),
+      Number(header_param.SX),
+      Number(header_param.SY),
+      Number(header_param.ROT),
+      {
+        major: Number(heartbeat_class_param.VMAJOR),
+        minor: Number(heartbeat_class_param.VMINOR),
+        patch: Number(heartbeat_class_param.VPATCH),
+      },
+      false,
+      Date.now(),
+      {
+        top: { dx: Number(header_param.SX), dy: Number(header_param.SY + 1) },
+        right: { dx: Number(header_param.SX + 1), dy: Number(header_param.SY) },
+        bot: { dx: Number(header_param.SX), dy: Number(header_param.SY - 1) },
+        left: { dx: Number(header_param.SX - 1), dy: Number(header_param.SY) },
+      }
+    );
+  }
+
+  public destroy_module(dx, dy) {
+    // remove the destroyed device from runtime
+    const removed = this.getModule(dx, dy);
+
+    this.update((store) => {
+      const index = store.findIndex((e) => e.getId() === removed.getId());
+      store.splice(index, 1);
+      return store;
+    });
+
+    if (get(this.internal).length === 0) {
+      appSettings.update((s) => {
+        s.gridLayoutShift = { x: 0, y: 0 };
+        return s;
+      });
+    }
+
+    user_input.module_destroy_handler(dx, dy);
+    if (removed.getArchitecture() === Architecture.VIRTUAL) {
+      virtual_runtime.destroyModule(dx, dy);
+    } else {
+      writeBuffer.module_destroy_handler(dx, dy);
+    }
+
+    // reset rendering helper stores
+
+    try {
+      elementPositionStore.update((eps) => {
+        eps[dx][dy] = undefined;
+        return eps;
+      });
+
+      elementNameStore.update((ens) => {
+        ens[dx][dy] = undefined;
+        return ens;
+      });
+
+      ledColorStore.update((lcs) => {
+        lcs[dx][dy] = undefined;
+        return lcs;
+      });
+    } catch (error) {}
+
+    Analytics.track({
+      event: "Disconnect Module",
+      payload: {
+        action: "Disconnect",
+        moduleCount: get(runtime).length,
+      },
+      mandatory: false,
+    });
+  }
+
+  public change_page(new_page_number) {
+    return new Promise<void>((resolve, reject) => {
+      if (get(writeBuffer).length > 0) {
+        reject("Wait before all operations are finished.");
+        return;
+      }
+
+      if (this.unsavedChangesCount() != 0) {
+        reject("Store your changes before changin pages!");
+        return;
+      }
+
+      let ui = get(user_input);
+
+      // only update pagenumber if it differs from the runtime pagenumber
+      if (ui.pagenumber === new_page_number) {
+        resolve();
+        return;
+      }
+      // clean up the writebuffer if pagenumber changes!
+      // writeBuffer.clear();
+
+      instructions
+        .changeActivePage(new_page_number)
+        .then(() => {
+          const ui = get(user_input);
+          user_input.set({
+            dx: ui.dx,
+            dy: ui.dy,
+            pagenumber: new_page_number,
+            elementnumber: ui.elementnumber,
+            eventtype: ui.eventtype,
+          });
+          resolve();
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+
+  public unsavedChangesCount() {
+    let count = 0;
+    get(this.internal).forEach((e) => {
+      e.getPages().forEach((e) => {
+        e.getControlElements().forEach((e) => {
+          e.getEvents().forEach((e) => {
+            const stored = e.getStored();
+            const configs = e.getConfigs();
+            if (typeof stored !== "undefined" && stored !== configs) {
+              count += 1;
+            }
+          });
+        });
+      });
+    });
+    return count;
+  }
+
+  public async storePage(index) {
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageStoreToGrid()
+        .then((res) => {
+          this.update((store) => {
+            store.forEach((device) => {
+              device
+                .getPage(index)
+                ?.getControlElements()
+                .forEach((e) => {
+                  e.getEvents().forEach((e) => {
+                    const stored = e.getStored();
+                    const configs = e.getConfigs();
+                    if (stored !== configs) {
+                      e.setStored(configs);
+                    }
+                  });
+                });
+            });
+            return store;
+          });
+          resolve(res);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+
+  public clearPage(index) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pageclear",
+      message: `Clearing configurations from page...`,
+    });
+    return new Promise<void>((resolve, reject) => {
+      instructions
+        .sendPageClearToGrid()
+        .then(() => {
+          this.clear_page_configuration(index);
+          resolve();
+        })
+        .catch((e) => {
+          console.warn(e);
+          reject(e);
+        });
+    });
+  }
+
+  public discardPage(index) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pagediscard",
+      message: `Discarding configurations...`,
+    });
+    return new Promise<void>((resolve, reject) => {
+      instructions
+        .sendPageDiscardToGrid()
+        .then(() => {
+          this.clear_page_configuration(index);
+          resolve();
+        })
+        .catch((e) => {
+          console.warn(e);
+          reject(e);
+        });
+    });
+  }
+
+  public addVirtualModule({ dx, dy, type }) {
+    const module = VirtualModuleHWCFG[type];
+    const controller = this.create_module(
+      {
+        DX: dx,
+        DY: dy,
+        SX: dx,
+        SY: dy,
+      },
+      {
+        HWCFG: module.hwcfg,
+      },
+      true
+    );
+
+    createVirtualModule(dx, dy, module.type);
+
+    this.update((store) => {
+      store.push(controller);
+      return store;
+    });
+    this.setDefaultSelectedElement();
+  }
+}
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -150,8 +1156,16 @@ export function update_ledColorStore(descr) {
 //Template logger object: { type: "", message: "", classname: "" }
 export const logger = writable();
 
+interface UserInput {
+  dx: number;
+  dy: number;
+  pagenumber: number;
+  elementnumber: number;
+  eventtype: number;
+}
+
 function create_user_input() {
-  const defaultValues = {
+  const defaultValues: UserInput = {
     dx: undefined,
     dy: undefined,
     pagenumber: undefined,
@@ -159,7 +1173,7 @@ function create_user_input() {
     eventtype: undefined,
   };
 
-  const store = new ProtectedStore(defaultValues);
+  const store = new ProtectedStore<UserInput>(defaultValues);
 
   function setOverride({ dx, dy, pagenumber, elementnumber, eventtype }) {
     for (const [key, value] of Object.entries({
@@ -175,12 +1189,14 @@ function create_user_input() {
         });
         return;
       }
-      if (typeof value !== "number") {
-        throw `($user_input store): ${key} (${value}) is not the type of Number.`;
-      }
     }
 
-    const events = getElementEventTypes(dx, dy, elementnumber);
+    const events = runtime
+      .getModule(dx, dy)
+      .getPage(pagenumber)
+      .getElement(elementnumber)
+      .getEvents()
+      .map((e) => e.getType());
     const closestEvent = get_closest_event(events, eventtype);
 
     store.set({
@@ -249,11 +1265,17 @@ function create_user_input() {
       let eventtype;
       switch (get(appSettings).persistent.changeOnEvent) {
         case "element": {
-          const incomingEventTypes = getElementEventTypes(
+          const [dx, dy, element] = [
             descr.brc_parameters.SX,
             descr.brc_parameters.SY,
-            descr.class_parameters.ELEMENTNUMBER
-          );
+            descr.class_parameters.ELEMENTNUMBER,
+          ];
+          const incomingEventTypes = runtime
+            .getModule(dx, dy)
+            .getPage(ui.pagenumber)
+            .getElement(element)
+            .getEvents()
+            .map((e) => e.getType());
           const current = ui.eventtype;
           eventtype = get_closest_event(incomingEventTypes, current);
           if (!elementDifferent) {
@@ -291,8 +1313,8 @@ function create_user_input() {
         //(0,0) module is not guaranteed to exist when unplugging all modules once
         //NOTE: Hardcoding (0,0) may break user_input
         setOverride({
-          dx: rt[0].dx,
-          dy: rt[0].dy,
+          dx: rt[0].getDx(),
+          dy: rt[0].getDy(),
           pagenumber: ui.pagenumber,
           elementnumber: 0,
           eventtype: ui.eventtype,
@@ -315,850 +1337,12 @@ function create_user_input() {
 
 export const user_input = create_user_input();
 
-function create_runtime() {
-  const _runtime = new ProtectedStore([]);
-
-  const findUpdateDestEvent = (_runtime, dx, dy, page, element, event) => {
-    let _event = undefined;
-    // this elementnumber check refers to uninitialized UI...
-    if (element !== -1) {
-      _runtime.forEach((device) => {
-        if (device.dx == dx && device.dy == dy) {
-          const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
-          const elementIndex = device.pages[
-            pageIndex
-          ].control_elements.findIndex((x) => x.elementIndex == element);
-          _event = device.pages[pageIndex].control_elements[
-            elementIndex
-          ].events.find((e) => e.type == event);
-        }
-      });
-    }
-    return _event;
-  };
-
-  function fetchOrLoadConfig({ dx, dy, page, element, event }) {
-    return new Promise<void>((resolve, reject) => {
-      const _device = get(runtime).find(
-        (device) => device.dx == dx && device.dy == dy
-      );
-      const _page = _device.pages.find((e) => e.pageNumber == page);
-      const _element = _page.control_elements.find(
-        (e) => e.elementIndex == element
-      );
-      const _event = _element.events.find((e) => e.type == event);
-
-      if (typeof _event.config !== "undefined") {
-        resolve();
-      } else {
-        instructions
-          .fetchConfigFromGrid(dx, dy, page, element, event)
-          .then((descr) => {
-            const dx = descr.brc_parameters.SX;
-            const dy = descr.brc_parameters.SY;
-            const page = descr.class_parameters.PAGENUMBER;
-            const element = descr.class_parameters.ELEMENTNUMBER;
-            const event = descr.class_parameters.EVENTTYPE;
-            const actionstring = descr.class_parameters.ACTIONSTRING;
-
-            update_event_configuration(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              actionstring
-            );
-
-            resolve();
-          })
-          .catch((e) => reject(e));
-      }
-    });
-  }
-
-  function isFirmwareMismatch(currentFirmware, requiredFirmware) {
-    // Extract major, minor, and patch versions from current and required firmware
-    const {
-      major: currentMajor,
-      minor: currentMinor,
-      patch: currentPatch,
-    } = currentFirmware;
-    const {
-      major: requiredMajor,
-      minor: requiredMinor,
-      patch: requiredPatch,
-    } = requiredFirmware;
-
-    // Compare major versions
-    if (currentMajor < requiredMajor) {
-      return true; // Firmware mismatch if current major version is lower
-    } else if (currentMajor > requiredMajor) {
-      return false; // No firmware mismatch if current major version is higher
-    }
-
-    // Compare minor versions
-    if (currentMinor < requiredMinor) {
-      return true; // Firmware mismatch if current minor version is lower
-    } else if (currentMinor > requiredMinor) {
-      return false; // No firmware mismatch if current minor version is higher
-    }
-
-    // Compare patch versions
-    if (currentPatch < requiredPatch) {
-      return true; // Firmware mismatch if current patch version is lower
-    } else {
-      return false; // No firmware mismatch if current patch version is equal or higher
-    }
-  }
-
-  function incoming_heartbeat_handler(descr) {
-    try {
-      for (const device of get(_runtime)) {
-        if (device.architecture === "virtual") {
-          destroy_module(device.dx, device.dy);
-        }
-      }
-      const controller = this.create_module(
-        descr.brc_parameters,
-        descr.class_parameters,
-        false
-      );
-
-      let firstConnection = false;
-      const device = get(_runtime).find((device) => device.id == controller.id);
-      if (device) {
-        if (device.rot != controller.rot) {
-          _runtime.update((rt) => {
-            const index = rt.findIndex((device) => device.id == controller.id);
-            rt[index].rot = controller.rot;
-            return rt;
-          });
-        }
-
-        if (device.portstate != controller.portstate) {
-          _runtime.update((rt) => {
-            const index = rt.findIndex((device) => device.id == controller.id);
-            rt[index].portstate = controller.portstate;
-            return rt;
-          });
-        }
-
-        const lastDate = get(heartbeat).find(
-          (device) => device.id == controller.id
-        )?.alive;
-        if (lastDate) {
-          let newDate = Date.now();
-
-          heartbeat.update((store) => {
-            const device = store.find((device) => device.id == controller.id);
-            if (device) {
-              device.alive = newDate;
-            }
-            return store;
-          });
-
-          //console.log(newDate - lastDate)
-          if (get(appSettings).persistent.heartbeatDebugEnabled) {
-            const key1 = `Hearbeat (${controller.dx}, ${controller.dy})`;
-
-            add_datapoint(key1, newDate - lastDate);
-          }
-        }
-      }
-      // device not found, add it to runtime and get page count from grid
-      else {
-        // check if the firmware version of the newly connected device is acceptable
-        console.log("Incoming Device");
-        console.log("Architecture", controller.architecture);
-
-        const as = get(appSettings);
-        const firmware_required =
-          controller.architecture === "esp32"
-            ? as.firmware_esp32_required
-            : as.firmware_d51_required;
-        controller.fwMismatch = isFirmwareMismatch(
-          controller.fwVersion,
-          firmware_required
-        );
-
-        console.log(
-          "Mismatch: ",
-          controller.fwMismatch,
-          "Firmware Version: ",
-          controller.fwVersion
-        );
-
-        _runtime.update((devices) => {
-          return [...devices, controller];
-        });
-        heartbeat.update((devices) => {
-          return [...devices, { id: controller.id, alive: Date.now() }];
-        });
-
-        firstConnection = get(_runtime).length === 1;
-
-        Analytics.track({
-          event: "Connect Module",
-          payload: {
-            action: "Connect",
-            controller: controller,
-            moduleCount: get(runtime).length,
-          },
-          mandatory: false,
-        });
-      }
-
-      if (firstConnection) {
-        setDefaultSelectedElement();
-      }
-    } catch (error) {
-      console.warn(error);
-    }
-  }
-
-  function setDefaultSelectedElement() {
-    const rt = get(runtime);
-    user_input.set({
-      dx: rt[0].dx,
-      dy: rt[0].dy,
-      pagenumber: 0,
-      elementnumber: 0,
-      eventtype: 2,
-    });
-  }
-
-  function erase_all() {
-    _runtime.update((rt) => {
-      rt.forEach((device) => {
-        device.pages.forEach((page) => {
-          page.control_elements.forEach((events) => {
-            events.events.forEach((event) => {
-              event.config = undefined;
-              event.stored = undefined;
-            });
-          });
-        });
-      });
-      return rt;
-    });
-  }
-
-  function element_preset_load(x, y, element, preset) {
-    return new Promise<void>((resolve, reject) => {
-      const ui = get(user_input);
-      let events = preset.configs.events;
-      const promises = [];
-      events.forEach((e) => {
-        const page = ui.pagenumber;
-        const event = e.event;
-
-        _runtime.update((_runtime) => {
-          let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
-          if (typeof dest !== "undefined") {
-            dest.config = e.config;
-            const promise = instructions.sendConfigToGrid(
-              x,
-              y,
-              page,
-              element,
-              event,
-              e.config
-            );
-
-            promises.push(promise);
-          }
-          return _runtime;
-        });
-      });
-      Promise.all(promises)
-        .then(() => {
-          resolve();
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "elementoverwrite",
-            message: `Overwrite done!`,
-          });
-        })
-        .catch((e) => reject(e));
-    });
-  }
-
-  function whole_page_overwrite(x, y, array) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "profileload",
-      message: `Profile load started...`,
-    });
-
-    return new Promise<void>((resolve, reject) => {
-      // Reorder array to send system element first
-      const index = array.findIndex((obj) => obj.elementIndex === 255);
-
-      // Check if the object with id === 255 was found
-      if (index !== -1) {
-        // Remove the object at the found index
-        const objectToMove = array.splice(index, 1)[0];
-
-        // Add the object to the front of the array
-        array.unshift(objectToMove);
-      }
-
-      let ui = structuredClone(get(user_input));
-      const promises = [];
-      array.forEach((elem) => {
-        elem.events.forEach((ev) => {
-          ui.elementnumber = elem.controlElementNumber;
-          ui.eventtype = ev.event;
-
-          const page = ui.pagenumber;
-          const element = ui.elementnumber;
-          const event = ui.eventtype;
-
-          _runtime.update((_runtime) => {
-            let dest = findUpdateDestEvent(
-              _runtime,
-              x,
-              y,
-              page,
-              element,
-              event
-            );
-            if (dest) {
-              dest.config = ev.config.trim();
-            }
-            return _runtime;
-          });
-
-          const promise = instructions.sendConfigToGrid(
-            x,
-            y,
-            page,
-            element,
-            event,
-            ev.config
-          );
-
-          promises.push(promise);
-        });
-      });
-      Promise.all(promises)
-        .then((desc) => {
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "profileload",
-            message: `Profile load complete!`,
-          });
-          resolve();
-        })
-        .catch((e) => reject(e));
-    });
-  }
-
-  function update_event_configuration(
-    dx,
-    dy,
-    page,
-    element,
-    event,
-    actionString
-  ) {
-    // config
-    _runtime.update((_runtime) => {
-      let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
-      if (dest) {
-        dest.config = actionString;
-        if (typeof dest.stored === "undefined") {
-          dest.stored = actionString;
-        }
-      }
-      return _runtime;
-    });
-  }
-
-  function send_event_configuration_to_grid(dx, dy, page, element, event) {
-    return new Promise<void>((resolve, reject) => {
-      let rt = get(_runtime);
-
-      let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
-      if (dest) {
-        instructions
-          .sendConfigToGrid(dx, dy, page, element, event, dest.config)
-          .then((desc) => {
-            resolve();
-          })
-          .catch((e) => reject(e));
-      } else {
-        reject("DEST not found!");
-      }
-    });
-  }
-
-  // whole element copy: fetches all event configs from a control element
-  function fetch_element_configuration_from_grid(
-    dx,
-    dy,
-    pageNumber,
-    elementNumber
-  ) {
-    const rt = get(runtime);
-    const device = rt.find((device) => device.dx == dx && device.dy == dy);
-    const page = device.pages.find((x) => x.pageNumber == pageNumber);
-    const element = page.control_elements.find(
-      (x) => x.elementIndex == elementNumber
-    );
-    const events = element.events;
-
-    const promises = events.map((e) => {
-      const eventType = e.type;
-      const dest = {
-        dx: dx,
-        dy: dy,
-        page: pageNumber,
-        element: elementNumber,
-        event: eventType,
-      };
-      const promise = fetchOrLoadConfig(dest);
-      return promise;
-    });
-
-    return Promise.all(promises);
-  }
-
-  function fetch_page_configuration_from_grid({ dx, dy, page }) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "profilesave",
-      message: `Preparing configs...`,
-    });
-
-    const rt = get(runtime);
-
-    let device = rt.find((device) => device.dx == dx && device.dy == dy);
-
-    if (typeof device === "undefined") {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "profilesave",
-        message: `No module selected`,
-      });
-
-      return Promise.reject(`No module selected`);
-    }
-
-    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
-    const controlElements = device.pages[pageIndex].control_elements;
-
-    const fetchArray = [];
-
-    controlElements.forEach((controlElement) => {
-      controlElement.events.forEach((e) => {
-        if (typeof e.config === "undefined") {
-          // put it into the fetchArray
-          fetchArray.push({
-            event: e.type,
-            elementIndex: controlElement.elementIndex,
-          });
-        }
-      });
-    });
-
-    // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
-    // writeBuffer.clear();
-
-    if (fetchArray.length === 0) {
-      //nothing to do, let's do calback
-      return Promise.resolve();
-    }
-
-    const promises = fetchArray.map((e) => {
-      const promise = fetchOrLoadConfig({
-        dx: dx,
-        dy: dy,
-        page: page,
-        element: e.elementIndex,
-        event: e.event,
-      });
-      return promise;
-    });
-
-    return Promise.all(promises);
-  }
-
-  function clear_page_configuration(index) {
-    _runtime.update((_runtime) => {
-      _runtime.forEach((device) => {
-        device.pages[index].control_elements.forEach((control_element) => {
-          control_element.events.forEach((event) => {
-            event.config = undefined;
-            event.stored = undefined;
-          });
-        });
-      });
-      return _runtime;
-    });
-  }
-
-  function create_page(moduleType, pageNumber) {
-    moduleType = moduleType.substr(0, 4);
-
-    let control_elements = [];
-
-    let status = "INIT";
-
-    try {
-      const moduleElements = grid.get_module_element_list(moduleType);
-
-      for (const [index, element] of Object.entries(moduleElements)) {
-        if (typeof element === "undefined") {
-          continue;
-        }
-        let events = [];
-        const elementEvents = grid.get_element_events(element);
-        for (const event of elementEvents) {
-          events.push({
-            type: Number(event.value),
-            config: undefined,
-            stored: undefined,
-          });
-        }
-        control_elements.push({
-          events: events,
-          elementIndex: index,
-          type: element,
-          name: "",
-        });
-      }
-
-      control_elements = control_elements.filter((x) => x); // filter null or invalid items!
-
-      return { status, pageNumber: pageNumber, control_elements };
-    } catch (error) {
-      console.warn("Error while creating page for ", moduleType, error);
-    }
-  }
-
-  function create_module(header_param, heartbeat_class_param, virtual = false) {
-    let moduleType = grid.module_type_from_hwcfg(
-      Number(heartbeat_class_param.HWCFG)
-    );
-
-    // generic check, code below if works only if all parameters are provided
-    if (
-      header_param === undefined ||
-      moduleType === undefined ||
-      heartbeat_class_param === undefined
-    ) {
-      console.log(
-        heartbeat_class_param.HWCFG,
-        "ERROR",
-        header_param,
-        moduleType,
-        heartbeat_class_param
-      );
-      throw "Error creating new module.";
-    }
-    moduleType = moduleType.substr(0, 4) as ModuleType;
-
-    return {
-      // implement the module id rep / req
-      architecture: virtual
-        ? "virtual"
-        : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
-      portstate: heartbeat_class_param.PORTSTATE,
-      id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
-      dx: header_param.SX,
-      dy: header_param.SY,
-      rot: header_param.ROT,
-      fwVersion: {
-        major: heartbeat_class_param.VMAJOR,
-        minor: heartbeat_class_param.VMINOR,
-        patch: heartbeat_class_param.VPATCH,
-      },
-      fwMismatch: false,
-      alive: Date.now(),
-      map: {
-        top: { dx: header_param.SX, dy: header_param.SY + 1 },
-        right: { dx: header_param.SX + 1, dy: header_param.SY },
-        bot: { dx: header_param.SX, dy: header_param.SY - 1 },
-        left: { dx: header_param.SX - 1, dy: header_param.SY },
-      },
-      pages: [
-        this.create_page(moduleType, 0),
-        this.create_page(moduleType, 1),
-        this.create_page(moduleType, 2),
-        this.create_page(moduleType, 3),
-      ],
-    };
-  }
-
-  function destroy_module(dx, dy) {
-    // remove the destroyed device from runtime
-    const removed = get(_runtime).find((e) => e.dx == dx && e.dy == dy);
-
-    _runtime.update((rt) => {
-      const index = rt.findIndex((e) => e.dx === dx && e.dy === dy);
-      rt.splice(index, 1);
-      return rt;
-    });
-
-    if (get(_runtime).length === 0) {
-      appSettings.update((s) => {
-        s.gridLayoutShift = { x: 0, y: 0 };
-        return s;
-      });
-    }
-
-    user_input.module_destroy_handler(dx, dy);
-    if (removed.architecture === "virtual") {
-      virtual_runtime.destroyModule(dx, dy);
-    } else {
-      writeBuffer.module_destroy_handler(dx, dy);
-    }
-
-    // reset rendering helper stores
-
-    try {
-      elementPositionStore.update((eps) => {
-        eps[dx][dy] = undefined;
-        return eps;
-      });
-
-      elementNameStore.update((ens) => {
-        ens[dx][dy] = undefined;
-        return ens;
-      });
-
-      ledColorStore.update((lcs) => {
-        lcs[dx][dy] = undefined;
-        return lcs;
-      });
-    } catch (error) {}
-
-    Analytics.track({
-      event: "Disconnect Module",
-      payload: {
-        action: "Disconnect",
-        moduleCount: get(runtime).length,
-      },
-      mandatory: false,
-    });
-  }
-
-  function change_page(new_page_number) {
-    return new Promise<void>((resolve, reject) => {
-      if (get(writeBuffer).length > 0) {
-        reject("Wait before all operations are finished.");
-        return;
-      }
-
-      if (unsavedChangesCount() != 0) {
-        reject("Store your changes before changin pages!");
-        return;
-      }
-
-      let ui = get(user_input);
-
-      // only update pagenumber if it differs from the runtime pagenumber
-      if (ui.pagenumber === new_page_number) {
-        resolve();
-        return;
-      }
-      // clean up the writebuffer if pagenumber changes!
-      // writeBuffer.clear();
-
-      instructions
-        .changeActivePage(new_page_number)
-        .then(() => {
-          const ui = get(user_input);
-          user_input.set({
-            dx: ui.dx,
-            dy: ui.dy,
-            pagenumber: new_page_number,
-            elementnumber: ui.elementnumber,
-            eventtype: ui.eventtype,
-          });
-          resolve();
-        })
-        .catch((e) => {
-          reject(e);
-        });
-    });
-  }
-
-  function unsavedChangesCount() {
-    let count = 0;
-    get(_runtime).forEach((e) => {
-      e.pages.forEach((e) => {
-        e.control_elements.forEach((e) => {
-          e.events.forEach((e) => {
-            if (typeof e.stored !== "undefined" && e.stored !== e.config) {
-              count += 1;
-            }
-          });
-        });
-      });
-    });
-    return count;
-  }
-
-  async function storePage(index) {
-    return new Promise((resolve, reject) => {
-      instructions
-        .sendPageStoreToGrid()
-        .then((res) => {
-          _runtime.update((store) => {
-            store.forEach((device) => {
-              device.pages
-                .find((e) => e.pageNumber == index)
-                ?.control_elements.forEach((element) => {
-                  element.events.forEach((event) => {
-                    if (event.stored !== event.config) {
-                      event.stored = event.config;
-                    }
-                  });
-                });
-            });
-            return store;
-          });
-          resolve(res);
-        })
-        .catch((e) => {
-          reject(e);
-        });
-    });
-  }
-
-  function clearPage(index) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pageclear",
-      message: `Clearing configurations from page...`,
-    });
-    return new Promise<void>((resolve, reject) => {
-      instructions
-        .sendPageClearToGrid()
-        .then(() => {
-          clear_page_configuration(index);
-          resolve();
-        })
-        .catch((e) => {
-          console.warn(e);
-          reject(e);
-        });
-    });
-  }
-
-  function discardPage(index) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pagediscard",
-      message: `Discarding configurations...`,
-    });
-    return new Promise<void>((resolve, reject) => {
-      instructions
-        .sendPageDiscardToGrid()
-        .then(() => {
-          clear_page_configuration(index);
-          resolve();
-        })
-        .catch((e) => {
-          console.warn(e);
-          reject(e);
-        });
-    });
-  }
-
-  function addVirtualModule({ dx, dy, type }) {
-    const module = VirtualModuleHWCFG[type];
-    const controller = this.create_module(
-      {
-        DX: dx,
-        DY: dy,
-        SX: dx,
-        SY: dy,
-      },
-      {
-        HWCFG: module.hwcfg,
-      },
-      true
-    );
-
-    createVirtualModule(dx, dy, module.type);
-
-    _runtime.update((devices) => {
-      return [...devices, controller];
-    });
-    setDefaultSelectedElement();
-  }
-
-  return {
-    subscribe: _runtime.subscribe,
-
-    element_preset_load: element_preset_load,
-    whole_page_overwrite: whole_page_overwrite,
-
-    update_event_configuration: update_event_configuration,
-    send_event_configuration_to_grid: send_event_configuration_to_grid,
-
-    fetch_element_configuration_from_grid:
-      fetch_element_configuration_from_grid,
-    fetch_page_configuration_from_grid: fetch_page_configuration_from_grid,
-
-    incoming_heartbeat_handler: incoming_heartbeat_handler,
-
-    create_page: create_page,
-    create_module: create_module,
-    destroy_module: destroy_module,
-
-    change_page: change_page,
-
-    erase: erase_all,
-    fetchOrLoadConfig: fetchOrLoadConfig,
-    unsavedChangesCount: unsavedChangesCount,
-    storePage: storePage,
-    discardPage: discardPage,
-    clearPage: clearPage,
-    addVirtualModule: addVirtualModule,
-  };
-}
-
-export const runtime = create_runtime();
+export const runtime = new Runtime([]);
 
 //Retrieves device name from coordinates of the device
-export function getDeviceName(x, y) {
-  const rt = get(runtime);
-  const currentModule = rt.find((device) => device.dx == x && device.dy == y);
-  return currentModule?.id.slice(0, 4);
-}
-
-export function getElementEventTypes(x, y, elementNumber) {
-  const rt = get(runtime);
-  const currentModule = rt.find((device) => device.dx == x && device.dy == y);
-
-  if (typeof currentModule === "undefined") {
-    console.warn(`Module does not exist on (${x}, ${y})`);
-    return undefined;
-  }
-  const element = currentModule.pages[0].control_elements.find(
-    (e) => e.elementIndex == elementNumber
-  );
-
-  if (typeof element === "undefined") {
-    console.warn(
-      `Control element ${elementNumber} does not exist on (${x}, ${y})`
-    );
-    return undefined;
-  }
-
-  return element.events.map((e) => e.type);
+export function getDeviceName(dx, dy) {
+  const device = runtime.getModule(dx, dy);
+  return String(device.getType()).toUpperCase();
 }
 
 function createEngine() {
@@ -1180,11 +1364,11 @@ const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
-    if (device.architecture === "virtual") {
+    if (device.getArchitecture() === Architecture.VIRTUAL) {
       return;
     }
 
-    const alive = get(heartbeat).find((e) => e.id == device.id)?.alive;
+    const alive = get(heartbeat).find((e) => e.id == device.getId())?.alive;
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
@@ -1195,9 +1379,10 @@ const grid_heartbeat_interval_handler = async function () {
 
     if (!alive || elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
-      runtime.destroy_module(device.dx, device.dy);
+      const [dx, dy] = [device.getDx(), device.getDy()];
+      runtime.destroy_module(dx, dy);
       heartbeat.update((heartbeat) => {
-        return heartbeat.filter((e) => e.id !== device.id);
+        return heartbeat.filter((e) => e.id !== device.getId());
       });
     }
   });
@@ -1214,7 +1399,8 @@ const editor_heartbeat_interval_handler = async function () {
 
   if (
     get(runtime).length > 0 &&
-    get(runtime).filter((e) => e.architecture === "virtual").length === 0
+    get(runtime).filter((e) => e.getArchitecture() === Architecture.VIRTUAL)
+      .length === 0
   ) {
     sendHeartbeat(type);
   } else {
