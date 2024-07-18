@@ -28,7 +28,7 @@
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import { Validator } from "./_validators";
-  import MoltenEnabled from "../main/user-interface/MoltenEnabled.svelte";
+  import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -95,6 +95,22 @@
 
   let suggestionElement = undefined;
   let minMaxEnabled = false;
+
+  function calculateStepValues(steps, min, max) {
+    const stepValue = Math.floor((max - min) / steps);
+    const res = Array.from(
+      { length: steps },
+      (_, index) => (index + 1) * stepValue
+    );
+    return [0, ...res];
+  }
+
+  let stepValues;
+  $: stepValues = calculateStepValues(
+    Number(bmo),
+    minMaxEnabled ? Number(bmi) : 0,
+    minMaxEnabled ? Number(bma) : 127
+  );
 </script>
 
 <encoder-settings
@@ -121,15 +137,6 @@
     <span class="text-gray-500 text-sm">Step values:</span>
     <div class="text-white text-sm">
       {#if Number(bmo) > 1}
-        {@const stepValues = Array.from(
-          { length: Number(bmo) },
-          (_, index) =>
-            (index + 1) *
-            Math.floor(
-              (minMaxEnabled ? Number(bma) - Number(bmi) : 255) / Number(bmo) +
-                Number(bmi)
-            )
-        )}
         {#each stepValues as step, i}
           <span>{step}</span>
           <span class:hidden={i === stepValues.length - 1} class="mr-2">,</span>
@@ -139,16 +146,10 @@
       {/if}
     </div>
   </div>
-
-  <div class="w-full flex flex-col gap-2">
-    <div class="w-full flex-row flex justify-between items-center">
-      <div class="text-gray-500 text-sm truncate">Optional: Min/Max Value</div>
-      <MoltenEnabled
-        bind:value={minMaxEnabled}
-        style={{ color: "rgba(115, 115, 115, 1)", fontSize: 11 }}
-      />
-    </div>
-    <div class="flex flex-row gap-2">
+  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+  <div class="flex flex-row gap-2">
+    <div class="flex flex-col">
+      <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         inputValue={bmi}
         disabled={!minMaxEnabled}
@@ -166,6 +167,9 @@
           dispatch("validator", data);
         }}
       />
+    </div>
+    <div class="flex flex-col">
+      <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         inputValue={bma}
         disabled={!minMaxEnabled}

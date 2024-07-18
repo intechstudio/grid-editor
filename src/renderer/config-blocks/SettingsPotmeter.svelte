@@ -1,5 +1,4 @@
 <script lang="ts" context="module">
-  import MoltenEnabled from "./../main/user-interface/MoltenEnabled.svelte";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -13,7 +12,7 @@
     category: "element settings",
     color: "#5F416D",
     displayName: "Potmeter Mode",
-    defaultLua: "self:pmo(7) self:pma(127)",
+    defaultLua: "self:pmo(7)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     selectable: true,
@@ -28,8 +27,9 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Validator } from "./_validators";
+  import { Grid } from "../lib/_utils";
+  import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -37,8 +37,8 @@
   const dispatch = createEventDispatcher();
 
   let pmo = ""; // local script part
-  let pma = "";
 
+  let pma = "127";
   let pmi = "0";
 
   const whatsInParenthesis = /\(([^)]+)\)/;
@@ -54,13 +54,14 @@
     };
 
     pmo = extractParam(0);
-    pma = extractParam(1);
 
+    const param2 = extractParam(1);
     const param3 = extractParam(2);
 
-    minEnabled = !!param3;
-    if (minEnabled) {
-      pmi = param3;
+    minMaxEnabled = !!param2 || !!param3;
+    if (minMaxEnabled) {
+      pmi = param2;
+      pma = param3;
     }
 
     loaded = true;
@@ -70,13 +71,13 @@
     loaded = false;
   });
 
-  $: sendData(pmo, pma, minEnabled ? pmi : undefined);
+  $: sendData(pmo, pma, minMaxEnabled ? pmi : undefined);
 
   function sendData(p1, p2, p3) {
-    const optional = [minEnabled ? `self:pmi(${p3})` : ""];
+    const optional = [minMaxEnabled ? `self:pmi(${p3})  self:pma(${p2})` : ""];
     dispatch("output", {
       short: "spc",
-      script: `self:pmo(${p1}) self:pma(${p2}) ${optional.join(" ")}`,
+      script: `self:pmo(${p1}) ${optional.join(" ")}`,
     });
   }
 
@@ -97,24 +98,63 @@
   ];
 
   let suggestionElement = undefined;
-  let minEnabled = false;
+  let minMaxEnabled = false;
+
+  function calculateStepSize(bit, min, max) {
+    const step = Grid.round((max - min) / (Math.pow(2, bit) - 1));
+    return step < 0 ? 0 : step;
+  }
+
+  let stepSize;
+  $: stepSize = calculateStepSize(
+    Number(pmo),
+    minMaxEnabled ? Number(pmi) : 0,
+    minMaxEnabled ? Number(pma) : 127
+  );
 </script>
 
 <potmeter-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full flex flex-row gap-2">
+  <div class="flex flex-col">
+    <div class="text-gray-500 text-sm pb-1">Bit depth</div>
+    <AtomicInput
+      inputValue={pmo}
+      suggestions={suggestions[0]}
+      validator={() => {
+        return new Validator().NotEmpty().Result();
+      }}
+      suggestionTarget={suggestionElement}
+      on:change={(e) => {
+        pmo = e.detail;
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+    />
+  </div>
+
+  <div class="flex flex-row gap-2">
+    <span class="text-gray-500 text-sm">Step size:</span>
+    <span class="text-white text-sm">{stepSize}</span>
+  </div>
+
+  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+
+  <div class="flex flex-row gap-2">
     <div class="flex flex-col">
-      <div class="text-gray-500 text-sm pb-1">Bit depth</div>
+      <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
-        inputValue={pmo}
-        suggestions={suggestions[0]}
+        inputValue={pmi}
+        disabled={!minMaxEnabled}
         validator={() => {
-          return new Validator().NotEmpty().Result();
+          return minMaxEnabled
+            ? new Validator().NotEmpty().Result()
+            : new Validator().Result();
         }}
-        suggestionTarget={suggestionElement}
         on:change={(e) => {
-          pmo = e.detail;
+          pmi = e.detail;
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -122,12 +162,12 @@
         }}
       />
     </div>
-
     <div class="flex flex-col">
-      <div class="text-gray-500 text-sm pb-1">Max Value</div>
+      <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         inputValue={pma}
         suggestions={suggestions[1]}
+        disabled={!minMaxEnabled}
         validator={() => {
           return new Validator().NotEmpty().Result();
         }}
@@ -141,43 +181,6 @@
         }}
       />
     </div>
-  </div>
-
-  <div class="flex flex-row gap-2">
-    <span class="text-gray-500 text-sm">Step size:</span>
-    <span class="text-white text-sm"
-      >{Math.floor(
-        (Number(pma) - (minEnabled ? Number(pmi) : 0)) / Number(pmo)
-      )}</span
-    >
-  </div>
-
-  <div class="w-full flex flex-col gap-2">
-    <div class="w-full flex-row flex justify-between items-center">
-      <div class="text-gray-500 text-sm truncate">Optional: Min Value</div>
-      <MoltenEnabled
-        bind:value={minEnabled}
-        style={{ color: "rgba(115, 115, 115, 1)", fontSize: 11 }}
-      />
-    </div>
-
-    <AtomicInput
-      inputValue={pmi}
-      disabled={!minEnabled}
-      validator={() => {
-        return minEnabled
-          ? new Validator().NotEmpty().Result()
-          : new Validator().Result();
-      }}
-      suggestionTarget={suggestionElement}
-      on:change={(e) => {
-        pmi = e.detail;
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
   </div>
 
   <AtomicSuggestions bind:component={suggestionElement} />

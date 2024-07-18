@@ -27,8 +27,8 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { Validator } from "./_validators";
-  import MoltenEnabled from "../main/user-interface/MoltenEnabled.svelte";
+  import { Validator } from "./_validators.js";
+  import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -39,7 +39,7 @@
   let ev0 = "";
 
   let emi = "0";
-  let ema = "255";
+  let ema = "127";
   let ese = "100";
 
   const whatsInParenthesis = /\(([^)]+)\)/;
@@ -163,15 +163,11 @@
     </div>
   </div>
 
-  <div class="w-full flex flex-col gap-2">
-    <div class="w-full flex-row flex justify-between items-center">
-      <div class="text-gray-500 text-sm truncate">Optional: Min/Max Value</div>
-      <MoltenEnabled
-        bind:value={minMaxEnabled}
-        style={{ color: "rgba(115, 115, 115, 1)", fontSize: 11 }}
-      />
-    </div>
-    <div class="flex flex-row gap-2">
+  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+
+  <div class="flex flex-row gap-2">
+    <div class="flex flex-col">
+      <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         inputValue={emi}
         disabled={!minMaxEnabled}
@@ -188,6 +184,9 @@
           dispatch("validator", data);
         }}
       />
+    </div>
+    <div class="flex flex-col">
+      <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         inputValue={ema}
         disabled={!minMaxEnabled}
@@ -207,15 +206,10 @@
     </div>
   </div>
 
-  <div class="w-full flex flex-col gap-2">
-    <div class="w-full flex-row flex justify-between items-center">
-      <div class="text-gray-500 text-sm truncate">Optional: Sensitivity</div>
-      <MoltenEnabled
-        bind:value={sensitivityEnabled}
-        style={{ color: "rgba(115, 115, 115, 1)", fontSize: 11 }}
-      />
-    </div>
+  <MeltCheckbox bind:target={sensitivityEnabled} title={"Enable Sensitivity"} />
 
+  <div class="flex flex-col">
+    <span class="text-sm text-gray-500">Sensitivcity</span>
     <AtomicInput
       inputValue={ese}
       disabled={!sensitivityEnabled}
