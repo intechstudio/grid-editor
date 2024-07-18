@@ -2,7 +2,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
-  import { grid } from "grid-protocol";
+  import { grid } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
@@ -14,7 +14,7 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
 

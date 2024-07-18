@@ -107,7 +107,7 @@
       <div class="text-gray-500 text-sm">Element Name</div>
       <TooltipQuestion
         key={"configuration_element_name"}
-        class="ml-2 text-white "
+        class="ml-2 text-white"
       />
     </div>
     <div class="flex flex-row items-center gap-2">

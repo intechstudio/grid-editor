@@ -58,12 +58,13 @@
     type: "composite_open",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    helperText: "Actions here are triggered when the encoder was rotated left.",
   };
 </script>
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { parenthesis } from "./_validators";
 
   export let config;

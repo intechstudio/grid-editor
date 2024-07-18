@@ -6,12 +6,13 @@ import {
   ConfigList,
   ConfigObject,
 } from "../../panels/configuration/Configuration.store";
-import { EventType, EventTypeToNumber, grid } from "grid-protocol";
-import { get } from "svelte/store";
 import {
-  ClipboardKey,
-  appClipboard,
-} from "../../../runtime/clipboard.store.ts";
+  EventType,
+  EventTypeToNumber,
+  grid,
+} from "@intechstudio/grid-protocol";
+import { Writable, derived, get } from "svelte/store";
+import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
 
 function handleError(e: any) {
   switch (e.type) {
@@ -145,9 +146,13 @@ export async function overwriteElement({ dx, dy, page, element }) {
       eventType: eventtype,
       page: current!.page,
     });
+
     const list = clipboard!.payload.data.find(
       (e: any) => e.eventType === eventtype
-    ).configs;
+    )?.configs;
+    if (typeof list === "undefined") {
+      continue;
+    }
     promises.push(list.sendTo({ target: target }));
   }
   return Promise.all(promises).then(() => {
@@ -404,5 +409,85 @@ export function clearElement(
 
   return Promise.all(promises).then(() => {
     configManager.refresh();
+  });
+}
+
+//////////////////////////////////
+/// State management functions ///
+//////////////////////////////////
+
+export function createOverwriteDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived([watched, appClipboard], ([$watched, $appClipboard]) => {
+    if (
+      typeof $watched === "undefined" ||
+      typeof $appClipboard === "undefined" ||
+      $appClipboard.key === ClipboardKey.ACTION_BLOCKS
+    ) {
+      return true;
+    }
+
+    const compatible = grid.is_element_compatible_with(
+      $appClipboard.payload.elementType,
+      $watched.elementType
+    );
+    return !compatible;
+  });
+}
+
+export function createCopyAllDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived(
+    [watched, configManager, runtime],
+    ([$watched, $configManager, $runtime]) => {
+      return (
+        typeof $configManager.find((e) => e.selected) !== "undefined" ||
+        $runtime.length === 0
+      );
+    }
+  );
+}
+
+export function createDiscardElementDisabledStore(
+  watched: Writable<ConfigTarget>
+) {
+  return derived([watched, configManager], ([$watched, $configManager]) => {
+    return !$watched?.hasChanges() ?? true;
+  });
+}
+
+export function createClearElementDisabledStore(
+  watched: Writable<ConfigTarget>
+) {
+  return derived([watched, runtime], ([$watched, $runtime]) => {
+    return $runtime.length === 0;
+  });
+}
+
+export function createCopyDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived([watched, configManager], ([$watched, $configManager]) => {
+    return typeof $configManager.find((e) => e.selected) === "undefined";
+  });
+}
+
+export function createPasteDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived([watched, appClipboard], ([$watched, $appClipboard]) => {
+    return $appClipboard?.key !== ClipboardKey.ACTION_BLOCKS;
+  });
+}
+
+export function createCutDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived([watched, configManager], ([$watched, $configManager]) => {
+    return typeof $configManager.find((e) => e.selected) === "undefined";
+  });
+}
+
+export function createMergeDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived([watched, configManager], ([$watched, $configManager]) => {
+    return typeof $configManager.find((e) => e.selected) === "undefined";
+  });
+}
+
+export function createRemoveDisabledStore(watched: Writable<ConfigTarget>) {
+  return derived([watched, configManager], ([$watched, $configManager]) => {
+    return typeof $configManager.find((e) => e.selected) === "undefined";
   });
 }

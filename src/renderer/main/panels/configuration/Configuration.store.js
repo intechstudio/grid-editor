@@ -5,14 +5,14 @@ import {
   user_input,
   getDeviceName,
 } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "grid-protocol";
+import { NumberToEventType } from "@intechstudio/grid-protocol";
 
 import {
   getComponentInformation,
   init_config_block_library,
 } from "../../../lib/_configs";
 
-import { grid, GridScript } from "grid-protocol";
+import { grid, GridScript } from "@intechstudio/grid-protocol";
 import { v4 as uuidv4 } from "uuid";
 
 export let lastOpenedActionblocks = writable([]);
@@ -324,6 +324,10 @@ export class ConfigTarget {
     return currentTarget;
   }
 
+  watch() {
+    return new ConfigTargetWatcher(this);
+  }
+
   hasChanges() {
     for (const event of this.events) {
       if (event.config !== event.stored) {
@@ -444,10 +448,12 @@ function create_configuration_manager() {
         .then((desc) => {
           runtime.element_preset_load(x, y, element, preset).then(() => {
             const ui = get(user_input);
-            createConfigListFrom(ui).then((list) => {
-              setOverride(list);
-              resolve();
-            });
+            if (ui.dx === x && ui.dy === y && ui.elementnumber === element) {
+              createConfigListFrom(ui).then((list) => {
+                setOverride(list);
+                resolve();
+              });
+            }
           });
         })
         .catch((e) => {
@@ -469,7 +475,6 @@ function create_configuration_manager() {
           runtime
             .whole_page_overwrite(x, y, profile)
             .then(() => {
-              const ui = get(user_input);
               createConfigListFrom(ui).then((list) => {
                 setOverride(list);
                 resolve();

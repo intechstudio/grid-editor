@@ -100,6 +100,7 @@
     type: "composite_part",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    helperText: "Actions here are triggered when the button is released.",
   };
 </script>
 
