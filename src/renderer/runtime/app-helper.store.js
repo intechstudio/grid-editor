@@ -1,6 +1,7 @@
 import { writable, get, readable } from "svelte/store";
 import { modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
+import { patch } from "semver";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -97,14 +98,14 @@ function createAppSettingsStore(persistent) {
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
-      major: 666,
-      minor: 666,
-      patch: 666,
+      major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH),
     },
     firmware_esp32_required: {
-      major: 666,
-      minor: 666,
-      patch: 666,
+      major: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
     },
     sizeChange: 0,
     activeWindowResult: {
@@ -227,32 +228,56 @@ async function init_appsettings() {
     .fetchUrlJSON(configuration.FIRMWARE_JSON_URL)
     .then((res) => {
       for (const obj of res) {
-        const { ARCHITECTURE, MAJOR, MINOR, PATCH } = obj;
-        switch (ARCHITECTURE) {
-          case "esp32":
-            appSettings.update((store) => {
-              store.firmware_esp32_required = {
-                major: MAJOR,
-                minor: MINOR,
-                patch: PATCH,
-              };
-              return store;
-            });
-            break;
-          case "d51":
-            appSettings.update((store) => {
-              store.firmware_d51_required = {
-                major: MAJOR,
-                minor: MINOR,
-                patch: PATCH,
-              };
-              return store;
-            });
-            break;
-          default:
-            console.warn(
-              `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`
-            );
+        const as = get(appSettings);
+        const editorVersion = {
+          major: as.version.major,
+          minor: as.version.minor,
+          patch: as.version.patch,
+        };
+
+        const targetVersion = {
+          major: obj.EDITOR_VERSION.MAJOR,
+          minor: obj.EDITOR_VERSION.MINOR,
+          patch: obj.EDITOR_VERSION.PATCH,
+        };
+
+        console.log(editorVersion, targetVersion);
+
+        if (
+          editorVersion.major === targetVersion.major &&
+          editorVersion.minor === targetVersion.minor &&
+          editorVersion.patch === targetVersion.patch
+        ) {
+          const reqired = obj.REQUIRED_FIRMWARES;
+          for (const firmware of reqired) {
+            const { ARCHITECTURE, MAJOR, MINOR, PATCH } = firmware;
+            switch (ARCHITECTURE) {
+              case "esp32":
+                appSettings.update((store) => {
+                  store.firmware_esp32_required = {
+                    major: MAJOR,
+                    minor: MINOR,
+                    patch: PATCH,
+                  };
+                  return store;
+                });
+                break;
+              case "d51":
+                appSettings.update((store) => {
+                  store.firmware_d51_required = {
+                    major: MAJOR,
+                    minor: MINOR,
+                    patch: PATCH,
+                  };
+                  return store;
+                });
+                break;
+              default:
+                console.warn(
+                  `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`
+                );
+            }
+          }
         }
       }
     })
