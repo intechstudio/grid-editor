@@ -1,14 +1,23 @@
 [
   {
-    "ARCHITECTURE": "d51",
-    "MAJOR": 1,
-    "MINOR": 2,
-    "PATCH": 36
-  },
-  {
-    "ARCHITECTURE": "esp32",
-    "MAJOR": 1,
-    "MINOR": 2,
-    "PATCH": 36
+    "EDITOR_VERSION": {
+      "MAJOR": 1,
+      "MINOR": 2,
+      "PATCH": 36
+    },
+    "REQUIRED_FIRMWARES": [
+      {
+        "ARCHITECTURE": "d51",
+        "MAJOR": 1,
+        "MINOR": 2,
+        "PATCH": 36
+      },
+      {
+        "ARCHITECTURE": "esp32",
+        "MAJOR": 1,
+        "MINOR": 2,
+        "PATCH": 36
+      }
+    ]
   }
 ]
