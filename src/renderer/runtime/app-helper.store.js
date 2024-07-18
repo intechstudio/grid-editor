@@ -230,9 +230,9 @@ async function init_appsettings() {
       for (const obj of res) {
         const as = get(appSettings);
         const editorVersion = {
-          major: as.version.major,
-          minor: as.version.minor,
-          patch: as.version.patch,
+          major: Number(as.version.major),
+          minor: Number(as.version.minor),
+          patch: Number(as.version.patch),
         };
 
         const targetVersion = {
@@ -244,9 +244,9 @@ async function init_appsettings() {
         console.log(editorVersion, targetVersion);
 
         if (
-          editorVersion.major === targetVersion.major &&
-          editorVersion.minor === targetVersion.minor &&
-          editorVersion.patch === targetVersion.patch
+          editorVersion.major == targetVersion.major &&
+          editorVersion.minor == targetVersion.minor &&
+          editorVersion.patch == targetVersion.patch
         ) {
           const reqired = obj.REQUIRED_FIRMWARES;
           for (const firmware of reqired) {
