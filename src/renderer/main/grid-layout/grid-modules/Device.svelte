@@ -284,25 +284,25 @@
         use:contextTarget={{
           items: [
             {
-              text: `Copy Element (${modifier[0]} + C)`,
+              text: [`Copy Element`, `(${modifier[0]} + C)`],
               handler: () => handleCopyElement(elementNumber),
               isDisabled: () => get(copyElementDisabled),
               iconPath: "copy_all",
             },
             {
-              text: `Overwrite Element (${modifier[0]} + V)`,
+              text: [`Overwrite Element`, `(${modifier[0]} + V)`],
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => get(overwriteElementDisabled),
               iconPath: "paste_all",
             },
             {
-              text: `Discard Element Changes (${modifier[0]} + Shift + D)`,
+              text: [`Discard Element Changes`, `(${modifier[0]} + Shift + D)`],
               handler: () => handleDiscardElement(elementNumber),
               isDisabled: () => get(discardElementDisabled),
               iconPath: "clear_from_device_01",
             },
             {
-              text: `Clear Element (Shift + Delete)`,
+              text: [`Clear Element`, `(Shift + Delete)`],
               handler: handleClearElement,
               isDisabled: () => get(clearElementDisabled),
               iconPath: "clear_element",
