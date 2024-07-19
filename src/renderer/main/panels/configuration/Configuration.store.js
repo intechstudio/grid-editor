@@ -37,9 +37,10 @@ export function lastOpenedActionblocksRemove(short) {
 }
 
 export class ConfigObject {
-  constructor({ short, script }) {
+  constructor({ short, script, name = undefined }) {
     this.short = short;
     this.script = script;
+    this.name = name;
     this.id = uuidv4();
 
     let res = getComponentInformation({ short: short });
@@ -58,7 +59,9 @@ export class ConfigObject {
   }
 
   toRawLua() {
-    return `--[[@${this.short}]] ${this.script}`;
+    return `--[[@${this.short}${
+      typeof this.name !== "undefined" ? "#" + this.name : ""
+    }]] ${this.script}`;
   }
 
   makeCopy() {
@@ -208,14 +211,16 @@ export class ConfigList extends Array {
       actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    configList = actionString.split(/(--\[\[@+\w+\]\])/);
+    configList = actionString.split(/(--\[\[@+\w+#?\w+\]\])/);
 
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
+      const split = configList[i].match(/--\[\[@(.+?)\]\]/)?.[1].split("#");
       const obj = new ConfigObject({
-        //Extract short, e.g.: '--[[@gms]]' => 'gms'
-        short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
+        //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
+        short: split[0],
         script: configList[i + 1].trim(),
+        name: split[1],
       });
       super.push(obj);
     }
@@ -368,6 +373,7 @@ export class ConfigTarget {
   getConfig() {
     return new Promise((resolve, reject) => {
       const event = this.getEvent();
+
       if (typeof event.config === "undefined") {
         runtime
           .fetchOrLoadConfig({

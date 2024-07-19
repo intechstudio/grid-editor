@@ -1,6 +1,6 @@
 <script>
   import { watchResize } from "svelte-watch-resize";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
   import { grid } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
@@ -17,6 +17,8 @@
   import { GridScript } from "@intechstudio/grid-protocol";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
+  import SvgIcon from "../user-interface/SvgIcon.svelte";
+  import { clickOutside } from "../_actions/click-outside.action";
 
   let monaco_block;
 
@@ -47,6 +49,11 @@
     //Make local copies
     editedList = $configManager.makeCopy();
     editedConfig = editedList[$monaco_store.index];
+
+    name =
+      typeof editedConfig.name !== "undefined"
+        ? editedConfig.name
+        : editedConfig.information.displayName;
 
     //To be displayed in Editor
     const code_preview = GridScript.expandScript(editedConfig.script);
@@ -128,6 +135,7 @@
 
       $committed_code_store = {
         script: minifiedCode,
+        name: name,
         index: $monaco_store.index,
       };
 
@@ -152,6 +160,32 @@
   function handleResize(e) {
     editor?.layout();
   }
+
+  function handleEditClicked() {
+    isEditName = true;
+    setTimeout(() => {
+      const focus = nameInput.focus;
+      focus();
+    }, 1);
+  }
+
+  function handleClickOutside(e) {
+    isEditName = false;
+  }
+
+  function handleNameChange(value) {
+    if (value != editedConfig?.name) {
+      commitEnabled = true;
+    }
+  }
+
+  $: if (name && name !== editedConfig.information.displayName) {
+    handleNameChange(name);
+  }
+
+  let name;
+  let isEditName = false;
+  let nameInput;
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -164,7 +198,26 @@
   >
     <div class="flex flex-row w-full items-center">
       <div class="flex flex-col text-white">
-        <div>Code Editor</div>
+        <div class="flex flex-row gap-2 items-center">
+          <span>Name:</span>
+          <div
+            use:clickOutside={{ useCapture: true }}
+            on:click-outside={handleClickOutside}
+          >
+            <MoltenInput
+              bind:this={nameInput}
+              bind:target={name}
+              disabled={!isEditName}
+            />
+          </div>
+
+          <button
+            on:click={handleEditClicked}
+            class="cursor-pointer pointer-events-auto"
+          >
+            <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+          </button>
+        </div>
         <div class="opacity-70">
           <span
             >{`Character Count: ${

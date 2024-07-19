@@ -37,7 +37,7 @@
   const dispatch = createEventDispatcher();
 
   function replace_me(e) {
-    const { short, script } = e.detail;
+    const { short, script, name } = e.detail;
 
     const components = getAllComponents();
     const new_config = components.find((e) => e.information.short === short);
@@ -48,6 +48,7 @@
         typeof script === "undefined"
           ? new_config.information.defaultLua
           : script,
+      name: name,
     });
 
     dispatch("replace", {
@@ -58,12 +59,13 @@
   }
 
   function handleOutput(e) {
-    const { short, script } = e.detail;
+    const { short, script, name } = e.detail;
     dispatch("update", {
       index: index,
       config: new ConfigObject({
         short: short,
         script: script,
+        name: name,
       }),
     });
   }
@@ -177,13 +179,8 @@
           <svelte:component
             this={config.header}
             {config}
+            {index}
             {access_tree}
-            class="bg-secondary px-2 w-full h-full {config.information
-              .rounding === 'top'
-              ? 'rounded-tr-xl'
-              : ''} {config.information.rounding === 'bottom'
-              ? 'rounded-br-xl'
-              : ''}"
             on:toggle={handleToggle}
             on:output={handleOutput}
           />
