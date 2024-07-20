@@ -10,6 +10,7 @@ import {
   EventType,
   EventTypeToNumber,
   grid,
+  GridScript,
 } from "@intechstudio/grid-protocol";
 import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
@@ -286,14 +287,11 @@ export function updateAction(index: number, newConfig: ConfigObject) {
 }
 
 export function mergeActionToCode(index: number, configs: ConfigObject[]) {
-  //Create new CodeBlock with merged code
-  const codeBlock = new ConfigObject({
-    short: "cb",
-    script: configs.map((e) => e.script).join(" "),
-  });
+  //Merge scripts
+  const script = configs.map((e) => e.script).join(" ");
 
   //Check syntax
-  if (codeBlock.checkSyntax() === false) {
+  if (GridScript.checkSyntax(script) === false) {
     logger.set({
       type: "fail",
       mode: 0,
@@ -302,6 +300,12 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
     });
     return;
   }
+
+  //Create new CodeBlock with merged code
+  const codeBlock = new ConfigObject({
+    short: "cb",
+    script: script,
+  });
 
   configManager.update((s: ConfigList) => {
     //Insert CodeBlock into position
