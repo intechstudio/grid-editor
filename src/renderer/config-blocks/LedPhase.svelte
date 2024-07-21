@@ -47,15 +47,18 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import { Script } from "./_script_parsers.js";
-  import { LocalDefinitions } from "../runtime/runtime.store";
+  import { LocalDefinitions, user_input } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { get } from "svelte/store";
+  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store.js";
+  import { ElementType } from "@intechstudio/grid-protocol";
 
   export let config;
   export let humanScript;
@@ -107,42 +110,68 @@
     dispatch("output", { short: config.short, script: script });
   }
 
+  const defaultLayerSuggestion = [
+    { value: "1", info: "layer 1" },
+    { value: "2", info: "layer 2" },
+  ];
+
   const _suggestions = [
     // led number
-    [
-      //{value: 'this.ind()', info: 'this led'},
-    ],
+    [],
     // layer
-    [
-      { value: "1", info: "layer 1" },
-      { value: "2", info: "layer 2" },
-    ],
+    defaultLayerSuggestion,
     // intensity or value
-    [
-      //{value: 'to do...', info: 'to do...'}
-    ],
+    [],
   ];
 
   let suggestions = [];
 
   $: if ($configManager) {
+    updateSuggestions();
+  }
+
+  function updateSuggestions() {
     const index = $configManager.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: $configManager,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {
-      // SKIP LAYER
-      if (i != 1) {
-        return [...localDefinitions, ...s];
+      if (i === 1) {
+        const ui = get(user_input);
+        const target = ConfigTarget.createFrom({ userInput: ui });
+        switch (target.elementType) {
+          case ElementType.BUTTON:
+            return [
+              { value: "1", info: "Button layer" },
+              { value: "2", info: "Unused layer" },
+            ];
+          case ElementType.ENCODER:
+            return [
+              { value: "1", info: "Button layer" },
+              { value: "2", info: "Rotation layer" },
+            ];
+          case ElementType.FADER:
+            return [
+              { value: "1", info: "Fader layer" },
+              { value: "2", info: "Unused layer" },
+            ];
+          case ElementType.POTMETER:
+            return [
+              { value: "1", info: "Potmeter layer" },
+              { value: "2", info: "Unused layer" },
+            ];
+          default:
+            return defaultLayerSuggestion;
+        }
       } else {
-        return [...s, ...localDefinitions];
+        return [...localDefinitions, ...s];
       }
     });
   }
 
   onMount(() => {
-    suggestions = _suggestions;
+    updateSuggestions();
   });
 
   let suggestionElement = undefined;
