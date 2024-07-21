@@ -108,7 +108,7 @@
   const channels = (length) => {
     let arr = [];
     for (let i = 0; i < length; i++) {
-      arr[i] = { value: i, info: `Channel ${i}` };
+      arr[i] = { value: i, info: `Channel ${i + 1}` };
     }
     return arr;
   };
