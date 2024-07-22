@@ -95,36 +95,42 @@
         const data = event.data;
         // action towards runtime
         switch (data.type) {
-          case "package-action": {
-            if (data.id == "change-page") {
-              runtime.change_page(data.num);
-            } else if (data.id == "execute-lua-script") {
-              instructions
-                .sendImmediateToGrid(
-                  data.targetDx ?? -127,
-                  data.targetDy ?? -127,
-                  data.script
-                )
-                .catch((e) => {
-                  console.warn(e);
-                });
-            } else if (data.id == "persist-data") {
-              appSettings.update((s) => {
-                const newStorage = structuredClone(
-                  s.persistent.packagesDataStorage
-                );
-                newStorage[data.packageId] = data.data;
-                s.persistent.packagesDataStorage = newStorage;
-                return s;
+          case "persist-data": {
+            appSettings.update((s) => {
+              const newStorage = structuredClone(
+                s.persistent.packagesDataStorage
+              );
+              newStorage[data.packageId] = data.data;
+              s.persistent.packagesDataStorage = newStorage;
+              return s;
+            });
+            break;
+          }
+          case "execute-lua-script":
+            console.log(`Sending script: ${data.script}`);
+            instructions
+              .sendImmediateToGrid(
+                data.targetDx ?? -127,
+                data.targetDy ?? -127,
+                data.script
+              )
+              .catch((e) => {
+                console.warn(e);
               });
-            } else if (data.id == "add-action") {
-              addPackageAction({
-                ...data.info,
-                packageId: data.packageId,
-              });
-            } else if (data.id == "remove-action") {
-              removePackageAction(data.packageId, data.actionId);
-            }
+          break;
+          case "add-action": {
+            addPackageAction({
+              ...data.info,
+              packageId: data.packageId,
+            });
+            break;
+          }
+          case "remove-action": {
+            removePackageAction(data.packageId, data.actionId);
+            break;
+          }
+          case "change-page": {
+            runtime.change_page(data.num);
             break;
           }
           case "persist-github-package": {

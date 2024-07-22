@@ -32,7 +32,6 @@ const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
 
 process.parentPort.on("message", async (e) => {
-  console.log(`Receiving message: ${JSON.stringify(e.data)}`);
   try {
     const data = e.data;
     switch (e.data.type) {
@@ -535,7 +534,7 @@ function startPackageDirectoryWatcher(path: string): void {
     ignored: /[\/\\]\./,
     persistent: true,
     ignoreInitial: true, // Ignore initial events on startup
-    depth: 10, // Levels of subdirectories to watch
+    depth: 1, // Levels of subdirectories to watch //TODO: Increasing adds significant delay in message processing
   });
 
   directoryWatcher

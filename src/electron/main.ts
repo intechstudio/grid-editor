@@ -352,7 +352,6 @@ function createWindow() {
     mainWindow.webContents.postMessage("package-manager-port", null, [port1]);
     packageEditorPort = port2;
     port2.on('message', (e) => {
-      console.log(`Sending message: ${JSON.stringify(e.data)}`);
       packageManagerProcess?.postMessage(e.data, e.ports);
     });
     port2.start();
