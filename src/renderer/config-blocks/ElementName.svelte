@@ -29,7 +29,8 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
 
   export let config;
@@ -69,7 +70,7 @@
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Element Name</div>
     <AtomicInput
-      inputValue={scriptValue}
+    inputValue={GridScript.humanize(scriptValue)}
       {validator}
       on:validator={(e) => {
         const data = e.detail;
@@ -77,7 +78,7 @@
       }}
       on:change={(e) => {
         let newValue = e.detail;
-        sendData(newValue);
+        sendData(GridScript.shortify(newValue));
       }}
     />
   </div>

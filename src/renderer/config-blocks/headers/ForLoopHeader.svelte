@@ -5,7 +5,7 @@
   import Toggle from "../../main/user-interface/Toggle.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "../_validators";
-  import AtomicInput from "../../main/user-interface/AtomicInput.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
 
   export let index;
@@ -84,7 +84,7 @@
   }
 
   function handleInputFieldChange(e, i) {
-    data[i].value = e.detail;
+    data[i].value = GridScript.shortify(e.detail);
     const shortData = data.map((e) => GridScript.shortify(e.value));
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
     dispatch("output", {
@@ -135,7 +135,7 @@
               {#each data as obj, i}
                 <AtomicInput
                   class="flex h-7"
-                  inputValue={obj.value}
+                  inputValue={GridScript.humanize(obj.value)}
                   suggestions={obj.suggestions}
                   validator={obj.validator}
                   on:validator={(e) => {
