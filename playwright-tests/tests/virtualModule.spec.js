@@ -9,7 +9,7 @@ test.beforeEach(({ page }) => {
 
 test("add bu", async ({ page }) => {
   const VirtualModule = new VirtualModulePage(page);
-
+  console.log("PAGE_PATH", PAGE_PATH);
   await page.goto(PAGE_PATH);
   // await page.goto("https://www.google.com");
   await page.waitForTimeout(1000);
