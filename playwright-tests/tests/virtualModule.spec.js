@@ -2,6 +2,11 @@ import { test, expect } from "@playwright/test";
 import { VirtualModulePage } from "../pages/virtualModulePage";
 import { PAGE_PATH } from "../utility";
 
+test.beforeEach(({ page }) => {
+  // mocks navigator.serial, so headless UI tests can run!
+  page.addInitScript("Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})")
+})
+
 test("add bu", async ({ page }) => {
   const VirtualModule = new VirtualModulePage(page);
 
