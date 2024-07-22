@@ -3,7 +3,7 @@ const config = {
   mode: "jit",
   content: [
     "./src/renderer/**/*.{html,js,svelte,ts}",
-    "./node_modules/@intechstudio/grid-uikit/**/*.{html,js,svelte,ts}",
+    "./node_modules/@intechstudio/grid-uikit/dist/*.{html,js,svelte,ts}",
   ],
   darkMode: "class",
   theme: {
