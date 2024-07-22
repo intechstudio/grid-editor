@@ -10,6 +10,8 @@ import {
   MessageChannelMain,
   utilityProcess,
   screen,
+  protocol,
+  net
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -75,6 +77,10 @@ let tray = null;
 
 let offlineProfileCloudServer: any = undefined;
 let packageManagerProcess: Electron.UtilityProcess | undefined = undefined;
+
+protocol.registerSchemesAsPrivileged([
+  { scheme: "package", privileges: { bypassCSP: true , standard: true}}
+]);
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -176,6 +182,14 @@ if (!gotTheLock) {
       create_tray();
     }
     createWindow();
+    protocol.handle('package', (req) => { 
+      const pathToMedia = req.url.substring('package://'.length);
+      const packageFolder = path.resolve(
+        path.join(app.getPath("documents"), "grid-userdata", "packages")
+      );
+      const fullPath = path.join(packageFolder, pathToMedia);
+      return net.fetch(`file://${fullPath}`);
+    });
   });
 }
 
@@ -334,18 +348,25 @@ function createWindow() {
   });
   // Handle package configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
+    const { port1, port2 } = new MessageChannelMain();
+    mainWindow.webContents.postMessage("package-manager-port", null, [port1]);
+    packageEditorPort = port2;
+    port2.on('message', (e) => {
+      console.log(`Sending message: ${JSON.stringify(e.data)}`);
+      packageManagerProcess?.postMessage(e.data, e.ports);
+    });
+    port2.start();
     restartPackageManagerProcess();
   });
 }
 
 let stopPackageManagerTimeout = undefined;
 let restartPackageManagerOnShutdown = true;
+let packageEditorPort = undefined;
 function startPackageManager(
   updatePackageOnStartName: string | undefined = undefined
 ) {
-  const { port1, port2 } = new MessageChannelMain();
-  mainWindow.webContents.postMessage("package-manager-port", null, [port1]);
-
+  //TODO: Handle package messages
   const packageFolder = path.resolve(
     path.join(app.getPath("documents"), "grid-userdata", "packages")
   );
@@ -361,8 +382,7 @@ function startPackageManager(
         githubPackages: store.get("githubPackages"),
         updatePackageOnStartName,
         packageDeveloper: store.get("packageDeveloper"),
-      },
-      [port2]
+      }
     );
 
     packageManagerProcess.on("message", (message) => {
@@ -377,8 +397,7 @@ function startPackageManager(
         if (restartPackageManagerOnShutdown) {
           startPackageManager();
         }
-      }
-      if (
+      } else if (
         message.type === "delete-package-folder" ||
         message.type === "update-package-folder"
       ) {
@@ -389,15 +408,10 @@ function startPackageManager(
         });
         packageManagerProcess!.kill();
         packageManagerProcess = undefined;
+      } else {
+        packageEditorPort?.postMessage(message);
       }
     });
-  } else {
-    packageManagerProcess.postMessage(
-      {
-        type: "set-new-message-port",
-      },
-      [port2]
-    );
   }
 }
 

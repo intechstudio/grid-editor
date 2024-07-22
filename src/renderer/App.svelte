@@ -152,17 +152,18 @@
           case "packages": {
             // refresh packagelist
             const enabledPackages = data.packages
-              .filter((e) => e.status == "Enabled")
-              .map((e) => e.id);
+              .filter((e) => e.status == "Enabled");
+            for (const _package of enabledPackages){
+              if (_package.componentsPath){
+                console.log(`Importing ${_package.componentsPath}`);
+                import(`package://${_package.componentsPath}`);
+              }
+            }
             appSettings.update((s) => {
               s.packageList = data.packages;
-              s.persistent.enabledPackages = enabledPackages;
+              s.persistent.enabledPackages = enabledPackages.map((e) => e.id);
               return s;
             });
-            break;
-          }
-          case "refresh-packages": {
-            const env = process.env.NODE_ENV;
             break;
           }
           case "show-message": {

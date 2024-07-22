@@ -1,6 +1,5 @@
 import path from "path";
-import fs, { readFile } from "fs";
-import { MessagePortMain } from "electron/main";
+import fs from "fs";
 import AdmZip from "adm-zip";
 import os from "os";
 import util from "util";
@@ -33,7 +32,9 @@ const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
 
 process.parentPort.on("message", async (e) => {
+  console.log(`Receiving message: ${JSON.stringify(e.data)}`);
   try {
+    const data = e.data;
     switch (e.data.type) {
       case "init": {
         editorVersion = e.data.version;
@@ -52,13 +53,6 @@ process.parentPort.on("message", async (e) => {
         if (e.data.updatePackageOnStartName) {
           await downloadPackage(e.data.updatePackageOnStartName);
         }
-        const port = e.ports[0];
-        setPackageManagerMessagePort(port);
-        break;
-      }
-      case "set-new-message-port": {
-        const port = e.ports[0];
-        setPackageManagerMessagePort(port);
         break;
       }
       case "refresh-packages": {
@@ -76,7 +70,7 @@ process.parentPort.on("message", async (e) => {
       }
       case "create-package-message-port": {
         if (!currentlyLoadedPackages[e.data.id]) {
-          messagePort?.postMessage({
+          process.parentPort?.postMessage({
             type: "debug-error",
             message:
               "Package not loaded " +
@@ -91,6 +85,58 @@ process.parentPort.on("message", async (e) => {
         );
         break;
       }
+      case "load-package":
+        await loadPackage(data.id, data.payload);
+        break;
+      case "unload-package":
+        await unloadPackage(data.id);
+        break;
+      case "download-package":
+        await downloadPackage(data.id);
+        break;
+      case "update-package":
+        await updatePackage(data.id);
+        break;
+      case "uninstall-package":
+        await uninstallPackage(data.id);
+        break;
+      case "refresh-package-list":
+        await notifyListener();
+        break;
+      case "add-github-repository":
+        customGithubPackageList.set(data.id, {
+          name: data.packageName,
+          gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+          gitHubRepositoryName: data.gitHubRepositoryName,
+        });
+        await updateGithubPackages();
+        if (customGithubPackageList.has(data.id)) {
+          process.parentPort?.postMessage({
+            type: "persist-github-package",
+            id: data.id,
+            packageName: data.packageName,
+            gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+            gitHubRepositoryName: data.gitHubRepositoryName,
+          });
+        }
+        break;
+      case "send-to-package":
+        //... send data.message through to each plugin for dedicated processing
+        // add the following to a codeblock: package_send("package_name", 123.3, 22, "hello")
+        let args = JSON.parse(`[${data.message}]`);
+        let packageId = args.shift();
+        if (!currentlyLoadedPackages[packageId]) {
+          process.parentPort?.postMessage({
+            type: "debug-error",
+            message:
+              "Package not loaded " +
+              packageId +
+              ` ${Object.keys(currentlyLoadedPackages)}`,
+          });
+          break;
+        }
+        await currentlyLoadedPackages[packageId].sendMessage(args);
+        break;
       default: {
         console.log(`Package Manager: Unknown message type of ${e.data.type}`);
       }
@@ -114,14 +160,14 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
       console.log({ packageIndex });
       if (packageIndex != -1) {
         currentPackageList[packageIndex].status = PackageStatus.Downloaded;
-        messagePort?.postMessage({
+        process.parentPort?.postMessage({
           type: "debug-error",
           error: `Received uncaught exception from package: ${packageName}, error: ${err}`,
         });
       }
     }
   }
-  messagePort?.postMessage({ type: "packages", packages: currentPackageList });
+  process.parentPort?.postMessage({ type: "packages", packages: currentPackageList });
 });
 
 const currentlyLoadedPackages = {};
@@ -129,102 +175,15 @@ const haveBeenLoadedPackages = new Set<string>();
 const downloadingPackages = new Set<string>();
 let currentPackageList = [];
 
-let messagePort: MessagePortMain | undefined = undefined;
-
-function setPackageManagerMessagePort(port: MessagePortMain) {
-  messagePort = port;
-  messagePort.on("message", async (event) => {
-    try {
-      const data = event.data;
-      switch (data.type) {
-        case "load-package":
-          await loadPackage(data.id, data.payload);
-          break;
-        case "unload-package":
-          await unloadPackage(data.id);
-          break;
-        case "download-package":
-          await downloadPackage(data.id);
-          break;
-        case "update-package":
-          await updatePackage(data.id);
-          break;
-        case "uninstall-package":
-          await uninstallPackage(data.id);
-          break;
-        case "refresh-package-list":
-          await notifyListener();
-          break;
-        case "add-github-repository":
-          customGithubPackageList.set(data.id, {
-            name: data.packageName,
-            gitHubRepositoryOwner: data.gitHubRepositoryOwner,
-            gitHubRepositoryName: data.gitHubRepositoryName,
-          });
-          await updateGithubPackages();
-          if (customGithubPackageList.has(data.id)) {
-            messagePort?.postMessage({
-              type: "persist-github-package",
-              id: data.id,
-              packageName: data.packageName,
-              gitHubRepositoryOwner: data.gitHubRepositoryOwner,
-              gitHubRepositoryName: data.gitHubRepositoryName,
-            });
-          }
-          break;
-        case "send-to-package":
-          //... send data.message through to each plugin for dedicated processing
-          // add the following to a codeblock: package_send("package_name", 123.3, 22, "hello")
-          let args = JSON.parse(`[${data.message}]`);
-          let packageId = args.shift();
-          if (!currentlyLoadedPackages[packageId]) {
-            messagePort?.postMessage({
-              type: "debug-error",
-              message:
-                "Package not loaded " +
-                packageId +
-                ` ${Object.keys(currentlyLoadedPackages)}`,
-            });
-            break;
-          }
-          await currentlyLoadedPackages[packageId].sendMessage(args);
-          break;
-        case "create-package-message-port":
-          if (!currentlyLoadedPackages[data.id]) {
-            messagePort?.postMessage({
-              type: "debug-error",
-              message:
-                "Package not loaded " +
-                data.id +
-                ` ${Object.keys(currentlyLoadedPackages)}`,
-            });
-            break;
-          }
-          await currentlyLoadedPackages[data.id].addMessagePort(
-            event.ports?.[0],
-            data.senderId
-          );
-          break;
-      }
-    } catch (e) {
-      messagePort?.postMessage({ type: "debug-error", message: e.message });
-    }
-  });
-  port.start();
-  notifyListener();
-}
-
 async function stopPackageManager() {
   for (let packageName of Object.keys(currentlyLoadedPackages)) {
     await currentlyLoadedPackages[packageName].unloadPackage();
     delete currentlyLoadedPackages[packageName];
   }
-  if (messagePort) {
-    messagePort.close();
-  }
 }
 
 async function loadPackage(packageName: string, persistedData: any) {
+  console.log(`ENABLING PACKAGE: ${packageName}`);
   try {
     if (currentlyLoadedPackages[packageName]) {
       return;
@@ -234,15 +193,8 @@ async function loadPackage(packageName: string, persistedData: any) {
     const _package = require(packageDirectory);
     await _package.loadPackage(
       {
-        sendMessageToRuntime: (payload) => {
-          messagePort?.postMessage({
-            type: "package-action",
-            packageId: packageName,
-            ...payload,
-          });
-        },
-        sendMessageToProcess: (payload) => {
-          process.parentPort.postMessage({
+        sendMessageToEditor: (payload) => {
+          process.parentPort?.postMessage({
             packageId: packageName,
             ...payload,
           });
@@ -254,7 +206,7 @@ async function loadPackage(packageName: string, persistedData: any) {
     haveBeenLoadedPackages.add(packageName);
     notifyListener();
   } catch (e) {
-    messagePort?.postMessage({
+    process.parentPort?.postMessage({
       type: "debug-error",
       error: e.message,
     });
@@ -324,17 +276,17 @@ async function downloadPackage(packageName: string) {
   } catch (e) {
     if (customGithubPackageList.has(packageName)) {
       customGithubPackageList.delete(packageName);
-      messagePort?.postMessage({
+      process.parentPort?.postMessage({
         type: "show-message",
         message: "Couldn't find package archive, removed from list!",
         messageType: "fail",
       });
     }
-    messagePort?.postMessage({
+    process.parentPort?.postMessage({
       type: "remove-github-package",
       id: packageName,
     });
-    messagePort?.postMessage({ type: "debug-error", message: e.message });
+    process.parentPort?.postMessage({ type: "debug-error", message: e.message });
   } finally {
     downloadingPackages.delete(packageName);
     notifyListener();
@@ -368,7 +320,7 @@ async function uninstallPackage(packageName: string) {
   }
   if (customGithubPackageList.has(packageName)) {
     customGithubPackageList.delete(packageName);
-    messagePort?.postMessage({
+    process.parentPort?.postMessage({
       type: "remove-github-package",
       id: packageName,
     });
@@ -387,14 +339,16 @@ async function uninstallPackage(packageName: string) {
 
 async function notifyListener() {
   const packages = await getAvailablePackages();
-  messagePort?.postMessage({ type: "packages", packages: packages });
+  console.log("SENDING PACKAGES");
+  process.parentPort?.postMessage({ type: "packages", packages: packages });
 }
 
 async function getInstalledPackages(): Promise<
   {
     packageId: string;
     packageName: string;
-    packagePreferenceHtml?: string;
+    componentsPath?: string;
+    preferenceComponent?: string;
     packageVersion?: string;
   }[]
 > {
@@ -416,7 +370,8 @@ async function getInstalledPackages(): Promise<
         const packagePath = path.join(packageFolder, folder.name);
 
         let packageName: string | undefined = undefined;
-        let packagePreferenceHtml: string | undefined = undefined;
+        let componentsPath: string | undefined = undefined;
+        let preferenceComponent: string | undefined = undefined;
         let packageVersion: string | undefined = undefined;
         if (fs.statSync(packagePath).isDirectory()) {
           const packageJsonPath = path.join(packagePath, "package.json");
@@ -425,22 +380,18 @@ async function getInstalledPackages(): Promise<
             const packageJson = JSON.parse(packageFile.toString());
             packageName = packageJson.description;
             packageVersion = packageJson.version;
-            const preferenceRelativePath = packageJson.grid_editor?.preference;
-            if (preferenceRelativePath) {
-              const preferencePath = path.join(
-                packagePath,
-                preferenceRelativePath
-              );
-              const readFile = util.promisify(fs.readFile);
-              packagePreferenceHtml = await readFile(preferencePath, "utf-8");
+            if (packageJson.grid_editor?.componentsPath){
+              componentsPath = path.join(folder.name, packageJson.grid_editor?.componentsPath);
             }
+            preferenceComponent = packageJson.grid_editor?.preferenceComponent;
           }
         }
         packageName = packageName ?? packageId;
         return {
           packageId: packageId,
           packageName: packageName,
-          packagePreferenceHtml: packagePreferenceHtml,
+          componentsPath: componentsPath,
+          preferenceComponent: preferenceComponent,
           packageVersion: packageVersion,
         };
       })
@@ -471,7 +422,8 @@ async function getAvailablePackages() {
     id: string;
     name: string;
     status: PackageStatus;
-    preferenceHtml?: string;
+    componentsPath?: string;
+    preferenceComponent?: string;
     packageVersion?: string;
     canUpdate: boolean;
   }[] = [];
@@ -487,7 +439,8 @@ async function getAvailablePackages() {
       id: _package.packageId,
       name: _package.packageName,
       status: getPackageStatus(_package.packageId, installedPackages),
-      preferenceHtml: _package.packagePreferenceHtml,
+      componentsPath: _package.componentsPath,
+      preferenceComponent: _package.preferenceComponent,
       packageVersion: _package.packageVersion,
       canUpdate:
         _package.packageVersion != undefined &&
@@ -571,7 +524,6 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
 let directoryWatcher: any = null;
 
 function restartIfDeveloperMode() {
-  console.log({ value: developerModeEnabled });
   if (developerModeEnabled) {
     stopPackageManager();
     process.parentPort.postMessage({ type: "shutdown-complete" });
