@@ -43,13 +43,14 @@
     spaceAlong={-target.offsetHeight + offset.y}
   >
     <div
-      class="flex flex-col items-start bg-black bg-opacity-75 border-white rounded p-2 absolute"
+      class="flex flex-col items-start bg-gray-900 text-white/80 border border-white/50 rounded absolute"
     >
       {#each items as item}
         {@const disabled = item.isDisabled ? item.isDisabled() : false}
         <button
-          class="text-white text-sm flex flex-row gap-2 items-center whitespace-nowrap w-full px-2 text-left cursor-default"
-          class:hover:bg-white={!disabled}
+          class="text-white flex flex-row gap-2 {disabled
+            ? ''
+            : 'hover:bg-white/40 hover:text-white'} items-center whitespace-nowrap w-full px-2 py-2 text-left cursor-default"
           class:opacity-75={!disabled}
           class:opacity-25={disabled}
           {disabled}
