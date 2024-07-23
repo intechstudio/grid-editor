@@ -16,7 +16,7 @@
   "FIRMWARE_GRID_ESP32_REQUIRED_MAJOR": 1,
   "FIRMWARE_GRID_ESP32_REQUIRED_MINOR": 2,
   "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 36,
-  "FIRMWARE_GRID_URL_BEGINING": "https://github.com/intechstudio/grid-fw/releases/latest/download/",
+  "FIRMWARE_GRID_URL_BEGINING": "https://github.com/intechstudio/grid-fw/releases/download/",
   "FIRMWARE_GRID_NIGHTLY_ESP32_URL": "https://github.com/intechstudio/grid-fw/raw/preview/Preview/Firmware/grid_esp32_nightly.uf2",
   "FIRMWARE_GRID_NIGHTLY_D51_URL": "https://github.com/intechstudio/grid-fw/raw/preview/Preview/Firmware/grid_d51_nightly.uf2",
   "FIRMWARE_GRID_URL_END": "/grid_release.zip",

@@ -19,6 +19,7 @@ export async function downloadInMainProcess(url, directory) {
   let folder = store.get("profileFolder") + "/" + directory;
   console.log("DL START", folder);
 
+  console.log(url);
   let result = await download(win, url, {
     directory: folder,
   }).catch((err) => console.log("dl error", err));
