@@ -120,83 +120,91 @@ const blockElements = {
   },
 };
 
-test.beforeAll(async ({ page }) => {
+test.beforeEach(({ page }) => {
+  // mocks navigator.serial, so headless UI tests can run!
   page.addInitScript(
     "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
   );
-  configPage = new ConfigPage(page);
-  modulePage = new ModulePage(page);
-  connectModulePage = new ConnectModulePage(page);
-  await page.goto(PAGE_PATH);
-  await setupModule("EF44");
 });
 
-test.describe("Block Existence", () => {
-  for (const [category, blockList] of Object.entries(blocks)) {
-    test.describe(`${category} category`, () => {
-      for (const blockName of blockList) {
-        // Test
-        test(`should find ${blockName} block`, async () => {
-          if (category == "specialButton") {
-            await modulePage.removeModule();
-            await setupModule("BU16");
-          }
-          await configPage.openActionBlockList();
-          const blockElement = configPage.blocks[category][blockName]["block"];
-          await expect(blockElement).toBeVisible();
-        });
-      }
-    });
-  }
-});
+test.describe("GREG NAME THIS PROPERLY", () => {
 
-test.describe("Elements Existence", () => {
-  for (const [category, blockData] of Object.entries(blockElements)) {
-    test.describe(`${category} category`, () => {
-      for (const [blockName, elementList] of Object.entries(blockData)) {
-        test.describe(`${blockName} block`, () => {
-          test.beforeAll(async () => {
-            if (blockName == "Press/Release") {
+  test.beforeEach(async ({ page }) => {
+    configPage = new ConfigPage(page);
+    modulePage = new ModulePage(page);
+    connectModulePage = new ConnectModulePage(page);
+    await page.goto(PAGE_PATH);
+    await setupModule("EF44");
+  });
+
+  test.describe("Block Existence", () => {
+    for (const [category, blockList] of Object.entries(blocks)) {
+      test.describe(`${category} category`, () => {
+        for (const blockName of blockList) {
+          // Test
+          test(`should find ${blockName} block`, async () => {
+            if (category == "specialButton") {
               await modulePage.removeModule();
               await setupModule("BU16");
             }
-            await configPage.removeAllActions();
-            await configPage.noActionAddActionButton.isVisible();
-            await configPage.openAndAddActionBlock(category, blockName);
-            if (blockName == "Repeater Loop") {
-              configPage.openLoopTimes();
+            await configPage.openActionBlockList();
+            const blockElement = configPage.blocks[category][blockName]["block"];
+            await expect(blockElement).toBeVisible();
+          });
+        }
+      });
+    }
+  });
+
+  test.describe("Elements Existence", () => {
+    for (const [category, blockData] of Object.entries(blockElements)) {
+      test.describe(`${category} category`, () => {
+        for (const [blockName, elementList] of Object.entries(blockData)) {
+          test.describe(`${blockName} block`, () => {
+            test.beforeAll(async () => {
+              if (blockName == "Press/Release") {
+                await modulePage.removeModule();
+                await setupModule("BU16");
+              }
+              await configPage.removeAllActions();
+              await configPage.noActionAddActionButton.isVisible();
+              await configPage.openAndAddActionBlock(category, blockName);
+              if (blockName == "Repeater Loop") {
+                configPage.openLoopTimes();
+              }
+            });
+
+            // Test
+            for (const elementName of elementList) {
+              test(`should find ${blockName} block's ${elementName} element`, async () => {
+                const element =
+                  configPage.blocks[category][blockName]["elements"][elementName];
+                await expect(element).toBeVisible();
+              });
             }
           });
+        }
+      });
+    }
+  });
 
-          // Test
-          for (const elementName of elementList) {
-            test(`should find ${blockName} block's ${elementName} element`, async () => {
-              const element =
-                configPage.blocks[category][blockName]["elements"][elementName];
-              await expect(element).toBeVisible();
-            });
-          }
-        });
-      }
-    });
-  }
-});
+  test("should find Else If Actions", async () => {
+    const category = "condition";
+    const ElseIf = "Else if";
+    const Else = "Else";
+    await configPage.removeAllActions();
+    await configPage.noActionAddActionButton.isVisible();
+    await configPage.openAndAddActionBlock(category, "If");
+    await configPage.openActionsInIf();
+    await configPage.addActionBlock(category, ElseIf);
+    await configPage.openActionsInElseIf();
+    await configPage.addActionBlock(category, Else);
 
-test("should find Else If Actions", async () => {
-  const category = "condition";
-  const ElseIf = "Else if";
-  const Else = "Else";
-  await configPage.removeAllActions();
-  await configPage.noActionAddActionButton.isVisible();
-  await configPage.openAndAddActionBlock(category, "If");
-  await configPage.openActionsInIf();
-  await configPage.addActionBlock(category, ElseIf);
-  await configPage.openActionsInElseIf();
-  await configPage.addActionBlock(category, Else);
+    const elementElse = configPage.blocks[category][Else]["elements"]["else"];
+    const elementElseIf =
+      configPage.blocks[category][ElseIf]["elements"]["input"];
+    await expect(elementElse).toBeVisible();
+    await expect(elementElseIf).toBeVisible();
+  });
 
-  const elementElse = configPage.blocks[category][Else]["elements"]["else"];
-  const elementElseIf =
-    configPage.blocks[category][ElseIf]["elements"]["input"];
-  await expect(elementElse).toBeVisible();
-  await expect(elementElseIf).toBeVisible();
-});
+})
