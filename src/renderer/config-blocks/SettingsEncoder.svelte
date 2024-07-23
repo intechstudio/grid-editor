@@ -89,13 +89,21 @@
   );
 
   function sendData(p1, p2, p3, p4, p5) {
-    const optional = [
-      minMaxEnabled ? `self:emi(${p3}) self:ema(${p4})` : "",
-      sensitivityEnabled ? `self:ese(${p5})` : "",
-    ];
+    const optional = [];
+
+    if (minMaxEnabled) {
+      optional.push(`self:emi(${p3}) self:ema(${p4})`);
+    }
+
+    if (sensitivityEnabled) {
+      optional.push(`self:ese(${p5})`);
+    }
+
     dispatch("output", {
       short: `sec`,
-      script: `self:emo(${p1}) self:ev0(${p2}) ${optional.join(" ")}`,
+      script:
+        `self:emo(${p1}) self:ev0(${p2})` +
+        (optional.length > 0 ? " " + optional.join(" ") : ""),
     });
   }
 
@@ -170,12 +178,11 @@
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
-  <div class="flex flex-row gap-2">
+  <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         inputValue={GridScript.humanize(emi)}
-        disabled={!minMaxEnabled}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -194,7 +201,6 @@
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         inputValue={GridScript.humanize(ema)}
-        disabled={!minMaxEnabled}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -213,11 +219,10 @@
 
   <MeltCheckbox bind:target={sensitivityEnabled} title={"Enable Sensitivity"} />
 
-  <div class="flex flex-col">
+  <div class="flex flex-col" class:hidden={!sensitivityEnabled}>
     <span class="text-sm text-gray-500">Sensitivcity</span>
     <AtomicInput
       inputValue={GridScript.humanize(ese)}
-      disabled={!sensitivityEnabled}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()

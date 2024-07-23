@@ -78,10 +78,16 @@
   );
 
   function sendData(p1, p2, p3) {
-    const optional = [minMaxEnabled ? `self:bmi(${p2}) self:bma(${p3})` : ""];
+    const optional = [];
+    if (minMaxEnabled) {
+      optional.push(`self:bmi(${p2}) self:bma(${p3})`);
+    }
+
     dispatch("output", {
       short: `sbc`,
-      script: `self:bmo(${p1}) ${optional.join(" ")}`,
+      script:
+        `self:bmo(${p1})` +
+        (optional.length > 0 ? " " + optional.join(" ") : ""),
     });
   }
 
@@ -120,11 +126,11 @@
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Button Mode</div>
     <AtomicInput
-      inputValue={GridScript.humanize(scriptValue)}
+      inputValue={GridScript.humanize(bmo)}
       suggestions={suggestions[0]}
       suggestionTarget={suggestionElement}
       on:change={(e) => {
-        scriptValue = GridScript.shortify(e.detail);
+        bmo = GridScript.shortify(e.detail);
       }}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
@@ -139,12 +145,11 @@
   <AtomicSuggestions bind:component={suggestionElement} />
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
-  <div class="flex flex-row gap-2">
+  <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         inputValue={GridScript.humanize(bmi)}
-        disabled={!minMaxEnabled}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -164,7 +169,6 @@
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         inputValue={GridScript.humanize(bma)}
-        disabled={!minMaxEnabled}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()

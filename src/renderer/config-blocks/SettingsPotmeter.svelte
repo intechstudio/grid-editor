@@ -74,10 +74,17 @@
   $: sendData(pmo, pma, minMaxEnabled ? pmi : undefined);
 
   function sendData(p1, p2, p3) {
-    const optional = [minMaxEnabled ? `self:pmi(${p3})  self:pma(${p2})` : ""];
+    const optional = [];
+
+    if (minMaxEnabled) {
+      optional.push(`self:pmi(${p3})  self:pma(${p2})`);
+    }
+
     dispatch("output", {
       short: "spc",
-      script: `self:pmo(${p1}) ${optional.join(" ")}`,
+      script:
+        `self:pmo(${p1})` +
+        (optional.length > 0 ? " " + optional.join(" ") : ""),
     });
   }
 
@@ -139,12 +146,11 @@
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
-  <div class="flex flex-row gap-2">
+  <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         inputValue={GridScript.humanize(pmi)}
-        disabled={!minMaxEnabled}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -164,7 +170,6 @@
       <AtomicInput
         inputValue={GridScript.humanize(pma)}
         suggestions={suggestions[1]}
-        disabled={!minMaxEnabled}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
         }}
