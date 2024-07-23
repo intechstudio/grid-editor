@@ -42,6 +42,7 @@ export function getAllComponents() {
 }
 
 export function addPackageAction(info) {
+  removePackageAction(info.packageId, info.actionId);
   package_infos.push(info);
 }
 

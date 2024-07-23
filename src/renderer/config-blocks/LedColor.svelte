@@ -48,8 +48,9 @@ A -> B : AB-First step
 */
 
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
-  import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import { GridScript } from "@intechstudio/grid-protocol";
+  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { get } from "svelte/store";
@@ -490,7 +491,7 @@ A -> B : AB-First step
       <div class={"w-1/2 atomicInput "}>
         <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
         <AtomicInput
-          inputValue={script}
+          inputValue={GridScript.humanize(script)}
           validator={validators[i]}
           suggestions={suggestions[i]}
           suggestionTarget={suggestionElement1}
@@ -499,7 +500,7 @@ A -> B : AB-First step
             dispatch("validator", data);
           }}
           on:change={(e) => {
-            sendData(e.detail, i);
+            sendData(GridScript.shortify(e.detail), i);
           }}
         />
       </div>
@@ -540,7 +541,7 @@ A -> B : AB-First step
           {parameterNames[i + 2]}
         </div>
         <AtomicInput
-          inputValue={script}
+          inputValue={GridScript.humanize(script)}
           validator={validators[i + 2]}
           suggestions={suggestions[i + 2]}
           suggestionTarget={suggestionElement2}
@@ -549,7 +550,7 @@ A -> B : AB-First step
             dispatch("validator", data);
           }}
           on:change={(e) => {
-            sendData(e.detail, i + 2);
+            sendData(GridScript.shortify(e.detail), i + 2);
             updatePicker(e);
           }}
         />

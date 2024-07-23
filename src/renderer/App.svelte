@@ -95,36 +95,42 @@
         const data = event.data;
         // action towards runtime
         switch (data.type) {
-          case "package-action": {
-            if (data.id == "change-page") {
-              runtime.change_page(data.num);
-            } else if (data.id == "execute-lua-script") {
-              instructions
-                .sendImmediateToGrid(
-                  data.targetDx ?? -127,
-                  data.targetDy ?? -127,
-                  data.script
-                )
-                .catch((e) => {
-                  console.warn(e);
-                });
-            } else if (data.id == "persist-data") {
-              appSettings.update((s) => {
-                const newStorage = structuredClone(
-                  s.persistent.packagesDataStorage
-                );
-                newStorage[data.packageId] = data.data;
-                s.persistent.packagesDataStorage = newStorage;
-                return s;
+          case "persist-data": {
+            appSettings.update((s) => {
+              const newStorage = structuredClone(
+                s.persistent.packagesDataStorage
+              );
+              newStorage[data.packageId] = data.data;
+              s.persistent.packagesDataStorage = newStorage;
+              return s;
+            });
+            break;
+          }
+          case "execute-lua-script":
+            console.log(`Sending script: ${data.script}`);
+            instructions
+              .sendImmediateToGrid(
+                data.targetDx ?? -127,
+                data.targetDy ?? -127,
+                data.script
+              )
+              .catch((e) => {
+                console.warn(e);
               });
-            } else if (data.id == "add-action") {
-              addPackageAction({
-                ...data.info,
-                packageId: data.packageId,
-              });
-            } else if (data.id == "remove-action") {
-              removePackageAction(data.packageId, data.actionId);
-            }
+            break;
+          case "add-action": {
+            addPackageAction({
+              ...data.info,
+              packageId: data.packageId,
+            });
+            break;
+          }
+          case "remove-action": {
+            removePackageAction(data.packageId, data.actionId);
+            break;
+          }
+          case "change-page": {
+            runtime.change_page(data.num);
             break;
           }
           case "persist-github-package": {
@@ -151,18 +157,19 @@
           }
           case "packages": {
             // refresh packagelist
-            const enabledPackages = data.packages
-              .filter((e) => e.status == "Enabled")
-              .map((e) => e.id);
+            const enabledPackages = data.packages.filter(
+              (e) => e.status == "Enabled"
+            );
+            for (const _package of enabledPackages) {
+              if (_package.componentsPath) {
+                import(`package://${_package.componentsPath}`);
+              }
+            }
             appSettings.update((s) => {
               s.packageList = data.packages;
-              s.persistent.enabledPackages = enabledPackages;
+              s.persistent.enabledPackages = enabledPackages.map((e) => e.id);
               return s;
             });
-            break;
-          }
-          case "refresh-packages": {
-            const env = process.env.NODE_ENV;
             break;
           }
           case "show-message": {
