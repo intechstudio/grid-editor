@@ -1,1 +1,1 @@
-export const PAGE_PATH = 'http://localhost:5173'
+export const PAGE_PATH = "http://localhost:5173";
