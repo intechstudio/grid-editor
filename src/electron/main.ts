@@ -11,7 +11,7 @@ import {
   utilityProcess,
   screen,
   protocol,
-  net
+  net,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -79,7 +79,7 @@ let offlineProfileCloudServer: any = undefined;
 let packageManagerProcess: Electron.UtilityProcess | undefined = undefined;
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: "package", privileges: { bypassCSP: true , standard: true}}
+  { scheme: "package", privileges: { bypassCSP: true, standard: true } },
 ]);
 
 if (process.defaultApp) {
@@ -182,8 +182,8 @@ if (!gotTheLock) {
       create_tray();
     }
     createWindow();
-    protocol.handle('package', (req) => { 
-      const pathToMedia = req.url.substring('package://'.length);
+    protocol.handle("package", (req) => {
+      const pathToMedia = req.url.substring("package://".length);
       const packageFolder = path.resolve(
         path.join(app.getPath("documents"), "grid-userdata", "packages")
       );
@@ -351,7 +351,7 @@ function createWindow() {
     const { port1, port2 } = new MessageChannelMain();
     mainWindow.webContents.postMessage("package-manager-port", null, [port1]);
     packageEditorPort = port2;
-    port2.on('message', (e) => {
+    port2.on("message", (e) => {
       packageManagerProcess?.postMessage(e.data, e.ports);
     });
     port2.start();
@@ -365,7 +365,6 @@ let packageEditorPort = undefined;
 function startPackageManager(
   updatePackageOnStartName: string | undefined = undefined
 ) {
-  //TODO: Handle package messages
   const packageFolder = path.resolve(
     path.join(app.getPath("documents"), "grid-userdata", "packages")
   );
@@ -373,16 +372,14 @@ function startPackageManager(
     packageManagerProcess = utilityProcess.fork(
       path.resolve(path.join(__dirname, "./packageManager.js"))
     );
-    packageManagerProcess.postMessage(
-      {
-        type: "init",
-        packageFolder: packageFolder,
-        version: configuration.EDITOR_VERSION,
-        githubPackages: store.get("githubPackages"),
-        updatePackageOnStartName,
-        packageDeveloper: store.get("packageDeveloper"),
-      }
-    );
+    packageManagerProcess.postMessage({
+      type: "init",
+      packageFolder: packageFolder,
+      version: configuration.EDITOR_VERSION,
+      githubPackages: store.get("githubPackages"),
+      updatePackageOnStartName,
+      packageDeveloper: store.get("packageDeveloper"),
+    });
 
     packageManagerProcess.on("message", (message) => {
       if (message.type == "create-window") {

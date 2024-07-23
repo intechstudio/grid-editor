@@ -14,9 +14,7 @@
   let actionElement;
   let updateActionWithConfig;
 
-  $: config,
-    updateActionWithConfig,
-    refreshActionConfig();
+  $: config, updateActionWithConfig, refreshActionConfig();
 
   function refreshActionConfig() {
     if (updateActionWithConfig) {
@@ -25,7 +23,6 @@
   }
 
   onMount(() => {
-    
     actionElement.addEventListener(
       "updateCode",
       (e) => {
@@ -45,6 +42,9 @@
 
 <package class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto">
   {#if config?.information?.actionComponent}
-    <svelte:element bind:this={actionElement} this={config.information.actionComponent} />
+    <svelte:element
+      this={config.information.actionComponent}
+      bind:this={actionElement}
+    />
   {/if}
 </package>

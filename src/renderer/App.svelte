@@ -117,7 +117,7 @@
               .catch((e) => {
                 console.warn(e);
               });
-          break;
+            break;
           case "add-action": {
             addPackageAction({
               ...data.info,
@@ -157,11 +157,11 @@
           }
           case "packages": {
             // refresh packagelist
-            const enabledPackages = data.packages
-              .filter((e) => e.status == "Enabled");
-            for (const _package of enabledPackages){
-              if (_package.componentsPath){
-                console.log(`Importing ${_package.componentsPath}`);
+            const enabledPackages = data.packages.filter(
+              (e) => e.status == "Enabled"
+            );
+            for (const _package of enabledPackages) {
+              if (_package.componentsPath) {
                 import(`package://${_package.componentsPath}`);
               }
             }

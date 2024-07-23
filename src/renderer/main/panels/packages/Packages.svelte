@@ -19,16 +19,25 @@
   function refreshPackagePreferences() {
     const loadedPackages = $appSettings.persistent.enabledPackages;
     const packageList = $appSettings.packageList;
-    const loadedPackageDetails = loadedPackages.map((id) => packageList.find((e) => e.id == id)).filter((e) => e);
-    
+    const loadedPackageDetails = loadedPackages
+      .map((id) => packageList.find((e) => e.id == id))
+      .filter((e) => e);
+
     const newComponents = [];
     packagePreferenceComponentNames.forEach((componentName) => {
-      if (loadedPackageDetails.map((e) => e.preferenceComponent).includes(componentName)){
+      if (
+        loadedPackageDetails
+          .map((e) => e.preferenceComponent)
+          .includes(componentName)
+      ) {
         newComponents.push(componentName);
       }
     });
     loadedPackageDetails.forEach((_package) => {
-      if (_package.preferenceComponent && !newComponents.includes(_package.preferenceComponent)){
+      if (
+        _package.preferenceComponent &&
+        !newComponents.includes(_package.preferenceComponent)
+      ) {
         newComponents.push(_package.preferenceComponent);
       }
     });
@@ -246,7 +255,12 @@
     <p class="loading">Restarting package manager</p>
   {/if}
 
-  <div class="bg-secondary rounded-lg flex flex-col mb-4 {packagePreferenceComponentNames.length > 0 ? 'block' : 'none'}">
+  <div
+    class="bg-secondary rounded-lg flex flex-col mb-4 {packagePreferenceComponentNames.length >
+    0
+      ? 'block'
+      : 'none'}"
+  >
     {#each packagePreferenceComponentNames as componentName}
       <svelte:element this={componentName} />
     {/each}

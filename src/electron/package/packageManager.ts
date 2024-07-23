@@ -166,7 +166,10 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
       }
     }
   }
-  process.parentPort?.postMessage({ type: "packages", packages: currentPackageList });
+  process.parentPort?.postMessage({
+    type: "packages",
+    packages: currentPackageList,
+  });
 });
 
 const currentlyLoadedPackages = {};
@@ -182,7 +185,6 @@ async function stopPackageManager() {
 }
 
 async function loadPackage(packageName: string, persistedData: any) {
-  console.log(`ENABLING PACKAGE: ${packageName}`);
   try {
     if (currentlyLoadedPackages[packageName]) {
       return;
@@ -285,7 +287,10 @@ async function downloadPackage(packageName: string) {
       type: "remove-github-package",
       id: packageName,
     });
-    process.parentPort?.postMessage({ type: "debug-error", message: e.message });
+    process.parentPort?.postMessage({
+      type: "debug-error",
+      message: e.message,
+    });
   } finally {
     downloadingPackages.delete(packageName);
     notifyListener();
@@ -379,8 +384,11 @@ async function getInstalledPackages(): Promise<
             const packageJson = JSON.parse(packageFile.toString());
             packageName = packageJson.description;
             packageVersion = packageJson.version;
-            if (packageJson.grid_editor?.componentsPath){
-              componentsPath = path.join(folder.name, packageJson.grid_editor?.componentsPath);
+            if (packageJson.grid_editor?.componentsPath) {
+              componentsPath = path.join(
+                folder.name,
+                packageJson.grid_editor?.componentsPath
+              );
             }
             preferenceComponent = packageJson.grid_editor?.preferenceComponent;
           }
