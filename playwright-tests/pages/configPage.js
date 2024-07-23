@@ -89,6 +89,28 @@ export class ConfigPage {
     await this.addBlocktoLastSandwitchButton.click();
   }
 
+  async openActionsInIf() {
+    await this.page
+      .getByRole("button", { name: "Actions here are triggered" })
+      .click();
+  }
+
+  async openActionsInElseIf() {
+    await this.page
+      .getByRole("button", {
+        name: "Actions here are triggered when the event runs, the expression above is true,",
+      })
+      .click();
+  }
+
+  async openActionsInElse() {
+    await this.page
+      .getByRole("button", {
+        name: "Actions here are triggered when the event runs, and no others conditions were",
+      })
+      .click();
+  }
+
   // Element and Action Operations
 
   async selectAllActions() {

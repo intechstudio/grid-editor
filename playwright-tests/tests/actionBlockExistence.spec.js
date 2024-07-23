@@ -121,18 +121,14 @@ const blockElements = {
 };
 
 test.beforeAll(async ({ page }) => {
+  page.addInitScript(
+    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
+  );
   configPage = new ConfigPage(page);
   modulePage = new ModulePage(page);
   connectModulePage = new ConnectModulePage(page);
   await page.goto(PAGE_PATH);
   await setupModule("EF44");
-});
-
-test.beforeEach(async ({ page }) => {
-  // mocks navigator.serial, so headless UI tests can run!
-  page.addInitScript(
-    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
-  );
 });
 
 test.describe("Block Existence", () => {
@@ -193,13 +189,14 @@ test("should find Else If Actions", async () => {
   await configPage.removeAllActions();
   await configPage.noActionAddActionButton.isVisible();
   await configPage.openAndAddActionBlock(category, "If");
-  await configPage.opendAddBlocktoLastSandwitch();
+  await configPage.openActionsInIf();
   await configPage.addActionBlock(category, ElseIf);
-  await configPage.opendAddBlocktoLastSandwitch();
+  await configPage.openActionsInElseIf();
   await configPage.addActionBlock(category, Else);
 
-  const elementElse = configPage.blocks[category][ElseIf]["elements"]["input"];
-  const elementElseIf = configPage.blocks[category][Else]["elements"]["else"];
+  const elementElse = configPage.blocks[category][Else]["elements"]["else"];
+  const elementElseIf =
+    configPage.blocks[category][ElseIf]["elements"]["input"];
   await expect(elementElse).toBeVisible();
   await expect(elementElseIf).toBeVisible();
 });
