@@ -118,16 +118,18 @@ export class ModulePage {
   }
 
   async copyElement() {
-    await this.page.getByText("Copy Element").click();
+    await this.page.getByRole("button", { name: "Copy Element" }).click();
   }
   async overwriteElement() {
-    await this.page.getByText("Overwrite Element").click();
+    await this.page.getByRole("button", { name: "Overwrite Element" }).click();
   }
 
   async discardElement() {
-    await this.page.getByText("Discard Element Changes").click();
+    await this.page
+      .getByRole("button", { name: "Discard Element Changes" })
+      .click();
   }
   async clearElement() {
-    await this.page.getByText("Clear Element").click();
+    await this.page.getByRole("button", { name: "Clear Element" }).click();
   }
 }
