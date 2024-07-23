@@ -60,7 +60,10 @@ export class ConfigObject {
 
   toRawLua() {
     return `--[[@${this.short}${
-      typeof this.name !== "undefined" ? "#" + this.name : ""
+      typeof this.name !== "undefined" &&
+      this.name !== this.information.displayName
+        ? "#" + this.name
+        : ""
     }]] ${this.script}`;
   }
 
@@ -74,6 +77,7 @@ export class ConfigObject {
     copy.selected = this.selected;
     copy.toggled = this.toggled;
     copy.id = uuidv4();
+    copy.name = this.name;
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -211,7 +215,7 @@ export class ConfigList extends Array {
       actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    configList = actionString.split(/(--\[\[@+\w+#?\w+\]\])/);
+    configList = actionString.split(/(--\[\[@+\w+(?:#\w+)?\s*\w*\]\])/);
 
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {

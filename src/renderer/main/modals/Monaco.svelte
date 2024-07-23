@@ -162,15 +162,27 @@
   }
 
   function handleEditClicked() {
-    isEditName = true;
-    setTimeout(() => {
-      const focus = nameInput.focus;
-      focus();
-    }, 1);
+    if (clickedOutside) {
+      clickedOutside = false;
+      return;
+    }
+    isEditName = !isEditName;
+    if (isEditName) {
+      setTimeout(() => {
+        const focus = nameInput.focus;
+        focus();
+      }, 1);
+    }
   }
 
+  let clickedOutside = false;
+
   function handleClickOutside(e) {
+    if (!isEditName) {
+      return;
+    }
     isEditName = false;
+    clickedOutside = true;
   }
 
   function handleNameChange(value) {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { appSettings } from "./../../runtime/app-helper.store.js";
   import { committed_code_store } from "./../Committed_Code.store.js";
   import { ConfigObject } from "./../../main/panels/configuration/Configuration.store.ts";
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
@@ -27,7 +28,11 @@
   }
 
   function handleEditClicked() {
-    isEdit = true;
+    if (nameChange) {
+      nameChange = false;
+    } else {
+      isEdit = !isEdit;
+    }
   }
 
   onMount(() => {
@@ -40,10 +45,8 @@
   function handleNameChange(e) {
     const { script } = e.detail;
     name = script;
-  }
-
-  function handleClickOutside(e) {
     isEdit = false;
+    nameChange = true;
     sendData(name);
   }
 
@@ -67,6 +70,7 @@
 
   let name: string;
   let isEdit = false;
+  let nameChange = false;
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
@@ -84,18 +88,19 @@
     <div
       class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
       on:click|stopPropagation
-      use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
     >
-      <LineEditor {access_tree} value={name} on:output={handleNameChange} />
+      <LineEditor {access_tree} value={name} on:change={handleNameChange} />
     </div>
   {:else}
     <span>{name}</span>
   {/if}
-  <button
-    on:click|stopPropagation={handleEditClicked}
-    class="cursor-pointer pointer-events-auto"
-  >
-    <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
-  </button>
+
+  {#if $appSettings.persistent.editableBlockNames}
+    <button
+      on:click|stopPropagation={handleEditClicked}
+      class="cursor-pointer pointer-events-auto"
+    >
+      <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+    </button>
+  {/if}
 </div>
