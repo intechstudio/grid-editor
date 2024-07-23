@@ -40,5 +40,7 @@
     type: "composite_open",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    helperText:
+      "Actions here are triggered when the event runs, and button is in it's off step.",
   };
 </script>

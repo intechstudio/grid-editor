@@ -175,6 +175,8 @@
 
     if (indentation == 0) {
       comp = comp.filter((e) => e.information.short !== "bstn");
+    } else {
+      comp = comp.filter((e) => e.information.short !== "bst0");
     }
 
     //Filter out element type specific components
