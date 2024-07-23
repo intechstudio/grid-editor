@@ -144,7 +144,7 @@ export class ConfigPage {
     }
   }
 
-  async addCommentBlock() {
+  async addCodeBlock() {
     await this.addActionBlockButton.click();
     await await this.blocks["code"]["Code Block"]["block"].click();
   }
