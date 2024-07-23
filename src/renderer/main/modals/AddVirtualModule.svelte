@@ -6,7 +6,7 @@
   import EF44 from "./../grid-layout/grid-modules/devices/EF44.svelte";
   import TEK2 from "./../grid-layout/grid-modules/devices/TEK2.svelte";
 
-  import { ModuleType } from "grid-protocol";
+  import { ModuleType } from "@intechstudio/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";

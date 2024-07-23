@@ -1,4 +1,1 @@
-export const PAGE_PATH =
-  process.env.CI == "true"
-    ? `file://${process.cwd()}/dist-web/index.html`
-    : `http://localhost:5173`;
+export const PAGE_PATH = "http://localhost:5173";

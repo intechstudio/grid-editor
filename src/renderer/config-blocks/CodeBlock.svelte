@@ -40,7 +40,7 @@
 </script>
 
 <script>
-  import { GridScript } from "grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
@@ -126,6 +126,7 @@
         short: "cb",
         script: $committed_code_store.script,
       });
+      $committed_code_store = {};
     }
   }
 

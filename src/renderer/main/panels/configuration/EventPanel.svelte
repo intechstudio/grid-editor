@@ -5,7 +5,7 @@
   import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store.js";
   import { MeltRadio } from "@intechstudio/grid-uikit";
-  import { CEEAT } from "grid-protocol";
+  import { CEEAT } from "@intechstudio/grid-protocol";
 
   const dispatch = createEventDispatcher();
 

@@ -1,8 +1,9 @@
-<script>
+<script lang="ts">
+  import { grid } from "@intechstudio/grid-protocol";
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
   import { user_input } from "./../../../../runtime/runtime.store.js";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
@@ -18,6 +19,14 @@
   let type = undefined;
   let loaded = false;
   let container;
+
+  enum State {
+    INCOMPATIBLE,
+    COMPATIBLE,
+    MATCHING,
+  }
+
+  let state = State.INCOMPATIBLE;
 
   $: {
     if (elementNumber === 255) {
@@ -37,12 +46,6 @@
     });
   }
 
-  $: {
-    if ($selectedConfigStore) {
-      loaded = false;
-    }
-  }
-
   function handlePresetLoad(e) {
     const { success } = e.detail;
     loaded = success;
@@ -53,7 +56,6 @@
     const { dx, dy } = ConfigTarget.getCurrent().device;
     if (dx !== device.dx || dy !== device.dy) {
       const ui = get(user_input);
-      console.log(device.dx, device.dy);
       user_input.set({
         dx: device.dx,
         dy: device.dy,
@@ -91,18 +93,44 @@
     );
     isChanged = typeof changed !== "undefined";
   }
+
+  function handleSelectedConfigChange(store) {
+    loaded = false;
+
+    if (typeof store === "undefined" || store?.configType === "profile") {
+      return;
+    }
+
+    const leftSideCompatible = grid.is_element_compatible_with(
+      type,
+      store.type
+    );
+    const rightSideCompatible = grid.is_element_compatible_with(
+      store.type,
+      type
+    );
+
+    if (leftSideCompatible && rightSideCompatible) {
+      state = State.MATCHING;
+    } else if (rightSideCompatible) {
+      state = State.COMPATIBLE;
+    } else {
+      state = State.INCOMPATIBLE;
+    }
+  }
+
+  $: handleSelectedConfigChange($selectedConfigStore);
 </script>
 
 <container bind:this={container} on:preset-load={handlePresetLoad}>
   {#if visible}
-    {#if $selectedConfigStore?.type === type}
+    {#if state === State.COMPATIBLE || state === State.MATCHING}
       <div
-        class="w-full h-full"
+        class="w-full h-full relative overflow-hidden"
         class:loaded-element={loaded && !isChanged}
         class:element={!loaded && !isChanged}
         class:corner-cut-r={isRightCut}
         class:corner-cut-l={isLeftCut}
-        disabled={loaded}
         style="{elementNumber == 255
           ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
           : 'border-radius: var(--grid-rounding);'} "
@@ -115,12 +143,17 @@
           {#if !loaded}
             <button
               on:click={handleClick}
-              class="rounded pointer-events-auto icon bg-opacity-75 p-1"
+              class="rounded pointer-events-auto {state === State.MATCHING
+                ? 'matching-icon'
+                : 'compatible-icon'} bg-opacity-75 p-1"
               class:icon-corner-cut-r={isRightCut}
               class:icon-corner-cut-l={isLeftCut}
               class:scale-50={elementNumber == 255}
             >
-              <SvgIcon fill="#FFF" iconPath={loaded ? "tick" : "download"} />
+              <SvgIcon
+                fill={state === State.MATCHING ? "#FFF" : "#000"}
+                iconPath={loaded ? "tick" : "download"}
+              />
             </button>
           {/if}
         </div>
@@ -141,10 +174,30 @@
 
 <style>
   :root {
-    --preset-load-color: rgb(28, 138, 114);
+    --preset-load-color: rgba(11, 164, 132, 0.8);
     --preset-load-hover-color: rgba(11, 164, 132, 1);
+    --preset-warning-color: rgb(220, 179, 8, 0.8);
+    --preset-warning-hover-color: rgb(220, 179, 8, 1);
     --preset-load-success-color: rgba(50, 50, 50, 1);
     --preset-disabled-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .matching-icon {
+    overflow: hidden;
+    background-color: var(--preset-load-color);
+  }
+  .matching-icon:hover {
+    overflow: hidden;
+    background-color: var(--preset-load-hover-color);
+  }
+
+  .compatible-icon {
+    overflow: hidden;
+    background-color: var(--preset-warning-color);
+  }
+  .compatible-icon:hover {
+    overflow: hidden;
+    background-color: var(--preset-warning-hover-color);
   }
 
   .element {
@@ -156,17 +209,6 @@
   .element::before {
     content: "";
     box-shadow: 0px 300px 0px 1000px var(--preset-disabled-color);
-  }
-
-  .icon {
-    position: relative;
-    overflow: hidden;
-    background-color: var(--preset-load-color);
-  }
-  .icon:hover {
-    position: relative;
-    overflow: hidden;
-    background-color: var(--preset-load-hover-color);
   }
 
   .disabled-element {

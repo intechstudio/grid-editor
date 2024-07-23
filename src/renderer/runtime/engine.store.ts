@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { grid } from "grid-protocol";
+import { grid } from "@intechstudio/grid-protocol";
 import { serial_write, serial_write_islocked } from "../serialport/serialport";
 import { appSettings } from "./app-helper.store";
 
@@ -11,7 +11,7 @@ import { buffer } from "stream/consumers";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
-  IMMEDIATE = "IMEDIATE", // fix typo soon
+  IMMEDIATE = "IMMEDIATE",
   CONFIG = "CONFIG",
   PAGEACTIVE = "PAGEACTIVE",
   PAGECOUNT = "PAGECOUNT",

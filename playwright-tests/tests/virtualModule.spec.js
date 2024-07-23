@@ -3,6 +3,13 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import { PAGE_PATH } from "../utility";
 
+test.beforeEach(({ page }) => {
+  // mocks navigator.serial, so headless UI tests can run!
+  page.addInitScript(
+    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
+  );
+});
+
 test.describe("Modules", () => {
   let connectModulePage;
   let modulePage;

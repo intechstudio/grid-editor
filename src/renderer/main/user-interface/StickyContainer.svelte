@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Architecture } from "grid-protocol";
+  import { Architecture } from "@intechstudio/grid-protocol";
   import { user_input } from "./../../runtime/runtime.store.js";
   import { get } from "svelte/store";
   import { modal } from "./../modals/modal.store";

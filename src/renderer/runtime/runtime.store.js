@@ -1,6 +1,6 @@
-import { writable, get, derived } from "svelte/store";
+import { writable, get } from "svelte/store";
 
-import { grid } from "grid-protocol";
+import { grid, EventType } from "@intechstudio/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";
@@ -12,15 +12,8 @@ import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
-import {
-  ConfigObject,
-  configManager,
-} from "../main/panels/configuration/Configuration.store.js";
-import { forEach } from "lodash";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store.ts";
-
-let lastPageActivator = "";
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
