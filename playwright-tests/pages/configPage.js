@@ -6,7 +6,7 @@ export class ConfigPage {
     this.addActionBlockButton = page.getByText("Add action block...");
     this.selectAllCheckbox = page.locator(".w-fit > .border-white");
     this.noActionAddActionButton = page.getByRole("button", {
-      name: "Add Action",
+      name: "There are no actions",
     });
 
     this.firstActionBlock = page.locator("#cfg-0");
