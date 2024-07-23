@@ -13,12 +13,6 @@ test.beforeEach(async ({ page }) => {
   page.addInitScript(
     "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
   );
-  connectModulePage = new ConnectModulePage(page);
-  modulePage = new ModulePage(page);
-  configPage = new ConfigPage(page);
-  await page.goto(PAGE_PATH);
-  await connectModulePage.openVirtualModules();
-  await connectModulePage.addModule("TEK2");
 });
 
 test.describe("Action Block Operations", () => {
@@ -164,6 +158,16 @@ test.describe("Element Actions", () => {
 });
 
 test.describe("Character limit", () => {
+
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("TEK2");
+  })
+
   //test for https://github.com/intechstudio/grid-editor/issues/741
   test("block the Paste Action", async () => {
     await configPage.selectAllActions();
