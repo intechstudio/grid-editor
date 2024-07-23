@@ -25,8 +25,9 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
-  import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import { GridScript } from "@intechstudio/grid-protocol";
+  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { Validator } from "./_validators";
   import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
@@ -118,14 +119,14 @@
   <div class="flex flex-col">
     <div class="text-gray-500 text-sm pb-1">Bit depth</div>
     <AtomicInput
-      inputValue={pmo}
+      inputValue={GridScript.humanize(pmo)}
       suggestions={suggestions[0]}
-      validator={() => {
-        return new Validator().NotEmpty().Result();
+      validator={(e) => {
+        return new Validator(e).NotEmpty().Result();
       }}
       suggestionTarget={bitDepthSuggestionElement}
       on:change={(e) => {
-        pmo = e.detail;
+        pmo = GridScript.shortify(e.detail);
       }}
       on:validator={(e) => {
         const data = e.detail;
@@ -142,15 +143,15 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
-        inputValue={pmi}
+        inputValue={GridScript.humanize(pmi)}
         disabled={!minMaxEnabled}
-        validator={() => {
+        validator={(e) => {
           return minMaxEnabled
-            ? new Validator().NotEmpty().Result()
-            : new Validator().Result();
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
         }}
         on:change={(e) => {
-          pmi = e.detail;
+          pmi = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -161,15 +162,15 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
-        inputValue={pma}
+        inputValue={GridScript.humanize(pma)}
         suggestions={suggestions[1]}
         disabled={!minMaxEnabled}
-        validator={() => {
-          return new Validator().NotEmpty().Result();
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
         }}
         suggestionTarget={minMaxSuggestionElement}
         on:change={(e) => {
-          pma = e.detail;
+          pma = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;

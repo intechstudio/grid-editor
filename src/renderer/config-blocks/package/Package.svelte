@@ -7,59 +7,30 @@
 <script>
   import { onMount, createEventDispatcher } from "svelte";
 
-  import { Script } from "../_script_parsers.js";
-
   export let config;
 
   const dispatch = createEventDispatcher();
 
-  let actionDiv;
-  let originalActionHtml;
+  let actionElement;
   let updateActionWithConfig;
 
-  $: config?.information?.actionHtml,
-    actionDiv,
-    updateActionWithConfig,
-    refreshDivContent();
+  $: config, updateActionWithConfig, refreshActionConfig();
 
-  function refreshDivContent() {
-    if (actionDiv && originalActionHtml != config.information.actionHtml) {
-      //Only change the contents if the default html changes
-      // otherwise action state can be lost, script tag runs multiple times
-      actionDiv.innerHTML = config.information.actionHtml;
-      originalActionHtml = config.information.actionHtml;
-      executeScriptElements(actionDiv);
-    }
+  function refreshActionConfig() {
     if (updateActionWithConfig) {
       updateActionWithConfig(config);
     }
   }
 
-  function executeScriptElements(containerElement) {
-    const scriptElements = containerElement.querySelectorAll("script");
-
-    Array.from(scriptElements).forEach((scriptElement) => {
-      const clonedElement = document.createElement("script");
-
-      Array.from(scriptElement.attributes).forEach((attribute) => {
-        clonedElement.setAttribute(attribute.name, attribute.value);
-      });
-
-      clonedElement.text = scriptElement.text;
-
-      scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
-    });
-  }
-
   onMount(() => {
-    actionDiv.addEventListener(
+    actionElement.addEventListener(
       "updateCode",
       (e) => {
         dispatch("output", { short: config.short, script: e.detail.script });
       },
       false
     );
-    actionDiv.addEventListener(
+    actionElement.addEventListener(
       "updateConfigHandler",
       (e) => {
         updateActionWithConfig = e.detail.handler;
@@ -70,5 +41,10 @@
 </script>
 
 <package class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto">
-  <div class="w-full flex" bind:this={actionDiv} />
+  {#if config?.information?.actionComponent}
+    <svelte:element
+      this={config.information.actionComponent}
+      bind:this={actionElement}
+    />
+  {/if}
 </package>

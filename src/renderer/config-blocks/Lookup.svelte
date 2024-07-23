@@ -36,8 +36,9 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
-  import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import { GridScript } from "@intechstudio/grid-protocol";
+  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
@@ -139,13 +140,13 @@
     <AtomicInput
       {suggestions}
       placeholder={"Incoming value to match"}
-      inputValue={lookupTable.source}
+      inputValue={GridScript.humanize(lookupTable.source)}
       suggestionTarget={suggestionElement1}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
       on:change={(e) => {
-        lookupTable.source = e.detail;
+        lookupTable.source = GridScript.shortify(e.detail);
       }}
       on:validator={(e) => {
         const data = e.detail;
@@ -215,10 +216,10 @@
     <AtomicInput
       placeholder={"Variable name to load the lookup result"}
       {suggestions}
-      inputValue={lookupTable.destination}
+      inputValue={GridScript.humanize(lookupTable.destination)}
       suggestionTarget={suggestionElement2}
       on:change={(e) => {
-        lookupTable.destination = e.detail;
+        lookupTable.destination = GridScript.shortify(e.detail);
       }}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();

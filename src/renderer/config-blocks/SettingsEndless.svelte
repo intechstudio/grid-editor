@@ -25,8 +25,9 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
-  import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators.js";
   import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
@@ -124,14 +125,14 @@
     <div class="flex flex-col">
       <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
       <AtomicInput
-        inputValue={enmo}
+        inputValue={GridScript.humanize(enmo)}
         suggestions={suggestions[0]}
-        validator={() => {
-          return new Validator().NotEmpty().Result();
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
         }}
         suggestionTarget={suggestionElement}
         on:change={(e) => {
-          enmo = e.detail;
+          enmo = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -144,14 +145,14 @@
       <div class="flex flex-col">
         <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
         <AtomicInput
-          inputValue={env0}
+          inputValue={GridScript.humanize(env0)}
           suggestions={suggestions[1]}
-          validator={() => {
-            return new Validator().NotEmpty().Result();
+          validator={(e) => {
+            return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
           on:change={(e) => {
-            env0 = e.detail;
+            env0 = GridScript.shortify(e.detail);
           }}
           on:validator={(e) => {
             const data = e.detail;
@@ -169,15 +170,15 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
-        inputValue={enmi}
+        inputValue={GridScript.humanize(enmi)}
         disabled={!minMaxEnabled}
-        validator={() => {
+        validator={(e) => {
           return minMaxEnabled
-            ? new Validator().NotEmpty().Result()
-            : new Validator().Result();
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
         }}
         on:change={(e) => {
-          enmi = e.detail;
+          enmi = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -188,15 +189,15 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
-        inputValue={enma}
+        inputValue={GridScript.humanize(enma)}
         disabled={!minMaxEnabled}
-        validator={() => {
+        validator={(e) => {
           return minMaxEnabled
-            ? new Validator().NotEmpty().Result()
-            : new Validator().Result();
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
         }}
         on:change={(e) => {
-          enma = e.detail;
+          enma = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -211,15 +212,15 @@
   <div class="flex flex-col">
     <span class="text-sm text-gray-500">Sensitivity</span>
     <AtomicInput
-      inputValue={ense}
+      inputValue={GridScript.humanize(ense)}
       disabled={!sensitivityEnabled}
-      validator={() => {
+      validator={(e) => {
         return minMaxEnabled
-          ? new Validator().NotEmpty().Result()
-          : new Validator().Result();
+          ? new Validator(e).NotEmpty().Result()
+          : new Validator(e).Result();
       }}
       on:change={(e) => {
-        ense = e.detail;
+        ense = GridScript.shortify(e.detail);
       }}
       on:validator={(e) => {
         const data = e.detail;

@@ -13,57 +13,35 @@
     $appSettings.packageList,
     refreshPackagePreferences();
 
-  let packageListDiv;
-  let packagePreferenceElements = {};
+  let packagePreferenceComponentNames = [];
   let packageRepositoryUrlInput = "";
 
   function refreshPackagePreferences() {
     const loadedPackages = $appSettings.persistent.enabledPackages;
     const packageList = $appSettings.packageList;
-    if (!packageListDiv) {
-      return;
-    }
-    // Remove existing divs not found in the external set of IDs
-    const existingDivIds = Object.keys(packagePreferenceElements);
-    existingDivIds.forEach((existingDivId) => {
+    const loadedPackageDetails = loadedPackages
+      .map((id) => packageList.find((e) => e.id == id))
+      .filter((e) => e);
+
+    const newComponents = [];
+    packagePreferenceComponentNames.forEach((componentName) => {
       if (
-        !loadedPackages.includes(existingDivId) ||
-        !packageList.find((e) => e.id !== existingDivId)
+        loadedPackageDetails
+          .map((e) => e.preferenceComponent)
+          .includes(componentName)
       ) {
-        packagePreferenceElements[existingDivId].remove();
-        delete packagePreferenceElements[existingDivId];
+        newComponents.push(componentName);
       }
     });
-
-    function executeScriptElements(containerElement) {
-      const scriptElements = containerElement.querySelectorAll("script");
-
-      Array.from(scriptElements).forEach((scriptElement) => {
-        const clonedElement = document.createElement("script");
-
-        Array.from(scriptElement.attributes).forEach((attribute) => {
-          clonedElement.setAttribute(attribute.name, attribute.value);
-        });
-
-        clonedElement.text = scriptElement.text;
-
-        scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
-      });
-    }
-
-    for (const packageId of loadedPackages) {
-      const _package = packageList.find((e) => e.id == packageId);
-      if (!_package || !_package.preferenceHtml) continue;
-      if (existingDivIds.includes(_package.id)) continue;
-
-      const tempContainer = document.createElement("div");
-      tempContainer.innerHTML = _package.preferenceHtml;
-      packagePreferenceElements[_package.id] = tempContainer;
-      packageListDiv.appendChild(tempContainer);
-      executeScriptElements(tempContainer);
-    }
-    packageListDiv.style.display =
-      packageListDiv.childElementCount == 0 ? "none" : "block";
+    loadedPackageDetails.forEach((_package) => {
+      if (
+        _package.preferenceComponent &&
+        !newComponents.includes(_package.preferenceComponent)
+      ) {
+        newComponents.push(_package.preferenceComponent);
+      }
+    });
+    packagePreferenceComponentNames = newComponents;
   }
 
   function changePackageStatus(packageId, enabled) {
@@ -278,9 +256,15 @@
   {/if}
 
   <div
-    bind:this={packageListDiv}
-    class="bg-secondary rounded-lg flex flex-col mb-4"
-  />
+    class="bg-secondary rounded-lg flex flex-col mb-4 {packagePreferenceComponentNames.length >
+    0
+      ? 'block'
+      : 'none'}"
+  >
+    {#each packagePreferenceComponentNames as componentName}
+      <svelte:element this={componentName} />
+    {/each}
+  </div>
 </preferences>
 
 <style>
