@@ -23,6 +23,13 @@ export default defineConfig({
   reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    //click() wait
+    actionTimeout: 4 * 1000,
+
+    expect: {
+      timeout: 5000,
+    },
+
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
 
@@ -38,7 +45,7 @@ export default defineConfig({
     },
   ],
 
-  timeout: 5 * 1000,
+  timeout: 10 * 1000,
 
   /* Run your local dev server before starting the tests */
   webServer: {

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { chromium, test, expect } from "@playwright/test";
 import { ConfigPage } from "../pages/configPage";
 import { PAGE_PATH } from "../utility";
 import { ConnectModulePage } from "../pages/connectModulePage";
@@ -7,6 +7,9 @@ import { ModulePage } from "../pages/modulePage";
 let configPage;
 let connectModulePage;
 let modulePage;
+let browser;
+let context;
+let page;
 
 async function setupModule(moduleName) {
   await connectModulePage.openVirtualModules();
@@ -120,30 +123,47 @@ const blockElements = {
   },
 };
 
-test.beforeAll(async ({ page }) => {
-  page.addInitScript(
-    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
-  );
+test.beforeAll(async () => {
+  browser = await chromium.launch();
+  context = await browser.newContext();
+  page = await context.newPage();
+
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "serial", {
+      set: () => undefined,
+      get: () => undefined,
+    });
+  });
+
   configPage = new ConfigPage(page);
   modulePage = new ModulePage(page);
   connectModulePage = new ConnectModulePage(page);
+
   await page.goto(PAGE_PATH);
   await setupModule("EF44");
+});
+
+test.afterAll(async () => {
+  if (context) {
+    await context.close();
+  }
+  if (browser) {
+    await browser.close();
+  }
 });
 
 test.describe("Block Existence", () => {
   for (const [category, blockList] of Object.entries(blocks)) {
     test.describe(`${category} category`, () => {
       for (const blockName of blockList) {
-        // Test
         test(`should find ${blockName} block`, async () => {
-          if (category == "specialButton") {
+          if (category === "specialButton") {
             await modulePage.removeModule();
             await setupModule("BU16");
           }
           await configPage.openActionBlockList();
           const blockElement = configPage.blocks[category][blockName]["block"];
-          await expect(blockElement).toBeVisible();
+          await expect(blockElement).toBeVisible({ timeout: 5000 });
         });
       }
     });
@@ -173,7 +193,7 @@ test.describe("Elements Existence", () => {
             test(`should find ${blockName} block's ${elementName} element`, async () => {
               const element =
                 configPage.blocks[category][blockName]["elements"][elementName];
-              await expect(element).toBeVisible();
+              await expect(element).toBeVisible({ timeout: 5000 });
             });
           }
         });
@@ -197,6 +217,6 @@ test("should find Else If Actions", async () => {
   const elementElse = configPage.blocks[category][Else]["elements"]["else"];
   const elementElseIf =
     configPage.blocks[category][ElseIf]["elements"]["input"];
-  await expect(elementElse).toBeVisible();
-  await expect(elementElseIf).toBeVisible();
+  await expect(elementElse).toBeVisible({ timeout: 5000 });
+  await expect(elementElseIf).toBeVisible({ timeout: 5000 });
 });
