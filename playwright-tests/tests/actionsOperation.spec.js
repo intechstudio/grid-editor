@@ -3,6 +3,7 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import { PAGE_PATH } from "../utility";
 import { ConfigPage } from "../pages/configPage";
+import { describe } from "node:test";
 
 let connectModulePage;
 let modulePage;
@@ -16,6 +17,14 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("Action Block Operations", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("TEK2");
+  });
   test("Copy and Paste", async ({ page }) => {
     const expectedComment = "action operation";
     await configPage.removeAllActions();
@@ -63,6 +72,15 @@ test.describe("Action Block Operations", () => {
 });
 
 test.describe("Element Actions", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("TEK2");
+  });
+
   test("Copy and Overwrite", async () => {
     const initComment = "init pasted";
     const buttonComment = "button pasted";
@@ -158,7 +176,6 @@ test.describe("Element Actions", () => {
 });
 
 test.describe("Character limit", () => {
-
   test.beforeEach(async ({ page }) => {
     connectModulePage = new ConnectModulePage(page);
     modulePage = new ModulePage(page);
@@ -166,7 +183,7 @@ test.describe("Character limit", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("TEK2");
-  })
+  });
 
   //test for https://github.com/intechstudio/grid-editor/issues/741
   test("block the Paste Action", async () => {
@@ -204,29 +221,41 @@ test.describe("Character limit", () => {
     await expect(await configPage.commitCodeButton).toBeDisabled();
   });
 });
-// https://github.com/intechstudio/grid-editor/issues/751
-test("code jump back ", async ({ page }) => {
-  const text = "print('deleted block')";
-  const expectedText = "hello";
-  await configPage.removeAllActions();
-  await configPage.addAndEditCodeBlock(text);
-  await configPage.commitCode();
-  await configPage.closeCode();
-  await configPage.selectElementEvent("Init");
-  await configPage.addCommentBlock();
-  await page.locator(".w-fit > .border-white").click();
-  await page
-    .locator("anim-block")
-    .filter({ hasText: 'Code preview: print("hello")' })
-    .getByRole("button")
-    .nth(2)
-    .click();
-  await page
-    .locator("div:nth-child(2) > div:nth-child(2) > button:nth-child(5)")
-    .click();
 
-  const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
-  await expect(preText).toBeVisible();
+test.describe("Issues", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("TEK2");
+  });
 
-  //TODO refactor, with contains(), it slow now
+  // https://github.com/intechstudio/grid-editor/issues/751
+  test("code jump back ", async ({ page }) => {
+    const text = "print('deleted block')";
+    const expectedText = "hello";
+    await configPage.removeAllActions();
+    await configPage.addAndEditCodeBlock(text);
+    await configPage.commitCode();
+    await configPage.closeCode();
+    await configPage.selectElementEvent("Init");
+    await configPage.addCodeBlock();
+    await configPage.selectAllActions();
+    await page
+      .locator("anim-block")
+      .filter({ hasText: 'Code preview: print("hello")' })
+      .getByRole("button")
+      .nth(2)
+      .click();
+    await page
+      .locator("div:nth-child(2) > div:nth-child(2) > button:nth-child(5)")
+      .click();
+
+    const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
+    await expect(preText).toBeVisible();
+
+    //TODO refactor, with contains(), it slow now
+  });
 });
