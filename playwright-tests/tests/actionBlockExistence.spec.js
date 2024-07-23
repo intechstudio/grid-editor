@@ -128,6 +128,13 @@ test.beforeAll(async ({ page }) => {
   await setupModule("EF44");
 });
 
+test.beforeEach(async ({ page }) => {
+  // mocks navigator.serial, so headless UI tests can run!
+  page.addInitScript(
+    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
+  );
+});
+
 test.describe("Block Existence", () => {
   for (const [category, blockList] of Object.entries(blocks)) {
     test.describe(`${category} category`, () => {

@@ -9,6 +9,10 @@ let modulePage;
 let configPage;
 
 test.beforeEach(async ({ page }) => {
+  // mocks navigator.serial, so headless UI tests can run!
+  page.addInitScript(
+    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
+  );
   connectModulePage = new ConnectModulePage(page);
   modulePage = new ModulePage(page);
   configPage = new ConfigPage(page);
