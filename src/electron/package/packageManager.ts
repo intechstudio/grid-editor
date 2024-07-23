@@ -343,7 +343,6 @@ async function uninstallPackage(packageName: string) {
 
 async function notifyListener() {
   const packages = await getAvailablePackages();
-  console.log("SENDING PACKAGES");
   process.parentPort?.postMessage({ type: "packages", packages: packages });
 }
 
