@@ -28,7 +28,6 @@
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import { Validator } from "./_validators";
-  import { Grid } from "../lib/_utils";
   import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
   export let config;
@@ -97,12 +96,12 @@
     ],
   ];
 
-  let suggestionElement = undefined;
+  let bitDepthSuggestionElement = undefined;
+  let minMaxSuggestionElement = undefined;
   let minMaxEnabled = false;
 
   function calculateStepSize(bit, min, max) {
-    const step = Grid.round((max - min) / (Math.pow(2, bit) - 1));
-    return step < 0 ? 0 : step;
+    return Math.floor((max - min + 1) / Math.pow(2, bit));
   }
 
   let stepSize;
@@ -124,7 +123,7 @@
       validator={() => {
         return new Validator().NotEmpty().Result();
       }}
-      suggestionTarget={suggestionElement}
+      suggestionTarget={bitDepthSuggestionElement}
       on:change={(e) => {
         pmo = e.detail;
       }}
@@ -135,10 +134,7 @@
     />
   </div>
 
-  <div class="flex flex-row gap-2">
-    <span class="text-gray-500 text-sm">Step size:</span>
-    <span class="text-white text-sm">{stepSize}</span>
-  </div>
+  <AtomicSuggestions bind:component={bitDepthSuggestionElement} />
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
@@ -171,7 +167,7 @@
         validator={() => {
           return new Validator().NotEmpty().Result();
         }}
-        suggestionTarget={suggestionElement}
+        suggestionTarget={minMaxSuggestionElement}
         on:change={(e) => {
           pma = e.detail;
         }}
@@ -183,5 +179,12 @@
     </div>
   </div>
 
-  <AtomicSuggestions bind:component={suggestionElement} />
+  {#if minMaxEnabled}
+    <div class="flex flex-row gap-2">
+      <span class="text-gray-500 text-sm">Step size:</span>
+      <span class="text-white text-sm">{stepSize}</span>
+    </div>
+
+    <AtomicSuggestions bind:component={minMaxSuggestionElement} />
+  {/if}
 </potmeter-settings>

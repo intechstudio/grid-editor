@@ -40,7 +40,7 @@
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   let bmi = "0";
-  let bma = "255";
+  let bma = "127";
 
   let loaded = false;
 
@@ -54,8 +54,8 @@
 
     bmo = extractParam(0);
 
-    const param2 = extractParam(2);
-    const param3 = extractParam(3);
+    const param2 = extractParam(1);
+    const param3 = extractParam(2);
 
     minMaxEnabled = !!param2 || !!param3;
     if (minMaxEnabled) {
@@ -88,8 +88,8 @@
     [
       { value: "0", info: "Momentary" },
       { value: "1", info: "Toggle" },
-      { value: "2", info: "2-step" },
-      { value: "3", info: "3-step" },
+      { value: "2", info: "3-step" },
+      { value: "3", info: "4-step" },
     ],
   ];
 
@@ -97,17 +97,17 @@
   let minMaxEnabled = false;
 
   function calculateStepValues(steps, min, max) {
-    const stepValue = Math.floor((max - min) / steps);
+    const stepValue = Math.floor(Math.abs(min - max) / (steps - 1));
     const res = Array.from(
       { length: steps },
-      (_, index) => (index + 1) * stepValue
+      (_, index) => min + index * stepValue
     );
-    return [0, ...res];
+    return res;
   }
 
   let stepValues;
   $: stepValues = calculateStepValues(
-    Number(bmo),
+    Number(bmo) + 1,
     minMaxEnabled ? Number(bmi) : 0,
     minMaxEnabled ? Number(bma) : 127
   );
@@ -133,23 +133,12 @@
     }}
   />
 
-  <div class="flex flex-row gap-2">
-    <span class="text-gray-500 text-sm">Step values:</span>
-    <div class="text-white text-sm">
-      {#if Number(bmo) > 1}
-        {#each stepValues as step, i}
-          <span>{step}</span>
-          <span class:hidden={i === stepValues.length - 1} class="mr-2">,</span>
-        {/each}
-      {:else}
-        <span>N/A</span>
-      {/if}
-    </div>
-  </div>
+  <AtomicSuggestions bind:component={suggestionElement} />
+
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
   <div class="flex flex-row gap-2">
     <div class="flex flex-col">
-      <span class="text-sm text-gray-500">Max</span>
+      <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         inputValue={bmi}
         disabled={!minMaxEnabled}
@@ -190,5 +179,15 @@
     </div>
   </div>
 
-  <AtomicSuggestions bind:component={suggestionElement} />
+  {#if minMaxEnabled && Number(bmo) > 0}
+    <div class="flex flex-row gap-2">
+      <span class="text-gray-500 text-sm">Step values:</span>
+      <div class="text-white text-sm">
+        {#each stepValues as step, i}
+          <span>{step}</span>
+          <span class:hidden={i === stepValues.length - 1} class="mr-2">,</span>
+        {/each}
+      </div>
+    </div>
+  {/if}
 </encoder-settings>

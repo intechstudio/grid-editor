@@ -163,6 +163,8 @@
     </div>
   </div>
 
+  <AtomicSuggestions bind:component={suggestionElement} />
+
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
   <div class="flex flex-row gap-2">
@@ -227,6 +229,4 @@
       }}
     />
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement} />
 </encoder-settings>
