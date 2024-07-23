@@ -1,4 +1,4 @@
-import { grid } from "grid-protocol";
+import { grid } from "@intechstudio/grid-protocol";
 
 import { messageStream } from "./message-stream.store.js";
 

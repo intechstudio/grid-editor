@@ -1,4 +1,5 @@
 <script>
+  import { appSettings } from "./../../../runtime/app-helper.store.js";
   import { get } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
 
@@ -6,6 +7,7 @@
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
+  import * as eases from "svelte/easing";
 
   import EventPanel from "./EventPanel.svelte";
 
@@ -37,9 +39,10 @@
     config_drag,
     DragEvent,
   } from "../../_actions/move.action.js";
+  import AddActionLine from "./components/AddActionLine.svelte";
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { NumberToEventType } from "grid-protocol";
+  import { NumberToEventType } from "@intechstudio/grid-protocol";
   import {
     selectAction,
     insertAction,
@@ -54,6 +57,7 @@
     copyElement,
     clearElement,
   } from "./configuration-actions";
+  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -398,100 +402,122 @@
           on:drag-end={handleDragEnd}
           class="flex flex-col h-full relative justify-between"
         >
-          <config-list
-            id="cfg-list"
-            style="height:{scrollHeight}"
-            use:configListScrollSize={$configManager}
-            on:height={(e) => {
-              scrollHeight = e.detail;
-            }}
-            on:mousemove={handleDrag}
-            on:mouseleave={() => {
-              clearInterval(autoScroll);
-            }}
-            class="flex flex-col w-full h-auto overflow-y-auto"
-          >
-            {#each $configManager as config, index (config.id)}
-              <anim-block
-                animate:flip={{ duration: 300 }}
-                in:fade|global={{ delay: 0 }}
-              >
-                {#key index}
-                  {#if typeof $config_drag === "undefined"}
-                    <AddAction
-                      {index}
-                      on:paste={handlePaste}
-                      on:new-config={handleConfigInsertion}
-                    />
-                  {:else}
-                    <DropZone
-                      {index}
-                      thresholdTop={10}
-                      thresholdBottom={10}
-                      class=""
-                      drag_target={draggedIndexes}
-                      on:drop-target-change={handleDropTargetChange}
-                    />
-                  {/if}
-                {/key}
-                <div class="flex flex-row justify-between relative">
-                  <div
-                    class="w-full bg-white absolute h-full opacity-10 pointer-events-none z-10"
-                    class:hidden={!config.selected}
-                  />
-
-                  <DynamicWrapper
-                    {index}
-                    {config}
-                    {access_tree}
-                    on:update={handleConfigUpdate}
-                    on:replace={handleReplace}
-                    on:select={() => {
-                      handleSelectActionBlock(index);
-                    }}
-                  />
-
-                  <div class="z-20 flex items-center mx-2">
-                    <Options
-                      {index}
-                      bind:selected={config.selected}
-                      disabled={!config.information.selectable}
-                      on:selection-change={handleSelectionChange}
-                    />
-                  </div>
-                </div></anim-block
-              >
-            {/each}
-            {#key $configManager.length}
+          {#if $configManager.length === 0 && $runtime.length > 0}
+            <div class="mt-2">
+              <AddAction
+                index={0}
+                text={"There are no actions configured on this event."}
+                on:paste={handlePaste}
+                on:new-config={handleConfigInsertion}
+              />
+            </div>
+          {:else}
+            <config-list
+              id="cfg-list"
+              style="height:{scrollHeight}"
+              use:configListScrollSize={$configManager}
+              on:height={(e) => {
+                scrollHeight = e.detail;
+              }}
+              on:mousemove={handleDrag}
+              on:mouseleave={() => {
+                clearInterval(autoScroll);
+              }}
+              class="flex flex-col w-full h-auto overflow-y-auto justify-start"
+            >
               {#if typeof $config_drag === "undefined"}
-                <AddAction
-                  index={$configManager.length}
+                <AddActionLine
+                  index={0}
                   on:paste={handlePaste}
                   on:new-config={handleConfigInsertion}
                 />
               {:else}
                 <DropZone
-                  index={$configManager.length}
+                  index={0}
                   drag_target={draggedIndexes}
                   thresholdTop={10}
                   thresholdBottom={0}
-                  class="h-full"
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
-            {/key}
-          </config-list>
+              {#each $configManager as config, index (config.id)}
+                <anim-block
+                  animate:flip={{ duration: 300, easing: eases.backOut }}
+                  in:fade|global={{ delay: 0 }}
+                >
+                  <div class="flex flex-row justify-between relative">
+                    <div
+                      class="w-full bg-white absolute h-full opacity-10 pointer-events-none z-10"
+                      class:hidden={!config.selected}
+                    />
+
+                    <DynamicWrapper
+                      {index}
+                      {config}
+                      {access_tree}
+                      on:update={handleConfigUpdate}
+                      on:replace={handleReplace}
+                      on:select={() => {
+                        handleSelectActionBlock(index);
+                      }}
+                    />
+
+                    <div class="z-20 flex items-center mx-2">
+                      <Options
+                        {index}
+                        bind:selected={config.selected}
+                        disabled={!config.information.selectable}
+                        on:selection-change={handleSelectionChange}
+                      />
+                    </div>
+                  </div>
+                  {#key index}
+                    {#if typeof $config_drag === "undefined"}
+                      {#if ["composite_close", "single"].includes(config.information.type) || ["single"].includes($configManager[index + 1]?.information.type) || !$appSettings.persistent.actionHelperText}
+                        <AddActionLine
+                          index={index + 1}
+                          on:paste={handlePaste}
+                          on:new-config={handleConfigInsertion}
+                        />
+                      {:else}
+                        <div class="mr-6">
+                          <AddAction
+                            text={config.information.helperText}
+                            index={index + 1}
+                            on:paste={handlePaste}
+                            on:new-config={handleConfigInsertion}
+                          />
+                        </div>
+                      {/if}
+                    {:else}
+                      <DropZone
+                        index={index + 1}
+                        thresholdTop={10}
+                        thresholdBottom={10}
+                        class={index + 1 == $configManager.length
+                          ? "h-full"
+                          : ""}
+                        drag_target={draggedIndexes}
+                        on:drop-target-change={handleDropTargetChange}
+                      />
+                    {/if}
+                  {/key}
+                </anim-block>
+              {/each}
+            </config-list>
+          {/if}
         </div>
-        {#if $runtime.length > 0}
-          <div class="w-full flex justify-between mb-3">
-            <AddActionButton
-              index={$configManager.length}
-              on:paste={handlePaste}
-              on:new-config={handleConfigInsertion}
-            />
-            <ExportConfigs />
-          </div>
-        {/if}
+        <div
+          class="w-full flex justify-between mb-3"
+          class:invisible={$runtime.length === 0}
+        >
+          <AddActionButton
+            index={$configManager.length}
+            on:paste={handlePaste}
+            on:new-config={handleConfigInsertion}
+          />
+          <ExportConfigs />
+        </div>
       </configs>
     </container>
   {/key}

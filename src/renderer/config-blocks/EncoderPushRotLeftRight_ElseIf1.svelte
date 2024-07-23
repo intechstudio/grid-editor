@@ -30,5 +30,7 @@
     type: "composite_part",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    helperText:
+      "Actions here are triggered by rotating the encoder right while it is pressed.",
   };
 </script>

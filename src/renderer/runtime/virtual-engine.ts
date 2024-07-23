@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { grid, ModuleType, ElementType } from "grid-protocol";
+import { grid, ModuleType, ElementType } from "@intechstudio/grid-protocol";
 import {
   InstructionClass,
   InstructionClassName,

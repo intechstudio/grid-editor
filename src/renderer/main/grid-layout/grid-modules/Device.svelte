@@ -1,6 +1,4 @@
 <script>
-  import { ClipboardKey } from "./../../../runtime/clipboard.store.ts";
-  import { runtime } from "./../../../runtime/runtime.store.js";
   import { Analytics } from "./../../../runtime/analytics.js";
   import {
     contextMenu,
@@ -32,8 +30,8 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";
-  import { EventType, EventTypeToNumber } from "grid-protocol";
-  import { get } from "svelte/store";
+  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+  import { get, writable } from "svelte/store";
   import {
     loadPreset,
     loadProfile,
@@ -42,12 +40,18 @@
     discardElement,
     clearElement,
   } from "../../../main/panels/configuration/configuration-actions";
-  import { appClipboard } from "../../../runtime/clipboard.store";
+  import {
+    createCopyAllDisabledStore,
+    createOverwriteDisabledStore,
+    createDiscardElementDisabledStore,
+    createClearElementDisabledStore,
+  } from "../../panels/configuration/configuration-actions";
 
   export let device = undefined;
   export let width = 225;
 
   let component = undefined;
+  let elementNumber = undefined;
 
   onMount(() => {
     const components = [
@@ -218,6 +222,12 @@
       mandatory: false,
     });
   }
+
+  const modifier =
+    ctxProcess.platform() == "darwin" ||
+    window.navigator.platform.indexOf("Mac") != -1
+      ? ["Cmd ⌘", "Alt ⌥"]
+      : ["Ctrl", "Alt"];
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -254,46 +264,48 @@
       let:isLeftCut
       let:isRightCut
     >
+      {@const target = writable(
+        ConfigTarget.create({
+          device: {
+            dx: device.dx,
+            dy: device.dy,
+          },
+          page: get(user_input).pagenumber,
+          element: elementNumber,
+          eventType: EventTypeToNumber(EventType.INIT),
+        })
+      )}
+      {@const overwriteElementDisabled = createOverwriteDisabledStore(target)}
+      {@const copyElementDisabled = createCopyAllDisabledStore(target)}
+      {@const discardElementDisabled =
+        createDiscardElementDisabledStore(target)}
+      {@const clearElementDisabled = createClearElementDisabledStore(target)}
       <button
         use:contextTarget={{
           items: [
             {
-              text: "Copy Element",
+              text: [`Copy Element`, `(${modifier[0]} + C)`],
               handler: () => handleCopyElement(elementNumber),
+              isDisabled: () => get(copyElementDisabled),
+              iconPath: "copy_all",
             },
             {
-              text: "Overwrite Element",
+              text: [`Overwrite Element`, `(${modifier[0]} + V)`],
               handler: () => handleOverwriteElement(elementNumber),
-              isDisabled: () => {
-                const clipboard = get(appClipboard);
-                const current = ConfigTarget.getCurrent();
-
-                if (clipboard?.key !== ClipboardKey.ELEMENT) {
-                  return true;
-                }
-
-                return current.elementType !== clipboard.elementType;
-              },
+              isDisabled: () => get(overwriteElementDisabled),
+              iconPath: "paste_all",
             },
             {
-              text: "Discard Element Changes",
+              text: [`Discard Element Changes`, `(${modifier[0]} + Shift + D)`],
               handler: () => handleDiscardElement(elementNumber),
-              isDisabled: () => {
-                const target = ConfigTarget.create({
-                  device: {
-                    dx: device.dx,
-                    dy: device.dy,
-                  },
-                  page: get(user_input).pagenumber,
-                  element: elementNumber,
-                  eventType: EventTypeToNumber(EventType.INIT),
-                });
-                return !target.hasChanges();
-              },
+              isDisabled: () => get(discardElementDisabled),
+              iconPath: "clear_from_device_01",
             },
             {
-              text: "Clear Element",
+              text: [`Clear Element`, `(Shift + Delete)`],
               handler: handleClearElement,
+              isDisabled: () => get(clearElementDisabled),
+              iconPath: "clear_element",
             },
           ],
         }}
