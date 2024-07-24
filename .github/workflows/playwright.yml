@@ -7,8 +7,14 @@ on:
     tags-ignore:
       - "*"
 
+# only one workflow is running at the same time for each branch
+concurrency:
+  group: ${{ github.ref_name }}
+  # optional
+  cancel-in-progress: true
+
 jobs:
-  web-build-test:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -17,7 +23,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18.16.1"
-      - run: npm i && npm run web-build
+      - run: npm i
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
@@ -34,7 +40,7 @@ jobs:
     name: Publish HTML Report
     # using always() is not ideal here, because it would also run if the workflow was cancelled
     if: "success() || needs.test.result == 'failure'"
-    needs: ["web-build-test"]
+    needs: [test]
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
