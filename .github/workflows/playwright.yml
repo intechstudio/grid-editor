@@ -84,8 +84,7 @@ jobs:
           done
       - name: Output Report URL as Worfklow Annotation
         run: |
-          FULL_HTML_REPORT_URL=https://intechstudio.github.io/grid-editor/$HTML_REPORT_URL_PATH
-
+          export FULL_HTML_REPORT_URL=https://intechstudio.github.io/grid-editor/$HTML_REPORT_URL_PATH
           echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
       - uses: actions/github-script@v6
         env:
