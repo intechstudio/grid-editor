@@ -215,16 +215,19 @@ export class ConfigList extends Array {
       actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    configList = actionString.split(/(--\[\[@+\w+(?:#\w+)?\s*\w*\]\])/);
+    configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
 
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
-      const split = configList[i].match(/--\[\[@(.+?)\]\]/)?.[1].split("#");
+      const split = configList[i]
+        .match(/--\[\[@(.*)\]\]/)
+        ?.at(1)
+        .split(/#(.*)/);
       const obj = new ConfigObject({
         //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
         short: split[0],
         script: configList[i + 1].trim(),
-        name: split[1],
+        name: split.length > 1 ? split[1] : undefined,
       });
       super.push(obj);
     }
