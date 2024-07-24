@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18.16.1"
-      - run: npm ci
+      - run: npm i
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
