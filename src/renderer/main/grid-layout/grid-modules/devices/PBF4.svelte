@@ -83,6 +83,7 @@
 </script>
 
 <div
+  data-testid="PBF4_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
