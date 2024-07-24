@@ -104,10 +104,10 @@ export async function findBootloaderPath() {
   }
 }
 
-export async function firmwareNightlyDownload(targetFolder) {
-  const result = await findBootloaderPath();
+export async function firmwareDownload(targetFolder, product, arch, url) {
+  const { path } = await findBootloaderPath();
 
-  if (typeof result === "undefined") {
+  if (typeof path === "undefined") {
     //bootloader not found
     firmware.mainWindow.webContents.send("onFirmwareUpdate", {
       message: "Error: No device connected.",
@@ -116,110 +116,12 @@ export async function firmwareNightlyDownload(targetFolder) {
     return;
   }
 
-  if (result.product !== "grid") {
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: `Error: Nightly firmware download for product (${result.product}) is not yet supported.`,
-      code: 7,
-    });
-    return;
-  }
-
-  const path = result.path;
-
-  let link = "";
-  switch (result.architecture) {
-    case "d51": {
-      link = configuration.FIRMWARE_GRID_NIGHTLY_D51_URL;
-      break;
-    }
-    case "esp32": {
-      link = configuration.FIRMWARE_GRID_NIGHTLY_ESP32_URL;
-      break;
-    }
-    default: {
-      firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-        message: `Error: Architecture (${result.architecture}) is not supported.`,
-        code: 9,
-      });
-      return;
-    }
-  }
-
   firmware.mainWindow.webContents.send("onFirmwareUpdate", {
     message: "Downloading firmware image...",
     code: 4,
   });
 
-  const downloadPath = await downloadInMainProcess(link, "temp");
-  const firmwareFileName = downloadPath?.replace(/^.*[\\/]/, "");
-
-  if (typeof firmwareFileName === "undefined") {
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Error: Download failed.",
-      code: 3,
-    });
-
-    return;
-  }
-
-  await delay(1500);
-
-  firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-    message: "Uploading firmware...",
-    code: 4,
-  });
-
-  await delay(1500);
-
-  if (path !== undefined) {
-    try {
-      fs.copySync(
-        targetFolder + "/temp/" + firmwareFileName,
-        path + "/" + firmwareFileName
-      );
-    } catch (error) {
-      console.log("COPY ERROR UNBOUNT", error);
-    }
-
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Update completed successfully!",
-      code: 5,
-    });
-  } else {
-    log.warn("GRID_NOT_FOUND");
-  }
-}
-
-export async function firmwareDownload(targetFolder) {
-  const result = await findBootloaderPath();
-
-  if (typeof result === "undefined") {
-    //bootloader not found
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Error: No device connected.",
-      code: 6,
-    });
-    return;
-  }
-
-  let path = result.path;
-
-  let link =
-    configuration.FIRMWARE_GRID_URL_BEGINING +
-    configuration.FIRMWARE_GRID_URL_END;
-
-  if (result.product === "knot") {
-    link =
-      configuration.FIRMWARE_KNOT_URL_BEGINING +
-      configuration.FIRMWARE_KNOT_URL_END;
-  }
-
-  firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-    message: "Downloading firmware image...",
-    code: 4,
-  });
-
-  const downloadResult = await downloadInMainProcess(link, "temp");
+  const downloadResult = await downloadInMainProcess(url, "temp");
 
   const filePathArray = await extractArchiveToTemp(
     downloadResult,
@@ -229,18 +131,16 @@ export async function firmwareDownload(targetFolder) {
 
   await delay(1000);
 
-  //console.log("filePathArray", filePathArray);
-
   let firmwareFileName = undefined;
 
-  if (result.product === "grid") {
+  if (product === "grid") {
     filePathArray.forEach((element) => {
-      if (element.indexOf(result.architecture) !== -1) {
+      if (element.indexOf(arch) !== -1) {
         firmwareFileName = element;
         console.log("Correct firmware is: ", firmwareFileName);
       }
     });
-  } else if (result.product === "knot") {
+  } else if (product === "knot") {
     filePathArray.forEach((element) => {
       if (element.indexOf("knot") !== -1) {
         firmwareFileName = element;

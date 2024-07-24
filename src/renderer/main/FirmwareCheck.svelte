@@ -1,4 +1,5 @@
 <script>
+  import { get } from "svelte/store";
   /*
 STATE 0 | No notification (Init state)
 STATE 1 | Mismatch notofic.   | Event   -> STATE 2
@@ -176,8 +177,11 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     }
   }
 
-  async function firmwareDownload() {
+  async function firmwareDownload(nightly) {
     const folder = $appSettings.persistent.profileFolder;
+    const { product, architecture } =
+      await window.electron.firmware.findBootloaderPath();
+
     Analytics.track({
       event: "FirmwareCheck",
       payload: {
@@ -186,31 +190,57 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       mandatory: false,
     });
 
-    await window.electron.firmware.firmwareDownload(folder);
+    let link = undefined;
+    switch (product) {
+      case "grid":
+        if (nightly) {
+          switch (architecture) {
+            case "esp32":
+              link = configuration.FIRMWARE_GRID_NIGHTLY_ESP32_URL;
+              break;
+            case "d51":
+              link = configuration.FIRMWARE_GRID_NIGHTLY_D51_URL;
+              break;
+          }
+        } else {
+          const as = get(appSettings);
+          let version = undefined;
+          switch (architecture) {
+            case "esp32":
+              version = `v${Object.values(as.firmware_esp32_required).join(
+                "."
+              )}`;
+              break;
+            case "d51":
+              version = `v${Object.values(as.firmware_d51_required).join(".")}`;
+              break;
+          }
+          if (typeof version !== "undefined") {
+            link =
+              configuration.FIRMWARE_GRID_URL_BEGINING +
+              version +
+              configuration.FIRMWARE_GRID_URL_END;
+          }
+        }
+        break;
+      case "knot":
+        link =
+          configuration.FIRMWARE_KNOT_URL_BEGINING +
+          configuration.FIRMWARE_KNOT_URL_END;
+        break;
+    }
+
+    await window.electron.firmware.firmwareDownload(
+      folder,
+      product,
+      architecture,
+      link
+    );
+
     Analytics.track({
       event: "FirmwareCheck",
       payload: {
         message: "Firmware Download Finished",
-      },
-      mandatory: false,
-    });
-  }
-
-  async function firmwareNightlyDownload() {
-    const folder = $appSettings.persistent.profileFolder;
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Nightly Firmware Download Start",
-      },
-      mandatory: false,
-    });
-
-    await window.electron.firmware.firmwareNightlyDownload(folder);
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Nightly Firmware Download Finished",
       },
       mandatory: false,
     });
@@ -280,14 +310,14 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     </div>
 
     <button
-      on:click={firmwareDownload}
+      on:click={() => firmwareDownload(false)}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
     >
       Update Firmware
     </button>
 
     <button
-      on:click={firmwareNightlyDownload}
+      on:click={() => firmwareDownload(true)}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
       class:hidden={!$appSettings.persistent.nightlyFirmware}
     >
