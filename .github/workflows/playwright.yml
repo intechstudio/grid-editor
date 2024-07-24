@@ -84,18 +84,18 @@ jobs:
           done
       - name: Output Report URL as Worfklow Annotation
         run: |
-          export FULL_HTML_REPORT_URL=https://intechstudio.github.io/grid-editor/$HTML_REPORT_URL_PATH
+          FULL_HTML_REPORT_URL=https://intechstudio.github.io/grid-editor/$HTML_REPORT_URL_PATH
           echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
       - uses: actions/github-script@v6
-        env:
-          FULL_HTML_REPORT_URL: ${{ steps.publish_report.outputs.FULL_HTML_REPORT_URL }}
         with:
           script: |
+            const { HTML_REPORT_URL_PATH } = process.env
+            console.log(HTML_REPORT_URL_PATH)
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `📋 Published Playwright Test Report ${FULL_HTML_REPORT_URL}`
+              body: `📋 Published Playwright Test Report https://intechstudio.github.io/grid-editor/${HTML_REPORT_URL_PATH}`
             })
 
 # # HEADED MODE
