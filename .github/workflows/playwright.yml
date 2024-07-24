@@ -87,6 +87,17 @@ jobs:
           FULL_HTML_REPORT_URL=https://intechstudio.github.io/grid-editor/$HTML_REPORT_URL_PATH
 
           echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
+      - uses: actions/github-script@v6
+        env:
+          FULL_HTML_REPORT_URL: ${{ steps.publish_report.outputs.FULL_HTML_REPORT_URL }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📋 Published Playwright Test Report ${FULL_HTML_REPORT_URL}`
+            })
 
 # # HEADED MODE
 #  name: Playwright Tests
