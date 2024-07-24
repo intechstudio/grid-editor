@@ -109,7 +109,7 @@
   let minMaxEnabled = false;
 
   function calculateStepSize(bit, min, max) {
-    return Math.floor((max - min + 1) / Math.pow(2, bit));
+    return ((max - min + 1) / Math.pow(2, bit)).toFixed(2);
   }
 
   let stepSize;
