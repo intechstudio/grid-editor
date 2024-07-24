@@ -8,10 +8,10 @@ on:
       - "*"
 
 # only one workflow is running at the same time for each branch
-concurrency:
-  group: ${{ github.ref_name }}
-  # optional
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.ref_name }}
+#   # optional
+#   cancel-in-progress: true
 
 jobs:
   test:
@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18.16.1"
-      - run: npm i
+      - run: npm ci
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
