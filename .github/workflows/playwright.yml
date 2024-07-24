@@ -34,7 +34,7 @@ jobs:
     name: Publish HTML Report
     # using always() is not ideal here, because it would also run if the workflow was cancelled
     if: "success() || needs.test.result == 'failure'"
-    needs: [test]
+    needs: ["web-build-test"]
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
