@@ -12,8 +12,6 @@
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { instructions } from "./../../serialport/instructions";
-
   let isChanges = false;
   let changes = 0;
   $: if ($runtime) {

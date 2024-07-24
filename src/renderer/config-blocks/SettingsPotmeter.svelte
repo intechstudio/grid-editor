@@ -12,7 +12,7 @@
     category: "element settings",
     color: "#5F416D",
     displayName: "Potmeter Mode",
-    defaultLua: "self:pmo(7) self:pma(127)",
+    defaultLua: "self:pmo(7)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     selectable: true,
@@ -28,8 +28,8 @@
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Validator } from "./_validators";
+  import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -37,7 +37,9 @@
   const dispatch = createEventDispatcher();
 
   let pmo = ""; // local script part
-  let pma = "";
+
+  let pma = "127";
+  let pmi = "0";
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -46,10 +48,21 @@
   $: if (config.script && !loaded) {
     const arr = config.script.split("self:").slice(1);
 
-    pmo = whatsInParenthesis.exec(arr[0])[1];
-    //pmo = pmo[1];
-    pma = whatsInParenthesis.exec(arr[1])[1];
-    //pma = pma[1];
+    const extractParam = (index) => {
+      const param = whatsInParenthesis.exec(arr[index]);
+      return param && param.length > 0 ? param[1] : null;
+    };
+
+    pmo = extractParam(0);
+
+    const param2 = extractParam(1);
+    const param3 = extractParam(2);
+
+    minMaxEnabled = !!param2 || !!param3;
+    if (minMaxEnabled) {
+      pmi = param2;
+      pma = param3;
+    }
 
     loaded = true;
   }
@@ -58,14 +71,20 @@
     loaded = false;
   });
 
-  $: if (pmo || pma) {
-    sendData(pmo, pma);
-  }
+  $: sendData(pmo, pma, minMaxEnabled ? pmi : undefined);
 
-  function sendData(p1, p2) {
+  function sendData(p1, p2, p3) {
+    const optional = [];
+
+    if (minMaxEnabled) {
+      optional.push(`self:pmi(${p3})  self:pma(${p2})`);
+    }
+
     dispatch("output", {
       short: "spc",
-      script: `self:pmo(${p1}) self:pma(${p2})`,
+      script:
+        `self:pmo(${p1})` +
+        (optional.length > 0 ? " " + optional.join(" ") : ""),
     });
   }
 
@@ -85,55 +104,93 @@
     ],
   ];
 
-  let suggestionElement = undefined;
+  let bitDepthSuggestionElement = undefined;
+  let minMaxSuggestionElement = undefined;
+  let minMaxEnabled = false;
+
+  function calculateStepSize(bit, min, max) {
+    return ((max - min + 1) / Math.pow(2, bit)).toFixed(2);
+  }
+
+  let stepSize;
+  $: stepSize = calculateStepSize(
+    Number(pmo),
+    minMaxEnabled ? Number(pmi) : 0,
+    minMaxEnabled ? Number(pma) : 127
+  );
 </script>
 
 <potmeter-settings
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+  class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full flex">
-    <div class="w-1/2 flex flex-col">
-      <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1">Bit depth</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(pmo)}
-          suggestions={suggestions[0]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            pmo = GridScript.shortify(e.detail);
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
-    </div>
+  <div class="flex flex-col">
+    <div class="text-gray-500 text-sm pb-1">Bit depth</div>
+    <AtomicInput
+      inputValue={GridScript.humanize(pmo)}
+      suggestions={suggestions[0]}
+      validator={(e) => {
+        return new Validator(e).NotEmpty().Result();
+      }}
+      suggestionTarget={bitDepthSuggestionElement}
+      on:change={(e) => {
+        pmo = GridScript.shortify(e.detail);
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+    />
+  </div>
 
-    <div class="w-1/2 flex flex-col">
-      <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1">Max Value</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(pma)}
-          suggestions={suggestions[1]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            pma = GridScript.shortify(e.detail);
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
+  <AtomicSuggestions bind:component={bitDepthSuggestionElement} />
+
+  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+
+  <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
+    <div class="flex flex-col">
+      <span class="text-sm text-gray-500">Min</span>
+      <AtomicInput
+        inputValue={GridScript.humanize(pmi)}
+        validator={(e) => {
+          return minMaxEnabled
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
+        }}
+        on:change={(e) => {
+          pmi = GridScript.shortify(e.detail);
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
+    </div>
+    <div class="flex flex-col">
+      <span class="text-sm text-gray-500">Max</span>
+      <AtomicInput
+        inputValue={GridScript.humanize(pma)}
+        suggestions={suggestions[1]}
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
+        }}
+        suggestionTarget={minMaxSuggestionElement}
+        on:change={(e) => {
+          pma = GridScript.shortify(e.detail);
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
     </div>
   </div>
 
-  <AtomicSuggestions bind:component={suggestionElement} />
+  {#if minMaxEnabled}
+    <div class="flex flex-row gap-2">
+      <span class="text-gray-500 text-sm">Step size:</span>
+      <span class="text-white text-sm">{stepSize}</span>
+    </div>
+
+    <AtomicSuggestions bind:component={minMaxSuggestionElement} />
+  {/if}
 </potmeter-settings>

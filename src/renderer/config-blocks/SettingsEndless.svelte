@@ -1,20 +1,20 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import type { ActionBlockInformation } from "./ActionBlockInformation.js";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
   export const information: ActionBlockInformation = {
-    short: "sec",
-    name: "SettingsEncoder",
+    short: "sen",
+    name: "SettingsEndless",
     rendering: "standard",
     category: "element settings",
     color: "#5F416D",
-    displayName: "Encoder Mode",
-    defaultLua: "self:emo(0) self:ev0(50)",
-    icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
-    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
+    displayName: "Endless Mode",
+    defaultLua: "self:enmo(0) self:env0(50)",
+    icon: `<span class="block w-full text-center italic font-gt-pressura">EN</span>`,
+    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EN</span>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -25,23 +25,23 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { MeltCheckbox } from "@intechstudio/grid-uikit";
   import { AtomicInput } from "@intechstudio/grid-uikit";
-  import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { Validator } from "./_validators";
+  import { GridScript } from "@intechstudio/grid-protocol";
+  import { Validator } from "./_validators.js";
+  import { MeltCheckbox } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
 
   const dispatch = createEventDispatcher();
 
-  let emo = ""; // local script part
-  let ev0 = "";
+  let enmo = ""; // local script part
+  let env0 = "";
 
-  let emi = "0";
-  let ema = "127";
-  let ese = "100";
+  let enmi = "0";
+  let enma = "127";
+  let ense = "100";
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -55,22 +55,22 @@
       return param && param.length > 0 ? param[1] : null;
     };
 
-    emo = extractParam(0);
-    ev0 = extractParam(1);
+    enmo = extractParam(0);
+    env0 = extractParam(1);
 
     const param3 = extractParam(2);
     const param4 = extractParam(3);
 
     minMaxEnabled = !!param3 || !!param4;
     if (minMaxEnabled) {
-      emi = param3;
-      ema = param4;
+      enmi = param3;
+      enma = param4;
     }
 
     const param5 = extractParam(4);
     sensitivityEnabled = !!param5;
     if (sensitivityEnabled) {
-      ese = param5;
+      ense = param5;
     }
 
     loaded = true;
@@ -81,28 +81,28 @@
   });
 
   $: sendData(
-    emo,
-    ev0,
-    minMaxEnabled ? emi : undefined,
-    minMaxEnabled ? ema : undefined,
-    sensitivityEnabled ? ese : undefined
+    enmo,
+    env0,
+    minMaxEnabled ? enmi : undefined,
+    minMaxEnabled ? enma : undefined,
+    sensitivityEnabled ? ense : undefined
   );
 
   function sendData(p1, p2, p3, p4, p5) {
     const optional = [];
 
     if (minMaxEnabled) {
-      optional.push(`self:emi(${p3}) self:ema(${p4})`);
+      optional.push(`self:enmi(${p3}) self:enma(${p4})`);
     }
 
     if (sensitivityEnabled) {
-      optional.push(`self:ese(${p5})`);
+      optional.push(`self:ense(${p5})`);
     }
 
     dispatch("output", {
       short: `sec`,
       script:
-        `self:emo(${p1}) self:ev0(${p2})` +
+        `self:enmo(${p1}) self:env0(${p2})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
     });
   }
@@ -110,8 +110,7 @@
   const suggestions = [
     [
       { value: "0", info: "Absolute" },
-      { value: "1", info: "Relative BinOffset" },
-      { value: "2", info: "Relative 2's Comp" },
+      { value: "1", info: "Relative" },
     ],
 
     [
@@ -130,40 +129,38 @@
 <encoder-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full flex">
-    <div class="w-1/2 flex flex-col">
-      <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(emo)}
-          suggestions={suggestions[0]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            emo = GridScript.shortify(e.detail);
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
+  <div class="w-full flex flex-row gap-2">
+    <div class="flex flex-col">
+      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
+      <AtomicInput
+        inputValue={GridScript.humanize(enmo)}
+        suggestions={suggestions[0]}
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
+        }}
+        suggestionTarget={suggestionElement}
+        on:change={(e) => {
+          enmo = GridScript.shortify(e.detail);
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
     </div>
 
     <div class="w-full flex flex-row gap-2">
       <div class="flex flex-col">
         <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
         <AtomicInput
-          inputValue={GridScript.humanize(ev0)}
+          inputValue={GridScript.humanize(env0)}
           suggestions={suggestions[1]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
           on:change={(e) => {
-            ev0 = GridScript.shortify(e.detail);
+            env0 = GridScript.shortify(e.detail);
           }}
           on:validator={(e) => {
             const data = e.detail;
@@ -177,19 +174,18 @@
   <AtomicSuggestions bind:component={suggestionElement} />
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
-
   <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
-        inputValue={GridScript.humanize(emi)}
+        inputValue={GridScript.humanize(enmi)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
             : new Validator(e).Result();
         }}
         on:change={(e) => {
-          emi = GridScript.shortify(e.detail);
+          enmi = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -200,14 +196,14 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
-        inputValue={GridScript.humanize(ema)}
+        inputValue={GridScript.humanize(enma)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
             : new Validator(e).Result();
         }}
         on:change={(e) => {
-          ema = GridScript.shortify(e.detail);
+          enma = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -217,19 +213,19 @@
     </div>
   </div>
 
-  <MeltCheckbox bind:target={sensitivityEnabled} title={"Enable Sensitivity"} />
+  <MeltCheckbox bind:target={sensitivityEnabled} title="Enable Sensitivity" />
 
   <div class="flex flex-col" class:hidden={!sensitivityEnabled}>
-    <span class="text-sm text-gray-500">Sensitivcity</span>
+    <span class="text-sm text-gray-500">Sensitivity</span>
     <AtomicInput
-      inputValue={GridScript.humanize(ese)}
+      inputValue={GridScript.humanize(ense)}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
       on:change={(e) => {
-        ese = GridScript.shortify(e.detail);
+        ense = GridScript.shortify(e.detail);
       }}
       on:validator={(e) => {
         const data = e.detail;
