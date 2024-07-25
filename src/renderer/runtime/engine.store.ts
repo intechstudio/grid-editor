@@ -11,7 +11,7 @@ import { buffer } from "stream/consumers";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
-  IMMEDIATE = "IMEDIATE", // fix typo soon
+  IMMEDIATE = "IMMEDIATE",
   CONFIG = "CONFIG",
   PAGEACTIVE = "PAGEACTIVE",
   PAGECOUNT = "PAGECOUNT",

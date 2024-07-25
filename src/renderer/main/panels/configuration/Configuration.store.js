@@ -14,6 +14,7 @@ import {
 
 import { grid, GridScript } from "@intechstudio/grid-protocol";
 import { v4 as uuidv4 } from "uuid";
+import * as ButtonStepElseIf from "../../../config-blocks/ButtonStep_ElseIf.svelte";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -52,6 +53,7 @@ export class ConfigObject {
 
     this.information = res.information;
     this.indentation = 0;
+    this.step = 0;
     this.header = res.header;
     this.component = res.component;
     this.selected = false;
@@ -121,6 +123,28 @@ export class ConfigList extends Array {
     }
 
     return copy;
+  }
+
+  static updateStep(list) {
+    let stack = [];
+    for (const config of list) {
+      if (config.short === "bst0") {
+        stack.push(0);
+      }
+
+      if (config.short === "bste") {
+        stack.pop();
+      }
+
+      if (config.short === "bstn") {
+        const step = ++stack[stack.length - 1];
+        config.step = step;
+        config.script = ButtonStepElseIf.information.defaultLua.replace(
+          "N",
+          step
+        );
+      }
+    }
   }
 
   static updateIndentation(list) {
@@ -501,6 +525,7 @@ function create_configuration_manager() {
 
   function handleDataChange(list) {
     ConfigList.updateIndentation(list);
+    ConfigList.updateStep(list);
   }
 
   function updateOverride(func) {

@@ -45,8 +45,9 @@
 
 <script>
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
-  import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import { GridScript } from "@intechstudio/grid-protocol";
+  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
@@ -140,7 +141,7 @@
   const channels = (length) => {
     let arr = [];
     for (let i = 0; i < length; i++) {
-      arr[i] = { value: i, info: `Channel ${i}` };
+      arr[i] = { value: i, info: `Channel ${i + 1}` };
     }
     return arr;
   };
@@ -723,7 +724,7 @@
           {parameterNames[i]}
         </div>
         <AtomicInput
-          inputValue={script}
+          inputValue={GridScript.humanize(script)}
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}
@@ -732,7 +733,7 @@
             dispatch("validator", data);
           }}
           on:change={(e) => {
-            sendData(e.detail, i);
+            sendData(GridScript.shortify(e.detail), i);
           }}
         />
       </div>
