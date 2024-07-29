@@ -11,7 +11,7 @@
     rendering: "standard",
     category: "hid",
     displayName: "Mouse Button",
-    defaultLua: "gmbs(,)",
+    defaultLua: "gmbs(1,0)",
     color: "#9C92A4",
     icon: `
     <svg width="100%" height="100%" viewBox="-96 0 512 512"  xmlns="http://www.w3.org/2000/svg">

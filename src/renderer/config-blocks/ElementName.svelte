@@ -11,7 +11,7 @@
     rendering: "standard",
     category: "code",
     displayName: "Element Name",
-    defaultLua: "self.sn=''",
+    defaultLua: "self.sn='Custom Name'",
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
     `,
