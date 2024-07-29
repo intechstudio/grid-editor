@@ -79,7 +79,7 @@ const blockElements = {
   element: {
     "Button Mode": ["Mode"],
     "Encoder Mode": ["Mode", "Velocity"],
-    "Potmeter Mode": ["Bit", "Max"],
+    "Potmeter Mode": ["Bit"],
   },
   condition: {
     If: ["input", "end"],
