@@ -217,7 +217,8 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         Bit: page.getByRole("textbox").first(),
-        Max: page.getByRole("textbox").nth(1),
+        Min: page.getByRole("textbox").nth(1),
+        Max: page.getByRole("textbox").nth(2),
       },
     },
   },
