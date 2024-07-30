@@ -158,7 +158,11 @@ export class ConfigList extends Array {
 
   sendTo({ target }) {
     return new Promise((resolve, reject) => {
-      this.checkLength();
+      try {
+        this.checkLength();
+      } catch (e) {
+        reject(e);
+      }
       const actionString = this.toConfigScript();
 
       runtime
@@ -248,8 +252,9 @@ export class ConfigList extends Array {
 
   //Throws error if limit is reached
   checkLength() {
-    const length = this.toConfigScript().length;
-    if (length > grid.getProperty("CONFIG_LENGTH")) {
+    const script = this.toConfigScript();
+    const length = script.length;
+    if (length >= grid.getProperty("CONFIG_LENGTH")) {
       const target = ConfigTarget.getCurrent();
       throw {
         type: "lengthError",
@@ -293,7 +298,6 @@ export class ConfigTarget {
       const controlElement = device.pages
         .at(page)
         .control_elements.find((e) => e.elementIndex == element);
-      //console.log(device.pages.at(page).control_elements, element);
       target.events = controlElement.events;
       target.elementType = controlElement.type;
       return target;

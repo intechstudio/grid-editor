@@ -280,7 +280,19 @@ export function updateAction(index: number, newConfig: ConfigObject) {
     const config = s[index];
     if (typeof config !== "undefined") {
       config.short = short;
+      const temp = config.script;
       config.script = script;
+      try {
+        s.checkLength();
+      } catch (e) {
+        config.script = temp;
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "config-limit-reached",
+          message: `Update failed! Config limit reached, shorten your code, or delete actions!`,
+        });
+      }
     }
     return s;
   });
