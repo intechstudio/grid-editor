@@ -208,6 +208,9 @@ export const blocks = (page) => ({
       elements: {
         Mode: page.getByRole("textbox").first(),
         Velocity: page.getByRole("textbox").nth(1),
+        Min: page.getByRole("textbox").nth(2),
+        Max: page.getByRole("textbox").nth(3),
+        Sensitivity: page.getByRole("textbox").nth(4),
       },
     },
     "Potmeter Mode": {
@@ -217,7 +220,7 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         Bit: page.getByRole("textbox").first(),
-        Min: page.getByRole("textbox").nth(1),
+        Min: page.getByRole("textbox" ).nth(1),
         Max: page.getByRole("textbox").nth(2),
       },
     },

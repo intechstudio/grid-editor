@@ -78,7 +78,7 @@ const blockElements = {
   },
   element: {
     "Button Mode": ["Mode"],
-    "Encoder Mode": ["Mode", "Velocity"],
+    "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
     "Potmeter Mode": ["Bit", "Min", "Max"],
   },
   condition: {
@@ -144,12 +144,12 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  if (context) {
-    await context.close();
-  }
-  if (browser) {
-    await browser.close();
-  }
+  // if (context) {
+  //   await context.close();
+  // }
+  // if (browser) {
+  //   await browser.close();
+  // }
 });
 
 test.describe("Block Existence", () => {
@@ -169,10 +169,11 @@ test.describe("Block Existence", () => {
     });
   }
 });
-
+let blockCategory = "";
 test.describe("Elements Existence", () => {
   for (const [category, blockData] of Object.entries(blockElements)) {
     test.describe(`${category} category`, () => {
+      blockCategory = category;
       for (const [blockName, elementList] of Object.entries(blockData)) {
         test.describe(`${blockName} block`, () => {
           test.beforeAll(async () => {
@@ -185,6 +186,12 @@ test.describe("Elements Existence", () => {
             await configPage.openAndAddActionBlock(category, blockName);
             if (blockName == "Repeater Loop") {
               configPage.openLoopTimes();
+            }
+            if (category == "element") {
+              await configPage.clickCategoryMinMax();
+              if (blockName == "Encoder Mode") {
+                await configPage.clickCategorySensitivity();
+              }
             }
           });
 

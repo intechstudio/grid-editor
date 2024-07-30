@@ -57,6 +57,9 @@ export class ConfigPage {
     this.blocks = blocks(page);
     this.loopTimesSwtich =
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
+    this.elementMinMaxButton = page.getByLabel('Enable Min');
+    this.elementSensitivity = page.getByLabel('Enable Sensitivity');
+
     this.addBlocktoLastSandwitchButton = page
       .locator("anim-block")
       .filter({ hasText: "End" })
@@ -109,6 +112,14 @@ export class ConfigPage {
         name: "Actions here are triggered when the event runs, and no others conditions were",
       })
       .click();
+  }
+
+  async clickCategoryMinMax() {
+    await this.elementMinMaxButton.click()
+  }
+
+  async clickCategorySensitivity() {
+    await this.elementSensitivity.click()
   }
 
   // Element and Action Operations
