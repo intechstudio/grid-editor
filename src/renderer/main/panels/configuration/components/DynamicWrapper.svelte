@@ -59,7 +59,6 @@
 
   function handleOutput(e) {
     const { short, script } = e.detail;
-    console.log(short, script);
     dispatch("update", {
       index: index,
       config: new ConfigObject({
