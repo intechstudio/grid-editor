@@ -28,7 +28,7 @@ const blocks = {
     "Mouse Move",
   ],
   element: ["Button Mode", "Encoder Mode", "Potmeter Mode", "Endless Mode"],
-  condition: ["If"], // Add "If Else" and "Else"
+  condition: ["If"],
   loop: ["Repeater Loop"],
   specialEncoder: ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
   code: ["Code Block", "Comment Block", "Element Name"],
