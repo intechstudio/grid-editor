@@ -1,5 +1,5 @@
 <script>
-  import SvgIcon from "../../../user-interface/SvgIcon.svelte";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();

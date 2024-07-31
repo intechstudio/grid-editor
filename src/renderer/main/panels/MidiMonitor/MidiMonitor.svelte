@@ -10,7 +10,7 @@
     MusicalNotes,
   } from "./MidiMonitor.store";
   import { grid } from "@intechstudio/grid-protocol";
-  import SvgIcon from "../../user-interface/SvgIcon.svelte";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { configManager } from "../../panels/configuration/Configuration.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
