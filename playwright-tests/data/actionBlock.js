@@ -293,6 +293,16 @@ export const blocks = (page) => ({
         end: page.locator("#cfg-2"),
       },
     },
+    "Button Step": {
+      block: page
+        .locator("#action-menu div")
+        .filter({ hasText: "Button Step" })
+        .nth(2),
+      elements: {
+        "Button Off": page.locator("#cfg-0"),
+        "Step One": page.locator("#cfg-1"),
+      },
+    },
   },
   specialEncoder: {
     "Left/Right Rotate": {

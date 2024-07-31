@@ -33,7 +33,7 @@ const blocks = {
   specialEncoder: ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
   code: ["Code Block", "Comment Block", "Element Name"],
   timer: ["Clock Source", "Start", "Stop"],
-  specialButton: ["Press/Release"],
+  specialButton: ["Press/Release", "Button Step"],
 };
 const blockElements = {
   variables: {
@@ -121,6 +121,7 @@ const blockElements = {
   },
   specialButton: {
     "Press/Release": ["press", "release", "end"],
+    "Button Step": ["Button Off", "Step One"],
   },
 };
 
