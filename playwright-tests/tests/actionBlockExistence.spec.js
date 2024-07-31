@@ -17,6 +17,7 @@ async function setupModule(moduleName) {
 }
 
 const blocks = {
+  Function: ["Function"],
   variables: ["Lookup", "Global", "Locals", "Self"],
   led: ["Start Animation", "Stop Animation", "Color", "Intensity"],
   midi: ["MIDI", "MIDI 14", "MIDI SysEX"],
@@ -27,15 +28,18 @@ const blocks = {
     "Mouse Button",
     "Mouse Move",
   ],
-  element: ["Button Mode", "Encoder Mode", "Potmeter Mode"],
-  condition: ["If"], // Add "If Else" and "Else"
+  element: ["Button Mode", "Encoder Mode", "Potmeter Mode", "Endless Mode"],
+  condition: ["If"],
   loop: ["Repeater Loop"],
   specialEncoder: ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
   code: ["Code Block", "Comment Block", "Element Name"],
   timer: ["Clock Source", "Start", "Stop"],
-  specialButton: ["Press/Release"],
+  specialButton: ["Press/Release", "Button Step"],
 };
 const blockElements = {
+  Function: {
+    Function: ["Function", "input", "End"]
+  },
   variables: {
     Lookup: ["source", "input", "output", "destination", "addNewPair"],
     Global: ["Commit", "var", "i", "addNewPair"],
@@ -77,9 +81,10 @@ const blockElements = {
     "Mouse Move": ["Axis", "Position"],
   },
   element: {
-    "Button Mode": ["Mode"],
-    "Encoder Mode": ["Mode", "Velocity"],
-    "Potmeter Mode": ["Bit"],
+    "Button Mode": ["Mode", "Min", "Max"],
+    "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
+    "Potmeter Mode": ["Bit", "Min", "Max"],
+    "Endless Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
   },
   condition: {
     If: ["input", "end"],
@@ -120,6 +125,7 @@ const blockElements = {
   },
   specialButton: {
     "Press/Release": ["press", "release", "end"],
+    "Button Step": ["Button Off", "Step One"],
   },
 };
 
@@ -144,12 +150,12 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  if (context) {
-    await context.close();
-  }
-  if (browser) {
-    await browser.close();
-  }
+  // if (context) {
+  //   await context.close();
+  // }
+  // if (browser) {
+  //   await browser.close();
+  // }
 });
 
 test.describe("Block Existence", () => {
@@ -169,10 +175,11 @@ test.describe("Block Existence", () => {
     });
   }
 });
-
+let blockCategory = "";
 test.describe("Elements Existence", () => {
   for (const [category, blockData] of Object.entries(blockElements)) {
     test.describe(`${category} category`, () => {
+      blockCategory = category;
       for (const [blockName, elementList] of Object.entries(blockData)) {
         test.describe(`${blockName} block`, () => {
           test.beforeAll(async () => {
@@ -185,6 +192,9 @@ test.describe("Elements Existence", () => {
             await configPage.openAndAddActionBlock(category, blockName);
             if (blockName == "Repeater Loop") {
               configPage.openLoopTimes();
+            }
+            if (category == "element") {
+              await configPage.clickCategoryCheckboxFileds(blockName)
             }
           });
 
