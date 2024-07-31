@@ -27,7 +27,7 @@ const blocks = {
     "Mouse Button",
     "Mouse Move",
   ],
-  element: ["Button Mode", "Encoder Mode", "Potmeter Mode"],
+  element: ["Button Mode", "Encoder Mode", "Potmeter Mode", "Endless Mode"],
   condition: ["If"], // Add "If Else" and "Else"
   loop: ["Repeater Loop"],
   specialEncoder: ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
