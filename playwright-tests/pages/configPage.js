@@ -114,6 +114,13 @@ export class ConfigPage {
       .click();
   }
 
+  async clickCategoryCheckboxFileds(blockName) {
+    await this.clickCategoryMinMax();
+    if (blockName == "Encoder Mode" || blockName == "Endless Mode") {
+      await this.clickCategorySensitivity();
+    }
+  }
+
   async clickCategoryMinMax() {
     await this.elementMinMaxButton.click()
   }

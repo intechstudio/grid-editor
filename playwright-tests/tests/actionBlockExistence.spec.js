@@ -77,9 +77,10 @@ const blockElements = {
     "Mouse Move": ["Axis", "Position"],
   },
   element: {
-    "Button Mode": ["Mode"],
+    "Button Mode": ["Mode", "Min", "Max"],
     "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
     "Potmeter Mode": ["Bit", "Min", "Max"],
+    "Endless Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
   },
   condition: {
     If: ["input", "end"],
@@ -188,10 +189,7 @@ test.describe("Elements Existence", () => {
               configPage.openLoopTimes();
             }
             if (category == "element") {
-              await configPage.clickCategoryMinMax();
-              if (blockName == "Encoder Mode") {
-                await configPage.clickCategorySensitivity();
-              }
+              await configPage.clickCategoryCheckboxFileds(blockName)
             }
           });
 
