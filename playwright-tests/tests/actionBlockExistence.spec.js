@@ -17,6 +17,7 @@ async function setupModule(moduleName) {
 }
 
 const blocks = {
+  Function: ["Function"],
   variables: ["Lookup", "Global", "Locals", "Self"],
   led: ["Start Animation", "Stop Animation", "Color", "Intensity"],
   midi: ["MIDI", "MIDI 14", "MIDI SysEX"],
@@ -36,6 +37,9 @@ const blocks = {
   specialButton: ["Press/Release", "Button Step"],
 };
 const blockElements = {
+  Function: {
+    Function: ["Function", "input", "End"]
+  },
   variables: {
     Lookup: ["source", "input", "output", "destination", "addNewPair"],
     Global: ["Commit", "var", "i", "addNewPair"],

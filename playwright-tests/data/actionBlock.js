@@ -1,4 +1,15 @@
 export const blocks = (page) => ({
+  Function: {
+    Function: {
+      block: page.locator('#action-menu div').filter({ hasText: 'Function' }).nth(3),
+    elements: {
+      Function: page.locator('#cfg-0'),
+      input: page.locator('.view-line'),
+      End: page.locator('#cfg-1'),
+    },
+    }
+  },
+
   variables: {
     Lookup: {
       block: page
