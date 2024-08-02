@@ -11,7 +11,16 @@
   "led": {
     "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],
     "Stop Animation": ["ledNumber", "Layer"],
-    "Color": ["ledNumber", "Layer", "Red", "Green", "Blue", "Canva", "Random", "Beauty"],
+    "Color": [
+      "ledNumber",
+      "Layer",
+      "Red",
+      "Green",
+      "Blue",
+      "Canva",
+      "Random",
+      "Beauty"
+    ],
     "Intensity": ["LED Number", "Layer", "Intensity"]
   },
   "midi": {
@@ -22,7 +31,14 @@
   "hid": {
     "GamePad Axis": ["Axis", "Position"],
     "GamePad Button": ["Button", "State"],
-    "Keyboard": ["Macro", "Add Key", "Delay Key", "Add Delay", "Defaul Delay", "Clear All"],
+    "Keyboard": [
+      "Macro",
+      "Add Key",
+      "Delay Key",
+      "Add Delay",
+      "Defaul Delay",
+      "Clear All"
+    ],
     "Mouse Button": ["Button", "State"],
     "Mouse Move": ["Axis", "Position"]
   },
@@ -36,11 +52,25 @@
     "If": ["input", "end"]
   },
   "loop": {
-    "Repeater Loop": ["input", "times", "end", "Variable", "Initial", "End", "Increment"]
+    "Repeater Loop": [
+      "input",
+      "times",
+      "end",
+      "Variable",
+      "Initial",
+      "End",
+      "Increment"
+    ]
   },
   "specialEncoder": {
     "Left/Right Rotate": ["left", "right", "end"],
-    "Push & Rotate L R": ["push left", "push right", "just left", "just right", "end"],
+    "Push & Rotate L R": [
+      "push left",
+      "push right",
+      "just left",
+      "just right",
+      "end"
+    ],
     "Push & Rotate": ["push rotate", "just rotate", "end"]
   },
   "code": {
