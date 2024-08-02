@@ -1,0 +1,60 @@
+{
+  "Function": {
+    "Function": ["Function", "input", "End"]
+  },
+  "variables": {
+    "Lookup": ["source", "input", "output", "destination", "addNewPair"],
+    "Global": ["Commit", "var", "i", "addNewPair"],
+    "Locals": ["Commit", "var", "i", "addNewPair"],
+    "Self": ["Commit", "var", "i", "addNewPair"]
+  },
+  "led": {
+    "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],
+    "Stop Animation": ["ledNumber", "Layer"],
+    "Color": ["ledNumber", "Layer", "Red", "Green", "Blue", "Canva", "Random", "Beauty"],
+    "Intensity": ["LED Number", "Layer", "Intensity"]
+  },
+  "midi": {
+    "MIDI": ["Channel", "Command", "Parameter1", "Parameter2"],
+    "MIDI 14": ["Channel", "CC", "Controller Value"],
+    "MIDI SysEX": ["Commit", "message"]
+  },
+  "hid": {
+    "GamePad Axis": ["Axis", "Position"],
+    "GamePad Button": ["Button", "State"],
+    "Keyboard": ["Macro", "Add Key", "Delay Key", "Add Delay", "Defaul Delay", "Clear All"],
+    "Mouse Button": ["Button", "State"],
+    "Mouse Move": ["Axis", "Position"]
+  },
+  "element": {
+    "Button Mode": ["Mode", "Min", "Max"],
+    "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
+    "Potmeter Mode": ["Bit", "Min", "Max"],
+    "Endless Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"]
+  },
+  "condition": {
+    "If": ["input", "end"]
+  },
+  "loop": {
+    "Repeater Loop": ["input", "times", "end", "Variable", "Initial", "End", "Increment"]
+  },
+  "specialEncoder": {
+    "Left/Right Rotate": ["left", "right", "end"],
+    "Push & Rotate L R": ["push left", "push right", "just left", "just right", "end"],
+    "Push & Rotate": ["push rotate", "just rotate", "end"]
+  },
+  "code": {
+    "Code Block": ["input", "Edit Code"],
+    "Comment Block": ["input"],
+    "Element Name": ["input"]
+  },
+  "timer": {
+    "Clock Source": ["Element Number", "Source"],
+    "Start": ["Element Number", "Time"],
+    "Stop": ["Stop"]
+  },
+  "specialButton": {
+    "Press/Release": ["press", "release", "end"],
+    "Button Step": ["Button Off", "Step One"]
+  }
+}

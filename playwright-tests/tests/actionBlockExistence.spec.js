@@ -3,6 +3,8 @@ import { ConfigPage } from "../pages/configPage";
 import { PAGE_PATH } from "../utility";
 import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
+import blocks from "../data/actionBlocks.json";
+import blockElements from "../data/actionBlockElements.json";
 
 let configPage;
 let connectModulePage;
@@ -15,119 +17,16 @@ async function setupModule(moduleName) {
   await connectModulePage.openVirtualModules();
   await connectModulePage.addModule(moduleName);
 }
-
-const blocks = {
-  Function: ["Function"],
-  variables: ["Lookup", "Global", "Locals", "Self"],
-  led: ["Start Animation", "Stop Animation", "Color", "Intensity"],
-  midi: ["MIDI", "MIDI 14", "MIDI SysEX"],
-  hid: [
-    "GamePad Axis",
-    "GamePad Button",
-    "Keyboard",
-    "Mouse Button",
-    "Mouse Move",
-  ],
-  element: ["Button Mode", "Encoder Mode", "Potmeter Mode", "Endless Mode"],
-  condition: ["If"],
-  loop: ["Repeater Loop"],
-  specialEncoder: ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
-  code: ["Code Block", "Comment Block", "Element Name"],
-  timer: ["Clock Source", "Start", "Stop"],
-  specialButton: ["Press/Release", "Button Step"],
-};
-const blockElements = {
-  Function: {
-    Function: ["Function", "input", "End"]
-  },
-  variables: {
-    Lookup: ["source", "input", "output", "destination", "addNewPair"],
-    Global: ["Commit", "var", "i", "addNewPair"],
-    Locals: ["Commit", "var", "i", "addNewPair"],
-    Self: ["Commit", "var", "i", "addNewPair"],
-  },
-  led: {
-    "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],
-    "Stop Animation": ["ledNumber", "Layer"],
-    Color: [
-      "ledNumber",
-      "Layer",
-      "Red",
-      "Green",
-      "Blue",
-      "Canva",
-      "Random",
-      "Beauty",
-    ],
-    Intensity: ["LED Number", "Layer", "Intensity"],
-  },
-  midi: {
-    MIDI: ["Channel", "Command", "Parameter1", "Parameter2"],
-    "MIDI 14": ["Channel", "CC", "Controller Value"],
-    "MIDI SysEX": ["Commit", "message"],
-  },
-  hid: {
-    "GamePad Axis": ["Axis", "Position"],
-    "GamePad Button": ["Button", "State"],
-    Keyboard: [
-      "Macro",
-      "Add Key",
-      "Delay Key",
-      "Add Delay",
-      "Defaul Delay",
-      "Clear All",
-    ],
-    "Mouse Button": ["Button", "State"],
-    "Mouse Move": ["Axis", "Position"],
-  },
-  element: {
-    "Button Mode": ["Mode", "Min", "Max"],
-    "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
-    "Potmeter Mode": ["Bit", "Min", "Max"],
-    "Endless Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
-  },
-  condition: {
-    If: ["input", "end"],
-    // Add "If Else" and "Else"
-  },
-  loop: {
-    "Repeater Loop": [
-      "input",
-      "times",
-      "end",
-      "Variable",
-      "Initial",
-      "End",
-      "Increment",
-    ],
-  },
-
-  specialEncoder: {
-    "Left/Right Rotate": ["left", "right", "end"],
-    "Push & Rotate L R": [
-      "push left",
-      "push right",
-      "just left",
-      "just right",
-      "end",
-    ],
-    "Push & Rotate": ["push rotate", "kust rotate", "end"],
-  },
-  code: {
-    "Code Block": ["input", "Edit Code"],
-    "Comment Block": ["input"],
-    "Element Name": ["input"],
-  },
-  timer: {
-    "Clock Source": ["Element Number", "Source"],
-    Start: ["Element Number", "Time"],
-    Stop: ["Stop"],
-  },
-  specialButton: {
-    "Press/Release": ["press", "release", "end"],
-    "Button Step": ["Button Off", "Step One"],
-  },
-};
+async function changeModuleIfNeeded(category) {
+  if (category === "specialButton") {
+    await modulePage.removeModule();
+    await setupModule("BU16");
+  }
+  if (category == "Press/Release") {
+    await modulePage.removeModule();
+    await setupModule("BU16");
+  }
+}
 
 test.beforeAll(async () => {
   browser = await chromium.launch();
@@ -150,12 +49,12 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  // if (context) {
-  //   await context.close();
-  // }
-  // if (browser) {
-  //   await browser.close();
-  // }
+  if (context) {
+    await context.close();
+  }
+  if (browser) {
+    await browser.close();
+  }
 });
 
 test.describe("Block Existence", () => {
@@ -163,30 +62,22 @@ test.describe("Block Existence", () => {
     test.describe(`${category} category`, () => {
       for (const blockName of blockList) {
         test(`should find ${blockName} block`, async () => {
-          if (category === "specialButton") {
-            await modulePage.removeModule();
-            await setupModule("BU16");
-          }
-          await configPage.openActionBlockList();
           const blockElement = configPage.blocks[category][blockName]["block"];
+          await changeModuleIfNeeded(category);
+          await configPage.openActionBlockList();
           await expect(blockElement).toBeVisible({ timeout: 5000 });
         });
       }
     });
   }
 });
-let blockCategory = "";
 test.describe("Elements Existence", () => {
   for (const [category, blockData] of Object.entries(blockElements)) {
     test.describe(`${category} category`, () => {
-      blockCategory = category;
       for (const [blockName, elementList] of Object.entries(blockData)) {
         test.describe(`${blockName} block`, () => {
           test.beforeAll(async () => {
-            if (blockName == "Press/Release") {
-              await modulePage.removeModule();
-              await setupModule("BU16");
-            }
+            await changeModuleIfNeeded(blockName);
             await configPage.removeAllActions();
             await configPage.noActionAddActionButton.isVisible();
             await configPage.openAndAddActionBlock(category, blockName);
@@ -194,7 +85,7 @@ test.describe("Elements Existence", () => {
               configPage.openLoopTimes();
             }
             if (category == "element") {
-              await configPage.clickCategoryCheckboxFileds(blockName)
+              await configPage.clickCategoryCheckboxFileds(blockName);
             }
           });
 
