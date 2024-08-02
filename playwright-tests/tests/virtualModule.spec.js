@@ -3,20 +3,18 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import { PAGE_PATH, mockNavigatorSerial } from "../utility";
 
+let connectModulePage;
+let modulePage;
+
 test.beforeEach(async ({ page }) => {
   await mockNavigatorSerial(page);
+  connectModulePage = new ConnectModulePage(page);
+  modulePage = new ModulePage(page);
+  await page.goto(PAGE_PATH);
+  await connectModulePage.openVirtualModules();
 });
 
 test.describe("Modules", () => {
-  let connectModulePage;
-  let modulePage;
-
-  test.beforeEach(async ({ page }) => {
-    connectModulePage = new ConnectModulePage(page);
-    modulePage = new ModulePage(page);
-    await page.goto(PAGE_PATH);
-  });
-
   test.afterEach(async () => {
     await modulePage.removeModule();
   });
@@ -24,7 +22,6 @@ test.describe("Modules", () => {
   const moduleNames = ["BU16", "EF44", "EN16", "PBF4", "PO16", "TEK2"];
   for (const moduleName of moduleNames) {
     test(`should add a ${moduleName}`, async () => {
-      await connectModulePage.openVirtualModules();
       await connectModulePage.addModule(moduleName);
       await expect(modulePage.modules[moduleName]).toBeVisible();
     });
@@ -32,17 +29,7 @@ test.describe("Modules", () => {
 });
 
 test.describe("Module Operations", () => {
-  let connectModulePage;
-  let modulePage;
-
-  test.beforeEach(async ({ page }) => {
-    connectModulePage = new ConnectModulePage(page);
-    modulePage = new ModulePage(page);
-    await page.goto(PAGE_PATH);
-  });
-
   test("should change module", async () => {
-    await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await modulePage.changeModule();
     await connectModulePage.addModule("TEK2");
@@ -50,7 +37,6 @@ test.describe("Module Operations", () => {
   });
 
   test("should remove module", async () => {
-    await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await modulePage.removeModule();
     await expect(modulePage.modules["BU16"]).toBeHidden();
@@ -58,7 +44,6 @@ test.describe("Module Operations", () => {
 
   const expectModule = "PO16";
   test(`Select Multiple Modules and Verifying Visibility of Module ${expectModule}`, async () => {
-    await connectModulePage.openVirtualModules();
     await connectModulePage.selectModule("BU16");
     await connectModulePage.selectModule("TEK2");
     await connectModulePage.addModule(expectModule);
@@ -66,7 +51,6 @@ test.describe("Module Operations", () => {
   });
 
   test("cancel add module", async ({ page }) => {
-    await connectModulePage.openVirtualModules();
     await connectModulePage.selectModule("TEK2");
     await page.mouse.click(1, 1);
     await expect(connectModulePage.virtualModuleButton).toBeVisible();
@@ -74,18 +58,9 @@ test.describe("Module Operations", () => {
 });
 
 test.describe("Add extra module", () => {
-  let connectModulePage;
-  let modulePage;
-
-  test.beforeEach(async ({ page }) => {
-    connectModulePage = new ConnectModulePage(page);
-    modulePage = new ModulePage(page);
-    await page.goto(PAGE_PATH);
-  });
   const sides = ["left", "top", "right", "bottom"];
   for (const side of sides) {
     test(`to ${side} side`, async () => {
-      await connectModulePage.openVirtualModules();
       await connectModulePage.addModule("EF44");
       await modulePage.openAddModuleToSide(side);
       await connectModulePage.addModule("TEK2");
