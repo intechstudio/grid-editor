@@ -28,6 +28,19 @@ async function changeModuleIfNeeded(category) {
   }
 }
 
+async function prepareForBlockTest(category, blockName) {
+  await changeModuleIfNeeded(blockName);
+  await configPage.removeAllActions();
+  await configPage.noActionAddActionButton.isVisible();
+  await configPage.openAndAddActionBlock(category, blockName);
+  if (blockName == "Repeater Loop") {
+    configPage.openLoopTimes();
+  }
+  if (category == "element") {
+    await configPage.clickCategoryCheckboxFileds(blockName);
+  }
+}
+
 test.beforeAll(async () => {
   browser = await chromium.launch();
   context = await browser.newContext();
@@ -77,16 +90,7 @@ test.describe("Elements Existence", () => {
       for (const [blockName, elementList] of Object.entries(blockData)) {
         test.describe(`${blockName} block`, () => {
           test.beforeAll(async () => {
-            await changeModuleIfNeeded(blockName);
-            await configPage.removeAllActions();
-            await configPage.noActionAddActionButton.isVisible();
-            await configPage.openAndAddActionBlock(category, blockName);
-            if (blockName == "Repeater Loop") {
-              configPage.openLoopTimes();
-            }
-            if (category == "element") {
-              await configPage.clickCategoryCheckboxFileds(blockName);
-            }
+            await prepareForBlockTest(category, blockName);
           });
 
           // Test
