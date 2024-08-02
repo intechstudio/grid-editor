@@ -1,13 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
-import { PAGE_PATH } from "../utility";
+import { PAGE_PATH, mockNavigatorSerial } from "../utility";
 
-test.beforeEach(({ page }) => {
-  // mocks navigator.serial, so headless UI tests can run!
-  page.addInitScript(
-    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
-  );
+test.beforeEach(async ({ page }) => {
+  await mockNavigatorSerial(page);
 });
 
 test.describe("Modules", () => {

@@ -1,6 +1,10 @@
-import { chromium, test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { ConfigPage } from "../pages/configPage";
-import { PAGE_PATH } from "../utility";
+import {
+  initializeBrowserContext,
+  closeBrowserContext,
+  PAGE_PATH,
+} from "../utility";
 import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import blocks from "../data/actionBlocks.json";
@@ -42,16 +46,7 @@ async function prepareForBlockTest(category, blockName) {
 }
 
 test.beforeAll(async () => {
-  browser = await chromium.launch();
-  context = await browser.newContext();
-  page = await context.newPage();
-
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "serial", {
-      set: () => undefined,
-      get: () => undefined,
-    });
-  });
+  ({ browser, context, page } = await initializeBrowserContext());
 
   configPage = new ConfigPage(page);
   modulePage = new ModulePage(page);
@@ -62,12 +57,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  if (context) {
-    await context.close();
-  }
-  if (browser) {
-    await browser.close();
-  }
+  await closeBrowserContext({ browser, context });
 });
 
 test.describe("Block Existence", () => {
