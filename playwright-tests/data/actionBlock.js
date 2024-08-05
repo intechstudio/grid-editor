@@ -1,4 +1,15 @@
 export const blocks = (page) => ({
+  Function: {
+    Function: {
+      block: page.locator('#action-menu div').filter({ hasText: 'Function' }).nth(3),
+    elements: {
+      Function: page.locator('#cfg-0'),
+      input: page.locator('.view-line'),
+      End: page.locator('#cfg-1'),
+    },
+    }
+  },
+
   variables: {
     Lookup: {
       block: page
@@ -198,6 +209,8 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         Mode: page.getByRole("textbox").first(),
+        Min: page.getByRole("textbox").nth(1),
+        Max: page.getByRole("textbox").nth(2),
       },
     },
     "Encoder Mode": {
@@ -208,6 +221,9 @@ export const blocks = (page) => ({
       elements: {
         Mode: page.getByRole("textbox").first(),
         Velocity: page.getByRole("textbox").nth(1),
+        Min: page.getByRole("textbox").nth(2),
+        Max: page.getByRole("textbox").nth(3),
+        Sensitivity: page.getByRole("textbox").nth(4),
       },
     },
     "Potmeter Mode": {
@@ -217,7 +233,21 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         Bit: page.getByRole("textbox").first(),
-        Max: page.getByRole("textbox").nth(1),
+        Min: page.getByRole("textbox" ).nth(1),
+        Max: page.getByRole("textbox").nth(2),
+      },
+    },
+    "Endless Mode": {
+      block: page
+        .locator("#action-menu div")
+        .filter({ hasText: "Endless Mode" })
+        .nth(2),
+      elements: {
+        Mode: page.getByRole("textbox").first(),
+        Velocity: page.getByRole("textbox" ).nth(1),
+        Min: page.getByRole("textbox").nth(2),
+        Max: page.getByRole("textbox").nth(3),
+        Sensitivity: page.getByRole("textbox").nth(4),
       },
     },
   },
@@ -272,6 +302,16 @@ export const blocks = (page) => ({
         press: page.locator("#cfg-0"),
         release: page.locator("#cfg-1"),
         end: page.locator("#cfg-2"),
+      },
+    },
+    "Button Step": {
+      block: page
+        .locator("#action-menu div")
+        .filter({ hasText: "Button Step" })
+        .nth(2),
+      elements: {
+        "Button Off": page.locator("#cfg-0"),
+        "Step One": page.locator("#cfg-1"),
       },
     },
   },
