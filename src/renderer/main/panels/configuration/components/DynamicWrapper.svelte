@@ -59,6 +59,7 @@
 
   function handleOutput(e) {
     const { short, script } = e.detail;
+    console.log(short, script);
     dispatch("update", {
       index: index,
       config: new ConfigObject({
@@ -178,6 +179,7 @@
             this={config.header}
             {config}
             {access_tree}
+            {index}
             class="bg-secondary px-2 w-full h-full {config.information
               .rounding === 'top'
               ? 'rounded-tr-xl'

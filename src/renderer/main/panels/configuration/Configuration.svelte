@@ -473,7 +473,7 @@
                   </div>
                   {#key index}
                     {#if typeof $config_drag === "undefined"}
-                      {#if ["composite_close", "single"].includes(config.information.type) || ["single"].includes($configManager[index + 1]?.information.type) || !$appSettings.persistent.actionHelperText}
+                      {#if ["composite_close", "single"].includes(config.information.type) || ["single"].includes($configManager[index + 1]?.information.type) || !$appSettings.persistent.actionHelperText || typeof config.information.helperText === "undefined"}
                         <AddActionLine
                           index={index + 1}
                           on:paste={handlePaste}

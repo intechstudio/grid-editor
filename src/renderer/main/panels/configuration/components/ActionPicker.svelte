@@ -160,6 +160,25 @@
 
     comp = comp.filter((e) => !filterOut.includes(e.information.short));
 
+    //Filter out not allowed button step conditions
+    let n = index - 1;
+    let indentation = 0;
+    while (n >= 0) {
+      const short = configs[n].short;
+      if (short === "bst0") {
+        ++indentation;
+      } else if (short === "btste") {
+        --indentation;
+      }
+      --n;
+    }
+
+    if (indentation == 0) {
+      comp = comp.filter((e) => e.information.short !== "bstn");
+    } else {
+      comp = comp.filter((e) => e.information.short !== "bst0");
+    }
+
     //Filter out element type specific components
     const eventString = NumberToEventType(target.eventType);
 
@@ -247,7 +266,6 @@
   }
 
   function handleClose(e) {
-    console.log("close");
     dispatch("close");
   }
 
