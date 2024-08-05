@@ -1,13 +1,16 @@
 export const blocks = (page) => ({
   Function: {
     Function: {
-      block: page.locator('#action-menu div').filter({ hasText: 'Function' }).nth(3),
-    elements: {
-      Function: page.locator('#cfg-0'),
-      input: page.locator('.view-line'),
-      End: page.locator('#cfg-1'),
+      block: page
+        .locator("#action-menu div")
+        .filter({ hasText: "Function" })
+        .nth(3),
+      elements: {
+        Function: page.locator("#cfg-0"),
+        input: page.locator(".view-line"),
+        End: page.locator("#cfg-1"),
+      },
     },
-    }
   },
 
   variables: {
@@ -233,7 +236,7 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         Bit: page.getByRole("textbox").first(),
-        Min: page.getByRole("textbox" ).nth(1),
+        Min: page.getByRole("textbox").nth(1),
         Max: page.getByRole("textbox").nth(2),
       },
     },
@@ -244,7 +247,7 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         Mode: page.getByRole("textbox").first(),
-        Velocity: page.getByRole("textbox" ).nth(1),
+        Velocity: page.getByRole("textbox").nth(1),
         Min: page.getByRole("textbox").nth(2),
         Max: page.getByRole("textbox").nth(3),
         Sensitivity: page.getByRole("textbox").nth(4),
