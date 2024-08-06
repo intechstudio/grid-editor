@@ -87,7 +87,7 @@ test.describe("Element Actions", () => {
     const timerComment = "timer pasted";
     await configPage.removeAllActions();
     await configPage.addCommentBlock(buttonComment);
-    await configPage.selectElementEvent("Init");
+    await configPage.selectElementEvent("Setup");
     await configPage.removeAllActions();
     await configPage.addCommentBlock(initComment);
     await configPage.selectElementEvent("Timer");
@@ -100,7 +100,7 @@ test.describe("Element Actions", () => {
     await expect(await configPage.getTextFromComment()).toHaveValue(
       timerComment
     );
-    await configPage.selectElementEvent("Init");
+    await configPage.selectElementEvent("Setup");
     await expect(await configPage.getTextFromComment()).toHaveValue(
       initComment
     );
@@ -240,7 +240,7 @@ test.describe("Issues", () => {
     await configPage.addAndEditCodeBlock(text);
     await configPage.commitCode();
     await configPage.closeCode();
-    await configPage.selectElementEvent("Init");
+    await configPage.selectElementEvent("Setup");
     await configPage.addCodeBlock();
     await configPage.selectAllActions();
     await page
