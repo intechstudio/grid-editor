@@ -28,7 +28,7 @@
 </script>
 
 <script>
-  import { createEventDispatcher, onMount } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
@@ -38,25 +38,22 @@
 
   const dispatch = createEventDispatcher();
 
+  let loaded = false;
+
   let scriptValue = ""; // local script part
 
-  $: handleScriptValueChange(scriptValue);
-  $: handleConfigChange(config);
-
-  function handleConfigChange(config) {
-    if (scriptValue === config.script) {
-      return;
-    }
-
+  $: if (config.script && !loaded) {
     scriptValue = config.script.split("--[[")[1].split("]]")[0];
+    loaded = true;
   }
 
-  function handleScriptValueChange(scriptValue) {
-    if (scriptValue === config.script) {
-      return;
-    }
+  $: if (scriptValue && loaded) {
     sendData(scriptValue);
   }
+
+  onDestroy(() => {
+    loaded = false;
+  });
 
   function sendData(e) {
     dispatch("output", { short: "c", script: `--[[${e}]]` });
@@ -81,8 +78,8 @@
         dispatch("validator", data);
       }}
       on:change={(e) => {
-        const value = e.detail;
-        scriptValue = GridScript.shortify(value);
+        let newValue = e.detail;
+        sendData(GridScript.shortify(newValue));
       }}
     />
   </div>
