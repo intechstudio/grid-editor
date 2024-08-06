@@ -43,7 +43,8 @@
   let scriptValue = ""; // local script part
 
   $: if (config.script && !loaded) {
-    scriptValue = config.script.trim().slice(10, -2);
+    const matches = config.script.match(/'([^']*)'/);
+    scriptValue = matches[1];
     loaded = true;
   }
 
