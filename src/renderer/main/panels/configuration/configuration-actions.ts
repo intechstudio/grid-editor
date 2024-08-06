@@ -276,26 +276,31 @@ export function insertAction(
 
 export function updateAction(index: number, newConfig: ConfigObject) {
   const { short, script } = newConfig;
-  configManager.update((s: ConfigList) => {
-    const config = s[index];
-    if (typeof config !== "undefined") {
+
+  const cm = get(configManager);
+  const temp = cm[index].script;
+  try {
+    configManager.update((s: ConfigList) => {
+      const config = s[index];
       config.short = short;
-      const temp = config.script;
       config.script = script;
-      try {
-        s.checkLength();
-      } catch (e) {
-        config.script = temp;
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "config-limit-reached",
-          message: `Update failed! Config limit reached, shorten your code, or delete actions!`,
-        });
-      }
-    }
-    return s;
-  });
+      s.checkLength();
+      return s;
+    });
+  } catch (e) {
+    configManager.update((s: ConfigList) => {
+      const config = s[index];
+      config.script = temp;
+      return s;
+    });
+    configManager.refresh();
+    logger.set({
+      type: "fail",
+      mode: 0,
+      classname: "config-limit-reached",
+      message: `Update failed! Config limit reached, shorten your code, or delete actions!`,
+    });
+  }
 }
 
 export function mergeActionToCode(index: number, configs: ConfigObject[]) {
