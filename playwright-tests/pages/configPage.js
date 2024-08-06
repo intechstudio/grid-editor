@@ -171,7 +171,6 @@ export class ConfigPage {
   }
 
   async selectElementEvent(event) {
-    console.log("YAY", event);
     await this.elementEvent[event].click();
   }
 

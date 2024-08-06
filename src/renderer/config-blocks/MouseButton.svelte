@@ -36,12 +36,12 @@
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
+  import { LocalDefinitions } from "../runtime/runtime.store";
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators";
 
   export let config;
-  export let index;
 
   const dispatch = createEventDispatcher();
 
@@ -96,6 +96,17 @@
       { value: "0", info: "Release" },
     ],
   ];
+
+  $: if ($configManager) {
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
+    });
+    suggestions = _suggestions.map((s, i) => {
+      return [...s, ...localDefinitions];
+    });
+  }
 
   onMount(() => {
     suggestions = _suggestions;
