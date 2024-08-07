@@ -180,7 +180,7 @@ test.describe("Character limit", () => {
     connectModulePage = new ConnectModulePage(page);
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
-    await page.goto("https://grid-editor-web.web.app/");
+    await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("TEK2");
   });
