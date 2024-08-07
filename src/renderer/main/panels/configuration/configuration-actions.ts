@@ -275,22 +275,25 @@ export function insertAction(
 }
 
 export function updateAction(index: number, newConfig: ConfigObject) {
-  const { short, script } = newConfig;
+  const { short, script, name } = newConfig;
 
   const cm = get(configManager);
-  const temp = cm[index].script;
+  const tempScript = cm[index].script; 
+  const tempName = cm[index].name;
   try {
     configManager.update((s: ConfigList) => {
       const config = s[index];
       config.short = short;
       config.script = script;
+      config.name = name;
       s.checkLength();
       return s;
     });
   } catch (e) {
     configManager.update((s: ConfigList) => {
       const config = s[index];
-      config.script = temp;
+      config.script = tempScript;
+      config.name = tempName;
       return s;
     });
     configManager.refresh();
