@@ -5,7 +5,7 @@
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { config_drag } from "../../main/_actions/move.action";
-  import SvgIcon from "@intechstudio/grid-uikit";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
 
   const dispatch = createEventDispatcher();
