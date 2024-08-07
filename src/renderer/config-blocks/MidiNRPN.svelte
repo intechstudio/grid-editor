@@ -59,6 +59,10 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
 
+  import { create, all } from "mathjs";
+
+  const math = create(all, {});
+
   let loaded = false;
 
   const dispatch = createEventDispatcher();
@@ -198,9 +202,18 @@
   let hiResEnabled = false;
   let nrpnCC = undefined;
 
-  $: nrpnCC =
-    Number(GridScript.humanize(scriptSegments[1])) * 128 +
-    Number(GridScript.humanize(scriptSegments[2]));
+  function calculateNRPNCC() {
+    const [msb, lsb] = [
+      GridScript.humanize(scriptSegments[1]),
+      GridScript.humanize(scriptSegments[2]),
+    ];
+
+    try {
+      nrpnCC = eval(msb) * 128 + eval(lsb);
+    } catch (e) {
+      nrpnCC = undefined;
+    }
+  }
 
   $: scriptSegments[4] = hiResEnabled;
 </script>
@@ -256,6 +269,7 @@
             }}
             on:change={(e) => {
               scriptSegments[1] = e.detail;
+              calculateNRPNCC();
             }}
           />
         </div>
@@ -272,6 +286,7 @@
             }}
             on:change={(e) => {
               scriptSegments[2] = e.detail;
+              calculateNRPNCC();
             }}
           />
         </div>
