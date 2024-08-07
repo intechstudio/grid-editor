@@ -57,8 +57,8 @@ export class ConfigPage {
     this.blocks = blocks(page);
     this.loopTimesSwtich =
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
-    this.elementMinMaxButton = page.getByLabel('Enable Min');
-    this.elementSensitivity = page.getByLabel('Enable Sensitivity');
+    this.elementMinMaxButton = page.getByLabel("Enable Min");
+    this.elementSensitivity = page.getByLabel("Enable Sensitivity");
 
     this.addBlocktoLastSandwitchButton = page
       .locator("anim-block")
@@ -122,11 +122,11 @@ export class ConfigPage {
   }
 
   async clickCategoryMinMax() {
-    await this.elementMinMaxButton.click()
+    await this.elementMinMaxButton.click();
   }
 
   async clickCategorySensitivity() {
-    await this.elementSensitivity.click()
+    await this.elementSensitivity.click();
   }
 
   // Element and Action Operations

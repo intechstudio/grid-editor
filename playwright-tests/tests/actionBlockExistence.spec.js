@@ -38,7 +38,7 @@ const blocks = {
 };
 const blockElements = {
   Function: {
-    Function: ["Function", "input", "End"]
+    Function: ["Function", "input", "End"],
   },
   variables: {
     Lookup: ["source", "input", "output", "destination", "addNewPair"],
@@ -194,7 +194,7 @@ test.describe("Elements Existence", () => {
               configPage.openLoopTimes();
             }
             if (category == "element") {
-              await configPage.clickCategoryCheckboxFileds(blockName)
+              await configPage.clickCategoryCheckboxFileds(blockName);
             }
           });
 

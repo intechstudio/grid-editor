@@ -138,6 +138,17 @@
     </Block>
 
     <Block>
+      <BlockTitle>Editable Block Names</BlockTitle>
+      <BlockBody
+        >Blocks can display custom names instead of the block names.</BlockBody
+      >
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.editableBlockNames}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Animations</BlockTitle>
       <BlockBody
         >Transition animations can be disabled to improve usability and
