@@ -93,6 +93,10 @@ export class ModulePage {
     this.storeButton = page.getByRole("button", { name: "Store" });
   }
 
+  async storeConfig() {
+    await this.storeButton.click();
+  }
+
   async changeModule() {
     await this.changeModuleButton.click();
   }
