@@ -39,8 +39,8 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@intechstudio/grid-protocol": "1.20240719.951",
     "@intechstudio/grid-uikit": "1.20240806.1154",
+    "@intechstudio/grid-protocol": "1.20240729.1219",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",

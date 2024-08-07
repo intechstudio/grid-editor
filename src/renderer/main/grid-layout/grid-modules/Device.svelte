@@ -269,7 +269,7 @@
           },
           page: get(user_input).pagenumber,
           element: elementNumber,
-          eventType: EventTypeToNumber(EventType.INIT),
+          eventType: EventTypeToNumber(EventType.SETUP),
         })
       )}
       {@const overwriteElementDisabled = createOverwriteDisabledStore(target)}

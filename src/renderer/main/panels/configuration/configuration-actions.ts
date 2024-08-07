@@ -83,7 +83,7 @@ export async function copyElement({ dx, dy, page, element }) {
         },
         page: page,
         element: element,
-        eventType: EventTypeToNumber(EventType.INIT),
+        eventType: EventTypeToNumber(EventType.SETUP),
       });
 
       if (typeof current === "undefined") {
@@ -135,7 +135,7 @@ export async function overwriteElement({ dx, dy, page, element }) {
     },
     page: page,
     element: element,
-    eventType: EventTypeToNumber(EventType.INIT),
+    eventType: EventTypeToNumber(EventType.SETUP),
   });
 
   const promises: Promise<void>[] = [];
@@ -186,7 +186,7 @@ export async function discardElement({ dx, dy, page, element }) {
     device: { dx, dy },
     page,
     element,
-    eventType: EventTypeToNumber(EventType.INIT),
+    eventType: EventTypeToNumber(EventType.SETUP),
   });
   if (!current) {
     console.warn("Target is undefined");
@@ -275,12 +275,13 @@ export function insertAction(
 }
 
 export function updateAction(index: number, newConfig: ConfigObject) {
-  const { short, script } = newConfig;
+  const { short, script, name } = newConfig;
   configManager.update((s: ConfigList) => {
     const config = s[index];
     if (typeof config !== "undefined") {
       config.short = short;
       config.script = script;
+      config.name = name;
     }
     return s;
   });
@@ -392,7 +393,7 @@ export function clearElement(
     },
     page: pageNumber,
     element: elementNumber,
-    eventType: EventTypeToNumber(EventType.INIT),
+    eventType: EventTypeToNumber(EventType.SETUP),
   });
 
   const promises: Promise<void>[] = [];
