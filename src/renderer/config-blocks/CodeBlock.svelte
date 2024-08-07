@@ -125,6 +125,7 @@
       dispatch("output", {
         short: "cb",
         script: $committed_code_store.script,
+        name: $committed_code_store.name,
       });
       $committed_code_store = {};
     }

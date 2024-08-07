@@ -61,7 +61,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="{$$props.class} text-white flex items-center flex-row w-full px-2 {typeof $config_drag ===
+  class="h-full bg-secondary text-white flex items-center flex-row w-full px-2 {typeof $config_drag ===
   'undefined'
     ? 'group-hover/bg-color:bg-select-saturate-10'
     : ''}"

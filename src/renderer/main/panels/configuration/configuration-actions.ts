@@ -275,12 +275,13 @@ export function insertAction(
 }
 
 export function updateAction(index: number, newConfig: ConfigObject) {
-  const { short, script } = newConfig;
+  const { short, script, name } = newConfig;
   configManager.update((s: ConfigList) => {
     const config = s[index];
     if (typeof config !== "undefined") {
       config.short = short;
       config.script = script;
+      config.name = name;
     }
     return s;
   });

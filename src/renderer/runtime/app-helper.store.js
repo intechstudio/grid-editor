@@ -44,6 +44,7 @@ const persistentDefaultValues = {
   colorfulToolbar: false,
   packageDeveloper: false,
   actionHelperText: true,
+  editableBlockNames: false,
 };
 
 function createSplitPanes() {

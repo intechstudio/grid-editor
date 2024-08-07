@@ -97,7 +97,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
-  class="{$$props.class} h-full justify-center flex flex-col"
+  class="px-2 w-full h-full rounded-tr-xl justify-center flex flex-col"
   class:p-2={toggleValue}
   style="background-color:{config.information.color}"
 >
