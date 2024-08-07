@@ -211,7 +211,7 @@ test.describe("Character limit", () => {
     await configPage.addCommentBlock(characterlimit);
     await modulePage.storeConfig();
     await expect(await configPage.getTextFromComment()).toHaveValue(
-      "This is a comment"
+      "This Is A Comment"
     );
   });
 
