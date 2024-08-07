@@ -63,12 +63,6 @@
 
   const dispatch = createEventDispatcher();
 
-  const parameterNames = [
-    "Channel",
-    "CC number",
-    "Controller Value",
-    "Value resolution",
-  ];
   const validators = [
     (e) => {
       return new Validator(e).NotEmpty().Result();
@@ -108,18 +102,19 @@
 
     let param_object = {
       channel: midiMSB[0].split(",").map((c) => c.trim())[0],
-      base: midiMSB[0].split(",")[3].split("//")[0],
-      value: midiMSB[1].split(",")[3].split("//")[0],
+      MSB: midiMSB[0].split(",")[3],
+      LSB: midiLSB[0].split(",")[3],
+      value: midiMSB[1].split(",")[3],
       hiRes: midiLSB.length > 1 ? true : false,
     };
 
     scriptSegments = [
       param_object.channel,
-      param_object.base,
+      param_object.MSB,
+      param_object.LSB,
       param_object.value,
+      param_object.hiRes,
     ];
-
-    hiResEnabled = param_object.hiRes;
 
     loaded = true;
   }
@@ -128,17 +123,17 @@
     loaded = false;
   });
 
-  $: sendData(hiResEnabled, 3);
+  $: sendData(scriptSegments);
 
-  function sendData(e, index) {
-    scriptSegments[index] = e;
-    const channel = scriptSegments[0];
-    const cc = scriptSegments[1];
-    const value = scriptSegments[2];
-    const hires = scriptSegments[3];
+  function sendData(data) {
+    const channel = data[0];
+    const msb = data[1];
+    const lsb = data[2];
+    const value = scriptSegments[3];
+    const hires = scriptSegments[4];
     let script = [
-      `gms(${channel},176,99,${cc}//128)`,
-      `gms(${channel},176,98,${cc}%128)`,
+      `gms(${channel},176,99,${msb})`,
+      `gms(${channel},176,98,${lsb})`,
       `gms(${channel},176,6,${hires ? `${value}//128` : value})`,
     ];
     if (hires) {
@@ -156,14 +151,14 @@
   };
 
   const _suggestions = [
-    // channels
+    // Channels
     [...channels(16)],
-    // param 1
+    // MSB
     [],
-    // param 2
-    [
-      //{value: '', info: 'to do...'}
-    ],
+    // LSB
+    [],
+    // Value,
+    [],
   ];
 
   let suggestions = [];
@@ -176,8 +171,9 @@
     });
 
     suggestions[0] = _suggestions[0];
-    suggestions[1] = _suggestions[1];
+    suggestions[1] = [...localDefinitions];
     suggestions[2] = [...localDefinitions];
+    suggestions[3] = [...localDefinitions];
   }
 
   $: if ($configManager) {
@@ -195,8 +191,18 @@
     dispatch("replace", { short: element.short });
   }
 
-  let suggestionElement = undefined;
+  let valueSuggestionElement = undefined;
+  let channelSuggestionElement = undefined;
+  let ccSuggestionElement = undefined;
+
   let hiResEnabled = false;
+  let nrpnCC = undefined;
+
+  $: nrpnCC =
+    Number(GridScript.humanize(scriptSegments[1])) * 128 +
+    Number(GridScript.humanize(scriptSegments[2]));
+
+  $: scriptSegments[4] = hiResEnabled;
 </script>
 
 <action-midi
@@ -215,45 +221,130 @@
     </div>
   {/if}
 
-  <div class="w-full grid grid-cols-{scriptSegments.length - 1}">
-    {#each scriptSegments.slice(0, scriptSegments.length - 1) as script, i}
-      <div class="flex flex-col atomicInput gap-1">
-        <div class="text-gray-500 text-sm truncate">
-          {parameterNames[i]}
+  <div class="p-2">
+    <div class="flex flex-col gap-1">
+      <div class="text-gray-500 text-sm truncate">Channel</div>
+      <AtomicInput
+        inputValue={GridScript.humanize(scriptSegments[0])}
+        suggestions={suggestions[0]}
+        validator={validators[0]}
+        suggestionTarget={channelSuggestionElement}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:change={(e) => {
+          scriptSegments[0] = e.detail;
+        }}
+      />
+    </div>
+
+    <AtomicSuggestions bind:component={channelSuggestionElement} />
+
+    <div class="w-full grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <div class="flex flex-col">
+        <div class="flex flex-col gap-1">
+          <div class="text-gray-500 text-sm truncate">MSB</div>
+          <AtomicInput
+            inputValue={GridScript.humanize(scriptSegments[1])}
+            suggestions={suggestions[1]}
+            validator={validators[1]}
+            suggestionTarget={ccSuggestionElement}
+            on:validator={(e) => {
+              const data = e.detail;
+              dispatch("validator", data);
+            }}
+            on:change={(e) => {
+              scriptSegments[1] = e.detail;
+            }}
+          />
         </div>
+        <div class="flex flex-col gap-1">
+          <div class="text-gray-500 text-sm truncate">LSB</div>
+          <AtomicInput
+            inputValue={GridScript.humanize(scriptSegments[2])}
+            suggestions={suggestions[2]}
+            validator={validators[2]}
+            suggestionTarget={ccSuggestionElement}
+            on:validator={(e) => {
+              const data = e.detail;
+              dispatch("validator", data);
+            }}
+            on:change={(e) => {
+              scriptSegments[2] = e.detail;
+            }}
+          />
+        </div>
+      </div>
+      <div class="w-7 h-7 fill-white">
+        <svg
+          version="1.1"
+          id="Layer_1"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          xml:space="preserve"
+          viewBox="0 47.52 477.43 382.39"
+          ><g id="SVGRepo_bgCarrier" stroke-width="0" /><g
+            id="SVGRepo_tracerCarrier"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          /><g id="SVGRepo_iconCarrier">
+            <g>
+              <polygon
+                points="101.82,187.52 57.673,143.372 476.213,143.372 476.213,113.372 57.181,113.372 101.82,68.733 80.607,47.519 0,128.126 80.607,208.733 "
+              />
+              <polygon
+                points="396.82,268.694 375.607,289.907 420,334.301 1.213,334.301 1.213,364.301 420,364.301 375.607,408.694 396.82,429.907 477.427,349.301 "
+              />
+            </g>
+          </g></svg
+        >
+      </div>
+      <div class="flex flex-col gap-1">
+        <div class="text-gray-500 text-sm truncate">NRPN CC</div>
         <AtomicInput
-          inputValue={GridScript.humanize(script)}
-          suggestions={suggestions[i]}
-          validator={validators[i]}
-          suggestionTarget={suggestionElement}
+          inputValue={Number.isInteger(nrpnCC) ? String(nrpnCC) : "?"}
+          suggestions={suggestions[1]}
+          validator={validators[1]}
+          suggestionTarget={ccSuggestionElement}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
           }}
           on:change={(e) => {
-            sendData(GridScript.shortify(e.detail), i);
+            scriptSegments[1] = e.detail + "//128";
+            scriptSegments[2] = e.detail + "%128";
           }}
         />
       </div>
-    {/each}
+    </div>
+
+    <AtomicSuggestions bind:component={ccSuggestionElement} />
+
+    <div class="w-full grid grid-cols-2 gap-2 items-center">
+      <div class="flex flex-col gap-1">
+        <div class="text-gray-500 text-sm truncate">Value</div>
+        <AtomicInput
+          inputValue={GridScript.humanize(scriptSegments[3])}
+          suggestions={suggestions[3]}
+          validator={validators[3]}
+          suggestionTarget={valueSuggestionElement}
+          on:validator={(e) => {
+            const data = e.detail;
+            dispatch("validator", data);
+          }}
+          on:change={(e) => {
+            scriptSegments[3] = e.detail;
+          }}
+        />
+      </div>
+      <MeltCheckbox bind:target={hiResEnabled} title="14bit Resolution" />
+    </div>
+    <AtomicSuggestions bind:component={valueSuggestionElement} />
   </div>
-
-  <MeltCheckbox bind:target={hiResEnabled} title="14bit Resolution" />
-
-  <AtomicSuggestions bind:component={suggestionElement} />
 
   <SendFeedback
     feedback_context="MidiFourteenBit"
-    class="mt-2 text-sm text-gray-500"
+    class="text-sm text-gray-500"
   />
 </action-midi>
-
-<style global>
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
-</style>
