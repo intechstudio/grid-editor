@@ -350,7 +350,7 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         "push rotate": page.locator("#cfg-0"),
-        "kust rotate": page.locator("#cfg-1"),
+        "just rotate": page.locator("#cfg-1"),
         end: page.locator("#cfg-2"),
       },
     },
