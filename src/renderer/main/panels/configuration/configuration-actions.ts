@@ -278,7 +278,7 @@ export function updateAction(index: number, newConfig: ConfigObject) {
   const { short, script, name } = newConfig;
 
   const cm = get(configManager);
-  const tempScript = cm[index].script; 
+  const tempScript = cm[index].script;
   const tempName = cm[index].name;
   try {
     configManager.update((s: ConfigList) => {
