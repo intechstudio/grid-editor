@@ -39,7 +39,7 @@ export class ConfigPage {
     );
 
     this.elementEvent = {
-      Init: page.getByLabel("Init"),
+      Setup: page.getByLabel("Setup"),
       Timer: page.getByLabel("Timer"),
       Utility: page.getByLabel("Utility"),
       "Midi rx": page.getByLabel("Midi rx"),
@@ -49,7 +49,7 @@ export class ConfigPage {
       Encoder: page.getByLabel("Encoder"),
     };
 
-    this.elementInitButton = page.getByLabel("Init");
+    this.elementSetupButton = page.getByLabel("Setup");
     this.elementButtonButton = page.getByLabel("Button");
     this.elementEndlessButton = page.getByLabel("Endless");
     this.elementTimerButton = page.getByLabel("Timer");

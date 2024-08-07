@@ -1,4 +1,5 @@
 <script>
+  import { LocalDefinitions } from "./../../../../runtime/runtime.store.js";
   import SvgIcon from "./../../../user-interface/SvgIcon.svelte";
   import {
     ClipboardKey,
@@ -269,11 +270,37 @@
     dispatch("close");
   }
 
+  function replaceToLocalDefinition(script, segment, localDefinition) {
+    if (script.includes(segment)) {
+      const localDefinitions = LocalDefinitions.getFrom({
+        configs: $configManager,
+        index: Math.min(index, $configManager.length - 1),
+      });
+      const defaultLocal = localDefinitions.find(
+        (e) => e.value === localDefinition
+      )?.value;
+
+      if (typeof defaultLocal !== "undefined") {
+        return script.replace(segment, localDefinition);
+      }
+    }
+    return script;
+  }
+
   function handleAddAction({ component }) {
+    let defaultScript = component.information.defaultLua;
+    defaultScript = replaceToLocalDefinition(
+      defaultScript,
+      "self:ind()",
+      "num"
+    );
+    defaultScript = replaceToLocalDefinition(defaultScript, "glr()", "red");
+    defaultScript = replaceToLocalDefinition(defaultScript, "glg()", "gre");
+    defaultScript = replaceToLocalDefinition(defaultScript, "glb()", "blu");
     const configs = [
       new ConfigObject({
         short: component.information.short,
-        script: component.information.defaultLua,
+        script: defaultScript,
       }),
     ];
 
