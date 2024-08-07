@@ -1253,7 +1253,7 @@ export class LocalDefinitions {
     const config = configs[index];
     let n = index - 1;
     let list = [];
-    let indentation = config.indentation;
+    let indentation = config?.indentation;
     while (n >= 0) {
       if (configs[n].indentation <= indentation) {
         list.push(configs[n]);
