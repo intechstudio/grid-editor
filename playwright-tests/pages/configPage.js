@@ -1,4 +1,4 @@
-import { blocks } from "../data/actionBlock";
+import { blocks } from "../data/actionBlockLocators";
 
 export class ConfigPage {
   constructor(page) {
