@@ -5,9 +5,8 @@
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { config_drag } from "../../main/_actions/move.action";
-  import SvgIcon from "../../main/user-interface/SvgIcon.svelte";
+  import SvgIcon from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
-  import { clickOutside } from "../../main/_actions/click-outside.action";
 
   const dispatch = createEventDispatcher();
 

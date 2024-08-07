@@ -17,7 +17,7 @@
   import { GridScript } from "@intechstudio/grid-protocol";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
-  import SvgIcon from "../user-interface/SvgIcon.svelte";
+  import SvgIcon from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
 
   let monaco_block;
