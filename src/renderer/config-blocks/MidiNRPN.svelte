@@ -43,8 +43,8 @@
   };
 </script>
 
-<script>
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+<script lang="ts">
+  import { onMount, createEventDispatcher } from "svelte";
   import { AtomicInput, MeltCheckbox } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
@@ -58,12 +58,6 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
-
-  import { create, all } from "mathjs";
-
-  const math = create(all, {});
-
-  let loaded = false;
 
   const dispatch = createEventDispatcher();
 
@@ -82,7 +76,15 @@
     },
   ];
 
-  let scriptSegments = [];
+  type ScriptSegments = {
+    channel: string;
+    addressMSB: string;
+    addressLSB: string;
+    value: string;
+    hiRes: boolean;
+    nrpnCC: string;
+  };
+  let scriptSegments: ScriptSegments = undefined;
 
   let midiLSB = []; // local script part
   let midiMSB = [];
@@ -90,58 +92,52 @@
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   // config.script cannot be undefined
-  $: if (config.script && !loaded) {
+  let loaded = false;
+  onMount(() => {
     const arr = config.script.split(" ");
     for (let i = 0; i < arr.length; ++i) {
       let part = whatsInParenthesis.exec(arr[i]);
 
       if (part !== null && part.length > 0) {
         if (i % 2 === 0) {
-          midiMSB.push(part[1]);
+          midiMSB.push(part[1].split(",")[3]);
         } else {
-          midiLSB.push(part[1]);
+          midiLSB.push(part[1].split(",")[3]);
         }
       }
     }
 
-    let param_object = {
-      channel: midiMSB[0].split(",").map((c) => c.trim())[0],
-      MSB: midiMSB[0].split(",")[3],
-      LSB: midiLSB[0].split(",")[3],
-      value: midiMSB[1].split(",")[3],
-      hiRes: midiLSB.length > 1 ? true : false,
+    const hiRes = midiLSB.length > 1 ? true : false;
+    scriptSegments = {
+      channel: whatsInParenthesis
+        .exec(arr[0])[1]
+        .split(",")
+        .map((c) => c.trim())[0],
+      addressMSB: midiMSB[0],
+      addressLSB: midiLSB[0],
+      nrpnCC: undefined,
+      value: midiMSB[1].split("//")[0],
+      hiRes: hiRes,
     };
-
-    scriptSegments = [
-      param_object.channel,
-      param_object.MSB,
-      param_object.LSB,
-      param_object.value,
-      param_object.hiRes,
-    ];
-
+    calculateDisplayValues();
     loaded = true;
-  }
-
-  onDestroy(() => {
-    loaded = false;
   });
 
   $: sendData(scriptSegments);
 
-  function sendData(data) {
-    const channel = data[0];
-    const msb = data[1];
-    const lsb = data[2];
-    const value = scriptSegments[3];
-    const hires = scriptSegments[4];
+  function sendData(data: ScriptSegments) {
+    if (!loaded) {
+      return;
+    }
+
+    const { channel, addressMSB, addressLSB, value, hiRes } = data;
     let script = [
-      `gms(${channel},176,99,${msb})`,
-      `gms(${channel},176,98,${lsb})`,
-      `gms(${channel},176,6,${hires ? `${value}//128` : value})`,
+      `gms(${channel},176,99,${addressMSB})`,
+      `gms(${channel},176,98,${addressLSB})`,
+      `gms(${channel},176,6,${hiRes ? value + "//128" : value})`,
     ];
-    if (hires) {
-      script.push(`gms(${channel},176,38,${value}%128)`);
+    if (hiRes) {
+      script.push(`gms(${channel},176,38,${value + "%128"})`);
     }
     dispatch("output", { short: config.short, script: script.join(" ") });
   }
@@ -199,67 +195,139 @@
   let channelSuggestionElement = undefined;
   let ccSuggestionElement = undefined;
 
-  let hiResEnabled = false;
-  let nrpnCC = undefined;
-
-  function calculateNRPNCC() {
-    const [msb, lsb] = [
-      GridScript.humanize(scriptSegments[1]),
-      GridScript.humanize(scriptSegments[2]),
+  function calculateDisplayValues() {
+    const [addressMSB, addressLSB] = [
+      GridScript.humanize(scriptSegments.addressMSB),
+      GridScript.humanize(scriptSegments.addressLSB),
     ];
 
-    try {
-      nrpnCC = eval(msb) * 128 + eval(lsb);
-    } catch (e) {
-      nrpnCC = undefined;
+    const [msb, lsb] = [addressMSB.split("//")[0], addressLSB.split("%")[0]];
+
+    if (
+      addressMSB.split("//").length > 1 &&
+      addressLSB.split("%").length > 1 &&
+      msb === lsb
+    ) {
+      scriptSegments.nrpnCC = msb;
+      try {
+        scriptSegments.addressMSB = eval(`Math.floor(${msb}/128)`);
+        scriptSegments.addressLSB = eval(`${lsb}%128`);
+      } catch (e) {
+        scriptSegments.addressMSB = addressMSB;
+        scriptSegments.addressLSB = addressLSB;
+      }
+    } else {
+      try {
+        scriptSegments.nrpnCC = eval(`(${msb}*128)+${lsb}`);
+      } catch (e) {
+        scriptSegments.nrpnCC = `(${msb}*128)+${lsb}`;
+      }
     }
   }
-
-  $: scriptSegments[4] = hiResEnabled;
 </script>
 
-<action-midi
-  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
->
-  {#if tabs !== undefined}
-    <div class="ml-auto flex flex-row mb-2">
-      <div />
-      {#each tabs as element}
-        <TabButton
-          selected={config.information.short == element.short}
-          text={element.name}
-          on:click={() => handleTabButtonClicked(element)}
+{#if loaded}
+  <action-midi
+    class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
+  >
+    {#if tabs !== undefined}
+      <div class="ml-auto flex flex-row mb-2">
+        <div />
+        {#each tabs as element}
+          <TabButton
+            selected={config.information.short == element.short}
+            text={element.name}
+            on:click={() => handleTabButtonClicked(element)}
+          />
+        {/each}
+      </div>
+    {/if}
+
+    <div class="p-2">
+      <div class="flex flex-col gap-1">
+        <div class="text-gray-500 text-sm truncate">Channel</div>
+        <AtomicInput
+          inputValue={GridScript.humanize(scriptSegments.channel)}
+          suggestions={suggestions[0]}
+          validator={validators[0]}
+          suggestionTarget={channelSuggestionElement}
+          on:validator={(e) => {
+            const data = e.detail;
+            dispatch("validator", data);
+          }}
+          on:change={(e) => {
+            scriptSegments.channel = GridScript.shortify(e.detail);
+          }}
         />
-      {/each}
-    </div>
-  {/if}
+      </div>
 
-  <div class="p-2">
-    <div class="flex flex-col gap-1">
-      <div class="text-gray-500 text-sm truncate">Channel</div>
-      <AtomicInput
-        inputValue={GridScript.humanize(scriptSegments[0])}
-        suggestions={suggestions[0]}
-        validator={validators[0]}
-        suggestionTarget={channelSuggestionElement}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-        on:change={(e) => {
-          scriptSegments[0] = e.detail;
-        }}
-      />
-    </div>
+      <AtomicSuggestions bind:component={channelSuggestionElement} />
 
-    <AtomicSuggestions bind:component={channelSuggestionElement} />
-
-    <div class="w-full grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-      <div class="flex flex-col">
+      <div class="w-full grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div class="flex flex-col">
+          <div class="flex flex-col gap-1">
+            <div class="text-gray-500 text-sm truncate">MSB</div>
+            <AtomicInput
+              inputValue={GridScript.humanize(scriptSegments.addressMSB)}
+              suggestions={suggestions[1]}
+              validator={validators[1]}
+              suggestionTarget={ccSuggestionElement}
+              on:validator={(e) => {
+                const data = e.detail;
+                dispatch("validator", data);
+              }}
+              on:change={(e) => {
+                scriptSegments.addressMSB = GridScript.shortify(e.detail);
+                calculateDisplayValues();
+              }}
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="text-gray-500 text-sm truncate">LSB</div>
+            <AtomicInput
+              inputValue={GridScript.humanize(scriptSegments.addressLSB)}
+              suggestions={suggestions[2]}
+              validator={validators[2]}
+              suggestionTarget={ccSuggestionElement}
+              on:validator={(e) => {
+                const data = e.detail;
+                dispatch("validator", data);
+              }}
+              on:change={(e) => {
+                scriptSegments.addressLSB = GridScript.shortify(e.detail);
+                calculateDisplayValues();
+              }}
+            />
+          </div>
+        </div>
+        <div class="w-7 h-7 fill-white">
+          <svg
+            version="1.1"
+            id="Layer_1"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xml:space="preserve"
+            viewBox="0 47.52 477.43 382.39"
+            ><g id="SVGRepo_bgCarrier" stroke-width="0" /><g
+              id="SVGRepo_tracerCarrier"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /><g id="SVGRepo_iconCarrier">
+              <g>
+                <polygon
+                  points="101.82,187.52 57.673,143.372 476.213,143.372 476.213,113.372 57.181,113.372 101.82,68.733 80.607,47.519 0,128.126 80.607,208.733 "
+                />
+                <polygon
+                  points="396.82,268.694 375.607,289.907 420,334.301 1.213,334.301 1.213,364.301 420,364.301 375.607,408.694 396.82,429.907 477.427,349.301 "
+                />
+              </g>
+            </g></svg
+          >
+        </div>
         <div class="flex flex-col gap-1">
-          <div class="text-gray-500 text-sm truncate">MSB</div>
+          <div class="text-gray-500 text-sm truncate">NRPN CC</div>
           <AtomicInput
-            inputValue={GridScript.humanize(scriptSegments[1])}
+            inputValue={GridScript.humanize(scriptSegments.nrpnCC)}
             suggestions={suggestions[1]}
             validator={validators[1]}
             suggestionTarget={ccSuggestionElement}
@@ -268,98 +336,48 @@
               dispatch("validator", data);
             }}
             on:change={(e) => {
-              scriptSegments[1] = e.detail;
-              calculateNRPNCC();
+              scriptSegments.addressMSB = `${GridScript.shortify(
+                e.detail
+              )}//128`;
+              scriptSegments.addressLSB = `${GridScript.shortify(
+                e.detail
+              )}%128`;
+              calculateDisplayValues();
             }}
           />
         </div>
+      </div>
+
+      <AtomicSuggestions bind:component={ccSuggestionElement} />
+
+      <div class="w-full grid grid-cols-2 gap-2 items-center">
         <div class="flex flex-col gap-1">
-          <div class="text-gray-500 text-sm truncate">LSB</div>
+          <div class="text-gray-500 text-sm truncate">Value</div>
           <AtomicInput
-            inputValue={GridScript.humanize(scriptSegments[2])}
-            suggestions={suggestions[2]}
-            validator={validators[2]}
-            suggestionTarget={ccSuggestionElement}
+            inputValue={GridScript.humanize(scriptSegments.value)}
+            suggestions={suggestions[3]}
+            validator={validators[3]}
+            suggestionTarget={valueSuggestionElement}
             on:validator={(e) => {
               const data = e.detail;
               dispatch("validator", data);
             }}
             on:change={(e) => {
-              scriptSegments[2] = e.detail;
-              calculateNRPNCC();
+              scriptSegments.value = GridScript.shortify(e.detail);
             }}
           />
         </div>
-      </div>
-      <div class="w-7 h-7 fill-white">
-        <svg
-          version="1.1"
-          id="Layer_1"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          xml:space="preserve"
-          viewBox="0 47.52 477.43 382.39"
-          ><g id="SVGRepo_bgCarrier" stroke-width="0" /><g
-            id="SVGRepo_tracerCarrier"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          /><g id="SVGRepo_iconCarrier">
-            <g>
-              <polygon
-                points="101.82,187.52 57.673,143.372 476.213,143.372 476.213,113.372 57.181,113.372 101.82,68.733 80.607,47.519 0,128.126 80.607,208.733 "
-              />
-              <polygon
-                points="396.82,268.694 375.607,289.907 420,334.301 1.213,334.301 1.213,364.301 420,364.301 375.607,408.694 396.82,429.907 477.427,349.301 "
-              />
-            </g>
-          </g></svg
-        >
-      </div>
-      <div class="flex flex-col gap-1">
-        <div class="text-gray-500 text-sm truncate">NRPN CC</div>
-        <AtomicInput
-          inputValue={Number.isInteger(nrpnCC) ? String(nrpnCC) : "?"}
-          suggestions={suggestions[1]}
-          validator={validators[1]}
-          suggestionTarget={ccSuggestionElement}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            scriptSegments[1] = e.detail + "//128";
-            scriptSegments[2] = e.detail + "%128";
-          }}
+        <MeltCheckbox
+          bind:target={scriptSegments.hiRes}
+          title="14bit Resolution"
         />
       </div>
+      <AtomicSuggestions bind:component={valueSuggestionElement} />
     </div>
 
-    <AtomicSuggestions bind:component={ccSuggestionElement} />
-
-    <div class="w-full grid grid-cols-2 gap-2 items-center">
-      <div class="flex flex-col gap-1">
-        <div class="text-gray-500 text-sm truncate">Value</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(scriptSegments[3])}
-          suggestions={suggestions[3]}
-          validator={validators[3]}
-          suggestionTarget={valueSuggestionElement}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            scriptSegments[3] = e.detail;
-          }}
-        />
-      </div>
-      <MeltCheckbox bind:target={hiResEnabled} title="14bit Resolution" />
-    </div>
-    <AtomicSuggestions bind:component={valueSuggestionElement} />
-  </div>
-
-  <SendFeedback
-    feedback_context="MidiFourteenBit"
-    class="text-sm text-gray-500"
-  />
-</action-midi>
+    <SendFeedback
+      feedback_context="MidiFourteenBit"
+      class="text-sm text-gray-500"
+    />
+  </action-midi>
+{/if}
