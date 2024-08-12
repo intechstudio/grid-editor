@@ -57,7 +57,6 @@
     copyElement,
     clearElement,
   } from "./configuration-actions";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////

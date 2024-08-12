@@ -220,7 +220,7 @@
   <MeltCheckbox bind:target={sensitivityEnabled} title={"Enable Sensitivity"} />
 
   <div class="flex flex-col" class:hidden={!sensitivityEnabled}>
-    <span class="text-sm text-gray-500">Sensitivcity</span>
+    <span class="text-sm text-gray-500">Sensitivity</span>
     <AtomicInput
       inputValue={GridScript.humanize(ese)}
       validator={(e) => {
