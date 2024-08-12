@@ -41,7 +41,7 @@ async function prepareForBlockTest(category, blockName) {
     configPage.openLoopTimes();
   }
   if (category == "element") {
-    await configPage.clickCategoryCheckboxFileds(blockName);
+    await configPage.clickCategoryCheckboxFields(blockName);
   }
 }
 
