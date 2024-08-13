@@ -42,7 +42,7 @@
 </script>
 
 <else-if-block
-  class="{$$props.class} w-full h-fit flex text-white py-1 pointer-events-auto"
+  class="w-full h-full flex text-white py-1 pointer-events-auto"
   style="background-color:{config.information.color}"
 >
   <div class="flex flex-row items-center w-full gap-3">
