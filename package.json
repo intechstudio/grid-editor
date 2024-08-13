@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20240729.1219",
-    "@intechstudio/grid-uikit": "^1.20240722.817",
+    "@intechstudio/grid-uikit": "^1.20240813.1834",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",
