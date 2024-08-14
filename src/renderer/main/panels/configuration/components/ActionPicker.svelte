@@ -1,6 +1,6 @@
 <script>
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store.js";
-  import SvgIcon from "./../../../user-interface/SvgIcon.svelte";
   import {
     ClipboardKey,
     appClipboard,

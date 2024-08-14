@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { scale } from "svelte/transition";
   import {
     shortcut as shortcutAction,
     ShortcutParameter,
   } from "./../_actions/shortcut.action";
   import { appSettings } from "./../../runtime/app-helper.store.js";
   import { createEventDispatcher } from "svelte";
-  import SvgIcon from "./SvgIcon.svelte";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
