@@ -1,0 +1,20 @@
+{
+  "Function": ["Function"],
+  "variables": ["Lookup", "Global", "Locals", "Self"],
+  "led": ["Start Animation", "Stop Animation", "Color", "Intensity"],
+  "midi": ["MIDI", "MIDI 14", "MIDI SysEX", "MIDI NRPN"],
+  "hid": [
+    "GamePad Axis",
+    "GamePad Button",
+    "Keyboard",
+    "Mouse Button",
+    "Mouse Move"
+  ],
+  "element": ["Button Mode", "Encoder Mode", "Potmeter Mode", "Endless Mode"],
+  "condition": ["If"],
+  "loop": ["Repeater Loop"],
+  "specialEncoder": ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
+  "code": ["Code Block", "Comment Block", "Element Name"],
+  "timer": ["Clock Source", "Start", "Stop"],
+  "specialButton": ["Press/Release", "Button Step"]
+}

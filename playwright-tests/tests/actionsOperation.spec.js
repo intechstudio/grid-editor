@@ -1,19 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
-import { PAGE_PATH } from "../utility";
+import { PAGE_PATH, mockNavigatorSerial, getRandomInt } from "../utility";
 import { ConfigPage } from "../pages/configPage";
-import { describe } from "node:test";
 
 let connectModulePage;
 let modulePage;
 let configPage;
 
 test.beforeEach(async ({ page }) => {
-  // mocks navigator.serial, so headless UI tests can run!
-  page.addInitScript(
-    "Object.defineProperty(navigator,'serial',{set: () => undefined, get: () => undefined})"
-  );
+  await mockNavigatorSerial(page);
 });
 
 test.describe("Action Block Operations", () => {
@@ -206,6 +202,14 @@ test.describe("Character limit", () => {
   });
 
   const characterlimit = `print("It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway, so I simply don't have the time. I mean, I could just type a bunch of random letters or hold down one key, but that would be no fun at all.")`;
+  test("in comment", async () => {
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(characterlimit);
+    await modulePage.storeConfig();
+    await expect(await configPage.getTextFromComment()).toHaveValue(
+      "This Is A Comment"
+    );
+  });
 
   test("in code", async () => {
     await configPage.removeAllActions();
@@ -252,5 +256,26 @@ test.describe("Issues", () => {
     await expect(preText).toBeVisible();
 
     //TODO refactor, with contains(), it slow now
+  });
+  test("MIDI NRPN showes the converted value after switch element", async ({
+    page,
+  }) => {
+    const expectedValue = (await getRandomInt(127)).toString();
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      expectedValue
+    );
+    await configPage.selectElementEvent("Timer");
+    await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
   });
 });

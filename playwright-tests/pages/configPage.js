@@ -1,4 +1,4 @@
-import { blocks } from "../data/actionBlock";
+import { blocks } from "../data/actionBlockLocators";
 
 export class ConfigPage {
   constructor(page) {
@@ -82,6 +82,16 @@ export class ConfigPage {
   }
   async addActionBlock(category, blockName) {
     await this.blocks[category][blockName]["block"].click();
+  }
+
+  async writeActionBlockField(category, blockName, field, input) {
+    await this.blocks[category][blockName]["elements"][field].fill(input);
+  }
+
+  async getActionBlockFieldValue(category, blockName, field) {
+    return await this.blocks[category][blockName]["elements"][
+      field
+    ].inputValue();
   }
 
   async openLoopTimes() {

@@ -38,9 +38,10 @@ export function lastOpenedActionblocksRemove(short) {
 }
 
 export class ConfigObject {
-  constructor({ short, script }) {
+  constructor({ short, script, name = undefined }) {
     this.short = short;
     this.script = script;
+    this.name = name;
     this.id = uuidv4();
 
     let res = getComponentInformation({ short: short });
@@ -60,7 +61,12 @@ export class ConfigObject {
   }
 
   toRawLua() {
-    return `--[[@${this.short}]] ${this.script}`;
+    return `--[[@${this.short}${
+      typeof this.name !== "undefined" &&
+      this.name !== this.information.displayName
+        ? "#" + this.name
+        : ""
+    }]] ${this.script}`;
   }
 
   makeCopy() {
@@ -73,6 +79,7 @@ export class ConfigObject {
     copy.selected = this.selected;
     copy.toggled = this.toggled;
     copy.id = uuidv4();
+    copy.name = this.name;
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -182,7 +189,11 @@ export class ConfigList extends Array {
 
   sendTo({ target }) {
     return new Promise((resolve, reject) => {
-      this.checkLength();
+      try {
+        this.checkLength();
+      } catch (e) {
+        reject(e);
+      }
       const actionString = this.toConfigScript();
 
       runtime
@@ -232,14 +243,19 @@ export class ConfigList extends Array {
       actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    configList = actionString.split(/(--\[\[@+\w+\]\])/);
+    configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
 
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
+      const split = configList[i]
+        .match(/--\[\[@(.*)\]\]/)
+        ?.at(1)
+        .split(/#(.*)/);
       const obj = new ConfigObject({
-        //Extract short, e.g.: '--[[@gms]]' => 'gms'
-        short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
+        //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
+        short: split[0],
         script: configList[i + 1].trim(),
+        name: split.length > 1 ? split[1] : undefined,
       });
       super.push(obj);
     }
@@ -272,8 +288,9 @@ export class ConfigList extends Array {
 
   //Throws error if limit is reached
   checkLength() {
-    const length = this.toConfigScript().length;
-    if (length > grid.getProperty("CONFIG_LENGTH")) {
+    const script = this.toConfigScript();
+    const length = script.length;
+    if (length >= grid.getProperty("CONFIG_LENGTH")) {
       const target = ConfigTarget.getCurrent();
       throw {
         type: "lengthError",
@@ -317,7 +334,6 @@ export class ConfigTarget {
       const controlElement = device.pages
         .at(page)
         .control_elements.find((e) => e.elementIndex == element);
-      //console.log(device.pages.at(page).control_elements, element);
       target.events = controlElement.events;
       target.elementType = controlElement.type;
       return target;
@@ -392,6 +408,7 @@ export class ConfigTarget {
   getConfig() {
     return new Promise((resolve, reject) => {
       const event = this.getEvent();
+
       if (typeof event.config === "undefined") {
         runtime
           .fetchOrLoadConfig({

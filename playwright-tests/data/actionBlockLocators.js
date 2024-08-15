@@ -147,6 +147,20 @@ export const blocks = (page) => ({
         message: page.getByText("0xF0, 0x41, 0x10, val, 0xF7", { exact: true }),
       },
     },
+    "MIDI NRPN": {
+      block: page
+        .locator("#action-menu div")
+        .filter({ hasText: "MIDI NRPN" })
+        .nth(2),
+      elements: {
+        Channel: page.getByRole("textbox").first(),
+        MSB: page.getByRole("textbox").nth(1),
+        LSB: page.getByRole("textbox").nth(2),
+        "NRPN CC": page.getByRole("textbox").nth(3),
+        Value: page.getByRole("textbox").nth(4),
+        "14bit Resolution": page.getByLabel("14bit Resolution"),
+      },
+    },
   },
   hid: {
     "GamePad Axis": {
@@ -350,7 +364,7 @@ export const blocks = (page) => ({
         .nth(2),
       elements: {
         "push rotate": page.locator("#cfg-0"),
-        "kust rotate": page.locator("#cfg-1"),
+        "just rotate": page.locator("#cfg-1"),
         end: page.locator("#cfg-2"),
       },
     },
