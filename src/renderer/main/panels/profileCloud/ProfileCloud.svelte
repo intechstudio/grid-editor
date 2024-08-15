@@ -28,6 +28,31 @@
 
   $: sendConfigLinkToIframe($configLinkStore);
 
+  $: handleRuntimeChange($runtime);
+
+  function handleRuntimeChange(rt) {
+    const compatible = new Set([]);
+    for (const device of rt) {
+      const module = device.id.substring(0, 4);
+      const elements = device.pages[0].control_elements.map((e) => e.type);
+      compatible.add(module);
+      elements.forEach((item) => compatible.add(item));
+    }
+    sendCompatibleTypes(Array.from(compatible));
+  }
+
+  function sendCompatibleTypes(types) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "compatibleTypes",
+        compatibleTypes: types,
+      },
+      "*"
+    );
+  }
+
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {

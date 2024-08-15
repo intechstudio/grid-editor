@@ -89,37 +89,38 @@
   let midiLSB = []; // local script part
   let midiMSB = [];
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
-
-  // config.script cannot be undefined
   let loaded = false;
   onMount(() => {
-    const arr = config.script.split(" ");
-    for (let i = 0; i < arr.length; ++i) {
-      let part = whatsInParenthesis.exec(arr[i]);
+    // Extract all contents
+    const matches = [];
+    const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
-      if (part !== null && part.length > 0) {
-        if (i % 2 === 0) {
-          midiMSB.push(part[1].split(",")[3]);
-        } else {
-          midiLSB.push(part[1].split(",")[3]);
-        }
+    let match;
+
+    while ((match = regex.exec(config.script)) !== null) {
+      matches.push(match[1].trim()); // trim to remove any extra spaces
+    }
+
+    for (let i = 0; i < matches.length; ++i) {
+      let part = matches[i];
+
+      if (i % 2 === 0) {
+        midiMSB.push(part.split(",")[3]);
+      } else {
+        midiLSB.push(part.split(",")[3]);
       }
     }
 
     const hiRes = midiLSB.length > 1 ? true : false;
     scriptSegments = {
-      channel: whatsInParenthesis
-        .exec(arr[0])[1]
-        .split(",")
-        .map((c) => c.trim())[0],
+      channel: matches[0].split(",")[0],
       addressMSB: midiMSB[0],
       addressLSB: midiLSB[0],
       nrpnCC: undefined,
       value: midiMSB[1].split("//")[0],
       hiRes: hiRes,
     };
-    calculateDisplayValues();
+    scriptSegments = calculateNRPNCC(scriptSegments);
     loaded = true;
   });
 
@@ -195,34 +196,34 @@
   let channelSuggestionElement = undefined;
   let ccSuggestionElement = undefined;
 
-  function calculateDisplayValues() {
-    const [addressMSB, addressLSB] = [
-      GridScript.humanize(scriptSegments.addressMSB),
-      GridScript.humanize(scriptSegments.addressLSB),
-    ];
-
-    const [msb, lsb] = [addressMSB.split("//")[0], addressLSB.split("%")[0]];
-
+  function calculateNRPNCC(segments: ScriptSegments): ScriptSegments {
+    const { channel, addressMSB, addressLSB, value, hiRes } = segments;
+    let res;
     if (
-      addressMSB.split("//").length > 1 &&
-      addressLSB.split("%").length > 1 &&
-      msb === lsb
+      addressMSB.endsWith("//128") &&
+      addressLSB.endsWith("%128") &&
+      addressMSB.slice(0, -5) === addressLSB.slice(0, -4)
     ) {
-      scriptSegments.nrpnCC = msb;
-      try {
-        scriptSegments.addressMSB = eval(`Math.floor(${msb}/128)`);
-        scriptSegments.addressLSB = eval(`${lsb}%128`);
-      } catch (e) {
-        scriptSegments.addressMSB = addressMSB;
-        scriptSegments.addressLSB = addressLSB;
-      }
+      const msb = addressMSB.slice(0, -5);
+      res = {
+        channel,
+        addressMSB,
+        addressLSB,
+        value,
+        hiRes,
+        nrpnCC: msb,
+      };
     } else {
-      try {
-        scriptSegments.nrpnCC = eval(`(${msb}*128)+${lsb}`);
-      } catch (e) {
-        scriptSegments.nrpnCC = `(${msb}*128)+${lsb}`;
-      }
+      res = {
+        channel,
+        addressMSB,
+        addressLSB,
+        value,
+        hiRes,
+        nrpnCC: `(${addressMSB})*128+${addressLSB}`,
+      };
     }
+    return res;
   }
 </script>
 
@@ -278,7 +279,7 @@
               }}
               on:change={(e) => {
                 scriptSegments.addressMSB = GridScript.shortify(e.detail);
-                calculateDisplayValues();
+                scriptSegments = calculateNRPNCC(scriptSegments);
               }}
             />
           </div>
@@ -295,7 +296,7 @@
               }}
               on:change={(e) => {
                 scriptSegments.addressLSB = GridScript.shortify(e.detail);
-                calculateDisplayValues();
+                scriptSegments = calculateNRPNCC(scriptSegments);
               }}
             />
           </div>
@@ -327,7 +328,7 @@
         <div class="flex flex-col gap-1">
           <div class="text-gray-500 text-sm truncate">NRPN CC</div>
           <AtomicInput
-            inputValue={GridScript.humanize(scriptSegments.nrpnCC)}
+            inputValue={`${GridScript.humanize(scriptSegments.nrpnCC)}`}
             suggestions={suggestions[1]}
             validator={validators[1]}
             suggestionTarget={ccSuggestionElement}
@@ -336,13 +337,13 @@
               dispatch("validator", data);
             }}
             on:change={(e) => {
-              scriptSegments.addressMSB = `${GridScript.shortify(
+              scriptSegments.nrpnCC = `${GridScript.shortify(e.detail)}`;
+              scriptSegments.addressMSB = `(${GridScript.shortify(
                 e.detail
-              )}//128`;
-              scriptSegments.addressLSB = `${GridScript.shortify(
+              )})//128`;
+              scriptSegments.addressLSB = `(${GridScript.shortify(
                 e.detail
-              )}%128`;
-              calculateDisplayValues();
+              )})%128`;
             }}
           />
         </div>
