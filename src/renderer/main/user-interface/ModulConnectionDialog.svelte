@@ -4,7 +4,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
-  import SvgIcon from "./SvgIcon.svelte";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { logger } from "../../runtime/runtime.store";
 
   const configuration = window.ctxProcess.configuration();

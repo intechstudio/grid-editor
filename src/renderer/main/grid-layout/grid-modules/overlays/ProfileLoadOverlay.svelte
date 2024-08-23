@@ -4,7 +4,7 @@
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
-  import SvgIcon from "../../../user-interface/SvgIcon.svelte";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { ConfigTarget } from "../../../panels/configuration/Configuration.store";
 
   export let device = undefined;
