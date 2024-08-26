@@ -123,24 +123,22 @@
 <encoder-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full px-2">
-    <div class="text-gray-500 text-sm pb-1">Button Mode</div>
-    <AtomicInput
-      inputValue={GridScript.humanize(bmo)}
-      suggestions={suggestions[0]}
-      suggestionTarget={suggestionElement}
-      on:change={(e) => {
-        bmo = GridScript.shortify(e.detail);
-      }}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
+  <div class="text-gray-500 text-sm pb-1">Button Mode</div>
+  <AtomicInput
+    inputValue={GridScript.humanize(bmo)}
+    suggestions={suggestions[0]}
+    suggestionTarget={suggestionElement}
+    on:change={(e) => {
+      bmo = GridScript.shortify(e.detail);
+    }}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+  />
 
   <AtomicSuggestions bind:component={suggestionElement} />
 

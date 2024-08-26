@@ -130,47 +130,43 @@
 <encoder-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full flex">
-    <div class="w-1/2 flex flex-col">
-      <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(emo)}
-          suggestions={suggestions[0]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            emo = GridScript.shortify(e.detail);
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
+  <div class="w-full flex flex-row gap-2">
+    <div class="flex flex-col">
+      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
+      <AtomicInput
+        inputValue={GridScript.humanize(emo)}
+        suggestions={suggestions[0]}
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
+        }}
+        suggestionTarget={suggestionElement}
+        on:change={(e) => {
+          emo = GridScript.shortify(e.detail);
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
     </div>
 
-    <div class="w-full flex flex-row gap-2">
-      <div class="flex flex-col">
-        <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(ev0)}
-          suggestions={suggestions[1]}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          suggestionTarget={suggestionElement}
-          on:change={(e) => {
-            ev0 = GridScript.shortify(e.detail);
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-        />
-      </div>
+    <div class="flex flex-col">
+      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
+      <AtomicInput
+        inputValue={GridScript.humanize(ev0)}
+        suggestions={suggestions[1]}
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
+        }}
+        suggestionTarget={suggestionElement}
+        on:change={(e) => {
+          ev0 = GridScript.shortify(e.detail);
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+      />
     </div>
   </div>
 
