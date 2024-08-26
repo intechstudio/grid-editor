@@ -112,12 +112,17 @@
     }
 
     const hiRes = midiLSB.length > 1 ? true : false;
+    let value = midiMSB[1].split("//")[0];
+    if (value.startsWith("(") && value.endsWith(")")) {
+      value = value.slice(1, -1);
+    }
+
     scriptSegments = {
       channel: matches[0].split(",")[0],
       addressMSB: midiMSB[0],
       addressLSB: midiLSB[0],
       nrpnCC: undefined,
-      value: midiMSB[1].split("//")[0],
+      value: value,
       hiRes: hiRes,
     };
     scriptSegments = calculateNRPNCC(scriptSegments);
@@ -135,10 +140,10 @@
     let script = [
       `gms(${channel},176,99,${addressMSB})`,
       `gms(${channel},176,98,${addressLSB})`,
-      `gms(${channel},176,6,${hiRes ? value + "//128" : value})`,
+      `gms(${channel},176,6,${hiRes ? `(${value})//128` : value})`,
     ];
     if (hiRes) {
-      script.push(`gms(${channel},176,38,${value + "%128"})`);
+      script.push(`gms(${channel},176,38,(${value})%128)`);
     }
     dispatch("output", { short: config.short, script: script.join(" ") });
   }
@@ -205,13 +210,17 @@
       addressMSB.slice(0, -5) === addressLSB.slice(0, -4)
     ) {
       const msb = addressMSB.slice(0, -5);
+      let nrpnCC = msb;
+      if (nrpnCC.startsWith("(") && nrpnCC.endsWith(")")) {
+        nrpnCC = nrpnCC.slice(1, -1);
+      }
       res = {
         channel,
         addressMSB,
         addressLSB,
         value,
         hiRes,
-        nrpnCC: msb,
+        nrpnCC: nrpnCC,
       };
     } else {
       res = {
