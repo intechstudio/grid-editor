@@ -106,7 +106,7 @@ test.describe("Element Actions", () => {
     );
   });
 
-  test("Discard", async ({ page }) => {
+  test("Discard with Event change", async ({ page }) => {
     const notVisibleComment = "Not Exist";
     await configPage.removeAllActions();
     await configPage.addCommentBlock(notVisibleComment);
@@ -115,6 +115,12 @@ test.describe("Element Actions", () => {
     await configPage.selectElementEvent("Button");
 
     await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
+  });
+
+  test("Discard immediately", async ({ page }) => {
+    await configPage.removeAllActions();
+    await configPage.discardElement();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 

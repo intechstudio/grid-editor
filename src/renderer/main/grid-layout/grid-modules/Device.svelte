@@ -1,9 +1,6 @@
 <script>
   import { Analytics } from "./../../../runtime/analytics.js";
-  import {
-    contextMenu,
-    contextTarget,
-  } from "./../../panels/configuration/components/context-target.ts";
+  import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";

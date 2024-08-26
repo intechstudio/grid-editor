@@ -1,6 +1,6 @@
 <script>
+  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store.js";
-  import SvgIcon from "./../../../user-interface/SvgIcon.svelte";
   import {
     ClipboardKey,
     appClipboard,
@@ -168,7 +168,7 @@
       const short = configs[n].short;
       if (short === "bst0") {
         ++indentation;
-      } else if (short === "btste") {
+      } else if (short === "bste") {
         --indentation;
       }
       --n;
