@@ -123,32 +123,31 @@
 <encoder-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full px-2">
-    <div class="text-gray-500 text-sm pb-1">Button Mode</div>
-    <AtomicInput
-      inputValue={GridScript.humanize(bmo)}
-      suggestions={suggestions[0]}
-      suggestionTarget={suggestionElement}
-      on:change={(e) => {
-        bmo = GridScript.shortify(e.detail);
-      }}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
+  <div class="text-gray-500 text-sm pb-1">Button Mode</div>
+  <AtomicInput
+    inputValue={GridScript.humanize(bmo)}
+    suggestions={suggestions[0]}
+    suggestionTarget={suggestionElement}
+    on:change={(e) => {
+      bmo = GridScript.shortify(e.detail);
+    }}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+  />
 
   <AtomicSuggestions bind:component={suggestionElement} />
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
-  <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
+  <div class="flex flex-row gap-2">
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
+        disabled={!minMaxEnabled}
         inputValue={GridScript.humanize(bmi)}
         validator={(e) => {
           return minMaxEnabled
@@ -168,6 +167,7 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
+        disabled={!minMaxEnabled}
         inputValue={GridScript.humanize(bma)}
         validator={(e) => {
           return minMaxEnabled

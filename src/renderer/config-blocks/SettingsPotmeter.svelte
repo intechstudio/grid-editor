@@ -146,10 +146,11 @@
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
-  <div class="flex flex-row gap-2" class:hidden={!minMaxEnabled}>
+  <div class="flex flex-row gap-2">
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
+        disabled={!minMaxEnabled}
         inputValue={GridScript.humanize(pmi)}
         validator={(e) => {
           return minMaxEnabled
@@ -168,6 +169,7 @@
     <div class="flex flex-col">
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
+        disabled={!minMaxEnabled}
         inputValue={GridScript.humanize(pma)}
         suggestions={suggestions[1]}
         validator={(e) => {
