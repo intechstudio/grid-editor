@@ -6,7 +6,7 @@
   import { createEventDispatcher, onMount } from "svelte";
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
-  import SvgIcon from "../../../user-interface/SvgIcon.svelte";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
 
   export let device = undefined;
   export let visible = false;
