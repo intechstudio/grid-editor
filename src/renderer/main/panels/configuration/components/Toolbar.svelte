@@ -1,6 +1,6 @@
 <script>
   import { derived, writable } from "svelte/store";
-  import { user_input } from "./../../../../runtime/runtime.store.js";
+  import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
   import {
     createCopyAllDisabledStore,
     createOverwriteDisabledStore,
@@ -96,11 +96,13 @@
 
   const target = writable();
   $: {
-    target.set(
-      ConfigTarget.createFrom({
-        userInput: $user_input,
-      })
-    );
+    if ($runtime) {
+      target.set(
+        ConfigTarget.createFrom({
+          userInput: $user_input,
+        })
+      );
+    }
   }
 
   const copyElementDisabled = createCopyAllDisabledStore(target);

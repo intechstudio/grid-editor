@@ -2,7 +2,7 @@
   import { tooltip } from "./../../_actions/tooltip.ts";
 
   export let key;
-  export let text;
+  export let text = undefined;
 </script>
 
 <div
