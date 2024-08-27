@@ -84,6 +84,16 @@ export class ConfigPage {
     await this.blocks[category][blockName]["block"].click();
   }
 
+  async writeActionBlockField(category, blockName, field, input) {
+    await this.blocks[category][blockName]["elements"][field].fill(input);
+  }
+
+  async getActionBlockFieldValue(category, blockName, field) {
+    return await this.blocks[category][blockName]["elements"][
+      field
+    ].inputValue();
+  }
+
   async openLoopTimes() {
     await this.loopTimesSwtich.click();
   }

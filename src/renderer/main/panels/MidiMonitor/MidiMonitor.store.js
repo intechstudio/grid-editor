@@ -189,15 +189,9 @@ function getCommand(int_value) {
   }
 }
 
-function isHighResMidi(lastMessage, currentMessage) {
-  const offset_diff =
-    lastMessage.data.params.p1.value - currentMessage.data.params.p1.value;
-  return offset_diff === -32;
-}
-
 function createMidiMonitor(max_length) {
   const store = writable([]);
-  let lastMessage = null;
+  let lastMessages = [];
 
   return {
     ...store,
@@ -213,6 +207,28 @@ function createMidiMonitor(max_length) {
         let bc = descr.brc_parameters;
         let cp = descr.class_parameters;
 
+        //Helper functions
+        function isHighResMidiPart(message) {
+          if (
+            s.length === 0 ||
+            getCommandShortName(item.data.command.value) !== "CC"
+          ) {
+            return false;
+          }
+
+          const lastMessage = s[s.length - 1];
+          const offset_diff =
+            lastMessage.data.params.p1.value - message.data.params.p1.value;
+          return offset_diff === -32;
+        }
+
+        function isNSPNMidiPart(message) {
+          if (getCommandShortName(item.data.command.value) !== "CC") {
+            return false;
+          }
+          return [98, 38, 6].includes(message.data.params.p1.value);
+        }
+
         //Make full MIDI message from raw data (param names, command name, etc.)
 
         let item = {
@@ -226,35 +242,68 @@ function createMidiMonitor(max_length) {
           ),
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
-        //Check if it was 14bit MIDI message
-        if (
-          lastMessage !== null &&
-          getCommandShortName(item.data.command.value) === "CC" &&
-          isHighResMidi(lastMessage, item)
-        ) {
-          //Last message was a 14bit MIDI message, find it
-          const hires = s.find((e) => e.id === lastMessage.id);
+        UpdateDebugStream(structuredClone(item), "MIDI");
+
+        if (isHighResMidiPart(item)) {
+          //Get first part of hiRes MIDI
+          const lastMessage = s[s.length - 1];
 
           //Get the two half of the high res value from current and last message
           const upper_value = lastMessage.data.params.p2.value << 7;
           const lower_value = item.data.params.p2.value;
 
           //Update display values instead of pushing to the store
-          hires.data.command.name += " (14)";
-          hires.data.command.short += " (14)";
+          lastMessage.data.command.name += " (14)";
+          lastMessage.data.command.short += " (14)";
 
           //Set the high resolutin messages value to the combined
           //value of the current and last message
-          hires.data.params.p2.value = upper_value + lower_value;
+          lastMessage.data.params.p2.value = upper_value + lower_value;
+        } else if (isNSPNMidiPart(item)) {
+          //Get first part of NPSPN MIDI
+          const lastMessage = s[s.length - 1];
+
+          switch (item.data.params.p1.value) {
+            case 98: {
+              //Get the two half of the address value from current and last message
+              const upper_value = lastMessage.data.params.p2.value << 7;
+              const lower_value = item.data.params.p2.value;
+
+              //Update display values
+              lastMessage.data.command.name += " (NRPN)";
+              lastMessage.data.command.short += " (NPRN)";
+
+              //Set the address value to the combined
+              //value of the current and last message
+              lastMessage.data.params.p1.value = upper_value + lower_value;
+              break;
+            }
+            case 6: {
+              //Set the CC value
+              lastMessage.data.params.p2.value = item.data.params.p2.value;
+              break;
+            }
+            case 38: {
+              //If highres value is received, the last message contained the
+              //first half.
+              const upper_value = lastMessage.data.params.p2.value << 7;
+              const lower_value = item.data.params.p2.value;
+
+              //Set the combined high resolution CC value
+              lastMessage.data.params.p2.value = upper_value + lower_value;
+              break;
+            }
+          }
         } else {
           //Normal message, put it into the store as it is
           s = [...s, item];
         }
 
         //Update buffer
-        lastMessage = item;
-
-        UpdateDebugStream(item, "MIDI");
+        lastMessages.push(item);
+        if (lastMessages.length > 4) {
+          lastMessages.shift();
+        }
         return s;
       });
     },

@@ -34,3 +34,7 @@ export async function mockNavigatorSerial(page) {
     });
   });
 }
+
+export async function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
-import { PAGE_PATH, mockNavigatorSerial } from "../utility";
+import { PAGE_PATH, mockNavigatorSerial, getRandomInt } from "../utility";
 import { ConfigPage } from "../pages/configPage";
 
 let connectModulePage;
@@ -262,5 +262,26 @@ test.describe("Issues", () => {
     await expect(preText).toBeVisible();
 
     //TODO refactor, with contains(), it slow now
+  });
+  test("MIDI NRPN showes the converted value after switch element", async ({
+    page,
+  }) => {
+    const expectedValue = (await getRandomInt(127)).toString();
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      expectedValue
+    );
+    await configPage.selectElementEvent("Timer");
+    await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
   });
 });

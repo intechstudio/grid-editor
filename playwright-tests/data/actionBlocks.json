@@ -2,7 +2,7 @@
   "Function": ["Function"],
   "variables": ["Lookup", "Global", "Locals", "Self"],
   "led": ["Start Animation", "Stop Animation", "Color", "Intensity"],
-  "midi": ["MIDI", "MIDI 14", "MIDI SysEX"],
+  "midi": ["MIDI", "MIDI 14", "MIDI SysEX", "MIDI NRPN"],
   "hid": [
     "GamePad Axis",
     "GamePad Button",
