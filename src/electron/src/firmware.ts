@@ -123,32 +123,36 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
 
   const downloadResult = await downloadInMainProcess(url, "temp");
 
-  const filePathArray = await extractArchiveToTemp(
-    downloadResult,
-    ".uf2",
-    targetFolder
-  );
-
-  await delay(1000);
+  console.log(downloadResult);
 
   let firmwareFileName = undefined;
 
-  if (product === "grid") {
-    filePathArray.forEach((element) => {
-      if (element.indexOf(arch) !== -1) {
-        firmwareFileName = element;
-        console.log("Correct firmware is: ", firmwareFileName);
-      }
-    });
-  } else if (product === "knot") {
-    filePathArray.forEach((element) => {
-      if (element.indexOf("knot") !== -1) {
-        firmwareFileName = element;
-        console.log("Correct firmware is: ", firmwareFileName);
-      }
-    });
+  if (url.endsWith(".zip")) {
+    const filePathArray = await extractArchiveToTemp(
+      downloadResult,
+      ".uf2",
+      targetFolder
+    );
+
+    if (product === "grid") {
+      filePathArray.forEach((element) => {
+        if (element.indexOf(arch) !== -1) {
+          firmwareFileName = element;
+          console.log("Correct firmware is: ", firmwareFileName);
+        }
+      });
+    } else if (product === "knot") {
+      filePathArray.forEach((element) => {
+        if (element.indexOf("knot") !== -1) {
+          firmwareFileName = element;
+          console.log("Correct firmware is: ", firmwareFileName);
+        }
+      });
+    } else {
+      //unknown product
+    }
   } else {
-    //unknown product
+    firmwareFileName = downloadResult.split("/").pop();
   }
 
   if (firmwareFileName === undefined) {

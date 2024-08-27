@@ -12,9 +12,9 @@
     category: "element settings",
     color: "#5F416D",
     displayName: "Endless Mode",
-    defaultLua: "self:enmo(0) self:env0(50)",
-    icon: `<span class="block w-full text-center italic font-gt-pressura">EN</span>`,
-    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EN</span>`,
+    defaultLua: "self:epmo(0) self:epv0(50)",
+    icon: `<span class="block w-full text-center italic font-gt-pressura">EP</span>`,
+    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EP</span>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -36,12 +36,12 @@
 
   const dispatch = createEventDispatcher();
 
-  let enmo = ""; // local script part
-  let env0 = "";
+  let epmo = ""; // local script part
+  let epv0 = "";
 
-  let enmi = "0";
-  let enma = "127";
-  let ense = "100";
+  let epmi = "0";
+  let epma = "16383";
+  let epse = "50";
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -55,22 +55,22 @@
       return param && param.length > 0 ? param[1] : null;
     };
 
-    enmo = extractParam(0);
-    env0 = extractParam(1);
+    epmo = extractParam(0);
+    epv0 = extractParam(1);
 
     const param3 = extractParam(2);
     const param4 = extractParam(3);
 
     minMaxEnabled = !!param3 || !!param4;
     if (minMaxEnabled) {
-      enmi = param3;
-      enma = param4;
+      epmi = param3;
+      epma = param4;
     }
 
     const param5 = extractParam(4);
     sensitivityEnabled = !!param5;
     if (sensitivityEnabled) {
-      ense = param5;
+      epse = param5;
     }
 
     loaded = true;
@@ -81,28 +81,28 @@
   });
 
   $: sendData(
-    enmo,
-    env0,
-    minMaxEnabled ? enmi : undefined,
-    minMaxEnabled ? enma : undefined,
-    sensitivityEnabled ? ense : undefined
+    epmo,
+    epv0,
+    minMaxEnabled ? epmi : undefined,
+    minMaxEnabled ? epma : undefined,
+    sensitivityEnabled ? epse : undefined
   );
 
   function sendData(p1, p2, p3, p4, p5) {
     const optional = [];
 
     if (minMaxEnabled) {
-      optional.push(`self:enmi(${p3}) self:enma(${p4})`);
+      optional.push(`self:epmi(${p3}) self:epma(${p4})`);
     }
 
     if (sensitivityEnabled) {
-      optional.push(`self:ense(${p5})`);
+      optional.push(`self:epse(${p5})`);
     }
 
     dispatch("output", {
-      short: `sec`,
+      short: `sen`,
       script:
-        `self:enmo(${p1}) self:env0(${p2})` +
+        `self:epmo(${p1}) self:epv0(${p2})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
     });
   }
@@ -126,21 +126,21 @@
   let sensitivityEnabled = false;
 </script>
 
-<encoder-settings
+<endless-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
   <div class="flex flex-row gap-2">
     <div class="flex flex-col">
-      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
+      <div class="text-gray-500 text-sm pb-1 truncate">Endless Mode</div>
       <AtomicInput
-        inputValue={GridScript.humanize(enmo)}
+        inputValue={GridScript.humanize(epmo)}
         suggestions={suggestions[0]}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
         }}
         suggestionTarget={suggestionElement}
         on:change={(e) => {
-          enmo = GridScript.shortify(e.detail);
+          epmo = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -150,16 +150,16 @@
     </div>
 
     <div class="flex flex-col">
-      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
+      <div class="text-gray-500 text-sm pb-1 truncate">Endless Velocity</div>
       <AtomicInput
-        inputValue={GridScript.humanize(env0)}
+        inputValue={GridScript.humanize(epv0)}
         suggestions={suggestions[1]}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
         }}
         suggestionTarget={suggestionElement}
         on:change={(e) => {
-          env0 = GridScript.shortify(e.detail);
+          epv0 = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -177,14 +177,14 @@
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         disabled={minMaxEnabled}
-        inputValue={GridScript.humanize(enmi)}
+        inputValue={GridScript.humanize(epmi)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
             : new Validator(e).Result();
         }}
         on:change={(e) => {
-          enmi = GridScript.shortify(e.detail);
+          epmi = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -196,14 +196,14 @@
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(enma)}
+        inputValue={GridScript.humanize(epma)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
             : new Validator(e).Result();
         }}
         on:change={(e) => {
-          enma = GridScript.shortify(e.detail);
+          epma = GridScript.shortify(e.detail);
         }}
         on:validator={(e) => {
           const data = e.detail;
@@ -219,14 +219,14 @@
     <span class="text-sm text-gray-500">Sensitivity</span>
     <AtomicInput
       disabled={!sensitivityEnabled}
-      inputValue={GridScript.humanize(ense)}
+      inputValue={GridScript.humanize(epse)}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
       on:change={(e) => {
-        ense = GridScript.shortify(e.detail);
+        epse = GridScript.shortify(e.detail);
       }}
       on:validator={(e) => {
         const data = e.detail;
@@ -234,4 +234,4 @@
       }}
     />
   </div>
-</encoder-settings>
+</endless-settings>

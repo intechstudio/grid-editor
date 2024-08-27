@@ -230,6 +230,8 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         break;
     }
 
+    console.log("URL", link);
+
     await window.electron.firmware.firmwareDownload(
       folder,
       product,
