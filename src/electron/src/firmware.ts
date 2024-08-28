@@ -152,7 +152,15 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
       //unknown product
     }
   } else {
-    firmwareFileName = downloadResult.split("/").pop();
+    const lastSlashIndex = downloadResult.lastIndexOf("\\");
+    if (lastSlashIndex !== -1) {
+      firmwareFileName = downloadResult.slice(lastSlashIndex + 1);
+    } else {
+      firmwareFileName = downloadResult.split("/").pop();
+    }
+
+    console.log("Nightly URL: ", url);
+    console.log("Nightly file name: ", firmwareFileName);
   }
 
   if (firmwareFileName === undefined) {
