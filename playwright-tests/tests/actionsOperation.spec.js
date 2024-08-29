@@ -237,6 +237,23 @@ test.describe("Issues", () => {
     await connectModulePage.addModule("TEK2");
   });
 
+  // https://github.com/intechstudio/grid-editor/issues/815
+  test("Empty Element Name Causes Editor Freeze", async ({}) => {
+    const expectedText = "hellp";
+    await configPage.removeAllActions();
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("code", "Element Name");
+    await configPage.writeActionBlockField("code", "Element Name", "input", "");
+    await modulePage.storeConfig();
+    await modulePage.selectModuleElement(0);
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(expectedText);
+    await modulePage.selectModuleElement(2);
+    await modulePage.selectModuleElement(0);
+    const actualText = configPage.getTextFromComment();
+    await expect(actualText).toBe(expectedText);
+  });
+
   // https://github.com/intechstudio/grid-editor/issues/751
   test("code jump back ", async ({ page }) => {
     const text = "print('deleted block')";
