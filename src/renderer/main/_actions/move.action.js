@@ -203,8 +203,6 @@ export function changeOrder(node, { configs }) {
               drop_target = configIdToIndex(id) - 1;
             }
           }
-        } else if (id.substr(0, 3) == "dz-") {
-          drop_target = Number(id.substr(3));
         } else if (id == "config-bin") {
           drop_target = "bin";
         }

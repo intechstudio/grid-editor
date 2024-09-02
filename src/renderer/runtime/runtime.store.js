@@ -829,8 +829,6 @@ function create_runtime() {
   }
 
   function create_page(moduleType, pageNumber) {
-    moduleType = moduleType.substr(0, 4);
-
     let control_elements = [];
 
     let status = "INIT";
@@ -887,7 +885,6 @@ function create_runtime() {
       );
       throw "Error creating new module.";
     }
-    moduleType = moduleType.substr(0, 4);
 
     return {
       // implement the module id rep / req
@@ -896,6 +893,7 @@ function create_runtime() {
         : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
       portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
+      type: moduleType,
       dx: header_param.SX,
       dy: header_param.SY,
       rot: header_param.ROT,

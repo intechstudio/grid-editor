@@ -33,7 +33,7 @@
   function handleRuntimeChange(rt) {
     const compatible = new Set([]);
     for (const device of rt) {
-      const module = device.id.substring(0, 4);
+      const module = device.type;
       const elements = device.pages[0].control_elements.map((e) => e.type);
       compatible.add(module);
       elements.forEach((item) => compatible.add(item));
@@ -61,14 +61,14 @@
       return;
     }
 
-    selectedModule = get(runtime)
-      .find((device) => device.dx == ui.dx && device.dy == ui.dy)
-      .id.substr(0, 4);
+    selectedModuleType = get(runtime).find(
+      (device) => device.dx == ui.dx && device.dy == ui.dy
+    ).type;
     selectedControlElementType = target.elementType;
-    sendSelectedComponentInfos(selectedModule, selectedControlElementType);
+    sendSelectedComponentInfos(selectedModuleType, selectedControlElementType);
   }
 
-  let selectedModule = undefined;
+  let selectedModuleType = undefined;
   let selectedControlElementType = undefined;
 
   function channelMessageWrapper(event, func) {
@@ -225,7 +225,7 @@
               const page = d.pages.find((x) => x.pageNumber == ui.pagenumber);
 
               if (configType === "profile") {
-                config.type = selectedModule;
+                config.type = selectedModuleType;
                 config.configs = page.control_elements.map((element) => {
                   return {
                     controlElementNumber: element.elementIndex,
@@ -281,10 +281,13 @@
     }
     authStore.setCurrentAuthEnvironment(authEnvironment);
     if (
-      selectedModule !== undefined ||
+      selectedModuleType !== undefined ||
       selectedControlElementType !== undefined
     ) {
-      sendSelectedComponentInfos(selectedModule, selectedControlElementType);
+      sendSelectedComponentInfos(
+        selectedModuleType,
+        selectedControlElementType
+      );
     }
     const path = $appSettings.persistent.profileFolder;
     window.electron.configs.onSendConfigsToRenderer((_event, configs) => {
