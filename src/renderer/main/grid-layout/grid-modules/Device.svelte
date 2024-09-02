@@ -61,7 +61,7 @@
       { type: "TEK1", component: VSN1 },
       { type: "VSN0", component: TEK2 },
       { type: "VSN1", component: VSN1 },
-      { type: "VSN1R", component: VSN1 },
+      { type: "VSNR", component: VSN1 },
       { type: "VSN2", component: VSN1 },
     ];
 

@@ -12,6 +12,19 @@ function createConfigureDragStore() {
   return store;
 }
 
+function configIdToIndex(id) {
+  let index = Number(id.split("cfg-").pop());
+  return index;
+}
+
+export function configIndexToId(index) {
+  return `cfg-${index}`;
+}
+
+function isValidConfigId(id) {
+  return id.startsWith("cfg-");
+}
+
 export function changeOrder(node, { configs }) {
   let _configs = configs;
 
@@ -133,7 +146,7 @@ export function changeOrder(node, { configs }) {
       const type = dragged.getAttribute("config-type");
 
       if (type === "composite_open") {
-        const index = Number(id.substr(4));
+        const index = configIdToIndex(id);
         const drag_indexes = [index];
         let depth = 1;
         for (let i = index + 1; i < _configs.length && depth > 0; ++i) {
@@ -146,7 +159,7 @@ export function changeOrder(node, { configs }) {
         }
 
         for (const i of drag_indexes) {
-          const drag_item = document.getElementById("cfg-" + i);
+          const drag_item = document.getElementById(configIndexToId(i));
           // before starting cursor, set the "left behind" configs to half opacity
           drag_item.style.opacity = "0.2";
           // drag_block is a collection of config-ids, original gen unique key ids.
@@ -180,14 +193,14 @@ export function changeOrder(node, { configs }) {
 
         if (e.target.getAttribute("config-name") !== null) {
           if (
-            id.startsWith("cfg-") &&
+            isValidConfigId(id) &&
             !e.target.getAttribute("config-name").endsWith("_If") &&
             e.target.getAttribute("config-name") !== "Then"
           ) {
             if (clientHeight / 2 < e.offsetY) {
-              drop_target = Number(id.substr(4));
+              drop_target = configIdToIndex(id);
             } else {
-              drop_target = Number(id.substr(4)) - 1;
+              drop_target = configIdToIndex(id) - 1;
             }
           }
         } else if (id.substr(0, 3) == "dz-") {
@@ -198,7 +211,7 @@ export function changeOrder(node, { configs }) {
 
         if (e.target.getAttribute("config-name") !== null) {
           if (e.target.getAttribute("config-name").endsWith("_If")) {
-            drop_target = Number(id.substr(4)) - 1;
+            drop_target = configIdToIndex(id) - 1;
           }
         }
 

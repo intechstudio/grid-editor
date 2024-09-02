@@ -1,6 +1,4 @@
 <script>
-  import { grab } from "../event-handlers/grab.js";
-
   import { createEventDispatcher } from "svelte";
 
   export let elementNumber;
