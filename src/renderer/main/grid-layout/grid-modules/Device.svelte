@@ -7,7 +7,7 @@
   import EN16 from "./devices/EN16.svelte";
   import EF44 from "./devices/EF44.svelte";
   import TEK2 from "./devices/TEK2.svelte";
-  import TEK1 from "./devices/TEK1.svelte";
+  import VSN1 from "./devices/VSN1.svelte";
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
@@ -58,9 +58,15 @@
       { type: "EN16", component: EN16 },
       { type: "EF44", component: EF44 },
       { type: "TEK2", component: TEK2 },
-      { type: "TEK1", component: TEK1 },
+      { type: "TEK1", component: VSN1 },
+      { type: "VSN0", component: TEK2 },
+      { type: "VSN1", component: VSN1 },
+      { type: "VSN1R", component: VSN1 },
+      { type: "VSN2", component: VSN1 },
     ];
+
     const index = components.findIndex((e) => e.type === device?.type);
+    console.log(index, device?.type);
     device.type = components[index].type;
     component = components[index].component;
   });

@@ -9,7 +9,7 @@
   import { ledColorStore } from "../../../../runtime/runtime.store.js";
 
   export let moduleWidth;
-  export let id = "TEK1";
+  export let id = "VSN1";
   export let rotation = 0;
   export let device = undefined;
 
@@ -90,7 +90,7 @@
 </script>
 
 <div
-  data-testid="TEK1_dx:{dx};dy:{dy}"
+  data-testid="VSN1_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
