@@ -2,7 +2,7 @@
   import XX16 from "../grid-layout/grid-modules/devices/XX16.svelte";
   import PBF4 from "./../grid-layout/grid-modules/devices/PBF4.svelte";
   import EF44 from "./../grid-layout/grid-modules/devices/EF44.svelte";
-  import TEK2 from "./../grid-layout/grid-modules/devices/TEK2.svelte";
+  import VSNX from "./../grid-layout/grid-modules/devices/VSNX.svelte";
 
   import { ModuleType } from "@intechstudio/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
@@ -18,7 +18,12 @@
     { id: ModuleType.EN16, type: ModuleType.EN16, component: XX16 },
     { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
     { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
-    { id: ModuleType.TEK2, type: ModuleType.TEK2, component: TEK2 },
+    { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
+
+    { id: ModuleType.VSN0, type: ModuleType.VSN0, component: VSNX },
+    { id: ModuleType.VSN1, type: ModuleType.VSN1, component: VSNX },
+    { id: ModuleType.VSN1R, type: ModuleType.VSN1R, component: VSNX },
+    { id: ModuleType.VSN2, type: ModuleType.VSN2, component: VSNX },
   ];
 
   let [dx, dy]: number[] = [0, 0];

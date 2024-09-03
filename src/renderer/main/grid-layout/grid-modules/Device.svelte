@@ -4,8 +4,7 @@
   import XX16 from "./devices/XX16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
   import EF44 from "./devices/EF44.svelte";
-  import TEK2 from "./devices/TEK2.svelte";
-  import VSN1 from "./devices/VSN1.svelte";
+  import VSNX from "./devices/VSNX.svelte";
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
@@ -46,7 +45,6 @@
   export let width = 225;
 
   let component = undefined;
-  let elementNumber = undefined;
 
   onMount(() => {
     const components = [
@@ -55,12 +53,12 @@
       { type: "PBF4", component: PBF4 },
       { type: "EN16", component: XX16 },
       { type: "EF44", component: EF44 },
-      { type: "TEK2", component: TEK2 },
-      { type: "TEK1", component: VSN1 },
-      { type: "VSN0", component: TEK2 },
-      { type: "VSN1", component: VSN1 },
-      { type: "VSNR", component: VSN1 },
-      { type: "VSN2", component: VSN1 },
+      { type: "TEK2", component: VSNX },
+      { type: "TEK1", component: VSNX },
+      { type: "VSN0", component: VSNX },
+      { type: "VSN1", component: VSNX },
+      { type: "VSN1R", component: VSNX },
+      { type: "VSN2", component: VSNX },
     ];
 
     const index = components.findIndex((e) => e.type === device?.type);
@@ -336,7 +334,6 @@
               ($user_input.dx === device.dx &&
                 $user_input.dy === device.dy &&
                 $user_input.elementnumber === elementNumber))}
-          on:click={handleElementClicked}
         />
       </button>
       <ModuleInfo {device} visible={true} {elementNumber} />

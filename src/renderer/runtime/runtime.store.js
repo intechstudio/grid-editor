@@ -4,7 +4,6 @@ import { grid, EventType } from "@intechstudio/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";
-import { VirtualModuleHWCFG } from "./virtual-engine.ts";
 import { virtual_runtime } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
@@ -205,6 +204,7 @@ function create_user_input() {
     }
 
     const events = getElementEventTypes(dx, dy, elementnumber);
+
     const closestEvent = get_closest_event(events, eventtype);
 
     store.set({
@@ -225,7 +225,12 @@ function create_user_input() {
     const closestEvent = Math.min(
       ...events.map((e) => Number(e)).filter((e) => e > 0)
     );
-    return closestEvent;
+
+    if (closestEvent !== Infinity) {
+      return closestEvent;
+    }
+
+    return 0;
   }
 
   function process_incoming_event_from_grid(descr) {
@@ -1099,7 +1104,8 @@ function create_runtime() {
   }
 
   function addVirtualModule({ dx, dy, type }) {
-    const module = VirtualModuleHWCFG[type];
+    const moduleInfo = grid.module_hwcfgs().findLast((e) => e.type === type);
+
     const controller = this.create_module(
       {
         DX: dx,
@@ -1108,12 +1114,12 @@ function create_runtime() {
         SY: dy,
       },
       {
-        HWCFG: module.hwcfg,
+        HWCFG: moduleInfo.hwcfg,
       },
       true
     );
 
-    createVirtualModule(dx, dy, module.type);
+    createVirtualModule(dx, dy, moduleInfo.type);
 
     _runtime.update((devices) => {
       return [...devices, controller];
