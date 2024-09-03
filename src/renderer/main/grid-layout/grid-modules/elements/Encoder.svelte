@@ -1,16 +1,12 @@
 <script>
   export let size = 1;
   export let elementNumber;
-  export let id;
-
-  export let position;
   const encoderSize = 13;
 </script>
 
 <svg
   style="filter:url(#dropshadow)"
   data-control-number={elementNumber}
-  data-module-id={id}
   width={size * encoderSize + "px"}
   height={size * encoderSize + "px"}
   viewBox="0 0 30 30"

@@ -1,8 +1,6 @@
 <script lang="ts">
-  import BU16 from "./../grid-layout/grid-modules/devices/BU16.svelte";
-  import PO16 from "./../grid-layout/grid-modules/devices/PO16.svelte";
+  import XX16 from "../grid-layout/grid-modules/devices/XX16.svelte";
   import PBF4 from "./../grid-layout/grid-modules/devices/PBF4.svelte";
-  import EN16 from "./../grid-layout/grid-modules/devices/EN16.svelte";
   import EF44 from "./../grid-layout/grid-modules/devices/EF44.svelte";
   import TEK2 from "./../grid-layout/grid-modules/devices/TEK2.svelte";
 
@@ -15,12 +13,12 @@
   import { get } from "svelte/store";
 
   const devices = [
-    { id: ModuleType.BU16, component: BU16 },
-    { id: ModuleType.EF44, component: EF44 },
-    { id: ModuleType.EN16, component: EN16 },
-    { id: ModuleType.PBF4, component: PBF4 },
-    { id: ModuleType.PO16, component: PO16 },
-    { id: ModuleType.TEK2, component: TEK2 },
+    { id: ModuleType.BU16, type: ModuleType.BU16, component: XX16 },
+    { id: ModuleType.EF44, type: ModuleType.EF44, component: EF44 },
+    { id: ModuleType.EN16, type: ModuleType.EN16, component: XX16 },
+    { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
+    { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
+    { id: ModuleType.TEK2, type: ModuleType.TEK2, component: TEK2 },
   ];
 
   let [dx, dy]: number[] = [0, 0];
@@ -110,6 +108,7 @@
                   >
                     <svelte:component
                       this={device.component}
+                      {device}
                       moduleWidth={225}
                     />
                   </div>

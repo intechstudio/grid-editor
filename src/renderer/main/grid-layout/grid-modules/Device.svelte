@@ -1,10 +1,8 @@
 <script>
   import { Analytics } from "./../../../runtime/analytics.js";
   import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
-  import BU16 from "./devices/BU16.svelte";
-  import PO16 from "./devices/PO16.svelte";
+  import XX16 from "./devices/XX16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
-  import EN16 from "./devices/EN16.svelte";
   import EF44 from "./devices/EF44.svelte";
   import TEK2 from "./devices/TEK2.svelte";
   import VSN1 from "./devices/VSN1.svelte";
@@ -52,10 +50,10 @@
 
   onMount(() => {
     const components = [
-      { type: "BU16", component: BU16 },
-      { type: "PO16", component: PO16 },
+      { type: "BU16", component: XX16 },
+      { type: "PO16", component: XX16 },
       { type: "PBF4", component: PBF4 },
-      { type: "EN16", component: EN16 },
+      { type: "EN16", component: XX16 },
       { type: "EF44", component: EF44 },
       { type: "TEK2", component: TEK2 },
       { type: "TEK1", component: VSN1 },

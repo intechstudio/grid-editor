@@ -1,18 +1,19 @@
 <script>
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
+  import { grid, ModuleType, ElementType } from "@intechstudio/grid-protocol";
 
   import Button from "../elements/Button.svelte";
+  import Encoder from "../elements/Encoder.svelte";
+  import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
   import { ledColorStore } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
-  export let id = "BU16";
-  export let rotation = 0;
   export let device = undefined;
 
   let [dx, dy] = [device?.dx, device?.dy];
+  let moduleType = device?.type;
 
   let elementposition_array = [
     [0, 0],
@@ -76,17 +77,10 @@
       //ERROR
     }
   }
-
-  $: if (id) {
-    if (id !== undefined && id.length > 4) {
-      dx = +id.split(";")[0].split(":").pop();
-      dy = +id.split(";")[1].split(":").pop();
-    }
-  }
 </script>
 
 <div
-  data-testid="BU16_dx:{dx};dy:{dy}"
+  data-testid="{moduleType}_dx:{dx};dy:{dy}"
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
@@ -110,12 +104,25 @@
           </div>
           <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Button
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber][0]}
-              size={2.1}
-            />
+            {#if moduleType === ModuleType.BU16}
+              <Button
+                {elementNumber}
+                position={elementposition_array[elementNumber][0]}
+                size={2.1}
+              />
+            {:else if moduleType === ModuleType.PO16}
+              <Potentiometer
+                {elementNumber}
+                position={elementposition_array[elementNumber][1]}
+                size={2.1}
+              />
+            {:else if moduleType === ModuleType.EN16}
+              <Encoder
+                {elementNumber}
+                position={elementposition_array[elementNumber][0]}
+                size={2.1}
+              />
+            {/if}
           </div>
           <div class="normal-cell-overlay-container">
             <slot
