@@ -109,6 +109,10 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
         videoId: "",
       };
     },
+
+    listSerialPorts: () => {
+      return [];
+    },
     restartPackageManager: () => {},
     resetAppSettings: () => {},
     openInBrowser: () => {},
