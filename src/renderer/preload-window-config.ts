@@ -23,6 +23,8 @@ declare global {
   }
   interface Navigator {
     serial: any;
+    debugSerial: boolean;
+    tryConnectGrid: () => any;
   }
 }
 

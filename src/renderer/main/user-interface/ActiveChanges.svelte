@@ -11,6 +11,8 @@
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { connection_manager } from "../../serialport/serialport";
+  import PortSelector from "./PortSelector.svelte";
 
   let isChanges = false;
   let changes = 0;
@@ -145,6 +147,8 @@
       });
     }
   }
+
+  const ports = connection_manager.ports;
 </script>
 
 <container
@@ -153,6 +157,7 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
+    <PortSelector visible={$ports.length > 1} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes

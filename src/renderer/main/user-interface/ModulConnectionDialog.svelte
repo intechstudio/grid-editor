@@ -35,7 +35,7 @@
   }
 
   function handleConnectModules(e) {
-    navigator.intechConnect().catch((e) => {
+    navigator.tryConnectGrid().catch((e) => {
       logger.set({
         type: "fail",
         mode: 0,

@@ -82,6 +82,7 @@ contextBridge.exposeInMainWorld("electron", {
   },
   resetAppSettings: () => ipcRenderer.sendSync("resetAppSettings"),
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),
+  listSerialPorts: () => ipcRenderer.invoke("listSerialPorts"),
   openInBrowser: (url) => ipcRenderer.invoke("openInBrowser", { url }),
   startOfflineProfileCloud: () =>
     ipcRenderer.invoke("startOfflineProfileCloud"),
