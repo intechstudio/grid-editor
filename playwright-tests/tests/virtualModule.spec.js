@@ -19,7 +19,17 @@ test.describe("Modules", () => {
     await modulePage.removeModule();
   });
 
-  const moduleNames = ["BU16", "EF44", "EN16", "PBF4", "PO16", "VSN0"];
+  const moduleNames = [
+    "BU16",
+    "EF44",
+    "EN16",
+    "PBF4",
+    "PO16",
+    "TEK2",
+    "VSN1",
+    "VSN2",
+    "VSN1R",
+  ];
   for (const moduleName of moduleNames) {
     test(`should add a ${moduleName}`, async () => {
       await connectModulePage.addModule(moduleName);
@@ -32,8 +42,8 @@ test.describe("Module Operations", () => {
   test("should change module", async () => {
     await connectModulePage.addModule("BU16");
     await modulePage.changeModule();
-    await connectModulePage.addModule("VSN0");
-    await expect(modulePage.modules["VSN0"]).toBeVisible();
+    await connectModulePage.addModule("TEK2");
+    await expect(modulePage.modules["TEK2"]).toBeVisible();
   });
 
   test("should remove module", async () => {
@@ -45,13 +55,13 @@ test.describe("Module Operations", () => {
   const expectModule = "PO16";
   test(`Select Multiple Modules and Verifying Visibility of Module ${expectModule}`, async () => {
     await connectModulePage.selectModule("BU16");
-    await connectModulePage.selectModule("VSN0");
+    await connectModulePage.selectModule("VSN2");
     await connectModulePage.addModule(expectModule);
     await expect(modulePage.modules[expectModule]).toBeVisible();
   });
 
   test("cancel add module", async ({ page }) => {
-    await connectModulePage.selectModule("VSN0");
+    await connectModulePage.selectModule("VSN2");
     await page.mouse.click(1, 1);
     await expect(connectModulePage.virtualModuleButton).toBeVisible();
   });
@@ -63,7 +73,7 @@ test.describe("Add extra module", () => {
     test(`to ${side} side`, async () => {
       await connectModulePage.addModule("EF44");
       await modulePage.openAddModuleToSide(side);
-      await connectModulePage.addModule("VSN0");
+      await connectModulePage.addModule("VSN1R");
       await expect(modulePage.modulesFromTheFirstModule[side]).toBeVisible();
     });
   }

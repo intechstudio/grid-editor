@@ -184,7 +184,7 @@ test.describe("Character limit", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("VSN0");
+    await connectModulePage.addModule("VSN1");
   });
 
   //test for https://github.com/intechstudio/grid-editor/issues/741

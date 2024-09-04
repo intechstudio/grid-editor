@@ -16,7 +16,10 @@ export class ModulePage {
       EN16: page.getByTestId("EN16_dx:0;dy:0"),
       PBF4: page.getByTestId("PBF4_dx:0;dy:0"),
       PO16: page.getByTestId("PO16_dx:0;dy:0"),
-      VSN0: page.getByTestId("VSN0_dx:0;dy:0"),
+      TEK2: page.getByTestId("TEK2_dx:0;dy:0"),
+      VSN1: page.getByTestId("VSN1_dx:0;dy:0"),
+      VSN2: page.getByTestId("VSN2_dx:0;dy:0"),
+      VSN1R: page.getByTestId("VSN1R_dx:0;dy:0"),
     };
     this.moduleElement = {
       0: page.locator(".normal-cell-underlay-container > .w-full").first(),
