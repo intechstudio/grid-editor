@@ -122,7 +122,7 @@
           Math.abs(device.dy - (max_y > 0 ? max_y : 0)),
         ];
 
-        const obj = structuredClone(device);
+        const obj = device;
         obj.fly_x_direction = connection_right - connection_left;
         obj.fly_y_direction = connection_top - connection_bottom;
         obj.type = rt[i].id.substr(0, 4);

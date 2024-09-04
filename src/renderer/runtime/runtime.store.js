@@ -14,6 +14,7 @@ import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store.ts";
+import { createActionsFromString } from "./runtime";
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -340,7 +341,7 @@ function create_user_input() {
 export const user_input = create_user_input();
 
 function create_runtime() {
-  const _runtime = new ProtectedStore([]);
+  const _runtime = writable([]);
 
   const findUpdateDestEvent = (_runtime, dx, dy, page, element, event) => {
     let _event = undefined;
@@ -694,9 +695,10 @@ function create_runtime() {
     _runtime.update((_runtime) => {
       let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
       if (dest) {
-        dest.config = actionString;
+        dest.config = createActionsFromString(actionString);
+
         if (typeof dest.stored === "undefined") {
-          dest.stored = actionString;
+          dest.stored = dest.config;
         }
       }
       return _runtime;
@@ -709,8 +711,9 @@ function create_runtime() {
 
       let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
       if (dest) {
+        const script = `<?lua ${dest.config.map((e) => e.toLua()).join("")} ?>`;
         instructions
-          .sendConfigToGrid(dx, dy, page, element, event, dest.config)
+          .sendConfigToGrid(dx, dy, page, element, event, script)
           .then((desc) => {
             resolve();
           })

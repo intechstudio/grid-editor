@@ -204,7 +204,7 @@ export async function discardElement({ dx, dy, page, element }) {
       eventType: eventtype,
       page: current.page,
     });
-    const list = ConfigList.createFromActionString(stored);
+    const list = ConfigList.createFromActions(stored);
     promises.push(list.sendTo({ target }));
   }
 
@@ -427,7 +427,7 @@ export function clearElement(
     const defaultConfig = events.find(
       (e: any) => e.value === eventtype
     )?.config;
-    const list = ConfigList.createFromActionString(defaultConfig);
+    const list = ConfigList.createFromActions(defaultConfig);
     promises.push(list.sendTo({ target: target }));
   }
 

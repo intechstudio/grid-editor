@@ -171,19 +171,19 @@ export class ConfigList extends Array {
       }
 
       target
-        .getConfig()
-        .then((script) => {
+        .getActions()
+        .then((actions) => {
           //LOADED and SYNCED
-          const list = ConfigList.createFromActionString(script);
+          const list = ConfigList.createFromActions(actions);
           resolve(list);
         })
         .catch((e) => reject(e));
     });
   }
 
-  static createFromActionString(string) {
+  static createFromActions(actions) {
     const config = new ConfigList();
-    config.#Init(string);
+    config.#Init(actions);
     return config;
   }
 
@@ -228,34 +228,13 @@ export class ConfigList extends Array {
     });
   }
 
-  #Init(actionString) {
-    //Parse actionString
-    //TODO: do rawLuas format checking during parsing
-
-    let configList = [];
-    // get rid of new line, enter
-    actionString = actionString.replace(/[\n\r]+/g, "");
-    // get rid of more than 2 spaces
-    actionString = actionString.replace(/\s{2,10}/g, " ");
-    // remove lua opening and closing characters
-    // this function is used for both parsing full config (long complete lua) and individiual actions lua
-    if (actionString.startsWith("<?lua")) {
-      actionString = actionString.split("<?lua")[1].split("?>")[0];
-    }
-    // split by meta comments
-    configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
-
-    configList = configList.slice(1);
-    for (var i = 0; i < configList.length; i += 2) {
-      const split = configList[i]
-        .match(/--\[\[@(.*)\]\]/)
-        ?.at(1)
-        .split(/#(.*)/);
+  #Init(actions) {
+    console.log(actions);
+    for (const action of actions) {
       const obj = new ConfigObject({
-        //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
-        short: split[0],
-        script: configList[i + 1].trim(),
-        name: split.length > 1 ? split[1] : undefined,
+        short: action.short,
+        script: action.script,
+        name: action.name,
       });
       super.push(obj);
     }
@@ -380,6 +359,7 @@ export class ConfigTarget {
   getEvent() {
     const element = this.getElement();
     const event = element.events.find((e) => e.type == this.eventType);
+    console.log(event);
     return event;
   }
 
@@ -405,7 +385,7 @@ export class ConfigTarget {
     return device;
   }
 
-  getConfig() {
+  getActions() {
     return new Promise((resolve, reject) => {
       const event = this.getEvent();
 
