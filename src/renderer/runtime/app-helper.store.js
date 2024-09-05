@@ -45,6 +45,7 @@ const persistentDefaultValues = {
   packageDeveloper: false,
   actionHelperText: true,
   editableBlockNames: false,
+  unreleasedVirtualModules: false,
 };
 
 function createSplitPanes() {

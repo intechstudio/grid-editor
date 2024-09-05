@@ -337,6 +337,18 @@
     </Block>
 
     <Block>
+      <BlockTitle>Unreleased Virtual Modules</BlockTitle>
+      <BlockBody>
+        Enable/Disable adding unrelease virtual modules.
+      </BlockBody>
+
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.unreleasedVirtualModules}
+        title={"Activate ulrelease modules"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Websocket monitor</BlockTitle>
       <BlockBody>
         Enable/Disable the websocket monitor. This will show the websocket

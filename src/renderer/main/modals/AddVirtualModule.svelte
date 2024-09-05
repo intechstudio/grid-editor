@@ -12,17 +12,17 @@
   import { modal } from "./modal.store";
   import { get } from "svelte/store";
 
-  const devices = [
+  let devices = [
     { id: ModuleType.BU16, type: ModuleType.BU16, component: XX16 },
     { id: ModuleType.EF44, type: ModuleType.EF44, component: EF44 },
     { id: ModuleType.EN16, type: ModuleType.EN16, component: XX16 },
     { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
     { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
     { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
-    { id: ModuleType.VSN0, type: ModuleType.VSN0, component: VSNX },
-    { id: ModuleType.VSN1, type: ModuleType.VSN1, component: VSNX },
-    { id: ModuleType.VSN1R, type: ModuleType.VSN1R, component: VSNX },
-    { id: ModuleType.VSN2, type: ModuleType.VSN2, component: VSNX },
+    { id: ModuleType.VSN0, type: ModuleType.VSN0, component: VSNX, unrelease: true },
+    { id: ModuleType.VSN1, type: ModuleType.VSN1, component: VSNX, unrelease: true  },
+    { id: ModuleType.VSN1R, type: ModuleType.VSN1R, component: VSNX, unrelease: true  },
+    { id: ModuleType.VSN2, type: ModuleType.VSN2, component: VSNX, unrelease: true  },
   ];
 
   let [dx, dy]: number[] = [0, 0];
@@ -85,6 +85,7 @@
         class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full mt-4"
       >
         {#each devices as device, index}
+          {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
           <div class="flex w-full h-full items-center justify-center">
             <div class="flex flex-col">
               <span class="text-white text-opacity-75 font-mono"
@@ -120,6 +121,7 @@
               </button>
             </div>
           </div>
+          {/if}
         {/each}
       </div>
       <div class="flex flex-row gap-2 pt-4 ml-auto">
