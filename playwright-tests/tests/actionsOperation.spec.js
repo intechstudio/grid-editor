@@ -136,32 +136,32 @@ test.describe("Element Actions", () => {
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 
-  // test("Copy and Overwrite with Element right click", async () => {
-  //   const expectedComment = "test comment";
-  //   await modulePage.selectModuleElement(0);
-  //   await configPage.removeAllActions();
-  //   await configPage.addCommentBlock(expectedComment);
-  //   await modulePage.rightClickModuleElement(0);
-  //   await modulePage.copyElement();
-  //   await modulePage.rightClickModuleElement(1);
-  //   await modulePage.overwriteElement();
-  //   await expect(await configPage.getTextFromComment()).toHaveValue(
-  //     expectedComment
-  //   );
-  // });
+  test("Copy and Overwrite with Element right click", async () => {
+    const expectedComment = "test comment";
+    await modulePage.selectModuleElement(0);
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(expectedComment);
+    await modulePage.rightClickModuleElement(0);
+    await modulePage.copyElement();
+    await modulePage.rightClickModuleElement(1);
+    await modulePage.overwriteElement();
+    await expect(await configPage.getTextFromComment()).toHaveValue(
+      expectedComment
+    );
+  });
 
-  // test("Discard with Element right click", async ({ page }) => {
-  //   const notVisibleComment = "Not Exist";
-  //   await configPage.removeAllActions();
-  //   await configPage.addCommentBlock(notVisibleComment);
-  //   await configPage.selectElementEvent("Timer");
-  //   await modulePage.rightClickModuleElement(2);
-  //   await modulePage.discardElement();
-  //   await configPage.selectElementEvent("Button");
+  test("Discard with Element right click", async ({ page }) => {
+    const notVisibleComment = "Not Exist";
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(notVisibleComment);
+    await configPage.selectElementEvent("Timer");
+    await modulePage.rightClickModuleElement(0);
+    await modulePage.discardElement();
+    await configPage.selectElementEvent("Button");
 
-  //   await expect(await configPage.getTextFromComment()).toBeHidden();
-  //   await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
-  // });
+    await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
+  });
 
   test("Clear with Element right click", async ({ page }) => {
     const notVisibleComment = "Not Exist";
@@ -234,7 +234,7 @@ test.describe("Issues", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("PO16");
+    await connectModulePage.addModule("BU16");
   });
 
   // https://github.com/intechstudio/grid-editor/issues/751
@@ -263,25 +263,25 @@ test.describe("Issues", () => {
 
     //TODO refactor, with contains(), it slow now
   });
-  // test("MIDI NRPN showes the converted value after switch element", async ({
-  //   page,
-  // }) => {
-  //   const expectedValue = (await getRandomInt(127)).toString();
-  //   await configPage.removeAllActions();
-  //   await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
-  //   await configPage.writeActionBlockField(
-  //     "midi",
-  //     "MIDI NRPN",
-  //     "NRPN CC",
-  //     expectedValue
-  //   );
-  //   await configPage.selectElementEvent("Timer");
-  //   await configPage.selectElementEvent("Button");
-  //   const actualValue = await configPage.getActionBlockFieldValue(
-  //     "midi",
-  //     "MIDI NRPN",
-  //     "NRPN CC"
-  //   );
-  //   await expect(actualValue).toBe(expectedValue);
-  // });
+  test("MIDI NRPN showes the converted value after switch element", async ({
+    page,
+  }) => {
+    const expectedValue = (await getRandomInt(127)).toString();
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      expectedValue
+    );
+    await configPage.selectElementEvent("Timer");
+    await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
 });
