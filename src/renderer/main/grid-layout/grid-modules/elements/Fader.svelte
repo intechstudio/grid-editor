@@ -1,96 +1,19 @@
 <script>
-  import { grab } from "../event-handlers/grab.js";
-
   import { createEventDispatcher } from "svelte";
 
   export let elementNumber;
   export let size = 1;
-  export let rotation = 0;
 
   const faderWidth = 16;
 
   export let faderHeight = 0; // was 37 or 68
 
   export let position = 0;
-  export let id;
-
-  let move = 0;
-  let startValue = 0;
-  let initMove = 0;
-
-  let startSVG;
-  let endSVG = 0;
-  let svgMove;
-
-  $: range = faderHeight * size;
-
-  const rotMode = (rotation) => {
-    rotation == undefined ? (rotation = 0) : null;
-    let rot;
-    rotation == 1 || rotation == 3 ? (rot = "X") : (rot = "Y");
-    return rot;
-  };
-
-  const inverse = () => {
-    let _inverse = -1;
-    rotation == 1 || rotation == 2 ? (_inverse = 1) : (_inverse = -1);
-    return _inverse;
-  };
-
-  function handleGrabStart(event) {
-    var coord = getMousePosition(event);
-    const rot = rotMode(rotation).toLowerCase();
-    startValue = coord[rot];
-  }
-
-  // with all these functions, this could be much more performant.
-  function handleGrabMove(event) {
-    return;
-    var coord = getMousePosition(event);
-    const rot = rotMode(rotation).toLowerCase();
-    let value = (startValue - (initMove + coord[rot])) * inverse();
-
-    if (value < -((22 / faderHeight) * 37)) {
-      value = -((22 / faderHeight) * 37);
-    }
-    if (value > (22 / faderHeight) * 37) {
-      value = (22 / faderHeight) * 37;
-    }
-
-    move = value;
-    position = move * -1;
-  }
-
-  function handleGrabEnd(event) {
-    initMove = move;
-  }
-
-  function getMousePosition(evt) {
-    var BCR = evt.srcElement.getBoundingClientRect();
-    return {
-      x: evt.detail.x - BCR.x,
-      y: evt.detail.y - BCR.y,
-    };
-  }
-
-  /*
-    // CTM does not work on rotated svgs.
-    var CTM = evt.srcElement.getScreenCTM(); 
-    return {
-      x: (evt.detail.x - CTM.e) / CTM.a,
-      y: (evt.detail.y - CTM.f) / CTM.d
-    };  
-    */
 </script>
 
 <div class="w-auto h-auto rounded-full">
   <svg
-    use:grab
-    on:grabstart={handleGrabStart}
-    on:grabmove={handleGrabMove}
-    on:grabend={handleGrabEnd}
     data-control-number={elementNumber}
-    data-module-id={id}
     id="fader-cap"
     width={size * faderWidth + "px"}
     height={size * faderHeight + "px"}
