@@ -19,7 +19,6 @@
     { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
     { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
     { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
-
     { id: ModuleType.VSN0, type: ModuleType.VSN0, component: VSNX },
     { id: ModuleType.VSN1, type: ModuleType.VSN1, component: VSNX },
     { id: ModuleType.VSN1R, type: ModuleType.VSN1R, component: VSNX },

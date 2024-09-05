@@ -25,10 +25,10 @@ test.describe("Modules", () => {
     "EN16",
     "PBF4",
     "PO16",
-    "TEK2",
+    "VSN0",
     "VSN1",
-    "VSN2",
     "VSN1R",
+    "VSN2",
   ];
   for (const moduleName of moduleNames) {
     test(`should add a ${moduleName}`, async () => {
@@ -42,8 +42,8 @@ test.describe("Module Operations", () => {
   test("should change module", async () => {
     await connectModulePage.addModule("BU16");
     await modulePage.changeModule();
-    await connectModulePage.addModule("TEK2");
-    await expect(modulePage.modules["TEK2"]).toBeVisible();
+    await connectModulePage.addModule("PO16");
+    await expect(modulePage.modules["PO16"]).toBeVisible();
   });
 
   test("should remove module", async () => {

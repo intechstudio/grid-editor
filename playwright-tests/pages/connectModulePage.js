@@ -12,7 +12,7 @@ export class ConnectModulePage {
       EN16: page.getByTestId("EN16"),
       PBF4: page.getByTestId("PBF4"),
       PO16: page.getByTestId("PO16"),
-      TEK2: page.getByTestId("TEK2"),
+      TEK0: page.getByTestId("TEK0"),
       VSN1: page.getByTestId("VSN1"),
       VSN1R: page.getByTestId("VSN1R"),
       VSN2: page.getByTestId("VSN2"),
