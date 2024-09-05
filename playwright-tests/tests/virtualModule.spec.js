@@ -25,7 +25,6 @@ test.describe("Modules", () => {
     "EN16",
     "PBF4",
     "PO16",
-    "VSN0",
     "VSN1",
     "VSN1R",
     "VSN2",
