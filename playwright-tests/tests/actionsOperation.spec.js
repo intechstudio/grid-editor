@@ -155,7 +155,7 @@ test.describe("Element Actions", () => {
     await configPage.removeAllActions();
     await configPage.addCommentBlock(notVisibleComment);
     await configPage.selectElementEvent("Timer");
-    await modulePage.rightClickModuleElement(2);
+    await modulePage.rightClickModuleElement(0);
     await modulePage.discardElement();
     await configPage.selectElementEvent("Button");
 
