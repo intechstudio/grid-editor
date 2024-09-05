@@ -12,6 +12,8 @@
   import { modal } from "./modal.store";
   import { get } from "svelte/store";
 
+  import { appSettings } from "../../runtime/app-helper.store";
+
   let devices = [
     { id: ModuleType.BU16, type: ModuleType.BU16, component: XX16 },
     { id: ModuleType.EF44, type: ModuleType.EF44, component: EF44 },
@@ -19,10 +21,30 @@
     { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
     { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
     { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
-    { id: ModuleType.VSN0, type: ModuleType.VSN0, component: VSNX, unrelease: true },
-    { id: ModuleType.VSN1, type: ModuleType.VSN1, component: VSNX, unrelease: true  },
-    { id: ModuleType.VSN1R, type: ModuleType.VSN1R, component: VSNX, unrelease: true  },
-    { id: ModuleType.VSN2, type: ModuleType.VSN2, component: VSNX, unrelease: true  },
+    {
+      id: ModuleType.VSN0,
+      type: ModuleType.VSN0,
+      component: VSNX,
+      unrelease: true,
+    },
+    {
+      id: ModuleType.VSN1,
+      type: ModuleType.VSN1,
+      component: VSNX,
+      unrelease: true,
+    },
+    {
+      id: ModuleType.VSN1R,
+      type: ModuleType.VSN1R,
+      component: VSNX,
+      unrelease: true,
+    },
+    {
+      id: ModuleType.VSN2,
+      type: ModuleType.VSN2,
+      component: VSNX,
+      unrelease: true,
+    },
   ];
 
   let [dx, dy]: number[] = [0, 0];
@@ -86,41 +108,41 @@
       >
         {#each devices as device, index}
           {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
-          <div class="flex w-full h-full items-center justify-center">
-            <div class="flex flex-col">
-              <span class="text-white text-opacity-75 font-mono"
-                >{device.id}</span
-              >
-              <button
-                data-testid={device.id}
-                class="border"
-                class:border-transparent={index !== selectedModule}
-                class:hover:border-emerald-600={index !== selectedModule}
-                class:border-emerald-300={index === selectedModule}
-                on:click={() => handleModuleClicked(index)}
-                on:dblclick={() => handleModuleDoubleClicked(index)}
-              >
-                <div
-                  style="
+            <div class="flex w-full h-full items-center justify-center">
+              <div class="flex flex-col">
+                <span class="text-white text-opacity-75 font-mono"
+                  >{device.id}</span
+                >
+                <button
+                  data-testid={device.id}
+                  class="border"
+                  class:border-transparent={index !== selectedModule}
+                  class:hover:border-emerald-600={index !== selectedModule}
+                  class:border-emerald-300={index === selectedModule}
+                  on:click={() => handleModuleClicked(index)}
+                  on:dblclick={() => handleModuleDoubleClicked(index)}
+                >
+                  <div
+                    style="
                 transform-origin: top left;
                 width: calc(113px);
                 height: calc(113px);
                 transform: scale(0.5); 
               "
-                >
-                  <div
-                    class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
                   >
-                    <svelte:component
-                      this={device.component}
-                      {device}
-                      moduleWidth={225}
-                    />
+                    <div
+                      class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
+                    >
+                      <svelte:component
+                        this={device.component}
+                        {device}
+                        moduleWidth={225}
+                      />
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
-          </div>
           {/if}
         {/each}
       </div>

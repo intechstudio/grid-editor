@@ -19,16 +19,7 @@ test.describe("Modules", () => {
     await modulePage.removeModule();
   });
 
-  const moduleNames = [
-    "BU16",
-    "EF44",
-    "EN16",
-    "PBF4",
-    "PO16",
-    "VSN1",
-    "VSN1R",
-    "VSN2",
-  ];
+  const moduleNames = ["BU16", "EF44", "EN16", "PBF4", "PO16"];
   for (const moduleName of moduleNames) {
     test(`should add a ${moduleName}`, async () => {
       await connectModulePage.addModule(moduleName);
@@ -54,13 +45,13 @@ test.describe("Module Operations", () => {
   const expectModule = "PO16";
   test(`Select Multiple Modules and Verifying Visibility of Module ${expectModule}`, async () => {
     await connectModulePage.selectModule("BU16");
-    await connectModulePage.selectModule("VSN2");
+    await connectModulePage.selectModule("EN16");
     await connectModulePage.addModule(expectModule);
     await expect(modulePage.modules[expectModule]).toBeVisible();
   });
 
   test("cancel add module", async ({ page }) => {
-    await connectModulePage.selectModule("VSN2");
+    await connectModulePage.selectModule("EN16");
     await page.mouse.click(1, 1);
     await expect(connectModulePage.virtualModuleButton).toBeVisible();
   });
@@ -72,7 +63,7 @@ test.describe("Add extra module", () => {
     test(`to ${side} side`, async () => {
       await connectModulePage.addModule("EF44");
       await modulePage.openAddModuleToSide(side);
-      await connectModulePage.addModule("VSN1R");
+      await connectModulePage.addModule("EN16");
       await expect(modulePage.modulesFromTheFirstModule[side]).toBeVisible();
     });
   }

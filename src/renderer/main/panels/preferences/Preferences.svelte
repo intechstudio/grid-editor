@@ -338,13 +338,11 @@
 
     <Block>
       <BlockTitle>Unreleased Virtual Modules</BlockTitle>
-      <BlockBody>
-        Enable/Disable adding unrelease virtual modules.
-      </BlockBody>
+      <BlockBody>Enable/Disable adding unrelease virtual modules.</BlockBody>
 
       <MeltCheckbox
         bind:target={$appSettings.persistent.unreleasedVirtualModules}
-        title={"Activate ulrelease modules"}
+        title={"Activate unreleased modules"}
       />
     </Block>
 
