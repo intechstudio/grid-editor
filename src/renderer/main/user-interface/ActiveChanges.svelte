@@ -145,6 +145,8 @@
       });
     }
   }
+
+  $: console.log($runtime)
 </script>
 
 <container
