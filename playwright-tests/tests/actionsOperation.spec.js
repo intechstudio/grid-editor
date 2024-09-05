@@ -74,7 +74,7 @@ test.describe("Element Actions", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("EN16");
+    await connectModulePage.addModule("BU16");
   });
 
   test("Copy and Overwrite", async () => {
