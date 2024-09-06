@@ -28,10 +28,12 @@ import {
   logger,
   user_input,
 } from "./runtime.store";
+import { v4 as uuidv4 } from "uuid";
 
 abstract class RuntimeNode<T> implements Writable<T> {
   protected _internal: Writable<T>;
   private _parent: RuntimeNode<any>;
+  private _id: string;
 
   subscribe(
     run: Subscriber<T>,
@@ -53,10 +55,15 @@ abstract class RuntimeNode<T> implements Writable<T> {
   constructor(parent: RuntimeNode<any>, value?: T) {
     this._parent = parent;
     this._internal = writable(value);
+    this._id = uuidv4();
   }
 
   get parent(): RuntimeNode<any> {
     return this._parent;
+  }
+
+  get id() {
+    return this._id;
   }
 
   protected notify() {

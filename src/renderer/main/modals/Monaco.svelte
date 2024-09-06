@@ -1,8 +1,17 @@
-<script>
+<script lang="ts">
+  import { Grid } from "./../../lib/_utils.ts";
+  import {
+    GridElement,
+    GridEvent,
+    GridPage,
+    GridModule,
+    GridAction,
+  } from "./../../runtime/runtime.ts";
+  import { ConfigObject } from "./../panels/configuration/Configuration.store.js";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
-  import { grid } from "@intechstudio/grid-protocol";
+  import { grid, NumberToEventType } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
@@ -10,7 +19,7 @@
 
   import { monaco_editor } from "../../lib/CustomMonaco";
   import { committed_code_store } from "../../config-blocks/Committed_Code.store";
-  import { monaco_store } from "./Monaco.store";
+  import { monaco_store } from "./monaco.store";
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
@@ -36,6 +45,7 @@
   let editedConfig = undefined;
   let editedList = undefined;
   let scriptLength = undefined;
+  let pathSnippets = [];
 
   class LengthError extends String {}
 
@@ -43,6 +53,29 @@
 
   function handleFontSizechange(fontSize) {
     editor?.updateOptions({ fontSize: fontSize });
+  }
+
+  $: handleConfigChange($monaco_store.config);
+
+  function handleConfigChange(config: ConfigObject) {
+    const action = config.runtimeRef as GridAction;
+    const event = config.runtimeRef.parent as GridEvent;
+    const element = event.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
+    console.log(
+      event.config.filter((e) => e.short === "cb"),
+      action
+    );
+    pathSnippets = [
+      `${module.type} (${module.dx},${module.dy})`,
+      `Page ${page.pageNumber + 1}`,
+      `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
+      `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
+      event.config
+        .filter((e) => e.short === "cb")
+        .findIndex((e) => e.isEqual(action)),
+    ];
   }
 
   onMount(() => {
@@ -270,8 +303,18 @@
 
     <div
       id="monaco-container"
-      class="{$$props.class} flex h-full w-full bg-black bg-opacity-20 border border-black"
+      class="{$$props.class} flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
     >
+      <div
+        class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
+      >
+        {#each pathSnippets as snippet, i}
+          <span class="text-white text-opacity-85">{snippet}</span>
+          {#if i < pathSnippets.length - 1}
+            <div class="fill-orange-700">/</div>
+          {/if}
+        {/each}
+      </div>
       <div bind:this={monaco_block} class="flex w-full h-full" />
     </div>
 

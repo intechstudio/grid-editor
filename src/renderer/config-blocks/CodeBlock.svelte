@@ -48,7 +48,7 @@
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { monaco_store } from "../main/modals/Monaco.store";
+  import { monaco_store } from "../main/modals/monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
@@ -133,7 +133,7 @@
 
   function open_monaco() {
     console.log(config);
-    $monaco_store = { config: config.makeCopy(), index: index };
+    monaco_store.set({ config: config, index: index });
     $monaco_elementtype = access_tree.elementtype;
     modal.show({
       component: Monaco,
