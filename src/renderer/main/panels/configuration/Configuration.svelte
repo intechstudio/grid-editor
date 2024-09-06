@@ -13,11 +13,7 @@
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
-  import {
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store.js";
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import {
     ConfigTarget,
@@ -401,7 +397,7 @@
           on:drag-end={handleDragEnd}
           class="flex flex-col h-full relative justify-between"
         >
-          {#if $configManager.length === 0 && $runtime.length > 0}
+          {#if $configManager.length === 0 && $runtime.modules.length > 0}
             <div class="mt-2">
               <AddAction
                 index={0}
@@ -508,7 +504,7 @@
         </div>
         <div
           class="w-full flex justify-between mb-3"
-          class:invisible={$runtime.length === 0}
+          class:invisible={$runtime.modules.length === 0}
         >
           <AddActionButton
             index={$configManager.length}

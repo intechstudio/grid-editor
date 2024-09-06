@@ -1,6 +1,6 @@
 <script>
   import { derived, writable } from "svelte/store";
-  import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
+  import { runtime, user_input } from "./../../../../runtime/runtime.store";
   import {
     createCopyAllDisabledStore,
     createOverwriteDisabledStore,

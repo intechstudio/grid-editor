@@ -1,7 +1,7 @@
 <script>
   import { tooltip } from "./../_actions/tooltip.ts";
   import { get } from "svelte/store";
-  import { logger } from "./../../runtime/runtime.store.js";
+  import { logger } from "./../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
   import { configManager } from "./../panels/configuration/Configuration.store.js";
@@ -145,8 +145,6 @@
       });
     }
   }
-
-  $: console.log($runtime)
 </script>
 
 <container

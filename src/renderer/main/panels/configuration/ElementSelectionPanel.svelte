@@ -8,7 +8,7 @@
     elementNameStore,
     user_input,
     runtime,
-  } from "../../../runtime/runtime.store.js";
+  } from "../../../runtime/runtime.store";
 
   function showControlElementNameOverlay() {
     const show = get(moduleOverlay) !== "control-name-overlay";
@@ -61,7 +61,7 @@
 
   function renderElementList() {
     const ui = $user_input;
-    const device = $runtime.find(
+    const device = runtime.modules.find(
       (device) => device.dx === ui.dx && device.dy === ui.dy
     );
     if (typeof device === "undefined") {

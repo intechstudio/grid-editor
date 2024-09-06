@@ -9,7 +9,7 @@ import {
   InstructionClass,
   InstructionClassName,
 } from "../runtime/engine.store.ts";
-import { logger } from "../runtime/runtime.store.js";
+import { logger } from "../runtime/runtime.store";
 import { v4 as uuidv4 } from "uuid";
 
 export interface Instructions {

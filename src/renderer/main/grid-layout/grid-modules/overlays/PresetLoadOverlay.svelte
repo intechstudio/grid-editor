@@ -1,12 +1,13 @@
 <script lang="ts">
   import { grid } from "@intechstudio/grid-protocol";
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
-  import { user_input } from "./../../../../runtime/runtime.store.js";
+  import { user_input } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { createEventDispatcher, onMount } from "svelte";
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
+  import { GridEvent } from "../../../../runtime/runtime.js";
 
   export let device = undefined;
   export let visible = false;
@@ -88,9 +89,7 @@
 
     const events = target.events;
     //Find the event that has change
-    const changed = events.find(
-      (e) => typeof e.stored !== "undefined" && e.stored !== e.config
-    );
+    const changed = events.find((e: GridEvent) => e.hasChanges());
     isChanged = typeof changed !== "undefined";
   }
 

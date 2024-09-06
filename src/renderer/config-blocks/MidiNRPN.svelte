@@ -49,7 +49,7 @@
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store.js";
-  import { LocalDefinitions } from "../runtime/runtime.store.js";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators.js";
 

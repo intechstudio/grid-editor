@@ -1,6 +1,6 @@
 <script>
   import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
-  import { user_input } from "../../../../runtime/runtime.store.js";
+  import { user_input } from "../../../../runtime/runtime.store";
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
 
@@ -32,11 +32,8 @@
       return;
     }
 
-    const events = target.events;
     //Find the event that has change
-    const changed = events.find(
-      (e) => typeof e.stored !== "undefined" && e.stored !== e.config
-    );
+    const changed = target.events.find((e) => e.hasChanges());
     isChanged = typeof changed !== "undefined";
   }
 </script>

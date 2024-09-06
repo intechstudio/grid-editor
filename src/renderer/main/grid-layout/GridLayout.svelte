@@ -4,7 +4,7 @@
   import { modal } from "./../modals/modal.store.ts";
   import { watchResize } from "svelte-watch-resize";
   import { writable } from "svelte/store";
-  import { runtime } from "../../runtime/runtime.store.js";
+  import { runtime } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store.js";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
@@ -79,17 +79,17 @@
 
   function getGridDimensions() {
     const rt = $runtime;
-    const min_x = Math.min(...rt.map((e) => e.dx));
-    const min_y = Math.min(...rt.map((e) => e.dy));
-    const max_x = Math.max(...rt.map((e) => e.dx));
-    const max_y = Math.max(...rt.map((e) => e.dy));
+    const min_x = Math.min(...rt.modules.map((e) => e.dx));
+    const min_y = Math.min(...rt.modules.map((e) => e.dy));
+    const max_x = Math.max(...rt.modules.map((e) => e.dx));
+    const max_y = Math.max(...rt.modules.map((e) => e.dy));
     return {
       min_x: min_x,
       min_y: min_y,
       max_x: max_x,
       max_y: max_y,
-      rows: rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
-      columns: rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
+      rows: rt.modules.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
+      columns: rt.modules.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
     };
   }
 
@@ -99,13 +99,13 @@
       const { min_x, min_y, max_y, max_x } = dim;
 
       s = [];
-      rt.forEach((device, i) => {
+      rt.modules.forEach((device, i) => {
         let connection_top = 0;
         let connection_bottom = 0;
         let connection_left = 0;
         let connection_right = 0;
 
-        rt.forEach((neighbor) => {
+        rt.modules.forEach((neighbor) => {
           if (!(device.dx == neighbor.dx && device.dy == neighbor.dy)) {
             const dxDiff = device.dx - neighbor.dx;
             const dyDiff = device.dy - neighbor.dy;
@@ -125,7 +125,6 @@
         const obj = device;
         obj.fly_x_direction = connection_right - connection_left;
         obj.fly_y_direction = connection_top - connection_bottom;
-        obj.type = rt[i].id.substr(0, 4);
         obj.gridX = x + 1;
         obj.gridY = y + 1;
         s.push(obj);

@@ -1,5 +1,5 @@
-import { logger } from "./../../../runtime/runtime.store.js";
-import { runtime, user_input } from "../../../runtime/runtime.store.js";
+import { logger } from "./../../../runtime/runtime.store";
+import { runtime, user_input } from "../../../runtime/runtime.store";
 import {
   configManager,
   ConfigTarget,
@@ -14,6 +14,7 @@ import {
 } from "@intechstudio/grid-protocol";
 import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
+import { createActionsFromString } from "../../../runtime/runtime";
 
 function handleError(e: any) {
   switch (e.type) {
@@ -325,6 +326,7 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
   const codeBlock = new ConfigObject({
     short: "cb",
     script: script,
+    runtimeRef: configs[0].runtimeRef,
   });
 
   configManager.update((s: ConfigList) => {
@@ -391,8 +393,9 @@ export function clearElement(
   pageNumber: number,
   elementNumber: number
 ) {
-  const rt = get(runtime);
-  const device: any = rt.find((e: any) => e.dx === dx && e.dy === dy);
+  const device: any = runtime.modules.find(
+    (e: any) => e.dx === dx && e.dy === dy
+  );
   const page: any = device?.pages.find((e: any) => e.pageNumber === pageNumber);
   const type = page.control_elements.find(
     (e: any) => e.elementIndex === elementNumber
@@ -424,9 +427,11 @@ export function clearElement(
       eventType: eventtype,
       page: current!.page,
     });
-    const defaultConfig = events.find(
-      (e: any) => e.value === eventtype
-    )?.config;
+    const defaultConfig = createActionsFromString(
+      undefined,
+      events.find((e: any) => e.value === eventtype)?.config
+    );
+
     const list = ConfigList.createFromActions(defaultConfig);
     promises.push(list.sendTo({ target: target }));
   }
@@ -464,7 +469,7 @@ export function createCopyAllDisabledStore(watched: Writable<ConfigTarget>) {
     ([$watched, $configManager, $runtime]) => {
       return (
         typeof $configManager.find((e) => e.selected) !== "undefined" ||
-        $runtime.length === 0
+        runtime.modules.length === 0
       );
     }
   );
@@ -482,7 +487,7 @@ export function createClearElementDisabledStore(
   watched: Writable<ConfigTarget>
 ) {
   return derived([watched, runtime], ([$watched, $runtime]) => {
-    return $runtime.length === 0;
+    return runtime.modules.length === 0;
   });
 }
 

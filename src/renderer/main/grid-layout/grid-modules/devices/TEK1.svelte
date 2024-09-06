@@ -5,8 +5,8 @@
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
 
-  import { elementPositionStore } from "../../../../runtime/runtime.store.js";
-  import { ledColorStore } from "../../../../runtime/runtime.store.js";
+  import { elementPositionStore } from "../../../../runtime/runtime.store";
+  import { ledColorStore } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let id = "TEK1";

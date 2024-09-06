@@ -57,7 +57,7 @@
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
-  import { LocalDefinitions } from "../runtime/runtime.store.js";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store.js";

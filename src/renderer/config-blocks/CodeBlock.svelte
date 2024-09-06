@@ -132,6 +132,7 @@
   }
 
   function open_monaco() {
+    console.log(config);
     $monaco_store = { config: config.makeCopy(), index: index };
     $monaco_elementtype = access_tree.elementtype;
     modal.show({

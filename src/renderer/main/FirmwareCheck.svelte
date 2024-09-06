@@ -48,10 +48,9 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   // check for parsed modules
   $: {
-    const store = $runtime;
     let firmwareMismatchFound = false;
 
-    if (store.length === 0) {
+    if ($runtime.modules.length === 0) {
       startBootloaderCheck();
       if ($appSettings.firmwareNotificationState == 1) {
         $appSettings.firmwareNotificationState = 2;
@@ -61,7 +60,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     }
 
     // check modules for firmware mismatch
-    store.forEach((device) => {
+    runtime.modules.forEach((device) => {
       if ($appSettings.firmwareNotificationState == 6) {
         $appSettings.firmwareNotificationState = 0;
         uploadProgressText = "";

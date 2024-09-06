@@ -71,7 +71,7 @@
   $: {
     if (
       $pendingActions.length > 0 &&
-      $runtime.length > 0 &&
+      $runtime.modules.length > 0 &&
       typeof moduleHangingTimeout === "undefined"
     ) {
       moduleHangingTimeout = setTimeout(() => {
@@ -115,13 +115,14 @@
     <div
       id="sticky-container"
       class="absolute top-full left-1/2 -translate-x-1/2"
-      class:invisible={showFixedStickyContainer || $runtime.length === 0}
+      class:invisible={showFixedStickyContainer ||
+        $runtime.modules.length === 0}
     >
       <StickyContainer />
     </div>
   </GridLayout>
 
-  {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
+  {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
     <div
       in:fade|global={{ delay: 2000, duration: 1000 }}
       out:blur|global={{ duration: 150 }}

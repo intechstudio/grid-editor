@@ -23,7 +23,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { user_input } from "../../../runtime/runtime.store.js";
+  import { user_input } from "../../../runtime/runtime.store";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";

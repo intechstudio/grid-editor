@@ -32,10 +32,9 @@
 
   function handleRuntimeChange(rt) {
     const compatible = new Set([]);
-    for (const device of rt) {
-      const module = device.id.substring(0, 4);
-      const elements = device.pages[0].control_elements.map((e) => e.type);
-      compatible.add(module);
+    for (const module of rt.modules) {
+      const elements = module.pages[0].control_elements.map((e) => e.type);
+      compatible.add(module.type);
       elements.forEach((item) => compatible.add(item));
     }
     sendCompatibleTypes(Array.from(compatible));
@@ -61,7 +60,7 @@
       return;
     }
 
-    selectedModule = get(runtime)
+    selectedModule = runtime.modules
       .find((device) => device.dx == ui.dx && device.dy == ui.dy)
       .id.substr(0, 4);
     selectedControlElementType = target.elementType;
@@ -201,8 +200,6 @@
         .then((desc) => {
           const ui = get(user_input);
 
-          const configs = get(runtime);
-
           let name = undefined;
           let description = "Click here to add description";
           let id = uuidv4();
@@ -220,7 +217,7 @@
             localId: id,
           };
 
-          configs.forEach((d) => {
+          runtime.modules.forEach((d) => {
             if (d.dx == ui.dx && d.dy == ui.dy) {
               const page = d.pages.find((x) => x.pageNumber == ui.pagenumber);
 

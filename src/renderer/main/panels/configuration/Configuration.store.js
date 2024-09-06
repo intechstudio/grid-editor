@@ -38,10 +38,11 @@ export function lastOpenedActionblocksRemove(short) {
 }
 
 export class ConfigObject {
-  constructor({ short, script, name = undefined }) {
+  constructor({ short, script, name = undefined, runtimeRef }) {
     this.short = short;
     this.script = script;
     this.name = name;
+    this.runtimeRef = runtimeRef;
     this.id = uuidv4();
 
     let res = getComponentInformation({ short: short });
@@ -72,14 +73,15 @@ export class ConfigObject {
   makeCopy() {
     const copy = new ConfigObject({
       short: this.short,
+      name: this.name,
       script: this.script,
+      runtimeRef: this.runtimeRef,
     });
     copy.information = this.information;
     copy.component = this.component;
     copy.selected = this.selected;
     copy.toggled = this.toggled;
     copy.id = uuidv4();
-    copy.name = this.name;
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -229,12 +231,12 @@ export class ConfigList extends Array {
   }
 
   #Init(actions) {
-    console.log(actions);
     for (const action of actions) {
       const obj = new ConfigObject({
         short: action.short,
         script: action.script,
         name: action.name,
+        runtimeRef: action,
       });
       super.push(obj);
     }
@@ -296,7 +298,7 @@ export class ConfigTarget {
   elementType = undefined;
 
   static create({ device: { dx: dx, dy: dy }, page, element, eventType }) {
-    const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+    const device = runtime.modules.find((e) => e.dx == dx && e.dy == dy);
 
     if (typeof device === "undefined") {
       //console.warn(`Unknown device at (${dx},${dy})!`);
@@ -349,7 +351,7 @@ export class ConfigTarget {
 
   hasChanges() {
     for (const event of this.events) {
-      if (event.config !== event.stored) {
+      if (event.hasChanges()) {
         return true;
       }
     }
@@ -359,7 +361,6 @@ export class ConfigTarget {
   getEvent() {
     const element = this.getElement();
     const event = element.events.find((e) => e.type == this.eventType);
-    console.log(event);
     return event;
   }
 
@@ -378,8 +379,7 @@ export class ConfigTarget {
   }
 
   getDevice() {
-    const rt = get(runtime);
-    const device = rt.find(
+    const device = runtime.modules.find(
       (e) => e.dx == this.device.dx && e.dy == this.device.dy
     );
     return device;

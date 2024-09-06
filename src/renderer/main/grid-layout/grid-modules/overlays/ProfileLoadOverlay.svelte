@@ -1,6 +1,6 @@
 <script>
   import { get } from "svelte/store";
-  import { user_input } from "./../../../../runtime/runtime.store.js";
+  import { user_input } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { configManager } from "./../configuration/Configuration.store.js";
-  import { logger } from "./../../../runtime/runtime.store.js";
+  import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { runtime } from "../../../runtime/runtime.store.js";
+  import { runtime } from "../../../runtime/runtime.store";
 
   import {
     BlockBody,
