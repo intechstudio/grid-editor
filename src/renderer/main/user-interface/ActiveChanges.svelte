@@ -4,7 +4,7 @@
   import { logger } from "./../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
-  import { configManager } from "./../panels/configuration/Configuration.store.js";
+  import { configManager } from "./../panels/configuration/Configuration.store";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";

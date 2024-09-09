@@ -301,6 +301,8 @@
       new ConfigObject({
         short: component.information.short,
         script: defaultScript,
+        runtimeRef: undefined,
+        name: undefined,
       }),
     ];
 
@@ -313,6 +315,8 @@
           new ConfigObject({
             short: obj.short,
             script: obj.script,
+            runtimeRef: undefined,
+            name: undefined,
           })
         );
       }

@@ -19,7 +19,7 @@
     ConfigTarget,
     configManager,
     lastOpenedActionblocksInsert,
-  } from "./Configuration.store.js";
+  } from "./Configuration.store";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
@@ -197,7 +197,8 @@
 
   function handleConfigInsertion(e) {
     let { index, configs } = e.detail;
-    insertAction(index, configs);
+    const parent = ConfigTarget.getCurrent();
+    insertAction(index, configs, parent.runtimeRef);
     sendCurrentConfigurationToGrid();
   }
 

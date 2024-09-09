@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { Grid } from "./../../lib/_utils.ts";
+  import { runtime } from "./../../runtime/runtime.store";
+  import { Grid } from "./../../lib/_utils";
   import {
     GridElement,
     GridEvent,
     GridPage,
     GridModule,
     GridAction,
-  } from "./../../runtime/runtime.ts";
-  import { ConfigObject } from "./../panels/configuration/Configuration.store.js";
+  } from "./../../runtime/runtime";
+  import { ConfigObject } from "./../panels/configuration/Configuration.store";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
@@ -38,12 +39,11 @@
   let commitEnabled = false;
   let unsavedChanges = false;
   let errorMesssage = "";
+  let commitedCode = "";
 
   let scrollDown;
   let autoscroll;
 
-  let editedConfig = undefined;
-  let editedList = undefined;
   let scriptLength = undefined;
   let pathSnippets = [];
 
@@ -55,44 +55,46 @@
     editor?.updateOptions({ fontSize: fontSize });
   }
 
-  $: handleConfigChange($monaco_store.config);
+  $: if ($runtime) {
+    handleConfigChange($monaco_store.config);
+  }
 
   function handleConfigChange(config: ConfigObject) {
     const action = config.runtimeRef as GridAction;
-    const event = config.runtimeRef.parent as GridEvent;
-    const element = event.parent as GridElement;
-    const page = element.parent as GridPage;
-    const module = page.parent as GridModule;
-    console.log(
-      event.config.filter((e) => e.short === "cb"),
-      action
-    );
-    pathSnippets = [
-      `${module.type} (${module.dx},${module.dy})`,
-      `Page ${page.pageNumber + 1}`,
-      `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
-      `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
-      event.config
-        .filter((e) => e.short === "cb")
-        .findIndex((e) => e.isEqual(action)),
-    ];
+
+    if (typeof action.parent !== "undefined") {
+      const event = config.runtimeRef.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+      const module = page.parent as GridModule;
+
+      pathSnippets = [
+        `${module.type} (${module.dx},${module.dy})`,
+        `Page ${page.pageNumber + 1}`,
+        `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
+        `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
+        typeof action.name !== "undefined"
+          ? action.name
+          : `Block #${event.config.findIndex((e) => e === action) + 1}`,
+      ];
+    } else {
+      pathSnippets = ["Deleted Code Block"];
+    }
   }
 
   onMount(() => {
-    //Make local copies
-    editedList = $configManager.makeCopy();
-    editedConfig = editedList[$monaco_store.index];
-
     name =
-      typeof editedConfig.name !== "undefined"
-        ? editedConfig.name
-        : editedConfig.information.displayName;
+      typeof $monaco_store.config.name !== "undefined"
+        ? $monaco_store.config.name
+        : $monaco_store.config.information.displayName;
+
+    commitedCode = $monaco_store.config.script;
 
     //To be displayed in Editor
-    const code_preview = GridScript.expandScript(editedConfig.script);
+    const code_preview = GridScript.expandScript($monaco_store.config.script);
 
     //Set initial code length
-    scriptLength = editedList.toConfigScript().length;
+    scriptLength = $configManager.toConfigScript().length;
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
@@ -106,7 +108,7 @@
       renderLineHighlight: "none",
 
       contextmenu: false,
-      scrollBeyondLastLine: 0,
+      scrollBeyondLastLine: false,
       automaticLayout: true,
       wordWrap: "on",
       suggest: {
@@ -124,10 +126,10 @@
 
       try {
         //Throws error on syntax error
-        editedConfig.script = GridScript.compressScript(editor_code);
+        $monaco_store.config.script = GridScript.compressScript(editor_code);
 
         //Calculate length (this already includes the new value of referenceConfig)
-        scriptLength = editedList.toConfigScript().length;
+        scriptLength = $configManager.toConfigScript().length;
 
         //Check the minified config length
         if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
@@ -172,6 +174,8 @@
         index: $monaco_store.index,
       };
 
+      commitedCode = minifiedCode;
+
       commitEnabled = false;
       unsavedChanges = false;
       errorMesssage = "";
@@ -187,6 +191,9 @@
   });
 
   function handleClose(e) {
+    if (commitedCode !== $monaco_store.config.script) {
+      $monaco_store.config.script = commitedCode;
+    }
     modal.close();
   }
 
@@ -219,12 +226,12 @@
   }
 
   function handleNameChange(value) {
-    if (value != editedConfig?.name) {
+    if (value != $monaco_store.config?.name) {
       commitEnabled = true;
     }
   }
 
-  $: if (name && name !== editedConfig.information.displayName) {
+  $: if (name && name !== $monaco_store.config.information.displayName) {
     handleNameChange(name);
   }
 

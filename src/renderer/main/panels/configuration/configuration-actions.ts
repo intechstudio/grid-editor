@@ -14,7 +14,12 @@ import {
 } from "@intechstudio/grid-protocol";
 import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
-import { createActionsFromString } from "../../../runtime/runtime";
+import {
+  ActionData,
+  createActionsFromString,
+  GridAction,
+  GridEvent,
+} from "../../../runtime/runtime";
 
 function handleError(e: any) {
   switch (e.type) {
@@ -175,7 +180,7 @@ export async function overwriteElement({ dx, dy, page, element }) {
   });
 }
 
-export async function discardElement({ dx, dy, page, element }) {
+export async function discardElement({ dx, dy, page, element }): Promise<void> {
   logger.set({
     type: "progress",
     mode: 0,
@@ -194,7 +199,7 @@ export async function discardElement({ dx, dy, page, element }) {
     return Promise.reject();
   }
 
-  const promises: Promise<void>[] = [];
+  const promises: Promise<string>[] = [];
   for (const event of current.events ?? ([] as any[])) {
     const stored = event.stored;
     if (!stored) continue;
@@ -256,23 +261,35 @@ export function selectAction(index: number, value: boolean) {
 
 export function insertAction(
   index: number | undefined,
-  configs: ConfigObject[]
+  configs: ConfigObject[],
+  parent: GridEvent
 ) {
   if (typeof index === "undefined") {
     index = get(configManager).length;
   }
 
-  try {
-    configManager.update((s) => {
-      const list = s.makeCopy();
-      list.insert(index, ...configs);
-      list.checkLength();
-      return list;
+  configManager.update((s) => {
+    const value = configs.map((e) => {
+      const node = new GridAction(parent, {
+        short: e.short,
+        script: e.script,
+        name: e.name,
+      });
+      e.runtimeRef = node;
+      e.id = node.id;
+      return e;
     });
-  } catch (e) {
-    console.warn(e);
-    handleError(e);
-  }
+    s.insert(index, ...value);
+    const res = s.checkLength();
+    if (!res.value) {
+      for (let i = 0; i < value.length; ++i) {
+        s.remove(index);
+      }
+      console.warn(res.detail);
+      handleError(res.detail);
+    }
+    return s;
+  });
 }
 
 export function updateAction(index: number, newConfig: ConfigObject) {
@@ -326,22 +343,34 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
   const codeBlock = new ConfigObject({
     short: "cb",
     script: script,
-    runtimeRef: configs[0].runtimeRef,
+    runtimeRef: new GridAction(configs[0].runtimeRef.parent as GridEvent, {
+      short: "cb",
+      script: script,
+      name: undefined,
+    }),
   });
 
   configManager.update((s: ConfigList) => {
     //Insert CodeBlock into position
     s.insert(index, codeBlock);
     // Remove selected action blocks
-    s = s.filter((config) => !config.selected);
+    s = s.filter((config) => !config.selected) as ConfigList;
     return s;
   });
 }
 
 export function copyActions() {
-  const clipboard: ConfigObject[] = get(configManager)
-    .makeCopy()
-    .filter((e) => e.selected);
+  const clipboard = get(configManager)
+    .filter((e) => e.selected)
+    .map((e) => {
+      e.runtimeRef.parent = undefined;
+      return new ConfigObject({
+        short: e.short,
+        script: e.script,
+        name: e.name,
+        runtimeRef: e.runtimeRef,
+      });
+    });
   appClipboard.set({
     key: ClipboardKey.ACTION_BLOCKS,
     payload: clipboard,
@@ -359,20 +388,21 @@ export function pasteActions(index: number | undefined) {
     throw `Paste: Invalid clipboard type ${clipboard?.key}`;
   }
 
-  try {
-    configManager.update((s) => {
-      const temp = s.makeCopy();
-      temp.forEach((e) => (e.selected = false));
-      temp.insert(
-        index,
-        ...get(appClipboard)!.payload.map((e) => e.makeCopy())
-      );
-      temp.checkLength();
-      return temp;
-    });
-  } catch (e) {
-    return Promise.reject(e);
-  }
+  configManager.update((s) => {
+    const value = get(appClipboard)!.payload;
+    s.forEach((e) => (e.selected = false));
+    s.insert(index, ...value);
+    const res = s.checkLength();
+    if (!res.value) {
+      for (let i = 0; i < value.length; ++i) {
+        s.remove(index);
+      }
+      Promise.reject(res.detail);
+      return;
+    }
+
+    return s;
+  });
   return Promise.resolve();
 }
 
@@ -392,7 +422,7 @@ export function clearElement(
   dy: number,
   pageNumber: number,
   elementNumber: number
-) {
+): Promise<void> {
   const device: any = runtime.modules.find(
     (e: any) => e.dx === dx && e.dy === dy
   );
@@ -418,7 +448,7 @@ export function clearElement(
     eventType: EventTypeToNumber(EventType.SETUP),
   });
 
-  const promises: Promise<void>[] = [];
+  const promises: Promise<string>[] = [];
   for (const e of current!.events ?? ([] as any[])) {
     const eventtype = e.type;
     const target = ConfigTarget.create({

@@ -54,7 +54,7 @@ A -> B : AB-First step
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store.js";
+  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store";
   import { ElementType } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Validator } from "./_validators";

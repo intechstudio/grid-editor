@@ -132,7 +132,6 @@
   }
 
   function open_monaco() {
-    console.log(config);
     monaco_store.set({ config: config, index: index });
     $monaco_elementtype = access_tree.elementtype;
     modal.show({

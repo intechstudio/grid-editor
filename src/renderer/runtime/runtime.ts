@@ -58,8 +58,16 @@ abstract class RuntimeNode<T> implements Writable<T> {
     this._id = uuidv4();
   }
 
+  get data() {
+    return get(this._internal);
+  }
+
   get parent(): RuntimeNode<any> {
     return this._parent;
+  }
+
+  set parent(value: RuntimeNode<any>) {
+    this._parent = value;
   }
 
   get id() {
@@ -171,15 +179,15 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   // Setters
-  set config(value: Array<GridAction>) {
+  private set config(value: Array<GridAction>) {
     this.setField("config", value);
   }
 
-  set stored(value: Array<GridAction>) {
+  private set stored(value: Array<GridAction>) {
     this.setField("stored", value);
   }
 
-  set type(value: number) {
+  private set type(value: number) {
     this.setField("type", value);
   }
 
@@ -260,15 +268,15 @@ export class GridElement extends RuntimeNode<ElementData> {
   }
 
   // Setters
-  set elementIndex(value: number) {
+  private set elementIndex(value: number) {
     this.setField("elementIndex", value);
   }
 
-  set events(value: Array<GridEvent>) {
+  private set events(value: Array<GridEvent>) {
     this.setField("events", value);
   }
 
-  set name(value: string) {
+  private set name(value: string) {
     this.setField("name", value);
   }
 
@@ -312,11 +320,11 @@ export class GridPage extends RuntimeNode<PageData> {
   }
 
   // Setters
-  set pageNumber(value: number) {
+  private set pageNumber(value: number) {
     this.setField("pageNumber", value);
   }
 
-  set control_elements(value: Array<GridElement>) {
+  private set control_elements(value: Array<GridElement>) {
     this.setField("control_elements", value);
   }
 }
@@ -482,17 +490,24 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.setField("modules", value);
   }
 
-  findUpdateDestEvent(_runtime, dx, dy, page, element, event) {
+  findUpdateDestEvent(
+    modules: GridModule[],
+    dx: number,
+    dy: number,
+    page: number,
+    element: number,
+    event: number
+  ) {
     let _event = undefined;
     // this elementnumber check refers to uninitialized UI...
     if (element !== -1) {
-      _runtime.forEach((device) => {
-        if (device.dx == dx && device.dy == dy) {
-          const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
-          const elementIndex = device.pages[
+      modules.forEach((module) => {
+        if (module.dx == dx && module.dy == dy) {
+          const pageIndex = module.pages.findIndex((x) => x.pageNumber == page);
+          const elementIndex = module.pages[
             pageIndex
           ].control_elements.findIndex((x) => x.elementIndex == element);
-          _event = device.pages[pageIndex].control_elements[
+          _event = module.pages[pageIndex].control_elements[
             elementIndex
           ].events.find((e) => e.type == event);
         }
@@ -523,7 +538,20 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
             const page = descr.class_parameters.PAGENUMBER;
             const element = descr.class_parameters.ELEMENTNUMBER;
             const event = descr.class_parameters.EVENTTYPE;
-            const actionstring = descr.class_parameters.ACTIONSTRING;
+
+            let dest = this.findUpdateDestEvent(
+              this.modules,
+              dx,
+              dy,
+              page,
+              element,
+              event
+            );
+
+            const actions = createActionsFromString(
+              dest,
+              descr.class_parameters.ACTIONSTRING
+            );
 
             this.update_event_configuration(
               dx,
@@ -531,7 +559,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
               page,
               element,
               event,
-              actionstring
+              actions
             );
 
             resolve();
@@ -796,7 +824,14 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     });
   }
 
-  update_event_configuration(dx, dy, page, element, event, actionString) {
+  update_event_configuration(
+    dx: number,
+    dy: number,
+    page: number,
+    element: number,
+    event: number,
+    actions: GridAction[]
+  ) {
     // config
 
     let dest = this.findUpdateDestEvent(
@@ -808,7 +843,8 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       event
     );
     if (dest) {
-      dest.config = createActionsFromString(dest, actionString);
+      actions.forEach((e) => (e.parent = dest));
+      dest.config = actions;
 
       if (typeof dest.stored === "undefined") {
         dest.store(dest.config);

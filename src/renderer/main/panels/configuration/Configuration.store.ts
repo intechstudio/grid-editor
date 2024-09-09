@@ -1,11 +1,15 @@
-import { get, writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 
 import {
   runtime,
   user_input,
   getDeviceName,
 } from "../../../runtime/runtime.store";
-import { NumberToEventType } from "@intechstudio/grid-protocol";
+import {
+  ElementType,
+  EventType,
+  NumberToEventType,
+} from "@intechstudio/grid-protocol";
 
 import {
   getComponentInformation,
@@ -13,8 +17,10 @@ import {
 } from "../../../lib/_configs";
 
 import { grid, GridScript } from "@intechstudio/grid-protocol";
-import { v4 as uuidv4 } from "uuid";
 import * as ButtonStepElseIf from "../../../config-blocks/ButtonStep_ElseIf.svelte";
+import { GridAction, GridEvent } from "../../../runtime/runtime";
+import { ActionBlockInformation } from "../../../config-blocks/ActionBlockInformation";
+import { SvelteComponent } from "svelte";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -38,12 +44,26 @@ export function lastOpenedActionblocksRemove(short) {
 }
 
 export class ConfigObject {
+  private _short: string;
+  private _script: string;
+  private _name: undefined | string;
+  public runtimeRef: GridAction;
+  public id: string;
+
+  public information: ActionBlockInformation;
+  public indentation: number;
+  public step: number;
+  public header: SvelteComponent;
+  public component: SvelteComponent;
+  public selected: boolean;
+  public toggled: boolean;
+
   constructor({ short, script, name = undefined, runtimeRef }) {
-    this.short = short;
-    this.script = script;
-    this.name = name;
+    this._short = short;
+    this._script = script;
+    this._name = name;
     this.runtimeRef = runtimeRef;
-    this.id = uuidv4();
+    this.id = runtimeRef?.id;
 
     let res = getComponentInformation({ short: short });
 
@@ -61,72 +81,52 @@ export class ConfigObject {
     this.toggled = false;
   }
 
-  toRawLua() {
-    return `--[[@${this.short}${
-      typeof this.name !== "undefined" &&
-      this.name !== this.information.displayName
-        ? "#" + this.name
-        : ""
-    }]] ${this.script}`;
+  get short(): string {
+    return this._short;
   }
 
-  makeCopy() {
-    const copy = new ConfigObject({
-      short: this.short,
-      name: this.name,
-      script: this.script,
-      runtimeRef: this.runtimeRef,
-    });
-    copy.information = this.information;
-    copy.component = this.component;
-    copy.selected = this.selected;
-    copy.toggled = this.toggled;
-    copy.id = uuidv4();
+  set short(value: string) {
+    this.runtimeRef.short = value;
+    this._short = value;
+  }
 
-    // Copy any additional properties that were added later
-    for (const prop in this) {
-      if (this.hasOwnProperty(prop) && !copy.hasOwnProperty(prop)) {
-        copy[prop] = this[prop];
-      }
-    }
+  get script(): string {
+    return this._script;
+  }
 
-    return copy;
+  set script(value: string) {
+    this.runtimeRef.script = value;
+    this._script = value;
+  }
+
+  get name(): undefined | string {
+    return this._name;
+  }
+
+  set name(value: undefined | string) {
+    this.runtimeRef.name = value;
+    this._name = value;
+  }
+
+  toRawLua() {
+    return `--[[@${this._short}${
+      typeof this._name !== "undefined" &&
+      this._name !== this.information.displayName
+        ? "#" + this._name
+        : ""
+    }]] ${this._script}`;
   }
 
   //Returns true if syntax is OK
   checkSyntax() {
     const code =
-      this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
+      this.information.syntaxPreprocessor?.generate(this._script) ??
+      this._script;
     return GridScript.checkSyntax(code);
-  }
-
-  getSyntaxError() {
-    try {
-      formatText(code);
-      return "OK";
-    } catch (e) {
-      return e;
-    }
   }
 }
 
 export class ConfigList extends Array {
-  makeCopy() {
-    const copy = new ConfigList();
-    for (const config of this) {
-      copy.push(config.makeCopy());
-    }
-
-    // Copy any additional properties that were added later
-    for (const prop in this) {
-      if (this.hasOwnProperty(prop) && !copy.hasOwnProperty(prop)) {
-        copy[prop] = this[prop];
-      }
-    }
-
-    return copy;
-  }
-
   static updateStep(list) {
     let stack = [];
     for (const config of list) {
@@ -143,7 +143,7 @@ export class ConfigList extends Array {
         config.step = step;
         config.script = ButtonStepElseIf.information.defaultLua.replace(
           "N",
-          step
+          String(step)
         );
       }
     }
@@ -185,18 +185,17 @@ export class ConfigList extends Array {
 
   static createFromActions(actions) {
     const config = new ConfigList();
-    config.#Init(actions);
+    config.init(actions);
     return config;
   }
 
-  sendTo({ target }) {
+  sendTo({ target }): Promise<string> {
     return new Promise((resolve, reject) => {
-      try {
-        this.checkLength();
-      } catch (e) {
-        reject(e);
+      const res = this.checkLength();
+      if (!res.value) {
+        reject(res.detail);
+        return;
       }
-      const actionString = this.toConfigScript();
 
       runtime
         .fetchOrLoadConfig({
@@ -213,7 +212,7 @@ export class ConfigList extends Array {
             target.page,
             target.element,
             target.eventType,
-            actionString
+            this.map((e) => e.runtimeRef)
           );
 
           runtime.send_event_configuration_to_grid(
@@ -230,7 +229,7 @@ export class ConfigList extends Array {
     });
   }
 
-  #Init(actions) {
+  private init(actions) {
     for (const action of actions) {
       const obj = new ConfigObject({
         short: action.short,
@@ -267,35 +266,41 @@ export class ConfigList extends Array {
     return true;
   }
 
-  //Throws error if limit is reached
+  //Returns error if limit is reached
   checkLength() {
     const script = this.toConfigScript();
     const length = script.length;
     if (length >= grid.getProperty("CONFIG_LENGTH")) {
       const target = ConfigTarget.getCurrent();
-      throw {
-        type: "lengthError",
-        device: getDeviceName(target.device.dx, target.device.dy),
-        x: target.device.dx,
-        y: target.device.dy,
-        element: { no: target.element },
-        event: {
-          no: target.eventType,
-          type: NumberToEventType(target.eventType),
+      return {
+        value: false,
+        detail: {
+          type: "lengthError",
+          device: getDeviceName(target.device.dx, target.device.dy),
+          x: target.device.dx,
+          y: target.device.dy,
+          element: { no: target.element },
+          event: {
+            no: target.eventType,
+            type: NumberToEventType(target.eventType),
+          },
+          length: length,
         },
-        length: length,
       };
+    } else {
+      return { value: true, detail: undefined };
     }
   }
 }
 
 export class ConfigTarget {
-  device = { dx: undefined, dy: undefined };
-  page = undefined;
-  element = undefined;
-  eventType = undefined;
-  events = undefined;
-  elementType = undefined;
+  public device: { dx: number; dy: number };
+  public page: number;
+  public element: number;
+  public eventType: number;
+  public events: GridEvent[];
+  public elementType: ElementType;
+  public runtimeRef: GridEvent;
 
   static create({ device: { dx: dx, dy: dy }, page, element, eventType }) {
     const device = runtime.modules.find((e) => e.dx == dx && e.dy == dy);
@@ -317,6 +322,9 @@ export class ConfigTarget {
         .control_elements.find((e) => e.elementIndex == element);
       target.events = controlElement.events;
       target.elementType = controlElement.type;
+      target.runtimeRef = target.events.find(
+        (e) => e.type === target.eventType
+      );
       return target;
     } catch (e) {
       console.warn(`Device was destroyed at (${dx},${dy})!`);
@@ -343,10 +351,6 @@ export class ConfigTarget {
     });
 
     return currentTarget;
-  }
-
-  watch() {
-    return new ConfigTargetWatcher(this);
   }
 
   hasChanges() {
@@ -409,20 +413,18 @@ export class ConfigTarget {
   }
 }
 
-//TODO: Format this out when changing to TS
-/**
- * @type {import("svelte/store").Writable<ConfigList> & {
- *   update: (params: any) => void;
- *   set: (value: any) => void;
- *   unsubscribe: () => void;
- *   loadPreset: (any) => Promise<void>;
- *   loadProfile: (any) => Promise<void>;
- *   refresh: () => void;
- * }}
- */
+type ConfigManager = Writable<ConfigList> & {
+  update: (params: any) => void;
+  set: (value: any) => void;
+  unsubscribe: () => void;
+  loadPreset: (params: any) => Promise<void>;
+  loadProfile: (params: any) => Promise<void>;
+  refresh: () => void;
+};
+
 export const configManager = create_configuration_manager();
 
-function create_configuration_manager() {
+function create_configuration_manager(): ConfigManager {
   const internal = writable(new ConfigList());
   let unsubscribeUserInput;
   const loadAndInit = async () => {
@@ -455,7 +457,7 @@ function create_configuration_manager() {
     });
   }
 
-  function loadPreset({ x, y, element, preset }) {
+  function loadPreset({ x, y, element, preset }): Promise<void> {
     return new Promise((resolve, reject) => {
       const ui = get(user_input);
       const { dx, dy, page, elementNumber } = {
@@ -483,7 +485,7 @@ function create_configuration_manager() {
     });
   }
 
-  function loadProfile({ x, y, profile }) {
+  function loadProfile({ x, y, profile }): Promise<void> {
     return new Promise((resolve, reject) => {
       const ui = get(user_input);
       runtime
@@ -525,7 +527,7 @@ function create_configuration_manager() {
     internal.set(obj);
   }
 
-  async function refresh() {
+  async function refresh(): Promise<void> {
     return new Promise((resolve, reject) => {
       const current = ConfigTarget.getCurrent();
       ConfigList.createFromTarget(current)
@@ -543,7 +545,6 @@ function create_configuration_manager() {
     set: setOverride,
     unsubscribe: () => {
       unsubscribeUserInput();
-      internal.unsubscribe();
     },
     loadPreset: loadPreset,
     loadProfile: loadProfile,

@@ -60,11 +60,9 @@
     }
   }
 
-  $: if (typeof $committed_code_store !== "undefined") {
-    if ($committed_code_store.index == index) {
-      sendData($committed_code_store.name);
-      name = $committed_code_store.name;
-    }
+  $: if ($committed_code_store?.config.id === config.id) {
+    sendData($committed_code_store.name);
+    name = $committed_code_store.name;
   }
 
   let name: string;

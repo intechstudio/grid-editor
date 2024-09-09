@@ -1,6 +1,6 @@
 <script lang="ts">
   import { grid } from "@intechstudio/grid-protocol";
-  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
+  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store";
   import { user_input } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { createEventDispatcher, onMount } from "svelte";

@@ -58,7 +58,7 @@
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store.js";
+  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store";
   import { ElementType } from "@intechstudio/grid-protocol";
 
   export let config;

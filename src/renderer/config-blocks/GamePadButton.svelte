@@ -56,7 +56,7 @@
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { configManager } from "../main/panels/configuration/Configuration.store.js";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators.js";
   import { LocalDefinitions } from "../runtime/runtime.store";

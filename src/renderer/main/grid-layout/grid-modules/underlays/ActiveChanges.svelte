@@ -1,5 +1,5 @@
 <script>
-  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
+  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store";
   import { user_input } from "../../../../runtime/runtime.store";
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";

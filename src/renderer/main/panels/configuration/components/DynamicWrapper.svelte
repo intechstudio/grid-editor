@@ -1,4 +1,5 @@
 <script>
+  import { GridAction } from "./../../../../runtime/runtime.ts";
   import { getAllComponents } from "../../../../lib/_configs";
 
   import { createEventDispatcher, onMount } from "svelte";
@@ -39,16 +40,21 @@
   function replace_me(e) {
     const { short, script, name } = e.detail;
 
-    const components = getAllComponents();
-    const new_config = components.find((e) => e.information.short === short);
+    const new_config = getAllComponents().find(
+      (e) => e.information.short === short
+    );
+
+    const configScript = script ?? new_config.information.defaultLua;
 
     const obj = new ConfigObject({
       short: new_config.information.short,
-      script:
-        typeof script === "undefined"
-          ? new_config.information.defaultLua
-          : script,
+      script: configScript,
       name: name,
+      runtimeRef: new GridAction(config.runtimeRef.parent, {
+        short: new_config.information.short,
+        script: configScript,
+        name: name,
+      }),
     });
 
     dispatch("replace", {
@@ -66,6 +72,11 @@
         short: short,
         script: script,
         name: name,
+        runtimeRef: new GridAction(config.runtimeRef.parent, {
+          short,
+          script,
+          name,
+        }),
       }),
     });
   }
