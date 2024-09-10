@@ -16,7 +16,6 @@ const setIntervalAsync = (fn, ms) => {
 let selection_changed_timestamp = 0;
 
 export const elementPositionStore = writable({});
-export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr) {
@@ -53,30 +52,22 @@ export function update_elementPositionStore(descr) {
   elementPositionStore.set(eps);
 }
 
-export function update_elementNameStore(descr) {
-  let ens = get(elementNameStore);
+export function update_element_name(descr) {
+  const [dx, dy, element, name] = [
+    Number(descr.brc_parameters.SX),
+    Number(descr.brc_parameters.SY),
+    Number(descr.class_parameters.NUM),
+    String(descr.class_parameters.NAME),
+  ];
 
-  if (ens[descr.brc_parameters.SX] === undefined) {
-    ens[descr.brc_parameters.SX] = {};
-  }
-  if (ens[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined) {
-    ens[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
-  }
-  if (
-    ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-      descr.class_parameters.NUM
-    ] === undefined
-  ) {
-    ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-      descr.class_parameters.NUM
-    ] = -1;
-  }
-
-  ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-    descr.class_parameters.NUM
-  ] = descr.class_parameters.NAME;
-
-  elementNameStore.set(ens);
+  console.log(dx, dy, element, name);
+  runtime.modules
+    .find((e) => e.dx === dx && e.dy === dy)
+    .pages.forEach(
+      (e) =>
+        (e.control_elements.find((e) => e.elementIndex === element).name =
+          name.length > 0 ? name : undefined)
+    );
 }
 
 export function update_elementPositionStore_fromPreview(descr) {
@@ -371,8 +362,6 @@ function createEngine() {
 
 export const engine = createEngine();
 
-export const heartbeat = writable([]);
-
 const heartbeat_editor_ms = 300;
 const heartbeat_grid_ms = 250;
 
@@ -382,7 +371,7 @@ const grid_heartbeat_interval_handler = async function () {
       return;
     }
 
-    const alive = get(heartbeat).find((e) => e.id == device.id)?.alive;
+    const alive = device.alive;
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
@@ -394,9 +383,6 @@ const grid_heartbeat_interval_handler = async function () {
     if (!alive || elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
-      heartbeat.update((heartbeat) => {
-        return heartbeat.filter((e) => e.id !== device.id);
-      });
     }
   });
 };

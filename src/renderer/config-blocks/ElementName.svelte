@@ -43,6 +43,7 @@
   let scriptValue = ""; // local script part
 
   $: if (config.script && !loaded) {
+    console.log(config.script);
     const matches = config.script.match(/'([^']*)'/);
     scriptValue = matches[1];
     loaded = true;
@@ -57,7 +58,7 @@
   });
 
   function sendData(e) {
-    dispatch("output", { short: "sn", script: `self:gen("${e}")` });
+    dispatch("output", { short: "sn", script: `self:gen('${e}')` });
   }
 
   const validator = (e) => {

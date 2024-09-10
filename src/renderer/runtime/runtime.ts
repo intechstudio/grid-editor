@@ -21,9 +21,7 @@ import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
 import {
-  elementNameStore,
   elementPositionStore,
-  heartbeat,
   ledColorStore,
   logger,
   user_input,
@@ -35,19 +33,19 @@ abstract class RuntimeNode<T> implements Writable<T> {
   private _parent: RuntimeNode<any>;
   private _id: string;
 
-  subscribe(
+  public subscribe(
     run: Subscriber<T>,
     invalidate?: (value?: T) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
 
-  set(value: T) {
+  public set(value: T) {
     this._internal.set(value);
     this.notifyParent();
   }
 
-  update(updater: Updater<T>) {
+  public update(updater: Updater<T>) {
     this._internal.update(updater);
     this.notifyParent();
   }
@@ -229,7 +227,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 export type ElementData = {
   elementIndex: number;
   events?: Array<GridEvent>;
-  name: string;
+  name: string | undefined;
   type: ElementType;
 };
 
@@ -276,7 +274,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     this.setField("events", value);
   }
 
-  private set name(value: string) {
+  set name(value: string) {
     this.setField("name", value);
   }
 
@@ -304,7 +302,7 @@ export class GridPage extends RuntimeNode<PageData> {
         new GridElement(this, {
           elementIndex: Number(index),
           type: element,
-          name: "",
+          name: undefined,
         })
       );
     }
@@ -424,7 +422,8 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   // Setters
   set alive(value: number) {
-    this.setField("alive", value);
+    get(this._internal).alive = value;
+    //this.setField("alive", value);
   }
 
   set architecture(value: Architecture) {
@@ -611,47 +610,36 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           this.destroy_module(module.dx, module.dy);
         }
       }
-      const controller = this.create_module(
-        descr.brc_parameters,
-        descr.class_parameters,
-        false
-      );
+
+      const [sx, sy] = [descr.brc_parameters.SX, descr.brc_parameters.SY];
 
       let firstConnection = false;
-      const module = this.modules.find((device) => device.id == controller.id);
+      const module = this.modules.find((e) => e.dx == sx && e.dy == sy);
       if (module) {
-        if (module.rot != controller.rot) {
-          module.rot = controller.rot;
+        if (module.rot != descr.brc_parameters.ROT) {
+          module.rot = descr.brc_parameters.ROT;
         }
 
-        if (module.portstate != controller.portstate) {
-          module.portstate = controller.portstate;
+        if (module.portstate != descr.class_parameters.PORTSTATE) {
+          module.portstate = descr.class_parameters.PORTSTATE;
         }
 
-        const lastDate = get(heartbeat).find(
-          (device) => device.id == controller.id
-        )?.alive;
-        if (lastDate) {
-          let newDate = Date.now();
+        const lastDate = module.alive;
+        const newDate = Date.now();
+        module.alive = newDate;
 
-          heartbeat.update((store) => {
-            const device = store.find((device) => device.id == controller.id);
-            if (device) {
-              device.alive = newDate;
-            }
-            return store;
-          });
-
-          //console.log(newDate - lastDate)
-          if (get(appSettings).persistent.heartbeatDebugEnabled) {
-            const key1 = `Hearbeat (${controller.dx}, ${controller.dy})`;
-
-            add_datapoint(key1, newDate - lastDate);
-          }
+        if (get(appSettings).persistent.heartbeatDebugEnabled) {
+          const key1 = `Hearbeat (${module.dx}, ${module.dy})`;
+          add_datapoint(key1, newDate - lastDate);
         }
       }
       // device not found, add it to runtime and get page count from grid
       else {
+        const controller = this.create_module(
+          descr.brc_parameters,
+          descr.class_parameters,
+          false
+        );
         // check if the firmware version of the newly connected device is acceptable
         console.log("Incoming Device");
         console.log("Architecture", controller.architecture);
@@ -674,9 +662,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         );
 
         this.modules = [...this.modules, controller];
-        heartbeat.update((devices) => {
-          return [...devices, { id: controller.id, alive: Date.now() }];
-        });
+        controller.alive = Date.now();
 
         firstConnection = this.modules.length === 1;
 
@@ -1057,11 +1043,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       elementPositionStore.update((eps) => {
         eps[dx][dy] = undefined;
         return eps;
-      });
-
-      elementNameStore.update((ens) => {
-        ens[dx][dy] = undefined;
-        return ens;
       });
 
       ledColorStore.update((lcs) => {
