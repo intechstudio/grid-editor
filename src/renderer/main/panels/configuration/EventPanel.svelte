@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Grid } from "./../../../lib/_utils.ts";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
   import { runtime, user_input } from "../../../runtime/runtime.store";
 
@@ -12,7 +13,7 @@
     value: number;
   };
   const defaultOptions: EventPanelOption[] = Array.from(Array(3).keys()).map(
-    (i) => ({ title: "", value: i } as EventPanelOption)
+    (i) => ({ title: undefined, value: i } as EventPanelOption)
   );
 
   const defaultSelected = -1;
@@ -33,7 +34,10 @@
     }
 
     options = target.events.map((e: GridEvent) =>
-      Object({ title: NumberToEventType(e.type), value: e.type })
+      Object({
+        title: Grid.toFirstCase(NumberToEventType(e.type)),
+        value: e.type,
+      })
     );
 
     selected = options.find((e) => e.value === target.eventType).value;

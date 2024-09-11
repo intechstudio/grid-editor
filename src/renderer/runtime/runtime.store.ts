@@ -60,7 +60,6 @@ export function update_element_name(descr) {
     String(descr.class_parameters.NAME),
   ];
 
-  console.log(dx, dy, element, name);
   runtime.modules
     .find((e) => e.dx === dx && e.dy === dy)
     .pages.forEach(

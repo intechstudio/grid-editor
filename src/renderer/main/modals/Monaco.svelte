@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { runtime } from "./../../runtime/runtime.store";
   import { Grid } from "./../../lib/_utils";
   import {
     GridElement,
@@ -7,11 +6,11 @@
     GridPage,
     GridModule,
     GridAction,
+    ActionData,
   } from "./../../runtime/runtime";
-  import { ConfigObject } from "./../panels/configuration/Configuration.store";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import { grid, NumberToEventType } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
@@ -20,9 +19,9 @@
 
   import { monaco_editor } from "../../lib/CustomMonaco";
   import { committed_code_store } from "../../config-blocks/Committed_Code.store";
-  import { monaco_store } from "./monaco.store";
+  import { monaco_store, type MonacoValue } from "./monaco.store";
 
-  import { beforeUpdate, afterUpdate } from "svelte";
+  import { beforeUpdate, afterUpdate, onMount } from "svelte";
 
   import { GridScript } from "@intechstudio/grid-protocol";
   import { configManager } from "../panels/configuration/Configuration.store";
@@ -37,7 +36,6 @@
   let editor;
 
   let commitEnabled = false;
-  let unsavedChanges = false;
   let errorMesssage = "";
   let commitedCode = "";
 
@@ -46,6 +44,7 @@
 
   let scriptLength = undefined;
   let pathSnippets = [];
+  let editedAction: GridAction;
 
   class LengthError extends String {}
 
@@ -55,43 +54,49 @@
     editor?.updateOptions({ fontSize: fontSize });
   }
 
-  $: if ($runtime) {
-    handleConfigChange($monaco_store.config);
+  $: if ($editedAction) {
+    handleConfigChange($editedAction);
   }
 
-  function handleConfigChange(config: ConfigObject) {
-    const action = config.runtimeRef as GridAction;
+  function isDeleted(action: ActionData) {
+    const event = action?.parent as GridEvent;
+    return typeof event === "undefined";
+  }
 
-    if (typeof action.parent !== "undefined") {
-      const event = config.runtimeRef.parent as GridEvent;
-      const element = event.parent as GridElement;
-      const page = element.parent as GridPage;
-      const module = page.parent as GridModule;
-
-      pathSnippets = [
-        `${module.type} (${module.dx},${module.dy})`,
-        `Page ${page.pageNumber + 1}`,
-        `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
-        `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
-        typeof action.name !== "undefined"
-          ? action.name
-          : `Block #${event.config.findIndex((e) => e === action) + 1}`,
-      ];
-    } else {
+  function handleConfigChange(action: ActionData) {
+    if (isDeleted(action)) {
       pathSnippets = ["Deleted Code Block"];
+      return;
     }
+
+    const event = action.parent as GridEvent;
+    const element = event.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
+
+    pathSnippets = [
+      `${module.type} (${module.dx},${module.dy})`,
+      `Page ${page.pageNumber + 1}`,
+      `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
+      `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
+      typeof action.name !== "undefined"
+        ? action.name
+        : `Block #${event.config.findIndex((e) => e.id === action.id) + 1}`,
+    ];
   }
 
   onMount(() => {
+    const store = $monaco_store;
+    editedAction = store.config.runtimeRef;
     name =
-      typeof $monaco_store.config.name !== "undefined"
-        ? $monaco_store.config.name
-        : $monaco_store.config.information.displayName;
+      typeof store.config.name !== "undefined"
+        ? store.config.name
+        : store.config.information.displayName;
 
-    commitedCode = $monaco_store.config.script;
+    commitedCode = store.config.script;
 
     //To be displayed in Editor
-    const code_preview = GridScript.expandScript($monaco_store.config.script);
+    const code_preview = GridScript.expandScript(store.config.script);
 
     //Set initial code length
     scriptLength = $configManager.toConfigScript().length;
@@ -122,7 +127,6 @@
 
     editor.onDidChangeModelContent(() => {
       const editor_code = editor.getValue();
-      unsavedChanges = true;
 
       try {
         //Throws error on syntax error
@@ -138,7 +142,7 @@
 
         //Everything is ok if no error was thrown previously
         errorMesssage = "";
-        commitEnabled = true;
+        commitEnabled = $monaco_store.config.script !== commitedCode;
 
         //Syntax or Length Error
       } catch (e) {
@@ -177,7 +181,6 @@
       commitedCode = minifiedCode;
 
       commitEnabled = false;
-      unsavedChanges = false;
       errorMesssage = "";
     } catch (e) {
       console.warn(e);
@@ -271,7 +274,7 @@
           </button>
         </div>
         <div class="opacity-70">
-          <span
+          <span class:invisible={isDeleted($editedAction)}
             >{`Character Count: ${
               typeof scriptLength === "undefined" ? "?" : scriptLength
             }/${grid.getProperty("CONFIG_LENGTH") - 1} (max)`}</span
@@ -283,22 +286,26 @@
         class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
       >
         <div class="flex flex-col">
-          <div
-            class="text-right text-sm {unsavedChanges
-              ? 'text-yellow-600'
-              : 'text-green-500'} "
-          >
-            {unsavedChanges ? "Unsaved changes!" : "Synced with Grid!"}
-          </div>
-          <div class="text-right text-sm text-error">
-            {errorMesssage}
-          </div>
+          {#if isDeleted($editedAction)}
+            <div class="text-right text-sm text-white">Deleted Action</div>
+          {:else}
+            <div
+              class="text-right text-sm {commitEnabled
+                ? 'text-yellow-600'
+                : 'text-green-500'} "
+            >
+              {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
+            </div>
+            <div class="text-right text-sm text-error">
+              {errorMesssage}
+            </div>
+          {/if}
         </div>
 
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
             click={handleCommit}
-            disabled={!commitEnabled}
+            disabled={!commitEnabled || isDeleted(editedAction)}
             text="Commit"
             style="accept"
           />

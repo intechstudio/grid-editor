@@ -364,12 +364,15 @@ export function copyActions() {
   const clipboard = get(configManager)
     .filter((e) => e.selected)
     .map((e) => {
-      e.runtimeRef.parent = undefined;
       return new ConfigObject({
         short: e.short,
         script: e.script,
         name: e.name,
-        runtimeRef: e.runtimeRef,
+        runtimeRef: new GridAction(undefined, {
+          short: e.short,
+          script: e.script,
+          name: e.name,
+        }),
       });
     });
   appClipboard.set({
@@ -408,9 +411,14 @@ export function pasteActions(index: number | undefined) {
 }
 
 export function removeActions() {
-  configManager.update((s: ConfigList) =>
-    s.filter((config) => !config.selected)
-  );
+  configManager.update((s: ConfigList) => {
+    s.forEach((config) => {
+      if (config.selected) {
+        config.runtimeRef.parent = undefined;
+      }
+    });
+    return s.filter((config) => !config.selected);
+  });
 }
 
 export function cutActions() {

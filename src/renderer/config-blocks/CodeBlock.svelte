@@ -42,7 +42,7 @@
 <script>
   import { GridScript } from "@intechstudio/grid-protocol";
 
-  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
@@ -55,6 +55,7 @@
   import { committed_code_store } from "./Committed_Code.store";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
+  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
@@ -131,7 +132,11 @@
     }
   }
 
-  function open_monaco() {
+  async function open_monaco() {
+    if (config.runtimeRef.id !== get(monaco_store)?.config.runtimeRef.id) {
+      modal.close();
+      await tick();
+    }
     monaco_store.set({ config: config, index: index });
     $monaco_elementtype = access_tree.elementtype;
     modal.show({

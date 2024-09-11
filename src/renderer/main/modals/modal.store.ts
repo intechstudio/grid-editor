@@ -28,6 +28,10 @@ const defaultOptions: ModalOptions = {
 function createModalStore() {
   const store = writable<ModalStoreValue | undefined>(undefined);
 
+  function close(): void {
+    store.set(undefined);
+  }
+
   function show({
     component,
     options = defaultOptions,
@@ -42,9 +46,6 @@ function createModalStore() {
       options: options,
       args: args,
     } as ModalStoreValue);
-  }
-  function close(): void {
-    store.set(undefined);
   }
 
   return {

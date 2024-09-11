@@ -17,6 +17,7 @@
   $: handleDeviceChange(device);
 
   function handleDeviceChange(obj) {
+    console.log(obj);
     const { dx, dy } = obj;
     const ui = get(user_input);
 

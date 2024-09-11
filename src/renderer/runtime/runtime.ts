@@ -28,10 +28,14 @@ import {
 } from "./runtime.store";
 import { v4 as uuidv4 } from "uuid";
 
-abstract class RuntimeNode<T> implements Writable<T> {
+type UUID = string;
+interface NodeData {
+  id?: UUID;
+  parent?: RuntimeNode<any>;
+}
+
+abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   protected _internal: Writable<T>;
-  private _parent: RuntimeNode<any>;
-  private _id: string;
 
   public subscribe(
     run: Subscriber<T>,
@@ -51,9 +55,10 @@ abstract class RuntimeNode<T> implements Writable<T> {
   }
 
   constructor(parent: RuntimeNode<any>, value?: T) {
-    this._parent = parent;
+    value.parent = parent;
+    value.id = uuidv4();
+
     this._internal = writable(value);
-    this._id = uuidv4();
   }
 
   get data() {
@@ -61,28 +66,31 @@ abstract class RuntimeNode<T> implements Writable<T> {
   }
 
   get parent(): RuntimeNode<any> {
-    return this._parent;
+    return this.getField("parent");
   }
 
   set parent(value: RuntimeNode<any>) {
-    this._parent = value;
+    this.setField("parent", value);
   }
 
   get id() {
-    return this._id;
+    return this.getField("id");
   }
 
   protected notify() {
     this._internal.update((s) => s);
+    console.log("NOTIFIED", this.data);
     this.notifyParent();
   }
 
   protected notifyParent() {
-    if (!this._parent) {
+    console.log("NOTIFY PARENT");
+    if (!this.parent) {
+      console.log("NO PARENT");
       return;
     }
 
-    this._parent.notify();
+    this.parent.notify();
   }
 
   // Generalized getter
@@ -101,11 +109,11 @@ abstract class RuntimeNode<T> implements Writable<T> {
   }
 }
 
-export type ActionData = {
+export interface ActionData extends NodeData {
   short: string;
   script: string;
   name: string;
-};
+}
 
 export class GridAction extends RuntimeNode<ActionData> {
   constructor(parent: GridEvent, data?: ActionData) {
@@ -152,11 +160,11 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 }
 
-export type EventData = {
+export interface EventData extends NodeData {
   config?: Array<GridAction> | undefined;
   stored?: Array<GridAction> | undefined;
   type: number;
-};
+}
 
 export class GridEvent extends RuntimeNode<EventData> {
   constructor(parent: GridElement, data?: EventData) {
@@ -203,11 +211,14 @@ export class GridEvent extends RuntimeNode<EventData> {
       return true;
     }
 
+    //console.log(this.config, this.stored);
     for (let i = 0; i < this.config.length; ++i) {
       if (!this.config[i].isEqual(this.stored[i])) {
+        //console.log("no eq");
         return true;
       }
     }
+    //console.log("default");
     return false;
   }
 
@@ -224,12 +235,12 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 }
 
-export type ElementData = {
+export interface ElementData extends NodeData {
   elementIndex: number;
   events?: Array<GridEvent>;
   name: string | undefined;
   type: ElementType;
-};
+}
 
 export class GridElement extends RuntimeNode<ElementData> {
   constructor(parent: GridPage, data?: ElementData) {
@@ -283,10 +294,10 @@ export class GridElement extends RuntimeNode<ElementData> {
   }
 }
 
-export type PageData = {
+export interface PageData extends NodeData {
   pageNumber: number;
   control_elements?: Array<GridElement>;
-};
+}
 
 export class GridPage extends RuntimeNode<PageData> {
   constructor(parent: GridModule, data?: PageData) {
@@ -345,7 +356,7 @@ type DirectionMap = {
   top: Direction;
 };
 
-export type ModuleData = {
+export interface ModuleData extends NodeData {
   alive: number;
   architecture: Architecture;
   dx: number;
@@ -358,7 +369,7 @@ export type ModuleData = {
   rot: number;
   type: ModuleType;
   pages?: Array<GridPage>;
-};
+}
 
 export class GridModule extends RuntimeNode<ModuleData> {
   constructor(parent: GridRuntime, data?: ModuleData) {
@@ -471,9 +482,9 @@ export class GridModule extends RuntimeNode<ModuleData> {
   }
 }
 
-type RuntimeData = {
+export interface RuntimeData extends NodeData {
   modules: Array<GridModule>;
-};
+}
 
 export class GridRuntime extends RuntimeNode<RuntimeData> {
   constructor() {
@@ -834,6 +845,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
       if (typeof dest.stored === "undefined") {
         dest.store(dest.config);
+        console.log(dest.stored, "STORE FIRST");
       }
     }
   }
@@ -1016,12 +1028,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   destroy_module(dx, dy) {
+    console.log("DESTORY", dx, dy);
     // remove the destroyed device from runtime
     const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
-
-    //TODO
-    const index = this.modules.findIndex((e) => e.dx === dx && e.dy === dy);
-    this.modules.splice(index, 1);
+    this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
 
     if (this.modules.length === 0) {
       appSettings.update((s) => {
