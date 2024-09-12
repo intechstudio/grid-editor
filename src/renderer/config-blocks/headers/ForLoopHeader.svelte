@@ -9,7 +9,7 @@
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
 
   export let index;
-  export let access_tree;
+
   export let config = undefined;
 
   let data = [
@@ -110,7 +110,7 @@
       {#key displayValue}
         <LineEditor
           on:change={handleDisplayValueChange}
-          {access_tree}
+          action={config.runtimeRef}
           bind:value={displayValue}
         />
       {/key}

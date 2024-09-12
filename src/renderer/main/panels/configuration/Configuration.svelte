@@ -58,7 +58,6 @@
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
-  let access_tree = {};
   let scrollHeight = "100%";
   let draggedIndexes = [];
   let autoScroll;
@@ -450,7 +449,7 @@
                     <DynamicWrapper
                       {index}
                       {config}
-                      {access_tree}
+                      action={config.runtimeRef}
                       on:update={handleConfigUpdate}
                       on:replace={handleReplace}
                       on:select={() => {

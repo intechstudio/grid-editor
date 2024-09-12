@@ -27,7 +27,6 @@
     }
   });
 
-  export let access_tree;
   export let index = undefined;
   export let config;
 
@@ -178,7 +177,7 @@
               class="h-full w-full px-2"
               {index}
               {config}
-              {access_tree}
+              action={config.runtimeRef}
               {syntaxError}
               on:replace={replace_me}
               on:validator={handleValidator}
@@ -193,7 +192,7 @@
             this={config.header}
             {config}
             {index}
-            {access_tree}
+            action={config.runtimeRef}
             on:toggle={handleToggle}
             on:output={handleOutput}
           />

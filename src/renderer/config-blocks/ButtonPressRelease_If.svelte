@@ -114,8 +114,6 @@
   export let config;
   export let index;
 
-  export let access_tree;
-
   import LineEditor from "../main/user-interface/LineEditor.svelte";
 
   let sidebarWidth;
@@ -157,7 +155,7 @@
       on:output={(e) => {
         sendData(e.detail.script);
       }}
-      {access_tree}
+      action={config.runtimeRef}
       {sidebarWidth}
       value={scriptSegment}
     />

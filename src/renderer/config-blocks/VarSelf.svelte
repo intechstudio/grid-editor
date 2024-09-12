@@ -38,7 +38,6 @@
 
   export let config;
   export let index;
-  export let access_tree;
 
   import LineEditor from "../main/user-interface/LineEditor.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
@@ -258,7 +257,7 @@
                 on:output={(e) => {
                   saveChangesOnInput(e.detail.script, i, "value");
                 }}
-                {access_tree}
+                action={config.runtimeRef}
                 {sidebarWidth}
                 value={script.value}
               />

@@ -40,7 +40,7 @@
 </script>
 
 <script lang="ts">
-  import { GridAction } from "./../runtime/runtime";
+  import { GridAction, GridEvent, GridElement } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
@@ -61,7 +61,6 @@
   const dispatch = createEventDispatcher();
 
   export let config: ConfigObject;
-  export let access_tree;
   export let index: number;
 
   let action: GridAction;
@@ -124,7 +123,9 @@
       await tick();
     }
     monaco_store.set({ config: config, index: index });
-    $monaco_elementtype = access_tree.elementtype;
+    const event = action.parent as GridEvent;
+    const element = event.parent as GridElement;
+    $monaco_elementtype = element.type;
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },

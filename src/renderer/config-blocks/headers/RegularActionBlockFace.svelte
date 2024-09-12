@@ -10,7 +10,6 @@
 
   const dispatch = createEventDispatcher();
 
-  export let access_tree;
   export let config: ConfigObject = undefined;
   export let index;
 
@@ -84,7 +83,11 @@
       class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
       on:click|stopPropagation
     >
-      <LineEditor {access_tree} value={name} on:change={handleNameChange} />
+      <LineEditor
+        action={config.runtimeRef}
+        value={name}
+        on:change={handleNameChange}
+      />
     </div>
   {:else}
     <span
