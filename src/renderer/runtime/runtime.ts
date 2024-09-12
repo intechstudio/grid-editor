@@ -109,7 +109,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
 export interface ActionData extends NodeData {
   short: string;
   script: string;
-  name: string;
+  name: string | undefined;
 }
 
 export class GridAction extends RuntimeNode<ActionData> {
@@ -148,6 +148,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     return `--[[@${this.short}${namePostfix}]] ${this.script}`;
   }
 
+  //Refactor this out
   isEqual(other: GridAction) {
     return (
       this.name === other.name &&

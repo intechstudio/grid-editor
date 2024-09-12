@@ -87,7 +87,11 @@
       <LineEditor {access_tree} value={name} on:change={handleNameChange} />
     </div>
   {:else}
-    <span>{$action?.name}</span>
+    <span
+      >{typeof $action?.name === "undefined"
+        ? config.information.displayName
+        : $action.name}</span
+    >
   {/if}
 
   {#if $appSettings.persistent.editableBlockNames}
