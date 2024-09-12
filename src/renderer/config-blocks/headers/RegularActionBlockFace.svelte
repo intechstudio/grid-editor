@@ -1,7 +1,6 @@
 <script lang="ts">
   import { appSettings } from "./../../runtime/app-helper.store.js";
-  import { committed_code_store } from "./../Committed_Code.store.js";
-  import { ConfigObject } from "./../../main/panels/configuration/Configuration.store.ts";
+  import { ConfigObject } from "./../../main/panels/configuration/Configuration.store";
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { config_drag } from "../../main/_actions/move.action";
@@ -58,11 +57,6 @@
       isEdit = false;
       sendData(name);
     }
-  }
-
-  $: if ($committed_code_store?.config.id === config.id) {
-    sendData($committed_code_store.name);
-    name = $committed_code_store.name;
   }
 
   let name: string;

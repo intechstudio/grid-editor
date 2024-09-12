@@ -52,7 +52,6 @@
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
-  import { committed_code_store } from "./Committed_Code.store";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { get } from "svelte/store";
@@ -118,17 +117,6 @@
   $: {
     if (codePreview) {
       displayConfigScript(config.script);
-    }
-  }
-
-  $: if (typeof $committed_code_store !== "undefined") {
-    if ($committed_code_store.index == index) {
-      dispatch("output", {
-        short: "cb",
-        script: $committed_code_store.script,
-        name: $committed_code_store.name,
-      });
-      $committed_code_store = {};
     }
   }
 

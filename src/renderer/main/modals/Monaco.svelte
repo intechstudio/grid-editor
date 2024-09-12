@@ -18,13 +18,16 @@
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
 
   import { monaco_editor } from "../../lib/CustomMonaco";
-  import { committed_code_store } from "../../config-blocks/Committed_Code.store";
-  import { monaco_store, type MonacoValue } from "./monaco.store";
+  import { monaco_store } from "./monaco.store";
 
   import { beforeUpdate, afterUpdate, onMount } from "svelte";
 
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { configManager } from "../panels/configuration/Configuration.store";
+  import {
+    configManager,
+    ConfigTarget,
+    ConfigList,
+  } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
@@ -167,24 +170,26 @@
       scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
 
-  function handleCommit() {
-    try {
-      const editor_code = editor.getValue();
-      const minifiedCode = GridScript.compressScript(editor_code);
+  async function handleCommit() {
+    const action = $monaco_store.config.runtimeRef;
+    const event = action.parent as GridEvent;
+    const element = event.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
 
-      $committed_code_store = {
-        script: minifiedCode,
-        name: name,
-        index: $monaco_store.index,
-      };
+    const target = ConfigTarget.create({
+      device: { dx: module.dx, dy: module.dy },
+      page: page.pageNumber,
+      element: element.elementIndex,
+      eventType: event.type,
+    });
 
-      commitedCode = minifiedCode;
-
+    ConfigList.createFromTarget(target).then((list: ConfigList) => {
+      list.sendTo({ target });
+      commitedCode = $monaco_store.config.script;
       commitEnabled = false;
       errorMesssage = "";
-    } catch (e) {
-      console.warn(e);
-    }
+    });
   }
 
   onDestroy(() => {
