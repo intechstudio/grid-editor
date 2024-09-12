@@ -48,6 +48,7 @@
   let scriptLength = undefined;
   let pathSnippets = [];
   let editedAction: GridAction;
+  let editorCode: string;
 
   class LengthError extends String {}
 
@@ -58,7 +59,7 @@
   }
 
   $: if ($editedAction) {
-    handleConfigChange($editedAction);
+    handleActionChange($editedAction);
   }
 
   function isDeleted(action: ActionData) {
@@ -66,7 +67,7 @@
     return typeof event === "undefined";
   }
 
-  function handleConfigChange(action: ActionData) {
+  function handleActionChange(action: ActionData) {
     if (isDeleted(action)) {
       pathSnippets = ["Deleted Code Block"];
       return;
@@ -76,6 +77,11 @@
     const element = event.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
+
+    name =
+      typeof action.name !== "undefined"
+        ? action.name
+        : $monaco_store.config.information.displayName;
 
     pathSnippets = [
       `${module.type} (${module.dx},${module.dy})`,
@@ -91,12 +97,8 @@
   onMount(() => {
     const store = $monaco_store;
     editedAction = store.config.runtimeRef;
-    name =
-      typeof store.config.name !== "undefined"
-        ? store.config.name
-        : store.config.information.displayName;
-
-    commitedCode = store.config.script;
+    editorCode = store.config.script;
+    commitedCode = editorCode;
 
     //To be displayed in Editor
     const code_preview = GridScript.expandScript(store.config.script);
@@ -128,35 +130,45 @@
       },
     });
 
-    editor.onDidChangeModelContent(() => {
-      const editor_code = editor.getValue();
-
-      try {
-        //Throws error on syntax error
-        $monaco_store.config.script = GridScript.compressScript(editor_code);
-
-        //Calculate length (this already includes the new value of referenceConfig)
-        scriptLength = $configManager.toConfigScript().length;
-
-        //Check the minified config length
-        if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
-          throw new LengthError("Config limit reached.");
-        }
-
-        //Everything is ok if no error was thrown previously
-        errorMesssage = "";
-        commitEnabled = $monaco_store.config.script !== commitedCode;
-
-        //Syntax or Length Error
-      } catch (e) {
-        if (!(e instanceof LengthError)) {
-          scriptLength = undefined;
-        }
-        commitEnabled = false;
-        errorMesssage = e;
-      }
-    });
+    editor.onDidChangeModelContent(handleContentChange);
   });
+
+  function handleContentChange() {
+    if (typeof editor === "undefined") {
+      return;
+    }
+
+    editorCode = editor.getValue();
+
+    try {
+      //Throws error on syntax error
+      editorCode = GridScript.compressScript(editorCode);
+
+      //Calculate length (this already includes the new value of referenceConfig)
+      scriptLength =
+        $configManager.toConfigScript().length +
+        (name !== $monaco_store.config.information.displayName
+          ? name.length
+          : 0);
+
+      //Check the minified config length
+      if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
+        throw new LengthError("Config limit reached.");
+      }
+
+      //Everything is ok if no error was thrown previously
+      errorMesssage = "";
+      commitEnabled = true;
+
+      //Syntax or Length Error
+    } catch (e) {
+      if (!(e instanceof LengthError)) {
+        scriptLength = undefined;
+      }
+      commitEnabled = false;
+      errorMesssage = e;
+    }
+  }
 
   beforeUpdate(() => {
     autoscroll =
@@ -171,6 +183,9 @@
   });
 
   async function handleCommit() {
+    $monaco_store.config.script = editorCode;
+    $monaco_store.config.name = name;
+
     const action = $monaco_store.config.runtimeRef;
     const event = action.parent as GridEvent;
     const element = event.parent as GridElement;
@@ -235,11 +250,11 @@
 
   function handleNameChange(value) {
     if (value != $monaco_store.config?.name) {
-      commitEnabled = true;
+      handleContentChange();
     }
   }
 
-  $: if (name && name !== $monaco_store.config.information.displayName) {
+  $: if (name !== $monaco_store.config.information.displayName) {
     handleNameChange(name);
   }
 

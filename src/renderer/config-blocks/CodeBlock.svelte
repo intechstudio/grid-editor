@@ -39,7 +39,8 @@
   };
 </script>
 
-<script>
+<script lang="ts">
+  import { GridAction } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
@@ -55,14 +56,16 @@
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { get } from "svelte/store";
+  import { ConfigObject } from "../main/panels/configuration/Configuration.store";
 
   const dispatch = createEventDispatcher();
 
-  export let config;
+  export let config: ConfigObject;
   export let access_tree;
-  export let index;
+  export let index: number;
 
-  let codePreview;
+  let action: GridAction;
+  let codePreview: HTMLElement;
 
   const lualogo_foreground = "#808080";
   const lualogo_background = "#212a2c";
@@ -99,7 +102,7 @@
     });
   });
 
-  function displayConfigScript(script) {
+  function displayConfigScript(script: string) {
     codePreview.innerHTML = GridScript.expandScript(script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
@@ -108,20 +111,15 @@
   }
 
   onMount(() => {
-    codePreview.addEventListener("wheel", (evt) => {
-      //evt.preventDefault();
-      //codePreview.scrollLeft += evt.deltaY;
-    });
+    action = config.runtimeRef;
   });
 
-  $: {
-    if (codePreview) {
-      displayConfigScript(config.script);
-    }
+  $: if (typeof $action !== "undefined") {
+    displayConfigScript(config.script);
   }
 
   async function open_monaco() {
-    if (config.runtimeRef.id !== get(monaco_store)?.config.runtimeRef.id) {
+    if (action.id !== get(monaco_store)?.config.runtimeRef.id) {
       modal.close();
       await tick();
     }

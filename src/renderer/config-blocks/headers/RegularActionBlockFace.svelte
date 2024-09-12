@@ -6,12 +6,15 @@
   import { config_drag } from "../../main/_actions/move.action";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
+  import { GridAction } from "../../runtime/runtime.js";
 
   const dispatch = createEventDispatcher();
 
   export let access_tree;
   export let config: ConfigObject = undefined;
   export let index;
+
+  let action: GridAction;
 
   function handleClick(e) {
     dispatch("toggle");
@@ -34,9 +37,10 @@
   }
 
   onMount(() => {
+    action = config.runtimeRef;
     name =
-      typeof config.name !== "undefined"
-        ? config.name
+      typeof action.name !== "undefined"
+        ? action.name
         : config.information.displayName;
   });
 
@@ -83,7 +87,7 @@
       <LineEditor {access_tree} value={name} on:change={handleNameChange} />
     </div>
   {:else}
-    <span>{name}</span>
+    <span>{$action?.name}</span>
   {/if}
 
   {#if $appSettings.persistent.editableBlockNames}
