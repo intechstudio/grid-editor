@@ -15,7 +15,6 @@ import {
 import { Writable, derived, get } from "svelte/store";
 import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
 import {
-  ActionData,
   createActionsFromString,
   GridAction,
   GridEvent,
@@ -305,7 +304,11 @@ export function updateAction(index: number, newConfig: ConfigObject) {
       config.short = short;
       config.script = script;
       config.name = name;
-      s.checkLength();
+      const res = s.checkLength();
+      if (!res.value) {
+        throw "Length error";
+      }
+
       return s;
     });
   } catch (e) {
@@ -381,33 +384,35 @@ export function copyActions() {
   });
 }
 
-export function pasteActions(index: number | undefined) {
-  if (typeof index === "undefined") {
-    index = get(configManager).length;
-  }
-
-  const clipboard = get(appClipboard);
-
-  if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
-    throw `Paste: Invalid clipboard type ${clipboard?.key}`;
-  }
-
-  configManager.update((s) => {
-    const value = get(appClipboard)!.payload;
-    s.forEach((e) => (e.selected = false));
-    s.insert(index, ...value);
-    const res = s.checkLength();
-    if (!res.value) {
-      for (let i = 0; i < value.length; ++i) {
-        s.remove(index);
-      }
-      Promise.reject(res.detail);
-      return;
+export function pasteActions(index: number | undefined): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof index === "undefined") {
+      index = get(configManager).length;
     }
 
-    return s;
+    const clipboard = get(appClipboard);
+
+    if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
+      reject(`Paste: Invalid clipboard type ${clipboard?.key}`);
+    }
+
+    let error = false;
+    configManager.update((s) => {
+      const value = get(appClipboard)!.payload;
+      s.forEach((e) => (e.selected = false));
+      s.insert(index, ...value);
+      const res = s.checkLength();
+      if (!res.value) {
+        error = true;
+        for (let i = 0; i < value.length; ++i) {
+          s.remove(index);
+        }
+      }
+
+      return s;
+    });
+    error ? reject("Paste failed") : resolve();
   });
-  return Promise.resolve();
 }
 
 export function removeActions() {

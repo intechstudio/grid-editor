@@ -20,7 +20,7 @@ import { grid, GridScript } from "@intechstudio/grid-protocol";
 import * as ButtonStepElseIf from "../../../config-blocks/ButtonStep_ElseIf.svelte";
 import { GridAction, GridEvent } from "../../../runtime/runtime";
 import { ActionBlockInformation } from "../../../config-blocks/ActionBlockInformation";
-import { SvelteComponent } from "svelte";
+import { SvelteComponent, tick } from "svelte";
 
 export let lastOpenedActionblocks = writable([]);
 

@@ -40,7 +40,8 @@
 
   let commitEnabled = false;
   let errorMesssage = "";
-  let commitedCode = "";
+  let commitedCode: string;
+  let commitedName: string | undefined;
 
   let scrollDown;
   let autoscroll;
@@ -49,6 +50,10 @@
   let pathSnippets = [];
   let editedAction: GridAction;
   let editorCode: string;
+
+  let name;
+  let isEditName = false;
+  let nameInput;
 
   class LengthError extends String {}
 
@@ -97,18 +102,14 @@
   onMount(() => {
     const store = $monaco_store;
     editedAction = store.config.runtimeRef;
-    editorCode = store.config.script;
-    commitedCode = editorCode;
-
-    //To be displayed in Editor
-    const code_preview = GridScript.expandScript(store.config.script);
-
-    //Set initial code length
-    scriptLength = $configManager.toConfigScript().length;
+    commitedCode = editedAction.script;
+    commitedName = editedAction.name;
+    scriptLength = (editedAction.parent as GridEvent).toLua().length;
+    console.log((editedAction.parent as GridEvent).toLua());
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
-      value: code_preview,
+      value: GridScript.expandScript(editedAction.script),
       language: "intech_lua",
       theme: "my-theme",
       fontSize: $appSettings.persistent.fontSize,
@@ -138,18 +139,14 @@
       return;
     }
 
-    editorCode = editor.getValue();
-
     try {
       //Throws error on syntax error
-      editorCode = GridScript.compressScript(editorCode);
+      const compressed = GridScript.compressScript(editor.getValue());
+      editedAction.script = compressed;
+      editedAction.name = name;
 
       //Calculate length (this already includes the new value of referenceConfig)
-      scriptLength =
-        $configManager.toConfigScript().length +
-        (name !== $monaco_store.config.information.displayName
-          ? name.length
-          : 0);
+      scriptLength = (editedAction.parent as GridEvent).toLua().length;
 
       //Check the minified config length
       if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
@@ -168,6 +165,9 @@
       commitEnabled = false;
       errorMesssage = e;
     }
+
+    editedAction.script = commitedCode;
+    editedAction.name = commitedName;
   }
 
   beforeUpdate(() => {
@@ -183,7 +183,7 @@
   });
 
   async function handleCommit() {
-    $monaco_store.config.script = editorCode;
+    $monaco_store.config.script = GridScript.compressScript(editor.getValue());
     $monaco_store.config.name = name;
 
     const action = $monaco_store.config.runtimeRef;
@@ -200,8 +200,11 @@
     });
 
     ConfigList.createFromTarget(target).then((list: ConfigList) => {
-      list.sendTo({ target });
+      list.sendTo({ target }).catch((e) => {
+        console.log(e);
+      });
       commitedCode = $monaco_store.config.script;
+      name = $monaco_store.config.name;
       commitEnabled = false;
       errorMesssage = "";
     });
@@ -216,6 +219,9 @@
   function handleClose(e) {
     if (commitedCode !== $monaco_store.config.script) {
       $monaco_store.config.script = commitedCode;
+    }
+    if (commitedName !== $monaco_store.config.name) {
+      $monaco_store.config.name = commitedName;
     }
     modal.close();
   }
@@ -257,10 +263,6 @@
   $: if (name !== $monaco_store.config.information.displayName) {
     handleNameChange(name);
   }
-
-  let name;
-  let isEditName = false;
-  let nameInput;
 </script>
 
 <div id="modal-copy-placeholder" />

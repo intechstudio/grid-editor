@@ -436,7 +436,7 @@
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
-              {#each $configManager as config, index (config.id)}
+              {#each $configManager as config, index (config)}
                 <anim-block
                   animate:flip={{ duration: 300, easing: eases.backOut }}
                   in:fade|global={{ delay: 0 }}

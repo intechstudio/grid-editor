@@ -14,9 +14,7 @@ import {
 } from "svelte/store";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer } from "./engine.store";
-import { createVirtualModule } from "./virtual-engine";
-import { VirtualModuleHWCFG } from "./virtual-engine";
-import { virtual_runtime } from "./virtual-engine";
+import { createVirtualModule, virtual_runtime } from "./virtual-engine";
 import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
@@ -144,8 +142,9 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   toLua() {
-    const namePostfix = typeof this.name !== "undefined" ? `#${this.name}` : "";
-    return `--[[@${this.short}${namePostfix}]] ${this.script}`;
+    return `--[[@${this.short}${
+      typeof this.name !== "undefined" ? `#${this.name}` : ""
+    }]] ${this.script}`;
   }
 
   //Refactor this out
@@ -197,7 +196,10 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   //Methods
   toLua() {
-    return `<?lua ${this.config.map((e) => e.toLua()).join("")} ?>`;
+    return `<?lua ${this.config
+      .map((e) => e.toLua())
+      .join("")
+      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
   }
 
   hasChanges(): boolean {
