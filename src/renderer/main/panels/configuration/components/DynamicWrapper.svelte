@@ -11,6 +11,8 @@
     lastOpenedActionblocksRemove,
   } from "../Configuration.store";
 
+  import { configIndexToId } from "../../../_actions/move.action";
+
   let toggled = false;
 
   onMount(() => {
@@ -137,7 +139,7 @@
     class="group/bg-color flex flex-grow h-auto min-h-[32px] border {syntaxError
       ? 'border-error'
       : 'border-transparent'}"
-    id="cfg-{index}"
+    id={configIndexToId(index)}
     class:rounded-tr-xl={config.information.rounding === "top"}
     class:rounded-br-xl={config.information.rounding === "bottom"}
     config-name={config.information.name}

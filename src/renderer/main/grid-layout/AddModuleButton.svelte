@@ -13,7 +13,7 @@
   on:click={handleClick}
 >
   <div
-    class="rounded-full fill-transparent bg-transparent h-10 w-10 p-3 group-hover:bg-white/15 group-hover:fill-secondary"
+    class="rounded-full fill-transparent bg-transparent h-10 w-10 p-3 group-hover:bg-white/15 group-hover:fill-secondary group-hover:bg-gray-600"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

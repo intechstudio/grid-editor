@@ -205,7 +205,8 @@ function create_user_input() {
     const closestEvent = Math.min(
       ...events.map((e) => Number(e)).filter((e) => e > 0)
     );
-    return closestEvent;
+
+    return closestEvent !== Infinity ? closestEvent : 0;
   }
 
   function process_incoming_event_from_grid(descr) {

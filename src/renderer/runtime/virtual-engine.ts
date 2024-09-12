@@ -6,39 +6,6 @@ import {
   BufferElement,
 } from "../runtime/engine.store";
 
-export const VirtualModuleHWCFG = {
-  BU16: {
-    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.BU16)
-      .hwcfg,
-    type: ModuleType.BU16,
-  },
-  EF44: {
-    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.EF44)
-      .hwcfg,
-    type: ModuleType.EF44,
-  },
-  EN16: {
-    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.EN16)
-      .hwcfg,
-    type: ModuleType.EN16,
-  },
-  PBF4: {
-    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.PBF4)
-      .hwcfg,
-    type: ModuleType.PBF4,
-  },
-  PO16: {
-    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.PO16)
-      .hwcfg,
-    type: ModuleType.PO16,
-  },
-  TEK2: {
-    hwcfg: grid.module_hwcfgs().findLast((e: any) => e.type === ModuleType.TEK2)
-      .hwcfg,
-    type: ModuleType.TEK2,
-  },
-};
-
 function answerExecuteTypeRequest(obj: BufferElement) {
   return new Promise((resolve, reject) => {
     const class_name = obj.descr.class_name;

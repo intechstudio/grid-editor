@@ -79,14 +79,11 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
 
   protected notify() {
     this._internal.update((s) => s);
-    console.log("NOTIFIED", this.data);
     this.notifyParent();
   }
 
   protected notifyParent() {
-    console.log("NOTIFY PARENT");
     if (!this.parent) {
-      console.log("NO PARENT");
       return;
     }
 
@@ -211,14 +208,12 @@ export class GridEvent extends RuntimeNode<EventData> {
       return true;
     }
 
-    //console.log(this.config, this.stored);
     for (let i = 0; i < this.config.length; ++i) {
       if (!this.config[i].isEqual(this.stored[i])) {
-        //console.log("no eq");
         return true;
       }
     }
-    //console.log("default");
+
     return false;
   }
 
@@ -845,7 +840,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
       if (typeof dest.stored === "undefined") {
         dest.store(dest.config);
-        console.log(dest.stored, "STORE FIRST");
       }
     }
   }
@@ -1195,7 +1189,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   addVirtualModule({ dx, dy, type }) {
-    const module = VirtualModuleHWCFG[type];
+    const moduleInfo = grid.module_hwcfgs().findLast((e) => e.type === type);
     const controller = this.create_module(
       {
         DX: dx,
@@ -1204,12 +1198,12 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         SY: dy,
       },
       {
-        HWCFG: module.hwcfg,
+        HWCFG: moduleInfo.hwcfg,
       },
       true
     );
 
-    createVirtualModule(dx, dy, module.type);
+    createVirtualModule(dx, dy, moduleInfo.type);
 
     this.modules = [...this.modules, controller];
     this.setDefaultSelectedElement();

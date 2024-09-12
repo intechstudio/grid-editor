@@ -50,6 +50,11 @@
       "name": "Active Window",
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-active-win"
+    },
+    "package-photoshop": {
+      "name": "Photoshop package",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-photoshop"
     }
   }
 }

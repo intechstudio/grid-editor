@@ -93,8 +93,6 @@
       script: config.script,
     });
   }
-
-  $: console.log(config);
 </script>
 
 <code-block

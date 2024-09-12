@@ -43,7 +43,6 @@
   let scriptValue = ""; // local script part
 
   $: if (config.script && !loaded) {
-    console.log(config.script);
     const matches = config.script.match(/'([^']*)'/);
     scriptValue = matches[1];
     loaded = true;

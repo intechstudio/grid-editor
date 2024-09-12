@@ -27,7 +27,6 @@
 
   function handleRemoveModuleClicked() {
     const [dx, dy] = [selectedModule.dx, selectedModule.dy];
-    console.log(dx, dy);
     runtime.destroy_module(dx, dy);
   }
 </script>

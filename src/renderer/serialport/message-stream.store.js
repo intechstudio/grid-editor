@@ -10,7 +10,7 @@ import {
   update_elementPositionStore,
   update_elementPositionStore_fromPreview,
   update_ledColorStore,
-} from "../runtime/runtime.store";
+} from "../runtime/runtime.store.ts";
 import {
   debug_monitor_store,
   lua_error_store,

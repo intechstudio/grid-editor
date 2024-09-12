@@ -70,8 +70,6 @@ async function fetchStream() {
     return;
   }
 
-  console.log(navigator.intechPort.readable, navigator.intechPort);
-
   const reader = navigator.intechPort.readable.getReader();
   let charsReceived = 0;
   let rxBuffer = [];

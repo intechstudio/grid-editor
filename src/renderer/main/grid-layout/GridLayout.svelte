@@ -99,7 +99,7 @@
       const { min_x, min_y, max_y, max_x } = dim;
 
       s = [];
-      rt.modules.forEach((device, i) => {
+      rt.modules.forEach((device) => {
         let connection_top = 0;
         let connection_bottom = 0;
         let connection_left = 0;

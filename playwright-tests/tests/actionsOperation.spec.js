@@ -19,7 +19,7 @@ test.describe("Action Block Operations", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("TEK2");
+    await connectModulePage.addModule("EN16");
   });
   test("Copy and Paste", async ({ page }) => {
     const expectedComment = "action operation";
@@ -74,7 +74,7 @@ test.describe("Element Actions", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("TEK2");
+    await connectModulePage.addModule("BU16");
   });
 
   test("Copy and Overwrite", async () => {
@@ -155,7 +155,7 @@ test.describe("Element Actions", () => {
     await configPage.removeAllActions();
     await configPage.addCommentBlock(notVisibleComment);
     await configPage.selectElementEvent("Timer");
-    await modulePage.rightClickModuleElement(2);
+    await modulePage.rightClickModuleElement(0);
     await modulePage.discardElement();
     await configPage.selectElementEvent("Button");
 
@@ -184,7 +184,7 @@ test.describe("Character limit", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("TEK2");
+    await connectModulePage.addModule("EN16");
   });
 
   //test for https://github.com/intechstudio/grid-editor/issues/741
@@ -234,7 +234,7 @@ test.describe("Issues", () => {
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("TEK2");
+    await connectModulePage.addModule("BU16");
   });
 
   // https://github.com/intechstudio/grid-editor/issues/751

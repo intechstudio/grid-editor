@@ -17,7 +17,6 @@ let port_disovery_interval;
 
 // Basic serial usage
 async function attemptSerialConnection() {
-  console.log("Attmepting to connect serial port...");
   if (serial.mainWindow !== undefined) {
     try {
       const timeoutPromise = new Promise((res) =>
