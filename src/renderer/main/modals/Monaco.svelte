@@ -49,7 +49,6 @@
   let scriptLength = undefined;
   let pathSnippets = [];
   let editedAction: GridAction;
-  let editorCode: string;
 
   let name;
   let isEditName = false;
@@ -143,7 +142,10 @@
       //Throws error on syntax error
       const compressed = GridScript.compressScript(editor.getValue());
       editedAction.script = compressed;
-      editedAction.name = name;
+      editedAction.name =
+        name !== $monaco_store.config?.information.displayName
+          ? name
+          : undefined;
 
       //Calculate length (this already includes the new value of referenceConfig)
       scriptLength = (editedAction.parent as GridEvent).toLua().length;
@@ -207,6 +209,7 @@
       name = $monaco_store.config.name;
       commitEnabled = false;
       errorMesssage = "";
+      configManager.refresh();
     });
   }
 

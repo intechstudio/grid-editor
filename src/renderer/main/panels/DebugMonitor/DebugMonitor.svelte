@@ -32,7 +32,6 @@
   }
 
   $: {
-    console.log($configManager.toConfigScript());
     configScriptLength.set($configManager.toConfigScript().length);
     syntaxError.set($configManager.checkSyntax());
   }
