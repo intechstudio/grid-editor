@@ -102,7 +102,9 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       findBootloaderPath: async () => {},
     },
     stopOfflineProfileCloud: async () => {},
-    fetchUrlJSON: async () => {},
+    fetchUrlJSON: async () => {
+      return [];
+    },
     getLatestVideo: async () => {
       return {
         videLink: "",
