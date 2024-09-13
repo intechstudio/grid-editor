@@ -255,6 +255,8 @@ navigator.tryConnectGrid = async () => {
       );
     });
 
+    console.log(ports);
+
     // Attempt to open each matching port
     for (const port of matchingPorts) {
       connection_manager
