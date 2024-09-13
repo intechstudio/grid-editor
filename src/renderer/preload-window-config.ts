@@ -110,9 +110,6 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       };
     },
 
-    listSerialPorts: () => {
-      return [];
-    },
     restartPackageManager: () => {},
     resetAppSettings: () => {},
     openInBrowser: () => {},

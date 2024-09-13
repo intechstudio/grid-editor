@@ -15,20 +15,13 @@
 
   async function handlePortChange(ports: GridPort[]) {
     options = [];
-    const portInfo = await window.electron.listSerialPorts();
-    for (const port of ports) {
+    for (const [i, port] of ports.entries()) {
       const info = port.getInfo();
-      const path = portInfo.find(
-        (e) =>
-          parseInt(e.productId, 16) === info.usbProductId &&
-          parseInt(e.vendorId, 16) === info.usbVendorId
-      )?.path;
       options.push({
         value: port.id,
-        title: path,
+        title: `Port ${i + 1}`,
       });
     }
-
     selected = connection_manager.active?.id;
   }
 

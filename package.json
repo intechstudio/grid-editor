@@ -61,7 +61,6 @@
     "panzoom": "^9.3.0",
     "polka": "^0.5.2",
     "semver": "^7.5.4",
-    "serialport": "^12.0.0",
     "set-interval-async": "^3.0.3",
     "simple-discord-webhooks": "^2.1.0",
     "sirv": "^2.0.3",

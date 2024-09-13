@@ -641,11 +641,6 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
   return await getLatestVideo();
 });
 
-// load the latest video from the grid editor playlist
-ipcMain.handle("listSerialPorts", async (event, arg) => {
-  return await SerialPort.list();
-});
-
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
