@@ -243,7 +243,6 @@ class GridConnectionManager {
 export const connection_manager = new GridConnectionManager();
 
 navigator.tryConnectGrid = async () => {
-  console.log("ye");
   try {
     // Retrieve all available ports
     let ports = await navigator.serial.getPorts();
@@ -261,8 +260,6 @@ navigator.tryConnectGrid = async () => {
         (f) => f.usbVendorId === usbVendorId && f.usbProductId === usbProductId
       );
     });
-
-    console.log(ports);
 
     // Attempt to open each matching port
     for (const port of matchingPorts) {
