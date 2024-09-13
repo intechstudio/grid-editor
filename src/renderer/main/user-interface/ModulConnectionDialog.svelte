@@ -36,7 +36,7 @@
 
   function handleConnectModules(e) {
     console.log("i hope");
-    console.log(navaigator, navigator.tryConnectGrid);
+    console.log(navigator, navigator.tryConnectGrid);
     navigator.tryConnectGrid().catch((e) => {
       logger.set({
         type: "fail",
