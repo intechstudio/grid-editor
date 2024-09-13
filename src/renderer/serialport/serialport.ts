@@ -246,7 +246,13 @@ navigator.tryConnectGrid = async () => {
   console.log("ye");
   try {
     // Retrieve all available ports
-    const ports: WebSerialPort[] = await navigator.serial.getPorts();
+    let ports = await navigator.serial.getPorts();
+
+    // If no ports are found, request access to a new port
+    if (ports.length === 0) {
+      const port = await navigator.serial.requestPort({ filters: filter });
+      ports = [port]; // Add the newly requested port to the list
+    }
 
     // Filter ports based on the provided filter criteria
     const matchingPorts = ports.filter((port) => {
