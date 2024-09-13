@@ -71,7 +71,7 @@
     <div class="text-gray-500 text-sm pb-1">Comment</div>
 
     <AtomicInput
-      inputValue={GridScript.humanize(scriptValue)}
+      value={GridScript.humanize(scriptValue)}
       {validator}
       on:validator={(e) => {
         const data = e.detail;

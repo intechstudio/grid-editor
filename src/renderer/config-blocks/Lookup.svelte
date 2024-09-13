@@ -140,7 +140,7 @@
     <AtomicInput
       {suggestions}
       placeholder={"Incoming value to match"}
-      inputValue={GridScript.humanize(lookupTable.source)}
+      value={GridScript.humanize(lookupTable.source)}
       suggestionTarget={suggestionElement1}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
@@ -216,7 +216,7 @@
     <AtomicInput
       placeholder={"Variable name to load the lookup result"}
       {suggestions}
-      inputValue={GridScript.humanize(lookupTable.destination)}
+      value={GridScript.humanize(lookupTable.destination)}
       suggestionTarget={suggestionElement2}
       on:change={(e) => {
         lookupTable.destination = GridScript.shortify(e.detail);

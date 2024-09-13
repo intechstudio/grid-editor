@@ -491,7 +491,7 @@ A -> B : AB-First step
       <div class={"w-1/2 atomicInput "}>
         <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
         <AtomicInput
-          inputValue={GridScript.humanize(script)}
+          value={GridScript.humanize(script)}
           validator={validators[i]}
           suggestions={suggestions[i]}
           suggestionTarget={suggestionElement1}
@@ -541,7 +541,7 @@ A -> B : AB-First step
           {parameterNames[i + 2]}
         </div>
         <AtomicInput
-          inputValue={GridScript.humanize(script)}
+          value={GridScript.humanize(script)}
           validator={validators[i + 2]}
           suggestions={suggestions[i + 2]}
           suggestionTarget={suggestionElement2}

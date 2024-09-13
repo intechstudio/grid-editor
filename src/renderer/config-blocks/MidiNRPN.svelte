@@ -257,7 +257,7 @@
       <div class="flex flex-col gap-1">
         <div class="text-gray-500 text-sm truncate">Channel</div>
         <AtomicInput
-          inputValue={GridScript.humanize(scriptSegments.channel)}
+          value={GridScript.humanize(scriptSegments.channel)}
           suggestions={suggestions[0]}
           validator={validators[0]}
           suggestionTarget={channelSuggestionElement}
@@ -278,7 +278,7 @@
           <div class="flex flex-col gap-1">
             <div class="text-gray-500 text-sm truncate">MSB</div>
             <AtomicInput
-              inputValue={GridScript.humanize(scriptSegments.addressMSB)}
+              value={GridScript.humanize(scriptSegments.addressMSB)}
               suggestions={suggestions[1]}
               validator={validators[1]}
               suggestionTarget={ccSuggestionElement}
@@ -295,7 +295,7 @@
           <div class="flex flex-col gap-1">
             <div class="text-gray-500 text-sm truncate">LSB</div>
             <AtomicInput
-              inputValue={GridScript.humanize(scriptSegments.addressLSB)}
+              value={GridScript.humanize(scriptSegments.addressLSB)}
               suggestions={suggestions[2]}
               validator={validators[2]}
               suggestionTarget={ccSuggestionElement}
@@ -337,7 +337,7 @@
         <div class="flex flex-col gap-1">
           <div class="text-gray-500 text-sm truncate">NRPN CC</div>
           <AtomicInput
-            inputValue={`${GridScript.humanize(scriptSegments.nrpnCC)}`}
+            value={`${GridScript.humanize(scriptSegments.nrpnCC)}`}
             suggestions={suggestions[1]}
             validator={validators[1]}
             suggestionTarget={ccSuggestionElement}
@@ -364,7 +364,7 @@
         <div class="flex flex-col gap-1">
           <div class="text-gray-500 text-sm truncate">Value</div>
           <AtomicInput
-            inputValue={GridScript.humanize(scriptSegments.value)}
+            value={GridScript.humanize(scriptSegments.value)}
             suggestions={suggestions[3]}
             validator={validators[3]}
             suggestionTarget={valueSuggestionElement}

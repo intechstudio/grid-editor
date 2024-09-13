@@ -178,7 +178,7 @@
       <div class={"w-1/2" + " atomicInput"}>
         <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
         <AtomicInput
-          inputValue={GridScript.humanize(script)}
+          value={GridScript.humanize(script)}
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}

@@ -125,7 +125,7 @@
 >
   <div class="text-gray-500 text-sm pb-1">Button Mode</div>
   <AtomicInput
-    inputValue={GridScript.humanize(bmo)}
+    value={GridScript.humanize(bmo)}
     suggestions={suggestions[0]}
     suggestionTarget={suggestionElement}
     on:change={(e) => {
@@ -148,7 +148,7 @@
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(bmi)}
+        value={GridScript.humanize(bmi)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -168,7 +168,7 @@
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(bma)}
+        value={GridScript.humanize(bma)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()

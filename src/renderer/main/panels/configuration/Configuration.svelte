@@ -375,22 +375,20 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2 gap-2">
+      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
         <ElementSelectionPanel />
         <EventPanel class="flex flex-col w-full " />
-        <div class="-mb-2">
-          <Toolbar
-            on:convert-to-code-block={handleConvertToCodeBlock}
-            on:copy={handleCopy}
-            on:cut={handleCut}
-            on:paste={handlePaste}
-            on:remove={handleRemove}
-            on:copy-all={handleCopyElement}
-            on:overwrite-all={handleOverwriteElement}
-            on:discard={handleDiscardElement}
-            on:clear-element={handleClearElement}
-          />
-        </div>
+        <Toolbar
+          on:convert-to-code-block={handleConvertToCodeBlock}
+          on:copy={handleCopy}
+          on:cut={handleCut}
+          on:paste={handlePaste}
+          on:remove={handleRemove}
+          on:copy-all={handleCopyElement}
+          on:overwrite-all={handleOverwriteElement}
+          on:discard={handleDiscardElement}
+          on:clear-element={handleClearElement}
+        />
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
