@@ -243,6 +243,7 @@ class GridConnectionManager {
 export const connection_manager = new GridConnectionManager();
 
 navigator.tryConnectGrid = async () => {
+  console.log("ye");
   try {
     // Retrieve all available ports
     const ports: WebSerialPort[] = await navigator.serial.getPorts();
