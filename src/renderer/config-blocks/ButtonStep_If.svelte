@@ -20,7 +20,7 @@
     rounding: "top",
     category: "special",
     displayName: "Button Off",
-    defaultLua: "if is_step(self,0) then",
+    defaultLua: "if self:bstp(self) == 0 then",
     compositeLua: [
       {
         short: ButtonStepElseIf.information.short,
