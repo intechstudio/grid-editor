@@ -87,6 +87,10 @@
         ? action.name
         : $monaco_store.config.information.displayName;
 
+    if (commitedName !== action.name) {
+      commitedName = action.name;
+    }
+
     pathSnippets = [
       `${module.type} (${module.dx},${module.dy})`,
       `Page ${page.pageNumber + 1}`,
@@ -104,7 +108,6 @@
     commitedCode = editedAction.script;
     commitedName = editedAction.name;
     scriptLength = (editedAction.parent as GridEvent).toLua().length;
-    console.log((editedAction.parent as GridEvent).toLua());
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
@@ -186,7 +189,8 @@
 
   async function handleCommit() {
     $monaco_store.config.script = GridScript.compressScript(editor.getValue());
-    $monaco_store.config.name = name;
+    $monaco_store.config.name =
+      name !== $monaco_store.config?.information.displayName ? name : undefined;
 
     const action = $monaco_store.config.runtimeRef;
     const event = action.parent as GridEvent;
@@ -209,7 +213,6 @@
       name = $monaco_store.config.name;
       commitEnabled = false;
       errorMesssage = "";
-      configManager.refresh();
     });
   }
 

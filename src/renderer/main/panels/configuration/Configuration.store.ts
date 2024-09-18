@@ -44,9 +44,6 @@ export function lastOpenedActionblocksRemove(short) {
 }
 
 export class ConfigObject {
-  private _short: string;
-  private _script: string;
-  private _name: undefined | string;
   public runtimeRef: GridAction;
   public id: string;
 
@@ -59,10 +56,10 @@ export class ConfigObject {
   public toggled: boolean;
 
   constructor({ short, script, name = undefined, runtimeRef }) {
-    this._short = short;
-    this._script = script;
-    this._name = name;
     this.runtimeRef = runtimeRef;
+    this.short = short;
+    this.script = script;
+    this.name = name;
     this.id = runtimeRef?.id;
 
     let res = getComponentInformation({ short: short });
@@ -82,46 +79,42 @@ export class ConfigObject {
   }
 
   get short(): string {
-    return this._short;
+    return this.runtimeRef.short;
   }
 
   set short(value: string) {
     this.runtimeRef.short = value;
-    this._short = value;
   }
 
   get script(): string {
-    return this._script;
+    return this.runtimeRef.script;
   }
 
   set script(value: string) {
     this.runtimeRef.script = value;
-    this._script = value;
   }
 
   get name(): undefined | string {
-    return this._name;
+    return this.runtimeRef.name;
   }
 
   set name(value: undefined | string) {
     this.runtimeRef.name = value;
-    this._name = value;
   }
 
   toRawLua() {
-    return `--[[@${this._short}${
-      typeof this._name !== "undefined" &&
-      this._name !== this.information.displayName
-        ? "#" + this._name
+    return `--[[@${this.short}${
+      typeof this.name !== "undefined" &&
+      this.name !== this.information.displayName
+        ? "#" + this.name
         : ""
-    }]] ${this._script}`;
+    }]] ${this.script}`;
   }
 
   //Returns true if syntax is OK
   checkSyntax() {
     const code =
-      this.information.syntaxPreprocessor?.generate(this._script) ??
-      this._script;
+      this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
     return GridScript.checkSyntax(code);
   }
 }
