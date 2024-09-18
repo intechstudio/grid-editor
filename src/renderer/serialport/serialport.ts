@@ -181,8 +181,6 @@ class GridConnectionManager {
       return;
     }
 
-    console.log("Fetching", port);
-
     this._active = port;
     const reader = port.readable.getReader();
     let charsReceived = 0;

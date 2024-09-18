@@ -149,6 +149,17 @@
   }
 
   const ports = connection_manager.ports;
+
+  function handleConnectModules(e) {
+    navigator.tryConnectGrid().catch((e) => {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "serialerror",
+        message: `Serial connect failed, your browser is not supperted yet.`,
+      });
+    });
+  }
 </script>
 
 <container
@@ -214,5 +225,10 @@
     >
       <MoltenPushButton text="Clear" />
     </div>
+    <MoltenPushButton
+      text="Connect"
+      style={"outlined"}
+      click={handleConnectModules}
+    />
   </div>
 </container>
