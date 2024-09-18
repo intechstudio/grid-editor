@@ -13,7 +13,7 @@
     name: "ButtonStep_End",
     rendering: "modifier",
     category: null,
-    displayName: "",
+    displayName: "End",
     rounding: "bottom",
     defaultLua: "end",
     icon: undefined,
