@@ -1,4 +1,5 @@
 <script>
+  import { GridAction } from "./../../../../runtime/runtime.ts";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
@@ -301,7 +302,10 @@
       new ConfigObject({
         short: component.information.short,
         script: defaultScript,
-        runtimeRef: undefined,
+        runtimeRef: new GridAction(undefined, {
+          short: component.information.short,
+          script: defaultScript,
+        }),
         name: undefined,
       }),
     ];
@@ -315,7 +319,10 @@
           new ConfigObject({
             short: obj.short,
             script: obj.script,
-            runtimeRef: undefined,
+            runtimeRef: new GridAction(undefined, {
+              short: obj.short,
+              script: obj.script,
+            }),
             name: undefined,
           })
         );
