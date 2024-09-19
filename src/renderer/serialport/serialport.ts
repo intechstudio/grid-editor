@@ -61,7 +61,7 @@ const filter: SerialPortInfo[] = [
 
 class GridConnectionManager {
   private _ports: Writable<GridPort[]>;
-  private _active: GridPort | undefined;
+  private _active: GridPort;
 
   constructor() {
     this._ports = writable([]);
@@ -74,31 +74,22 @@ class GridConnectionManager {
 
   openPort(port: any): Promise<GridPort> {
     return new Promise((resolve, reject) => {
-      const existingPort = get(this._ports).find((p) => p.id === port.id);
-      if (existingPort) {
-        // If the port is already open, return it
-        return resolve(existingPort);
-      }
-
       port
         .open({ baudRate: 2000000 })
         .then(() => {
           const current = port as GridPort;
           current.id = uuidv4();
-          current.addEventListener("disconnect", () => {
+          current.addEventListener("disconnect", (e) => {
             console.log("Port disconnected:", current);
 
             const ports = get(this._ports);
-            this._ports.set(ports.filter((p) => p.id !== current.id));
-
-            if (this._active?.id === current.id) {
-              // If the disconnected port was active, switch to another port
-              const remainingPorts = get(this._ports);
-              if (remainingPorts.length > 0) {
-                this.fetchStream(remainingPorts[0]);
-              } else {
-                this._active = undefined;
+            this._ports.set(ports.filter((e) => e.id !== current.id));
+            if (get(this._ports).length > 0) {
+              if (this._active.id === current.id) {
+                this.fetchStream(get(this._ports)[0]);
               }
+            } else {
+              this._active = undefined;
             }
           });
 
@@ -109,80 +100,135 @@ class GridConnectionManager {
 
           resolve(current);
         })
-        .catch(reject);
+        .catch((e) => {
+          reject(e);
+        });
     });
   }
+
+  disconnectPort() {}
 
   get active() {
     return this._active;
   }
 
-  serialWrite(param: Uint8Array) {
-    if (!param || !this._active || !this._active.writable) {
-      return Promise.reject("Port is not available for writing.");
+  isSerialWriteLocked() {
+    const port = this.active;
+    if (port === undefined || port === null) {
+      return true;
+    }
+
+    if (port.writable === undefined || port.writable === null) {
+      return true;
+    }
+
+    if (port.writable.locked === true) {
+      return false;
+    }
+  }
+
+  serialWrite(param) {
+    if (param === undefined) {
+      return Promise.reject("Serial Write Error 1.");
+    }
+
+    const port = this.active;
+
+    if (port === undefined || port === null) {
+      return Promise.reject("Serial Write Error 2.");
+    }
+
+    if (port.writable === undefined || port.writable === null) {
+      return Promise.reject("Serial Write Error 3.");
     }
 
     return new Promise((resolve, reject) => {
-      param.push(10); // Append newline
+      param.push(10);
 
-      const writer = this._active!.writable.getWriter();
+      debug_lowlevel_store.push_outbound(param);
+
+      if (port.writable.locked === true) {
+        //console.log("SORRY it's locked");
+        reject("SORRY it's locked");
+        return;
+      }
+
+      const writer = port.writable.getWriter();
+
+      const data = new Uint8Array(param);
 
       writer
-        .write(param)
-        .then(() => {
+        .write(data)
+        .then((e) => {
+          // Allow the serial port to be closed later.
           writer.releaseLock();
-          resolve("Data written successfully.");
+          resolve("Port released");
         })
-        .catch(reject);
+        .catch((e) => {
+          console.log(e);
+          reject(e);
+        });
     });
   }
 
   async fetchStream(port: GridPort) {
-    if (this._active?.id === port.id) {
-      return; // Skip if the port is already active
-    }
-
-    this._active = port;
-
     if (!port || !port.readable) {
-      console.warn("Invalid port:", port);
+      console.warn("Invalid port: ", port);
       return;
     }
 
+    if (port.id === this.active?.id) {
+      return;
+    }
+
+    this._active = port;
     const reader = port.readable.getReader();
-    let rxBuffer: number[] = [];
+    let charsReceived = 0;
+    let rxBuffer = [];
 
     try {
       while (true) {
         const { done, value } = await reader.read();
-        if (done || this._active !== port) {
-          console.log("Stream complete.");
+
+        if (done || this.active !== port) {
+          console.log("Stream complete");
           break;
         }
 
-        if (value) {
-          let buffer = Array.from(value);
-          rxBuffer.push(...buffer);
+        charsReceived += value.length;
+        const chunk = value;
 
-          // Handle packet processing and message decoding
-          let messageStartIndex = 0;
-          for (let i = 0; i < rxBuffer.length; i++) {
-            if (rxBuffer[i] === 10) {
-              const currentMessage = rxBuffer.slice(messageStartIndex, i);
-              messageStartIndex = i + 1;
+        let buffer = Array.from(chunk);
 
-              // Decode the message (pseudo-code for your logic)
-              debug_lowlevel_store.push_inbound(currentMessage);
-              let class_array = grid.decode_packet_frame(currentMessage);
-              grid.decode_packet_classes(class_array);
+        for (let i = 0; i < buffer.length; i++) {
+          rxBuffer.push(buffer[i]);
+        }
 
-              if (class_array) {
-                messageStream.deliver_inbound(class_array);
-              }
+        let messageStartIndex = 0;
+        let messageStopIndex = 0;
+
+        for (let i = 0; i < rxBuffer.length; i++) {
+          if (rxBuffer[i] === 10) {
+            // newline character found
+            messageStopIndex = i;
+            let currentMessage = rxBuffer.slice(
+              messageStartIndex,
+              messageStopIndex
+            );
+            messageStartIndex = i + 1;
+
+            // Decode the message
+            debug_lowlevel_store.push_inbound(currentMessage);
+            let class_array = grid.decode_packet_frame(currentMessage);
+            grid.decode_packet_classes(class_array);
+
+            if (class_array !== false) {
+              messageStream.deliver_inbound(class_array);
             }
           }
-          rxBuffer = rxBuffer.slice(messageStartIndex); // Adjust the buffer
         }
+
+        rxBuffer = rxBuffer.slice(messageStartIndex);
       }
     } catch (error) {
       console.warn("Error reading from serial port:", error);
@@ -204,19 +250,15 @@ navigator.tryConnectGrid = async () => {
     // Request access only if unopened ports are available
     if (ports.length === 0) {
       const port = await navigator.serial.requestPort({ filters: filter });
-      ports = [port];
+      ports = [port]; // Add the newly requested port to the list
     }
 
-    // Filter ports based on criteria and exclude already opened ports
+    // Filter ports based on the provided filter criteria
     const matchingPorts = ports.filter((port) => {
       const { usbVendorId, usbProductId } = port.getInfo();
-      const isMatching = filter.some(
+      return filter.some(
         (f) => f.usbVendorId === usbVendorId && f.usbProductId === usbProductId
       );
-      const isOpen = get(connection_manager.ports).some(
-        (openedPort) => openedPort.id === port.id
-      );
-      return isMatching && !isOpen;
     });
 
     // Attempt to open each matching port
@@ -224,17 +266,19 @@ navigator.tryConnectGrid = async () => {
       connection_manager
         .openPort(port)
         .then((port) => {
-          if (!connection_manager.active) {
+          if (typeof connection_manager.active === "undefined") {
             connection_manager.fetchStream(port);
           }
         })
         .catch((openError) => {
+          // Handle any errors that occur when opening the port
           if (navigator.debugSerial) {
             console.warn("Failed to open port:", openError);
           }
         });
     }
   } catch (listPortsError) {
+    // Handle any errors that occur when listing the ports
     if (navigator.debugSerial) {
       console.warn("Failed to list ports:", listPortsError);
     }
