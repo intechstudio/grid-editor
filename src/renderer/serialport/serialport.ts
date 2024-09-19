@@ -242,15 +242,13 @@ export const connection_manager = new GridConnectionManager();
 
 navigator.tryConnectGrid = async () => {
   try {
-    // Retrieve all available ports
-    let ports = await navigator.serial.getPorts();
-
-    console.log("yay", ports);
-
-    // Request access only if unopened ports are available
-    if (ports.length === 0) {
+    let ports: any[];
+    if (import.meta.env.VITE_WEB_MODE == "true") {
       const port = await navigator.serial.requestPort({ filters: filter });
       ports = [port]; // Add the newly requested port to the list
+    } else {
+      // Retrieve all available ports
+      ports = await navigator.serial.getPorts();
     }
 
     // Filter ports based on the provided filter criteria
