@@ -29,6 +29,9 @@
 
   function handleSelectedChange(id: string) {
     const port = get(ports).find((e) => e.id === id);
+    if (typeof port === "undefined") {
+      return;
+    }
     connection_manager.fetchStream(port);
   }
 </script>
