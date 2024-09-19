@@ -199,6 +199,8 @@ navigator.tryConnectGrid = async () => {
     // Retrieve all available ports
     let ports = await navigator.serial.getPorts();
 
+    console.log("yay", ports);
+
     // Request access only if unopened ports are available
     if (ports.length === 0) {
       const port = await navigator.serial.requestPort({ filters: filter });
