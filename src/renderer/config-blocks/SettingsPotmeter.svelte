@@ -126,7 +126,7 @@
   <div class="flex flex-col">
     <div class="text-gray-500 text-sm pb-1">Bit depth</div>
     <AtomicInput
-      inputValue={GridScript.humanize(pmo)}
+      value={GridScript.humanize(pmo)}
       suggestions={suggestions[0]}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
@@ -151,7 +151,7 @@
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(pmi)}
+        value={GridScript.humanize(pmi)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -170,7 +170,7 @@
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(pma)}
+        value={GridScript.humanize(pma)}
         suggestions={suggestions[1]}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();

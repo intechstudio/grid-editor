@@ -134,7 +134,7 @@
     <div class="flex flex-col">
       <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
       <AtomicInput
-        inputValue={GridScript.humanize(emo)}
+        value={GridScript.humanize(emo)}
         suggestions={suggestions[0]}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
@@ -153,7 +153,7 @@
     <div class="flex flex-col">
       <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
       <AtomicInput
-        inputValue={GridScript.humanize(ev0)}
+        value={GridScript.humanize(ev0)}
         suggestions={suggestions[1]}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
@@ -179,7 +179,7 @@
       <span class="text-sm text-gray-500">Min</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(emi)}
+        value={GridScript.humanize(emi)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -198,7 +198,7 @@
       <span class="text-sm text-gray-500">Max</span>
       <AtomicInput
         disabled={!minMaxEnabled}
-        inputValue={GridScript.humanize(ema)}
+        value={GridScript.humanize(ema)}
         validator={(e) => {
           return minMaxEnabled
             ? new Validator(e).NotEmpty().Result()
@@ -221,7 +221,7 @@
     <span class="text-sm text-gray-500">Sensitivity</span>
     <AtomicInput
       disabled={!sensitivityEnabled}
-      inputValue={GridScript.humanize(ese)}
+      value={GridScript.humanize(ese)}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()

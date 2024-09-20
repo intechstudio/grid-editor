@@ -135,7 +135,7 @@
               {#each data as obj, i}
                 <AtomicInput
                   class="flex h-7"
-                  inputValue={GridScript.humanize(obj.value)}
+                  value={GridScript.humanize(obj.value)}
                   suggestions={obj.suggestions}
                   validator={obj.validator}
                   on:validator={(e) => {

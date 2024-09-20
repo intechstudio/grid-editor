@@ -724,7 +724,7 @@
           {parameterNames[i]}
         </div>
         <AtomicInput
-          inputValue={GridScript.humanize(script)}
+          value={GridScript.humanize(script)}
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}

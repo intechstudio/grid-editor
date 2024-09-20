@@ -72,6 +72,7 @@ export class ConfigPage {
     this.codeBlockCharacterLimitMessage = page.getByText(
       "Config limit reached."
     );
+    this.characterCount = page.getByTestId("charCount");
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -240,5 +241,11 @@ export class ConfigPage {
 
   async openFirstActionBlock() {
     await this.firstActionBlock.click();
+  }
+
+  async getCharacterCount() {
+    const text = await this.characterCount.innerText();
+    const match = text.match(/^(\d+)/);
+    return match[1];
   }
 }
