@@ -285,7 +285,7 @@
   <div class="flex flex-row gap-2">
     <div class="text-gray-500 text-sm">Char Count:</div>
     <div class="text-white text-sm mr-10">
-      <span
+      <span data-testid="charCount"
         >{$configManager.toConfigScript().length}/{grid.getProperty(
           "CONFIG_LENGTH"
         ) - 1}

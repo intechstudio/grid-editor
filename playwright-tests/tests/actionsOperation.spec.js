@@ -225,6 +225,14 @@ test.describe("Character limit", () => {
       .toBeVisible();
     await expect(await configPage.commitCodeButton).toBeDisabled();
   });
+
+  test("character limit count", async () => {
+    const text = 'print("test")';
+    await configPage.removeAllActions();
+    await configPage.addAndEditCodeBlock(text);
+    await configPage.commitCode();
+    await expect(configPage.characterCount).toContainText("32");
+  });
 });
 
 test.describe("Issues", () => {
