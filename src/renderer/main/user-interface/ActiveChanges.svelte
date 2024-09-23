@@ -225,10 +225,12 @@
     >
       <MoltenPushButton text="Clear" />
     </div>
-    <MoltenPushButton
-      text="Connect"
-      style={"outlined"}
-      click={handleConnectModules}
-    />
+    {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
+      <MoltenPushButton
+        text="Connect"
+        style={"outlined"}
+        click={handleConnectModules}
+      />
+    {/if}
   </div>
 </container>
