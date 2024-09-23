@@ -58,6 +58,7 @@ import {
 } from "./addon/desktopAutomation";
 import polka from "polka";
 import sirv from "sirv";
+import { SerialPort } from "serialport";
 
 log.info("App starting...");
 

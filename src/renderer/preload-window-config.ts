@@ -23,6 +23,8 @@ declare global {
   }
   interface Navigator {
     serial: any;
+    debugSerial: boolean;
+    tryConnectGrid: () => any;
   }
 }
 
@@ -100,13 +102,16 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       findBootloaderPath: async () => {},
     },
     stopOfflineProfileCloud: async () => {},
-    fetchUrlJSON: async () => {},
+    fetchUrlJSON: async () => {
+      return [];
+    },
     getLatestVideo: async () => {
       return {
         videLink: "",
         videoId: "",
       };
     },
+
     restartPackageManager: () => {},
     resetAppSettings: () => {},
     openInBrowser: () => {},
