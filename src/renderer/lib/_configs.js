@@ -21,7 +21,6 @@ export async function init_config_block_library() {
 
 export function getComponentInformation({ short }) {
   const comps = getAllComponents();
-
   return comps?.find((c) => c.information.short == short);
 }
 

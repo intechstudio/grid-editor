@@ -5,7 +5,6 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { ConfigTarget } from "../../../panels/configuration/Configuration.store";
 
   export let device = undefined;
   export let visible = false;
@@ -37,9 +36,11 @@
       return;
     }
 
-    const { dx, dy } = ConfigTarget.getCurrent().device;
+    const ui = get(user_input);
+    const target = runtime.findModule(ui.dx, ui.dy);
+
+    const { dx, dy } = target;
     if (dx !== device.dx || dy !== device.dy) {
-      const ui = get(user_input);
       user_input.set({
         dx: device.dx,
         dy: device.dy,

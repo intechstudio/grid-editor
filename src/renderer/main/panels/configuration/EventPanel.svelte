@@ -28,10 +28,7 @@
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
-    target = runtime
-      .getModule(ui.dx, ui.dy)
-      .getPage(ui.pagenumber)
-      .getElement(ui.elementnumber);
+    target = runtime.findElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber);
 
     if (typeof target === "undefined") {
       options = defaultOptions;

@@ -58,11 +58,13 @@
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {
-    const target = runtime
-      .getModule(ui.dx, ui.dy)
-      .getPage(ui.pagenumber)
-      .getElement(ui.elementnumber)
-      .getEvent(ui.eventtype);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
 
     if (typeof target === "undefined") {
       return;
@@ -200,8 +202,7 @@
 
       const ui = get(user_input);
       runtime
-        .getModule(ui.dx, ui.dy)
-        .getPage(ui.pagenumber)
+        .findPage(ui.dx, ui.dy, ui.pagenumber)
         .load()
         .then(() => {
           const ui = get(user_input);
@@ -245,11 +246,13 @@
                   (elemet) => elemet.elementIndex === ui.elementnumber
                 );
 
-                const current = runtime
-                  .getModule(ui.dx, ui.dy)
-                  .getPage(ui.pagenumber)
-                  .getElement(ui.elementnumber)
-                  .getEvent(ui.eventtype);
+                const current = runtime.findEvent(
+                  ui.dx,
+                  ui.dy,
+                  ui.pagenumber,
+                  ui.elementnumber,
+                  ui.eventtype
+                );
 
                 config.type = (current.parent as GridElement).type;
                 config.configs = {

@@ -1,43 +1,9 @@
-import { logger } from "./../../../runtime/runtime.store";
-import { runtime, user_input } from "../../../runtime/runtime.store";
-import { configManager } from "../../panels/configuration/Configuration.store";
-import {
-  EventType,
-  EventTypeToNumber,
-  grid,
-  GridScript,
-} from "@intechstudio/grid-protocol";
-import { Writable, derived, get } from "svelte/store";
-import { ClipboardKey, appClipboard } from "../../../runtime/clipboard.store";
-import {
-  createActionsFromString,
-  GridAction,
-  GridEvent,
-} from "../../../runtime/runtime";
+import { GridAction, GridEvent } from "../../../runtime/runtime";
 
-function handleError(e: any) {
-  switch (e.type) {
-    case "lengthError":
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "luanotok",
-        message: `${e.device}: Modifications can not be synced with grid, 
-        maximum character limit reached. Shorten your code or delete action blocks.`,
-      });
-      break;
-    case "syntaxError":
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "luanotok",
-        message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
-      });
-      break;
-  }
-}
+type ConfigObject = any;
 
 export async function copyElement({ dx, dy, page, element }) {
+  /*
   logger.set({
     type: "progress",
     mode: 0,
@@ -96,9 +62,11 @@ export async function copyElement({ dx, dy, page, element }) {
       console.warn(error);
       Promise.reject(error);
     });
+    */
 }
 
 export async function overwriteElement({ dx, dy, page, element }) {
+  /*
   const clipboard = get(appClipboard);
   if (clipboard?.key !== ClipboardKey.ELEMENT) {
     throw `Overwrite Element: Invalid clipboard type ${clipboard?.key}`;
@@ -148,9 +116,11 @@ export async function overwriteElement({ dx, dy, page, element }) {
       configManager.set(list);
     });
   });
+  */
 }
 
-export async function discardElement({ dx, dy, page, element }): Promise<void> {
+export async function discardElement({ dx, dy, page, element }) {
+  /*
   logger.set({
     type: "progress",
     mode: 0,
@@ -209,9 +179,11 @@ export async function discardElement({ dx, dy, page, element }): Promise<void> {
       console.warn(error);
       return Promise.reject(error);
     });
+    */
 }
 
 export function selectAction(index: number, value: boolean) {
+  /*
   configManager.update((s: ConfigList) => {
     const stack: any[] = [];
     let n = index;
@@ -227,6 +199,7 @@ export function selectAction(index: number, value: boolean) {
     } while (stack.length > 0);
     return s;
   });
+  */
 }
 
 export function insertAction(
@@ -234,6 +207,7 @@ export function insertAction(
   configs: ConfigObject[],
   parent: GridEvent
 ) {
+  /*
   if (typeof index === "undefined") {
     index = get(configManager).length;
   }
@@ -260,9 +234,11 @@ export function insertAction(
     }
     return s;
   });
+  */
 }
 
 export function updateAction(index: number, newConfig: ConfigObject) {
+  /*
   const { short, script, name } = newConfig;
 
   const cm = get(configManager);
@@ -297,9 +273,11 @@ export function updateAction(index: number, newConfig: ConfigObject) {
       message: `Update failed! Config limit reached, shorten your code, or delete actions!`,
     });
   }
+  */
 }
 
 export function mergeActionToCode(index: number, configs: ConfigObject[]) {
+  /*
   //Merge scripts
   const script = configs.map((e) => e.script).join(" ");
 
@@ -332,9 +310,11 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
     s = s.filter((config) => !config.selected) as ConfigList;
     return s;
   });
+  */
 }
 
 export function copyActions() {
+  /*
   const clipboard = get(configManager)
     .filter((e) => e.selected)
     .map((e) => {
@@ -353,9 +333,11 @@ export function copyActions() {
     key: ClipboardKey.ACTION_BLOCKS,
     payload: clipboard,
   });
+  */
 }
 
-export function pasteActions(index: number | undefined): Promise<void> {
+export function pasteActions(index: number | undefined) {
+  /*
   return new Promise((resolve, reject) => {
     if (typeof index === "undefined") {
       index = get(configManager).length;
@@ -384,9 +366,11 @@ export function pasteActions(index: number | undefined): Promise<void> {
     });
     error ? reject("Paste failed") : resolve();
   });
+  */
 }
 
 export function removeActions() {
+  /*
   configManager.update((s: ConfigList) => {
     s.forEach((config) => {
       if (config.selected) {
@@ -395,11 +379,14 @@ export function removeActions() {
     });
     return s.filter((config) => !config.selected);
   });
+  */
 }
 
 export function cutActions() {
+  /*
   copyActions();
   removeActions();
+  */
 }
 
 export function clearElement(
@@ -407,7 +394,8 @@ export function clearElement(
   dy: number,
   pageNumber: number,
   elementNumber: number
-): Promise<void> {
+) {
+  /*
   const device: any = runtime.modules.find(
     (e: any) => e.dx === dx && e.dy === dy
   );
@@ -454,84 +442,5 @@ export function clearElement(
   return Promise.all(promises).then(() => {
     configManager.refresh();
   });
-}
-
-//////////////////////////////////
-/// State management functions ///
-//////////////////////////////////
-
-export function createOverwriteDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived([watched, appClipboard], ([$watched, $appClipboard]) => {
-    if (
-      typeof $watched === "undefined" ||
-      typeof $appClipboard === "undefined" ||
-      $appClipboard.key === ClipboardKey.ACTION_BLOCKS
-    ) {
-      return true;
-    }
-
-    const compatible = grid.is_element_compatible_with(
-      $appClipboard.payload.elementType,
-      $watched.elementType
-    );
-    return !compatible;
-  });
-}
-
-export function createCopyAllDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived(
-    [watched, configManager, runtime],
-    ([$watched, $configManager, $runtime]) => {
-      return (
-        typeof $configManager.find((e) => e.selected) !== "undefined" ||
-        runtime.modules.length === 0
-      );
-    }
-  );
-}
-
-export function createDiscardElementDisabledStore(
-  watched: Writable<ConfigTarget>
-) {
-  return derived([watched, configManager], ([$watched, $configManager]) => {
-    return !$watched?.hasChanges() ?? true;
-  });
-}
-
-export function createClearElementDisabledStore(
-  watched: Writable<ConfigTarget>
-) {
-  return derived([watched, runtime], ([$watched, $runtime]) => {
-    return runtime.modules.length === 0;
-  });
-}
-
-export function createCopyDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived([watched, configManager], ([$watched, $configManager]) => {
-    return typeof $configManager.find((e) => e.selected) === "undefined";
-  });
-}
-
-export function createPasteDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived([watched, appClipboard], ([$watched, $appClipboard]) => {
-    return $appClipboard?.key !== ClipboardKey.ACTION_BLOCKS;
-  });
-}
-
-export function createCutDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived([watched, configManager], ([$watched, $configManager]) => {
-    return typeof $configManager.find((e) => e.selected) === "undefined";
-  });
-}
-
-export function createMergeDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived([watched, configManager], ([$watched, $configManager]) => {
-    return typeof $configManager.find((e) => e.selected) === "undefined";
-  });
-}
-
-export function createRemoveDisabledStore(watched: Writable<ConfigTarget>) {
-  return derived([watched, configManager], ([$watched, $configManager]) => {
-    return typeof $configManager.find((e) => e.selected) === "undefined";
-  });
+  */
 }

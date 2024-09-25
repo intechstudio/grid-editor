@@ -1,4 +1,5 @@
 <script>
+  import { runtime, user_input } from "./../../../runtime/runtime.store.ts";
   import { Analytics } from "./../../../runtime/analytics.js";
   import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
   import XX16 from "./devices/XX16.svelte";
@@ -20,26 +21,15 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { user_input } from "../../../runtime/runtime.store";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
-  import { ConfigTarget } from "../../panels/configuration/Configuration.store";
-  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
-  import { get, writable } from "svelte/store";
+  import { get } from "svelte/store";
   import {
-    loadPreset,
-    loadProfile,
     overwriteElement,
     copyElement,
     discardElement,
     clearElement,
   } from "../../../main/panels/configuration/configuration-actions";
-  import {
-    createCopyAllDisabledStore,
-    createOverwriteDisabledStore,
-    createDiscardElementDisabledStore,
-    createClearElementDisabledStore,
-  } from "../../panels/configuration/configuration-actions";
 
   export let device = undefined;
   export let width = 225;
@@ -89,12 +79,13 @@
     });
 
     const { sender, elementNumber } = e.detail;
-    loadPreset({
-      dx: device.dx,
-      dy: device.dy,
-      element: elementNumber,
-      preset: $selectedConfigStore,
-    })
+    runtime
+      .loadPreset({
+        dx: device.dx,
+        dy: device.dy,
+        element: elementNumber,
+        preset: $selectedConfigStore,
+      })
       .then(() => {
         Analytics.track({
           event: "Preset Load Success",
@@ -124,17 +115,18 @@
     const { sender, device } = e.detail;
 
     Analytics.track({
-      event: "Profile Load Start",
+      event: "Pro file Load Start",
       payload: {},
       mandatory: false,
     });
 
-    loadProfile({
-      dx: device.dx,
-      dy: device.dy,
-      page: 0,
-      profile: $selectedConfigStore.configs,
-    })
+    runtime
+      .loadProfile({
+        dx: device.dx,
+        dy: device.dy,
+        page: 0,
+        profile: $selectedConfigStore.configs,
+      })
       .then(() => {
         sender.dispatchEvent(
           new CustomEvent("profile-load", {
@@ -262,47 +254,37 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const target = writable(
-        ConfigTarget.create({
-          device: {
-            dx: device.dx,
-            dy: device.dy,
-          },
-          page: get(user_input).pagenumber,
-          element: elementNumber,
-          eventType: EventTypeToNumber(EventType.SETUP),
-        })
+      {@const target = runtime.findElement(
+        device.dx,
+        device.dy,
+        $user_input.pagenumber,
+        elementNumber
       )}
-      {@const overwriteElementDisabled = createOverwriteDisabledStore(target)}
-      {@const copyElementDisabled = createCopyAllDisabledStore(target)}
-      {@const discardElementDisabled =
-        createDiscardElementDisabledStore(target)}
-      {@const clearElementDisabled = createClearElementDisabledStore(target)}
       <button
         use:contextTarget={{
           items: [
             {
               text: [`Copy Element`, `(${modifier[0]} + C)`],
               handler: () => handleCopyElement(elementNumber),
-              isDisabled: () => get(copyElementDisabled),
+              isDisabled: () => false,
               iconPath: "copy_all",
             },
             {
               text: [`Overwrite Element`, `(${modifier[0]} + V)`],
               handler: () => handleOverwriteElement(elementNumber),
-              isDisabled: () => get(overwriteElementDisabled),
+              isDisabled: () => false,
               iconPath: "paste_all",
             },
             {
               text: [`Discard Element Changes`, `(${modifier[0]} + Shift + D)`],
               handler: () => handleDiscardElement(elementNumber),
-              isDisabled: () => get(discardElementDisabled),
+              isDisabled: () => false,
               iconPath: "clear_from_device_01",
             },
             {
               text: [`Clear Element`, `(Shift + Delete)`],
               handler: handleClearElement,
-              isDisabled: () => get(clearElementDisabled),
+              isDisabled: () => false,
               iconPath: "clear_element",
             },
           ],

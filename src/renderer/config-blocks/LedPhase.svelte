@@ -52,13 +52,16 @@
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Script } from "./_script_parsers.js";
-  import { LocalDefinitions, user_input } from "../runtime/runtime.store";
+  import {
+    LocalDefinitions,
+    runtime,
+    user_input,
+  } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store";
   import { ElementType } from "@intechstudio/grid-protocol";
 
   export let config;
@@ -104,7 +107,6 @@
     scriptSegments[index] = e;
     // important to set the function name = human readable for now
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: scriptSegments,
     });
@@ -140,8 +142,13 @@
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
         const ui = get(user_input);
-        const target = ConfigTarget.createFrom({ userInput: ui });
-        switch (target.elementType) {
+        const target = runtime.findElement(
+          ui.dx,
+          ui.dy,
+          ui.pagenumber,
+          ui.elementnumber
+        );
+        switch (target.type) {
           case ElementType.BUTTON:
             return [
               { value: "1", info: "Button layer" },

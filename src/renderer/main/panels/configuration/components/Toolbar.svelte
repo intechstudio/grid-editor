@@ -1,19 +1,12 @@
 <script lang="ts">
+  import {
+    appClipboard,
+    ClipboardKey,
+  } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
   import { UserInputValue } from "./../../../../runtime/runtime.store";
   import { derived } from "svelte/store";
   import { runtime, user_input } from "./../../../../runtime/runtime.store";
-  import {
-    createCopyAllDisabledStore,
-    createOverwriteDisabledStore,
-    createDiscardElementDisabledStore,
-    createClearElementDisabledStore,
-    createMergeDisabledStore,
-    createCutDisabledStore,
-    createCopyDisabledStore,
-    createPasteDisabledStore,
-    createRemoveDisabledStore,
-  } from "../configuration-actions";
   import { shortcut } from "./../../../_actions/shortcut.action";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
@@ -98,25 +91,24 @@
 
   let event: GridEvent;
   let element: GridElement;
+
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
-    element = runtime
-      .getModule(ui.dx, ui.dy)
-      .getPage(ui.pagenumber)
-      .getElement(ui.elementnumber);
-    event = element.getEvent(ui.eventtype);
+    element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    event = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
   }
-
-  const copyElementDisabled = createCopyAllDisabledStore(event);
-  const overwriteElementDisabled = createOverwriteDisabledStore(event);
-  const discardElementDisabled = createDiscardElementDisabledStore(event);
-  const clearElementDisabled = createClearElementDisabledStore(event);
-  const copyDisabled = createCopyDisabledStore(event);
-  const pasteDisabled = createPasteDisabledStore(event);
-  const cutDisabled = createCutDisabledStore(event);
-  const mergeActionToCodeDisabled = createMergeDisabledStore(event);
-  const removeDisabled = createRemoveDisabledStore(event);
 
   const selectAllChecked = derived([configManager], ([$configManager]) => {
     return (
@@ -152,7 +144,7 @@
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
         iconPath={"copy_all"}
-        disabled={$copyElementDisabled}
+        disabled={$runtime.modules.length === 0 || false}
         color={"#03cb00"}
       />
 
@@ -163,7 +155,8 @@
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
         iconPath={"paste_all"}
-        disabled={$overwriteElementDisabled}
+        disabled={$appClipboard?.key !== ClipboardKey.ELEMENT ||
+          !element?.isCompatible($appClipboard?.payload.elementType)}
         color={"#006cb7"}
       />
 
@@ -181,7 +174,7 @@
           code: "KeyD",
         }}
         iconPath={"clear_from_device_01"}
-        disabled={$discardElementDisabled}
+        disabled={!element?.hasChanges()}
         color={"#ff2323"}
       />
 
@@ -195,7 +188,7 @@
           code: "Delete",
         }}
         iconPath={"clear_element"}
-        disabled={$clearElementDisabled}
+        disabled={$runtime.modules.length === 0}
         color={"#A020F0"}
       />
     </div>
@@ -206,7 +199,7 @@
           setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
-        disabled={$copyDisabled}
+        disabled={false}
         iconPath={"copy"}
         color={"#03cb00"}
       />
@@ -217,7 +210,7 @@
           setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
-        disabled={$pasteDisabled}
+        disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
         iconPath={"paste"}
         color={"#006cb7"}
       />
@@ -228,7 +221,7 @@
           setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyX" }}
-        disabled={$cutDisabled}
+        disabled={false}
         iconPath={"cut"}
         color={"#ff6100"}
       />
@@ -246,7 +239,7 @@
           shift: true,
           code: "KeyM",
         }}
-        disabled={$mergeActionToCodeDisabled}
+        disabled={false}
         iconPath={"merge_as_code"}
         color={"#ffcc33"}
       />
@@ -259,7 +252,7 @@
         shortcut={{
           code: "Delete",
         }}
-        disabled={$removeDisabled}
+        disabled={false}
         iconPath={"remove"}
         color={"#ff2323"}
       />

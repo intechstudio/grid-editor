@@ -2,7 +2,6 @@
   import { EventData, GridAction, GridEvent } from "./../../runtime/runtime";
   import { createEventDispatcher } from "svelte";
   import { toWords } from "number-to-words";
-  import * as ButtonStepElseIf from "../ButtonStep_ElseIf.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -33,10 +32,8 @@
 
       if (action.short === "bstn") {
         step = ++stack[stack.length - 1];
-        config.script = ButtonStepElseIf.information.defaultLua.replace(
-          "N",
-          String(step)
-        );
+        const defaultScript = config.information.defaultLua;
+        config.script = defaultScript.replace("N", String(step));
       }
     }
   }

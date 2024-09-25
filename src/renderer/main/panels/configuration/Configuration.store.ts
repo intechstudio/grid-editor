@@ -5,7 +5,6 @@ import {
   user_input,
   UserInputValue,
 } from "../../../runtime/runtime.store";
-import { init_config_block_library } from "../../../lib/_configs";
 import { GridAction } from "../../../runtime/runtime";
 
 export let lastOpenedActionblocks = writable([]);
@@ -37,39 +36,31 @@ export const configManager = create_configuration_manager();
 
 function create_configuration_manager(): ConfigManager {
   const internal = writable([]);
-  const loadAndInit = async () => {
-    await init_config_block_library();
-    user_input.subscribe((ui) => {
-      createConfigListFrom(ui)
-        .then((list) => {
-          internal.set(list);
-        })
-        .catch((e) => {
-          console.warn(e);
-          internal.set([]);
-        });
-    });
-  };
 
-  loadAndInit();
+  user_input.subscribe((ui) => {
+    createConfigListFrom(ui)
+      .then((list) => {
+        internal.set(list);
+      })
+      .catch((e) => {
+        console.warn(e);
+        internal.set([]);
+      });
+  });
 
   function createConfigListFrom(ui: UserInputValue): Promise<GridAction[]> {
     return new Promise((resolve, reject) => {
-      const event = runtime
-        .getModule(ui.dx, ui.dy)
-        .getPage(ui.pagenumber)
-        .getElement(ui.elementnumber)
-        .getEvent(ui.eventtype);
+      const event = runtime.findEvent(
+        ui.dx,
+        ui.dy,
+        ui.pagenumber,
+        ui.elementnumber,
+        ui.eventtype
+      );
 
-      event
-        .load()
-        .then((list) => {
-          resolve(list);
-        })
-        .catch((e) => {
-          console.log(e);
-          reject(e);
-        });
+      event.load().then((list) => {
+        resolve(list);
+      });
     });
   }
 

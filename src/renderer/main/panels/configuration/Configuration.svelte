@@ -16,7 +16,6 @@
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import {
-    ConfigTarget,
     configManager,
     lastOpenedActionblocksInsert,
   } from "./Configuration.store";
@@ -83,9 +82,15 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function sendCurrentConfigurationToGrid() {
-    $configManager
-      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
-      .catch((e) => handleError(e));
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    target.sendToGrid();
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -196,7 +201,6 @@
 
   function handleConfigInsertion(e) {
     let { index, configs } = e.detail;
-    const parent = ConfigTarget.getCurrent();
     insertAction(index, configs, parent.runtimeRef);
     sendCurrentConfigurationToGrid();
   }
@@ -206,7 +210,6 @@
     updateAction(index, config);
     sendCurrentConfigurationToGrid();
 
-    const target = ConfigTarget.getCurrent();
     if (typeof target === "undefined") {
       return;
     }

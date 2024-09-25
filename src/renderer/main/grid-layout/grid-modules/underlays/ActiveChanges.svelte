@@ -1,41 +1,22 @@
-<script>
-  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store";
-  import { user_input } from "../../../../runtime/runtime.store";
+<script lang="ts">
+  import { GridModule, GridElement } from "./../../../../runtime/runtime";
+  import { user_input, runtime } from "../../../../runtime/runtime.store";
   import { createEventDispatcher } from "svelte";
-  import { get } from "svelte/store";
 
-  export let elementNumber;
-  export let isLeftCut;
-  export let isRightCut;
-  export let device;
-  export let visible = false;
+  export let elementNumber: number;
+  export let isLeftCut: boolean;
+  export let isRightCut: boolean;
+  export let device: GridModule;
+  export let visible: boolean = false;
 
   const dispatch = createEventDispatcher();
 
-  let isChanged = false;
-
-  $: handleDeviceChange(device);
-
-  function handleDeviceChange(obj) {
-    const { dx, dy } = obj;
-    const ui = get(user_input);
-
-    const target = ConfigTarget.create({
-      device: { dx: dx, dy: dy },
-      page: ui.pagenumber,
-      element: elementNumber,
-      eventType: 0,
-    });
-
-    if (typeof target === "undefined") {
-      isChanged = false;
-      return;
-    }
-
-    //Find the event that has change
-    const changed = target.events.find((e) => e.hasChanges());
-    isChanged = typeof changed !== "undefined";
-  }
+  const element: GridElement = runtime.findElement(
+    device.dx,
+    device.dy,
+    $user_input.pagenumber,
+    elementNumber
+  );
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -43,7 +24,7 @@
 {#if visible}
   <div
     class="changeable-element
-    {isChanged ? 'changed-element' : ''}
+    {element.hasChanges() ? 'changed-element' : ''}
       {isRightCut ? 'corner-cut-r' : ''}
       {isLeftCut ? 'corner-cut-l' : ''}"
     style="   {elementNumber == 255

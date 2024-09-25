@@ -81,11 +81,13 @@
 
   function getAvailableOptions(configs) {
     const ui = get(user_input);
-    const target = runtime
-      .getModule(ui.dx, ui.dy)
-      .getPage(ui.pagenumber)
-      .getElement(ui.elementnumber)
-      .getEvent(ui.eventtype);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
 
     if (typeof configs === "undefined" || typeof target === "undefined") {
       throw "Unexpected Error";

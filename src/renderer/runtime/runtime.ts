@@ -253,39 +253,35 @@ export class GridAction extends RuntimeNode<ActionData> {
       this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
     return GridScript.checkSyntax(code);
   }
-
-  //Refactor this out
-  isEqual(other: GridAction) {
-    return (
-      this.name === other.name &&
-      this.script === other.script &&
-      this.short === other.short
-    );
-  }
 }
 
 export interface EventData extends NodeData {
-  config?: Array<GridAction> | undefined;
-  stored?: Array<GridAction> | undefined;
+  config?: Array<GridAction>;
   type: number;
 }
 
 export class GridEvent extends RuntimeNode<EventData> {
+  private stored: LuaScript | undefined;
+  private loaded: boolean;
+
   constructor(parent: GridElement, data?: EventData) {
     super(parent, data);
+    this.stored = undefined;
+    this.config = data.config ?? [];
+    this.loaded = false;
   }
 
-  replace(id: UUID, action: GridAction) {
+  public replace(id: UUID, action: GridAction) {
     const index = this.config.findIndex((e) => e.id === id);
     try {
       this.remove(id);
-      this.add(index, action);
+      this.insert(index, action);
     } catch (e) {
       `Replace failed! Reason: ${e}`;
     }
   }
 
-  remove(id: UUID) {
+  public remove(id: UUID) {
     const actions = this.config;
     const index = actions.findIndex((e) => e.id === id);
     if (index === -1) {
@@ -296,36 +292,38 @@ export class GridEvent extends RuntimeNode<EventData> {
     this.config = actions.splice(index, 1);
   }
 
-  add(index: number, action: GridAction) {
+  public insert(index: number, action: GridAction) {
     const actions = this.config;
 
     if (index < 0 || index > actions.length) {
       throw `Add failed! Invalid index: ${index}.`;
     }
 
+    action.parent = this;
     actions.splice(index, 0, action);
     this.config = actions;
   }
 
-  push(...action: GridAction[]) {
+  public push(...action: GridAction[]) {
     const actions = this.config;
+    action.forEach((e) => (e.parent = this));
     actions.push(...action);
     this.config = actions;
   }
 
-  getAction(index: number) {
+  public actionAt(index: number) {
     const actions = this.config;
     return actions.at(index);
   }
 
-  sendToGrid(): Promise<SendToGridResult> {
+  public sendToGrid(): Promise<SendToGridResult> {
     return new Promise((resolve, reject) => {
       if (!this.checkLength()) {
         reject("Length Error");
         return;
       }
 
-      if (!this.loaded) {
+      if (!this.isLoaded()) {
         resolve({ value: true, text: "Nothing to sync, not loaded yet." });
       }
 
@@ -349,8 +347,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     });
   }
 
-  //Returns TRUE if config syntax is OK
-  checkSyntax() {
+  public checkSyntax() {
     for (const action of this.config) {
       if (!action.checkSyntax()) {
         return false;
@@ -359,19 +356,18 @@ export class GridEvent extends RuntimeNode<EventData> {
     return true;
   }
 
-  //Returns TRUE if inside limit
-  checkLength() {
+  public checkLength() {
     const script = this.toLua();
     return script.length < grid.getProperty("CONFIG_LENGTH");
   }
 
-  get loaded() {
-    return typeof this.config !== "undefined";
+  public isLoaded() {
+    return this.loaded;
   }
 
-  async load(): Promise<GridAction[]> {
+  public async load(): Promise<GridAction[]> {
     return new Promise((resolve, reject) => {
-      if (this.loaded) {
+      if (this.isLoaded()) {
         return resolve(this.config);
       }
 
@@ -388,33 +384,56 @@ export class GridEvent extends RuntimeNode<EventData> {
           this.type
         )
         .then((descr) => {
-          const actions = GridAction.parse(descr.class_parameters.ACTIONSTRING);
+          const script = descr.class_parameters.ACTIONSTRING;
+          const actions = GridAction.parse(script);
           this.clear();
+          this.config = [];
           this.push(...actions);
+          this.store();
+          this.loaded = true;
           resolve(actions);
         })
         .catch((e) => reject(e));
     });
   }
 
+  public toLua() {
+    return `<?lua ${this.config
+      .map((e) => e.toLua())
+      .join("")
+      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
+  }
+
+  public hasChanges(): boolean {
+    if (this.isStored()) {
+      return false;
+    }
+    return this.stored !== this.toLua();
+  }
+
+  public isStored() {
+    if (!this.isLoaded()) {
+      return true;
+    }
+
+    return this.stored === this.toLua();
+  }
+
+  public store() {
+    this.stored = this.toLua();
+  }
+
+  public clear() {
+    this.config?.forEach((e) => (e.parent = undefined));
+    this.config = undefined;
+  }
+
   // Getters
-  get config() {
-    return new Promise((resolve) => {
-      if (this.loaded) {
-        resolve(this.getField("config"));
-      } else {
-        this.load().then((actions) => {
-          resolve(actions);
-        });
-      }
-    });
+  public get config() {
+    return this.getField("config");
   }
 
-  get stored() {
-    return this.getField("stored");
-  }
-
-  get type() {
+  public get type() {
     return this.getField("type");
   }
 
@@ -423,52 +442,8 @@ export class GridEvent extends RuntimeNode<EventData> {
     this.setField("config", value);
   }
 
-  private set stored(value: Array<GridAction>) {
-    this.setField("stored", value);
-  }
-
   private set type(value: number) {
     this.setField("type", value);
-  }
-
-  //Methods
-  toLua() {
-    return `<?lua ${this.config
-      .map((e) => e.toLua())
-      .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
-  }
-
-  hasChanges(): boolean {
-    if (this.stored === undefined) {
-      return false;
-    }
-
-    if (this.config.length !== this.stored.length) {
-      return true;
-    }
-
-    for (let i = 0; i < this.config.length; ++i) {
-      if (!this.config[i].isEqual(this.stored[i])) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  store(value: Array<GridAction>) {
-    this.stored = value.map(
-      (e) =>
-        new GridAction(this, { script: e.script, short: e.short, name: e.name })
-    );
-  }
-
-  clear() {
-    this.config.forEach((e) => (e.parent = undefined));
-    this.config = undefined;
-    this.stored.forEach((e) => (e.parent = undefined));
-    this.stored = undefined;
   }
 }
 
@@ -490,10 +465,17 @@ export class GridElement extends RuntimeNode<ElementData> {
         new GridEvent(this, {
           type: Number(event.value),
           config: undefined,
-          stored: undefined,
         })
       );
     }
+  }
+
+  public hasChanges() {
+    return this.events.some((e) => e.hasChanges());
+  }
+
+  isCompatible(type: ElementType) {
+    return grid.is_element_compatible_with(type, this.type);
   }
 
   loadPreset(preset: PresetData): Promise<PresetLoadResult> {
@@ -505,7 +487,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     });
   }
 
-  getEvent(type: number) {
+  findEvent(type: number) {
     const events = this.events;
     return events.find((event) => event.type === type);
   }
@@ -605,7 +587,7 @@ export class GridPage extends RuntimeNode<PageData> {
     });
   }
 
-  getElement(index: number) {
+  findElement(index: number) {
     const elements = this.control_elements;
     return elements.find((element) => element.elementIndex === index);
   }
@@ -685,7 +667,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
     ];
   }
 
-  getPage(index: number) {
+  findPage(index: number) {
     const pages = this.pages;
     return pages.find((page) => page.pageNumber === index);
   }
@@ -811,11 +793,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     super(undefined, { modules: [] });
   }
 
-  getModule(dx: number, dy: number) {
-    const modules = this.modules;
-    return modules.find((module) => module.dx === dx && module.dy === dy);
-  }
-
   get modules() {
     return this.getField("modules");
   }
@@ -825,84 +802,30 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.setField("modules", value);
   }
 
-  findUpdateDestEvent(
-    modules: GridModule[],
+  findEvent(
     dx: number,
     dy: number,
     page: number,
     element: number,
     event: number
   ) {
-    let _event = undefined;
-    // this elementnumber check refers to uninitialized UI...
-    if (element !== -1) {
-      modules.forEach((module) => {
-        if (module.dx == dx && module.dy == dy) {
-          const pageIndex = module.pages.findIndex((x) => x.pageNumber == page);
-          const elementIndex = module.pages[
-            pageIndex
-          ].control_elements.findIndex((x) => x.elementIndex == element);
-          _event = module.pages[pageIndex].control_elements[
-            elementIndex
-          ].events.find((e) => e.type == event);
-        }
-      });
-    }
-    return _event;
+    return this.findModule(dx, dy)
+      ?.findPage(page)
+      ?.findElement(element)
+      ?.findEvent(event);
   }
 
-  fetchOrLoadConfig({ dx, dy, page, element, event }): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const _device = this.modules.find(
-        (device) => device.dx == dx && device.dy == dy
-      );
-      const _page = _device.pages.find((e) => e.pageNumber == page);
-      const _element = _page.control_elements.find(
-        (e) => e.elementIndex == element
-      );
-      const _event = _element.events.find((e) => e.type == event);
+  findElement(dx: number, dy: number, page: number, element: number) {
+    return this.findModule(dx, dy)?.findPage(page)?.findElement(element);
+  }
 
-      if (typeof _event.config !== "undefined") {
-        resolve();
-      } else {
-        instructions
-          .fetchConfigFromGrid(dx, dy, page, element, event)
-          .then((descr) => {
-            const dx = descr.brc_parameters.SX;
-            const dy = descr.brc_parameters.SY;
-            const page = descr.class_parameters.PAGENUMBER;
-            const element = descr.class_parameters.ELEMENTNUMBER;
-            const event = descr.class_parameters.EVENTTYPE;
+  findPage(dx: number, dy: number, page: number) {
+    return this.findModule(dx, dy)?.findPage(page);
+  }
 
-            let dest = this.findUpdateDestEvent(
-              this.modules,
-              dx,
-              dy,
-              page,
-              element,
-              event
-            );
-
-            const actions = GridAction.parse(
-              descr.class_parameters.ACTIONSTRING
-            );
-            dest.clear();
-            dest.push(...actions);
-
-            this.update_event_configuration(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              actions
-            );
-
-            resolve();
-          })
-          .catch((e) => reject(e));
-      }
-    });
+  findModule(dx: number, dy: number) {
+    const modules = this.modules;
+    return modules.find((module) => module.dx === dx && module.dy === dy);
   }
 
   isFirmwareMismatch(currentFirmware, requiredFirmware) {
@@ -1030,34 +953,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       elementnumber: 0,
       eventtype: 2,
     });
-  }
-
-  update_event_configuration(
-    dx: number,
-    dy: number,
-    page: number,
-    element: number,
-    event: number,
-    actions: GridAction[]
-  ) {
-    // config
-
-    let dest = this.findUpdateDestEvent(
-      this.modules,
-      dx,
-      dy,
-      page,
-      element,
-      event
-    );
-    if (dest) {
-      actions.forEach((e) => (e.parent = dest));
-      dest.config = actions;
-
-      if (typeof dest.stored === "undefined") {
-        dest.store(dest.config);
-      }
-    }
   }
 
   clear_page_configuration(index) {
@@ -1229,9 +1124,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
               .find((e) => e.pageNumber == index)
               ?.control_elements.forEach((element) => {
                 element.events.forEach((event) => {
-                  if (event.stored !== event.config) {
-                    event.store(event.config);
-                  }
+                  event.store();
                 });
               });
           });

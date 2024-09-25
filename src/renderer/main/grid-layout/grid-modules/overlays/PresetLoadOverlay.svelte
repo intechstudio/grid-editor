@@ -1,6 +1,6 @@
 <script lang="ts">
+  import { runtime } from "./../../../../runtime/runtime.store.ts";
   import { grid } from "@intechstudio/grid-protocol";
-  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store";
   import { user_input } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { createEventDispatcher, onMount } from "svelte";
@@ -54,9 +54,11 @@
       return;
     }
 
-    const { dx, dy } = ConfigTarget.getCurrent().device;
+    const ui = get(user_input);
+    const target = runtime.findModule(ui.dx, ui.dy);
+    const { dx, dy } = target;
+
     if (dx !== device.dx || dy !== device.dy) {
-      const ui = get(user_input);
       user_input.set({
         dx: device.dx,
         dy: device.dy,
@@ -75,21 +77,15 @@
     const { dx, dy } = obj;
     const ui = get(user_input);
 
-    const target = ConfigTarget.create({
-      device: { dx: dx, dy: dy },
-      page: ui.pagenumber,
-      element: elementNumber,
-      eventType: 0,
-    });
+    const target = runtime.findElement(dx, dy, ui.pagenumber, elementNumber);
 
     if (typeof target === "undefined") {
       isChanged = false;
       return;
     }
 
-    const events = target.events;
     //Find the event that has change
-    const changed = events.find((e: GridEvent) => e.hasChanges());
+    const changed = target.hasChanges();
     isChanged = typeof changed !== "undefined";
   }
 
