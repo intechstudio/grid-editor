@@ -3,6 +3,8 @@ import {
   Architecture,
   ElementType,
   ModuleType,
+  GridScript,
+  EventType,
 } from "@intechstudio/grid-protocol";
 import {
   writable,
@@ -25,12 +27,24 @@ import {
   user_input,
 } from "./runtime.store";
 import { v4 as uuidv4 } from "uuid";
+import { getComponentInformation } from "../lib/_configs";
 
 type UUID = string;
+type LuaScript = string;
 interface NodeData {
   id?: UUID;
   parent?: RuntimeNode<any>;
 }
+
+type ProfileData = any;
+type PresetData = any;
+type ProfileLoadResult = any;
+type PresetLoadResult = any;
+
+export type SendToGridResult = {
+  value: boolean;
+  text: string;
+};
 
 abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   protected _internal: Writable<T>;
@@ -96,10 +110,19 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
 
   // Generalized setter
   protected setField<K extends keyof T>(key: K, value: T[K]) {
+    const currentValue = this.getField(key);
+
+    // Do nothing if the value has not changed
+    if (currentValue === value) {
+      return;
+    }
+
+    // Proceed with the update if the value has changed
     this.update((store) => {
       store[key] = value;
       return store;
     });
+
     this.notifyParent();
   }
 }
@@ -115,7 +138,79 @@ export class GridAction extends RuntimeNode<ActionData> {
     super(parent, data);
   }
 
+  static parse(script: LuaScript) {
+    const result: GridAction[] = [];
+    let configList: string[] = [];
+    let actionString = script;
+    // get rid of new line, enter
+    actionString = actionString.replace(/[\n\r]+/g, "");
+    // get rid of more than 2 spaces
+    actionString = actionString.replace(/\s{2,10}/g, " ");
+    // remove lua opening and closing characters
+    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+    if (actionString.startsWith("<?lua")) {
+      actionString = actionString.split("<?lua")[1].split("?>")[0];
+    }
+    // split by meta comments
+    configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
+
+    configList = configList.slice(1);
+    for (var i = 0; i < configList.length; i += 2) {
+      const split = configList[i]
+        .match(/--\[\[@(.*)\]\]/)
+        ?.at(1)
+        .split(/#(.*)/);
+      const obj = new GridAction(undefined, {
+        //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
+        short: split[0],
+        script: configList[i + 1].trim(),
+        name: split.length > 1 ? split[1] : undefined,
+      });
+      result.push(obj);
+    }
+
+    return result;
+  }
+
+  get indentation() {
+    let indentation = 0;
+    const event = this.parent as GridEvent;
+    for (let i = 0; i < event.config.length; i++) {
+      let action = event.config[i];
+
+      if (action.id === this.id) {
+        if (action.information.type === "composite_part") {
+          return indentation - 1;
+        } else {
+          return indentation;
+        }
+      }
+
+      if (action.information.type === "composite_open") {
+        indentation++;
+      } else if (action.information.type === "composite_close") {
+        --indentation;
+      }
+    }
+  }
+
+  static getInformation(short: string) {
+    const result = getComponentInformation({ short: short });
+    return result.information;
+  }
+
   // Getters
+  get information() {
+    let result = GridAction.getInformation(this.short);
+
+    //Backward compatibility
+    if (typeof result === "undefined") {
+      result = GridAction.getInformation("raw");
+    }
+
+    return result;
+  }
+
   get script() {
     return this.getField("script");
   }
@@ -147,6 +242,18 @@ export class GridAction extends RuntimeNode<ActionData> {
     }]] ${this.script}`;
   }
 
+  sendToGrid(): Promise<SendToGridResult> {
+    const event = this.parent as GridEvent;
+    return event.sendToGrid();
+  }
+
+  //Returns true if syntax is OK
+  checkSyntax() {
+    const code =
+      this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
+    return GridScript.checkSyntax(code);
+  }
+
   //Refactor this out
   isEqual(other: GridAction) {
     return (
@@ -168,9 +275,139 @@ export class GridEvent extends RuntimeNode<EventData> {
     super(parent, data);
   }
 
+  replace(id: UUID, action: GridAction) {
+    const index = this.config.findIndex((e) => e.id === id);
+    try {
+      this.remove(id);
+      this.add(index, action);
+    } catch (e) {
+      `Replace failed! Reason: ${e}`;
+    }
+  }
+
+  remove(id: UUID) {
+    const actions = this.config;
+    const index = actions.findIndex((e) => e.id === id);
+    if (index === -1) {
+      throw `Remove failed! Action with id of ${id} is not found.`;
+    }
+
+    this.config[index].parent = undefined;
+    this.config = actions.splice(index, 1);
+  }
+
+  add(index: number, action: GridAction) {
+    const actions = this.config;
+
+    if (index < 0 || index > actions.length) {
+      throw `Add failed! Invalid index: ${index}.`;
+    }
+
+    actions.splice(index, 0, action);
+    this.config = actions;
+  }
+
+  push(...action: GridAction[]) {
+    const actions = this.config;
+    actions.push(...action);
+    this.config = actions;
+  }
+
+  getAction(index: number) {
+    const actions = this.config;
+    return actions.at(index);
+  }
+
+  sendToGrid(): Promise<SendToGridResult> {
+    return new Promise((resolve, reject) => {
+      if (!this.checkLength()) {
+        reject("Length Error");
+        return;
+      }
+
+      if (!this.loaded) {
+        resolve({ value: true, text: "Nothing to sync, not loaded yet." });
+      }
+
+      const element = this.parent as GridElement;
+      const page = element.parent as GridPage;
+      const module = page.parent as GridModule;
+
+      instructions
+        .sendConfigToGrid(
+          module.dx,
+          module.dy,
+          page.pageNumber,
+          element.elementIndex,
+          this.type,
+          this.toLua()
+        )
+        .then(() => {
+          resolve({ value: true, text: "OK" });
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
+  //Returns TRUE if config syntax is OK
+  checkSyntax() {
+    for (const action of this.config) {
+      if (!action.checkSyntax()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  //Returns TRUE if inside limit
+  checkLength() {
+    const script = this.toLua();
+    return script.length < grid.getProperty("CONFIG_LENGTH");
+  }
+
+  get loaded() {
+    return typeof this.config !== "undefined";
+  }
+
+  async load(): Promise<GridAction[]> {
+    return new Promise((resolve, reject) => {
+      if (this.loaded) {
+        return resolve(this.config);
+      }
+
+      const element = this.parent as GridElement;
+      const page = element.parent as GridPage;
+      const module = page.parent as GridModule;
+
+      instructions
+        .fetchConfigFromGrid(
+          module.dx,
+          module.dy,
+          page.pageNumber,
+          element.elementIndex,
+          this.type
+        )
+        .then((descr) => {
+          const actions = GridAction.parse(descr.class_parameters.ACTIONSTRING);
+          this.clear();
+          this.push(...actions);
+          resolve(actions);
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
   // Getters
   get config() {
-    return this.getField("config");
+    return new Promise((resolve) => {
+      if (this.loaded) {
+        resolve(this.getField("config"));
+      } else {
+        this.load().then((actions) => {
+          resolve(actions);
+        });
+      }
+    });
   }
 
   get stored() {
@@ -228,7 +465,9 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   clear() {
+    this.config.forEach((e) => (e.parent = undefined));
     this.config = undefined;
+    this.stored.forEach((e) => (e.parent = undefined));
     this.stored = undefined;
   }
 }
@@ -255,6 +494,32 @@ export class GridElement extends RuntimeNode<ElementData> {
         })
       );
     }
+  }
+
+  loadPreset(preset: PresetData): Promise<PresetLoadResult> {
+    return new Promise((resolve, reject) => {
+      this.load().then(() => {
+        //PRESET LOAD
+        resolve("OK");
+      });
+    });
+  }
+
+  getEvent(type: number) {
+    const events = this.events;
+    return events.find((event) => event.type === type);
+  }
+
+  async load() {
+    const promises: Array<Promise<void>> = [];
+    for (const event of this.events) {
+      promises.push(
+        new Promise((resolve) => {
+          event.load().then(() => resolve());
+        })
+      );
+    }
+    Promise.all(promises);
   }
 
   // Getters
@@ -315,6 +580,46 @@ export class GridPage extends RuntimeNode<PageData> {
         })
       );
     }
+  }
+
+  loadProfile(profile: ProfileData): Promise<ProfileLoadResult> {
+    return new Promise((resolve, reject) => {
+      const ui = get(user_input);
+      this.load().then(() => {
+        const elements = profile.elements;
+        // Reorder array to send system element first
+        const index = elements.findIndex((obj) => obj.elementIndex === 255);
+
+        // Check if the object with id === 255 was found
+        if (index !== -1) {
+          // Remove the object at the found index
+          const objectToMove = elements.splice(index, 1)[0];
+
+          // Add the object to the front of the array
+          elements.unshift(objectToMove);
+        }
+
+        //PROFILE LOAD
+        resolve("OK");
+      });
+    });
+  }
+
+  getElement(index: number) {
+    const elements = this.control_elements;
+    return elements.find((element) => element.elementIndex === index);
+  }
+
+  async load() {
+    const promises: Array<Promise<void>> = [];
+    for (const element of this.control_elements) {
+      promises.push(
+        new Promise((resolve) => {
+          element.load().then(() => resolve());
+        })
+      );
+    }
+    Promise.all(promises);
   }
 
   // Getters
@@ -378,6 +683,23 @@ export class GridModule extends RuntimeNode<ModuleData> {
       new GridPage(this, { pageNumber: 2 }),
       new GridPage(this, { pageNumber: 3 }),
     ];
+  }
+
+  getPage(index: number) {
+    const pages = this.pages;
+    return pages.find((page) => page.pageNumber === index);
+  }
+
+  async load() {
+    const promises: Array<Promise<void>> = [];
+    for (const page of this.pages) {
+      promises.push(
+        new Promise((resolve) => {
+          page.load().then(() => resolve());
+        })
+      );
+    }
+    Promise.all(promises);
   }
 
   // Getters
@@ -489,6 +811,11 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     super(undefined, { modules: [] });
   }
 
+  getModule(dx: number, dy: number) {
+    const modules = this.modules;
+    return modules.find((module) => module.dx === dx && module.dy === dy);
+  }
+
   get modules() {
     return this.getField("modules");
   }
@@ -556,10 +883,11 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
               event
             );
 
-            const actions = createActionsFromString(
-              dest,
+            const actions = GridAction.parse(
               descr.class_parameters.ACTIONSTRING
             );
+            dest.clear();
+            dest.push(...actions);
 
             this.update_event_configuration(
               dx,
@@ -704,121 +1032,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     });
   }
 
-  element_preset_load(x, y, element, preset): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const ui = get(user_input);
-      let events = preset.configs.events;
-      const promises = [];
-      events.forEach((e) => {
-        const page = ui.pagenumber;
-        const event = e.event;
-
-        let dest = this.findUpdateDestEvent(
-          this.modules,
-          x,
-          y,
-          page,
-          element,
-          event
-        );
-        if (typeof dest !== "undefined") {
-          dest.config = createActionsFromString(dest, e.config);
-          const promise = instructions.sendConfigToGrid(
-            x,
-            y,
-            page,
-            element,
-            event,
-            e.config
-          );
-
-          promises.push(promise);
-        }
-      });
-      Promise.all(promises)
-        .then(() => {
-          resolve();
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "elementoverwrite",
-            message: `Overwrite done!`,
-          });
-        })
-        .catch((e) => reject(e));
-    });
-  }
-
-  whole_page_overwrite(x, y, array): Promise<void> {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "profileload",
-      message: `Profile load started...`,
-    });
-
-    return new Promise((resolve, reject) => {
-      // Reorder array to send system element first
-      const index = array.findIndex((obj) => obj.elementIndex === 255);
-
-      // Check if the object with id === 255 was found
-      if (index !== -1) {
-        // Remove the object at the found index
-        const objectToMove = array.splice(index, 1)[0];
-
-        // Add the object to the front of the array
-        array.unshift(objectToMove);
-      }
-
-      let ui = structuredClone(get(user_input));
-      const promises = [];
-      array.forEach((elem) => {
-        elem.events.forEach((ev) => {
-          ui.elementnumber = elem.controlElementNumber;
-          ui.eventtype = ev.event;
-
-          const page = ui.pagenumber;
-          const element = ui.elementnumber;
-          const event = ui.eventtype;
-
-          let dest = this.findUpdateDestEvent(
-            this.modules,
-            x,
-            y,
-            page,
-            element,
-            event
-          );
-          if (dest) {
-            dest.config = createActionsFromString(dest, ev.config);
-          }
-
-          const promise = instructions.sendConfigToGrid(
-            x,
-            y,
-            page,
-            element,
-            event,
-            ev.config
-          );
-
-          promises.push(promise);
-        });
-      });
-      Promise.all(promises)
-        .then((desc) => {
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "profileload",
-            message: `Profile load complete!`,
-          });
-          resolve();
-        })
-        .catch((e) => reject(e));
-    });
-  }
-
   update_event_configuration(
     dx: number,
     dy: number,
@@ -845,125 +1058,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         dest.store(dest.config);
       }
     }
-  }
-
-  send_event_configuration_to_grid(
-    dx,
-    dy,
-    page,
-    element,
-    event
-  ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      let dest = this.findUpdateDestEvent(
-        this.modules,
-        dx,
-        dy,
-        page,
-        element,
-        event
-      );
-      if (dest) {
-        const script = `<?lua ${dest.config.map((e) => e.toLua()).join("")} ?>`;
-        instructions
-          .sendConfigToGrid(dx, dy, page, element, event, script)
-          .then((desc) => {
-            resolve();
-          })
-          .catch((e) => reject(e));
-      } else {
-        reject("DEST not found!");
-      }
-    });
-  }
-
-  // whole element copy: fetches all event configs from a control element
-  fetch_element_configuration_from_grid(dx, dy, pageNumber, elementNumber) {
-    const device = this.modules.find(
-      (device) => device.dx == dx && device.dy == dy
-    );
-    const page = device.pages.find((x) => x.pageNumber == pageNumber);
-    const element = page.control_elements.find(
-      (x) => x.elementIndex == elementNumber
-    );
-    const events = element.events;
-
-    const promises = events.map((e) => {
-      const eventType = e.type;
-      const dest = {
-        dx: dx,
-        dy: dy,
-        page: pageNumber,
-        element: elementNumber,
-        event: eventType,
-      };
-      const promise = this.fetchOrLoadConfig(dest);
-      return promise;
-    });
-
-    return Promise.all(promises);
-  }
-
-  fetch_page_configuration_from_grid({ dx, dy, page }) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "profilesave",
-      message: `Preparing configs...`,
-    });
-
-    let device = this.modules.find(
-      (device) => device.dx == dx && device.dy == dy
-    );
-
-    if (typeof device === "undefined") {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "profilesave",
-        message: `No module selected`,
-      });
-
-      return Promise.reject(`No module selected`);
-    }
-
-    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
-    const controlElements = device.pages[pageIndex].control_elements;
-
-    const fetchArray = [];
-
-    controlElements.forEach((controlElement) => {
-      controlElement.events.forEach((e) => {
-        if (typeof e.config === "undefined") {
-          // put it into the fetchArray
-          fetchArray.push({
-            event: e.type,
-            elementIndex: controlElement.elementIndex,
-          });
-        }
-      });
-    });
-
-    // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
-    // writeBuffer.clear();
-
-    if (fetchArray.length === 0) {
-      //nothing to do, let's do calback
-      return Promise.resolve();
-    }
-
-    const promises = fetchArray.map((e) => {
-      const promise = this.fetchOrLoadConfig({
-        dx: dx,
-        dy: dy,
-        page: page,
-        element: e.elementIndex,
-        event: e.event,
-      });
-      return promise;
-    });
-
-    return Promise.all(promises);
   }
 
   clear_page_configuration(index) {
@@ -1211,39 +1305,4 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.modules = [...this.modules, controller];
     this.setDefaultSelectedElement();
   }
-}
-
-//TODO: helper function to refactor out
-export function createActionsFromString(parent: GridEvent, script: string) {
-  const result: GridAction[] = [];
-  let configList: string[] = [];
-  let actionString = script;
-  // get rid of new line, enter
-  actionString = actionString.replace(/[\n\r]+/g, "");
-  // get rid of more than 2 spaces
-  actionString = actionString.replace(/\s{2,10}/g, " ");
-  // remove lua opening and closing characters
-  // this function is used for both parsing full config (long complete lua) and individiual actions lua
-  if (actionString.startsWith("<?lua")) {
-    actionString = actionString.split("<?lua")[1].split("?>")[0];
-  }
-  // split by meta comments
-  configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
-
-  configList = configList.slice(1);
-  for (var i = 0; i < configList.length; i += 2) {
-    const split = configList[i]
-      .match(/--\[\[@(.*)\]\]/)
-      ?.at(1)
-      .split(/#(.*)/);
-    const obj = new GridAction(parent, {
-      //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
-      short: split[0],
-      script: configList[i + 1].trim(),
-      name: split.length > 1 ? split[1] : undefined,
-    });
-    result.push(obj);
-  }
-
-  return result;
 }

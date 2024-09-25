@@ -1,11 +1,13 @@
-<script>
-  import { GridAction } from "./../../../../runtime/runtime.ts";
+<script lang="ts">
+  import { get } from "svelte/store";
+  import { user_input, runtime } from "./../../../../runtime/runtime.store";
+  import { GridAction } from "./../../../../runtime/runtime";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
     ClipboardKey,
     appClipboard,
-  } from "./../../../../runtime/clipboard.store.ts";
+  } from "./../../../../runtime/clipboard.store";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
 
@@ -14,11 +16,7 @@
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import {
-    ConfigObject,
-    ConfigTarget,
-    configManager,
-  } from "../Configuration.store";
+  import { configManager } from "../Configuration.store";
 
   import { lastOpenedActionblocksInsert } from "../Configuration.store";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
@@ -82,12 +80,18 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function getAvailableOptions(configs) {
-    const target = ConfigTarget.getCurrent();
+    const ui = get(user_input);
+    const target = runtime
+      .getModule(ui.dx, ui.dy)
+      .getPage(ui.pagenumber)
+      .getElement(ui.elementnumber)
+      .getEvent(ui.eventtype);
+
     if (typeof configs === "undefined" || typeof target === "undefined") {
       throw "Unexpected Error";
     }
 
-    let comp = getAllComponents();
+    let comp: any = getAllComponents();
 
     if (comp === undefined) {
       return;
@@ -182,7 +186,7 @@
     }
 
     //Filter out element type specific components
-    const eventString = NumberToEventType(target.eventType);
+    const eventString = NumberToEventType(target.type);
 
     if (eventString !== "encoder") {
       comp = comp.filter(
@@ -264,10 +268,10 @@
   }
 
   function handleClickOutside(e) {
-    handleClose(e);
+    handleClose();
   }
 
-  function handleClose(e) {
+  function handleClose() {
     dispatch("close");
   }
 
@@ -299,13 +303,9 @@
     defaultScript = replaceToLocalDefinition(defaultScript, "glg()", "gre");
     defaultScript = replaceToLocalDefinition(defaultScript, "glb()", "blu");
     const configs = [
-      new ConfigObject({
+      new GridAction(undefined, {
         short: component.information.short,
         script: defaultScript,
-        runtimeRef: new GridAction(undefined, {
-          short: component.information.short,
-          script: defaultScript,
-        }),
         name: undefined,
       }),
     ];
@@ -316,13 +316,9 @@
     if (typeof compositeLua !== "undefined") {
       for (const obj of compositeLua) {
         configs.push(
-          new ConfigObject({
+          new GridAction(undefined, {
             short: obj.short,
             script: obj.script,
-            runtimeRef: new GridAction(undefined, {
-              short: obj.short,
-              script: obj.script,
-            }),
             name: undefined,
           })
         );

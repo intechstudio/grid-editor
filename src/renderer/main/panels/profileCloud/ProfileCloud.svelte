@@ -1,9 +1,12 @@
-<script>
-  import { ConfigTarget } from "./../configuration/Configuration.store";
+<script lang="ts">
+  import { GridElement } from "./../../../runtime/runtime";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { moduleOverlay } from "../../../runtime/moduleOverlay";
+  import {
+    moduleOverlay,
+    ModuleOverlayType,
+  } from "../../../runtime/moduleOverlay";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -55,7 +58,12 @@
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
+    const target = runtime
+      .getModule(ui.dx, ui.dy)
+      .getPage(ui.pagenumber)
+      .getElement(ui.elementnumber)
+      .getEvent(ui.eventtype);
+
     if (typeof target === "undefined") {
       return;
     }
@@ -63,7 +71,7 @@
     selectedModuleType = runtime.modules.find(
       (device) => device.dx == ui.dx && device.dy == ui.dy
     ).type;
-    selectedControlElementType = target.elementType;
+    selectedControlElementType = target.type;
     sendSelectedComponentInfos(selectedModuleType, selectedControlElementType);
   }
 
@@ -171,9 +179,9 @@
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
     if (typeof get(selectedConfigStore) !== "undefined") {
-      moduleOverlay.show("configuration-load-overlay");
+      moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
     } else {
-      if (get(moduleOverlay) === "configuration-load-overlay") {
+      if (get(moduleOverlay) === ModuleOverlayType.CONFIGURATION_LOAD) {
         moduleOverlay.close();
       }
     }
@@ -192,19 +200,17 @@
 
       const ui = get(user_input);
       runtime
-        .fetch_page_configuration_from_grid({
-          dx: ui.dx,
-          dy: ui.dy,
-          page: ui.pagenumber,
-        })
-        .then((desc) => {
+        .getModule(ui.dx, ui.dy)
+        .getPage(ui.pagenumber)
+        .load()
+        .then(() => {
           const ui = get(user_input);
 
           let name = undefined;
           let description = "Click here to add description";
           let id = uuidv4();
 
-          let config = {
+          let config: any = {
             name: name,
             id: id,
             description: description,
@@ -239,10 +245,13 @@
                   (elemet) => elemet.elementIndex === ui.elementnumber
                 );
 
-                const current = ConfigTarget.createFrom({ userInput: ui });
-                const type = current.getElement().type;
+                const current = runtime
+                  .getModule(ui.dx, ui.dy)
+                  .getPage(ui.pagenumber)
+                  .getElement(ui.elementnumber)
+                  .getEvent(ui.eventtype);
 
-                config.type = type;
+                config.type = (current.parent as GridElement).type;
                 config.configs = {
                   events: element.events.map((ev) => {
                     return {

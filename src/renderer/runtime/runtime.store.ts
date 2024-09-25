@@ -1,4 +1,4 @@
-import { writable, get } from "svelte/store";
+import { writable, get, type Writable } from "svelte/store";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { appSettings } from "./app-helper.store";
 import { modal } from "../main/modals/modal.store";
@@ -155,7 +155,7 @@ export function update_ledColorStore(descr) {
 export const logger = writable();
 
 function create_user_input() {
-  const defaultValues = {
+  const defaultValues: UserInputValue = {
     dx: undefined,
     dy: undefined,
     pagenumber: undefined,
@@ -316,6 +316,14 @@ function create_user_input() {
     module_destroy_handler: module_destroy_handler,
   };
 }
+
+export type UserInputValue = {
+  dx: number;
+  dy: number;
+  pagenumber: number;
+  elementnumber: number;
+  eventtype: number;
+};
 
 export const user_input = create_user_input();
 

@@ -56,14 +56,12 @@
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { get } from "svelte/store";
-  import { ConfigObject } from "../main/panels/configuration/Configuration.store";
 
   const dispatch = createEventDispatcher();
 
-  export let config: ConfigObject;
+  export let config: GridAction;
   export let index: number;
 
-  let action: GridAction;
   let codePreview: HTMLElement;
 
   const lualogo_foreground = "#808080";
@@ -109,21 +107,17 @@
     });
   }
 
-  onMount(() => {
-    action = config.runtimeRef;
-  });
-
-  $: if (typeof $action !== "undefined") {
+  $: if (typeof $config !== "undefined") {
     displayConfigScript(config.script);
   }
 
   async function open_monaco() {
-    if (action.id !== get(monaco_store)?.config.runtimeRef.id) {
+    if (config.id !== get(monaco_store)?.config.runtimeRef.id) {
       modal.close();
       await tick();
     }
     monaco_store.set({ config: config, index: index });
-    const event = action.parent as GridEvent;
+    const event = config.parent as GridEvent;
     const element = event.parent as GridElement;
     $monaco_elementtype = element.type;
     modal.show({

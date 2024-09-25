@@ -23,11 +23,6 @@
   import { beforeUpdate, afterUpdate, onMount } from "svelte";
 
   import { GridScript } from "@intechstudio/grid-protocol";
-  import {
-    configManager,
-    ConfigTarget,
-    ConfigList,
-  } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
@@ -104,7 +99,7 @@
 
   onMount(() => {
     const store = $monaco_store;
-    editedAction = store.config.runtimeRef;
+    editedAction = store.config;
     commitedCode = editedAction.script;
     commitedName = editedAction.name;
     scriptLength = (editedAction.parent as GridEvent).toLua().length;
@@ -188,32 +183,11 @@
   });
 
   async function handleCommit() {
-    $monaco_store.config.script = GridScript.compressScript(editor.getValue());
-    $monaco_store.config.name =
+    const action = $monaco_store.config;
+    action.script = GridScript.compressScript(editor.getValue());
+    action.name =
       name !== $monaco_store.config?.information.displayName ? name : undefined;
-
-    const action = $monaco_store.config.runtimeRef;
-    const event = action.parent as GridEvent;
-    const element = event.parent as GridElement;
-    const page = element.parent as GridPage;
-    const module = page.parent as GridModule;
-
-    const target = ConfigTarget.create({
-      device: { dx: module.dx, dy: module.dy },
-      page: page.pageNumber,
-      element: element.elementIndex,
-      eventType: event.type,
-    });
-
-    ConfigList.createFromTarget(target).then((list: ConfigList) => {
-      list.sendTo({ target }).catch((e) => {
-        console.log(e);
-      });
-      commitedCode = $monaco_store.config.script;
-      name = $monaco_store.config.name;
-      commitEnabled = false;
-      errorMesssage = "";
-    });
+    action.sendToGrid();
   }
 
   onDestroy(() => {

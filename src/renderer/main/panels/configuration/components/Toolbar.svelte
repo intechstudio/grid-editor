@@ -1,5 +1,7 @@
-<script>
-  import { derived, writable } from "svelte/store";
+<script lang="ts">
+  import { GridEvent, GridElement } from "./../../../../runtime/runtime";
+  import { UserInputValue } from "./../../../../runtime/runtime.store";
+  import { derived } from "svelte/store";
   import { runtime, user_input } from "./../../../../runtime/runtime.store";
   import {
     createCopyAllDisabledStore,
@@ -12,11 +14,11 @@
     createPasteDisabledStore,
     createRemoveDisabledStore,
   } from "../configuration-actions";
-  import { shortcut } from "./../../../_actions/shortcut.action.ts";
+  import { shortcut } from "./../../../_actions/shortcut.action";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
-  import { ConfigTarget, configManager } from "../Configuration.store";
+  import { configManager } from "../Configuration.store";
 
   const dispatch = createEventDispatcher();
 
@@ -94,26 +96,27 @@
     dispatch("clear-element");
   }
 
-  const target = writable();
-  $: {
-    if ($runtime) {
-      target.set(
-        ConfigTarget.createFrom({
-          userInput: $user_input,
-        })
-      );
-    }
+  let event: GridEvent;
+  let element: GridElement;
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui: UserInputValue) {
+    element = runtime
+      .getModule(ui.dx, ui.dy)
+      .getPage(ui.pagenumber)
+      .getElement(ui.elementnumber);
+    event = element.getEvent(ui.eventtype);
   }
 
-  const copyElementDisabled = createCopyAllDisabledStore(target);
-  const overwriteElementDisabled = createOverwriteDisabledStore(target);
-  const discardElementDisabled = createDiscardElementDisabledStore(target);
-  const clearElementDisabled = createClearElementDisabledStore(target);
-  const copyDisabled = createCopyDisabledStore(target);
-  const pasteDisabled = createPasteDisabledStore(target);
-  const cutDisabled = createCutDisabledStore(target);
-  const mergeActionToCodeDisabled = createMergeDisabledStore(target);
-  const removeDisabled = createRemoveDisabledStore(target);
+  const copyElementDisabled = createCopyAllDisabledStore(event);
+  const overwriteElementDisabled = createOverwriteDisabledStore(event);
+  const discardElementDisabled = createDiscardElementDisabledStore(event);
+  const clearElementDisabled = createClearElementDisabledStore(event);
+  const copyDisabled = createCopyDisabledStore(event);
+  const pasteDisabled = createPasteDisabledStore(event);
+  const cutDisabled = createCutDisabledStore(event);
+  const mergeActionToCodeDisabled = createMergeDisabledStore(event);
+  const removeDisabled = createRemoveDisabledStore(event);
 
   const selectAllChecked = derived([configManager], ([$configManager]) => {
     return (

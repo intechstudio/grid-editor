@@ -1,12 +1,15 @@
 <script lang="ts">
-  import { Grid } from "./../../../lib/_utils.ts";
+  import { Grid } from "./../../../lib/_utils";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
-  import { runtime, user_input } from "../../../runtime/runtime.store";
+  import {
+    runtime,
+    user_input,
+    type UserInputValue,
+  } from "../../../runtime/runtime.store";
 
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./Configuration.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
-  import { GridEvent } from "../../../runtime/runtime";
+  import { GridEvent, GridElement } from "../../../runtime/runtime";
 
   type EventPanelOption = {
     title: string;
@@ -20,12 +23,15 @@
 
   let options = defaultOptions;
   let selected = defaultSelected;
-  let target: ConfigTarget;
+  let target: GridElement;
 
   $: handleUserInputChange($user_input);
 
-  function handleUserInputChange(ui: any) {
-    target = ConfigTarget.createFrom({ userInput: ui });
+  function handleUserInputChange(ui: UserInputValue) {
+    target = runtime
+      .getModule(ui.dx, ui.dy)
+      .getPage(ui.pagenumber)
+      .getElement(ui.elementnumber);
 
     if (typeof target === "undefined") {
       options = defaultOptions;
@@ -40,7 +46,7 @@
       })
     );
 
-    selected = options.find((e) => e.value === target.eventType).value;
+    selected = options.find((e) => e.value === ui.eventtype).value;
   }
 
   $: handleSelectEvent(selected);

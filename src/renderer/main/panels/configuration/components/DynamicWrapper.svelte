@@ -1,9 +1,6 @@
-<script>
-  import { GridAction } from "./../../../../runtime/runtime.ts";
-  import { getAllComponents } from "../../../../lib/_configs";
-
-  import { createEventDispatcher, onMount } from "svelte";
-  import { ConfigObject } from "../Configuration.store";
+<script lang="ts">
+  import { GridAction, GridEvent } from "./../../../../runtime/runtime";
+  import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
 
   import {
     lastOpenedActionblocks,
@@ -12,6 +9,7 @@
   } from "../Configuration.store";
 
   import { configIndexToId } from "../../../_actions/move.action";
+  import { getComponentInformation } from "../../../../lib/_configs";
 
   let toggled = false;
 
@@ -28,9 +26,10 @@
   });
 
   export let index = undefined;
-  export let config;
+  export let config: GridAction;
 
-  $: syntaxError = !config.checkSyntax();
+  let header: typeof SvelteComponent;
+  let component: typeof SvelteComponent;
 
   let syntaxError = false;
   let validationError = false;
@@ -38,48 +37,31 @@
 
   const dispatch = createEventDispatcher();
 
-  function replace_me(e) {
+  onMount(() => {
+    const result = getComponentInformation({ short: config.short });
+    header = result.header;
+    component = result.component;
+  });
+
+  $: syntaxError = !config.checkSyntax();
+
+  function replace_me(e: any) {
     const { short, script, name } = e.detail;
-
-    const new_config = getAllComponents().find(
-      (e) => e.information.short === short
-    );
-
-    const configScript = script ?? new_config.information.defaultLua;
-
-    const obj = new ConfigObject({
-      short: new_config.information.short,
-      script: configScript,
+    const parent = config.parent as GridEvent;
+    const action = new GridAction(undefined, {
+      short: short,
+      script: GridAction.getInformation(short), // Default Script
       name: name,
-      runtimeRef: new GridAction(config.runtimeRef.parent, {
-        short: new_config.information.short,
-        script: configScript,
-        name: name,
-      }),
     });
-
-    dispatch("replace", {
-      index: index,
-      config: obj,
-    });
+    parent.replace(config.id, action);
     toggled = true;
   }
 
   function handleOutput(e) {
     const { short, script, name } = e.detail;
-    dispatch("update", {
-      index: index,
-      config: new ConfigObject({
-        short: short,
-        script: script,
-        name: name,
-        runtimeRef: new GridAction(config.runtimeRef.parent, {
-          short,
-          script,
-          name,
-        }),
-      }),
-    });
+    config.short = short;
+    config.script = script;
+    config.name = name;
   }
 
   function handleValidator(e) {
@@ -169,15 +151,14 @@
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-        {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
+        {#if (toggled && config.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
           <div class="bg-secondary bg-opacity-30 h-full w-full">
             <svelte:component
-              this={config.component}
+              this={component}
               class="h-full w-full px-2"
               {index}
               {config}
-              action={config.runtimeRef}
               {syntaxError}
               on:replace={replace_me}
               on:validator={handleValidator}
@@ -189,10 +170,9 @@
           <!-- Header of the Action block when untoggled -->
 
           <svelte:component
-            this={config.header}
+            this={header}
             {config}
             {index}
-            action={config.runtimeRef}
             on:toggle={handleToggle}
             on:output={handleOutput}
           />

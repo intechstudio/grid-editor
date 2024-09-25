@@ -1,15 +1,44 @@
 <script lang="ts">
-  import { ConfigObject } from "../../main/panels/configuration/Configuration.store";
+  import { EventData, GridAction, GridEvent } from "./../../runtime/runtime";
   import { createEventDispatcher } from "svelte";
   import { toWords } from "number-to-words";
+  import * as ButtonStepElseIf from "../ButtonStep_ElseIf.svelte";
 
   const dispatch = createEventDispatcher();
 
-  export let config: ConfigObject;
-  export let index;
+  export let config: GridAction;
+
+  let step = 0;
+  const event = config.parent as GridEvent;
 
   function handleClick(e) {
     dispatch("toggle");
+  }
+
+  $: {
+    handleEventDataChange($event);
+  }
+
+  function handleEventDataChange(event: EventData) {
+    step = 0;
+    let stack = [];
+    for (const action of event.config) {
+      if (action.short === "bst0") {
+        stack.push(0);
+      }
+
+      if (action.short === "bste") {
+        stack.pop();
+      }
+
+      if (action.short === "bstn") {
+        step = ++stack[stack.length - 1];
+        config.script = ButtonStepElseIf.information.defaultLua.replace(
+          "N",
+          String(step)
+        );
+      }
+    }
   }
 </script>
 
@@ -27,8 +56,7 @@
   {#if config.information.short === "bstn"}
     <span
       >{`Step ${
-        toWords(config.step)[0].toUpperCase() +
-        toWords(config.step).slice(1).toLowerCase()
+        toWords(step)[0].toUpperCase() + toWords(step).slice(1).toLowerCase()
       }`}</span
     >
   {:else}

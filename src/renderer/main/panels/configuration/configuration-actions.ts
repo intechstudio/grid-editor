@@ -1,11 +1,6 @@
 import { logger } from "./../../../runtime/runtime.store";
 import { runtime, user_input } from "../../../runtime/runtime.store";
-import {
-  configManager,
-  ConfigTarget,
-  ConfigList,
-  ConfigObject,
-} from "../../panels/configuration/Configuration.store";
+import { configManager } from "../../panels/configuration/Configuration.store";
 import {
   EventType,
   EventTypeToNumber,
@@ -42,33 +37,6 @@ function handleError(e: any) {
   }
 }
 
-export async function loadPreset({ dx, dy, page, element, preset }) {
-  configManager
-    .loadPreset({
-      x: dx,
-      y: dy,
-      element: element,
-      preset: preset,
-    })
-    .catch((error) => {
-      console.warn(error);
-      Promise.reject(error);
-    });
-}
-
-export async function loadProfile({ dx, dy, page, profile }) {
-  configManager
-    .loadProfile({
-      x: dx,
-      y: dy,
-      profile: profile,
-    })
-    .catch((error) => {
-      console.warn(error);
-      Promise.reject(error);
-    });
-}
-
 export async function copyElement({ dx, dy, page, element }) {
   logger.set({
     type: "progress",
@@ -79,7 +47,10 @@ export async function copyElement({ dx, dy, page, element }) {
 
   //Fetching all unloaded elements configuration
   return runtime
-    .fetch_element_configuration_from_grid(dx, dy, page, element)
+    .getModule(dx, dy)
+    .getPage(page)
+    .getElement(element)
+    .load()
     .then(async (desc) => {
       const current = ConfigTarget.create({
         device: {

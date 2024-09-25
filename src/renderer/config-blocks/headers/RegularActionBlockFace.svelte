@@ -1,19 +1,16 @@
 <script lang="ts">
   import { appSettings } from "./../../runtime/app-helper.store.js";
-  import { ConfigObject } from "./../../main/panels/configuration/Configuration.store";
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { config_drag } from "../../main/_actions/move.action";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
-  import { GridAction } from "../../runtime/runtime.js";
+  import { GridAction } from "../../runtime/runtime";
 
   const dispatch = createEventDispatcher();
 
-  export let config: ConfigObject = undefined;
+  export let config: GridAction;
   export let index;
-
-  let action: GridAction;
 
   function handleClick(e) {
     dispatch("toggle");
@@ -36,10 +33,9 @@
   }
 
   onMount(() => {
-    action = config.runtimeRef;
     name =
-      typeof action.name !== "undefined"
-        ? action.name
+      typeof config.name !== "undefined"
+        ? config.name
         : config.information.displayName;
   });
 
@@ -83,17 +79,13 @@
       class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
       on:click|stopPropagation
     >
-      <LineEditor
-        action={config.runtimeRef}
-        value={name}
-        on:change={handleNameChange}
-      />
+      <LineEditor action={config} value={name} on:change={handleNameChange} />
     </div>
   {:else}
     <span
-      >{typeof $action?.name === "undefined"
+      >{typeof $config?.name === "undefined"
         ? config.information.displayName
-        : $action.name}</span
+        : $config.name}</span
     >
   {/if}
 
