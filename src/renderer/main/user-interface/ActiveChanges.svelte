@@ -1,6 +1,6 @@
 <script>
   import { tooltip } from "./../_actions/tooltip.ts";
-  import { get } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store.js";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
@@ -168,7 +168,7 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <PortSelector visible={$ports.length > 1} />
+    <PortSelector visible={$ports.length > 1} disabled={isChanges} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes

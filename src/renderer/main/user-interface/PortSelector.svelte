@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { get } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { connection_manager, GridPort } from "./../../serialport/serialport";
   import { MeltSelect } from "@intechstudio/grid-uikit";
 
   export let visible = false;
+  export let disabled = false;
 
   let selected: string;
 
@@ -36,6 +37,13 @@
   }
 </script>
 
-<div class:hidden={!visible} class="w-24 h-fit text-white">
-  <MeltSelect bind:target={selected} {options} />
+<div
+  class:hidden={!visible}
+  class="w-24 h-fit text-white {disabled ? 'opacity-50' : ''}"
+>
+  {#if disabled}
+    <MeltSelect bind:target={selected} {options} disabled={true} />
+  {:else}
+    <MeltSelect bind:target={selected} {options} disabled={false} />
+  {/if}
 </div>
