@@ -1,4 +1,7 @@
-import { GridAction, GridEvent } from "../../../runtime/runtime";
+import { get } from "svelte/store";
+import { Analytics } from "../../../runtime/analytics";
+import { appClipboard, ClipboardKey } from "../../../runtime/clipboard.store";
+import { ActionData, GridAction, GridEvent } from "../../../runtime/runtime";
 
 type ConfigObject = any;
 
@@ -182,26 +185,6 @@ export async function discardElement({ dx, dy, page, element }) {
     */
 }
 
-export function selectAction(index: number, value: boolean) {
-  /*
-  configManager.update((s: ConfigList) => {
-    const stack: any[] = [];
-    let n = index;
-    do {
-      const config = s[n];
-      if (config.information.type === "composite_open") {
-        stack.push(config);
-      } else if (config.information.type === "composite_close") {
-        stack.pop();
-      }
-      config.selected = value;
-      ++n;
-    } while (stack.length > 0);
-    return s;
-  });
-  */
-}
-
 export function insertAction(
   index: number | undefined,
   configs: ConfigObject[],
@@ -313,60 +296,93 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
   */
 }
 
-export function copyActions() {
-  /*
-  const clipboard = get(configManager)
-    .filter((e) => e.selected)
-    .map((e) => {
-      return new ConfigObject({
-        short: e.short,
-        script: e.script,
-        name: e.name,
-        runtimeRef: new GridAction(undefined, {
-          short: e.short,
-          script: e.script,
-          name: e.name,
-        }),
-      });
-    });
-  appClipboard.set({
-    key: ClipboardKey.ACTION_BLOCKS,
-    payload: clipboard,
-  });
-  */
+enum ActionType {
+  COPY = 0,
+  PASTE = 1,
 }
 
-export function pasteActions(index: number | undefined) {
-  /*
-  return new Promise((resolve, reject) => {
-    if (typeof index === "undefined") {
-      index = get(configManager).length;
-    }
+export interface ActionResult {
+  value: boolean;
+  text: string;
+  type: ActionType;
+}
 
-    const clipboard = get(appClipboard);
+export interface CopyActionsResult extends ActionResult {}
+export interface PasteActionsResult extends ActionResult {}
 
-    if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
-      reject(`Paste: Invalid clipboard type ${clipboard?.key}`);
-    }
-
-    let error = false;
-    configManager.update((s) => {
-      const value = get(appClipboard)!.payload;
-      s.forEach((e) => (e.selected = false));
-      s.insert(index, ...value);
-      const res = s.checkLength();
-      if (!res.value) {
-        error = true;
-        for (let i = 0; i < value.length; ++i) {
-          s.remove(index);
-        }
-      }
-
-      return s;
-    });
-    error ? reject("Paste failed") : resolve();
+export async function copyActions(
+  actions: GridAction[]
+): Promise<CopyActionsResult> {
+  Analytics.track({
+    event: "Config Action",
+    payload: { click: "Copy" },
+    mandatory: false,
   });
-  */
+
+  appClipboard.set({
+    key: ClipboardKey.ACTION_BLOCKS,
+    payload: actions.map((e) => e.data),
+  });
+
+  return Promise.resolve({ value: true, text: "OK", type: ActionType.COPY });
+}
+
+export async function pasteActions(
+  target: GridEvent,
+  index?: number
+): Promise<PasteActionsResult> {
+  Analytics.track({
+    event: "Config Action",
+    payload: { click: "Paste" },
+    mandatory: false,
+  });
+  if (typeof index === "undefined") {
+    index = target.config.length;
+  }
+
+  const clipboard = get(appClipboard);
+
+  if (typeof clipboard === "undefined") {
+    return Promise.reject({
+      value: false,
+      text: `Nothing to paste, clipboard is empty`,
+      type: ActionType.PASTE,
+    });
+  }
+
+  if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
+    return Promise.reject({
+      value: false,
+      text: `Invalid clipboard type ${clipboard?.key}`,
+      type: ActionType.PASTE,
+    });
+  }
+
+  if (!target.isLoaded()) {
+    await target.load();
+  }
+
+  const actions = get(appClipboard).payload.map((e: ActionData) => {
+    return new GridAction(undefined, {
+      short: e.short,
+      script: e.script,
+      name: e.name,
+    });
+  });
+
+  target.insert(index, ...actions);
+  if (!target.checkLength()) {
+    actions.forEach((e: GridAction) => {
+      target.remove(e);
+    });
+    return Promise.reject({
+      value: false,
+      text: `Config limit reached, shorten your code, or delete actions!`,
+      type: ActionType.PASTE,
+    });
+  }
+
+  return Promise.resolve({ value: true, text: "OK", type: ActionType.PASTE });
 }
 
 export function removeActions() {

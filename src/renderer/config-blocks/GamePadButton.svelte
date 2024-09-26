@@ -56,7 +56,7 @@
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -147,10 +147,10 @@
     ],
   ];
 
-  $: if ($configManager) {
-    const index = $configManager.findIndex((e) => e.id === config.id);
+  $: if ($config_panel_blocks) {
+    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $configManager,
+      configs: $config_panel_blocks,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

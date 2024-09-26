@@ -48,7 +48,7 @@
   import { AtomicInput, MeltCheckbox } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators.js";
@@ -170,9 +170,9 @@
   let suggestions = [];
 
   function renderSuggestions() {
-    const index = $configManager.findIndex((e) => e.id === config.id);
+    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $configManager,
+      configs: $config_panel_blocks,
       index: index,
     });
 
@@ -182,7 +182,7 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if ($configManager) {
+  $: if ($config_panel_blocks) {
     renderSuggestions();
   }
 

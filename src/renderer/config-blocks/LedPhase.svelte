@@ -60,7 +60,7 @@
 
   import { Validator } from "./_validators";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
 
@@ -129,14 +129,14 @@
 
   let suggestions = [];
 
-  $: if ($configManager) {
+  $: if ($config_panel_blocks) {
     updateSuggestions();
   }
 
   function updateSuggestions() {
-    const index = $configManager.findIndex((e) => e.id === config.id);
+    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $configManager,
+      configs: $config_panel_blocks,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

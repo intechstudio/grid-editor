@@ -16,7 +16,7 @@
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import { configManager } from "../Configuration.store";
+  import { config_panel_blocks } from "../Configuration.store";
 
   import { lastOpenedActionblocksInsert } from "../Configuration.store";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
@@ -67,7 +67,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($configManager);
+      options = getAvailableOptions($config_panel_blocks);
     } catch (e) {
       handleClose();
     }
@@ -280,8 +280,8 @@
   function replaceToLocalDefinition(script, segment, localDefinition) {
     if (script.includes(segment)) {
       const localDefinitions = LocalDefinitions.getFrom({
-        configs: $configManager,
-        index: Math.min(index, $configManager.length - 1),
+        configs: $config_panel_blocks,
+        index: Math.min(index, $config_panel_blocks.length - 1),
       });
       const defaultLocal = localDefinitions.find(
         (e) => e.value === localDefinition

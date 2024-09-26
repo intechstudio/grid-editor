@@ -91,7 +91,6 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
 
   protected notify() {
     this._internal.update((s) => s);
-    this.notifyParent();
   }
 
   protected notifyParent() {
@@ -100,6 +99,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
     }
 
     this.parent.notify();
+    this.parent.notifyParent();
   }
 
   // Generalized getter
@@ -175,7 +175,7 @@ export class GridAction extends RuntimeNode<ActionData> {
   get indentation() {
     let indentation = 0;
     const event = this.parent as GridEvent;
-    for (let i = 0; i < event.config.length; i++) {
+    for (let i = 0; i < event.config.length; ++i) {
       let action = event.config[i];
 
       if (action.id === this.id) {
@@ -187,7 +187,7 @@ export class GridAction extends RuntimeNode<ActionData> {
       }
 
       if (action.information.type === "composite_open") {
-        indentation++;
+        ++indentation;
       } else if (action.information.type === "composite_close") {
         --indentation;
       }
@@ -271,37 +271,39 @@ export class GridEvent extends RuntimeNode<EventData> {
     this.loaded = false;
   }
 
-  public replace(id: UUID, action: GridAction) {
-    const index = this.config.findIndex((e) => e.id === id);
+  public replace(a: GridAction, b: GridAction) {
+    const index = this.config.findIndex((e) => e.id === a.id);
     try {
-      this.remove(id);
-      this.insert(index, action);
+      this.remove(a);
+      this.insert(index, b);
     } catch (e) {
       `Replace failed! Reason: ${e}`;
     }
   }
 
-  public remove(id: UUID) {
+  public remove(a: GridAction) {
     const actions = this.config;
-    const index = actions.findIndex((e) => e.id === id);
+    const index = actions.findIndex((e) => e.id === a.id);
     if (index === -1) {
-      throw `Remove failed! Action with id of ${id} is not found.`;
+      throw `Remove failed! Action with id of ${a.id} is not found.`;
     }
 
     this.config[index].parent = undefined;
     this.config = actions.splice(index, 1);
   }
 
-  public insert(index: number, action: GridAction) {
-    const actions = this.config;
-
-    if (index < 0 || index > actions.length) {
+  public insert(index: number, ...actions: GridAction[]) {
+    if (index < 0 || index > this.config.length) {
       throw `Add failed! Invalid index: ${index}.`;
     }
 
-    action.parent = this;
-    actions.splice(index, 0, action);
-    this.config = actions;
+    actions.forEach((e) => (e.parent = this));
+    this.config = [
+      ...this.config.slice(0, index),
+      ...actions,
+      ...this.config.slice(index),
+    ];
+    console.log(this.config);
   }
 
   public push(...action: GridAction[]) {

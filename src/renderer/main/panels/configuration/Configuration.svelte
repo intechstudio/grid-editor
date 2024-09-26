@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
+  import { PasteActionsResult } from "./configuration-actions";
   import { appSettings } from "./../../../runtime/app-helper.store.js";
-  import { get } from "svelte/store";
+  import { get, type Writable } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
 
   import { Analytics } from "../../../runtime/analytics.js";
@@ -16,8 +17,10 @@
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import {
-    configManager,
+    config_panel_blocks,
+    user_input_event,
     lastOpenedActionblocksInsert,
+    ActionBlock,
   } from "./Configuration.store";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
@@ -39,7 +42,6 @@
   import AddActionButton from "./components/AddActionButton.svelte";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
   import {
-    selectAction,
     insertAction,
     updateAction,
     mergeActionToCode,
@@ -119,6 +121,7 @@
   }
 
   function handleDrop(e) {
+    /*
     if (typeof dropIndex === "undefined") {
       return;
     }
@@ -133,7 +136,7 @@
       return;
     }
 
-    configManager.update((s) => {
+    config_panel_blocks.update((s) => {
       //Collect dragged configs and mark them for deletion
       const temp = [];
       draggedIndexes.forEach((i) => {
@@ -150,6 +153,7 @@
     });
 
     sendCurrentConfigurationToGrid();
+    */
   }
 
   function handleDragStart(e) {
@@ -194,19 +198,36 @@
     }
   }
 
-  function handleSelectionChange(e) {
-    const { index, value } = e.detail;
-    selectAction(index, value);
+  function handleSelectionChange(block: ActionBlock) {
+    config_panel_blocks.update((s) => {
+      const stack: ActionBlock[] = [];
+      let n = s.findIndex((e) => e.action.id === block.action.id);
+      const value = block.selected;
+      do {
+        const current = s[n];
+        if (current.action.information.type === "composite_open") {
+          stack.push(current);
+        } else if (current.action.information.type === "composite_close") {
+          stack.pop();
+        }
+        current.selected = value;
+        ++n;
+      } while (stack.length > 0);
+      return s;
+    });
   }
 
   function handleConfigInsertion(e) {
     let { index, configs } = e.detail;
+    /*
     insertAction(index, configs, parent.runtimeRef);
     sendCurrentConfigurationToGrid();
+    */
   }
 
   function handleConfigUpdate(e) {
     const { index, config } = e.detail;
+    /*
     updateAction(index, config);
     sendCurrentConfigurationToGrid();
 
@@ -224,43 +245,13 @@
       },
       mandatory: false,
     });
+    */
   }
 
   function handleConvertToCodeBlock(e) {
     const { index, configs } = e.detail;
     mergeActionToCode(index, configs);
     sendCurrentConfigurationToGrid();
-  }
-
-  function handleCopy(e) {
-    copyActions();
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Copy" },
-      mandatory: false,
-    });
-  }
-
-  function handlePaste(e) {
-    let { index } = e.detail;
-    pasteActions(index)
-      .then(() => {
-        sendCurrentConfigurationToGrid();
-      })
-      .catch((e) => {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "config-limit-reached",
-          message: `Paste failed! Config limit reached, shorten your code, or delete actions!`,
-        });
-      });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Paste" },
-      mandatory: false,
-    });
   }
 
   function handleRemove(e) {
@@ -285,7 +276,7 @@
 
   function handleReplace(e) {
     const { index, config } = e.detail;
-    configManager.update((s) => {
+    config_panel_blocks.update((s) => {
       s[index] = config;
       lastOpenedActionblocksInsert(config.short);
       return s;
@@ -343,13 +334,35 @@
     });
   }
 
-  function handleSelectActionBlock(index) {
-    const configs = get(configManager);
-    const config = configs[index];
-    selectAction(index, !config.selected);
+  function handleCopy() {
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    copyActions(selected);
+  }
+
+  function handlePaste() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+
+    pasteActions(target).catch((e) => {
+      const error = e as PasteActionsResult;
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "config-limit-reached",
+        message: `Paste failed! ${error.text}`,
+      });
+    });
   }
 
   function handleClearElement() {
+    /*
     const ui = get(user_input);
     clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
       console.warn(e);
@@ -359,6 +372,19 @@
       event: "Config Action",
       payload: { click: "Clear Element" },
       mandatory: false,
+    });
+    */
+  }
+
+  function handleSelectAll() {
+    config_panel_blocks.update((s) => {
+      if (s.every((e) => e.selected)) {
+        s.forEach((e) => (e.selected = false));
+        return s;
+      }
+
+      s.forEach((e) => (e.selected = true));
+      return s;
     });
   }
 </script>
@@ -388,19 +414,20 @@
             on:overwrite-all={handleOverwriteElement}
             on:discard={handleDiscardElement}
             on:clear-element={handleClearElement}
+            on:select-all={handleSelectAll}
           />
         </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={(this, { configs: $configManager })}
+          use:changeOrder={(this, { configs: $config_panel_blocks })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
           class="flex flex-col h-full relative justify-between"
         >
-          {#if $configManager.length === 0 && $runtime.modules.length > 0}
+          {#if $config_panel_blocks.length === 0 && $runtime.modules.length > 0}
             <div class="mt-2">
               <AddAction
                 index={0}
@@ -413,7 +440,6 @@
             <config-list
               id="cfg-list"
               style="height:{scrollHeight}"
-              use:configListScrollSize={$configManager}
               on:height={(e) => {
                 scrollHeight = e.detail;
               }}
@@ -438,7 +464,7 @@
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
-              {#each $configManager as config, index (config)}
+              {#each $config_panel_blocks as block, index (block.action.id)}
                 <anim-block
                   animate:flip={{ duration: 300, easing: eases.backOut }}
                   in:fade|global={{ delay: 0 }}
@@ -446,60 +472,56 @@
                   <div class="flex flex-row justify-between relative">
                     <div
                       class="w-full bg-white absolute h-full opacity-10 pointer-events-none z-10"
-                      class:hidden={!config.selected}
+                      class:hidden={!block.selected}
                     />
 
                     <DynamicWrapper
                       {index}
-                      {config}
-                      action={config.runtimeRef}
+                      data={block}
                       on:update={handleConfigUpdate}
                       on:replace={handleReplace}
                       on:select={() => {
-                        handleSelectActionBlock(index);
+                        handleSelectionChange(block);
                       }}
                     />
 
                     <div class="z-20 flex items-center mx-2">
                       <Options
-                        {index}
-                        bind:selected={config.selected}
-                        disabled={!config.information.selectable}
-                        on:selection-change={handleSelectionChange}
+                        bind:selected={block.selected}
+                        disabled={!block.action.information.selectable}
+                        on:select={() => handleSelectionChange(block)}
                       />
                     </div>
                   </div>
-                  {#key index}
-                    {#if typeof $config_drag === "undefined"}
-                      {#if ["composite_close", "single"].includes(config.information.type) || ["single"].includes($configManager[index + 1]?.information.type) || !$appSettings.persistent.actionHelperText || typeof config.information.helperText === "undefined"}
-                        <AddActionLine
+                  {#if typeof $config_drag === "undefined"}
+                    {#if ["composite_close", "single"].includes(block.action.information.type) || ["single"].includes($config_panel_blocks[index + 1]?.action.information.type) || !$appSettings.persistent.actionHelperText || typeof block.action.information.helperText === "undefined"}
+                      <AddActionLine
+                        index={index + 1}
+                        on:paste={handlePaste}
+                        on:new-config={handleConfigInsertion}
+                      />
+                    {:else}
+                      <div class="mr-6">
+                        <AddAction
+                          text={block.action.information.helperText}
                           index={index + 1}
                           on:paste={handlePaste}
                           on:new-config={handleConfigInsertion}
                         />
-                      {:else}
-                        <div class="mr-6">
-                          <AddAction
-                            text={config.information.helperText}
-                            index={index + 1}
-                            on:paste={handlePaste}
-                            on:new-config={handleConfigInsertion}
-                          />
-                        </div>
-                      {/if}
-                    {:else}
-                      <DropZone
-                        index={index + 1}
-                        thresholdTop={10}
-                        thresholdBottom={10}
-                        class={index + 1 == $configManager.length
-                          ? "h-full"
-                          : ""}
-                        drag_target={draggedIndexes}
-                        on:drop-target-change={handleDropTargetChange}
-                      />
+                      </div>
                     {/if}
-                  {/key}
+                  {:else}
+                    <DropZone
+                      index={index + 1}
+                      thresholdTop={10}
+                      thresholdBottom={10}
+                      class={index + 1 == $config_panel_blocks.length
+                        ? "h-full"
+                        : ""}
+                      drag_target={draggedIndexes}
+                      on:drop-target-change={handleDropTargetChange}
+                    />
+                  {/if}
                 </anim-block>
               {/each}
             </config-list>
@@ -510,8 +532,8 @@
           class:invisible={$runtime.modules.length === 0}
         >
           <AddActionButton
-            index={$configManager.length}
-            on:paste={handlePaste}
+            index={$config_panel_blocks.length}
+            on:pasteconfig_panel}
             on:new-config={handleConfigInsertion}
           />
           <ExportConfigs />

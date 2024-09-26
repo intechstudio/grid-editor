@@ -1,25 +1,21 @@
 <script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import {
     appClipboard,
     ClipboardKey,
   } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
   import { UserInputValue } from "./../../../../runtime/runtime.store";
-  import { derived } from "svelte/store";
   import { runtime, user_input } from "./../../../../runtime/runtime.store";
   import { shortcut } from "./../../../_actions/shortcut.action";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
-  import { createEventDispatcher } from "svelte";
-  import { configManager } from "../Configuration.store";
+  import { config_panel_blocks } from "../Configuration.store";
 
   const dispatch = createEventDispatcher();
 
   function handleConvertToCodeBlockClicked(e) {
-    dispatch("convert-to-code-block", {
-      configs: $configManager.filter((e) => e.selected),
-      index: $configManager.findIndex((e) => e.selected), //First selected
-    });
+    dispatch("convert-to-code-block");
   }
 
   function handleCutClicked(e) {
@@ -38,23 +34,8 @@
     dispatch("remove");
   }
 
-  function handleSelectAllClicked(e) {
-    const allSelected =
-      typeof $configManager.find((e) => e.selected == false) === "undefined";
-    configManager.update((s) => {
-      s.forEach((e) => {
-        if (typeof $configManager.find((e) => e.selected) !== "undefined") {
-          if (allSelected) {
-            e.selected = false;
-          } else {
-            e.selected = true;
-          }
-        } else {
-          e.selected = true;
-        }
-      });
-      return s;
-    });
+  function handleSelectAllClicked() {
+    dispatch("select-all");
   }
 
   function handleCopyAll(e) {
@@ -67,6 +48,10 @@
 
   function handleDiscard(e) {
     dispatch("discard");
+  }
+
+  function handleClearElement() {
+    dispatch("clear-element");
   }
 
   let selectedAction = undefined;
@@ -84,10 +69,6 @@
     window.navigator.platform.indexOf("Mac") != -1
       ? ["Cmd ⌘", "Alt ⌥"]
       : ["Ctrl", "Alt"];
-
-  function handleClearElement() {
-    dispatch("clear-element");
-  }
 
   let event: GridEvent;
   let element: GridElement;
@@ -109,13 +90,6 @@
       ui.eventtype
     );
   }
-
-  const selectAllChecked = derived([configManager], ([$configManager]) => {
-    return (
-      typeof $configManager.find((e) => !e.selected) === "undefined" &&
-      $configManager.length > 0
-    );
-  });
 </script>
 
 <app-action-multi-select
@@ -144,7 +118,8 @@
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
         iconPath={"copy_all"}
-        disabled={$runtime.modules.length === 0 || false}
+        disabled={$runtime.modules.length === 0 ||
+          $config_panel_blocks.some((e) => e.selected)}
         color={"#03cb00"}
       />
 
@@ -199,7 +174,7 @@
           setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
-        disabled={false}
+        disabled={!$config_panel_blocks.some((e) => e.selected)}
         iconPath={"copy"}
         color={"#03cb00"}
       />
@@ -221,7 +196,7 @@
           setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyX" }}
-        disabled={false}
+        disabled={!$config_panel_blocks.some((e) => e.selected)}
         iconPath={"cut"}
         color={"#ff6100"}
       />
@@ -239,7 +214,7 @@
           shift: true,
           code: "KeyM",
         }}
-        disabled={false}
+        disabled={!$config_panel_blocks.some((e) => e.selected)}
         iconPath={"merge_as_code"}
         color={"#ffcc33"}
       />
@@ -252,7 +227,7 @@
         shortcut={{
           code: "Delete",
         }}
-        disabled={false}
+        disabled={!$config_panel_blocks.some((e) => e.selected)}
         iconPath={"remove"}
         color={"#ff2323"}
       />
@@ -270,10 +245,10 @@
     on:mouseleave={handleToolbarButtonBlur}
   >
     <Options
-      selected={$selectAllChecked}
-      halfSelected={typeof $configManager.find((e) => e.selected) !==
-        "undefined"}
-      on:selection-change={handleSelectAllClicked}
+      selected={$config_panel_blocks.every((e) => e.selected)}
+      halfSelected={$config_panel_blocks.some((e) => e.selected)}
+      disabled={$config_panel_blocks.length === 0}
+      on:select={handleSelectAllClicked}
     />
   </button>
 </app-action-multi-select>

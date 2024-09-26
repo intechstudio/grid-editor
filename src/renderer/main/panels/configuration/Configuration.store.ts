@@ -1,11 +1,13 @@
-import { get, writable, type Writable } from "svelte/store";
-
 import {
-  runtime,
-  user_input,
-  UserInputValue,
-} from "../../../runtime/runtime.store";
-import { GridAction } from "../../../runtime/runtime";
+  derived,
+  get,
+  type Writable,
+  writable,
+  type Readable,
+} from "svelte/store";
+
+import { runtime, user_input } from "../../../runtime/runtime.store";
+import { GridAction, GridEvent } from "../../../runtime/runtime";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -28,56 +30,59 @@ export function lastOpenedActionblocksRemove(short) {
   lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
 }
 
-type ConfigManager = Writable<GridAction[]> & {
-  refresh: () => void;
+export type ActionBlock = {
+  action: GridAction;
+  selected: boolean;
 };
 
-export const configManager = create_configuration_manager();
+// Derive a readable store from user_input
+export const user_input_event: Readable<GridEvent | undefined> = derived(
+  [user_input, runtime],
+  ([$user_input, $runtime], set) => {
+    const event = runtime.findEvent(
+      $user_input.dx,
+      $user_input.dy,
+      $user_input.pagenumber,
+      $user_input.elementnumber,
+      $user_input.eventtype
+    );
 
-function create_configuration_manager(): ConfigManager {
-  const internal = writable([]);
+    if (typeof event === "undefined") {
+      set(undefined);
+      return;
+    }
 
-  user_input.subscribe((ui) => {
-    createConfigListFrom(ui)
-      .then((list) => {
-        internal.set(list);
+    // Load the event and set it
+    event
+      .load()
+      .then(() => {
+        set(event);
       })
-      .catch((e) => {
-        console.warn(e);
-        internal.set([]);
+      .catch((err) => {
+        console.error("Failed to load event:", err);
+        set(undefined); // Handle loading error by setting undefined
       });
+  }
+);
+
+// Create a writable store for ActionBlock[]
+export const config_panel_blocks: Writable<ActionBlock[]> = create_store();
+
+function create_store() {
+  const internal: Writable<ActionBlock[]> = writable([]);
+
+  // Subscribe to user_input_event changes
+  user_input_event.subscribe((event) => {
+    console.log("Event updated:", event);
+
+    const value =
+      event?.config.map((e) => {
+        return { action: e, selected: false } as ActionBlock;
+      }) || []; // Fallback to an empty array if event is undefined
+
+    // Update the internal writable store
+    internal.set(value);
   });
 
-  function createConfigListFrom(ui: UserInputValue): Promise<GridAction[]> {
-    return new Promise((resolve, reject) => {
-      const event = runtime.findEvent(
-        ui.dx,
-        ui.dy,
-        ui.pagenumber,
-        ui.elementnumber,
-        ui.eventtype
-      );
-
-      event.load().then((list) => {
-        resolve(list);
-      });
-    });
-  }
-
-  async function refresh(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const ui = get(user_input);
-      createConfigListFrom(ui)
-        .then((list) => {
-          configManager.set(list);
-          resolve();
-        })
-        .catch((e) => reject(e));
-    });
-  }
-
-  return {
-    ...internal,
-    refresh: refresh,
-  };
+  return internal;
 }

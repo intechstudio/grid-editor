@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { configManager } from "./../configuration/Configuration.store";
+  import { config_panel_blocks } from "./../configuration/Configuration.store";
   import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
@@ -311,7 +311,7 @@
             .sendNVMEraseToGrid()
             .then((res) => {
               runtime.erase();
-              configManager.refresh().then(() => {
+              config_panel_blocks.refresh().then(() => {
                 logger.set({
                   type: "success",
                   mode: 0,

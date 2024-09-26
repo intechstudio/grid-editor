@@ -1,13 +1,13 @@
 <script>
   import { modal } from "./modal.store";
-  import { configManager } from "../panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
   function handleCopy() {
     const _tempSpan = document.createElement("input");
-    _tempSpan.value = $configManager.toConfigScript();
+    _tempSpan.value = $config_panel_blocks.toConfigScript();
     _tempSpan.id = "temp-clip";
     document.getElementById("modal-copy-placeholder").append(_tempSpan);
     const _temp = document.querySelector("#temp-clip");
@@ -48,7 +48,7 @@
     </div>
 
     <textarea
-      value={$configManager.toConfigScript()}
+      value={$config_panel_blocks.toConfigScript()}
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 

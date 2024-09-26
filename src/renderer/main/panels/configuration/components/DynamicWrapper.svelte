@@ -1,67 +1,61 @@
 <script lang="ts">
+  import { ActionBlock } from "./../Configuration.store";
   import { GridAction, GridEvent } from "./../../../../runtime/runtime";
   import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
-
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration.store";
-
   import { configIndexToId } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
 
+  const dispatch = createEventDispatcher();
+
+  export let index = undefined;
+  export let data: ActionBlock;
+
+  let action: GridAction = data.action;
+  let header: typeof SvelteComponent;
+  let component: typeof SvelteComponent;
+  let validationError = false;
+  let ctrlIsDown = false;
   let toggled = false;
 
   onMount(() => {
-    if (config.information.toggleable !== false) {
+    if (action.information.toggleable !== false) {
       toggled =
         -1 !==
         $lastOpenedActionblocks.findIndex((e) => {
-          return e == config.short;
+          return e == action.short;
         });
     } else {
       toggled = true;
     }
-  });
 
-  export let index = undefined;
-  export let config: GridAction;
-
-  let header: typeof SvelteComponent;
-  let component: typeof SvelteComponent;
-
-  let syntaxError = false;
-  let validationError = false;
-  let ctrlIsDown = false;
-
-  const dispatch = createEventDispatcher();
-
-  onMount(() => {
-    const result = getComponentInformation({ short: config.short });
+    const result = getComponentInformation({ short: action.short });
     header = result.header;
     component = result.component;
   });
 
-  $: syntaxError = !config.checkSyntax();
-
   function replace_me(e: any) {
     const { short, script, name } = e.detail;
-    const parent = config.parent as GridEvent;
-    const action = new GridAction(undefined, {
+    const oldAction = action;
+    const parent = oldAction.parent as GridEvent;
+    const newAction = new GridAction(undefined, {
       short: short,
       script: GridAction.getInformation(short), // Default Script
       name: name,
     });
-    parent.replace(config.id, action);
+    parent.replace(oldAction, newAction);
     toggled = true;
   }
 
   function handleOutput(e) {
     const { short, script, name } = e.detail;
-    config.short = short;
-    config.script = script;
-    config.name = name;
+    action.short = short;
+    action.script = script;
+    action.name = name;
   }
 
   function handleValidator(e) {
@@ -70,16 +64,16 @@
   }
 
   function handleToggle(e) {
-    if (config.information.toggleable == false) {
+    if (action.information.toggleable == false) {
       return;
     }
 
     toggled = !toggled;
 
     if (toggled) {
-      lastOpenedActionblocksInsert(config.short);
+      lastOpenedActionblocksInsert(action.short);
     } else {
-      lastOpenedActionblocksRemove(config.short);
+      lastOpenedActionblocksRemove(action.short);
     }
   }
 
@@ -109,7 +103,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
-  {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
+  {#each Array(action.indentation) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>
@@ -117,29 +111,29 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {syntaxError
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!action.checkSyntax()
       ? 'border-error'
       : 'border-transparent'}"
     id={configIndexToId(index)}
-    class:rounded-tr-xl={config.information.rounding === "top"}
-    class:rounded-br-xl={config.information.rounding === "bottom"}
-    config-name={config.information.name}
-    config-type={config.information.type}
+    class:rounded-tr-xl={action.information.rounding === "top"}
+    class:rounded-br-xl={action.information.rounding === "bottom"}
+    config-name={action.information.name}
+    config-type={action.information.type}
     config-id={index}
-    movable={config.information.movable}
+    movable={action.information.movable}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
-      {#if config.information.hideIcon !== true}
+      {#if action.information.hideIcon !== true}
         <div
-          style="background-color:{config.information.color}"
+          style="background-color:{action.information.color}"
           class="flex items-center p-2 w-min text-center"
         >
           <div class="w-6 h-6 whitespace-nowrap">
-            {@html config.information.blockIcon}
+            {@html action.information.blockIcon}
           </div>
         </div>
       {/if}
@@ -151,15 +145,15 @@
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-        {#if (toggled && config.information.toggleable) || typeof header === "undefined"}
+        {#if (toggled && action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
           <div class="bg-secondary bg-opacity-30 h-full w-full">
             <svelte:component
               this={component}
               class="h-full w-full px-2"
               {index}
-              {config}
-              {syntaxError}
+              config={action}
+              syntaxError={!action.checkSyntax()}
               on:replace={replace_me}
               on:validator={handleValidator}
               on:output={handleOutput}
@@ -171,7 +165,7 @@
 
           <svelte:component
             this={header}
-            {config}
+            config={action}
             {index}
             on:toggle={handleToggle}
             on:output={handleOutput}

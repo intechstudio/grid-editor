@@ -4,7 +4,7 @@
   import { logger } from "./../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
-  import { configManager } from "./../panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "./../panels/configuration/Configuration.store";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
@@ -70,7 +70,7 @@
       .clearPage(ui.pagenumber)
       .then(() => {
         clearOverlays();
-        configManager
+        config_panel_blocks
           .refresh()
           .then(() => {
             logger.set({
@@ -111,7 +111,7 @@
         .discardPage(ui.pagenumber)
         .then(() => {
           clearOverlays();
-          configManager
+          config_panel_blocks
             .refresh()
             .then(() => {
               logger.set({
