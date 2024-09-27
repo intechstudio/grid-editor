@@ -27,7 +27,7 @@
   }
 
   function handlePasteClicked(e) {
-    dispatch("paste", { index: undefined });
+    dispatch("paste");
   }
 
   function handleRemoveClicked(e) {

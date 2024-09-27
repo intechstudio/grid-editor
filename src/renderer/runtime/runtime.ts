@@ -281,15 +281,17 @@ export class GridEvent extends RuntimeNode<EventData> {
     }
   }
 
-  public remove(a: GridAction) {
-    const actions = this.config;
-    const index = actions.findIndex((e) => e.id === a.id);
+  public remove(action: GridAction) {
+    const index = this.config.findIndex((e) => e.id === action.id);
     if (index === -1) {
-      throw `Remove failed! Action with id of ${a.id} is not found.`;
+      throw `Remove failed! Action with id of ${action.id} is not found.`;
     }
 
-    this.config[index].parent = undefined;
-    this.config = actions.splice(index, 1);
+    action.parent = undefined;
+    this.config = [
+      ...this.config.slice(0, index),
+      ...this.config.slice(index + 1),
+    ];
   }
 
   public insert(index: number, ...actions: GridAction[]) {

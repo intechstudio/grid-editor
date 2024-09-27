@@ -44,7 +44,7 @@
   import {
     insertAction,
     updateAction,
-    mergeActionToCode,
+    mergeActionsToCode,
     copyActions,
     pasteActions,
     removeActions,
@@ -248,30 +248,22 @@
     */
   }
 
-  function handleConvertToCodeBlock(e) {
-    const { index, configs } = e.detail;
-    mergeActionToCode(index, configs);
-    sendCurrentConfigurationToGrid();
+  function handleConvertToCodeBlock() {
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    mergeActionsToCode(...selected);
   }
 
-  function handleRemove(e) {
-    removeActions();
-    sendCurrentConfigurationToGrid();
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Remove" },
-      mandatory: false,
-    });
+  function handleRemove() {
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    removeActions(...selected);
   }
 
-  function handleCut(e) {
-    cutActions();
-    sendCurrentConfigurationToGrid();
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Cut" },
-      mandatory: false,
-    });
+  function handleCut() {
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    cutActions(...selected);
   }
 
   function handleReplace(e) {
@@ -337,7 +329,7 @@
   function handleCopy() {
     const blocks = get(config_panel_blocks);
     const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    copyActions(selected);
+    copyActions(...selected);
   }
 
   function handlePaste() {

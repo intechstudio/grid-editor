@@ -2,6 +2,9 @@ import { get } from "svelte/store";
 import { Analytics } from "../../../runtime/analytics";
 import { appClipboard, ClipboardKey } from "../../../runtime/clipboard.store";
 import { ActionData, GridAction, GridEvent } from "../../../runtime/runtime";
+import { GridScript } from "@intechstudio/grid-protocol";
+import * as CodeBlock from "../../../config-blocks/CodeBlock.svelte";
+import { logger } from "../../../runtime/runtime.store";
 
 type ConfigObject = any;
 
@@ -259,13 +262,15 @@ export function updateAction(index: number, newConfig: ConfigObject) {
   */
 }
 
-export function mergeActionToCode(index: number, configs: ConfigObject[]) {
-  /*
-  //Merge scripts
-  const script = configs.map((e) => e.script).join(" ");
+export function mergeActionsToCode(...actions: GridAction[]) {
+  const codeBlock = new GridAction(undefined, {
+    short: CodeBlock.information.short,
+    script: actions.map((action) => action.toLua()).join("\n"),
+    name: undefined,
+  });
 
   //Check syntax
-  if (GridScript.checkSyntax(script) === false) {
+  if (!codeBlock.checkSyntax()) {
     logger.set({
       type: "fail",
       mode: 0,
@@ -275,25 +280,15 @@ export function mergeActionToCode(index: number, configs: ConfigObject[]) {
     return;
   }
 
-  //Create new CodeBlock with merged code
-  const codeBlock = new ConfigObject({
-    short: "cb",
-    script: script,
-    runtimeRef: new GridAction(configs[0].runtimeRef.parent as GridEvent, {
-      short: "cb",
-      script: script,
-      name: undefined,
-    }),
-  });
+  const parentIds = actions.map((e) => e.id);
+  const target = actions.shift();
+  for (const action of actions) {
+    const parent = action.parent as GridEvent;
+    parent.remove(action);
+  }
 
-  configManager.update((s: ConfigList) => {
-    //Insert CodeBlock into position
-    s.insert(index, codeBlock);
-    // Remove selected action blocks
-    s = s.filter((config) => !config.selected) as ConfigList;
-    return s;
-  });
-  */
+  (target.parent as GridEvent).replace(target, codeBlock);
+  console.log(target.parent as GridEvent);
 }
 
 enum ActionType {
@@ -311,7 +306,7 @@ export interface CopyActionsResult extends ActionResult {}
 export interface PasteActionsResult extends ActionResult {}
 
 export async function copyActions(
-  actions: GridAction[]
+  ...actions: GridAction[]
 ): Promise<CopyActionsResult> {
   Analytics.track({
     event: "Config Action",
@@ -385,24 +380,28 @@ export async function pasteActions(
   return Promise.resolve({ value: true, text: "OK", type: ActionType.PASTE });
 }
 
-export function removeActions() {
-  /*
-  configManager.update((s: ConfigList) => {
-    s.forEach((config) => {
-      if (config.selected) {
-        config.runtimeRef.parent = undefined;
-      }
-    });
-    return s.filter((config) => !config.selected);
+export function removeActions(...actions: GridAction[]) {
+  Analytics.track({
+    event: "Config Action",
+    payload: { click: "Remove" },
+    mandatory: false,
   });
-  */
+
+  for (const action of actions) {
+    const parent = action.parent as GridEvent;
+    parent.remove(action);
+  }
 }
 
-export function cutActions() {
-  /*
-  copyActions();
-  removeActions();
-  */
+export function cutActions(...actions: GridAction[]) {
+  Analytics.track({
+    event: "Config Action",
+    payload: { click: "Cut" },
+    mandatory: false,
+  });
+
+  copyActions(...actions);
+  removeActions(...actions);
 }
 
 export function clearElement(
