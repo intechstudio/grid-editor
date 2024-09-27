@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { get } from "svelte/store";
+  import { ActionData } from "./../../runtime/runtime.ts";
   import { Grid } from "./../../lib/_utils";
   import {
     GridElement,
@@ -11,21 +13,24 @@
   import { watchResize } from "svelte-watch-resize";
   import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy } from "svelte";
-  import { grid, NumberToEventType } from "@intechstudio/grid-protocol";
+  import {
+    grid,
+    NumberToEventType,
+    GridScript,
+  } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
 
   import { monaco_editor } from "../../lib/CustomMonaco";
-  import { monaco_store } from "./monaco.store";
 
   import { beforeUpdate, afterUpdate, onMount } from "svelte";
-
-  import { GridScript } from "@intechstudio/grid-protocol";
   import { appSettings } from "../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
+
+  export let monaco_action: GridAction;
 
   let monaco_block;
 
@@ -35,15 +40,14 @@
 
   let commitEnabled = false;
   let errorMesssage = "";
-  let commitedCode: string;
-  let commitedName: string | undefined;
+
+  let commited: ActionData = { script: "", name: "" };
 
   let scrollDown;
   let autoscroll;
 
   let scriptLength = undefined;
   let pathSnippets = [];
-  let editedAction: GridAction;
 
   let name;
   let isEditName = false;
@@ -57,9 +61,7 @@
     editor?.updateOptions({ fontSize: fontSize });
   }
 
-  $: if ($editedAction) {
-    handleActionChange($editedAction);
-  }
+  $: handleActionChange($monaco_action);
 
   function isDeleted(action: ActionData) {
     const event = action?.parent as GridEvent;
@@ -67,6 +69,10 @@
   }
 
   function handleActionChange(action: ActionData) {
+    if (typeof action === "undefined") {
+      return;
+    }
+
     if (isDeleted(action)) {
       pathSnippets = ["Deleted Code Block"];
       return;
@@ -80,11 +86,8 @@
     name =
       typeof action.name !== "undefined"
         ? action.name
-        : $monaco_store.config.information.displayName;
-
-    if (commitedName !== action.name) {
-      commitedName = action.name;
-    }
+        : $monaco_action.information.displayName;
+    monaco_action;
 
     pathSnippets = [
       `${module.type} (${module.dx},${module.dy})`,
@@ -98,15 +101,15 @@
   }
 
   onMount(() => {
-    const store = $monaco_store;
-    editedAction = store.config;
-    commitedCode = editedAction.script;
-    commitedName = editedAction.name;
-    scriptLength = (editedAction.parent as GridEvent).toLua().length;
+    monaco_action = get(modal).args;
+    console.log(monaco_action, get(modal));
+    commited.name = monaco_action.name;
+    commited.script = monaco_action.script;
+    scriptLength = (monaco_action.parent as GridEvent).toLua().length;
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
-      value: GridScript.expandScript(editedAction.script),
+      value: GridScript.expandScript(monaco_action.script),
       language: "intech_lua",
       theme: "my-theme",
       fontSize: $appSettings.persistent.fontSize,
@@ -132,21 +135,15 @@
   });
 
   function handleContentChange() {
-    if (typeof editor === "undefined") {
-      return;
-    }
-
     try {
       //Throws error on syntax error
       const compressed = GridScript.compressScript(editor.getValue());
-      editedAction.script = compressed;
-      editedAction.name =
-        name !== $monaco_store.config?.information.displayName
-          ? name
-          : undefined;
+      $monaco_action.script = compressed;
+      $monaco_action.name =
+        name !== $monaco_action?.information.displayName ? name : undefined;
 
       //Calculate length (this already includes the new value of referenceConfig)
-      scriptLength = (editedAction.parent as GridEvent).toLua().length;
+      scriptLength = ($monaco_action.parent as GridEvent).toLua().length;
 
       //Check the minified config length
       if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
@@ -166,8 +163,9 @@
       errorMesssage = e;
     }
 
-    editedAction.script = commitedCode;
-    editedAction.name = commitedName;
+    //Restore to commited
+    $monaco_action.name = commited.name;
+    $monaco_action.script = commited.script;
   }
 
   beforeUpdate(() => {
@@ -183,11 +181,12 @@
   });
 
   async function handleCommit() {
-    const action = $monaco_store.config;
-    action.script = GridScript.compressScript(editor.getValue());
-    action.name =
-      name !== $monaco_store.config?.information.displayName ? name : undefined;
-    action.sendToGrid();
+    $monaco_action.script = GridScript.compressScript(editor.getValue());
+    $monaco_action.name =
+      name !== $monaco_action?.information.displayName ? name : undefined;
+    commited.name = $monaco_action.name;
+    commited.script = $monaco_action.script;
+    commitEnabled = false;
   }
 
   onDestroy(() => {
@@ -197,12 +196,6 @@
   });
 
   function handleClose(e) {
-    if (commitedCode !== $monaco_store.config.script) {
-      $monaco_store.config.script = commitedCode;
-    }
-    if (commitedName !== $monaco_store.config.name) {
-      $monaco_store.config.name = commitedName;
-    }
     modal.close();
   }
 
@@ -235,14 +228,16 @@
   }
 
   function handleNameChange(value) {
-    if (value != $monaco_store.config?.name) {
+    if (value === monaco_action?.information.displayName) {
+      return;
+    }
+
+    if (value !== monaco_action?.name) {
       handleContentChange();
     }
   }
 
-  $: if (name !== $monaco_store.config.information.displayName) {
-    handleNameChange(name);
-  }
+  $: handleNameChange(name);
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -276,7 +271,7 @@
           </button>
         </div>
         <div class="opacity-70">
-          <span class:invisible={isDeleted($editedAction)}
+          <span class:invisible={isDeleted($monaco_action)}
             >{`Character Count: ${
               typeof scriptLength === "undefined" ? "?" : scriptLength
             }/${grid.getProperty("CONFIG_LENGTH") - 1} (max)`}</span
@@ -288,7 +283,7 @@
         class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
       >
         <div class="flex flex-col">
-          {#if isDeleted($editedAction)}
+          {#if isDeleted($monaco_action)}
             <div class="text-right text-sm text-white">Deleted Action</div>
           {:else}
             <div
@@ -307,7 +302,7 @@
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
             click={handleCommit}
-            disabled={!commitEnabled || isDeleted(editedAction)}
+            disabled={!commitEnabled || isDeleted($monaco_action)}
             text="Commit"
             style="accept"
           />

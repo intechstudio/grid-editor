@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+  import { user_input_event } from "./../panels/configuration/Configuration.store.ts";
   import { modal } from "./modal.store";
   import { config_panel_blocks } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
@@ -48,7 +49,7 @@
     </div>
 
     <textarea
-      value={$config_panel_blocks.toConfigScript()}
+      value={$user_input_event.toLua()}
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 

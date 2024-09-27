@@ -49,7 +49,6 @@
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { monaco_store } from "../main/modals/monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
@@ -107,22 +106,22 @@
     });
   }
 
-  $: if (typeof $config !== "undefined") {
-    displayConfigScript(config.script);
+  $: if (codePreview) {
+    displayConfigScript($config.script);
   }
 
+  onMount(() => {
+    displayConfigScript(config.script);
+  });
+
   async function open_monaco() {
-    if (config.id !== get(monaco_store)?.config.runtimeRef.id) {
-      modal.close();
-      await tick();
-    }
-    monaco_store.set({ config: config, index: index });
     const event = config.parent as GridEvent;
     const element = event.parent as GridElement;
-    $monaco_elementtype = element.type;
+    monaco_elementtype.set(element.type);
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },
+      args: { monaco_action: config },
     });
   }
 </script>

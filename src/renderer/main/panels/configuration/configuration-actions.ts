@@ -7,6 +7,19 @@ import * as CodeBlock from "../../../config-blocks/CodeBlock.svelte";
 import { logger } from "../../../runtime/runtime.store";
 
 type ConfigObject = any;
+enum ActionType {
+  COPY = 0,
+  PASTE = 1,
+}
+
+export interface ActionResult {
+  value: boolean;
+  text: string;
+  type: ActionType;
+}
+
+export interface CopyActionsResult extends ActionResult {}
+export interface PasteActionsResult extends ActionResult {}
 
 export async function copyElement({ dx, dy, page, element }) {
   /*
@@ -265,7 +278,7 @@ export function updateAction(index: number, newConfig: ConfigObject) {
 export function mergeActionsToCode(...actions: GridAction[]) {
   const codeBlock = new GridAction(undefined, {
     short: CodeBlock.information.short,
-    script: actions.map((action) => action.toLua()).join("\n"),
+    script: actions.map((action) => action.script).join("\n"),
     name: undefined,
   });
 
@@ -288,22 +301,7 @@ export function mergeActionsToCode(...actions: GridAction[]) {
   }
 
   (target.parent as GridEvent).replace(target, codeBlock);
-  console.log(target.parent as GridEvent);
 }
-
-enum ActionType {
-  COPY = 0,
-  PASTE = 1,
-}
-
-export interface ActionResult {
-  value: boolean;
-  text: string;
-  type: ActionType;
-}
-
-export interface CopyActionsResult extends ActionResult {}
-export interface PasteActionsResult extends ActionResult {}
 
 export async function copyActions(
   ...actions: GridAction[]
