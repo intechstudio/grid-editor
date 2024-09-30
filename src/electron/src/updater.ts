@@ -52,7 +52,8 @@ function init() {
   if (
     temporaryVersionCheck ||
     buildVariables.BUILD_ENV === "alpha" ||
-    buildVariables.BUILD_ENV === "production"
+    buildVariables.BUILD_ENV === "production" ||
+    buildVariables.BUILD_ENV === "nightly"
   ) {
     setTimeout(() => autoUpdater.checkForUpdates(), 6000); //Give time for main window to initialize
   } else {
