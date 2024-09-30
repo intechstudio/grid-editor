@@ -80,6 +80,7 @@
   ];
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
+  const buildVariables = window.ctxProcess.buildVariables();
 </script>
 
 <div
@@ -422,18 +423,20 @@
       />
     </Block>
 
-    <Block>
-      <BlockTitle>Nightly Editor Update</BlockTitle>
-      <BlockBody>
-        The Nightly Firmware version contains new, but potentially unstable
-        features and fixes. We suggest always staying on a Stable Editor
-        version!
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.nightlyEditor}
-        title={"Enabled"}
-      />
-    </Block>
+    {#if buildVariables.BRANCH_NAME === "stable"}
+      <Block>
+        <BlockTitle>Nightly Editor Update</BlockTitle>
+        <BlockBody>
+          The Nightly Firmware version contains new, but potentially unstable
+          features and fixes. We suggest always staying on a Stable Editor
+          version!
+        </BlockBody>
+        <MeltCheckbox
+          bind:target={$appSettings.persistent.nightlyEditor}
+          title={"Enabled"}
+        />
+      </Block>
+    {/if}
 
     <Block>
       <BlockTitle>Colorful Toolbar</BlockTitle>

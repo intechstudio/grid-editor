@@ -33,10 +33,8 @@ function init(nightlyAllowed: boolean) {
   );
 
   if (
-    buildVariables.BUILD_ENV === "alpha" ||
-    buildVariables.BUILD_ENV === "production" ||
-    (buildVariables.BUILD_ENV === "nightly" &&
-      buildVariables.BRANCH_NAME === "stable")
+    buildVariables.BUILD_ENV !== "development" &&
+    buildVariables.BRANCH_NAME === "stable"
   ) {
     setTimeout(() => autoUpdater.checkForUpdates(), 6000); //Give time for main window to initialize
   } else {
@@ -47,7 +45,11 @@ function init(nightlyAllowed: boolean) {
 export function setNightlyAllowed(isAllowed: boolean) {
   if (autoUpdater.allowPrerelease != isAllowed) {
     autoUpdater.allowPrerelease = isAllowed;
-    if (isAllowed) {
+    if (
+      isAllowed &&
+      buildVariables.BUILD_ENV !== "development" &&
+      buildVariables.BRANCH_NAME === "stable"
+    ) {
       autoUpdater.checkForUpdates();
     }
   }
