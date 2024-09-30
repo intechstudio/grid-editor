@@ -101,6 +101,18 @@ jobs:
           name: ${{ matrix.os }}-nightly
           path: build/*.*
 
+      - name: Release Nightly
+        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/stable'
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Release ${{ env.RELEASE_VERSION }}
+          files: build/*.*
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   linux-unit-test:
     name: Linux Unit Test
     runs-on: ubuntu-latest
