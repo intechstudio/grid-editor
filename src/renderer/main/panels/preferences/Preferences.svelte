@@ -423,6 +423,19 @@
     </Block>
 
     <Block>
+      <BlockTitle>Nightly Editor Update</BlockTitle>
+      <BlockBody>
+        The Nightly Firmware version contains new, but potentially unstable
+        features and fixes. We suggest always staying on a Stable Editor
+        version!
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.nightlyEditor}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Colorful Toolbar</BlockTitle>
       <BlockBody>Display the colors of the toolbar button by default</BlockBody>
       <MeltCheckbox

@@ -6,42 +6,30 @@ import { store } from "../main-store";
 
 interface Updater {
   mainWindow: any;
-  init: () => void;
+  init: (boolean) => void;
   installUpdate: () => void;
+  setNightlyAllowed: (boolean) => void;
 }
 
 export const updater: Updater = {
   mainWindow: null,
   init: init,
   installUpdate: installUpdate,
+  setNightlyAllowed: setNightlyAllowed,
 };
 
-function init() {
+function init(nightlyAllowed: boolean) {
   autoUpdater.logger = log;
   autoUpdater.autoDownload = false;
   autoUpdater.forceDevUpdateConfig = true;
   log.transports.file.level = "info";
 
-  if (buildVariables.BUILD_ENV === "production") {
-    autoUpdater.channel = "latest";
-  }
-
-  if (buildVariables.BUILD_ENV === "nightly") {
-    autoUpdater.channel = "latest";
-    autoUpdater.allowPrerelease = true;
-  }
-
-  if (buildVariables.BUILD_ENV === "alpha") {
-    autoUpdater.channel = "alpha";
-    autoUpdater.allowPrerelease = true;
-  }
+  autoUpdater.allowPrerelease = nightlyAllowed;
 
   log.info(
     "checkForUpdatesAndNotify ---> ",
     "BULD_ENV: ",
-    buildVariables.BUILD_ENV,
-    " CHANNEL: ",
-    autoUpdater.channel
+    buildVariables.BUILD_ENV
   );
 
   if (
@@ -53,6 +41,15 @@ function init() {
     setTimeout(() => autoUpdater.checkForUpdates(), 6000); //Give time for main window to initialize
   } else {
     console.log("Checking for updates is disabled...");
+  }
+}
+
+export function setNightlyAllowed(isAllowed: boolean) {
+  if (autoUpdater.allowPrerelease != isAllowed) {
+    autoUpdater.allowPrerelease = isAllowed;
+    if (isAllowed) {
+      autoUpdater.checkForUpdates();
+    }
   }
 }
 
