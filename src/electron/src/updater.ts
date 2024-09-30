@@ -1,6 +1,4 @@
 import { autoUpdater } from "electron-updater";
-import { app } from "electron";
-import semver from "semver";
 import log from "electron-log";
 
 import buildVariables from "../../../buildVariables.json";
@@ -30,6 +28,7 @@ function init() {
 
   if (buildVariables.BUILD_ENV === "nightly") {
     autoUpdater.channel = "latest";
+    autoUpdater.allowPrerelease = true;
   }
 
   if (buildVariables.BUILD_ENV === "alpha") {
@@ -37,12 +36,8 @@ function init() {
     autoUpdater.allowPrerelease = true;
   }
 
-  const temporaryVersionCheck = semver.lte(app.getVersion(), "1.2.39");
-
   log.info(
     "checkForUpdatesAndNotify ---> ",
-    "TEMP_CHECK: ",
-    temporaryVersionCheck,
     "BULD_ENV: ",
     buildVariables.BUILD_ENV,
     " CHANNEL: ",
@@ -50,10 +45,10 @@ function init() {
   );
 
   if (
-    temporaryVersionCheck ||
     buildVariables.BUILD_ENV === "alpha" ||
     buildVariables.BUILD_ENV === "production" ||
-    buildVariables.BUILD_ENV === "nightly"
+    (buildVariables.BUILD_ENV === "nightly" &&
+      buildVariables.BRANCH_NAME === "stable")
   ) {
     setTimeout(() => autoUpdater.checkForUpdates(), 6000); //Give time for main window to initialize
   } else {
