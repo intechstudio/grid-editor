@@ -149,7 +149,7 @@
           code: "KeyD",
         }}
         iconPath={"clear_from_device_01"}
-        disabled={!element?.hasChanges()}
+        disabled={typeof $element === "undefined" || !$element.hasChanges()}
         color={"#ff2323"}
       />
 

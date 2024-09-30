@@ -31,7 +31,7 @@ import { getComponentInformation } from "../lib/_configs";
 
 type UUID = string;
 type LuaScript = string;
-interface NodeData {
+class NodeData {
   id?: UUID;
   parent?: RuntimeNode<any>;
 }
@@ -127,7 +127,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   }
 }
 
-export interface ActionData extends NodeData {
+export class ActionData extends NodeData {
   short: string;
   script: string;
   name: string | undefined;
@@ -255,20 +255,74 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 }
 
-export interface EventData extends NodeData {
-  config?: Array<GridAction>;
-  type: number;
+export class EventData extends NodeData {
+  public config: Array<GridAction>;
+  public type: number;
+  public stored: LuaScript;
+  public loaded: boolean;
+
+  constructor(type: number) {
+    super();
+    this.type = type;
+    this.config = undefined;
+    this.loaded = false;
+    this.stored = undefined;
+  }
+
+  public hasChanges(): boolean {
+    if (this.isStored()) {
+      return false;
+    }
+    return this.stored !== this.toLua();
+  }
+
+  public toLua(): string {
+    return `<?lua ${this.config
+      .map((e) => e.toLua())
+      .join("")
+      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
+  }
+
+  public isStored() {
+    if (!this.isLoaded()) {
+      return true;
+    }
+
+    return this.stored === this.toLua();
+  }
+
+  public store() {
+    this.stored = this.toLua();
+  }
+
+  public clear() {
+    this.config?.forEach((e) => (e.parent = undefined));
+    this.config = [];
+  }
+
+  public checkSyntax() {
+    for (const action of this.config) {
+      if (!action.checkSyntax()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public checkLength() {
+    const script = this.toLua();
+    return script.length < grid.getProperty("CONFIG_LENGTH");
+  }
+
+  public isLoaded() {
+    return this.loaded;
+  }
 }
 
 export class GridEvent extends RuntimeNode<EventData> {
-  private stored: LuaScript | undefined;
-  private loaded: boolean;
-
   constructor(parent: GridElement, data?: EventData) {
     super(parent, data);
-    this.stored = undefined;
     this.config = data.config ?? [];
-    this.loaded = false;
   }
 
   public replace(a: GridAction, b: GridAction) {
@@ -352,21 +406,35 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   public checkSyntax() {
-    for (const action of this.config) {
-      if (!action.checkSyntax()) {
-        return false;
-      }
-    }
-    return true;
+    return this.data.checkSyntax();
   }
 
   public checkLength() {
-    const script = this.toLua();
-    return script.length < grid.getProperty("CONFIG_LENGTH");
+    return this.data.checkLength();
   }
 
   public isLoaded() {
-    return this.loaded;
+    return this.data.isLoaded();
+  }
+
+  public toLua() {
+    return this.data.toLua();
+  }
+
+  public hasChanges() {
+    return this.data.hasChanges();
+  }
+
+  public isStored() {
+    return this.data.isStored();
+  }
+
+  public store() {
+    this.data.store();
+  }
+
+  public clear() {
+    this.data.clear();
   }
 
   public async load(): Promise<GridAction[]> {
@@ -394,42 +462,11 @@ export class GridEvent extends RuntimeNode<EventData> {
           this.config = [];
           this.push(...actions);
           this.store();
-          this.loaded = true;
+          this.data.loaded = true;
           resolve(actions);
         })
         .catch((e) => reject(e));
     });
-  }
-
-  public toLua() {
-    return `<?lua ${this.config
-      .map((e) => e.toLua())
-      .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
-  }
-
-  public hasChanges(): boolean {
-    if (this.isStored()) {
-      return false;
-    }
-    return this.stored !== this.toLua();
-  }
-
-  public isStored() {
-    if (!this.isLoaded()) {
-      return true;
-    }
-
-    return this.stored === this.toLua();
-  }
-
-  public store() {
-    this.stored = this.toLua();
-  }
-
-  public clear() {
-    this.config?.forEach((e) => (e.parent = undefined));
-    this.config = undefined;
   }
 
   // Getters
@@ -441,6 +478,14 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.getField("type");
   }
 
+  public get stored() {
+    return this.getField("stored");
+  }
+
+  public get loaded() {
+    return this.getField("loaded");
+  }
+
   // Setters
   private set config(value: Array<GridAction>) {
     this.setField("config", value);
@@ -449,13 +494,36 @@ export class GridEvent extends RuntimeNode<EventData> {
   private set type(value: number) {
     this.setField("type", value);
   }
+
+  private set stored(value: string) {
+    this.setField("stored", value);
+  }
+
+  private set loaded(value: boolean) {
+    this.setField("loaded", value);
+  }
 }
 
-export interface ElementData extends NodeData {
-  elementIndex: number;
-  events?: Array<GridEvent>;
-  name: string | undefined;
-  type: ElementType;
+export class ElementData extends NodeData {
+  public elementIndex: number;
+  public events: Array<GridEvent>;
+  public name: string | undefined;
+  public type: ElementType;
+
+  constructor(elementIndex: number, type: ElementType, name?: string) {
+    super();
+    this.elementIndex = elementIndex;
+    this.type = type;
+    this.name = name;
+  }
+
+  public hasChanges() {
+    return this.events.some((e) => e.hasChanges());
+  }
+
+  public isCompatible(type: ElementType) {
+    return grid.is_element_compatible_with(type, this.type);
+  }
 }
 
 export class GridElement extends RuntimeNode<ElementData> {
@@ -465,21 +533,16 @@ export class GridElement extends RuntimeNode<ElementData> {
     this.events = [];
     const elementEvents = grid.get_element_events(data.type);
     for (const event of elementEvents) {
-      this.events.push(
-        new GridEvent(this, {
-          type: Number(event.value),
-          config: undefined,
-        })
-      );
+      this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
   }
 
   public hasChanges() {
-    return this.events.some((e) => e.hasChanges());
+    return this.data.hasChanges();
   }
 
-  isCompatible(type: ElementType) {
-    return grid.is_element_compatible_with(type, this.type);
+  public isCompatible(type: ElementType) {
+    return this.data.isCompatible(type);
   }
 
   loadPreset(preset: PresetData): Promise<PresetLoadResult> {
@@ -559,11 +622,7 @@ export class GridPage extends RuntimeNode<PageData> {
       }
 
       this.control_elements.push(
-        new GridElement(this, {
-          elementIndex: Number(index),
-          type: element,
-          name: undefined,
-        })
+        new GridElement(this, new ElementData(Number(index), element))
       );
     }
   }

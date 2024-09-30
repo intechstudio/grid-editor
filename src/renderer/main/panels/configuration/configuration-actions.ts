@@ -1,7 +1,13 @@
 import { get } from "svelte/store";
 import { Analytics } from "../../../runtime/analytics";
 import { appClipboard, ClipboardKey } from "../../../runtime/clipboard.store";
-import { ActionData, GridAction, GridEvent } from "../../../runtime/runtime";
+import {
+  ActionData,
+  GridAction,
+  GridElement,
+  GridEvent,
+  SendToGridResult,
+} from "../../../runtime/runtime";
 import { GridScript } from "@intechstudio/grid-protocol";
 import * as CodeBlock from "../../../config-blocks/CodeBlock.svelte";
 import { logger } from "../../../runtime/runtime.store";
@@ -10,6 +16,8 @@ type ConfigObject = any;
 enum ActionType {
   COPY = 0,
   PASTE = 1,
+  CUT = 2,
+  DISCARD = 3,
 }
 
 export interface ActionResult {
@@ -20,6 +28,7 @@ export interface ActionResult {
 
 export interface CopyActionsResult extends ActionResult {}
 export interface PasteActionsResult extends ActionResult {}
+export interface DiscardElementResult extends ActionResult {}
 
 export async function copyElement({ dx, dy, page, element }) {
   /*
@@ -138,8 +147,15 @@ export async function overwriteElement({ dx, dy, page, element }) {
   */
 }
 
-export async function discardElement({ dx, dy, page, element }) {
-  /*
+export async function discardElement(
+  element: GridElement
+): Promise<DiscardElementResult> {
+  Analytics.track({
+    event: "Config Action",
+    payload: { click: "Whole Element Discard" },
+    mandatory: false,
+  });
+
   logger.set({
     type: "progress",
     mode: 0,
@@ -147,58 +163,33 @@ export async function discardElement({ dx, dy, page, element }) {
     message: `Discarding element configuration...`,
   });
 
-  const current = ConfigTarget.create({
-    device: { dx, dy },
-    page,
-    element,
-    eventType: EventTypeToNumber(EventType.SETUP),
-  });
-  if (!current) {
-    console.warn("Target is undefined");
-    return Promise.reject();
+  const promises: Promise<SendToGridResult>[] = [];
+  for (const event of element.events) {
+    if (event.isStored()) continue;
+
+    const stored = GridAction.parse(event.stored);
+    event.clear();
+    event.push(...stored);
+    const promise = event.sendToGrid();
+    promises.push(promise);
   }
 
-  const promises: Promise<string>[] = [];
-  for (const event of current.events ?? ([] as any[])) {
-    const stored = event.stored;
-    if (!stored) continue;
-    const eventtype = event.type;
-    const target = ConfigTarget.create({
-      device: current.device,
-      element: current.element,
-      eventType: eventtype,
-      page: current.page,
+  try {
+    await Promise.all(promises);
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementdiscard",
+      message: `Configuration on Element ${element.elementIndex} is discarded!`,
     });
-    const list = ConfigList.createFromActions(stored);
-    promises.push(list.sendTo({ target }));
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: ActionType.DISCARD,
+    });
+  } catch (e) {
+    return Promise.reject({ value: false, text: e });
   }
-
-  return Promise.all(promises)
-    .then(async () => {
-      const ui = get(user_input); // assuming user_input is accessible
-      user_input.set({
-        dx,
-        dy,
-        pagenumber: page,
-        elementnumber: element,
-        eventtype: ui.eventtype,
-      });
-      const displayed = ConfigTarget.createFrom({ userInput: ui });
-      const list = await ConfigList.createFromTarget(displayed);
-      configManager.set(list);
-
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "elementdiscard",
-        message: `Configuration on Element ${element} is discarded!`,
-      });
-    })
-    .catch((error) => {
-      console.warn(error);
-      return Promise.reject(error);
-    });
-    */
 }
 
 export function insertAction(

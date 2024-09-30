@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { runtime } from "./../../../runtime/runtime.store.ts";
   import { PasteActionsResult } from "./configuration-actions";
   import { appSettings } from "./../../../runtime/app-helper.store.js";
   import { get, type Writable } from "svelte/store";
@@ -296,18 +297,13 @@
 
   function handleDiscardElement() {
     const ui = get(user_input);
-    discardElement({
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Discard" },
-      mandatory: false,
-    });
+    const element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    discardElement(element);
   }
 
   function handleCopyElement() {
