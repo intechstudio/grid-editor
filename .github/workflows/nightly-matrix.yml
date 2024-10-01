@@ -111,9 +111,10 @@ jobs:
 
       - name: Release Nightly
         uses: softprops/action-gh-release@v1
-        if: github.ref == 'refs/heads/stable'
+        if: ${{ github.ref == 'refs/heads/stable' }}
         with:
           name: Release Nightly Version
+          tag_name: ${{ github.ref }}
           files: build/*.*
           draft: false
           prerelease: true
