@@ -1,6 +1,4 @@
 import { autoUpdater } from "electron-updater";
-import { app } from "electron";
-import semver from "semver";
 import log from "electron-log";
 
 import buildVariables from "../../../buildVariables.json";
@@ -8,55 +6,54 @@ import { store } from "../main-store";
 
 interface Updater {
   mainWindow: any;
-  init: () => void;
+  init: (boolean) => void;
   installUpdate: () => void;
+  setNightlyAllowed: (boolean) => void;
 }
 
 export const updater: Updater = {
   mainWindow: null,
   init: init,
   installUpdate: installUpdate,
+  setNightlyAllowed: setNightlyAllowed,
 };
 
-function init() {
+function init(nightlyAllowed: boolean) {
   autoUpdater.logger = log;
   autoUpdater.autoDownload = false;
   autoUpdater.forceDevUpdateConfig = true;
   log.transports.file.level = "info";
 
-  if (buildVariables.BUILD_ENV === "production") {
-    autoUpdater.channel = "latest";
-  }
-
-  if (buildVariables.BUILD_ENV === "nightly") {
-    autoUpdater.channel = "latest";
-  }
-
-  if (buildVariables.BUILD_ENV === "alpha") {
-    autoUpdater.channel = "alpha";
-    autoUpdater.allowPrerelease = true;
-  }
-
-  const temporaryVersionCheck = semver.lte(app.getVersion(), "1.2.39");
+  autoUpdater.allowPrerelease =
+    nightlyAllowed || buildVariables.BUILD_ENV !== "production";
 
   log.info(
     "checkForUpdatesAndNotify ---> ",
-    "TEMP_CHECK: ",
-    temporaryVersionCheck,
     "BULD_ENV: ",
-    buildVariables.BUILD_ENV,
-    " CHANNEL: ",
-    autoUpdater.channel
+    buildVariables.BUILD_ENV
   );
 
   if (
-    temporaryVersionCheck ||
-    buildVariables.BUILD_ENV === "alpha" ||
-    buildVariables.BUILD_ENV === "production"
+    buildVariables.BUILD_ENV !== "development" &&
+    buildVariables.BRANCH_NAME === "stable"
   ) {
     setTimeout(() => autoUpdater.checkForUpdates(), 6000); //Give time for main window to initialize
   } else {
     console.log("Checking for updates is disabled...");
+  }
+}
+
+export function setNightlyAllowed(isAllowed: boolean) {
+  let newValue = isAllowed || buildVariables.BUILD_ENV !== "production";
+  if (autoUpdater.allowPrerelease != newValue) {
+    autoUpdater.allowPrerelease = newValue;
+    if (
+      isAllowed &&
+      buildVariables.BUILD_ENV !== "development" &&
+      buildVariables.BRANCH_NAME === "stable"
+    ) {
+      autoUpdater.checkForUpdates();
+    }
   }
 }
 

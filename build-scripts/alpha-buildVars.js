@@ -5,6 +5,7 @@ const path = require("path");
 let buildVariables = {
   BUILD_ENV: "alpha",
   BUILD_TARGET: "electron",
+  BRANCH_NAME: process.env.BRANCH_NAME,
 };
 
 fs.writeFile(

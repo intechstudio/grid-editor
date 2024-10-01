@@ -38,6 +38,7 @@ const persistentDefaultValues = {
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
   nightlyFirmware: false,
+  nightlyEditor: false,
   changeOnEvent: "event",
   sendHeartbeatImmediate: false,
   disableAnimations: false,

@@ -38,13 +38,21 @@ jobs:
           name: profile-cloud
           path: public/
           retention-days: 1
+  delete-nightly-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Nightly Release
+        uses: larryjoelane/delete-release-action@v1.0.24
+        with:
+          release-name: Release Nightly Version
+          token: ${{ secrets.GITHUB_TOKEN }}
   matrix-build:
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    needs: profile-cloud-build
+    needs: [profile-cloud-build, delete-nightly-release]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -100,6 +108,17 @@ jobs:
         with:
           name: ${{ matrix.os }}-nightly
           path: build/*.*
+
+      - name: Release Nightly
+        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/stable'
+        with:
+          name: Release Nightly Version
+          files: build/*.*
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   linux-unit-test:
     name: Linux Unit Test
