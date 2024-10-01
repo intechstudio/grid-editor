@@ -114,7 +114,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/stable' }}
         with:
           name: Release Nightly Version
-          tag_name: ${{ github.ref }}
+          tag_name: nightly-release
           files: build/*.*
           draft: false
           prerelease: true
