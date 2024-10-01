@@ -24,7 +24,8 @@ function init(nightlyAllowed: boolean) {
   autoUpdater.forceDevUpdateConfig = true;
   log.transports.file.level = "info";
 
-  autoUpdater.allowPrerelease = nightlyAllowed;
+  autoUpdater.allowPrerelease =
+    nightlyAllowed || buildVariables.BUILD_ENV !== "production";
 
   log.info(
     "checkForUpdatesAndNotify ---> ",
@@ -43,8 +44,9 @@ function init(nightlyAllowed: boolean) {
 }
 
 export function setNightlyAllowed(isAllowed: boolean) {
-  if (autoUpdater.allowPrerelease != isAllowed) {
-    autoUpdater.allowPrerelease = isAllowed;
+  let newValue = isAllowed || buildVariables.BUILD_ENV !== "production";
+  if (autoUpdater.allowPrerelease != newValue) {
+    autoUpdater.allowPrerelease = newValue;
     if (
       isAllowed &&
       buildVariables.BUILD_ENV !== "development" &&
