@@ -8,6 +8,7 @@ import {
   Unsubscribe,
   User,
   getAuth,
+  sendPasswordResetEmail,
   signInAnonymously,
   signInWithCredential,
   signOut,
@@ -141,6 +142,10 @@ const createAuth = () => {
     }
   }
 
+  async function sendForgottenPasswordLink(email) {
+    sendPasswordResetEmail(getCurrentCentralAuth(), email).catch(() => {});
+  }
+
   return {
     subscribe,
     login,
@@ -148,6 +153,7 @@ const createAuth = () => {
     logout,
     getCurrentAuthEnvironment,
     setCurrentAuthEnvironment,
+    sendForgottenPasswordLink,
   };
 };
 
