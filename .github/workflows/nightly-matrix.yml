@@ -42,10 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete Nightly Release
-          uses: larryjoelane/delete-release-action@v1.0.24
-          with:
-            release-name: Release Nightly Version
-            token: ${{ secrets.GITHUB_TOKEN }}
+        uses: larryjoelane/delete-release-action@v1.0.24
+        with:
+          release-name: Release Nightly Version
+          token: ${{ secrets.GITHUB_TOKEN }}
   matrix-build:
     strategy:
       fail-fast: false
