@@ -6,6 +6,7 @@
   import LoginError from "$lib/auth.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import configuration from "../../../../configuration.json";
+  import { logger } from "../../runtime/runtime.store";
 
   let email = "";
   let password = "";
@@ -23,6 +24,21 @@
       } else {
         throw e;
       }
+    });
+  }
+
+  function forgottenPassword() {
+    if (!email) {
+      loginError = "Input email to send the password reset to!";
+      return;
+    }
+
+    authStore.sendForgottenPasswordLink(email);
+    logger.set({
+      type: "success",
+      mode: 0,
+      classname: "forgotten-password",
+      message: `Password reset link sent if email exists!`,
     });
   }
 
@@ -77,6 +93,11 @@
             class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
             >login</button
           >
+          <button
+            on:click|preventDefault={forgottenPassword}
+            class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
+            >forgotten password</button
+          >
           {#if authStore.getCurrentAuthEnvironment() === AuthEnvironment.PRODUCTION}
             <button
               on:click|preventDefault={() =>
@@ -87,7 +108,7 @@
               >register on website</button
             >
           {:else}
-            <div class="text-white border border-red-500 text-center">
+            <div class="text-white border border-red-500 text-center my-2">
               <p>Can't register with email on development environment!</p>
             </div>
           {/if}
