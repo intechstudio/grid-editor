@@ -40,7 +40,7 @@
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
 
   import { Validator } from "./_validators";
 

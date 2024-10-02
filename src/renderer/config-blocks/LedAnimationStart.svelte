@@ -57,7 +57,7 @@
 
   import { Validator } from "./_validators";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
 
   export let config;
   export let humanScript;

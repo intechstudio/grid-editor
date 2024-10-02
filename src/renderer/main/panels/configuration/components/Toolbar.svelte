@@ -10,7 +10,7 @@
   import { shortcut } from "./../../../_actions/shortcut.action";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
-  import { config_panel_blocks } from "../Configuration.store";
+  import { config_panel_blocks } from "../Configuration";
 
   const dispatch = createEventDispatcher();
 

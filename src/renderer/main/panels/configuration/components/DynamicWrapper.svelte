@@ -1,14 +1,24 @@
 <script lang="ts">
-  import { ActionBlock } from "./../Configuration.store";
-  import { GridAction, GridEvent } from "./../../../../runtime/runtime";
+  import { config_panel_blocks } from "./../Configuration";
+  import Options from "./Options.svelte";
+  import { Analytics } from "./../../../../runtime/analytics.js";
+  import { ActionBlock } from "./../Configuration";
+  import {
+    GridAction,
+    ActionData,
+    GridEvent,
+    GridElement,
+  } from "./../../../../runtime/runtime";
   import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
-  } from "../Configuration.store";
+  } from "../Configuration";
   import { configIndexToId } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
+  import { updateAction } from "../Configuration";
+  import { logger } from "../../../../runtime/runtime.store.js";
 
   const dispatch = createEventDispatcher();
 
@@ -51,11 +61,19 @@
     toggled = true;
   }
 
+  function handleReplace(e) {
+    const { index, config } = e.detail;
+    config_panel_blocks.update((s) => {
+      s[index] = config;
+      lastOpenedActionblocksInsert(config.short);
+      return s;
+    });
+    //TODO OPERATION
+  }
+
   function handleOutput(e) {
     const { short, script, name } = e.detail;
-    action.short = short;
-    action.script = script;
-    action.name = name;
+    //TODO OPERATION
   }
 
   function handleValidator(e) {
@@ -96,6 +114,25 @@
       ctrlIsDown = false;
     }
   }
+
+  function handleSelectionChange() {
+    config_panel_blocks.update((s) => {
+      const stack: ActionBlock[] = [];
+      let n = s.findIndex((e) => e.action.id === data.action.id);
+      const value = data.selected;
+      do {
+        const current = s[n];
+        if (current.action.information.type === "composite_open") {
+          stack.push(current);
+        } else if (current.action.information.type === "composite_close") {
+          stack.pop();
+        }
+        current.selected = value;
+        ++n;
+      } while (stack.length > 0);
+      return s;
+    });
+  }
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
@@ -113,7 +150,7 @@
   <carousel
     class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!action.checkSyntax()
       ? 'border-error'
-      : 'border-transparent'}"
+      : 'border-transparent'} bri"
     id={configIndexToId(index)}
     class:rounded-tr-xl={action.information.rounding === "top"}
     class:rounded-br-xl={action.information.rounding === "bottom"}
@@ -121,6 +158,7 @@
     config-type={action.information.type}
     config-id={index}
     movable={action.information.movable}
+    class:brightness-125={data.selected}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
@@ -174,6 +212,14 @@
       </div>
     </div>
   </carousel>
+
+  <div class="z-20 flex items-center mx-2">
+    <Options
+      bind:selected={data.selected}
+      disabled={!data.action.information.selectable}
+      on:select={handleSelectionChange}
+    />
+  </div>
 </wrapper>
 
 <style global>

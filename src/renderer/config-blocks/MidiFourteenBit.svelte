@@ -48,7 +48,7 @@
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";

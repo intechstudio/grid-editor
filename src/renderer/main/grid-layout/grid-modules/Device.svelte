@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { runtime, user_input } from "./../../../runtime/runtime.store.ts";
   import { Analytics } from "./../../../runtime/analytics.js";
   import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
@@ -29,7 +29,7 @@
     copyElement,
     discardElement,
     clearElement,
-  } from "../../../main/panels/configuration/configuration-actions";
+  } from "../../../main/panels/configuration/Configuration";
 
   export let device = undefined;
   export let width = 225;
@@ -153,64 +153,20 @@
       });
   }
 
-  function handleOverwriteElement(elementNumber) {
-    overwriteElement({
-      dx: device.dx,
-      dy: device.dy,
-      page: get(user_input).pagenumber,
-      element: elementNumber,
-    }).catch((e) => {
-      console.warn(e);
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
+  function handleOverwriteElement(index: number) {
+    //TODO OPERATION
   }
 
-  function handleDiscardElement(elementNumber) {
-    discardElement({
-      dx: device.dx,
-      dy: device.dy,
-      page: get(user_input).pagenumber,
-      element: elementNumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Discard" },
-      mandatory: false,
-    });
+  function handleDiscardElement(index: number) {
+    //TODO OPERATION
   }
 
-  function handleCopyElement(elementNumber) {
-    copyElement({
-      dx: device.dx,
-      dy: device.dy,
-      page: get(user_input).pagenumber,
-      element: elementNumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
+  function handleCopyElement(index: number) {
+    //TODO OPERATION
   }
 
-  function handleClearElement() {
-    const ui = get(user_input);
-    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
-      console.warn(e);
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Clear Element" },
-      mandatory: false,
-    });
+  function handleClearElement(index: number) {
+    //TODO OPERATION
   }
 
   const modifier =

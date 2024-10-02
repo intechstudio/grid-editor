@@ -1,38 +1,25 @@
 <script lang="ts">
-  import { runtime } from "./../../../runtime/runtime.store.ts";
-  import { PasteActionsResult } from "./configuration-actions";
+  import { PasteActionsResult } from "./Configuration";
   import { appSettings } from "./../../../runtime/app-helper.store.js";
-  import { get, type Writable } from "svelte/store";
+  import { get } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
-
   import { Analytics } from "../../../runtime/analytics.js";
-
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
-
   import EventPanel from "./EventPanel.svelte";
-
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
-
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
-
   import {
     config_panel_blocks,
     user_input_event,
     lastOpenedActionblocksInsert,
     ActionBlock,
-  } from "./Configuration.store";
-
-  import { configListScrollSize } from "../../_actions/boundaries.action";
-
+  } from "./Configuration";
   import Toolbar from "./components/Toolbar.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
-  import Options from "./components/Options.svelte";
-
   import ExportConfigs from "./components/ExportConfigs.svelte";
-
   import {
     changeOrder,
     config_drag,
@@ -41,10 +28,8 @@
   import AddActionLine from "./components/AddActionLine.svelte";
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { NumberToEventType } from "@intechstudio/grid-protocol";
   import {
     insertAction,
-    updateAction,
     mergeActionsToCode,
     copyActions,
     pasteActions,
@@ -54,7 +39,7 @@
     overwriteElement,
     copyElement,
     clearElement,
-  } from "./configuration-actions";
+  } from "../../../runtime/operation";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -79,22 +64,6 @@
   }
 
   $: isSystemEventSelected = $user_input.elementnumber == 255;
-
-  //////////////////////////////////////////////////////////////////////////////
-  /////////////////       FUNCTION DEFINITIONS        //////////////////////////
-  //////////////////////////////////////////////////////////////////////////////
-
-  function sendCurrentConfigurationToGrid() {
-    const ui = get(user_input);
-    const target = runtime.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
-    );
-    target.sendToGrid();
-  }
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////           EVENT HANDLERS          //////////////////////////
@@ -199,127 +168,81 @@
     }
   }
 
-  function handleSelectionChange(block: ActionBlock) {
-    config_panel_blocks.update((s) => {
-      const stack: ActionBlock[] = [];
-      let n = s.findIndex((e) => e.action.id === block.action.id);
-      const value = block.selected;
-      do {
-        const current = s[n];
-        if (current.action.information.type === "composite_open") {
-          stack.push(current);
-        } else if (current.action.information.type === "composite_close") {
-          stack.pop();
-        }
-        current.selected = value;
-        ++n;
-      } while (stack.length > 0);
-      return s;
-    });
-  }
-
   function handleConfigInsertion(e) {
     let { index, configs } = e.detail;
-    /*
-    insertAction(index, configs, parent.runtimeRef);
-    sendCurrentConfigurationToGrid();
-    */
-  }
-
-  function handleConfigUpdate(e) {
-    const { index, config } = e.detail;
-    /*
-    updateAction(index, config);
-    sendCurrentConfigurationToGrid();
-
-    if (typeof target === "undefined") {
-      return;
-    }
-
-    Analytics.track({
-      event: "Config Action",
-      payload: {
-        click: "Update",
-        elementType: target.elementType,
-        eventType: NumberToEventType(target.eventType),
-        short: config.short,
-      },
-      mandatory: false,
-    });
-    */
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    insertAction();
   }
 
   function handleConvertToCodeBlock() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
     const blocks = get(config_panel_blocks);
     const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    mergeActionsToCode(...selected);
+    mergeActionsToCode(target, ...selected);
   }
 
   function handleRemove() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
     const blocks = get(config_panel_blocks);
     const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    removeActions(...selected);
+    removeActions(target, ...selected);
   }
 
   function handleCut() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
     const blocks = get(config_panel_blocks);
     const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    cutActions(...selected);
-  }
-
-  function handleReplace(e) {
-    const { index, config } = e.detail;
-    config_panel_blocks.update((s) => {
-      s[index] = config;
-      lastOpenedActionblocksInsert(config.short);
-      return s;
-    });
-    sendCurrentConfigurationToGrid();
+    cutActions(target, ...selected);
   }
 
   function handleOverwriteElement() {
     const ui = get(user_input);
-    overwriteElement({
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    }).catch((e) => {
-      console.warn(e);
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
-  }
-
-  function handleDiscardElement() {
-    const ui = get(user_input);
-    const element = runtime.findElement(
+    const target = runtime.findElement(
       ui.dx,
       ui.dy,
       ui.pagenumber,
       ui.elementnumber
     );
-    discardElement(element);
+    overwriteElement(target);
   }
 
   function handleCopyElement() {
     const ui = get(user_input);
-    copyElement({
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    copyElement(target);
   }
 
   function handleCopy() {
@@ -338,30 +261,30 @@
       ui.eventtype
     );
 
-    pasteActions(target).catch((e) => {
-      const error = e as PasteActionsResult;
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "config-limit-reached",
-        message: `Paste failed! ${error.text}`,
-      });
-    });
+    pasteActions(target);
   }
 
   function handleClearElement() {
-    /*
     const ui = get(user_input);
-    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
-      console.warn(e);
-    });
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
 
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Clear Element" },
-      mandatory: false,
-    });
-    */
+    clearElement(target);
+  }
+
+  function handleDiscardElement() {
+    const ui = get(user_input);
+    const element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    discardElement(element);
   }
 
   function handleSelectAll() {
@@ -457,30 +380,7 @@
                   animate:flip={{ duration: 300, easing: eases.backOut }}
                   in:fade|global={{ delay: 0 }}
                 >
-                  <div class="flex flex-row justify-between relative">
-                    <div
-                      class="w-full bg-white absolute h-full opacity-10 pointer-events-none z-10"
-                      class:hidden={!block.selected}
-                    />
-
-                    <DynamicWrapper
-                      {index}
-                      data={block}
-                      on:update={handleConfigUpdate}
-                      on:replace={handleReplace}
-                      on:select={() => {
-                        handleSelectionChange(block);
-                      }}
-                    />
-
-                    <div class="z-20 flex items-center mx-2">
-                      <Options
-                        bind:selected={block.selected}
-                        disabled={!block.action.information.selectable}
-                        on:select={() => handleSelectionChange(block)}
-                      />
-                    </div>
-                  </div>
+                  <DynamicWrapper {index} data={block} />
                   {#if typeof $config_drag === "undefined"}
                     {#if ["composite_close", "single"].includes(block.action.information.type) || ["single"].includes($config_panel_blocks[index + 1]?.action.information.type) || !$appSettings.persistent.actionHelperText || typeof block.action.information.helperText === "undefined"}
                       <AddActionLine

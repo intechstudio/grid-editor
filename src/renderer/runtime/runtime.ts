@@ -28,6 +28,8 @@ import {
 } from "./runtime.store";
 import { v4 as uuidv4 } from "uuid";
 import { getComponentInformation } from "../lib/_configs";
+import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
+import { appClipboard, ClipboardKey } from "./clipboard.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -38,13 +40,45 @@ class NodeData {
 
 type ProfileData = any;
 type PresetData = any;
-type ProfileLoadResult = any;
-type PresetLoadResult = any;
 
-export type SendToGridResult = {
+export enum GridOperationType {
+  PASTE_ACTION,
+  CUT_ACTION,
+  DISCARD_ELEMENT,
+  UPDATE_ACTION,
+  OVERWRITE_ELEMENT,
+  REMOVE_ACTION,
+  MERGE_ACTIONS_TO_CODE,
+  RESET_ELEMENT,
+  SEND_EVENT_TO_GRID,
+  LOAD_PRESET,
+  LOAD_PROFILE,
+  OVERWRITE_EVENT,
+  INSERT_ACTIONS,
+  REPLACE_ACTION,
+}
+
+export interface GridOperationResult {
   value: boolean;
   text: string;
-};
+  type: GridOperationType;
+}
+
+export interface CopyActionsResult extends GridOperationResult {}
+export interface PasteActionsResult extends GridOperationResult {}
+export interface DiscardElementResult extends GridOperationResult {}
+export interface OverwriteElementResult extends GridOperationResult {}
+export interface UpdateActionResult extends GridOperationResult {}
+export interface MergeActionsToCodeResult extends GridOperationResult {}
+export interface RemoveActionsResult extends GridOperationResult {}
+export interface CutActionsResult extends GridOperationResult {}
+export interface ResetElementResult extends GridOperationResult {}
+export interface SendToGridResult extends GridOperationResult {}
+export interface PresetLoadResult extends GridOperationResult {}
+export interface ProfileLoadResult extends GridOperationResult {}
+export interface OverwriteEventResult extends GridOperationResult {}
+export interface InsertActionsResult extends GridOperationResult {}
+export interface ReplaceActionsResult extends GridOperationResult {}
 
 abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   protected _internal: Writable<T>;
@@ -69,24 +103,32 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   constructor(parent: RuntimeNode<any>, value?: T) {
     value.parent = parent;
     value.id = uuidv4();
-
     this._internal = writable(value);
   }
 
-  get data() {
+  public get data() {
     return get(this._internal);
   }
 
-  get parent(): RuntimeNode<any> {
+  protected set data(value: T) {
+    this._internal.set(value);
+    this.notifyParent();
+  }
+
+  public get parent(): RuntimeNode<any> {
     return this.getField("parent");
   }
 
-  set parent(value: RuntimeNode<any>) {
+  protected set parent(value: RuntimeNode<any>) {
     this.setField("parent", value);
   }
 
-  get id() {
+  public get id() {
     return this.getField("id");
+  }
+
+  protected set id(value: UUID) {
+    this.setField("id", value);
   }
 
   protected notify() {
@@ -128,9 +170,37 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
 }
 
 export class ActionData extends NodeData {
-  short: string;
-  script: string;
-  name: string | undefined;
+  public short: string;
+  public script: string;
+  public name?: string;
+
+  constructor(short: string, script: string, name?: string) {
+    super();
+    this.short = short;
+    this.script = script;
+    this.name = name;
+  }
+
+  public toLua() {
+    return `--[[@${this.short}${
+      typeof this.name !== "undefined" ? `#${this.name}` : ""
+    }]] ${this.script}`;
+  }
+
+  public checkSyntax() {
+    const code =
+      this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
+    return GridScript.checkSyntax(code);
+  }
+
+  public get information() {
+    let result = GridAction.getInformation(this.short);
+    //Backward compatibility
+    if (typeof result === "undefined") {
+      result = GridAction.getInformation("raw");
+    }
+    return result;
+  }
 }
 
 export class GridAction extends RuntimeNode<ActionData> {
@@ -160,19 +230,51 @@ export class GridAction extends RuntimeNode<ActionData> {
         .match(/--\[\[@(.*)\]\]/)
         ?.at(1)
         .split(/#(.*)/);
-      const obj = new GridAction(undefined, {
+
+      const data = new ActionData(
         //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
-        short: split[0],
-        script: configList[i + 1].trim(),
-        name: split.length > 1 ? split[1] : undefined,
-      });
+        split[0],
+        configList[i + 1].trim(),
+        split.length > 1 ? split[1] : undefined
+      );
+      const obj = new GridAction(undefined, data);
       result.push(obj);
     }
 
     return result;
   }
 
-  get indentation() {
+  static getInformation(short: string) {
+    const result = getComponentInformation({ short: short });
+    return result.information;
+  }
+
+  public toLua() {
+    return this.data.toLua();
+  }
+
+  public checkSyntax() {
+    return this.data.checkSyntax();
+  }
+
+  public sendToGrid(): Promise<SendToGridResult> {
+    const event = this.parent as GridEvent;
+    return event.sendToGrid();
+  }
+
+  public async overwride(data: ActionData): Promise<UpdateActionResult> {
+    this.script = data.script;
+    this.short = data.short;
+    this.name = data.name;
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.UPDATE_ACTION,
+    });
+  }
+
+  // Getters
+  public get indentation() {
     let indentation = 0;
     const event = this.parent as GridEvent;
     for (let i = 0; i < event.config.length; ++i) {
@@ -194,64 +296,33 @@ export class GridAction extends RuntimeNode<ActionData> {
     }
   }
 
-  static getInformation(short: string) {
-    const result = getComponentInformation({ short: short });
-    return result.information;
+  public get information() {
+    return this.getField("information");
   }
 
-  // Getters
-  get information() {
-    let result = GridAction.getInformation(this.short);
-
-    //Backward compatibility
-    if (typeof result === "undefined") {
-      result = GridAction.getInformation("raw");
-    }
-
-    return result;
-  }
-
-  get script() {
+  public get script() {
     return this.getField("script");
   }
 
-  get short() {
+  public get short() {
     return this.getField("short");
   }
 
-  get name() {
+  public get name() {
     return this.getField("name");
   }
 
   // Setters
-  set script(value: string) {
+  private set script(value: string) {
     this.setField("script", value);
   }
 
-  set short(value: string) {
+  private set short(value: string) {
     this.setField("short", value);
   }
 
-  set name(value: string) {
+  private set name(value: string) {
     this.setField("name", value);
-  }
-
-  toLua() {
-    return `--[[@${this.short}${
-      typeof this.name !== "undefined" ? `#${this.name}` : ""
-    }]] ${this.script}`;
-  }
-
-  sendToGrid(): Promise<SendToGridResult> {
-    const event = this.parent as GridEvent;
-    return event.sendToGrid();
-  }
-
-  //Returns true if syntax is OK
-  checkSyntax() {
-    const code =
-      this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
-    return GridScript.checkSyntax(code);
   }
 }
 
@@ -264,7 +335,7 @@ export class EventData extends NodeData {
   constructor(type: number) {
     super();
     this.type = type;
-    this.config = undefined;
+    this.config = [];
     this.loaded = false;
     this.stored = undefined;
   }
@@ -296,7 +367,9 @@ export class EventData extends NodeData {
   }
 
   public clear() {
-    this.config?.forEach((e) => (e.parent = undefined));
+    for (const action of this.config) {
+      (action as any).parent = undefined;
+    }
     this.config = [];
   }
 
@@ -322,56 +395,146 @@ export class EventData extends NodeData {
 export class GridEvent extends RuntimeNode<EventData> {
   constructor(parent: GridElement, data?: EventData) {
     super(parent, data);
-    this.config = data.config ?? [];
   }
 
-  public replace(a: GridAction, b: GridAction) {
+  public replace(a: GridAction, b: GridAction): Promise<ReplaceActionsResult> {
     const index = this.config.findIndex((e) => e.id === a.id);
     try {
       this.remove(a);
       this.insert(index, b);
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.REPLACE_ACTION,
+      });
     } catch (e) {
-      `Replace failed! Reason: ${e}`;
+      this.insert(index, a); //Fallback to original value
+      return Promise.reject({
+        value: false,
+        text: `Replace failed! Reason: ${e}`,
+        type: GridOperationType.REPLACE_ACTION,
+      });
     }
   }
 
-  public remove(action: GridAction) {
-    const index = this.config.findIndex((e) => e.id === action.id);
-    if (index === -1) {
-      throw `Remove failed! Action with id of ${action.id} is not found.`;
+  public remove(...actions: GridAction[]): Promise<RemoveActionsResult> {
+    for (const action of actions) {
+      const index = this.config.findIndex((e) => e.id === action.id);
+      if (index === -1) {
+        return Promise.reject({
+          value: false,
+          text: `Remove failed! Action with id of ${action.id} is not found.`,
+          type: GridOperationType.REMOVE_ACTION,
+        });
+      }
     }
 
-    action.parent = undefined;
-    this.config = [
-      ...this.config.slice(0, index),
-      ...this.config.slice(index + 1),
-    ];
+    for (const action of actions) {
+      (action as any).parent = undefined;
+      const index = this.config.findIndex((e) => e.id === action.id);
+
+      this.config = [
+        ...this.config.slice(0, index),
+        ...this.config.slice(index + 1),
+      ];
+    }
+
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.REMOVE_ACTION,
+    });
   }
 
-  public insert(index: number, ...actions: GridAction[]) {
+  public insert(
+    index: number,
+    ...actions: GridAction[]
+  ): Promise<InsertActionsResult> {
     if (index < 0 || index > this.config.length) {
-      throw `Add failed! Invalid index: ${index}.`;
+      return Promise.reject({
+        value: false,
+        text: `Add failed! Invalid index: ${index}.`,
+        type: GridOperationType.INSERT_ACTIONS,
+      });
     }
 
-    actions.forEach((e) => (e.parent = this));
-    this.config = [
-      ...this.config.slice(0, index),
-      ...actions,
-      ...this.config.slice(index),
-    ];
-    console.log(this.config);
+    try {
+      this.config = [
+        ...this.config.slice(0, index),
+        ...actions,
+        ...this.config.slice(index),
+      ];
+      actions.forEach((e) => ((e as any).parent = this));
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.INSERT_ACTIONS,
+      });
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: `Insert failed! Reason: ${e}`,
+        type: GridOperationType.INSERT_ACTIONS,
+      });
+    }
   }
 
-  public push(...action: GridAction[]) {
-    const actions = this.config;
-    action.forEach((e) => (e.parent = this));
-    actions.push(...action);
-    this.config = actions;
+  public async pasteFromClipboard(index?: number): Promise<PasteActionsResult> {
+    const clipboard = get(appClipboard);
+
+    if (typeof clipboard === "undefined") {
+      return Promise.reject({
+        value: false,
+        text: `Nothing to paste, clipboard is empty`,
+        type: GridOperationType.PASTE_ACTION,
+      });
+    }
+
+    if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
+      return Promise.reject({
+        value: false,
+        text: `Invalid clipboard type ${clipboard?.key}`,
+        type: GridOperationType.PASTE_ACTION,
+      });
+    }
+
+    if (!this.isLoaded()) {
+      await this.load();
+    }
+
+    if (typeof index === "undefined") {
+      index = this.config.length;
+    }
+
+    const actions = (get(appClipboard).payload as GridAction[]).map(
+      (e: ActionData) => {
+        const data = new ActionData(e.short, e.script, e.name);
+        return new GridAction(undefined, data);
+      }
+    );
+
+    try {
+      this.insert(index, ...actions);
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.PASTE_ACTION,
+      });
+    } catch (e) {
+      Promise.reject({
+        value: false,
+        text: "Config limit reached",
+        type: GridOperationType.PASTE_ACTION,
+      });
+    }
+  }
+
+  public push(...actions: GridAction[]): Promise<InsertActionsResult> {
+    return this.insert(this.config.length, ...actions);
   }
 
   public actionAt(index: number) {
-    const actions = this.config;
-    return actions.at(index);
+    return this.config.at(index);
   }
 
   public sendToGrid(): Promise<SendToGridResult> {
@@ -437,6 +600,84 @@ export class GridEvent extends RuntimeNode<EventData> {
     this.data.clear();
   }
 
+  public async merge(
+    ...actions: GridAction[]
+  ): Promise<MergeActionsToCodeResult> {
+    if (!actions.every((e) => this.config.includes(e))) {
+      return Promise.reject({
+        value: false,
+        text: "Detached action!",
+        type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+      });
+    }
+
+    //Sort to be merged actions by their index
+    actions.sort(
+      (a, b) =>
+        this.config.findIndex((e) => e.id === a.id) -
+        this.config.findIndex((e) => e.id === b.id)
+    );
+
+    const codeBlock = new GridAction(
+      undefined,
+      new ActionData(
+        CodeBlock.information.short,
+        actions.map((action) => action.script).join("\n")
+      )
+    );
+
+    if (!codeBlock.checkSyntax()) {
+      return Promise.reject({
+        value: false,
+        text: "Action(s) with syntax error(s) can not be merged!",
+        type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+      });
+    }
+
+    const index = this.config.findIndex((e) => e.id === actions[0].id);
+    this.insert(index, codeBlock);
+    actions.forEach((e) => this.remove(e));
+
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+    });
+  }
+
+  public async overwrite(data: EventData): Promise<OverwriteEventResult> {
+    if (this.type !== data.type) {
+      return Promise.reject({
+        value: false,
+        text: `Incompatible event types of ${data.type} and ${this.type}!`,
+        type: GridOperationType.OVERWRITE_EVENT,
+      });
+    }
+
+    try {
+      await this.load();
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: "Error loading event!",
+        type: GridOperationType.OVERWRITE_EVENT,
+      });
+    }
+
+    this.clear();
+    const copy = data.config.map(
+      (e) =>
+        new GridAction(undefined, new ActionData(e.short, e.script, e.name))
+    );
+    this.push(...copy);
+
+    return Promise.resolve({
+      value: false,
+      text: "OK",
+      type: GridOperationType.OVERWRITE_ELEMENT,
+    });
+  }
+
   public async load(): Promise<GridAction[]> {
     return new Promise((resolve, reject) => {
       if (this.isLoaded()) {
@@ -488,7 +729,15 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   // Setters
   private set config(value: Array<GridAction>) {
+    const temp = this.config;
     this.setField("config", value);
+    if (!this.checkLength()) {
+      value.forEach((e: GridAction) => {
+        this.remove(e);
+      });
+      this.setField("config", temp);
+      throw "Config limit reached! Event value was reset.";
+    }
   }
 
   private set type(value: number) {
@@ -537,6 +786,64 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
+  public async discardChanges(): Promise<DiscardElementResult> {
+    const promises: Promise<SendToGridResult>[] = [];
+    for (const event of this.events) {
+      if (event.isStored()) continue;
+      const stored = GridAction.parse(event.stored);
+      event.clear();
+      event.push(...stored);
+      const promise = event.sendToGrid();
+      promises.push(promise);
+    }
+
+    try {
+      await Promise.all(promises);
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.DISCARD_ELEMENT,
+      });
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: e,
+        type: GridOperationType.DISCARD_ELEMENT,
+      });
+    }
+  }
+
+  public async overwrite(data: ElementData): Promise<OverwriteElementResult> {
+    if (this.type !== data.type) {
+      return Promise.reject({
+        value: false,
+        text: `Incompatible element types of ${data.type} and ${this.type}!`,
+        type: GridOperationType.OVERWRITE_ELEMENT,
+      });
+    }
+
+    try {
+      await this.load();
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: "Error loading element!",
+        type: GridOperationType.OVERWRITE_ELEMENT,
+      });
+    }
+
+    for (const event of this.events) {
+      const newEvent = data.events.find((e) => e.type === event.type);
+      event.overwrite(newEvent);
+    }
+
+    return Promise.resolve({
+      value: false,
+      text: "OK",
+      type: GridOperationType.OVERWRITE_ELEMENT,
+    });
+  }
+
   public hasChanges() {
     return this.data.hasChanges();
   }
@@ -557,6 +864,27 @@ export class GridElement extends RuntimeNode<ElementData> {
   findEvent(type: number) {
     const events = this.events;
     return events.find((event) => event.type === type);
+  }
+
+  public resetDefault(): Promise<ResetElementResult> {
+    const temp = grid
+      .get_element_events(this.type)
+      .map((e) => Object({ type: e.value, default: e.defaultConfig }));
+    for (const event of this.events) {
+      const defaultScript = temp.find((e) => e.type === event.type);
+      const defaultActions = GridAction.parse(defaultScript);
+      event.clear();
+      event.push(...defaultActions);
+    }
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.RESET_ELEMENT,
+    });
+  }
+
+  public isLoaded() {
+    return this.events.every((e) => e.isLoaded());
   }
 
   async load() {

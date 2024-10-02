@@ -11,7 +11,7 @@
   } from "./MidiMonitor.store";
   import { grid } from "@intechstudio/grid-protocol";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../../panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../../panels/configuration/Configuration";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   // ok but slow nice

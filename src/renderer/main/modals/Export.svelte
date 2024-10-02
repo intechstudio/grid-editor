@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { user_input_event } from "./../panels/configuration/Configuration.store.ts";
+  import { user_input_event } from "./../panels/configuration/Configuration";
   import { modal } from "./modal.store";
-  import { config_panel_blocks } from "../panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../panels/configuration/Configuration";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";

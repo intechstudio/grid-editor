@@ -52,7 +52,7 @@ A -> B : AB-First step
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";

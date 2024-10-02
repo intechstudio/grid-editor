@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { config_panel_blocks } from "./../configuration/Configuration.store";
+  import { config_panel_blocks } from "./../configuration/Configuration";
   import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";

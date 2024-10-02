@@ -16,9 +16,9 @@
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import { config_panel_blocks } from "../Configuration.store";
+  import { config_panel_blocks } from "../Configuration";
 
-  import { lastOpenedActionblocksInsert } from "../Configuration.store";
+  import { lastOpenedActionblocksInsert } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";

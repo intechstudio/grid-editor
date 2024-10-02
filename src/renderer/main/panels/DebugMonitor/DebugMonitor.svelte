@@ -16,7 +16,7 @@
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { config_panel_blocks } from "../../panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../../panels/configuration/Configuration";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const configScriptLength = writable(0);
