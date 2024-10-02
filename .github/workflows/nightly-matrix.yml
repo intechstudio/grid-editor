@@ -39,6 +39,7 @@ jobs:
           path: public/
           retention-days: 1
   delete-nightly-release:
+    if: ${{ github.ref == 'refs/heads/stable' }}
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.get_version.outputs.tag_name }}
@@ -58,10 +59,22 @@ jobs:
       - name: Get Release ID by Tag
         id: get_release_id
         run: |
+          # Debug: Print the tag_name to ensure it is set correctly
           tag_name="${{ steps.get_version.outputs.tag_name }}"
+          echo "DEBUG: tag_name is set to: $tag_name"
+          
+          # Debug: Make sure we can access GitHub's API token
+          echo "DEBUG: GitHub Token is available: ${{ secrets.GITHUB_TOKEN != '' }}"
+          
+          # Debug: Capture full curl response
           release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/${tag_name}")
-
+          
+          # Debug: Output the full API response
+          echo "DEBUG: GitHub API response:"
+          echo "$release"
+          
+          # Check if the release contains an ID
           if echo "$release" | grep -q '"id":'; then
             release_id=$(echo "$release" | jq '.id')
             echo "Release ID: $release_id"
