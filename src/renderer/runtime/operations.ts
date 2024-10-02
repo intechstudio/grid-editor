@@ -256,7 +256,7 @@ export async function addActions(
     });
 }
 
-export async function replaceActions(
+export async function replaceAction(
   target: GridEvent,
   a: GridAction,
   b: GridAction

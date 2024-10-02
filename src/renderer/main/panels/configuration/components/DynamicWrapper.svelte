@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { ActionData } from "./../../../../runtime/runtime.ts";
   import { config_panel_blocks } from "./../Configuration";
   import Options from "./Options.svelte";
   import { Analytics } from "./../../../../runtime/analytics.js";
@@ -17,7 +18,10 @@
   } from "../Configuration";
   import { configIndexToId } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
-  import { updateAction } from "../Configuration";
+  import {
+    updateAction,
+    replaceAction,
+  } from "./../../../../runtime/operations";
   import { logger } from "../../../../runtime/runtime.store.js";
 
   const dispatch = createEventDispatcher();
@@ -73,7 +77,7 @@
 
   function handleOutput(e) {
     const { short, script, name } = e.detail;
-    //TODO OPERATION
+    updateAction(data.action, new ActionData(short, script, name));
   }
 
   function handleValidator(e) {

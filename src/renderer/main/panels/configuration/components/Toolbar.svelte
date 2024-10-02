@@ -131,7 +131,7 @@
         shortcut={{ control: true, code: "KeyV" }}
         iconPath={"paste_all"}
         disabled={$appClipboard?.key !== ClipboardKey.ELEMENT ||
-          !element?.isCompatible($appClipboard?.payload.elementType)}
+          !$element?.isCompatible($appClipboard?.payload.type)}
         color={"#006cb7"}
       />
 

@@ -34,8 +34,8 @@ export interface CopyActionsResult extends ClipboardOperationResult {}
 export interface CopyElementResult extends ClipboardOperationResult {}
 
 export class ApplicationClipboard implements Readable<ClipboardData> {
-  protected _internal: Writable<ClipboardData>;
-  constructor(value: ClipboardData) {
+  protected _internal: Writable<ClipboardData> = writable();
+  constructor(value?: ClipboardData) {
     this.set(value);
   }
 
@@ -95,4 +95,4 @@ export class ApplicationClipboard implements Readable<ClipboardData> {
   }
 }
 
-export const appClipboard = new ApplicationClipboard(undefined);
+export const appClipboard = new ApplicationClipboard();

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { ActionData } from "./../../../../runtime/runtime.ts";
   import { get } from "svelte/store";
   import { user_input, runtime } from "./../../../../runtime/runtime.store";
   import { GridAction } from "./../../../../runtime/runtime";
@@ -256,12 +257,6 @@
       },
     });
     referenceElement.dispatchEvent(event);
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Paste" },
-      mandatory: false,
-    });
   }
 
   function handleReferenceElementClick(e) {
@@ -305,11 +300,10 @@
     defaultScript = replaceToLocalDefinition(defaultScript, "glg()", "gre");
     defaultScript = replaceToLocalDefinition(defaultScript, "glb()", "blu");
     const configs = [
-      new GridAction(undefined, {
-        short: component.information.short,
-        script: defaultScript,
-        name: undefined,
-      }),
+      new GridAction(
+        undefined,
+        new ActionData(component.information.short, defaultScript)
+      ),
     ];
 
     lastOpenedActionblocksInsert(configs[0].short);
@@ -318,11 +312,7 @@
     if (typeof compositeLua !== "undefined") {
       for (const obj of compositeLua) {
         configs.push(
-          new GridAction(undefined, {
-            short: obj.short,
-            script: obj.script,
-            name: undefined,
-          })
+          new GridAction(undefined, new ActionData(obj.short, obj.script))
         );
       }
     }
@@ -335,14 +325,6 @@
     });
     referenceElement.dispatchEvent(event);
 
-    Analytics.track({
-      event: "Config Action",
-      payload: {
-        click: "Add Action",
-        actionBlock: component.information.name,
-      },
-      mandatory: false,
-    });
     handleClose();
   }
 

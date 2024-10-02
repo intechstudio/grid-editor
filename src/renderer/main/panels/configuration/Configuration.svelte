@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { config_panel_blocks } from "./Configuration.ts";
   import { PasteActionsResult } from "./Configuration";
   import { appSettings } from "./../../../runtime/app-helper.store.js";
   import { get } from "svelte/store";
@@ -29,7 +30,6 @@
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
   import {
-    insertAction,
     mergeActionsToCode,
     copyActions,
     pasteActions,
@@ -39,7 +39,8 @@
     overwriteElement,
     copyElement,
     clearElement,
-  } from "../../../runtime/operation";
+    addActions,
+  } from "../../../runtime/operations";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -91,7 +92,6 @@
   }
 
   function handleDrop(e) {
-    /*
     if (typeof dropIndex === "undefined") {
       return;
     }
@@ -106,24 +106,21 @@
       return;
     }
 
-    config_panel_blocks.update((s) => {
-      //Collect dragged configs and mark them for deletion
-      const temp = [];
-      draggedIndexes.forEach((i) => {
-        temp.push(s[i]);
-        s[i] = undefined;
-      });
-
-      //Insert dragged configs at position
-      s.insert(targetIndex, ...temp);
-
-      //Remove marked configs
-      s = s.filter((e) => typeof e !== "undefined");
-      return s;
+    //get(config_panel_blocks).map(e => e.action)
+    return;
+    draggedIndexes.forEach((i) => {
+      temp.push(s[i]);
+      s[i] = undefined;
     });
 
+    //Insert dragged configs at position
+    s.insert(targetIndex, ...temp);
+
+    //Remove marked configs
+    s = s.filter((e) => typeof e !== "undefined");
+    return s;
+
     sendCurrentConfigurationToGrid();
-    */
   }
 
   function handleDragStart(e) {
@@ -168,19 +165,6 @@
     }
   }
 
-  function handleConfigInsertion(e) {
-    let { index, configs } = e.detail;
-    const ui = get(user_input);
-    const target = runtime.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
-    );
-    insertAction();
-  }
-
   function handleConvertToCodeBlock() {
     const ui = get(user_input);
     const target = runtime.findEvent(
@@ -223,6 +207,19 @@
     cutActions(target, ...selected);
   }
 
+  function handleAddConfig(e: CustomEvent) {
+    const { configs, index } = e.detail;
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    addActions(target, index, ...configs);
+  }
+
   function handleOverwriteElement() {
     const ui = get(user_input);
     const target = runtime.findElement(
@@ -251,7 +248,8 @@
     copyActions(...selected);
   }
 
-  function handlePaste() {
+  function handlePaste(e: CustomEvent) {
+    const { index } = e?.detail ?? { index: undefined };
     const ui = get(user_input);
     const target = runtime.findEvent(
       ui.dx,
@@ -261,7 +259,7 @@
       ui.eventtype
     );
 
-    pasteActions(target);
+    pasteActions(target, index);
   }
 
   function handleClearElement() {
@@ -343,8 +341,6 @@
               <AddAction
                 index={0}
                 text={"There are no actions configured on this event."}
-                on:paste={handlePaste}
-                on:new-config={handleConfigInsertion}
               />
             </div>
           {:else}
@@ -364,7 +360,7 @@
                 <AddActionLine
                   index={0}
                   on:paste={handlePaste}
-                  on:new-config={handleConfigInsertion}
+                  on:new-config={handleAddConfig}
                 />
               {:else}
                 <DropZone
@@ -386,7 +382,7 @@
                       <AddActionLine
                         index={index + 1}
                         on:paste={handlePaste}
-                        on:new-config={handleConfigInsertion}
+                        on:new-config={handleAddConfig}
                       />
                     {:else}
                       <div class="mr-6">
@@ -394,7 +390,7 @@
                           text={block.action.information.helperText}
                           index={index + 1}
                           on:paste={handlePaste}
-                          on:new-config={handleConfigInsertion}
+                          on:new-config={handleAddConfig}
                         />
                       </div>
                     {/if}
@@ -421,8 +417,8 @@
         >
           <AddActionButton
             index={$config_panel_blocks.length}
-            on:pasteconfig_panel}
-            on:new-config={handleConfigInsertion}
+            on:paste={handlePaste}
+            on:new-config={handleAddConfig}
           />
           <ExportConfigs />
         </div>

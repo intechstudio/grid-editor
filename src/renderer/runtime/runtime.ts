@@ -871,7 +871,7 @@ export class GridElement extends RuntimeNode<ElementData> {
       .get_element_events(this.type)
       .map((e) => Object({ type: e.value, default: e.defaultConfig }));
     for (const event of this.events) {
-      const defaultScript = temp.find((e) => e.type === event.type);
+      const defaultScript = temp.find((e) => e.type === event.type).default;
       const defaultActions = GridAction.parse(defaultScript);
       event.clear();
       event.push(...defaultActions);
@@ -887,14 +887,10 @@ export class GridElement extends RuntimeNode<ElementData> {
     return this.events.every((e) => e.isLoaded());
   }
 
-  async load() {
-    const promises: Array<Promise<void>> = [];
+  public async load() {
+    const promises: Array<Promise<GridAction[]>> = [];
     for (const event of this.events) {
-      promises.push(
-        new Promise((resolve) => {
-          event.load().then(() => resolve());
-        })
-      );
+      promises.push(event.load());
     }
     Promise.all(promises);
   }
@@ -1039,7 +1035,6 @@ export interface ModuleData extends NodeData {
   dy: number;
   fwMismatch: boolean;
   fwVersion: FirmwareVersion;
-  id: string;
   map: DirectionMap;
   portstate: any;
   rot: number;
@@ -1100,10 +1095,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
     return this.getField("fwVersion");
   }
 
-  get id() {
-    return this.getField("id");
-  }
-
   get map() {
     return this.getField("map");
   }
@@ -1148,10 +1139,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   set fwVersion(value: FirmwareVersion) {
     this.setField("fwVersion", value);
-  }
-
-  set id(value: string) {
-    this.setField("id", value);
   }
 
   set map(value: DirectionMap) {
@@ -1383,7 +1370,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         ? Architecture.VIRTUAL
         : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
       portstate: heartbeat_class_param.PORTSTATE,
-      id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
       dx: header_param.SX,
       dy: header_param.SY,
       rot: header_param.ROT,
