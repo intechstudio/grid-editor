@@ -56,33 +56,38 @@ jobs:
           echo "Tag name: $tag_name"
           echo "::set-output name=tag_name::$tag_name"
 
-      - name: Get Release ID by Tag
-        id: get_release_id
+      - name: Delete all releases by name
+        id: delete_releases_by_name
         run: |
-          tag_name="${{ steps.get_version.outputs.tag_name }}"
-          release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${tag_name}")
-          release_id=$(echo "$release" | grep -o '"id": *[0-9]*' | sed 's/"id": //')
-          if [ -n "$release_id" ]; then
-            echo "Release ID: $release_id"
-            echo "::set-output name=release_id::$release_id"
+          # Install jq if it's not already installed
+          if ! command -v jq &> /dev/null; then
+            echo "jq is not installed. Installing jq..."
+            sudo apt-get update && sudo apt-get install -y jq
           else
-            echo "Release with tag ${tag_name} not found."
-            exit 0
+            echo "jq is already installed."
           fi
 
-      - name: Delete Release
-        if: steps.get_release_id.outputs.release_id != ''
-        run: |
-          release_id="${{ steps.get_release_id.outputs.release_id }}"
-          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/${release_id}"
-          echo "Release with ID $release_id has been deleted."
+          release_name="Release Nightly Version"  # Replace with the release name you want to delete
+          echo "Deleting all releases with the name: $release_name"
+          
+          # Fetch all releases
+          releases=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases")
+          
+          # Debug: print all release names
+          echo "DEBUG: All releases:"
+          echo "$releases" | jq '.[] | {id, name}'
+          
+          # Find and delete all releases matching the given name
+          echo "$releases" | jq -c --arg release_name "$release_name" '.[] | select(.name == $release_name) | .id' | while read release_id; do
+            echo "Deleting release with ID: $release_id"
 
-      - name: Delete Tag
-        run: |
-          tag_name="${{ steps.get_version.outputs.tag_name }}"
-          git push --delete origin "$tag_name"
+            # Delete the release by ID
+            curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
+
+            echo "Deleted release with ID: $release_id"
+          done
 
   matrix-build:
     strategy:
