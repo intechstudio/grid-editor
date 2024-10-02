@@ -39,7 +39,6 @@ jobs:
           path: public/
           retention-days: 1
   delete-nightly-release:
-    if: ${{ github.ref == 'refs/heads/stable' }}
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.get_version.outputs.tag_name }}
@@ -58,6 +57,7 @@ jobs:
 
       - name: Delete all releases by name
         id: delete_releases_by_name
+        if: ${{ github.ref == 'refs/heads/stable' }}
         run: |
           # Install jq if it's not already installed
           if ! command -v jq &> /dev/null; then
