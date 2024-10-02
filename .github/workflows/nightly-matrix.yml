@@ -40,12 +40,49 @@ jobs:
           retention-days: 1
   delete-nightly-release:
     runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.get_version.outputs.tag_name }}
     steps:
-      - name: Delete Nightly Release
-        uses: larryjoelane/delete-release-action@v1.0.24
-        with:
-          release-name: Release Nightly Version
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Read version from package.json
+        id: get_version
+        run: |
+          version=$(cat package.json | jq -r '.version')
+          tag_name="v${version}-nightly"
+          echo "Version: $version"
+          echo "Tag name: $tag_name"
+          echo "::set-output name=tag_name::$tag_name"
+
+      - name: Get Release ID by Tag
+        id: get_release_id
+        run: |
+          tag_name="${{ steps.get_version.outputs.tag_name }}"
+          release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${tag_name}")
+
+          if echo "$release" | grep -q '"id":'; then
+            release_id=$(echo "$release" | jq '.id')
+            echo "Release ID: $release_id"
+            echo "::set-output name=release_id::$release_id"
+          else
+            echo "Release with tag ${tag_name} not found."
+            exit 0
+
+      - name: Delete Release
+        if: steps.get_release_id.outputs.release_id != ''
+        run: |
+          release_id="${{ steps.get_release_id.outputs.release_id }}"
+          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/${release_id}"
+          echo "Release with ID $release_id has been deleted."
+
+      - name: Delete Tag
+        run: |
+          tag_name="${{ steps.get_version.outputs.tag_name }}"
+          git push --delete origin "$tag_name"
+
   matrix-build:
     strategy:
       fail-fast: false
@@ -114,7 +151,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/stable' }}
         with:
           name: Release Nightly Version
-          tag_name: nightly-release
+          tag_name: ${{ needs.delete-nightly-release.outputs.tag_name }}
           files: build/*.*
           draft: false
           prerelease: true
