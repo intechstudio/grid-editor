@@ -11,6 +11,7 @@ import {
   sendPasswordResetEmail,
   signInAnonymously,
   signInWithCredential,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
@@ -102,6 +103,15 @@ const createAuth = () => {
     }
   }
 
+  async function googleLoginPopup() {
+    await signInWithPopup(
+      getCurrentCentralAuth(),
+      new GoogleAuthProvider()
+    ).catch((error) => {
+      console.log(error);
+    });
+  }
+
   async function logout() {
     await signOut(getCurrentCentralAuth()).catch((error) => {
       console.log(error);
@@ -154,6 +164,7 @@ const createAuth = () => {
     getCurrentAuthEnvironment,
     setCurrentAuthEnvironment,
     sendForgottenPasswordLink,
+    googleLoginPopup,
   };
 };
 
