@@ -2,6 +2,7 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   import { Analytics } from "../runtime/analytics.js";
+  import buildVariables from "../../../buildVariables.json";
 
   const ipcRenderer = window.sketchyAPI;
   const configuration = window.ctxProcess.configuration();
@@ -18,6 +19,7 @@
   let progress = 0;
   let error = "";
   let version = "";
+  let updateFromStableToNightly = false;
 
   function restartApp() {
     window.electron.updater.restartAfterUpdate();
@@ -28,6 +30,9 @@
       case "update-available": {
         version = value.version;
         state = UpdateState.AVAILABLE;
+        updateFromStableToNightly =
+          buildVariables.BUILD_ENV == "production" &&
+          version.includes("nightly");
         break;
       }
 
@@ -97,12 +102,21 @@
   >
     {#if state === UpdateState.AVAILABLE}
       <div class="flex flex-col">
-        <div class="font-bold text-white">New version is available!</div>
+        <div class="font-bold text-white">
+          New {version.includes("nightly") ? "Nightly " : ""}version is
+          available!
+        </div>
         <div class="text-white">
           Grid Editor version {version} is ready to be downloaded.
         </div>
       </div>
-      <MoltenPushButton click={handleInstallUpdate} text="Download" />
+      <div class={updateFromStableToNightly ? "bg-red-600 rounded" : ""}>
+        <MoltenPushButton
+          class="bg-red-600"
+          click={handleInstallUpdate}
+          text={updateFromStableToNightly ? "Update to Nightly" : "Download"}
+        />
+      </div>
       <MoltenPushButton click={handleCloseClicked} text="Close" />
     {/if}
     {#if state === UpdateState.DOWNLOADING}
