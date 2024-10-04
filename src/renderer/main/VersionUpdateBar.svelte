@@ -112,7 +112,6 @@
       </div>
       <div class={updateFromStableToNightly ? "bg-red-600 rounded" : ""}>
         <MoltenPushButton
-          class="bg-red-600"
           click={handleInstallUpdate}
           text={updateFromStableToNightly ? "Update to Nightly" : "Download"}
         />
