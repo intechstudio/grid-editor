@@ -17,7 +17,7 @@
 
   let bgHelper = 0;
 
-  function displayError(errorMessage, url, line) {
+  function displayError(errorMessage, stack, url, line) {
     if (logtext.length > 4) {
       //logtext.shift();
     }
@@ -51,7 +51,7 @@
     logtext = [
       ...logtext,
       {
-        reason: generateErrorDisplayText(errorMessage, url, line),
+        reason: generateErrorDisplayText(errorMessage, stack, url, line),
         solution: solution,
       },
     ];
@@ -59,13 +59,14 @@
     Analytics.track({
       event: "ErrorConsole",
       payload: {
-        message: generateErrorDisplayText(errorMessage, url, line),
+        message: generateErrorDisplayText(errorMessage, stack, url, line),
+        stack: stack,
       },
       mandatory: true,
     });
   }
 
-  function generateErrorDisplayText(errorMessage, url, line) {
+  function generateErrorDisplayText(errorMessage, stack, url, line) {
     let displaytext = "";
 
     if (url !== undefined && line !== undefined) {
@@ -76,6 +77,8 @@
         " in " +
         url.split("/")[url.split("/").length - 1] +
         " ";
+    } else if (stack !== undefined) {
+      displaytext = errorMessage + " " + stack.split("\n")[0] + " ";
     } else {
       displaytext = errorMessage + " ";
     }
@@ -98,20 +101,21 @@
               url,
               lineNumber
             ),
+            stack: Error().stack,
           },
           mandatory: true,
         });
         return;
       }
 
-      displayError(errorMsg, url, lineNumber);
+      displayError(errorMsg, Error().stack, url, lineNumber);
       return false;
     };
 
     window.onunhandledrejection = (e) => {
       console.log("we got exception, but the app has crashed 2", e);
 
-      displayError(e.reason);
+      displayError(e.reason, e.stack);
     };
 
     if (ctxProcess.platform() == "darwin") {
