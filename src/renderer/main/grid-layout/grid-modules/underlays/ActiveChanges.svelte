@@ -24,7 +24,7 @@
 {#if visible}
   <div
     class="changeable-element
-    {element.hasChanges() ? 'changed-element' : ''}
+    {$element.hasChanges() ? 'changed-element' : ''}
       {isRightCut ? 'corner-cut-r' : ''}
       {isLeftCut ? 'corner-cut-l' : ''}"
     style="   {elementNumber == 255

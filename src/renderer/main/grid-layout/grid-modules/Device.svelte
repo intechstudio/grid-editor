@@ -1,6 +1,16 @@
-<script lang="ts">
-  import { runtime, user_input } from "./../../../runtime/runtime.store.ts";
-  import { Analytics } from "./../../../runtime/analytics.js";
+<script>
+  import { appClipboard } from "./../../../runtime/clipboard.store.ts";
+  import { runtime, user_input } from "./../../../runtime/runtime.store";
+  import {
+    overwriteElement,
+    copyElement,
+    discardElement,
+    clearElement,
+    isCopyElementEnabled,
+    isOverwriteElementEnabled,
+    isDiscardElementEnabled,
+    isClearElementEnabled,
+  } from "./../../../runtime/operations";
   import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
   import XX16 from "./devices/XX16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -24,16 +34,9 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
-  import {
-    overwriteElement,
-    copyElement,
-    discardElement,
-    clearElement,
-  } from "../../../main/panels/configuration/Configuration";
 
   export let device = undefined;
   export let width = 225;
-
   let component = undefined;
 
   onMount(() => {
@@ -71,102 +74,20 @@
     });
   }
 
-  function handlePresetLoad(e) {
-    Analytics.track({
-      event: "Preset Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
-    const { sender, elementNumber } = e.detail;
-    runtime
-      .loadPreset({
-        dx: device.dx,
-        dy: device.dy,
-        element: elementNumber,
-        preset: $selectedConfigStore,
-      })
-      .then(() => {
-        Analytics.track({
-          event: "Preset Load Success",
-          payload: {},
-          mandatory: false,
-        });
-        sender.dispatchEvent(
-          new CustomEvent("preset-load", {
-            detail: {
-              success: true,
-            },
-          })
-        );
-      })
-      .catch((e) => {
-        sender.dispatchEvent(
-          new CustomEvent("preset-load", {
-            detail: {
-              success: false,
-            },
-          })
-        );
-      });
+  function handleOverwriteElement(element) {
+    overwriteElement(element);
   }
 
-  function handleProfileLoad(e) {
-    const { sender, device } = e.detail;
-
-    Analytics.track({
-      event: "Pro file Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
-    runtime
-      .loadProfile({
-        dx: device.dx,
-        dy: device.dy,
-        page: 0,
-        profile: $selectedConfigStore.configs,
-      })
-      .then(() => {
-        sender.dispatchEvent(
-          new CustomEvent("profile-load", {
-            detail: {
-              success: true,
-            },
-          })
-        );
-
-        Analytics.track({
-          event: "Profile Load Success",
-          payload: {},
-          mandatory: false,
-        });
-      })
-      .catch((error) => {
-        sender.dispatchEvent(
-          new CustomEvent("profile-load", {
-            detail: {
-              success: false,
-            },
-          })
-        );
-      });
+  function handleDiscardElement(element) {
+    discardElement(element);
   }
 
-  function handleOverwriteElement(index: number) {
-    //TODO OPERATION
+  function handleCopyElement(element) {
+    copyElement(element);
   }
 
-  function handleDiscardElement(index: number) {
-    //TODO OPERATION
-  }
-
-  function handleCopyElement(index: number) {
-    //TODO OPERATION
-  }
-
-  function handleClearElement(index: number) {
-    //TODO OPERATION
+  function handleClearElement(element) {
+    clearElement(element);
   }
 
   const modifier =
@@ -210,7 +131,7 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const target = runtime.findElement(
+      {@const element = runtime.findElement(
         device.dx,
         device.dy,
         $user_input.pagenumber,
@@ -221,26 +142,27 @@
           items: [
             {
               text: [`Copy Element`, `(${modifier[0]} + C)`],
-              handler: () => handleCopyElement(elementNumber),
-              isDisabled: () => false,
+              handler: () => handleCopyElement(element),
+              isDisabled: () => $isCopyElementEnabled === false,
               iconPath: "copy_all",
             },
             {
               text: [`Overwrite Element`, `(${modifier[0]} + V)`],
-              handler: () => handleOverwriteElement(elementNumber),
-              isDisabled: () => false,
+              handler: () => handleOverwriteElement(element),
+              isDisabled: () =>
+                !isOverwriteElementEnabled(get(element), get(appClipboard)),
               iconPath: "paste_all",
             },
             {
               text: [`Discard Element Changes`, `(${modifier[0]} + Shift + D)`],
-              handler: () => handleDiscardElement(elementNumber),
-              isDisabled: () => false,
+              handler: () => handleDiscardElement(element),
+              isDisabled: () => !isDiscardElementEnabled(get(element)),
               iconPath: "clear_from_device_01",
             },
             {
               text: [`Clear Element`, `(Shift + Delete)`],
-              handler: handleClearElement,
-              isDisabled: () => false,
+              handler: () => handleClearElement(element),
+              isDisabled: () => !isClearElementEnabled(get(element)),
               iconPath: "clear_element",
             },
           ],
@@ -296,7 +218,6 @@
           {isRightCut}
           visible={$moduleOverlay === "configuration-load-overlay" &&
             $selectedConfigStore?.configType === "preset"}
-          on:click={handlePresetLoad}
         />
       </div>
       <ControlNameOverlay
@@ -312,7 +233,6 @@
         {device}
         visible={$moduleOverlay === "configuration-load-overlay" &&
           $selectedConfigStore?.configType === "profile"}
-        on:click={handleProfileLoad}
       />
     </svelte:fragment>
   </svelte:component>

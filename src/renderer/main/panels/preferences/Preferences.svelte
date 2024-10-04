@@ -310,14 +310,12 @@
           instructions
             .sendNVMEraseToGrid()
             .then((res) => {
-              runtime.erase();
-              config_panel_blocks.refresh().then(() => {
-                logger.set({
-                  type: "success",
-                  mode: 0,
-                  classname: "nvmerase",
-                  message: `Erase complete!`,
-                });
+              //TODO
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "nvmerase",
+                message: `Erase complete!`,
               });
             })
             .catch((e) => {

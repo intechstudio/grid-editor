@@ -3,7 +3,7 @@ import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { appSettings } from "./app-helper.store";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
-import { GridRuntime } from "./runtime";
+import { GridRuntime, aliveModules } from "./runtime";
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -374,25 +374,26 @@ const heartbeat_editor_ms = 300;
 const heartbeat_grid_ms = 250;
 
 const grid_heartbeat_interval_handler = async function () {
-  runtime.modules.forEach((device, i) => {
+  for (const device of runtime.modules) {
     if (device.architecture === "virtual") {
       return;
     }
 
-    const alive = device.alive;
+    const last =
+      get(aliveModules).find((e) => e.id === device.id)?.last ?? Date.now();
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
       get(writeBuffer).length > 0
         ? heartbeat_grid_ms * 6
         : heartbeat_grid_ms * 3;
-    const elapsedTime = Date.now() - alive;
+    const elapsedTime = Date.now() - last;
 
-    if (!alive || elapsedTime > elapsedTimeLimit) {
+    if (!last || elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
     }
-  });
+  }
 };
 
 setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);

@@ -70,20 +70,12 @@
       .clearPage(ui.pagenumber)
       .then(() => {
         clearOverlays();
-        config_panel_blocks
-          .refresh()
-          .then(() => {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "pageclear",
-              message: `Page clear complete!`,
-            });
-          })
-          .catch((e) => {
-            console.warn(e);
-            //TODO: make feedback for fail
-          });
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pageclear",
+          message: `Page clear complete!`,
+        });
       })
       .catch((e) => {
         console.warn(e);
@@ -111,20 +103,12 @@
         .discardPage(ui.pagenumber)
         .then(() => {
           clearOverlays();
-          config_panel_blocks
-            .refresh()
-            .then(() => {
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "pagediscard",
-                message: `Discard complete!`,
-              });
-            })
-            .catch((e) => {
-              console.warn(e);
-              //TODO: make feedback for fail
-            });
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "pagediscard",
+            message: `Discard complete!`,
+          });
         })
         .catch((e) => {
           console.warn(e);

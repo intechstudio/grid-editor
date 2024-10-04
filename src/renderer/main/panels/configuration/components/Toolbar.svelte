@@ -1,9 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
   import {
-    appClipboard,
-    ClipboardKey,
-  } from "./../../../../runtime/clipboard.store";
+    isClearElementEnabled,
+    isCopyElementEnabled,
+    isDiscardElementEnabled,
+    isOverwriteElementEnabled,
+    isCopyActionsEnabled,
+    isPasteActionsEnabled,
+    isCutActionsEnabled,
+    isMergeActionsEnabled,
+    isRemoveActionsEnabled,
+  } from "./../../../../runtime/operations";
+  import { createEventDispatcher } from "svelte";
+  import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
   import { UserInputValue } from "./../../../../runtime/runtime.store";
   import { runtime, user_input } from "./../../../../runtime/runtime.store";
@@ -118,8 +126,7 @@
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
         iconPath={"copy_all"}
-        disabled={$runtime.modules.length === 0 ||
-          $config_panel_blocks.some((e) => e.selected)}
+        disabled={$isCopyElementEnabled === false}
         color={"#03cb00"}
       />
 
@@ -130,8 +137,7 @@
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
         iconPath={"paste_all"}
-        disabled={$appClipboard?.key !== ClipboardKey.ELEMENT ||
-          !$element?.isCompatible($appClipboard?.payload.type)}
+        disabled={!isOverwriteElementEnabled($element, $appClipboard)}
         color={"#006cb7"}
       />
 
@@ -149,7 +155,7 @@
           code: "KeyD",
         }}
         iconPath={"clear_from_device_01"}
-        disabled={typeof $element === "undefined" || !$element.hasChanges()}
+        disabled={!isDiscardElementEnabled($element)}
         color={"#ff2323"}
       />
 
@@ -163,7 +169,7 @@
           code: "Delete",
         }}
         iconPath={"clear_element"}
-        disabled={$runtime.modules.length === 0}
+        disabled={!isClearElementEnabled($element)}
         color={"#A020F0"}
       />
     </div>
@@ -174,7 +180,7 @@
           setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyC" }}
-        disabled={!$config_panel_blocks.some((e) => e.selected)}
+        disabled={$isCopyActionsEnabled === false}
         iconPath={"copy"}
         color={"#03cb00"}
       />
@@ -185,7 +191,7 @@
           setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyV" }}
-        disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
+        disabled={$isPasteActionsEnabled === false}
         iconPath={"paste"}
         color={"#006cb7"}
       />
@@ -196,7 +202,7 @@
           setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{ control: true, code: "KeyX" }}
-        disabled={!$config_panel_blocks.some((e) => e.selected)}
+        disabled={$isCutActionsEnabled === false}
         iconPath={"cut"}
         color={"#ff6100"}
       />
@@ -214,7 +220,7 @@
           shift: true,
           code: "KeyM",
         }}
-        disabled={!$config_panel_blocks.some((e) => e.selected)}
+        disabled={$isMergeActionsEnabled === false}
         iconPath={"merge_as_code"}
         color={"#ffcc33"}
       />
@@ -227,7 +233,7 @@
         shortcut={{
           code: "Delete",
         }}
-        disabled={!$config_panel_blocks.some((e) => e.selected)}
+        disabled={$isRemoveActionsEnabled === false}
         iconPath={"remove"}
         color={"#ff2323"}
       />

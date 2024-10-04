@@ -1,6 +1,6 @@
 import { Analytics } from "./analytics";
-import { appClipboard, ClipboardKey } from "./clipboard.store";
-import { logger } from "./runtime.store";
+import { appClipboard, ClipboardData, ClipboardKey } from "./clipboard.store";
+import { logger, runtime } from "./runtime.store";
 import {
   GridOperationResult,
   ElementData,
@@ -10,13 +10,24 @@ import {
   GridEvent,
   SendToGridResult,
 } from "./runtime";
-import { get } from "svelte/store";
+import { get, derived } from "svelte/store";
+import { config_panel_blocks } from "../main/panels/configuration/Configuration";
 
 function handleError(e: GridOperationResult) {
   console.warn(`Operation error: ${e.text}`);
 }
 
 //Clipboard handlers
+export const isCopyElementEnabled = derived(
+  config_panel_blocks,
+  ($config_panel_blocks) => {
+    return (
+      !$config_panel_blocks.some((e) => e.selected) &&
+      runtime.modules.length > 0
+    );
+  }
+);
+
 export async function copyElement(element: GridElement) {
   logger.set({
     type: "progress",
@@ -45,6 +56,13 @@ export async function copyElement(element: GridElement) {
     });
 }
 
+export const isCopyActionsEnabled = derived(
+  config_panel_blocks,
+  ($config_panel_blocks) => {
+    return $config_panel_blocks.some((e) => e.selected);
+  }
+);
+
 export async function copyActions(...actions: GridAction[]) {
   appClipboard
     .copyActions(...actions)
@@ -67,6 +85,19 @@ export async function copyActions(...actions: GridAction[]) {
 }
 
 //GridElement handlers
+export function isOverwriteElementEnabled(
+  data: ElementData,
+  clipboard: ClipboardData
+) {
+  if (typeof clipboard === "undefined" || typeof data === "undefined") {
+    return false;
+  }
+
+  return (
+    clipboard.key === ClipboardKey.ELEMENT &&
+    data.isCompatible((clipboard.payload as ElementData).type)
+  );
+}
 
 export async function overwriteElement(target: GridElement) {
   const clipboard = get(appClipboard);
@@ -84,12 +115,21 @@ export async function overwriteElement(target: GridElement) {
     .then((result) => {})
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Whole Element Overwrite" },
         mandatory: false,
       });
     });
+}
+
+export function isDiscardElementEnabled(data: ElementData) {
+  if (typeof data === "undefined") {
+    return false;
+  }
+
+  return data.hasChanges();
 }
 
 export async function discardElement(target: GridElement) {
@@ -112,12 +152,17 @@ export async function discardElement(target: GridElement) {
     })
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Whole Element Discard" },
         mandatory: false,
       });
     });
+}
+
+export function isClearElementEnabled(data: ElementData) {
+  return typeof data !== "undefined";
 }
 
 export async function clearElement(target: GridElement) {
@@ -140,6 +185,7 @@ export async function clearElement(target: GridElement) {
     })
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Clear Element" },
@@ -156,6 +202,7 @@ export async function updateAction(target: GridAction, data: ActionData) {
     .then((result) => {})
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       const event = target.parent as GridEvent;
       const element = event.parent as GridElement;
       Analytics.track({
@@ -173,6 +220,13 @@ export async function updateAction(target: GridAction, data: ActionData) {
 
 //GridEvent handlers
 
+export const isMergeActionsEnabled = derived(
+  config_panel_blocks,
+  ($config_panel_blocks) => {
+    return $config_panel_blocks.some((e) => e.selected);
+  }
+);
+
 export async function mergeActionsToCode(
   target: GridEvent,
   ...actions: GridAction[]
@@ -180,8 +234,15 @@ export async function mergeActionsToCode(
   target
     .merge(...actions)
     .then((result) => {})
-    .catch(handleError);
+    .catch(handleError)
+    .finally(() => {
+      target.sendToGrid();
+    });
 }
+
+export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
+  return $appClipboard?.key === ClipboardKey.ACTION_BLOCKS;
+});
 
 export async function pasteActions(target: GridEvent, index?: number) {
   target
@@ -189,6 +250,7 @@ export async function pasteActions(target: GridEvent, index?: number) {
     .then((result) => {})
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Paste" },
@@ -196,6 +258,13 @@ export async function pasteActions(target: GridEvent, index?: number) {
       });
     });
 }
+
+export const isRemoveActionsEnabled = derived(
+  config_panel_blocks,
+  ($config_panel_blocks) => {
+    return $config_panel_blocks.some((e) => e.selected);
+  }
+);
 
 export async function removeActions(
   target: GridEvent,
@@ -206,6 +275,7 @@ export async function removeActions(
     .then((result) => {})
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Remove" },
@@ -213,6 +283,13 @@ export async function removeActions(
       });
     });
 }
+
+export const isCutActionsEnabled = derived(
+  config_panel_blocks,
+  ($config_panel_blocks) => {
+    return $config_panel_blocks.some((e) => e.selected);
+  }
+);
 
 export async function cutActions(target: GridEvent, ...actions: GridAction[]) {
   appClipboard
@@ -222,6 +299,7 @@ export async function cutActions(target: GridEvent, ...actions: GridAction[]) {
     })
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Cut" },
@@ -243,6 +321,7 @@ export async function addActions(
   actionMethod(...actions)
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       for (const action of actions) {
         Analytics.track({
           event: "Config Action",
@@ -265,6 +344,7 @@ export async function replaceAction(
     .replace(a, b)
     .catch(handleError)
     .finally(() => {
+      target.sendToGrid();
       Analytics.track({
         event: "Replace Action",
         payload: { click: "Replace" },

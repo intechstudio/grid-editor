@@ -37,8 +37,8 @@ export type ActionBlock = {
 
 // Derive a readable store from user_input
 export const user_input_event: Readable<GridEvent | undefined> = derived(
-  [user_input, runtime],
-  ([$user_input, $runtime], set) => {
+  user_input,
+  ($user_input, set) => {
     const event = runtime.findEvent(
       $user_input.dx,
       $user_input.dy,
@@ -48,7 +48,11 @@ export const user_input_event: Readable<GridEvent | undefined> = derived(
     );
 
     if (typeof event === "undefined") {
-      set(undefined);
+      return;
+    }
+
+    if (event.isLoaded()) {
+      set(event);
       return;
     }
 
@@ -62,6 +66,7 @@ export const user_input_event: Readable<GridEvent | undefined> = derived(
         console.error("Failed to load event:", err);
         set(undefined); // Handle loading error by setting undefined
       });
+    return;
   }
 );
 
@@ -70,18 +75,41 @@ export const config_panel_blocks: Writable<ActionBlock[]> = create_store();
 
 function create_store() {
   const internal: Writable<ActionBlock[]> = writable([]);
+  let unsubscribeInner: (() => void) | null = null; // To track the inner store subscription
 
-  // Subscribe to user_input_event changes
-  user_input_event.subscribe((event) => {
-    console.log("Event updated:", event);
+  // Subscribe to the outer store (user_input_event)
+  user_input_event.subscribe((eventStore) => {
+    // Unsubscribe from the previous inner store if it exists
+    if (unsubscribeInner) {
+      unsubscribeInner();
+      unsubscribeInner = null;
+    }
 
-    const value =
-      event?.config.map((e) => {
-        return { action: e, selected: false } as ActionBlock;
-      }) || []; // Fallback to an empty array if event is undefined
+    // Check if eventStore is defined (which is a store itself)
+    if (eventStore) {
+      // Subscribe to the value of the inner store (eventStore)
+      unsubscribeInner = eventStore.subscribe((event) => {
+        if (!event) {
+          internal.set([]); // Set to empty array if event is undefined
+          return;
+        }
 
-    // Update the internal writable store
-    internal.set(value);
+        // Map event's config to ActionBlock[]
+        const value = event.config.map(
+          (e) =>
+            ({
+              action: e,
+              selected: false,
+            } as ActionBlock)
+        );
+
+        // Update the internal writable store with the new value
+        internal.set(value);
+      });
+    } else {
+      // If no inner store exists, reset the blocks
+      internal.set([]);
+    }
   });
 
   return internal;

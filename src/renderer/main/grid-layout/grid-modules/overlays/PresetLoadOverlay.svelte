@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { runtime } from "./../../../../runtime/runtime.store.ts";
+  import { GridPresetData } from "./../../../../runtime/runtime.ts";
   import { grid } from "@intechstudio/grid-protocol";
-  import { user_input } from "./../../../../runtime/runtime.store";
+  import { user_input, runtime } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
-  import { createEventDispatcher, onMount } from "svelte";
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { GridEvent } from "../../../../runtime/runtime.js";
+  import { Analytics } from "../../../../runtime/analytics.js";
 
   export let device = undefined;
   export let visible = false;
@@ -15,19 +14,16 @@
   export let isRightCut = undefined;
   export let isLeftCut = undefined;
 
-  const dispatch = createEventDispatcher();
-
   let type = undefined;
   let loaded = false;
-  let container;
 
-  enum State {
+  enum Compatibility {
     INCOMPATIBLE,
     COMPATIBLE,
     MATCHING,
   }
 
-  let state = State.INCOMPATIBLE;
+  let compatible = Compatibility.INCOMPATIBLE;
 
   $: {
     if (elementNumber === 255) {
@@ -40,33 +36,44 @@
     }
   }
 
-  function handleClick(e) {
-    dispatch("click", {
-      sender: container,
-      elementNumber: elementNumber,
-    });
-  }
-
   function handlePresetLoad(e) {
-    const { success } = e.detail;
-    loaded = success;
-    if (!success) {
-      return;
-    }
+    Analytics.track({
+      event: "Preset Load Start",
+      payload: {},
+      mandatory: false,
+    });
 
     const ui = get(user_input);
-    const target = runtime.findModule(ui.dx, ui.dy);
-    const { dx, dy } = target;
+    const element = runtime.findElement(
+      device.dx,
+      device.dy,
+      ui.pagenumber,
+      elementNumber
+    );
+    const preset = GridPresetData.createFromCloudData($selectedConfigStore);
+    element
+      .loadPreset(preset)
+      .then(() => {
+        loaded = true;
+        Analytics.track({
+          event: "Preset Load Success",
+          payload: {},
+          mandatory: false,
+        });
 
-    if (dx !== device.dx || dy !== device.dy) {
-      user_input.set({
-        dx: device.dx,
-        dy: device.dy,
-        pagenumber: ui.pagenumber,
-        elementnumber: ui.elementnumber,
-        eventtype: ui.eventtype,
+        if (ui.dx !== device.dx || ui.dy !== device.dy) {
+          user_input.set({
+            dx: device.dx,
+            dy: device.dy,
+            pagenumber: ui.pagenumber,
+            elementnumber: elementNumber,
+            eventtype: ui.eventtype,
+          });
+        }
+      })
+      .catch((e) => {
+        loaded = false;
       });
-    }
   }
 
   let isChanged = false;
@@ -106,20 +113,20 @@
     );
 
     if (leftSideCompatible && rightSideCompatible) {
-      state = State.MATCHING;
+      compatible = Compatibility.MATCHING;
     } else if (rightSideCompatible) {
-      state = State.COMPATIBLE;
+      compatible = Compatibility.COMPATIBLE;
     } else {
-      state = State.INCOMPATIBLE;
+      compatible = Compatibility.INCOMPATIBLE;
     }
   }
 
   $: handleSelectedConfigChange($selectedConfigStore);
 </script>
 
-<container bind:this={container} on:preset-load={handlePresetLoad}>
+<container>
   {#if visible}
-    {#if state === State.COMPATIBLE || state === State.MATCHING}
+    {#if compatible === Compatibility.COMPATIBLE || compatible === Compatibility.MATCHING}
       <div
         class="w-full h-full relative overflow-hidden"
         class:loaded-element={loaded && !isChanged}
@@ -137,8 +144,9 @@
         >
           {#if !loaded}
             <button
-              on:click={handleClick}
-              class="rounded pointer-events-auto {state === State.MATCHING
+              on:click={handlePresetLoad}
+              class="rounded pointer-events-auto {compatible ===
+              Compatibility.MATCHING
                 ? 'matching-icon'
                 : 'compatible-icon'} bg-opacity-75 p-1"
               class:icon-corner-cut-r={isRightCut}
@@ -146,7 +154,7 @@
               class:scale-50={elementNumber == 255}
             >
               <SvgIcon
-                fill={state === State.MATCHING ? "#FFF" : "#000"}
+                fill={compatible === Compatibility.MATCHING ? "#FFF" : "#000"}
                 iconPath={loaded ? "tick" : "download"}
               />
             </button>

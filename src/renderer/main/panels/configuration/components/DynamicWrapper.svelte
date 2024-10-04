@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { ActionData } from "./../../../../runtime/runtime.ts";
   import { config_panel_blocks } from "./../Configuration";
   import Options from "./Options.svelte";
-  import { Analytics } from "./../../../../runtime/analytics.js";
   import { ActionBlock } from "./../Configuration";
   import {
     GridAction,
@@ -22,7 +20,6 @@
     updateAction,
     replaceAction,
   } from "./../../../../runtime/operations";
-  import { logger } from "../../../../runtime/runtime.store.js";
 
   const dispatch = createEventDispatcher();
 
@@ -52,27 +49,17 @@
     component = result.component;
   });
 
-  function replace_me(e: any) {
+  function handleReplace(e: any) {
     const { short, script, name } = e.detail;
     const oldAction = action;
     const parent = oldAction.parent as GridEvent;
-    const newAction = new GridAction(undefined, {
-      short: short,
-      script: GridAction.getInformation(short), // Default Script
-      name: name,
-    });
-    parent.replace(oldAction, newAction);
+    const newAction = new GridAction(
+      undefined,
+      new ActionData(short, GridAction.getInformation(short).defaultLua)
+    );
+    replaceAction(parent, oldAction, newAction);
     toggled = true;
-  }
-
-  function handleReplace(e) {
-    const { index, config } = e.detail;
-    config_panel_blocks.update((s) => {
-      s[index] = config;
-      lastOpenedActionblocksInsert(config.short);
-      return s;
-    });
-    //TODO OPERATION
+    lastOpenedActionblocksInsert(newAction.short);
   }
 
   function handleOutput(e) {
@@ -196,7 +183,7 @@
               {index}
               config={action}
               syntaxError={!action.checkSyntax()}
-              on:replace={replace_me}
+              on:replace={handleReplace}
               on:validator={handleValidator}
               on:output={handleOutput}
               on:toggle={handleToggle}

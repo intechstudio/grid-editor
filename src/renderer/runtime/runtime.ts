@@ -33,13 +33,55 @@ import { appClipboard, ClipboardKey } from "./clipboard.store";
 
 type UUID = string;
 type LuaScript = string;
+type RawEventData = any;
 class NodeData {
   id?: UUID;
   parent?: RuntimeNode<any>;
 }
 
-type ProfileData = any;
-type PresetData = any;
+export const aliveModules: Writable<Array<{ id: UUID; last: number }>> =
+  writable([]);
+
+export class GridProfileData {
+  public presets: GridPresetData[] = [];
+
+  static createFromCloudData(cloudProfile: any) {
+    const data = cloudProfile.configs;
+    const profile = new GridProfileData();
+    for (const [index, type] of Object.entries(
+      grid.get_module_element_list(cloudProfile.type)
+    )) {
+      if (typeof type === "undefined") {
+        continue;
+      }
+
+      const events = data.find(
+        (e: any) => e.controlElementNumber === Number(index)
+      ).events;
+      const preset = new GridPresetData(type, Number(index), events);
+      profile.presets.push(preset);
+    }
+    return profile;
+  }
+}
+export class GridPresetData {
+  public element: GridElement;
+
+  constructor(type: ElementType, index: number, array: RawEventData[]) {
+    const element = new GridElement(undefined, new ElementData(index, type));
+    for (const data of array) {
+      const type = Number(data.event);
+      const event = element.findEvent(type);
+      const actions = GridAction.parse(data.config);
+      event.push(...actions);
+    }
+    this.element = element;
+  }
+
+  static createFromCloudData(cloudPreset: any) {
+    return new GridPresetData(cloudPreset.type, -1, cloudPreset.configs.events);
+  }
+}
 
 export enum GridOperationType {
   PASTE_ACTION,
@@ -64,7 +106,6 @@ export interface GridOperationResult {
   type: GridOperationType;
 }
 
-export interface CopyActionsResult extends GridOperationResult {}
 export interface PasteActionsResult extends GridOperationResult {}
 export interface DiscardElementResult extends GridOperationResult {}
 export interface OverwriteElementResult extends GridOperationResult {}
@@ -370,7 +411,10 @@ export class EventData extends NodeData {
     for (const action of this.config) {
       (action as any).parent = undefined;
     }
+
     this.config = [];
+    //this.loaded = false;
+    //this.stored = undefined;
   }
 
   public checkSyntax() {
@@ -537,35 +581,49 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.config.at(index);
   }
 
-  public sendToGrid(): Promise<SendToGridResult> {
-    return new Promise((resolve, reject) => {
-      if (!this.checkLength()) {
-        reject("Length Error");
-        return;
-      }
+  public async sendToGrid(): Promise<SendToGridResult> {
+    if (!this.checkLength()) {
+      Promise.reject({
+        value: false,
+        text: "Length Error",
+        type: GridOperationType.SEND_EVENT_TO_GRID,
+      });
+      return;
+    }
 
-      if (!this.isLoaded()) {
-        resolve({ value: true, text: "Nothing to sync, not loaded yet." });
-      }
+    if (!this.isLoaded()) {
+      Promise.resolve({
+        value: true,
+        text: "Nothing to sync, not loaded yet.",
+        type: GridOperationType.SEND_EVENT_TO_GRID,
+      });
+    }
 
-      const element = this.parent as GridElement;
-      const page = element.parent as GridPage;
-      const module = page.parent as GridModule;
+    const element = this.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
 
-      instructions
-        .sendConfigToGrid(
-          module.dx,
-          module.dy,
-          page.pageNumber,
-          element.elementIndex,
-          this.type,
-          this.toLua()
-        )
-        .then(() => {
-          resolve({ value: true, text: "OK" });
-        })
-        .catch((e) => reject(e));
-    });
+    try {
+      await instructions.sendConfigToGrid(
+        module.dx,
+        module.dy,
+        page.pageNumber,
+        element.elementIndex,
+        this.type,
+        this.toLua()
+      );
+      Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.SEND_EVENT_TO_GRID,
+      });
+    } catch (e) {
+      Promise.reject({
+        value: false,
+        text: e,
+        type: GridOperationType.SEND_EVENT_TO_GRID,
+      });
+    }
   }
 
   public checkSyntax() {
@@ -678,36 +736,34 @@ export class GridEvent extends RuntimeNode<EventData> {
     });
   }
 
-  public async load(): Promise<GridAction[]> {
-    return new Promise((resolve, reject) => {
-      if (this.isLoaded()) {
-        return resolve(this.config);
-      }
+  public async load(): Promise<void> {
+    if (this.isLoaded()) {
+      return Promise.resolve();
+    }
 
-      const element = this.parent as GridElement;
-      const page = element.parent as GridPage;
-      const module = page.parent as GridModule;
+    const element = this.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
 
-      instructions
-        .fetchConfigFromGrid(
-          module.dx,
-          module.dy,
-          page.pageNumber,
-          element.elementIndex,
-          this.type
-        )
-        .then((descr) => {
-          const script = descr.class_parameters.ACTIONSTRING;
-          const actions = GridAction.parse(script);
-          this.clear();
-          this.config = [];
-          this.push(...actions);
-          this.store();
-          this.data.loaded = true;
-          resolve(actions);
-        })
-        .catch((e) => reject(e));
-    });
+    instructions
+      .fetchConfigFromGrid(
+        module.dx,
+        module.dy,
+        page.pageNumber,
+        element.elementIndex,
+        this.type
+      )
+      .then((descr) => {
+        const script = descr.class_parameters.ACTIONSTRING;
+        const actions = GridAction.parse(script);
+        this.push(...actions);
+        this.store();
+        this.loaded = true;
+        return Promise.resolve();
+      })
+      .catch((e) => {
+        return Promise.reject(e);
+      });
   }
 
   // Getters
@@ -813,6 +869,15 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
+  public async sendToGrid(): Promise<SendToGridResult[]> {
+    const promises: Promise<SendToGridResult>[] = [];
+    for (const event of this.events) {
+      const promise = event.sendToGrid();
+      promises.push(promise);
+    }
+    return Promise.all(promises);
+  }
+
   public async overwrite(data: ElementData): Promise<OverwriteElementResult> {
     if (this.type !== data.type) {
       return Promise.reject({
@@ -852,13 +917,21 @@ export class GridElement extends RuntimeNode<ElementData> {
     return this.data.isCompatible(type);
   }
 
-  loadPreset(preset: PresetData): Promise<PresetLoadResult> {
-    return new Promise((resolve, reject) => {
-      this.load().then(() => {
-        //PRESET LOAD
-        resolve("OK");
+  public async loadPreset(preset: GridPresetData): Promise<PresetLoadResult> {
+    try {
+      await this.overwrite(preset.element.data);
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.LOAD_PRESET,
       });
-    });
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: "e",
+        type: GridOperationType.LOAD_PRESET,
+      });
+    }
   }
 
   findEvent(type: number) {
@@ -881,6 +954,18 @@ export class GridElement extends RuntimeNode<ElementData> {
       text: "OK",
       type: GridOperationType.RESET_ELEMENT,
     });
+  }
+
+  public clear() {
+    for (const event of this.events) {
+      event.clear();
+    }
+  }
+
+  public store() {
+    for (const event of this.events) {
+      event.store();
+    }
   }
 
   public isLoaded() {
@@ -936,10 +1021,10 @@ export interface PageData extends NodeData {
 }
 
 export class GridPage extends RuntimeNode<PageData> {
-  constructor(parent: GridModule, data?: PageData) {
+  constructor(parent: GridModule, type: ModuleType, data?: PageData) {
     super(parent, data);
     this.control_elements = [];
-    const moduleElements = grid.get_module_element_list(parent.type);
+    const moduleElements = grid.get_module_element_list(type);
     for (const [index, element] of Object.entries(moduleElements)) {
       if (typeof element === "undefined") {
         continue;
@@ -951,26 +1036,33 @@ export class GridPage extends RuntimeNode<PageData> {
     }
   }
 
-  loadProfile(profile: ProfileData): Promise<ProfileLoadResult> {
-    return new Promise((resolve, reject) => {
-      const ui = get(user_input);
-      this.load().then(() => {
-        const elements = profile.elements;
-        // Reorder array to send system element first
-        const index = elements.findIndex((obj) => obj.elementIndex === 255);
+  public async loadProfile(
+    profile: GridProfileData
+  ): Promise<ProfileLoadResult> {
+    await this.load();
 
-        // Check if the object with id === 255 was found
-        if (index !== -1) {
-          // Remove the object at the found index
-          const objectToMove = elements.splice(index, 1)[0];
+    const presets = profile.presets;
+    // Reorder array to send system element first
+    const index = presets.findIndex((obj) => obj.element.elementIndex === 255);
 
-          // Add the object to the front of the array
-          elements.unshift(objectToMove);
-        }
+    // Check if the object with id === 255 was found
+    if (index !== -1) {
+      // Remove the object at the found index
+      const objectToMove = presets.splice(index, 1)[0];
 
-        //PROFILE LOAD
-        resolve("OK");
-      });
+      // Add the object to the front of the array
+      presets.unshift(objectToMove);
+    }
+
+    //PROFILE LOAD
+    for (const preset of presets) {
+      const element = this.findElement(preset.element.elementIndex);
+      element.loadPreset(preset);
+    }
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.LOAD_PROFILE,
     });
   }
 
@@ -979,7 +1071,19 @@ export class GridPage extends RuntimeNode<PageData> {
     return elements.find((element) => element.elementIndex === index);
   }
 
-  async load() {
+  public clear() {
+    for (const element of this.control_elements) {
+      element.clear();
+    }
+  }
+
+  public store() {
+    for (const element of this.control_elements) {
+      element.store();
+    }
+  }
+
+  public async load() {
     const promises: Array<Promise<void>> = [];
     for (const element of this.control_elements) {
       promises.push(
@@ -1029,7 +1133,6 @@ type DirectionMap = {
 };
 
 export interface ModuleData extends NodeData {
-  alive: number;
   architecture: Architecture;
   dx: number;
   dy: number;
@@ -1046,10 +1149,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
   constructor(parent: GridRuntime, data?: ModuleData) {
     super(parent, data);
     this.pages = [
-      new GridPage(this, { pageNumber: 0 }),
-      new GridPage(this, { pageNumber: 1 }),
-      new GridPage(this, { pageNumber: 2 }),
-      new GridPage(this, { pageNumber: 3 }),
+      new GridPage(this, this.type, { pageNumber: 0 }),
+      new GridPage(this, this.type, { pageNumber: 1 }),
+      new GridPage(this, this.type, { pageNumber: 2 }),
+      new GridPage(this, this.type, { pageNumber: 3 }),
     ];
   }
 
@@ -1071,10 +1174,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
   }
 
   // Getters
-  get alive() {
-    return this.getField("alive");
-  }
-
   get architecture() {
     return this.getField("architecture");
   }
@@ -1116,11 +1215,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
   }
 
   // Setters
-  set alive(value: number) {
-    get(this._internal).alive = value;
-    //this.setField("alive", value);
-  }
-
   set architecture(value: Architecture) {
     this.setField("architecture", value);
   }
@@ -1252,7 +1346,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       const [sx, sy] = [descr.brc_parameters.SX, descr.brc_parameters.SY];
 
       let firstConnection = false;
-      const module = this.modules.find((e) => e.dx == sx && e.dy == sy);
+      const module = this.findModule(sx, sy);
       if (module) {
         if (module.rot != descr.brc_parameters.ROT) {
           module.rot = descr.brc_parameters.ROT;
@@ -1262,14 +1356,18 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           module.portstate = descr.class_parameters.PORTSTATE;
         }
 
-        const lastDate = module.alive;
-        const newDate = Date.now();
-        module.alive = newDate;
+        aliveModules.update((s) => {
+          const index = s.findIndex((e) => e.id === module.id);
+          const lastDate = s[index].last;
+          const newDate = Date.now();
+          s[index].last = newDate;
 
-        if (get(appSettings).persistent.heartbeatDebugEnabled) {
-          const key1 = `Hearbeat (${module.dx}, ${module.dy})`;
-          add_datapoint(key1, newDate - lastDate);
-        }
+          if (get(appSettings).persistent.heartbeatDebugEnabled) {
+            const key1 = `Hearbeat (${module.dx}, ${module.dy})`;
+            add_datapoint(key1, newDate - lastDate);
+          }
+          return s;
+        });
       }
       // device not found, add it to runtime and get page count from grid
       else {
@@ -1300,7 +1398,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         );
 
         this.modules = [...this.modules, controller];
-        controller.alive = Date.now();
+        aliveModules.update((s) => {
+          s.push({ id: controller.id, last: Date.now() });
+          return s;
+        });
 
         firstConnection = this.modules.length === 1;
 
@@ -1333,14 +1434,147 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     });
   }
 
-  clear_page_configuration(index) {
-    this.modules.forEach((module) => {
-      module.pages[index].control_elements.forEach((control_element) => {
-        control_element.events.forEach((event) => {
-          event.clear();
+  public async change_page(new_page_number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (get(writeBuffer).length > 0) {
+        reject("Wait before all operations are finished.");
+        return;
+      }
+
+      if (this.unsavedChangesCount() != 0) {
+        reject("Store your changes before changin pages!");
+        return;
+      }
+
+      let ui = get(user_input);
+
+      // only update pagenumber if it differs from the runtime pagenumber
+      if (ui.pagenumber === new_page_number) {
+        resolve();
+        return;
+      }
+      // clean up the writebuffer if pagenumber changes!
+      // writeBuffer.clear();
+
+      instructions
+        .changeActivePage(new_page_number)
+        .then(() => {
+          const ui = get(user_input);
+          user_input.set({
+            dx: ui.dx,
+            dy: ui.dy,
+            pagenumber: new_page_number,
+            elementnumber: ui.elementnumber,
+            eventtype: ui.eventtype,
+          });
+          resolve();
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+
+  public unsavedChangesCount() {
+    let count = 0;
+    this.modules.forEach((e) => {
+      e.pages.forEach((e) => {
+        e.control_elements.forEach((e) => {
+          e.events.forEach((e) => {
+            if (e.hasChanges()) {
+              count += 1;
+            }
+          });
         });
       });
     });
+    return count;
+  }
+
+  public async storePage(index: number) {
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageStoreToGrid()
+        .then((res) => {
+          for (const module of this.modules) {
+            const page = module.findPage(index);
+            page.store();
+          }
+          resolve(res);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+
+  public async clearPage(index: number): Promise<void> {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pageclear",
+      message: `Clearing configurations from page...`,
+    });
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageClearToGrid()
+        .then(() => {
+          for (const module of this.modules) {
+            const page = module.findPage(index);
+            page.clear();
+          }
+          resolve();
+        })
+        .catch((e) => {
+          console.warn(e);
+          reject(e);
+        });
+    });
+  }
+
+  public async discardPage(index: number): Promise<void> {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pagediscard",
+      message: `Discarding configurations...`,
+    });
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageDiscardToGrid()
+        .then(() => {
+          for (const module of this.modules) {
+            const page = module.findPage(index);
+            page.clear();
+          }
+          resolve();
+        })
+        .catch((e) => {
+          console.warn(e);
+          reject(e);
+        });
+    });
+  }
+
+  addVirtualModule({ dx, dy, type }) {
+    const moduleInfo = grid.module_hwcfgs().findLast((e) => e.type === type);
+    const controller = this.create_module(
+      {
+        DX: dx,
+        DY: dy,
+        SX: dx,
+        SY: dy,
+      },
+      {
+        HWCFG: moduleInfo.hwcfg,
+      },
+      true
+    );
+
+    createVirtualModule(dx, dy, moduleInfo.type);
+
+    this.modules = [...this.modules, controller];
+    this.setDefaultSelectedElement();
   }
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
@@ -1396,6 +1630,12 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
     this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
 
+    aliveModules.update((s) => {
+      const index = s.findIndex((e) => e.id === removed.id);
+      s.splice(index, 1);
+      return s;
+    });
+
     if (this.modules.length === 0) {
       appSettings.update((s) => {
         s.gridLayoutShift = { x: 0, y: 0 };
@@ -1432,147 +1672,5 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       },
       mandatory: false,
     });
-  }
-
-  change_page(new_page_number): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (get(writeBuffer).length > 0) {
-        reject("Wait before all operations are finished.");
-        return;
-      }
-
-      if (this.unsavedChangesCount() != 0) {
-        reject("Store your changes before changin pages!");
-        return;
-      }
-
-      let ui = get(user_input);
-
-      // only update pagenumber if it differs from the runtime pagenumber
-      if (ui.pagenumber === new_page_number) {
-        resolve();
-        return;
-      }
-      // clean up the writebuffer if pagenumber changes!
-      // writeBuffer.clear();
-
-      instructions
-        .changeActivePage(new_page_number)
-        .then(() => {
-          const ui = get(user_input);
-          user_input.set({
-            dx: ui.dx,
-            dy: ui.dy,
-            pagenumber: new_page_number,
-            elementnumber: ui.elementnumber,
-            eventtype: ui.eventtype,
-          });
-          resolve();
-        })
-        .catch((e) => {
-          reject(e);
-        });
-    });
-  }
-
-  unsavedChangesCount() {
-    let count = 0;
-    this.modules.forEach((e) => {
-      e.pages.forEach((e) => {
-        e.control_elements.forEach((e) => {
-          e.events.forEach((e) => {
-            if (e.hasChanges()) {
-              count += 1;
-            }
-          });
-        });
-      });
-    });
-    return count;
-  }
-
-  async storePage(index) {
-    return new Promise((resolve, reject) => {
-      instructions
-        .sendPageStoreToGrid()
-        .then((res) => {
-          this.modules.forEach((module) => {
-            module.pages
-              .find((e) => e.pageNumber == index)
-              ?.control_elements.forEach((element) => {
-                element.events.forEach((event) => {
-                  event.store();
-                });
-              });
-          });
-          resolve(res);
-        })
-        .catch((e) => {
-          reject(e);
-        });
-    });
-  }
-
-  clearPage(index): Promise<void> {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pageclear",
-      message: `Clearing configurations from page...`,
-    });
-    return new Promise((resolve, reject) => {
-      instructions
-        .sendPageClearToGrid()
-        .then(() => {
-          this.clear_page_configuration(index);
-          resolve();
-        })
-        .catch((e) => {
-          console.warn(e);
-          reject(e);
-        });
-    });
-  }
-
-  discardPage(index): Promise<void> {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pagediscard",
-      message: `Discarding configurations...`,
-    });
-    return new Promise((resolve, reject) => {
-      instructions
-        .sendPageDiscardToGrid()
-        .then(() => {
-          this.clear_page_configuration(index);
-          resolve();
-        })
-        .catch((e) => {
-          console.warn(e);
-          reject(e);
-        });
-    });
-  }
-
-  addVirtualModule({ dx, dy, type }) {
-    const moduleInfo = grid.module_hwcfgs().findLast((e) => e.type === type);
-    const controller = this.create_module(
-      {
-        DX: dx,
-        DY: dy,
-        SX: dx,
-        SY: dy,
-      },
-      {
-        HWCFG: moduleInfo.hwcfg,
-      },
-      true
-    );
-
-    createVirtualModule(dx, dy, moduleInfo.type);
-
-    this.modules = [...this.modules, controller];
-    this.setDefaultSelectedElement();
   }
 }
