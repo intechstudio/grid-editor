@@ -284,4 +284,65 @@ test.describe("Issues", () => {
     );
     await expect(actualValue).toBe(expectedValue);
   });
+
+  test("MIDI NRPN convert Bits to CC", async () => {
+    const expectedValue = "(1+2)*128+3";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField("midi", "MIDI NRPN", "MSB", "1+2");
+    await configPage.writeActionBlockField("midi", "MIDI NRPN", "LSB", "3");
+    await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
+
+  test("MIDI NRPN convert CC to Bits", async () => {
+    const expectedMSB = "(223)//128";
+    const expectedLSB = "(223)%128";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      "223"
+    );
+    await configPage.selectElementEvent("Button");
+    const actualMSB = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "MSB"
+    );
+    await expect(actualMSB).toBe(expectedMSB);
+    const actualLSB = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "LSB"
+    );
+    await expect(actualLSB).toBe(expectedLSB);
+  });
+
+  test("MIDI NRPN convert Bits variable to single CC variable", async () => {
+    const expectedValue = "x";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "MSB",
+      "x//128"
+    );
+    await configPage.writeActionBlockField("midi", "MIDI NRPN", "LSB", "x%128");
+    await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
 });
