@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Grid } from "./../../../lib/_utils";
-  import { NumberToEventType } from "@intechstudio/grid-protocol";
+  import { EventType, NumberToEventType } from "@intechstudio/grid-protocol";
   import {
     runtime,
     user_input,
@@ -48,9 +48,9 @@
 
   $: handleSelectEvent(selected);
 
-  function handleSelectEvent(value) {
+  function handleSelectEvent(value: any) {
     const ui = get(user_input);
-    if (value === -1) {
+    if (value === -1 || ui.eventtype === value) {
       return;
     }
 

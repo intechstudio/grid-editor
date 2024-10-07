@@ -249,6 +249,10 @@ export class GridAction extends RuntimeNode<ActionData> {
     super(parent, data);
   }
 
+  public destroy() {
+    this.parent = undefined;
+  }
+
   static parse(script: LuaScript) {
     const result: GridAction[] = [];
     let configList: string[] = [];
@@ -429,6 +433,13 @@ export class GridEvent extends RuntimeNode<EventData> {
     super(parent, data);
   }
 
+  public destroy() {
+    for (const action of this.config) {
+      action.destroy();
+    }
+    this.config = [];
+  }
+
   public replace(a: GridAction, b: GridAction): Promise<ReplaceActionsResult> {
     const index = this.config.findIndex((e) => e.id === a.id);
     try {
@@ -478,8 +489,8 @@ export class GridEvent extends RuntimeNode<EventData> {
     }
 
     for (const action of actions) {
-      (action as any).parent = undefined;
       const index = this.config.findIndex((e) => e.id === action.id);
+      action.destroy();
 
       this.config = [
         ...this.config.slice(0, index),
@@ -661,9 +672,8 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public clear() {
     for (const action of this.config) {
-      (action as any).parent = undefined;
+      this.remove(action);
     }
-    this.config = [];
   }
 
   public unload() {
@@ -770,6 +780,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
+      console.log(actions);
       this.push(...actions);
       this.store();
       this.loaded = true;
@@ -854,6 +865,12 @@ export class GridElement extends RuntimeNode<ElementData> {
     const elementEvents = grid.get_element_events(data.type);
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
+    }
+  }
+
+  public destroy() {
+    for (const event of this.events) {
+      event.destroy();
     }
   }
 
@@ -1059,6 +1076,12 @@ export class GridPage extends RuntimeNode<PageData> {
     }
   }
 
+  public destroy() {
+    for (const element of this.control_elements) {
+      element.destroy();
+    }
+  }
+
   public async loadProfile(
     profile: GridProfileData
   ): Promise<ProfileLoadResult> {
@@ -1183,6 +1206,12 @@ export class GridModule extends RuntimeNode<ModuleData> {
       new GridPage(this, this.type, { pageNumber: 2 }),
       new GridPage(this, this.type, { pageNumber: 3 }),
     ];
+  }
+
+  public destroy() {
+    for (const page of this.pages) {
+      page.destroy();
+    }
   }
 
   findPage(index: number) {
@@ -1643,7 +1672,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       },
       type: ModuleType[moduleType as keyof typeof ModuleType],
       fwMismatch: false,
-      alive: Date.now(),
       map: {
         top: { dx: header_param.SX, dy: header_param.SY + 1 },
         right: { dx: header_param.SX + 1, dy: header_param.SY },
@@ -1658,6 +1686,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     // remove the destroyed device from runtime
     const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
     this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
+    removed.destroy();
 
     aliveModules.update((s) => {
       const index = s.findIndex((e) => e.id === removed.id);
