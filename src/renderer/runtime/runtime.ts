@@ -242,6 +242,32 @@ export class ActionData extends NodeData {
     }
     return result;
   }
+
+  public get indentation() {
+    let indentation = 0;
+    const event = this.parent as GridEvent;
+    for (let i = 0; i < event.config.length; ++i) {
+      let action = event.config[i];
+
+      if (action.id === this.id) {
+        if (
+          ["composite_part", "composite_close"].includes(
+            action.information.type
+          )
+        ) {
+          return indentation - 1;
+        } else {
+          return indentation;
+        }
+      }
+
+      if (action.information.type === "composite_open") {
+        ++indentation;
+      } else if (action.information.type === "composite_close") {
+        --indentation;
+      }
+    }
+  }
 }
 
 export class GridAction extends RuntimeNode<ActionData> {
@@ -320,25 +346,7 @@ export class GridAction extends RuntimeNode<ActionData> {
 
   // Getters
   public get indentation() {
-    let indentation = 0;
-    const event = this.parent as GridEvent;
-    for (let i = 0; i < event.config.length; ++i) {
-      let action = event.config[i];
-
-      if (action.id === this.id) {
-        if (action.information.type === "composite_part") {
-          return indentation - 1;
-        } else {
-          return indentation;
-        }
-      }
-
-      if (action.information.type === "composite_open") {
-        ++indentation;
-      } else if (action.information.type === "composite_close") {
-        --indentation;
-      }
-    }
+    return this.data.indentation;
   }
 
   public get information() {
@@ -490,12 +498,11 @@ export class GridEvent extends RuntimeNode<EventData> {
 
     for (const action of actions) {
       const index = this.config.findIndex((e) => e.id === action.id);
-      action.destroy();
-
       this.config = [
         ...this.config.slice(0, index),
         ...this.config.slice(index + 1),
       ];
+      action.destroy();
     }
 
     return Promise.resolve({

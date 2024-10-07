@@ -110,7 +110,7 @@
       {#key displayValue}
         <LineEditor
           on:change={handleDisplayValueChange}
-          action={config.runtimeRef}
+          action={config}
           bind:value={displayValue}
         />
       {/key}

@@ -47,7 +47,7 @@
   //////////////////////////////////////////////////////////////////////////////
 
   let scrollHeight = "100%";
-  let draggedIndexes = [];
+  let draggedIndexes: number[] = [];
   let autoScroll;
   let dropIndex = undefined;
   let isSystemEventSelected = false;
@@ -96,8 +96,7 @@
       return;
     }
 
-    const targetIndex =
-      draggedIndexes[0] > dropIndex ? dropIndex : dropIndex - 1;
+    const offset = Math.min(...draggedIndexes) > dropIndex ? 0 : -1;
 
     //Check for incorrect dropzones
     const firstIndex = draggedIndexes.at(0);
@@ -115,12 +114,15 @@
       ui.eventtype
     );
 
-    const blocks = get(config_panel_blocks).map((e) => e.action);
-    let n = 0;
-    for (const index of draggedIndexes) {
-      event.swap(blocks[targetIndex + n], blocks[index]);
-      ++n;
-    }
+    const blocks = get(config_panel_blocks)
+      .map((e) => e.action)
+      .filter((e, n) => draggedIndexes.includes(n));
+
+    const trueDropIndex =
+      dropIndex - (offset === -1 ? blocks.length - 1 : 0) + offset;
+
+    event.remove(...blocks);
+    event.insert(trueDropIndex, ...blocks);
   }
 
   function handleDragStart(e) {
@@ -329,7 +331,8 @@
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={(this, { configs: $config_panel_blocks })}
+          use:changeOrder={(this,
+          { configs: $config_panel_blocks.map((e) => e.action) })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
@@ -378,13 +381,7 @@
                 >
                   <DynamicWrapper {index} data={block} />
                   {#if typeof $config_drag === "undefined"}
-                    {#if ["composite_close", "single"].includes(block.action.information.type) || ["single"].includes($config_panel_blocks[index + 1]?.action.information.type) || !$appSettings.persistent.actionHelperText || typeof block.action.information.helperText === "undefined"}
-                      <AddActionLine
-                        index={index + 1}
-                        on:paste={handlePaste}
-                        on:new-config={handleAddConfig}
-                      />
-                    {:else}
+                    {#if typeof block.action.information.helperText !== "undefined" && ["composite_part", "composite_open"].includes(block.action.information.type) && $config_panel_blocks[index + 1]?.action.indentation === block.action.indentation && $appSettings.persistent.actionHelperText}
                       <div class="mr-6">
                         <AddAction
                           text={block.action.information.helperText}
@@ -393,6 +390,12 @@
                           on:new-config={handleAddConfig}
                         />
                       </div>
+                    {:else}
+                      <AddActionLine
+                        index={index + 1}
+                        on:paste={handlePaste}
+                        on:new-config={handleAddConfig}
+                      />
                     {/if}
                   {:else}
                     <DropZone

@@ -131,7 +131,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
-  {#each Array(action.indentation) as _}
+  {#each Array($action.indentation) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>
@@ -139,7 +139,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!action.checkSyntax()
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
       : 'border-transparent'} bri"
     id={configIndexToId(index)}
@@ -182,7 +182,7 @@
               class="h-full w-full px-2"
               {index}
               config={action}
-              syntaxError={!action.checkSyntax()}
+              syntaxError={!$action.checkSyntax()}
               on:replace={handleReplace}
               on:validator={handleValidator}
               on:output={handleOutput}

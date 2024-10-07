@@ -257,7 +257,7 @@
                 on:output={(e) => {
                   saveChangesOnInput(e.detail.script, i, "value");
                 }}
-                action={config.runtimeRef}
+                action={config}
                 {sidebarWidth}
                 value={script.value}
               />

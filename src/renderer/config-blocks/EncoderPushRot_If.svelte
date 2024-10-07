@@ -94,7 +94,7 @@
       on:output={(e) => {
         sendData(e.detail.script);
       }}
-      action={config.runtimeRef}
+      action={config}
       {sidebarWidth}
       value={scriptSegment}
     />

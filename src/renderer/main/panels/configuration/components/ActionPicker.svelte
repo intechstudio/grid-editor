@@ -68,7 +68,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($config_panel_blocks);
+      options = getAvailableOptions($config_panel_blocks.map((e) => e.action));
     } catch (e) {
       handleClose();
     }
