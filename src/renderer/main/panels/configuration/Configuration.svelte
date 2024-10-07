@@ -96,31 +96,31 @@
       return;
     }
 
-    const targetIndex = dropIndex;
-    dropIndex = undefined;
+    const targetIndex =
+      draggedIndexes[0] > dropIndex ? dropIndex : dropIndex - 1;
 
     //Check for incorrect dropzones
     const firstIndex = draggedIndexes.at(0);
     const lastIndex = draggedIndexes.at(-1);
-    if (targetIndex >= firstIndex && targetIndex <= lastIndex + 1) {
+    if (dropIndex >= firstIndex && dropIndex <= lastIndex + 1) {
       return;
     }
 
-    //get(config_panel_blocks).map(e => e.action)
-    return;
-    draggedIndexes.forEach((i) => {
-      temp.push(s[i]);
-      s[i] = undefined;
-    });
+    const ui = get(user_input);
+    const event = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
 
-    //Insert dragged configs at position
-    s.insert(targetIndex, ...temp);
-
-    //Remove marked configs
-    s = s.filter((e) => typeof e !== "undefined");
-    return s;
-
-    sendCurrentConfigurationToGrid();
+    const blocks = get(config_panel_blocks).map((e) => e.action);
+    let n = 0;
+    for (const index of draggedIndexes) {
+      event.swap(blocks[targetIndex + n], blocks[index]);
+      ++n;
+    }
   }
 
   function handleDragStart(e) {

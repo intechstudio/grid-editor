@@ -126,6 +126,7 @@ export class GridInstructions implements Instructions {
       });
     }
 
+    console.log(config);
     let buffer_element: BufferElement = {
       id: uuidv4(),
       descr: {

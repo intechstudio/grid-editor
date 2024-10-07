@@ -378,13 +378,14 @@ export class EventData extends NodeData {
     this.type = type;
     this.config = [];
     this.loaded = false;
-    this.stored = undefined;
+    this.stored = "";
   }
 
   public hasChanges(): boolean {
-    if (this.isStored()) {
+    if (!this.isLoaded()) {
       return false;
     }
+
     return this.stored !== this.toLua();
   }
 
@@ -399,22 +400,7 @@ export class EventData extends NodeData {
     if (!this.isLoaded()) {
       return true;
     }
-
     return this.stored === this.toLua();
-  }
-
-  public store() {
-    this.stored = this.toLua();
-  }
-
-  public clear() {
-    for (const action of this.config) {
-      (action as any).parent = undefined;
-    }
-
-    this.config = [];
-    //this.loaded = false;
-    //this.stored = undefined;
   }
 
   public checkSyntax() {
@@ -427,8 +413,10 @@ export class EventData extends NodeData {
   }
 
   public checkLength() {
-    const script = this.toLua();
-    return script.length < grid.getProperty("CONFIG_LENGTH");
+    if (!this.isLoaded()) {
+      return true;
+    }
+    return this.toLua().length < grid.getProperty("CONFIG_LENGTH");
   }
 
   public isLoaded() {
@@ -459,6 +447,22 @@ export class GridEvent extends RuntimeNode<EventData> {
         type: GridOperationType.REPLACE_ACTION,
       });
     }
+  }
+
+  public swap(a: GridAction, b: GridAction) {
+    const indexA = this.config.findIndex((e) => e.id === a.id);
+    const indexB = this.config.findIndex((e) => e.id === b.id);
+
+    if (indexA === -1 || indexB === -1) {
+      console.error("One or both items not found in config");
+      return;
+    }
+
+    const newConfig = [...this.config];
+    newConfig[indexA] = b;
+    newConfig[indexB] = a;
+
+    this.config = newConfig;
   }
 
   public remove(...actions: GridAction[]): Promise<RemoveActionsResult> {
@@ -604,13 +608,14 @@ export class GridEvent extends RuntimeNode<EventData> {
     const module = page.parent as GridModule;
 
     try {
+      const script = this.toLua();
       await instructions.sendConfigToGrid(
         module.dx,
         module.dy,
         page.pageNumber,
         element.elementIndex,
         this.type,
-        this.toLua()
+        script
       );
       Promise.resolve({
         value: true,
@@ -651,11 +656,20 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   public store() {
-    this.data.store();
+    this.stored = this.toLua();
   }
 
   public clear() {
-    this.data.clear();
+    for (const action of this.config) {
+      (action as any).parent = undefined;
+    }
+    this.config = [];
+  }
+
+  public unload() {
+    this.clear();
+    this.loaded = false;
+    this.stored = "";
   }
 
   public async merge(
@@ -745,25 +759,26 @@ export class GridEvent extends RuntimeNode<EventData> {
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
 
-    instructions
-      .fetchConfigFromGrid(
+    try {
+      const descr = await instructions.fetchConfigFromGrid(
         module.dx,
         module.dy,
         page.pageNumber,
         element.elementIndex,
         this.type
-      )
-      .then((descr) => {
-        const script = descr.class_parameters.ACTIONSTRING;
-        const actions = GridAction.parse(script);
-        this.push(...actions);
-        this.store();
-        this.loaded = true;
-        return Promise.resolve();
-      })
-      .catch((e) => {
-        return Promise.reject(e);
-      });
+      );
+
+      const script = descr.class_parameters.ACTIONSTRING;
+      const actions = GridAction.parse(script);
+      this.push(...actions);
+      this.store();
+      this.loaded = true;
+
+      console.log("EVENT LOADED");
+      return Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
   // Getters
@@ -843,23 +858,14 @@ export class GridElement extends RuntimeNode<ElementData> {
   }
 
   public async discardChanges(): Promise<DiscardElementResult> {
-    const promises: Promise<SendToGridResult>[] = [];
-    for (const event of this.events) {
-      if (event.isStored()) continue;
-      const stored = GridAction.parse(event.stored);
-      event.clear();
-      event.push(...stored);
-      const promise = event.sendToGrid();
-      promises.push(promise);
-    }
-
     try {
-      await Promise.all(promises);
-      return Promise.resolve({
-        value: true,
-        text: "OK",
-        type: GridOperationType.DISCARD_ELEMENT,
-      });
+      for (const event of this.events) {
+        if (!event.hasChanges()) continue;
+        const stored = GridAction.parse(event.stored);
+        event.clear();
+        event.push(...stored);
+        await event.sendToGrid();
+      }
     } catch (e) {
       return Promise.reject({
         value: false,
@@ -867,6 +873,13 @@ export class GridElement extends RuntimeNode<ElementData> {
         type: GridOperationType.DISCARD_ELEMENT,
       });
     }
+
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.DISCARD_ELEMENT,
+    });
+    y;
   }
 
   public async sendToGrid(): Promise<SendToGridResult[]> {
@@ -920,6 +933,7 @@ export class GridElement extends RuntimeNode<ElementData> {
   public async loadPreset(preset: GridPresetData): Promise<PresetLoadResult> {
     try {
       await this.overwrite(preset.element.data);
+      this.sendToGrid();
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -972,12 +986,21 @@ export class GridElement extends RuntimeNode<ElementData> {
     return this.events.every((e) => e.isLoaded());
   }
 
-  public async load() {
-    const promises: Array<Promise<GridAction[]>> = [];
+  public unload() {
     for (const event of this.events) {
-      promises.push(event.load());
+      event.unload();
     }
-    Promise.all(promises);
+  }
+
+  public async load(): Promise<void> {
+    try {
+      for (const event of this.events) {
+        await event.load();
+      }
+      return Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
   // Getters
@@ -1080,6 +1103,12 @@ export class GridPage extends RuntimeNode<PageData> {
   public store() {
     for (const element of this.control_elements) {
       element.store();
+    }
+  }
+
+  public unload() {
+    for (const element of this.control_elements) {
+      element.unload();
     }
   }
 
@@ -1521,7 +1550,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         .then(() => {
           for (const module of this.modules) {
             const page = module.findPage(index);
-            page.clear();
+            page.unload();
           }
           resolve();
         })
@@ -1545,7 +1574,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         .then(() => {
           for (const module of this.modules) {
             const page = module.findPage(index);
-            page.clear();
+            page.unload();
           }
           resolve();
         })

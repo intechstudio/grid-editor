@@ -401,9 +401,11 @@ setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
 
+  /*
   if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
     type = 254;
   }
+    */
 
   if (
     runtime.modules.length > 0 &&

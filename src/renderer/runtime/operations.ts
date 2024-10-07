@@ -275,6 +275,7 @@ export async function removeActions(
     .then((result) => {})
     .catch(handleError)
     .finally(() => {
+      console.log(target);
       target.sendToGrid();
       Analytics.track({
         event: "Config Action",
