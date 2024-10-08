@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { EventData, GridAction, GridEvent } from "./../../runtime/runtime";
+  import {
+    EventData,
+    GridAction,
+    GridEvent,
+    ActionData,
+  } from "./../../runtime/runtime";
   import { createEventDispatcher } from "svelte";
   import { toWords } from "number-to-words";
 
@@ -14,9 +19,7 @@
     dispatch("toggle");
   }
 
-  $: {
-    handleEventDataChange($event);
-  }
+  $: handleEventDataChange($event);
 
   function handleEventDataChange(event: EventData) {
     step = 0;
@@ -32,8 +35,18 @@
 
       if (action.short === "bstn") {
         step = ++stack[stack.length - 1];
-        const defaultScript = config.information.defaultLua;
-        config.script = defaultScript.replace("N", String(step));
+        if (action.id === config.id) {
+          const defaultScript = config.information.defaultLua;
+          const newScript = defaultScript.replace("N", String(step));
+          const oldScript = config.script;
+          if (newScript !== oldScript) {
+            config.updateData(
+              new ActionData(config.short, newScript, config.name)
+            );
+            config.sendToGrid();
+          }
+          return;
+        }
       }
     }
   }

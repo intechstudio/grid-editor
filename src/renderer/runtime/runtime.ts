@@ -5,6 +5,7 @@ import {
   ModuleType,
   GridScript,
   EventType,
+  NumberToEventType,
 } from "@intechstudio/grid-protocol";
 import {
   writable,
@@ -30,6 +31,8 @@ import { v4 as uuidv4 } from "uuid";
 import { getComponentInformation } from "../lib/_configs";
 import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
+import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
+import { Runtime } from "./string-table";
 
 type UUID = string;
 type LuaScript = string;
@@ -106,11 +109,17 @@ export interface GridOperationResult {
   type: GridOperationType;
 }
 
-export interface PasteActionsResult extends GridOperationResult {}
+export interface PasteActionsResult extends GridOperationResult {
+  info: EventInfo;
+}
 export interface DiscardElementResult extends GridOperationResult {}
 export interface OverwriteElementResult extends GridOperationResult {}
-export interface UpdateActionResult extends GridOperationResult {}
-export interface MergeActionsToCodeResult extends GridOperationResult {}
+export interface UpdateActionResult extends GridOperationResult {
+  info: EventInfo;
+}
+export interface MergeActionsToCodeResult extends GridOperationResult {
+  info: EventInfo;
+}
 export interface RemoveActionsResult extends GridOperationResult {}
 export interface CutActionsResult extends GridOperationResult {}
 export interface ResetElementResult extends GridOperationResult {}
@@ -118,8 +127,12 @@ export interface SendToGridResult extends GridOperationResult {}
 export interface PresetLoadResult extends GridOperationResult {}
 export interface ProfileLoadResult extends GridOperationResult {}
 export interface OverwriteEventResult extends GridOperationResult {}
-export interface InsertActionsResult extends GridOperationResult {}
-export interface ReplaceActionsResult extends GridOperationResult {}
+export interface InsertActionsResult extends GridOperationResult {
+  info: EventInfo;
+}
+export interface ReplaceActionsResult extends GridOperationResult {
+  info: EventInfo;
+}
 
 abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   protected _internal: Writable<T>;
@@ -315,9 +328,9 @@ export class GridAction extends RuntimeNode<ActionData> {
     return result;
   }
 
-  static getInformation(short: string) {
+  static getInformation(short: string): ActionBlockInformation {
     const result = getComponentInformation({ short: short });
-    return result.information;
+    return result.information as ActionBlockInformation;
   }
 
   public toLua() {
@@ -333,15 +346,32 @@ export class GridAction extends RuntimeNode<ActionData> {
     return event.sendToGrid();
   }
 
-  public async overwride(data: ActionData): Promise<UpdateActionResult> {
+  public async updateData(data: ActionData): Promise<UpdateActionResult> {
+    const temp = this.data;
+    const parent = this.parent as GridEvent;
+
     this.script = data.script;
     this.short = data.short;
     this.name = data.name;
-    return Promise.resolve({
-      value: true,
-      text: "OK",
-      type: GridOperationType.UPDATE_ACTION,
-    });
+
+    if (parent.checkLength()) {
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.UPDATE_ACTION,
+        info: (this.parent as GridEvent)?.getInfo(),
+      });
+    } else {
+      this.script = temp.script;
+      this.short = temp.short;
+      this.name = temp.name;
+      return Promise.reject({
+        value: false,
+        text: Runtime.ErrorText.LENGTH_ERROR,
+        type: GridOperationType.UPDATE_ACTION,
+        info: (this.parent as GridEvent)?.getInfo(),
+      });
+    }
   }
 
   // Getters
@@ -378,6 +408,13 @@ export class GridAction extends RuntimeNode<ActionData> {
     this.setField("name", value);
   }
 }
+
+export type EventInfo = {
+  event: { name: string };
+  element: { type: string; index: number };
+  page: number;
+  module: { type: string; dx: number; dy: number };
+};
 
 export class EventData extends NodeData {
   public config: Array<GridAction>;
@@ -434,6 +471,18 @@ export class EventData extends NodeData {
   public isLoaded() {
     return this.loaded;
   }
+
+  public getInfo(): EventInfo {
+    const element = this.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
+    return {
+      event: { name: NumberToEventType(this.type) },
+      element: { type: element.type, index: element.elementIndex },
+      page: page.pageNumber,
+      module: { type: module.type, dx: module.dx, dy: module.dy },
+    };
+  }
 }
 
 export class GridEvent extends RuntimeNode<EventData> {
@@ -448,6 +497,10 @@ export class GridEvent extends RuntimeNode<EventData> {
     this.config = [];
   }
 
+  public getInfo() {
+    return this.data.getInfo();
+  }
+
   public replace(a: GridAction, b: GridAction): Promise<ReplaceActionsResult> {
     const index = this.config.findIndex((e) => e.id === a.id);
     try {
@@ -457,13 +510,15 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: true,
         text: "OK",
         type: GridOperationType.REPLACE_ACTION,
+        info: this.getInfo(),
       });
     } catch (e) {
       this.insert(index, a); //Fallback to original value
       return Promise.reject({
         value: false,
-        text: `Replace failed! Reason: ${e}`,
+        text: Runtime.ErrorText.LENGTH_ERROR,
         type: GridOperationType.REPLACE_ACTION,
+        info: this.getInfo(),
       });
     }
   }
@@ -521,6 +576,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: false,
         text: `Add failed! Invalid index: ${index}.`,
         type: GridOperationType.INSERT_ACTIONS,
+        info: this.getInfo(),
       });
     }
 
@@ -535,12 +591,14 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: true,
         text: "OK",
         type: GridOperationType.INSERT_ACTIONS,
+        info: this.getInfo(),
       });
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: `Insert failed! Reason: ${e}`,
+        text: Runtime.ErrorText.LENGTH_ERROR,
         type: GridOperationType.INSERT_ACTIONS,
+        info: this.getInfo(),
       });
     }
   }
@@ -553,6 +611,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: false,
         text: `Nothing to paste, clipboard is empty`,
         type: GridOperationType.PASTE_ACTION,
+        info: this.getInfo(),
       });
     }
 
@@ -561,6 +620,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: false,
         text: `Invalid clipboard type ${clipboard?.key}`,
         type: GridOperationType.PASTE_ACTION,
+        info: this.getInfo(),
       });
     }
 
@@ -585,12 +645,14 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: true,
         text: "OK",
         type: GridOperationType.PASTE_ACTION,
+        info: this.getInfo(),
       });
     } catch (e) {
       Promise.reject({
         value: false,
-        text: "Config limit reached",
+        text: Runtime.ErrorText.LENGTH_ERROR,
         type: GridOperationType.PASTE_ACTION,
+        info: this.getInfo(),
       });
     }
   }
@@ -697,6 +759,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         value: false,
         text: "Detached action!",
         type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+        info: this.getInfo(),
       });
     }
 
@@ -718,19 +781,30 @@ export class GridEvent extends RuntimeNode<EventData> {
     if (!codeBlock.checkSyntax()) {
       return Promise.reject({
         value: false,
-        text: "Action(s) with syntax error(s) can not be merged!",
+        text: Runtime.ErrorText.SYNTAX_ERROR,
         type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+        info: this.getInfo(),
       });
     }
 
-    const index = this.config.findIndex((e) => e.id === actions[0].id);
-    this.insert(index, codeBlock);
-    actions.forEach((e) => this.remove(e));
+    try {
+      const index = this.config.findIndex((e) => e.id === actions[0].id);
+      this.insert(index, codeBlock);
+      actions.forEach((e) => this.remove(e));
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: Runtime.ErrorText.LENGTH_ERROR,
+        type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+        info: this.getInfo(),
+      });
+    }
 
     return Promise.resolve({
       value: true,
       text: "OK",
       type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+      info: this.getInfo(),
     });
   }
 
@@ -787,7 +861,6 @@ export class GridEvent extends RuntimeNode<EventData> {
 
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
-      console.log(actions);
       this.push(...actions);
       this.store();
       this.loaded = true;
@@ -821,9 +894,6 @@ export class GridEvent extends RuntimeNode<EventData> {
     const temp = this.config;
     this.setField("config", value);
     if (!this.checkLength()) {
-      value.forEach((e: GridAction) => {
-        this.remove(e);
-      });
       this.setField("config", temp);
       throw "Config limit reached! Event value was reset.";
     }
@@ -903,7 +973,6 @@ export class GridElement extends RuntimeNode<ElementData> {
       text: "OK",
       type: GridOperationType.DISCARD_ELEMENT,
     });
-    y;
   }
 
   public async sendToGrid(): Promise<SendToGridResult[]> {
@@ -1622,7 +1691,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   addVirtualModule({ dx, dy, type }) {
-    const moduleInfo = grid.module_hwcfgs().findLast((e) => e.type === type);
+    const moduleInfo = grid
+      .module_hwcfgs()
+      .reverse()
+      .find((e) => e.type === type);
     const controller = this.create_module(
       {
         DX: dx,

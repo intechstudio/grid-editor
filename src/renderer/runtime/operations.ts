@@ -16,19 +16,33 @@ import { get, derived } from "svelte/store";
 import { config_panel_blocks } from "../main/panels/configuration/Configuration";
 
 function handleError(e: GridOperationResult) {
+  //TODO: Better error handling
   console.warn(`Operation error: ${e.text}`);
   switch (e.type) {
+    case GridOperationType.MERGE_ACTIONS_TO_CODE:
+    case GridOperationType.PASTE_ACTION:
+    case GridOperationType.REPLACE_ACTION:
+    case GridOperationType.UPDATE_ACTION:
     case GridOperationType.INSERT_ACTIONS: {
       const error = e as InsertActionsResult;
-
       logger.set({
-        type: "progress",
+        type: "fail",
         mode: 0,
-        classname: "elementdiscard",
-        message: `Modifications can not`,
+        classname: "luanotok",
+        message: `${error.info.module.type}: ${e.text}`,
       });
+      break;
     }
   }
+
+  /*
+  logger.set({
+    type: "fail",
+    mode: 0,
+    classname: "luanotok",
+    message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
+  });
+  */
 }
 
 //Clipboard handlers
@@ -212,7 +226,7 @@ export async function clearElement(target: GridElement) {
 
 export async function updateAction(target: GridAction, data: ActionData) {
   target
-    .overwride(data)
+    .updateData(data)
     .then((result) => {})
     .catch(handleError)
     .finally(() => {
