@@ -143,12 +143,12 @@
       ? 'border-error'
       : 'border-transparent'} bri"
     id={configIndexToId(index)}
-    class:rounded-tr-xl={action.information.rounding === "top"}
-    class:rounded-br-xl={action.information.rounding === "bottom"}
-    config-name={action.information.name}
-    config-type={action.information.type}
+    class:rounded-tr-xl={$action.information.rounding === "top"}
+    class:rounded-br-xl={$action.information.rounding === "bottom"}
+    config-name={$action.information.name}
+    config-type={$action.information.type}
     config-id={index}
-    movable={action.information.movable}
+    movable={$action.information.movable}
     class:brightness-125={data.selected}
     on:click|self={handleCarouselClicked}
   >
@@ -156,13 +156,13 @@
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
-      {#if action.information.hideIcon !== true}
+      {#if $action.information.hideIcon !== true}
         <div
-          style="background-color:{action.information.color}"
+          style="background-color:{$action.information.color}"
           class="flex items-center p-2 w-min text-center"
         >
           <div class="w-6 h-6 whitespace-nowrap">
-            {@html action.information.blockIcon}
+            {@html $action.information.blockIcon}
           </div>
         </div>
       {/if}
@@ -174,32 +174,34 @@
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-        {#if (toggled && action.information.toggleable) || typeof header === "undefined"}
-          <!-- Body of the Action block when toggled -->
-          <div class="bg-secondary bg-opacity-30 h-full w-full">
-            <svelte:component
-              this={component}
-              class="h-full w-full px-2"
-              {index}
-              config={action}
-              syntaxError={!$action.checkSyntax()}
-              on:replace={handleReplace}
-              on:validator={handleValidator}
-              on:output={handleOutput}
-              on:toggle={handleToggle}
-            />
-          </div>
-        {:else}
-          <!-- Header of the Action block when untoggled -->
+        {#key $action}
+          {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
+            <!-- Body of the Action block when toggled -->
+            <div class="bg-secondary bg-opacity-30 h-full w-full">
+              <svelte:component
+                this={component}
+                class="h-full w-full px-2"
+                {index}
+                config={action}
+                syntaxError={!$action.checkSyntax()}
+                on:replace={handleReplace}
+                on:validator={handleValidator}
+                on:output={handleOutput}
+                on:toggle={handleToggle}
+              />
+            </div>
+          {:else}
+            <!-- Header of the Action block when untoggled -->
 
-          <svelte:component
-            this={header}
-            config={action}
-            {index}
-            on:toggle={handleToggle}
-            on:output={handleOutput}
-          />
-        {/if}
+            <svelte:component
+              this={header}
+              config={action}
+              {index}
+              on:toggle={handleToggle}
+              on:output={handleOutput}
+            />
+          {/if}
+        {/key}
       </div>
     </div>
   </carousel>

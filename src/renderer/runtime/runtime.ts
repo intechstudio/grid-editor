@@ -347,7 +347,11 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   public async updateData(data: ActionData): Promise<UpdateActionResult> {
-    const temp = this.data;
+    const old = {
+      short: this.data.short,
+      script: this.data.script,
+      name: this.data.name,
+    };
     const parent = this.parent as GridEvent;
 
     this.script = data.script;
@@ -362,9 +366,11 @@ export class GridAction extends RuntimeNode<ActionData> {
         info: (this.parent as GridEvent)?.getInfo(),
       });
     } else {
-      this.script = temp.script;
-      this.short = temp.short;
-      this.name = temp.name;
+      this.script = old.script;
+      this.short = old.short;
+      this.name = old.name;
+      this.notify(); //TODO: Refactor this out
+      this.notifyParent(); //TODO: Refactor this out
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.LENGTH_ERROR,

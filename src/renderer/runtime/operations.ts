@@ -140,10 +140,11 @@ export async function overwriteElement(target: GridElement) {
 
   target
     .overwrite(clipboard.payload as ElementData)
-    .then((result) => {})
+    .then((result) => {
+      target.sendToGrid();
+    })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Whole Element Overwrite" },
@@ -171,6 +172,7 @@ export async function discardElement(target: GridElement) {
   target
     .discardChanges()
     .then((result) => {
+      target.sendToGrid();
       logger.set({
         type: "progress",
         mode: 0,
@@ -180,7 +182,6 @@ export async function discardElement(target: GridElement) {
     })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Whole Element Discard" },
@@ -204,6 +205,7 @@ export async function clearElement(target: GridElement) {
   target
     .resetDefault()
     .then((result) => {
+      target.sendToGrid();
       logger.set({
         type: "progress",
         mode: 0,
@@ -213,7 +215,6 @@ export async function clearElement(target: GridElement) {
     })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Clear Element" },
@@ -227,10 +228,11 @@ export async function clearElement(target: GridElement) {
 export async function updateAction(target: GridAction, data: ActionData) {
   target
     .updateData(data)
-    .then((result) => {})
+    .then((result) => {
+      target.sendToGrid();
+    })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       const event = target.parent as GridEvent;
       const element = event.parent as GridElement;
       Analytics.track({
@@ -261,11 +263,11 @@ export async function mergeActionsToCode(
 ) {
   target
     .merge(...actions)
-    .then((result) => {})
-    .catch(handleError)
-    .finally(() => {
+    .then((result) => {
       target.sendToGrid();
-    });
+    })
+    .catch(handleError)
+    .finally(() => {});
 }
 
 export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
@@ -275,10 +277,11 @@ export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
 export async function pasteActions(target: GridEvent, index?: number) {
   target
     .pasteFromClipboard(index)
-    .then((result) => {})
+    .then((result) => {
+      target.sendToGrid();
+    })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Paste" },
@@ -300,11 +303,11 @@ export async function removeActions(
 ) {
   target
     .remove(...actions)
-    .then((result) => {})
+    .then((result) => {
+      target.sendToGrid();
+    })
     .catch(handleError)
     .finally(() => {
-      console.log(target);
-      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Remove" },
@@ -325,10 +328,10 @@ export async function cutActions(target: GridEvent, ...actions: GridAction[]) {
     .copyActions(...actions)
     .then(() => {
       target.remove(...actions);
+      target.sendToGrid();
     })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       Analytics.track({
         event: "Config Action",
         payload: { click: "Cut" },
@@ -348,9 +351,11 @@ export async function addActions(
       : target.insert.bind(target, index);
 
   actionMethod(...actions)
+    .then((result) => {
+      target.sendToGrid();
+    })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       for (const action of actions) {
         Analytics.track({
           event: "Config Action",
@@ -371,9 +376,11 @@ export async function replaceAction(
 ) {
   target
     .replace(a, b)
+    .then((result) => {
+      target.sendToGrid();
+    })
     .catch(handleError)
     .finally(() => {
-      target.sendToGrid();
       Analytics.track({
         event: "Replace Action",
         payload: { click: "Replace" },
