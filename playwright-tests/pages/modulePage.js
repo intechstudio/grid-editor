@@ -85,9 +85,7 @@ export class ModulePage {
       name: "✔️ Events are copied! (Click",
     });
 
-    this.characterLimitPasteToast = page.getByRole("button", {
-      name: "❌ Paste failed! Config limit",
-    });
+    this.characterLimitPasteToast = page.getByText("Modifications can not");
     this.characterLimitAddToast = page.getByText("Modifications can not");
     this.storeButton = page.getByRole("button", { name: "Store" });
   }
