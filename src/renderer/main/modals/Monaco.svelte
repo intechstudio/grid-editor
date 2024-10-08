@@ -101,8 +101,7 @@
   }
 
   onMount(() => {
-    monaco_action = get(modal).args;
-    console.log(monaco_action, get(modal));
+    monaco_action = get(modal).args.monaco_action;
     commited.name = monaco_action.name;
     commited.script = monaco_action.script;
     scriptLength = (monaco_action.parent as GridEvent).toLua().length;

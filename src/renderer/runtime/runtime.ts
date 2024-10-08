@@ -501,11 +501,14 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.data.getInfo();
   }
 
-  public replace(a: GridAction, b: GridAction): Promise<ReplaceActionsResult> {
+  public async replace(
+    a: GridAction,
+    b: GridAction
+  ): Promise<ReplaceActionsResult> {
     const index = this.config.findIndex((e) => e.id === a.id);
     try {
       this.remove(a);
-      this.insert(index, b);
+      await this.insert(index, b);
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -513,7 +516,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         info: this.getInfo(),
       });
     } catch (e) {
-      this.insert(index, a); //Fallback to original value
+      await this.insert(index, a); //Fallback to original value
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.LENGTH_ERROR,
@@ -640,7 +643,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     );
 
     try {
-      this.insert(index, ...actions);
+      await this.insert(index, ...actions);
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -648,7 +651,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         info: this.getInfo(),
       });
     } catch (e) {
-      Promise.reject({
+      return Promise.reject({
         value: false,
         text: Runtime.ErrorText.LENGTH_ERROR,
         type: GridOperationType.PASTE_ACTION,
@@ -667,16 +670,15 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public async sendToGrid(): Promise<SendToGridResult> {
     if (!this.checkLength()) {
-      Promise.reject({
+      return Promise.reject({
         value: false,
         text: "Length Error",
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
-      return;
     }
 
     if (!this.isLoaded()) {
-      Promise.resolve({
+      return Promise.resolve({
         value: true,
         text: "Nothing to sync, not loaded yet.",
         type: GridOperationType.SEND_EVENT_TO_GRID,
@@ -697,13 +699,13 @@ export class GridEvent extends RuntimeNode<EventData> {
         this.type,
         script
       );
-      Promise.resolve({
+      return Promise.resolve({
         value: true,
         text: "OK",
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     } catch (e) {
-      Promise.reject({
+      return Promise.reject({
         value: false,
         text: e,
         type: GridOperationType.SEND_EVENT_TO_GRID,
@@ -789,7 +791,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
     try {
       const index = this.config.findIndex((e) => e.id === actions[0].id);
-      this.insert(index, codeBlock);
+      await this.insert(index, codeBlock);
       actions.forEach((e) => this.remove(e));
     } catch (e) {
       return Promise.reject({
