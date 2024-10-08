@@ -2,7 +2,7 @@
   import { user_input_event } from "./../configuration/Configuration";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { get, writable } from "svelte/store";
+  import { derived, get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
     midi_monitor_store,
@@ -15,7 +15,12 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   // ok but slow nice
-  const configScriptLength: number = $user_input_event?.toLua().length ?? 0;
+  let event = $user_input_event;
+  let configScriptLength = 0;
+
+  $: {
+    configScriptLength = $event?.toLua().length ?? 0;
+  }
 
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;

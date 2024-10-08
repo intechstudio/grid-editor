@@ -9,12 +9,26 @@ import {
   GridElement,
   GridEvent,
   SendToGridResult,
+  GridOperationType,
+  InsertActionsResult,
 } from "./runtime";
 import { get, derived } from "svelte/store";
 import { config_panel_blocks } from "../main/panels/configuration/Configuration";
 
 function handleError(e: GridOperationResult) {
   console.warn(`Operation error: ${e.text}`);
+  switch (e.type) {
+    case GridOperationType.INSERT_ACTIONS: {
+      const error = e as InsertActionsResult;
+
+      logger.set({
+        type: "progress",
+        mode: 0,
+        classname: "elementdiscard",
+        message: `Modifications can not`,
+      });
+    }
+  }
 }
 
 //Clipboard handlers

@@ -19,9 +19,15 @@
   import { user_input_event } from "../../panels/configuration/Configuration";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  const configScriptLength: number = $user_input_event?.toLua().length ?? 0;
-  const syntaxError: boolean = $user_input_event?.checkSyntax() === false;
+  let event = $user_input_event;
+  let configScriptLength = 0;
+  let syntaxError = false;
   const incoming_messages_stores = writable([]);
+
+  $: {
+    configScriptLength = $event?.toLua().length ?? 0;
+    syntaxError = $event?.checkSyntax() === false;
+  }
 
   $: if (typeof $incoming_messages !== "undefined") {
     handleIncomingMessage($incoming_messages);

@@ -6,9 +6,11 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
+  let event = $user_input_event;
+
   function handleCopy() {
     const _tempSpan = document.createElement("input");
-    _tempSpan.value = get(user_input_event).toLua();
+    _tempSpan.value = get(event).toLua();
 
     _tempSpan.id = "temp-clip";
     document.getElementById("modal-copy-placeholder").append(_tempSpan);
@@ -50,7 +52,7 @@
     </div>
 
     <textarea
-      value={$user_input_event.toLua()}
+      value={$event.toLua()}
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
