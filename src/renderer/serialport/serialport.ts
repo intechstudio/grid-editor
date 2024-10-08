@@ -247,7 +247,11 @@ navigator.tryConnectGrid = async () => {
       const port = await navigator.serial.requestPort({ filters: filter });
       ports = [port]; // Add the newly requested port to the list
     } else {
-      // Retrieve all available ports
+      // Retrieve all available ports. Must requestPort before getPort to allow MACOS to open D51
+      const port = await navigator.serial.requestPort({ filters: filter });
+      if (navigator.debugSerial) {
+        console.warn("port:", port);
+      }
       ports = await navigator.serial.getPorts();
     }
 
