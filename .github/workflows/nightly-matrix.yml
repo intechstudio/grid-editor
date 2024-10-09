@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     needs: profile-cloud-build
     steps:
@@ -144,9 +144,7 @@ jobs:
           # Configure Git
           echo "Configuring Git..."
           git config --global user.name "github-actions[bot]"
-          echo "Set Git user.name to 'github-actions[bot]'"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          echo "Set Git user.email to 'github-actions[bot]@users.noreply.github.com'"
 
           # Get all tags containing "-nightly"
           echo "Retrieving all tags containing '-nightly'..."
@@ -154,17 +152,13 @@ jobs:
           echo "Nightly tags found: $nightly_tags"
 
           # Loop through each nightly tag and delete it locally and remotely
-          echo "Starting tag delete!"
           if [ -z "$nightly_tags" ]; then
               echo "No nightly tags found. Exiting..."
           else
               for tag in $nightly_tags; do
                   echo "Deleting tag: $tag"
-                  # Uncomment the following lines to enable actual deletion
-                  # git tag -d "$tag" # Delete tag locally
-                  # echo "Deleted local tag: $tag"
-                  # git push origin ":refs/tags/$tag" # Delete tag remotely
-                  # echo "Deleted remote tag: $tag"
+                  git tag -d "$tag" # Delete tag locally
+                  git push origin ":refs/tags/$tag"
               done
           fi
           echo "Tag deletion process completed."
