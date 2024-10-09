@@ -37,7 +37,7 @@ function init(nightlyAllowed: boolean) {
     buildVariables.BUILD_ENV !== "development" &&
     buildVariables.BRANCH_NAME === "stable"
   ) {
-    setTimeout(() => autoUpdater.checkForUpdates(), 6000); //Give time for main window to initialize
+    setTimeout(() => autoUpdater.checkForUpdates(), 10000); //Give time for main window to initialize
   } else {
     console.log("Checking for updates is disabled...");
   }
@@ -48,7 +48,6 @@ export function setNightlyAllowed(isAllowed: boolean) {
   if (autoUpdater.allowPrerelease != newValue) {
     autoUpdater.allowPrerelease = newValue;
     if (
-      isAllowed &&
       buildVariables.BUILD_ENV !== "development" &&
       buildVariables.BRANCH_NAME === "stable"
     ) {
