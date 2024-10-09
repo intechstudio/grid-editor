@@ -114,7 +114,9 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
 
     restartPackageManager: () => {},
     resetAppSettings: () => {},
-    openInBrowser: () => {},
+    openInBrowser: (url) => {
+      window.open(url, "_blank").focus();
+    },
     overlay: () => {},
   };
 }

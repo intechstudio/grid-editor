@@ -27,6 +27,16 @@
     });
   }
 
+  function socialLogin() {
+    if (import.meta.env.VITE_WEB_MODE) {
+      authStore.googleLoginPopup();
+    } else {
+      window.electron.openInBrowser(
+        $appSettings.persistent.profileCloudUrl + "/authorize"
+      );
+    }
+  }
+
   function forgottenPassword() {
     if (!email) {
       loginError = "Input email to send the password reset to!";
@@ -120,10 +130,7 @@
 
         <button
           class="self-center rounded flex items-center justify-start font-medium bg-emerald-600 hover:bg-emerald-700"
-          on:click={() =>
-            window.electron.openInBrowser(
-              $appSettings.persistent.profileCloudUrl + "/authorize"
-            )}
+          on:click={() => socialLogin()}
         >
           <div class="w-14 h-14 p-1">
             <svg
