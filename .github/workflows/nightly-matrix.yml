@@ -150,7 +150,7 @@ jobs:
 
           # Get all tags containing "-nightly"
           echo "Retrieving all tags containing '-nightly'..."
-          nightly_tags=$(git tag | grep -E "\-nightly")
+          nightly_tags=$(git tag | grep -E "\-nightly"  || true)
           echo "Nightly tags found: $nightly_tags"
 
           # Loop through each nightly tag and delete it locally and remotely
