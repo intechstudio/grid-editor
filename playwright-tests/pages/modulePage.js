@@ -88,10 +88,25 @@ export class ModulePage {
     this.characterLimitPasteToast = page.getByText("Modifications can not");
     this.characterLimitAddToast = page.getByText("Modifications can not");
     this.storeButton = page.getByRole("button", { name: "Store" });
+    this.clearButton = page.getByRole("button", { name: "Clear" });
+    this.confirmClearButton = page.getByRole("button", {
+      name: "Confirm",
+      exact: true,
+    });
+    this.discardAllButton = page.getByRole("button", { name: "Discard All" });
   }
 
   async storeConfig() {
     await this.storeButton.click();
+  }
+
+  async clearConfig() {
+    await this.clearButton.click();
+    await this.confirmClearButton.click();
+  }
+
+  async discardConfig() {
+    await this.discardAllButton.click();
   }
 
   async changeModule() {

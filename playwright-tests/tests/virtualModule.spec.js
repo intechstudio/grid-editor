@@ -2,14 +2,17 @@ import { test, expect } from "@playwright/test";
 import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import { PAGE_PATH, mockNavigatorSerial } from "../utility";
+import { ConfigPage } from "../pages/configPage";
 
 let connectModulePage;
 let modulePage;
+let configPage;
 
 test.beforeEach(async ({ page }) => {
   await mockNavigatorSerial(page);
   connectModulePage = new ConnectModulePage(page);
   modulePage = new ModulePage(page);
+  configPage = new ConfigPage(page);
   await page.goto(PAGE_PATH);
   await connectModulePage.openVirtualModules();
 });
@@ -67,4 +70,17 @@ test.describe("Add extra module", () => {
       await expect(modulePage.modulesFromTheFirstModule[side]).toBeVisible();
     });
   }
+});
+
+test("Clear module fetching config automatically", async ({ page }) => {
+  await connectModulePage.addModule("EF44");
+  await modulePage.clearConfig();
+  await expect(page.locator("#cfg-2")).toBeVisible();
+});
+
+test("Discard module fetching config automatically", async () => {
+  await connectModulePage.addModule("EF44");
+  await configPage.removeAllActions();
+  await modulePage.discardConfig();
+  await expect(page.locator("#cfg-2")).toBeVisible();
 });
