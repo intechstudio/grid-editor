@@ -115,6 +115,12 @@ test.describe("Element Actions", () => {
     );
   });
 
+  test("Overwrite element", async ({ page }) => {
+    await configPage.copyElement();
+    await configPage.overwriteElement();
+    await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
+  });
+
   test("Discard with Event change", async ({ page }) => {
     const notVisibleComment = "Not Exist";
     await configPage.removeAllActions();
