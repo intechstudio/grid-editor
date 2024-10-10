@@ -21,6 +21,15 @@ test.describe("Action Block Operations", () => {
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
   });
+
+  test("Add Action Block to empty element", async ({ page }) => {
+    await configPage.removeAllActions();
+    await configPage.openActionsOnEmptyElement();
+    await configPage.addActionBlock("midi", "MIDI");
+    const blockElement = configPage.blocks["midi"]["MIDI"]["block"];
+    await expect(blockElement).toBeVisible();
+  });
+
   test("Copy and Paste", async ({ page }) => {
     const expectedComment = "action operation";
     await configPage.removeAllActions();
