@@ -835,11 +835,12 @@ export class GridEvent extends RuntimeNode<EventData> {
       });
     }
 
-    this.clear();
     const copy = data.config.map(
       (e) =>
         new GridAction(undefined, new ActionData(e.short, e.script, e.name))
     );
+
+    this.clear();
     this.push(...copy);
 
     return Promise.resolve({

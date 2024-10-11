@@ -344,6 +344,8 @@
               <AddAction
                 index={0}
                 text={"There are no actions configured on this event."}
+                on:paste={handlePaste}
+                on:new-config={handleAddConfig}
               />
             </div>
           {:else}
