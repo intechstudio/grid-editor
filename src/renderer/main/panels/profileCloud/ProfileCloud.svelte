@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { GridModule } from "./../../../runtime/runtime.ts";
+  import { ProfileCloud } from "./../../../runtime/string-table";
+  import { RuntimeData } from "./../../../runtime/runtime";
+  import { user_input } from "./../../../runtime/runtime.store";
   import { GridElement } from "./../../../runtime/runtime";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
@@ -33,12 +37,13 @@
 
   $: handleRuntimeChange($runtime);
 
-  function handleRuntimeChange(rt) {
+  function handleRuntimeChange(rt: RuntimeData) {
     const compatible = new Set([]);
+    const ui = get(user_input);
     for (const module of rt.modules) {
-      const elements = module.pages[0].control_elements.map((e) => e.type);
+      const elements = module.findPage(ui.pagenumber).control_elements;
       compatible.add(module.type);
-      elements.forEach((item) => compatible.add(item));
+      elements.forEach((e) => compatible.add(e.type));
     }
     sendCompatibleTypes(Array.from(compatible));
   }
@@ -58,23 +63,19 @@
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {
-    const target = runtime.findEvent(
+    const module = runtime.findModule(ui.dx, ui.dy);
+    const element = runtime.findElement(
       ui.dx,
       ui.dy,
       ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
+      ui.elementnumber
     );
 
-    if (typeof target === "undefined") {
+    if (typeof module === "undefined" || typeof element === "undefined") {
       return;
     }
 
-    selectedModuleType = runtime.modules.find(
-      (device) => device.dx == ui.dx && device.dy == ui.dy
-    ).type;
-    selectedControlElementType = target.type;
-    sendSelectedComponentInfos(selectedModuleType, selectedControlElementType);
+    sendSelectedComponentInfos(module.type, element.type);
   }
 
   let selectedModuleType = undefined;
@@ -86,7 +87,6 @@
       channel.onmessage = (event) =>
         func(event)
           .then((res) => {
-            console.log(func.name);
             channel.postMessage({ ok: true, data: res });
           })
           .catch((err) => {
@@ -196,88 +196,76 @@
     return await window.electron.configs.deleteConfig(path, "configs", config);
   }
 
-  async function handleGetCurrentConfigurationFromEditor(event) {
-    return new Promise((resolve) => {
-      const configType = event.data.configType;
+  async function handleGetCurrentConfigurationFromEditor(event): Promise<any> {
+    if (runtime.modules.length === 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "profileclouderror",
+        message: ProfileCloud.ErrorText.NO_DEVICE,
+      });
+      return Promise.reject(ProfileCloud.ErrorText.NO_DEVICE);
+    }
 
-      const ui = get(user_input);
-      runtime
-        .findPage(ui.dx, ui.dy, ui.pagenumber)
-        .load()
-        .then(() => {
-          const ui = get(user_input);
+    const ui = get(user_input);
+    const configType = event.data.configType;
+    const id = uuidv4();
 
-          let name = undefined;
-          let description = "Click here to add description";
-          let id = uuidv4();
+    let config: any = {
+      name: undefined,
+      id: id,
+      description: "Click here to add description",
+      configType: configType, // differentiator from different JSON files!
+      version: {
+        major: $appSettings.version.major,
+        minor: $appSettings.version.minor,
+        patch: $appSettings.version.patch,
+      },
+      localId: id,
+    };
 
-          let config: any = {
-            name: name,
-            id: id,
-            description: description,
-            configType: configType, // differentiator from different JSON files!
-            version: {
-              major: $appSettings.version.major,
-              minor: $appSettings.version.minor,
-              patch: $appSettings.version.patch,
-            },
-            localId: id,
+    switch (configType) {
+      case "profile": {
+        const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
+        await page.load();
+        config.type = (page.parent as GridModule).type;
+        config.configs = page.control_elements.map((element) => {
+          return {
+            controlElementNumber: element.elementIndex,
+            events: element.events.map((ev) => {
+              return {
+                event: ev.type,
+                config: ev.toLua(),
+              };
+            }),
           };
-
-          runtime.modules.forEach((d) => {
-            if (d.dx == ui.dx && d.dy == ui.dy) {
-              const page = d.pages.find((x) => x.pageNumber == ui.pagenumber);
-
-              if (configType === "profile") {
-                config.type = selectedModuleType;
-                config.configs = page.control_elements.map((element) => {
-                  return {
-                    controlElementNumber: element.elementIndex,
-                    events: element.events.map((ev) => {
-                      return {
-                        event: ev.type,
-                        config: ev.config,
-                      };
-                    }),
-                  };
-                });
-              } else if (configType === "preset") {
-                const element = page.control_elements.find(
-                  (elemet) => elemet.elementIndex === ui.elementnumber
-                );
-
-                const current = runtime.findEvent(
-                  ui.dx,
-                  ui.dy,
-                  ui.pagenumber,
-                  ui.elementnumber,
-                  ui.eventtype
-                );
-
-                config.type = (current.parent as GridElement).type;
-                config.configs = {
-                  events: element.events.map((ev) => {
-                    return {
-                      event: ev.type,
-                      config: ev.config,
-                    };
-                  }),
-                };
-              }
-            }
-          });
-          config.name = `New ${config.type} config`;
-          resolve(config);
-        })
-        .catch((e) => {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "profileclouderror",
-            message: e,
-          });
         });
-    });
+        break;
+      }
+      case "preset": {
+        const element = runtime.findElement(
+          ui.dx,
+          ui.dy,
+          ui.pagenumber,
+          ui.elementnumber
+        );
+        await element.load();
+
+        config.type = element.type;
+        config.configs = {
+          events: element.events.map((ev) => {
+            return {
+              event: ev.type,
+              config: ev.toLua(),
+            };
+          }),
+        };
+        break;
+      }
+    }
+
+    config.name = `New ${config.type} config`;
+    return Promise.resolve(config);
   }
 
   let profileCloudIsMounted = false;

@@ -480,13 +480,13 @@ export class EventData extends NodeData {
 
   public getInfo(): EventInfo {
     const element = this.parent as GridElement;
-    const page = element.parent as GridPage;
-    const module = page.parent as GridModule;
+    const page = element?.parent as GridPage;
+    const module = page?.parent as GridModule;
     return {
       event: { name: NumberToEventType(this.type) },
-      element: { type: element.type, index: element.elementIndex },
-      page: page.pageNumber,
-      module: { type: module.type, dx: module.dx, dy: module.dy },
+      element: { type: element?.type, index: element?.elementIndex },
+      page: page?.pageNumber,
+      module: { type: module?.type, dx: module?.dx, dy: module?.dy },
     };
   }
 }
@@ -1222,13 +1222,9 @@ export class GridPage extends RuntimeNode<PageData> {
   public async load() {
     const promises: Array<Promise<void>> = [];
     for (const element of this.control_elements) {
-      promises.push(
-        new Promise((resolve) => {
-          element.load().then(() => resolve());
-        })
-      );
+      promises.push(element.load());
     }
-    Promise.all(promises);
+    return Promise.all(promises);
   }
 
   // Getters
@@ -1665,7 +1661,15 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
             const page = module.findPage(index);
             page.unload();
           }
-          resolve();
+          const ui = get(user_input);
+          const event = this.findEvent(
+            ui.dx,
+            ui.dy,
+            ui.pagenumber,
+            ui.elementnumber,
+            ui.eventtype
+          );
+          event.load().then(() => resolve());
         })
         .catch((e) => {
           console.warn(e);
@@ -1688,6 +1692,15 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           for (const module of this.modules) {
             const page = module.findPage(index);
             page.unload();
+            const ui = get(user_input);
+            const event = this.findEvent(
+              ui.dx,
+              ui.dy,
+              ui.pagenumber,
+              ui.elementnumber,
+              ui.eventtype
+            );
+            event.load().then(() => resolve());
           }
           resolve();
         })

@@ -6,6 +6,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { GridProfileData } from "../../../../runtime/runtime.js";
+  import { loadProfile } from "../../../../runtime/operations";
 
   export let device = undefined;
   export let visible = false;
@@ -25,37 +26,16 @@
   }
 
   function handleProfileLoad(e) {
-    Analytics.track({
-      event: "Pro file Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
-    state = LoadState.BUSY;
-
     const ui = get(user_input);
     const page = runtime.findPage(device.dx, device.dy, ui.pagenumber);
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
-    page
-      .loadProfile(profile)
+
+    state = LoadState.BUSY;
+    loadProfile(profile, page)
       .then(() => {
-        Analytics.track({
-          event: "Profile Load Success",
-          payload: {},
-          mandatory: false,
-        });
         state = LoadState.LOADED;
-        if (ui.dx !== device.dx || ui.dy !== device.dy) {
-          user_input.set({
-            dx: device.dx,
-            dy: device.dy,
-            pagenumber: ui.pagenumber,
-            elementnumber: ui.elementnumber,
-            eventtype: ui.eventtype,
-          });
-        }
       })
-      .catch((error) => {
+      .catch((e) => {
         state = LoadState.READY;
       });
   }

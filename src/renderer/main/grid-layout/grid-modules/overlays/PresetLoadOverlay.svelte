@@ -7,6 +7,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { Analytics } from "../../../../runtime/analytics.js";
+  import { loadPreset } from "../../../../runtime/operations";
 
   export let device = undefined;
   export let visible = false;
@@ -37,12 +38,6 @@
   }
 
   function handlePresetLoad(e) {
-    Analytics.track({
-      event: "Preset Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
     const ui = get(user_input);
     const element = runtime.findElement(
       device.dx,
@@ -51,25 +46,9 @@
       elementNumber
     );
     const preset = GridPresetData.createFromCloudData($selectedConfigStore);
-    element
-      .loadPreset(preset)
+    loadPreset(preset, element)
       .then(() => {
         loaded = true;
-        Analytics.track({
-          event: "Preset Load Success",
-          payload: {},
-          mandatory: false,
-        });
-
-        if (ui.dx !== device.dx || ui.dy !== device.dy) {
-          user_input.set({
-            dx: device.dx,
-            dy: device.dy,
-            pagenumber: ui.pagenumber,
-            elementnumber: elementNumber,
-            eventtype: ui.eventtype,
-          });
-        }
       })
       .catch((e) => {
         loaded = false;

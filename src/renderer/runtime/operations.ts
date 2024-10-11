@@ -1,6 +1,6 @@
 import { Analytics } from "./analytics";
 import { appClipboard, ClipboardData, ClipboardKey } from "./clipboard.store";
-import { logger, runtime } from "./runtime.store";
+import { logger, runtime, user_input } from "./runtime.store";
 import {
   GridOperationResult,
   ElementData,
@@ -11,6 +11,10 @@ import {
   SendToGridResult,
   GridOperationType,
   InsertActionsResult,
+  GridPage,
+  GridProfileData,
+  GridModule,
+  GridPresetData,
 } from "./runtime";
 import { get, derived } from "svelte/store";
 import { config_panel_blocks } from "../main/panels/configuration/Configuration";
@@ -384,6 +388,84 @@ export async function replaceAction(
       Analytics.track({
         event: "Replace Action",
         payload: { click: "Replace" },
+        mandatory: false,
+      });
+    });
+}
+
+export async function loadProfile(
+  profile: GridProfileData,
+  target: GridPage
+): Promise<void> {
+  Analytics.track({
+    event: "Pro file Load Start",
+    payload: {},
+    mandatory: false,
+  });
+
+  target
+    .loadProfile(profile)
+    .then(() => {
+      const ui = get(user_input);
+      const module = target.parent as GridModule;
+      if (ui.dx !== module.dx || ui.dy !== module.dy) {
+        user_input.set({
+          dx: module.dx,
+          dy: module.dy,
+          pagenumber: target.pageNumber,
+          elementnumber: ui.elementnumber,
+          eventtype: ui.eventtype,
+        });
+      }
+      return Promise.resolve();
+    })
+    .catch((e) => {
+      handleError(e);
+      return Promise.reject(e);
+    })
+    .finally(() => {
+      Analytics.track({
+        event: "Profile Load Success",
+        payload: {},
+        mandatory: false,
+      });
+    });
+}
+
+export async function loadPreset(
+  preset: GridPresetData,
+  target: GridElement
+): Promise<void> {
+  Analytics.track({
+    event: "Preset Load Start",
+    payload: {},
+    mandatory: false,
+  });
+
+  target
+    .loadPreset(preset)
+    .then(() => {
+      const ui = get(user_input);
+      const page = target.parent as GridPage;
+      const module = page.parent as GridModule;
+      if (ui.dx !== module.dx || ui.dy !== module.dy) {
+        user_input.set({
+          dx: module.dx,
+          dy: module.dy,
+          pagenumber: page.pageNumber,
+          elementnumber: target.elementIndex,
+          eventtype: ui.eventtype,
+        });
+      }
+    })
+    .catch((e) => {
+      handleError(e);
+      return Promise.reject(e);
+    })
+    .finally(() => {
+      Analytics.track({
+        event: "Preset Load Success",
+        payload: {},
         mandatory: false,
       });
     });
