@@ -38,6 +38,7 @@ jobs:
           name: profile-cloud
           path: public/
           retention-days: 1
+
   matrix-build:
     strategy:
       fail-fast: false
@@ -100,6 +101,88 @@ jobs:
         with:
           name: ${{ matrix.os }}-nightly
           path: build/*.*
+
+  publish-nightly-release:
+    runs-on: ubuntu-latest
+    needs: matrix-build
+    if: ${{ github.ref == 'refs/heads/stable' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-tags: true
+          fetch-depth: 0
+      - name: Read version from package.json
+        id: get_version
+        run: |
+          version=$(cat package.json | jq -r '.version')
+          tag_name="v${version}-nightly"
+          echo "Tag name: $tag_name"
+          echo "tag_name=$tag_name" >> $GITHUB_OUTPUT
+
+      - name: Delete all releases by name
+        id: delete_releases_by_name
+        run: |
+          release_name="Release Nightly Version"  # Replace with the release name you want to delete
+          echo "Deleting all releases with the name: $release_name"
+
+          # Fetch all releases
+          releases=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases")
+
+          # Find and delete all releases matching the given name
+          echo "$releases" | jq -c --arg release_name "$release_name" '.[] | select(.name == $release_name) | .id' | while read release_id; do
+            echo "Deleting release with ID: $release_id"
+
+            # Delete the release by ID
+            curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
+
+            echo "Deleted release with ID: $release_id"
+          done
+
+      - name: Remove Nightly Tags
+        run: |
+          # Configure Git
+          echo "Configuring Git..."
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Get all tags containing "-nightly"
+          echo "Retrieving all tags containing '-nightly'..."
+          nightly_tags=$(git tag -l "*-nightly")
+          echo "Nightly tags found: $nightly_tags"
+
+          # Loop through each nightly tag and delete it locally and remotely
+          if [ -z "$nightly_tags" ]; then
+              echo "No nightly tags found. Exiting..."
+          else
+              for tag in $nightly_tags; do
+                  echo "Deleting tag: $tag"
+                  git tag -d "$tag" # Delete tag locally
+                  git push origin ":refs/tags/$tag"
+              done
+          fi
+          echo "Tag deletion process completed."
+
+      - name: Download all nightly artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Use the pattern to match all nightly artifacts
+          pattern: "*-nightly" # This will match ubuntu-latest-nightly, windows-latest-nightly, and macos-latest-nightly
+          path: build/ # Path to save the downloaded artifacts
+          merge-multiple: true
+
+      - name: Release Nightly
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release Nightly Version
+          tag_name: ${{ steps.get_version.outputs.tag_name }}
+          files: build/*.*
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   linux-unit-test:
     name: Linux Unit Test

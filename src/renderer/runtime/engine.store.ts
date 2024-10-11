@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
-import { serial_write, serial_write_islocked } from "../serialport/serialport";
+import { connection_manager } from "../serialport/serialport";
 import { appSettings } from "./app-helper.store";
 
 import { instructions } from "../serialport/instructions";
@@ -186,7 +186,8 @@ function createWriteBuffer() {
     return new Promise((resolve, reject) => {
       let retval: any = grid.encode_packet(descr);
 
-      serial_write(retval.serial)
+      connection_manager
+        .serialWrite(retval.serial)
         .then(() => {
           // debugger for message ASCII frames
           let str = "";
@@ -261,7 +262,7 @@ function createWriteBuffer() {
         get(appSettings).persistent.sendHeartbeatImmediate;
 
       while (
-        serial_write_islocked() ||
+        connection_manager.isSerialWriteLocked() ||
         get(writeBuffer)[0] !== current ||
         (typeof waiter !== "undefined" && !sendImmediate)
       ) {

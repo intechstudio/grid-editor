@@ -15,7 +15,7 @@
     rendering: "modifier",
     category: "special",
     displayName: undefined, //Is generated on the face
-    defaultLua: "elseif is_step(self, N) then",
+    defaultLua: "elseif self:bstp() == N then",
     icon: icon,
     blockIcon: icon,
     color: "#4A4AA7",

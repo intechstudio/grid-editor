@@ -8,8 +8,10 @@ import {
   Unsubscribe,
   User,
   getAuth,
+  sendPasswordResetEmail,
   signInAnonymously,
   signInWithCredential,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
@@ -101,6 +103,15 @@ const createAuth = () => {
     }
   }
 
+  async function googleLoginPopup() {
+    await signInWithPopup(
+      getCurrentCentralAuth(),
+      new GoogleAuthProvider()
+    ).catch((error) => {
+      console.log(error);
+    });
+  }
+
   async function logout() {
     await signOut(getCurrentCentralAuth()).catch((error) => {
       console.log(error);
@@ -141,6 +152,10 @@ const createAuth = () => {
     }
   }
 
+  async function sendForgottenPasswordLink(email) {
+    sendPasswordResetEmail(getCurrentCentralAuth(), email).catch(() => {});
+  }
+
   return {
     subscribe,
     login,
@@ -148,6 +163,8 @@ const createAuth = () => {
     logout,
     getCurrentAuthEnvironment,
     setCurrentAuthEnvironment,
+    sendForgottenPasswordLink,
+    googleLoginPopup,
   };
 };
 

@@ -36,7 +36,7 @@
 </script>
 
 <function-start-block
-  class="{$$props.class} flex text-white py-2 pointer-events-none"
+  class="px-2 w-full h-full rounded-tr-xl flex text-white py-1 pointer-events-none"
   style="background-color:{config.information.color}"
 >
   <div class="flex flex-row items-center w-full">

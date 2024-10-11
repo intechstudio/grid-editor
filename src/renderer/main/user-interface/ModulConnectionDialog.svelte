@@ -33,17 +33,6 @@
       mandatory: true,
     });
   }
-
-  function handleConnectModules(e) {
-    navigator.intechConnect().catch((e) => {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "serialerror",
-        message: `Serial connect failed, your browser is not supperted yet.`,
-      });
-    });
-  }
 </script>
 
 <div class={$$props.class}>
@@ -55,19 +44,14 @@
         >
         <SvgIcon width={"100%"} height={25} fill={"#FFF"} iconPath="disabled" />
         <span class="text-white text-sm mt-4">
-          Enable module connection by enabling Grid Editor to access USB!
+          To connect modules, press Connect to enable Grid Editor access USB.
+          Each module must be enabled separately.
         </span>
         <span class="text-gray-500 text-sm"
           >(Only supported in Edge, Opera and Google Chrome)</span
         >
       </div>
       <div class="flex flex-col gap-2 mt-4">
-        <MoltenPushButton
-          text="Enable Module Connect"
-          snap={"full"}
-          style={"outlined"}
-          click={handleConnectModules}
-        />
         <MoltenPushButton
           text="Add Virtual Module"
           style="accept"

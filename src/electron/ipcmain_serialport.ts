@@ -29,7 +29,7 @@ async function attemptSerialConnection() {
       //Always return with a false if successful
       const portRequestPromise =
         serial.mainWindow.webContents.executeJavaScript(
-          `if(navigator.intechConnect){navigator.intechConnect()}`,
+          `if(navigator.tryConnectGrid){navigator.tryConnectGrid()}`,
           true
         );
 

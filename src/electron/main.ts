@@ -58,6 +58,7 @@ import {
 } from "./addon/desktopAutomation";
 import polka from "polka";
 import sirv from "sirv";
+import { SerialPort } from "serialport";
 
 log.info("App starting...");
 
@@ -245,7 +246,7 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
-  updater.init();
+  updater.init(store.get("nightlyEditor"));
 
   ipcMain.on("restartAfterUpdate", () => {
     log.info('Calling "restartAfterUpdate" from main.ts');
@@ -503,6 +504,10 @@ store.onDidChange("packageDeveloper", (newValue) => {
       []
     );
   }
+});
+
+store.onDidChange("nightlyEditor", (newValue) => {
+  updater.setNightlyAllowed(newValue);
 });
 
 // This method will be called when Electron has finished

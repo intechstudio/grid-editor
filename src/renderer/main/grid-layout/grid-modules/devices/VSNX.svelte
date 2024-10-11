@@ -110,6 +110,13 @@
       { type: ElementType.SYSTEM, index: 14 },
       ...common_elements,
     ];
+  } else if (moduleType === ModuleType.TEK1) {
+    elementArray = [
+      { type: ElementType.LCD, index: 13 },
+      { type: ElementType.ENDLESS, index: 8 },
+      { type: ElementType.SYSTEM, index: 14 },
+      ...common_elements,
+    ];
   } else if (moduleType === ModuleType.VSN1R) {
     elementArray = [
       { type: ElementType.ENDLESS, index: 8 },
