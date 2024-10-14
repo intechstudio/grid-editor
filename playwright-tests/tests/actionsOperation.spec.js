@@ -22,12 +22,13 @@ test.describe("Action Block Operations", () => {
     await connectModulePage.addModule("EN16");
   });
 
-  test("Add Action Block to empty element", async ({ page }) => {
+  test("Add Action Block to empty element", async () => {
     await configPage.removeAllActions();
     await configPage.openActionsOnEmptyElement();
-    await configPage.addActionBlock("midi", "MIDI");
-    const blockElement = configPage.blocks["midi"]["MIDI"]["block"];
-    await expect(blockElement).toBeVisible();
+    await configPage.addActionBlock("led", "Color");
+    await expect(
+      configPage.blocks["led"]["Color"]["elements"]["Blue"]
+    ).toBeVisible();
   });
 
   test("Copy and Paste", async ({ page }) => {
