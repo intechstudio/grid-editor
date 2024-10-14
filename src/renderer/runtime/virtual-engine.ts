@@ -122,7 +122,7 @@ function answerExecuteTypeRequest(obj: BufferElement) {
         break;
       }
       default: {
-        reject("This operation is not implemented ye in virtual mode!");
+        reject("This operation is not available in virtual mode!");
       }
     }
   });
