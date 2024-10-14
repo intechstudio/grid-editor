@@ -78,7 +78,7 @@ test("Clear module fetching config automatically", async ({ page }) => {
   await expect(page.locator("#cfg-2")).toBeVisible();
 });
 
-test("Discard module fetching config automatically", async () => {
+test("Discard module fetching config automatically", async ({ page }) => {
   await connectModulePage.addModule("EF44");
   await configPage.removeAllActions();
   await modulePage.discardConfig();
