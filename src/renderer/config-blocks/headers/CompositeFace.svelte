@@ -2,7 +2,6 @@
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
 
-  export let access_tree;
   export let config = undefined;
 
   function handleClick(e) {

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { configManager } from "./../configuration/Configuration.store.js";
-  import { logger } from "./../../../runtime/runtime.store.js";
+  import { config_panel_blocks } from "./../configuration/Configuration";
+  import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { runtime } from "../../../runtime/runtime.store.js";
+  import { runtime } from "../../../runtime/runtime.store";
 
   import {
     BlockBody,
@@ -311,14 +311,12 @@
           instructions
             .sendNVMEraseToGrid()
             .then((res) => {
-              runtime.erase();
-              configManager.refresh().then(() => {
-                logger.set({
-                  type: "success",
-                  mode: 0,
-                  classname: "nvmerase",
-                  message: `Erase complete!`,
-                });
+              //TODO
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "nvmerase",
+                message: `Erase complete!`,
               });
             })
             .catch((e) => {

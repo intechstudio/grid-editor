@@ -6,8 +6,6 @@
   export let config;
   export let index;
 
-  export let access_tree;
-
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
 
   const dispatch = createEventDispatcher();
@@ -49,7 +47,7 @@
         on:change={(e) => {
           sendData(e.detail.script);
         }}
-        {access_tree}
+        action={config}
         value={scriptSegment}
       />
     </div>

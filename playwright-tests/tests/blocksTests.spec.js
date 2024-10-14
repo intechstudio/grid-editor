@@ -87,6 +87,7 @@ test.describe("NRPN converting", () => {
     await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
     await configPage.writeActionBlockField("midi", "MIDI NRPN", "MSB", "1+2");
     await configPage.writeActionBlockField("midi", "MIDI NRPN", "LSB", "3");
+    await configPage.writeActionBlockField("midi", "MIDI NRPN", "LSB", "3");
     await configPage.selectElementEvent("Button");
     const actualValue = await configPage.getActionBlockFieldValue(
       "midi",
@@ -130,6 +131,12 @@ test.describe("NRPN converting", () => {
       "midi",
       "MIDI NRPN",
       "MSB",
+      "x//128"
+    );
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "LSB",
       "x//128"
     );
     await configPage.writeActionBlockField("midi", "MIDI NRPN", "LSB", "x%128");

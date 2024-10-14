@@ -7,16 +7,14 @@
   export let selected = false;
   export let halfSelected = false;
   export let disabled = false;
-  export let index = undefined;
 
   function handleClick(e) {
     if (disabled) {
       return;
     }
     selected = !selected;
-    dispatch("selection-change", {
+    dispatch("select", {
       value: selected,
-      index: index,
     });
   }
 </script>
@@ -30,9 +28,9 @@
   class:bg-secondary={selected}
   class:border-opacity-30={!selected}
   class:hover:border-opacity-100={!selected && !disabled}
-  class:cursor-default={disabled}
   class:bg-error={disabled}
   class:bg-opacity-10={disabled}
+  {disabled}
 >
   {#if selected}
     <SvgIcon iconPath={"tick"} />

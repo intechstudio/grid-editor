@@ -170,7 +170,6 @@
     let script = `gks(${defaultDelay}${
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
-    console.log("Dispatch", script);
     dispatch("output", { short: "gks", script: script });
   }
 
@@ -396,7 +395,6 @@
 
   function onBlur(e) {
     if (lastKeyDivList !== keyDivList) {
-      console.log("blur");
       keyListToScript();
     }
     lastKeyDivList = keyDivList;

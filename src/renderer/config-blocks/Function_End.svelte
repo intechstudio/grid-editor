@@ -35,8 +35,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
 
-  export let access_tree;
-
   const dispatch = createEventDispatcher();
 </script>
 

@@ -233,11 +233,14 @@
     }
   }
 
+  let loaded = false;
+
   //Disable Context Menu
-  onMount(() => {
+  onMount(async () => {
     document.addEventListener("contextmenu", function (event) {
       event.preventDefault();
     });
+    loaded = true;
   });
 
   onDestroy(() => {

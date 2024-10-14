@@ -1,5 +1,5 @@
 <script>
-  import { user_input } from "../../../../runtime/runtime.store.js";
+  import { user_input } from "../../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { createEventDispatcher } from "svelte";
 

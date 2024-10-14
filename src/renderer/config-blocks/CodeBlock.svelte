@@ -39,30 +39,29 @@
   };
 </script>
 
-<script>
+<script lang="ts">
+  import { GridAction, GridEvent, GridElement } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
-  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { monaco_store } from "../main/modals/Monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
-  import { committed_code_store } from "./Committed_Code.store";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
+  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
-  export let config;
-  export let access_tree;
-  export let index;
+  export let config: GridAction;
+  export let index: number;
 
-  let codePreview;
+  let codePreview: HTMLElement;
 
   const lualogo_foreground = "#808080";
   const lualogo_background = "#212a2c";
@@ -99,7 +98,7 @@
     });
   });
 
-  function displayConfigScript(script) {
+  function displayConfigScript(script: string) {
     codePreview.innerHTML = GridScript.expandScript(script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
@@ -107,36 +106,22 @@
     });
   }
 
+  $: if (codePreview) {
+    displayConfigScript($config.script);
+  }
+
   onMount(() => {
-    codePreview.addEventListener("wheel", (evt) => {
-      //evt.preventDefault();
-      //codePreview.scrollLeft += evt.deltaY;
-    });
+    displayConfigScript(config.script);
   });
 
-  $: {
-    if (codePreview) {
-      displayConfigScript(config.script);
-    }
-  }
-
-  $: if (typeof $committed_code_store !== "undefined") {
-    if ($committed_code_store.index == index) {
-      dispatch("output", {
-        short: "cb",
-        script: $committed_code_store.script,
-        name: $committed_code_store.name,
-      });
-      $committed_code_store = {};
-    }
-  }
-
-  function open_monaco() {
-    $monaco_store = { config: config.makeCopy(), index: index };
-    $monaco_elementtype = access_tree.elementtype;
+  async function open_monaco() {
+    const event = config.parent as GridEvent;
+    const element = event.parent as GridElement;
+    monaco_elementtype.set(element.type);
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },
+      args: { monaco_action: config },
     });
   }
 </script>

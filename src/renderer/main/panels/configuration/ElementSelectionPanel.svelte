@@ -1,35 +1,21 @@
-<script>
+<script lang="ts">
   import { get } from "svelte/store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
   import Toggle from "../../user-interface/Toggle.svelte";
-  import { moduleOverlay } from "../../../runtime/moduleOverlay";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import {
-    elementNameStore,
-    user_input,
-    runtime,
-  } from "../../../runtime/runtime.store.js";
+    ModuleOverlayType,
+    moduleOverlay,
+  } from "../../../runtime/moduleOverlay";
+  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
+  import { user_input, runtime } from "../../../runtime/runtime.store";
+  import { GridPage, PageData } from "../../../runtime/runtime";
 
   function showControlElementNameOverlay() {
-    const show = get(moduleOverlay) !== "control-name-overlay";
+    const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
     if (show) {
-      moduleOverlay.show("control-name-overlay");
+      moduleOverlay.show(ModuleOverlayType.CONTROL_NAME);
     } else {
       moduleOverlay.close();
-    }
-  }
-
-  function getElementName(value) {
-    try {
-      const { dx, dy } = $user_input;
-      const obj = $elementNameStore[dx][dy];
-      if (obj[value] === "") {
-        return undefined;
-      }
-
-      return obj[value];
-    } catch (e) {
-      return undefined;
     }
   }
 
@@ -53,51 +39,47 @@
     });
   }
 
-  $: {
-    if ($user_input || $elementNameStore) {
-      renderElementList();
-    }
-  }
+  $: handleUserInputChange($user_input);
 
-  function renderElementList() {
-    const ui = $user_input;
-    const device = $runtime.find(
-      (device) => device.dx === ui.dx && device.dy === ui.dy
-    );
-    if (typeof device === "undefined") {
+  let page: GridPage;
+
+  $: handlePageChange($page);
+
+  function handlePageChange(page: PageData) {
+    if (typeof page === "undefined") {
       options = [{ title: "No Device", value: -1 }];
       selectedElementNumber = -1;
       return;
     }
-    const control_elements = device.pages.find(
-      (page) => page.pageNumber === ui.pagenumber
-    )?.control_elements;
-    options = control_elements.map((element) => {
-      const stringName = getElementName(element.elementIndex);
+
+    const elements = page.control_elements;
+    options = elements.map((e) => {
+      const stringName = e.name;
       if (typeof stringName !== "undefined") {
         return {
           title:
             stringName +
-            ` (${
-              element.type[0].toUpperCase() +
-              element.type.slice(1).toLowerCase()
-            })`,
-          value: element.elementIndex,
+            ` (${e.type[0].toUpperCase() + e.type.slice(1).toLowerCase()})`,
+          value: e.elementIndex,
         };
       } else {
         return {
           title: `Element ${
-            element.elementIndex < 255
-              ? element.elementIndex
-              : control_elements.length - 1
-          } (${
-            element.type[0].toUpperCase() + element.type.slice(1).toLowerCase()
-          })`,
-          value: element.elementIndex,
+            e.elementIndex < 255 ? e.elementIndex : elements.length - 1
+          } (${e.type[0].toUpperCase() + e.type.slice(1).toLowerCase()})`,
+          value: e.elementIndex,
         };
       }
     });
-    selectedElementNumber = ui.elementnumber;
+    selectedElementNumber = get(user_input).elementnumber;
+  }
+
+  function handleUserInputChange(ui: any) {
+    const device = runtime.modules.find(
+      (device) => device.dx === ui.dx && device.dy === ui.dy
+    );
+
+    page = device?.pages.find((page) => page.pageNumber === ui.pagenumber);
   }
 </script>
 

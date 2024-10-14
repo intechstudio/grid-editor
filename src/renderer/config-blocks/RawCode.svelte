@@ -47,7 +47,6 @@
   const dispatch = createEventDispatcher();
 
   export let config;
-  export let access_tree;
   export let index;
 
   let compBlock = undefined;

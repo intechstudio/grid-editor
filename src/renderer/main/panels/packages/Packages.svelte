@@ -3,7 +3,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { logger } from "../../../runtime/runtime.store.js";
+  import { logger } from "../../../runtime/runtime.store";
 
   onMount(async () => {
     refreshPackageList();

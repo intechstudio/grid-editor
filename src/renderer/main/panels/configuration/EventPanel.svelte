@@ -1,84 +1,65 @@
-<script>
-  import { user_input, runtime } from "../../../runtime/runtime.store.js";
+<script lang="ts">
+  import { Grid } from "./../../../lib/_utils";
+  import { EventType, NumberToEventType } from "@intechstudio/grid-protocol";
+  import {
+    runtime,
+    user_input,
+    type UserInputValue,
+  } from "../../../runtime/runtime.store";
 
-  import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./Configuration.store.js";
   import { MeltRadio } from "@intechstudio/grid-uikit";
-  import { CEEAT } from "@intechstudio/grid-protocol";
+  import { GridEvent, GridElement } from "../../../runtime/runtime";
 
-  const dispatch = createEventDispatcher();
+  type EventPanelOption = {
+    title: string;
+    value: number;
+  };
+  const defaultOptions: EventPanelOption[] = Array.from(Array(3).keys()).map(
+    (i) => ({ title: undefined, value: i } as EventPanelOption)
+  );
 
-  class Event {
-    constructor({
-      name = "",
-      type = -1,
-      selected = false,
-      dx,
-      dy,
-      element,
-      page,
-    }) {
-      this.name = name;
-      this.type = type;
-      this.selected = selected;
-      this.dx = dx;
-      this.dy = dy;
-      this.element = element;
-      this.page = page;
-    }
-  }
+  const defaultSelected = -1;
 
-  let options = [];
-  let selected = -1;
-
-  let events = [];
+  let options = defaultOptions;
+  let selected = defaultSelected;
+  let target: GridElement;
 
   $: handleUserInputChange($user_input);
 
-  function handleUserInputChange(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
+  function handleUserInputChange(ui: UserInputValue) {
+    target = runtime.findElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber);
 
     if (typeof target === "undefined") {
-      options = Array.from(Array(3).keys()).map((i) =>
-        Object({ title: undefined, value: i })
-      );
-      selected = -1;
+      options = defaultOptions;
+      selected = defaultSelected;
       return;
     }
 
-    //Get events
-    events = target.events.map((e) => {
-      const name = String(
-        Object.values(CEEAT).find((obj) => obj.value == e.type).desc
-      );
-      return new Event({
-        name: name[0].toUpperCase() + name.slice(1).toLowerCase(),
-        type: Number(e.type),
-        dx: target.device.dx,
-        dy: target.device.dy,
-        element: target.element,
-        page: target.page,
-      });
-    });
-    options = events.map((e, i) => Object({ title: e.name, value: i }));
-    selected = events.findIndex((e) => Number(target.eventType) === e.type);
+    options = target.events.map((e: GridEvent) =>
+      Object({
+        title: Grid.toFirstCase(NumberToEventType(e.type)),
+        value: e.type,
+      })
+    );
+
+    selected = options.find((e) => e.value === ui.eventtype).value;
   }
 
   $: handleSelectEvent(selected);
 
-  function handleSelectEvent(value) {
-    const event = events[value];
-    if (typeof event === "undefined") {
+  function handleSelectEvent(value: any) {
+    const ui = get(user_input);
+    if (value === -1 || ui.eventtype === value) {
       return;
     }
-    const ui = get(user_input);
+
     user_input.set({
       dx: ui.dx,
       dy: ui.dy,
       pagenumber: ui.pagenumber,
       elementnumber: ui.elementnumber,
-      eventtype: event.type,
+      eventtype: selected,
     });
   }
 </script>
@@ -94,22 +75,13 @@
         {options}
       >
         <svelte:fragment slot="item" let:value>
-          {@const event = events[value]}
-          {#if typeof event !== "undefined"}
-            {@const eventData = $runtime
-              .find((e) => e.dx == event.dx && e.dy == event.dy)
-              ?.pages[event.page].control_elements.find(
-                (element) => element.elementIndex == event.element
-              )
-              ?.events.find((e) => e.type == event.type)}
-            {@const stored = eventData?.stored}
-            {@const config = eventData?.config}
-            {#if stored !== config && typeof stored !== "undefined"}
-              <unsaved-changes-marker
-                class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
-              />
-            {/if}
-          {/if}
+          {@const event = target?.events.find((e) => e.type === Number(value))}
+          {#key $runtime}
+            <unsaved-changes-marker
+              class:hidden={!event?.hasChanges()}
+              class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
+            />
+          {/key}
         </svelte:fragment>
       </MeltRadio>
     </div>

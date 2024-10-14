@@ -83,6 +83,10 @@ export class ConfigPage {
     await this.addActionBlockButton.click();
   }
 
+  async openActionsOnEmptyElement() {
+    await this.noActionAddActionButton.click();
+  }
+
   async addActionBlock(category, blockName) {
     await this.blocks[category][blockName]["block"].click();
   }

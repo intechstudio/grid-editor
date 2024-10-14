@@ -57,7 +57,7 @@
   });
 
   function sendData(e) {
-    dispatch("output", { short: "sn", script: `self:gen("${e}")` });
+    dispatch("output", { short: "sn", script: `self:gen('${e}')` });
   }
 
   const validator = (e) => {

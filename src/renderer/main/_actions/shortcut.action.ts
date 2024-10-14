@@ -2,7 +2,7 @@ export interface ShortcutParameter {
   alt?: boolean;
   shift?: boolean;
   control?: boolean;
-  callback: (...args: any) => void;
+  callback?: (...args: any) => void;
   code: string;
 }
 

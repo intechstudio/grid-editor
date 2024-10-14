@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+  import { GridAction, GridEvent, GridElement } from "./../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
   import {
     beforeUpdate,
@@ -14,7 +15,7 @@
   const dispatch = createEventDispatcher();
 
   export let value;
-  export let access_tree;
+  export let action: GridAction;
   export let disabled = false;
 
   let monaco_block;
@@ -44,7 +45,9 @@
   }
 
   onMount(() => {
-    $monaco_elementtype = access_tree.elementtype;
+    const event = action.parent as GridEvent;
+    const element = event.parent as GridElement;
+    $monaco_elementtype = element.type;
     value_buffer = value;
 
     editor = monaco_editor.create(monaco_block, {

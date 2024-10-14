@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import { runtime } from "./../runtime/runtime.store";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -51,10 +52,9 @@ A -> B : AB-First step
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { get } from "svelte/store";
-  import { ConfigTarget } from "./../main/panels/configuration/Configuration.store.js";
   import { ElementType } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Validator } from "./_validators";
@@ -98,7 +98,6 @@ A -> B : AB-First step
   // config.script cannot be undefined
   $: if (config.script && !loaded) {
     const _segments = Script.toSegments({
-      human: config.human,
       short: config.short,
       script: config.script,
     });
@@ -134,7 +133,6 @@ A -> B : AB-First step
     const _temp_segments = [...scriptSegments, beautyMode];
 
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: _temp_segments,
     });
@@ -151,21 +149,26 @@ A -> B : AB-First step
 
   let suggestions = [];
 
-  $: if ($configManager) {
+  $: if ($config_panel_blocks) {
     updateSuggestions();
   }
 
   function updateSuggestions() {
-    const index = $configManager.findIndex((e) => e.id === config.id);
+    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $configManager,
+      configs: $config_panel_blocks,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
         const ui = get(user_input);
-        const target = ConfigTarget.createFrom({ userInput: ui });
-        switch (target.elementType) {
+        const target = runtime.findElement(
+          ui.dx,
+          ui.dy,
+          ui.pagenumber,
+          ui.elementnumber
+        );
+        switch (target.type) {
           case ElementType.BUTTON:
             return [
               { value: "1", info: "Button layer" },

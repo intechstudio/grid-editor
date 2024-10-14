@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "./../../../../runtime/app-helper.store.js";
   import { createEventDispatcher } from "svelte";
-  import { user_input } from "../../../../runtime/runtime.store.js";
+  import { user_input } from "../../../../runtime/runtime.store";
   import { fade } from "svelte/transition";
   import { reduced_motion_store } from "../../../../runtime/animations";
   import { get } from "svelte/store";
