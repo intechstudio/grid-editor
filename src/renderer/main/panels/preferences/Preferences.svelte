@@ -139,6 +139,49 @@
     </Block>
 
     <Block>
+      <BlockTitle>Colorful Toolbar</BlockTitle>
+      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.colorfulToolbar}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
+      <BlockTitle>Scale UI</BlockTitle>
+      <BlockBody
+        >Scales the font size and control elements dimensions by keeping their
+        ratio compared to each other.</BlockBody
+      >
+      <BlockRow>
+        <MeltSlider
+          bind:target={$appSettings.persistent.fontSize}
+          min={12}
+          max={14}
+          step={0.1}
+        />
+        <MoltenButton
+          title={"Reset"}
+          click={() => {
+            $appSettings.persistent.fontSize = 12;
+          }}
+        />
+      </BlockRow>
+    </Block>
+
+    <Block>
+      <BlockTitle>Show PCB</BlockTitle>
+      <BlockBody>
+        When selecting the system element of a module, it's underlaying PCB
+        shows.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.showPCB}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Editable Block Names</BlockTitle>
       <BlockBody
         >Blocks can display custom names instead of the block names.</BlockBody
@@ -400,18 +443,6 @@
     </Block>
 
     <Block>
-      <BlockTitle>Show PCB</BlockTitle>
-      <BlockBody>
-        When selecting the system element of a module, it's underlaying PCB
-        shows.
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.showPCB}
-        title={"Enabled"}
-      />
-    </Block>
-
-    <Block>
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>
         The Nightly Firmware version contains new, but potentially unstable
@@ -437,37 +468,6 @@
         />
       </Block>
     {/if}
-
-    <Block>
-      <BlockTitle>Colorful Toolbar</BlockTitle>
-      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.colorfulToolbar}
-        title={"Enabled"}
-      />
-    </Block>
-
-    <Block>
-      <BlockTitle>Scale UI</BlockTitle>
-      <BlockBody
-        >Scales the font size and control elements dimensions by keeping their
-        ratio compared to each other.</BlockBody
-      >
-      <BlockRow>
-        <MeltSlider
-          bind:target={$appSettings.persistent.fontSize}
-          min={8}
-          max={30}
-          step={0.1}
-        />
-        <MoltenButton
-          title={"Reset"}
-          click={() => {
-            $appSettings.persistent.fontSize = 12;
-          }}
-        />
-      </BlockRow>
-    </Block>
 
     <Block>
       <!-- Radio Select for profileCloudUrl -->
