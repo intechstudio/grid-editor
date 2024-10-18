@@ -1,17 +1,15 @@
 <script lang="ts">
   import { appSettings } from "./../../runtime/app-helper.store.js";
-  import { committed_code_store } from "./../Committed_Code.store.js";
-  import { ConfigObject } from "./../../main/panels/configuration/Configuration.store.ts";
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { config_drag } from "../../main/_actions/move.action";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
+  import { GridAction } from "../../runtime/runtime";
 
   const dispatch = createEventDispatcher();
 
-  export let access_tree;
-  export let config: ConfigObject = undefined;
+  export let config: GridAction;
   export let index;
 
   function handleClick(e) {
@@ -60,13 +58,6 @@
     }
   }
 
-  $: if (typeof $committed_code_store !== "undefined") {
-    if ($committed_code_store.index == index) {
-      sendData($committed_code_store.name);
-      name = $committed_code_store.name;
-    }
-  }
-
   let name: string;
   let isEdit = false;
   let nameChange = false;
@@ -88,10 +79,14 @@
       class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
       on:click|stopPropagation
     >
-      <LineEditor {access_tree} value={name} on:change={handleNameChange} />
+      <LineEditor action={config} value={name} on:change={handleNameChange} />
     </div>
   {:else}
-    <span>{name}</span>
+    <span
+      >{typeof $config?.name === "undefined"
+        ? config.information.displayName
+        : $config.name}</span
+    >
   {/if}
 
   {#if $appSettings.persistent.editableBlockNames}

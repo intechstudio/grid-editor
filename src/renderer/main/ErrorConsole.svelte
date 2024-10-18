@@ -42,7 +42,6 @@
     if (typeof solutions !== "undefined") {
       solutions.forEach((s) => {
         if (errorMessage.toString().indexOf(s.match) !== -1) {
-          console.log("match");
           solution = s;
         }
       });

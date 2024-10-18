@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { modal } from "./../../modals/modal.store";
   import Export from "./../../modals/Export.svelte";
   import {
@@ -16,12 +16,18 @@
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { configManager } from "../../panels/configuration/Configuration.store";
+  import { user_input_event } from "../../panels/configuration/Configuration";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  const configScriptLength = writable(0);
-  const syntaxError = writable(false);
+  let event = $user_input_event;
+  let configScriptLength = 0;
+  let syntaxError = false;
   const incoming_messages_stores = writable([]);
+
+  $: {
+    configScriptLength = $event?.toLua().length ?? 0;
+    syntaxError = $event?.checkSyntax() === false;
+  }
 
   $: if (typeof $incoming_messages !== "undefined") {
     handleIncomingMessage($incoming_messages);
@@ -29,11 +35,6 @@
 
   function handleIncomingMessage(messages) {
     incoming_messages_stores.set(messages.map((e) => readable(e)));
-  }
-
-  $: {
-    configScriptLength.set($configManager.toConfigScript().length);
-    syntaxError.set($configManager.checkSyntax());
   }
 
   let frozen = false;
@@ -153,16 +154,16 @@
 
   <div class="grid grid-cols-[auto_1fr] w-full">
     <div class="flex flex-col">
-      <div class="text-white">Syntax: {$syntaxError}</div>
+      <div class="text-white">Syntax: {syntaxError}</div>
       <div class="flex flex-row">
         <div class="pr-2 text-white">Char Count:</div>
         <div class="text-white">
           <span
-            class:text-error={$configScriptLength >=
+            class:text-error={configScriptLength >=
               grid.getProperty("CONFIG_LENGTH")}
-            class:text-yellow-400={$configScriptLength >
+            class:text-yellow-400={configScriptLength >
               (grid.getProperty("CONFIG_LENGTH") / 3) * 2}
-            >{$configScriptLength}
+            >{configScriptLength}
           </span>
         </div>
       </div>
@@ -202,7 +203,7 @@
   <Splitpanes
     theme="modern-theme"
     class="w-full overflow-hidden"
-    horizontal="true"
+    horizontal={true}
   >
     <Pane class="overflow-hidden bg-primary">
       {#if $debug_monitor_store.length != 0}

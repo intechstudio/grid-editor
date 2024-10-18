@@ -6,11 +6,11 @@ import {
   runtime,
   user_input,
   wss_send_message,
-  update_elementNameStore,
+  update_element_name,
   update_elementPositionStore,
   update_elementPositionStore_fromPreview,
   update_ledColorStore,
-} from "../runtime/runtime.store";
+} from "../runtime/runtime.store.ts";
 import {
   debug_monitor_store,
   lua_error_store,
@@ -183,7 +183,7 @@ function createMessageStream() {
         class_descr.class_name === "ELEMENTNAME" &&
         class_descr.class_instr === "EXECUTE"
       ) {
-        update_elementNameStore(class_descr);
+        update_element_name(class_descr);
       }
 
       if (

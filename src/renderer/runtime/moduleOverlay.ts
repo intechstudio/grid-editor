@@ -1,6 +1,6 @@
 import { writable, Writable } from "svelte/store";
 
-enum ModuleOverlayType {
+export enum ModuleOverlayType {
   CONFIGURATION_LOAD = "configuration-load-overlay",
   CONTROL_NAME = "control-name-overlay",
 }

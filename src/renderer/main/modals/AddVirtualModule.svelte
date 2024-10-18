@@ -58,8 +58,10 @@
   let selectedModule: number = -1;
 
   function handleAddClicked() {
-    const rt = get(runtime);
-    if (typeof rt.find((e) => e.dx === dx && e.dy === dy) !== "undefined") {
+    if (
+      typeof runtime.modules.find((e) => e.dx === dx && e.dy === dy) !==
+      "undefined"
+    ) {
       runtime.destroy_module(dx, dy);
     }
     runtime.addVirtualModule({

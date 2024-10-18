@@ -8,8 +8,6 @@
   export let config;
   export let index;
 
-  export let access_tree;
-
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
 
   import { windowSize } from "../../runtime/window-size";
@@ -55,7 +53,7 @@
         on:change={(e) => {
           sendData(e.detail.script);
         }}
-        {access_tree}
+        action={config}
         {sidebarWidth}
         value={scriptSegment}
       />

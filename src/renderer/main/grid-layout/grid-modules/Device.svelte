@@ -1,5 +1,16 @@
 <script>
-  import { Analytics } from "./../../../runtime/analytics.js";
+  import { appClipboard } from "./../../../runtime/clipboard.store.ts";
+  import { runtime, user_input } from "./../../../runtime/runtime.store";
+  import {
+    overwriteElement,
+    copyElement,
+    discardElement,
+    clearElement,
+    isCopyElementEnabled,
+    isOverwriteElementEnabled,
+    isDiscardElementEnabled,
+    isClearElementEnabled,
+  } from "./../../../runtime/operations";
   import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
   import XX16 from "./devices/XX16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -20,30 +31,12 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
-  import { ConfigTarget } from "../../panels/configuration/Configuration.store";
-  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
-  import { get, writable } from "svelte/store";
-  import {
-    loadPreset,
-    loadProfile,
-    overwriteElement,
-    copyElement,
-    discardElement,
-    clearElement,
-  } from "../../../main/panels/configuration/configuration-actions";
-  import {
-    createCopyAllDisabledStore,
-    createOverwriteDisabledStore,
-    createDiscardElementDisabledStore,
-    createClearElementDisabledStore,
-  } from "../../panels/configuration/configuration-actions";
+  import { get } from "svelte/store";
 
   export let device = undefined;
   export let width = 225;
-
   let component = undefined;
 
   onMount(() => {
@@ -62,7 +55,6 @@
     ];
 
     const index = components.findIndex((e) => e.type === device?.type);
-    console.log(index, device?.type);
     device.type = components[index].type;
     component = components[index].component;
   });
@@ -82,144 +74,20 @@
     });
   }
 
-  function handlePresetLoad(e) {
-    Analytics.track({
-      event: "Preset Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
-    const { sender, elementNumber } = e.detail;
-    loadPreset({
-      dx: device.dx,
-      dy: device.dy,
-      element: elementNumber,
-      preset: $selectedConfigStore,
-    })
-      .then(() => {
-        Analytics.track({
-          event: "Preset Load Success",
-          payload: {},
-          mandatory: false,
-        });
-        sender.dispatchEvent(
-          new CustomEvent("preset-load", {
-            detail: {
-              success: true,
-            },
-          })
-        );
-      })
-      .catch((e) => {
-        sender.dispatchEvent(
-          new CustomEvent("preset-load", {
-            detail: {
-              success: false,
-            },
-          })
-        );
-      });
+  function handleOverwriteElement(element) {
+    overwriteElement(element);
   }
 
-  function handleProfileLoad(e) {
-    const { sender, device } = e.detail;
-
-    Analytics.track({
-      event: "Profile Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
-    loadProfile({
-      dx: device.dx,
-      dy: device.dy,
-      page: 0,
-      profile: $selectedConfigStore.configs,
-    })
-      .then(() => {
-        sender.dispatchEvent(
-          new CustomEvent("profile-load", {
-            detail: {
-              success: true,
-            },
-          })
-        );
-
-        Analytics.track({
-          event: "Profile Load Success",
-          payload: {},
-          mandatory: false,
-        });
-      })
-      .catch((error) => {
-        sender.dispatchEvent(
-          new CustomEvent("profile-load", {
-            detail: {
-              success: false,
-            },
-          })
-        );
-      });
+  function handleDiscardElement(element) {
+    discardElement(element);
   }
 
-  function handleOverwriteElement(elementNumber) {
-    overwriteElement({
-      dx: device.dx,
-      dy: device.dy,
-      page: get(user_input).pagenumber,
-      element: elementNumber,
-    }).catch((e) => {
-      console.warn(e);
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
+  function handleCopyElement(element) {
+    copyElement(element);
   }
 
-  function handleDiscardElement(elementNumber) {
-    discardElement({
-      dx: device.dx,
-      dy: device.dy,
-      page: get(user_input).pagenumber,
-      element: elementNumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Discard" },
-      mandatory: false,
-    });
-  }
-
-  function handleCopyElement(elementNumber) {
-    copyElement({
-      dx: device.dx,
-      dy: device.dy,
-      page: get(user_input).pagenumber,
-      element: elementNumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
-  }
-
-  function handleClearElement() {
-    const ui = get(user_input);
-    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
-      console.warn(e);
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Clear Element" },
-      mandatory: false,
-    });
+  function handleClearElement(element) {
+    clearElement(element);
   }
 
   const modifier =
@@ -263,47 +131,38 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const target = writable(
-        ConfigTarget.create({
-          device: {
-            dx: device.dx,
-            dy: device.dy,
-          },
-          page: get(user_input).pagenumber,
-          element: elementNumber,
-          eventType: EventTypeToNumber(EventType.SETUP),
-        })
+      {@const element = runtime.findElement(
+        device.dx,
+        device.dy,
+        $user_input.pagenumber,
+        elementNumber
       )}
-      {@const overwriteElementDisabled = createOverwriteDisabledStore(target)}
-      {@const copyElementDisabled = createCopyAllDisabledStore(target)}
-      {@const discardElementDisabled =
-        createDiscardElementDisabledStore(target)}
-      {@const clearElementDisabled = createClearElementDisabledStore(target)}
       <button
         use:contextTarget={{
           items: [
             {
               text: [`Copy Element`, `(${modifier[0]} + C)`],
-              handler: () => handleCopyElement(elementNumber),
-              isDisabled: () => get(copyElementDisabled),
+              handler: () => handleCopyElement(element),
+              isDisabled: () => $isCopyElementEnabled === false,
               iconPath: "copy_all",
             },
             {
               text: [`Overwrite Element`, `(${modifier[0]} + V)`],
-              handler: () => handleOverwriteElement(elementNumber),
-              isDisabled: () => get(overwriteElementDisabled),
+              handler: () => handleOverwriteElement(element),
+              isDisabled: () =>
+                !isOverwriteElementEnabled(get(element), get(appClipboard)),
               iconPath: "paste_all",
             },
             {
               text: [`Discard Element Changes`, `(${modifier[0]} + Shift + D)`],
-              handler: () => handleDiscardElement(elementNumber),
-              isDisabled: () => get(discardElementDisabled),
+              handler: () => handleDiscardElement(element),
+              isDisabled: () => !isDiscardElementEnabled(get(element)),
               iconPath: "clear_from_device_01",
             },
             {
               text: [`Clear Element`, `(Shift + Delete)`],
-              handler: handleClearElement,
-              isDisabled: () => get(clearElementDisabled),
+              handler: () => handleClearElement(element),
+              isDisabled: () => !isClearElementEnabled(get(element)),
               iconPath: "clear_element",
             },
           ],
@@ -359,7 +218,6 @@
           {isRightCut}
           visible={$moduleOverlay === "configuration-load-overlay" &&
             $selectedConfigStore?.configType === "preset"}
-          on:click={handlePresetLoad}
         />
       </div>
       <ControlNameOverlay
@@ -375,7 +233,6 @@
         {device}
         visible={$moduleOverlay === "configuration-load-overlay" &&
           $selectedConfigStore?.configType === "profile"}
-        on:click={handleProfileLoad}
       />
     </svelte:fragment>
   </svelte:component>

@@ -1,10 +1,10 @@
 <script>
   import { tooltip } from "./../_actions/tooltip.ts";
-  import { get, writable } from "svelte/store";
-  import { logger } from "./../../runtime/runtime.store.js";
+  import { get } from "svelte/store";
+  import { logger } from "./../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
-  import { configManager } from "./../panels/configuration/Configuration.store.js";
+  import { config_panel_blocks } from "./../panels/configuration/Configuration";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
@@ -72,20 +72,12 @@
       .clearPage(ui.pagenumber)
       .then(() => {
         clearOverlays();
-        configManager
-          .refresh()
-          .then(() => {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "pageclear",
-              message: `Page clear complete!`,
-            });
-          })
-          .catch((e) => {
-            console.warn(e);
-            //TODO: make feedback for fail
-          });
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pageclear",
+          message: `Page clear complete!`,
+        });
       })
       .catch((e) => {
         console.warn(e);
@@ -113,20 +105,12 @@
         .discardPage(ui.pagenumber)
         .then(() => {
           clearOverlays();
-          configManager
-            .refresh()
-            .then(() => {
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "pagediscard",
-                message: `Discard complete!`,
-              });
-            })
-            .catch((e) => {
-              console.warn(e);
-              //TODO: make feedback for fail
-            });
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "pagediscard",
+            message: `Discard complete!`,
+          });
         })
         .catch((e) => {
           console.warn(e);

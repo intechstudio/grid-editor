@@ -5,7 +5,6 @@
 
   const dispatch = createEventDispatcher();
 
-  export let access_tree;
   export let config = undefined;
 
   let scriptSegments = [];

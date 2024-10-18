@@ -1,24 +1,36 @@
-<script>
+<script lang="ts">
+  import { get } from "svelte/store";
+  import { ActionData } from "./../../runtime/runtime.ts";
+  import { Grid } from "./../../lib/_utils";
+  import {
+    GridElement,
+    GridEvent,
+    GridPage,
+    GridModule,
+    GridAction,
+    ActionData,
+  } from "./../../runtime/runtime";
   import { watchResize } from "svelte-watch-resize";
   import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { onDestroy, onMount } from "svelte";
-  import { grid } from "@intechstudio/grid-protocol";
+  import { onDestroy } from "svelte";
+  import {
+    grid,
+    NumberToEventType,
+    GridScript,
+  } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
 
   import { monaco_editor } from "../../lib/CustomMonaco";
-  import { committed_code_store } from "../../config-blocks/Committed_Code.store";
-  import { monaco_store } from "./Monaco.store";
 
-  import { beforeUpdate, afterUpdate } from "svelte";
-
-  import { GridScript } from "@intechstudio/grid-protocol";
-  import { configManager } from "../panels/configuration/Configuration.store";
+  import { beforeUpdate, afterUpdate, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
+
+  export let monaco_action: GridAction;
 
   let monaco_block;
 
@@ -27,15 +39,19 @@
   let editor;
 
   let commitEnabled = false;
-  let unsavedChanges = false;
   let errorMesssage = "";
+
+  let commited: ActionData = { script: "", name: "" };
 
   let scrollDown;
   let autoscroll;
 
-  let editedConfig = undefined;
-  let editedList = undefined;
   let scriptLength = undefined;
+  let pathSnippets = [];
+
+  let name;
+  let isEditName = false;
+  let nameInput;
 
   class LengthError extends String {}
 
@@ -45,25 +61,54 @@
     editor?.updateOptions({ fontSize: fontSize });
   }
 
-  onMount(() => {
-    //Make local copies
-    editedList = $configManager.makeCopy();
-    editedConfig = editedList[$monaco_store.index];
+  $: handleActionChange($monaco_action);
+
+  function isDeleted(action: ActionData) {
+    const event = action?.parent as GridEvent;
+    return typeof event === "undefined";
+  }
+
+  function handleActionChange(action: ActionData) {
+    if (typeof action === "undefined") {
+      return;
+    }
+
+    if (isDeleted(action)) {
+      pathSnippets = ["Deleted Code Block"];
+      return;
+    }
+
+    const event = action.parent as GridEvent;
+    const element = event.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
 
     name =
-      typeof editedConfig.name !== "undefined"
-        ? editedConfig.name
-        : editedConfig.information.displayName;
+      typeof action.name !== "undefined"
+        ? action.name
+        : $monaco_action.information.displayName;
+    monaco_action;
 
-    //To be displayed in Editor
-    const code_preview = GridScript.expandScript(editedConfig.script);
+    pathSnippets = [
+      `${module.type} (${module.dx},${module.dy})`,
+      `Page ${page.pageNumber + 1}`,
+      `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
+      `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
+      typeof action.name !== "undefined"
+        ? action.name
+        : `Block #${event.config.findIndex((e) => e.id === action.id) + 1}`,
+    ];
+  }
 
-    //Set initial code length
-    scriptLength = editedList.toConfigScript().length;
+  onMount(() => {
+    monaco_action = get(modal).args.monaco_action;
+    commited.name = monaco_action.name;
+    commited.script = monaco_action.script;
+    scriptLength = (monaco_action.parent as GridEvent).toLua().length;
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
-      value: code_preview,
+      value: GridScript.expandScript(monaco_action.script),
       language: "intech_lua",
       theme: "my-theme",
       fontSize: $appSettings.persistent.fontSize,
@@ -73,7 +118,7 @@
       renderLineHighlight: "none",
 
       contextmenu: false,
-      scrollBeyondLastLine: 0,
+      scrollBeyondLastLine: false,
       automaticLayout: true,
       wordWrap: "on",
       suggest: {
@@ -85,36 +130,42 @@
       },
     });
 
-    editor.onDidChangeModelContent(() => {
-      const editor_code = editor.getValue();
-      unsavedChanges = true;
-
-      try {
-        //Throws error on syntax error
-        editedConfig.script = GridScript.compressScript(editor_code);
-
-        //Calculate length (this already includes the new value of referenceConfig)
-        scriptLength = editedList.toConfigScript().length;
-
-        //Check the minified config length
-        if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
-          throw new LengthError("Config limit reached.");
-        }
-
-        //Everything is ok if no error was thrown previously
-        errorMesssage = "";
-        commitEnabled = true;
-
-        //Syntax or Length Error
-      } catch (e) {
-        if (!(e instanceof LengthError)) {
-          scriptLength = undefined;
-        }
-        commitEnabled = false;
-        errorMesssage = e;
-      }
-    });
+    editor.onDidChangeModelContent(handleContentChange);
   });
+
+  function handleContentChange() {
+    try {
+      //Throws error on syntax error
+      const compressed = GridScript.compressScript(editor.getValue());
+      $monaco_action.script = compressed;
+      $monaco_action.name =
+        name !== $monaco_action?.information.displayName ? name : undefined;
+
+      //Calculate length (this already includes the new value of referenceConfig)
+      scriptLength = ($monaco_action.parent as GridEvent).toLua().length;
+
+      //Check the minified config length
+      if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
+        throw new LengthError("Config limit reached.");
+      }
+
+      //Everything is ok if no error was thrown previously
+      errorMesssage = "";
+      commitEnabled = true;
+
+      //Syntax or Length Error
+    } catch (e) {
+      if (!(e instanceof LengthError)) {
+        scriptLength = undefined;
+      }
+      commitEnabled = false;
+      errorMesssage = e;
+    }
+
+    //Restore to commited
+    $monaco_action.name = commited.name;
+    $monaco_action.script = commited.script;
+  }
 
   beforeUpdate(() => {
     autoscroll =
@@ -128,23 +179,13 @@
       scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
 
-  function handleCommit() {
-    try {
-      const editor_code = editor.getValue();
-      const minifiedCode = GridScript.compressScript(editor_code);
-
-      $committed_code_store = {
-        script: minifiedCode,
-        name: name,
-        index: $monaco_store.index,
-      };
-
-      commitEnabled = false;
-      unsavedChanges = false;
-      errorMesssage = "";
-    } catch (e) {
-      console.warn(e);
-    }
+  async function handleCommit() {
+    $monaco_action.script = GridScript.compressScript(editor.getValue());
+    $monaco_action.name =
+      name !== $monaco_action?.information.displayName ? name : undefined;
+    commited.name = $monaco_action.name;
+    commited.script = $monaco_action.script;
+    commitEnabled = false;
   }
 
   onDestroy(() => {
@@ -186,18 +227,16 @@
   }
 
   function handleNameChange(value) {
-    if (value != editedConfig?.name) {
-      commitEnabled = true;
+    if (value === monaco_action?.information.displayName) {
+      return;
+    }
+
+    if (value !== monaco_action?.name) {
+      handleContentChange();
     }
   }
 
-  $: if (name && name !== editedConfig.information.displayName) {
-    handleNameChange(name);
-  }
-
-  let name;
-  let isEditName = false;
-  let nameInput;
+  $: handleNameChange(name);
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -231,7 +270,7 @@
           </button>
         </div>
         <div class="opacity-70">
-          <span
+          <span class:invisible={isDeleted($monaco_action)}
             >{`Character Count: ${
               typeof scriptLength === "undefined" ? "?" : scriptLength
             }/${grid.getProperty("CONFIG_LENGTH") - 1} (max)`}</span
@@ -243,22 +282,26 @@
         class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
       >
         <div class="flex flex-col">
-          <div
-            class="text-right text-sm {unsavedChanges
-              ? 'text-yellow-600'
-              : 'text-green-500'} "
-          >
-            {unsavedChanges ? "Unsaved changes!" : "Synced with Grid!"}
-          </div>
-          <div class="text-right text-sm text-error">
-            {errorMesssage}
-          </div>
+          {#if isDeleted($monaco_action)}
+            <div class="text-right text-sm text-white">Deleted Action</div>
+          {:else}
+            <div
+              class="text-right text-sm {commitEnabled
+                ? 'text-yellow-600'
+                : 'text-green-500'} "
+            >
+              {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
+            </div>
+            <div class="text-right text-sm text-error">
+              {errorMesssage}
+            </div>
+          {/if}
         </div>
 
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
             click={handleCommit}
-            disabled={!commitEnabled}
+            disabled={!commitEnabled || isDeleted($monaco_action)}
             text="Commit"
             style="accept"
           />
@@ -270,8 +313,18 @@
 
     <div
       id="monaco-container"
-      class="{$$props.class} flex h-full w-full bg-black bg-opacity-20 border border-black"
+      class="{$$props.class} flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
     >
+      <div
+        class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
+      >
+        {#each pathSnippets as snippet, i}
+          <span class="text-white text-opacity-85">{snippet}</span>
+          {#if i < pathSnippets.length - 1}
+            <div class="fill-orange-700">/</div>
+          {/if}
+        {/each}
+      </div>
       <div bind:this={monaco_block} class="flex w-full h-full" />
     </div>
 

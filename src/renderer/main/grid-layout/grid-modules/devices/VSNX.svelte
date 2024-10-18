@@ -6,8 +6,8 @@
   import Led from "../elements/Led.svelte";
   import LcdAndMenuButtons from "../elements/LcdAndMenuButtons.svelte";
 
-  import { elementPositionStore } from "../../../../runtime/runtime.store.js";
-  import { ledColorStore } from "../../../../runtime/runtime.store.js";
+  import { elementPositionStore } from "../../../../runtime/runtime.store";
+  import { ledColorStore } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let device = undefined;

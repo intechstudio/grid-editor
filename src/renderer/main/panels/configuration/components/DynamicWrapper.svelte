@@ -1,75 +1,70 @@
-<script>
-  import { getAllComponents } from "../../../../lib/_configs";
-
-  import { createEventDispatcher, onMount } from "svelte";
-  import { ConfigObject } from "../Configuration.store";
-
+<script lang="ts">
+  import { config_panel_blocks } from "./../Configuration";
+  import Options from "./Options.svelte";
+  import { ActionBlock } from "./../Configuration";
+  import {
+    GridAction,
+    ActionData,
+    GridEvent,
+    GridElement,
+  } from "./../../../../runtime/runtime";
+  import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
-  } from "../Configuration.store";
-
+  } from "../Configuration";
   import { configIndexToId } from "../../../_actions/move.action";
+  import { getComponentInformation } from "../../../../lib/_configs";
+  import {
+    updateAction,
+    replaceAction,
+  } from "./../../../../runtime/operations";
 
+  const dispatch = createEventDispatcher();
+
+  export let index = undefined;
+  export let data: ActionBlock;
+
+  let action: GridAction = data.action;
+  let header: typeof SvelteComponent;
+  let component: typeof SvelteComponent;
+  let validationError = false;
+  let ctrlIsDown = false;
   let toggled = false;
 
   onMount(() => {
-    if (config.information.toggleable !== false) {
+    if (action.information.toggleable !== false) {
       toggled =
         -1 !==
         $lastOpenedActionblocks.findIndex((e) => {
-          return e == config.short;
+          return e == action.short;
         });
     } else {
       toggled = true;
     }
+
+    const result = getComponentInformation({ short: action.short });
+    header = result.header;
+    component = result.component;
   });
 
-  export let access_tree;
-  export let index = undefined;
-  export let config;
-
-  $: syntaxError = !config.checkSyntax();
-
-  let syntaxError = false;
-  let validationError = false;
-  let ctrlIsDown = false;
-
-  const dispatch = createEventDispatcher();
-
-  function replace_me(e) {
+  function handleReplace(e: any) {
     const { short, script, name } = e.detail;
-
-    const components = getAllComponents();
-    const new_config = components.find((e) => e.information.short === short);
-
-    const obj = new ConfigObject({
-      short: new_config.information.short,
-      script:
-        typeof script === "undefined"
-          ? new_config.information.defaultLua
-          : script,
-      name: name,
-    });
-
-    dispatch("replace", {
-      index: index,
-      config: obj,
-    });
+    const oldAction = action;
+    const parent = oldAction.parent as GridEvent;
+    const newAction = new GridAction(
+      undefined,
+      new ActionData(short, GridAction.getInformation(short).defaultLua)
+    );
+    replaceAction(parent, oldAction, newAction);
     toggled = true;
+    lastOpenedActionblocksInsert(newAction.short);
   }
 
   function handleOutput(e) {
     const { short, script, name } = e.detail;
-    dispatch("update", {
-      index: index,
-      config: new ConfigObject({
-        short: short,
-        script: script,
-        name: name,
-      }),
-    });
+    updateAction(data.action, new ActionData(short, script, name));
   }
 
   function handleValidator(e) {
@@ -78,16 +73,16 @@
   }
 
   function handleToggle(e) {
-    if (config.information.toggleable == false) {
+    if (action.information.toggleable == false) {
       return;
     }
 
     toggled = !toggled;
 
     if (toggled) {
-      lastOpenedActionblocksInsert(config.short);
+      lastOpenedActionblocksInsert(action.short);
     } else {
-      lastOpenedActionblocksRemove(config.short);
+      lastOpenedActionblocksRemove(action.short);
     }
   }
 
@@ -110,6 +105,25 @@
       ctrlIsDown = false;
     }
   }
+
+  function handleSelectionChange() {
+    config_panel_blocks.update((s) => {
+      const stack: ActionBlock[] = [];
+      let n = s.findIndex((e) => e.action.id === data.action.id);
+      const value = data.selected;
+      do {
+        const current = s[n];
+        if (current.action.information.type === "composite_open") {
+          stack.push(current);
+        } else if (current.action.information.type === "composite_close") {
+          stack.pop();
+        }
+        current.selected = value;
+        ++n;
+      } while (stack.length > 0);
+      return s;
+    });
+  }
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
@@ -117,7 +131,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
-  {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
+  {#each Array($action.indentation) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>
@@ -125,29 +139,30 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {syntaxError
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
-      : 'border-transparent'}"
+      : 'border-transparent'} bri"
     id={configIndexToId(index)}
-    class:rounded-tr-xl={config.information.rounding === "top"}
-    class:rounded-br-xl={config.information.rounding === "bottom"}
-    config-name={config.information.name}
-    config-type={config.information.type}
+    class:rounded-tr-xl={$action.information.rounding === "top"}
+    class:rounded-br-xl={$action.information.rounding === "bottom"}
+    config-name={$action.information.name}
+    config-type={$action.information.type}
     config-id={index}
-    movable={config.information.movable}
+    movable={$action.information.movable}
+    class:brightness-125={data.selected}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
-      {#if config.information.hideIcon !== true}
+      {#if $action.information.hideIcon !== true}
         <div
-          style="background-color:{config.information.color}"
+          style="background-color:{$action.information.color}"
           class="flex items-center p-2 w-min text-center"
         >
           <div class="w-6 h-6 whitespace-nowrap">
-            {@html config.information.blockIcon}
+            {@html $action.information.blockIcon}
           </div>
         </div>
       {/if}
@@ -159,37 +174,45 @@
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-        {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
-          <!-- Body of the Action block when toggled -->
-          <div class="bg-secondary bg-opacity-30 h-full w-full">
-            <svelte:component
-              this={config.component}
-              class="h-full w-full px-2"
-              {index}
-              {config}
-              {access_tree}
-              {syntaxError}
-              on:replace={replace_me}
-              on:validator={handleValidator}
-              on:output={handleOutput}
-              on:toggle={handleToggle}
-            />
-          </div>
-        {:else}
-          <!-- Header of the Action block when untoggled -->
+        {#key $action}
+          {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
+            <!-- Body of the Action block when toggled -->
+            <div class="bg-secondary bg-opacity-30 h-full w-full">
+              <svelte:component
+                this={component}
+                class="h-full w-full px-2"
+                {index}
+                config={action}
+                syntaxError={!$action.checkSyntax()}
+                on:replace={handleReplace}
+                on:validator={handleValidator}
+                on:output={handleOutput}
+                on:toggle={handleToggle}
+              />
+            </div>
+          {:else}
+            <!-- Header of the Action block when untoggled -->
 
-          <svelte:component
-            this={config.header}
-            {config}
-            {index}
-            {access_tree}
-            on:toggle={handleToggle}
-            on:output={handleOutput}
-          />
-        {/if}
+            <svelte:component
+              this={header}
+              config={action}
+              {index}
+              on:toggle={handleToggle}
+              on:output={handleOutput}
+            />
+          {/if}
+        {/key}
       </div>
     </div>
   </carousel>
+
+  <div class="z-20 flex items-center mx-2">
+    <Options
+      bind:selected={data.selected}
+      disabled={!data.action.information.selectable}
+      on:select={handleSelectionChange}
+    />
+  </div>
 </wrapper>
 
 <style global>

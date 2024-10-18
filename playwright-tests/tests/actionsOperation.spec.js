@@ -21,6 +21,16 @@ test.describe("Action Block Operations", () => {
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
   });
+
+  test("Add Action Block to empty element", async () => {
+    await configPage.removeAllActions();
+    await configPage.openActionsOnEmptyElement();
+    await configPage.addActionBlock("led", "Color");
+    await expect(
+      configPage.blocks["led"]["Color"]["elements"]["Blue"]
+    ).toBeVisible();
+  });
+
   test("Copy and Paste", async ({ page }) => {
     const expectedComment = "action operation";
     await configPage.removeAllActions();
@@ -104,6 +114,12 @@ test.describe("Element Operations", () => {
     await expect(await configPage.getTextFromComment()).toHaveValue(
       buttonComment
     );
+  });
+
+  test("Overwrite element", async ({ page }) => {
+    await configPage.copyElement();
+    await configPage.overwriteElement();
+    await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 
   test("Discard with Event change", async ({ page }) => {

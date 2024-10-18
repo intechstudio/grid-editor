@@ -1,57 +1,47 @@
-<script>
+<script lang="ts">
+  import { Analytics } from "./../../../../runtime/analytics.js";
   import { get } from "svelte/store";
-  import { user_input } from "./../../../../runtime/runtime.store.js";
+  import { user_input, runtime } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
-  import { createEventDispatcher } from "svelte";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { ConfigTarget } from "../../../panels/configuration/Configuration.store";
+  import { GridProfileData } from "../../../../runtime/runtime.js";
+  import { loadProfile } from "../../../../runtime/operations";
 
   export let device = undefined;
   export let visible = false;
 
-  let loadedState = 0;
-  let container;
-
-  const dispatch = createEventDispatcher();
-
-  function handleLoadClicked(e) {
-    loadedState = 1;
-    dispatch("click", {
-      sender: container,
-      device: { dx: device.dx, dy: device.dy },
-    });
+  enum LoadState {
+    READY,
+    BUSY,
+    LOADED,
   }
+
+  let state = LoadState.READY;
 
   $: {
     if ($selectedConfigStore) {
-      loadedState = 0;
+      state = LoadState.READY;
     }
   }
 
   function handleProfileLoad(e) {
-    const { success } = e.detail;
-    loadedState = success ? 2 : 0;
+    const ui = get(user_input);
+    const page = runtime.findPage(device.dx, device.dy, ui.pagenumber);
+    const profile = GridProfileData.createFromCloudData($selectedConfigStore);
 
-    if (!success) {
-      return;
-    }
-
-    const { dx, dy } = ConfigTarget.getCurrent().device;
-    if (dx !== device.dx || dy !== device.dy) {
-      const ui = get(user_input);
-      user_input.set({
-        dx: device.dx,
-        dy: device.dy,
-        pagenumber: ui.pagenumber,
-        elementnumber: ui.elementnumber,
-        eventtype: ui.eventtype,
+    state = LoadState.BUSY;
+    loadProfile(profile, page)
+      .then(() => {
+        state = LoadState.LOADED;
+      })
+      .catch((e) => {
+        state = LoadState.READY;
       });
-    }
   }
 </script>
 
-<container bind:this={container} on:profile-load={handleProfileLoad}>
+<container>
   {#if visible}
     <div
       class="text-white w-full flex flex-col
@@ -61,31 +51,23 @@
     >
       {#if device?.type === $selectedConfigStore?.type}
         <div class="w-fit relative">
-          {#key loadedState || $selectedConfigStore}
+          {#key state || $selectedConfigStore}
             <button
-              on:click={handleLoadClicked}
-              disabled={loadedState === 1}
-              class="flex flex-row px-4 py-2 rounded {loadedState == 2
+              on:click={handleProfileLoad}
+              disabled={state === 1}
+              class="flex flex-row px-4 py-2 rounded {state == 2
                 ? 'loaded-element'
                 : 'element'}"
             >
-              {#if loadedState === 0}
+              {#if state === 0}
                 <span class="text-white mr-2">Load Profile</span>
-                <SvgIcon
-                  fill="#FFF"
-                  iconPath={"download"}
-                  displayMode={"static"}
-                />
-              {:else if loadedState === 1}
+                <SvgIcon fill="#FFF" iconPath={"download"} />
+              {:else if state === 1}
                 <span class="text-white mr-2">Loading...</span>
-                <SvgIcon
-                  fill="#FFF"
-                  iconPath={"download"}
-                  displayMode={"static"}
-                />
-              {:else if loadedState === 2}
+                <SvgIcon fill="#FFF" iconPath={"download"} />
+              {:else if state === 2}
                 <span class="text-white">Loaded!</span>
-                <SvgIcon fill="#FFF" iconPath={"tick"} displayMode={"static"} />
+                <SvgIcon fill="#FFF" iconPath={"tick"} />
               {/if}
             </button>
           {/key}

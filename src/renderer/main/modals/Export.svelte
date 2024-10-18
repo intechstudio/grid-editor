@@ -1,13 +1,17 @@
-<script>
+<script lang="ts">
+  import { get } from "svelte/store";
+  import { user_input_event } from "./../panels/configuration/Configuration";
   import { modal } from "./modal.store";
-  import { configManager } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
+  let event = $user_input_event;
+
   function handleCopy() {
     const _tempSpan = document.createElement("input");
-    _tempSpan.value = $configManager.toConfigScript();
+    _tempSpan.value = get(event).toLua();
+
     _tempSpan.id = "temp-clip";
     document.getElementById("modal-copy-placeholder").append(_tempSpan);
     const _temp = document.querySelector("#temp-clip");
@@ -48,7 +52,7 @@
     </div>
 
     <textarea
-      value={$configManager.toConfigScript()}
+      value={$event.toLua()}
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 

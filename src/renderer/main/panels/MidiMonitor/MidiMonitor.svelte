@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
+  import { user_input_event } from "./../configuration/Configuration";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { get, writable } from "svelte/store";
+  import { derived, get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
     midi_monitor_store,
@@ -11,18 +12,16 @@
   } from "./MidiMonitor.store";
   import { grid } from "@intechstudio/grid-protocol";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { configManager } from "../../panels/configuration/Configuration.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   // ok but slow nice
-
-  const configScriptLength = writable("");
-  const syntaxError = writable(false);
+  let event = $user_input_event;
+  let configScriptLength = 0;
 
   $: {
-    configScriptLength.set($configManager.toConfigScript().length);
-    syntaxError.set($configManager.checkSyntax());
+    configScriptLength = $event?.toLua().length ?? 0;
   }
+
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;
     const { subscribe, set } = writable(initialValue);
@@ -246,7 +245,7 @@
 
   <div class="overflow-hidden flex flex-col h-full">
     <Splitpanes
-      horizontal="true"
+      horizontal={true}
       theme="modern-theme"
       pushOtherPanes={false}
       class="h-full w-full"
@@ -347,15 +346,14 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={$configScriptLength >=
-                  grid.getProperty("CONFIG_LENGTH")
+                  class={configScriptLength >= grid.getProperty("CONFIG_LENGTH")
                     ? "text-error"
-                    : $configScriptLength >=
+                    : configScriptLength >=
                       (grid.getProperty("CONFIG_LENGTH") / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >
-                  {$configScriptLength}
+                  {configScriptLength}
                 </div>
               </div>
             </div>

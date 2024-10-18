@@ -1,39 +1,26 @@
-<script>
+<script lang="ts">
+  import { config_panel_blocks } from "./Configuration.ts";
+  import { PasteActionsResult } from "./Configuration";
   import { appSettings } from "./../../../runtime/app-helper.store.js";
   import { get } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
-
   import { Analytics } from "../../../runtime/analytics.js";
-
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
-
   import EventPanel from "./EventPanel.svelte";
-
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
-
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
   import {
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store.js";
-
-  import {
-    ConfigTarget,
-    configManager,
+    config_panel_blocks,
+    user_input_event,
     lastOpenedActionblocksInsert,
-  } from "./Configuration.store.js";
-
-  import { configListScrollSize } from "../../_actions/boundaries.action";
-
+    ActionBlock,
+  } from "./Configuration";
   import Toolbar from "./components/Toolbar.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
-  import Options from "./components/Options.svelte";
-
   import ExportConfigs from "./components/ExportConfigs.svelte";
-
   import {
     changeOrder,
     config_drag,
@@ -42,12 +29,8 @@
   import AddActionLine from "./components/AddActionLine.svelte";
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { NumberToEventType } from "@intechstudio/grid-protocol";
   import {
-    selectAction,
-    insertAction,
-    updateAction,
-    mergeActionToCode,
+    mergeActionsToCode,
     copyActions,
     pasteActions,
     removeActions,
@@ -56,15 +39,15 @@
     overwriteElement,
     copyElement,
     clearElement,
-  } from "./configuration-actions";
+    addActions,
+  } from "../../../runtime/operations";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
-  let access_tree = {};
   let scrollHeight = "100%";
-  let draggedIndexes = [];
+  let draggedIndexes: number[] = [];
   let autoScroll;
   let dropIndex = undefined;
   let isSystemEventSelected = false;
@@ -82,16 +65,6 @@
   }
 
   $: isSystemEventSelected = $user_input.elementnumber == 255;
-
-  //////////////////////////////////////////////////////////////////////////////
-  /////////////////       FUNCTION DEFINITIONS        //////////////////////////
-  //////////////////////////////////////////////////////////////////////////////
-
-  function sendCurrentConfigurationToGrid() {
-    $configManager
-      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
-      .catch((e) => handleError(e));
-  }
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////           EVENT HANDLERS          //////////////////////////
@@ -123,33 +96,33 @@
       return;
     }
 
-    const targetIndex = dropIndex;
-    dropIndex = undefined;
+    const offset = Math.min(...draggedIndexes) > dropIndex ? 0 : -1;
 
     //Check for incorrect dropzones
     const firstIndex = draggedIndexes.at(0);
     const lastIndex = draggedIndexes.at(-1);
-    if (targetIndex >= firstIndex && targetIndex <= lastIndex + 1) {
+    if (dropIndex >= firstIndex && dropIndex <= lastIndex + 1) {
       return;
     }
 
-    configManager.update((s) => {
-      //Collect dragged configs and mark them for deletion
-      const temp = [];
-      draggedIndexes.forEach((i) => {
-        temp.push(s[i]);
-        s[i] = undefined;
-      });
+    const ui = get(user_input);
+    const event = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
 
-      //Insert dragged configs at position
-      s.insert(targetIndex, ...temp);
+    const blocks = get(config_panel_blocks)
+      .map((e) => e.action)
+      .filter((e, n) => draggedIndexes.includes(n));
 
-      //Remove marked configs
-      s = s.filter((e) => typeof e !== "undefined");
-      return s;
-    });
+    const trueDropIndex =
+      dropIndex - (offset === -1 ? blocks.length - 1 : 0) + offset;
 
-    sendCurrentConfigurationToGrid();
+    event.remove(...blocks);
+    event.insert(trueDropIndex, ...blocks);
   }
 
   function handleDragStart(e) {
@@ -194,172 +167,135 @@
     }
   }
 
-  function handleSelectionChange(e) {
-    const { index, value } = e.detail;
-    selectAction(index, value);
+  function handleConvertToCodeBlock() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    mergeActionsToCode(target, ...selected);
   }
 
-  function handleConfigInsertion(e) {
-    let { index, configs } = e.detail;
-    insertAction(index, configs);
-    sendCurrentConfigurationToGrid();
+  function handleRemove() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    removeActions(target, ...selected);
   }
 
-  function handleConfigUpdate(e) {
-    const { index, config } = e.detail;
-    updateAction(index, config);
-    sendCurrentConfigurationToGrid();
-
-    const target = ConfigTarget.getCurrent();
-    if (typeof target === "undefined") {
-      return;
-    }
-
-    Analytics.track({
-      event: "Config Action",
-      payload: {
-        click: "Update",
-        elementType: target.elementType,
-        eventType: NumberToEventType(target.eventType),
-        short: config.short,
-      },
-      mandatory: false,
-    });
+  function handleCut() {
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    cutActions(target, ...selected);
   }
 
-  function handleConvertToCodeBlock(e) {
-    const { index, configs } = e.detail;
-    mergeActionToCode(index, configs);
-    sendCurrentConfigurationToGrid();
-  }
-
-  function handleCopy(e) {
-    copyActions();
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Copy" },
-      mandatory: false,
-    });
-  }
-
-  function handlePaste(e) {
-    let { index } = e.detail;
-    pasteActions(index)
-      .then(() => {
-        sendCurrentConfigurationToGrid();
-      })
-      .catch((e) => {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "config-limit-reached",
-          message: `Paste failed! Config limit reached, shorten your code, or delete actions!`,
-        });
-      });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Paste" },
-      mandatory: false,
-    });
-  }
-
-  function handleRemove(e) {
-    removeActions();
-    sendCurrentConfigurationToGrid();
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Remove" },
-      mandatory: false,
-    });
-  }
-
-  function handleCut(e) {
-    cutActions();
-    sendCurrentConfigurationToGrid();
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Cut" },
-      mandatory: false,
-    });
-  }
-
-  function handleReplace(e) {
-    const { index, config } = e.detail;
-    configManager.update((s) => {
-      s[index] = config;
-      lastOpenedActionblocksInsert(config.short);
-      return s;
-    });
-    sendCurrentConfigurationToGrid();
+  function handleAddConfig(e: CustomEvent) {
+    const { configs, index } = e.detail;
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+    addActions(target, index, ...configs);
   }
 
   function handleOverwriteElement() {
     const ui = get(user_input);
-    overwriteElement({
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    }).catch((e) => {
-      console.warn(e);
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
-  }
-
-  function handleDiscardElement() {
-    const ui = get(user_input);
-    discardElement({
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Discard" },
-      mandatory: false,
-    });
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    overwriteElement(target);
   }
 
   function handleCopyElement() {
     const ui = get(user_input);
-    copyElement({
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    copyElement(target);
   }
 
-  function handleSelectActionBlock(index) {
-    const configs = get(configManager);
-    const config = configs[index];
-    selectAction(index, !config.selected);
+  function handleCopy() {
+    const blocks = get(config_panel_blocks);
+    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
+    copyActions(...selected);
+  }
+
+  function handlePaste(e: CustomEvent) {
+    const { index } = e?.detail ?? { index: undefined };
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+
+    pasteActions(target, index);
   }
 
   function handleClearElement() {
     const ui = get(user_input);
-    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
-      console.warn(e);
-    });
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
 
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Clear Element" },
-      mandatory: false,
+    clearElement(target);
+  }
+
+  function handleDiscardElement() {
+    const ui = get(user_input);
+    const element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    discardElement(element);
+  }
+
+  function handleSelectAll() {
+    config_panel_blocks.update((s) => {
+      if (s.every((e) => e.selected)) {
+        s.forEach((e) => (e.selected = false));
+        return s;
+      }
+
+      s.forEach((e) => (e.selected = true));
+      return s;
     });
   }
 </script>
@@ -389,32 +325,33 @@
             on:overwrite-all={handleOverwriteElement}
             on:discard={handleDiscardElement}
             on:clear-element={handleClearElement}
+            on:select-all={handleSelectAll}
           />
         </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={(this, { configs: $configManager })}
+          use:changeOrder={(this,
+          { configs: $config_panel_blocks.map((e) => e.action) })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
           class="flex flex-col h-full relative justify-between"
         >
-          {#if $configManager.length === 0 && $runtime.length > 0}
+          {#if $config_panel_blocks.length === 0 && $runtime.modules.length > 0}
             <div class="mt-2">
               <AddAction
                 index={0}
                 text={"There are no actions configured on this event."}
                 on:paste={handlePaste}
-                on:new-config={handleConfigInsertion}
+                on:new-config={handleAddConfig}
               />
             </div>
           {:else}
             <config-list
               id="cfg-list"
               style="height:{scrollHeight}"
-              use:configListScrollSize={$configManager}
               on:height={(e) => {
                 scrollHeight = e.detail;
               }}
@@ -428,7 +365,7 @@
                 <AddActionLine
                   index={0}
                   on:paste={handlePaste}
-                  on:new-config={handleConfigInsertion}
+                  on:new-config={handleAddConfig}
                 />
               {:else}
                 <DropZone
@@ -439,68 +376,41 @@
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
-              {#each $configManager as config, index (config.id)}
+              {#each $config_panel_blocks as block, index (block.action.id)}
                 <anim-block
                   animate:flip={{ duration: 300, easing: eases.backOut }}
                   in:fade|global={{ delay: 0 }}
                 >
-                  <div class="flex flex-row justify-between relative">
-                    <div
-                      class="w-full bg-white absolute h-full opacity-10 pointer-events-none z-10"
-                      class:hidden={!config.selected}
-                    />
-
-                    <DynamicWrapper
-                      {index}
-                      {config}
-                      {access_tree}
-                      on:update={handleConfigUpdate}
-                      on:replace={handleReplace}
-                      on:select={() => {
-                        handleSelectActionBlock(index);
-                      }}
-                    />
-
-                    <div class="z-20 flex items-center mx-2">
-                      <Options
-                        {index}
-                        bind:selected={config.selected}
-                        disabled={!config.information.selectable}
-                        on:selection-change={handleSelectionChange}
-                      />
-                    </div>
-                  </div>
-                  {#key index}
-                    {#if typeof $config_drag === "undefined"}
-                      {#if ["composite_close", "single"].includes(config.information.type) || ["single"].includes($configManager[index + 1]?.information.type) || !$appSettings.persistent.actionHelperText || typeof config.information.helperText === "undefined"}
-                        <AddActionLine
+                  <DynamicWrapper {index} data={block} />
+                  {#if typeof $config_drag === "undefined"}
+                    {#if typeof block.action.information.helperText !== "undefined" && ["composite_part", "composite_open"].includes(block.action.information.type) && $config_panel_blocks[index + 1]?.action.indentation === block.action.indentation && $appSettings.persistent.actionHelperText}
+                      <div class="mr-6">
+                        <AddAction
+                          text={block.action.information.helperText}
                           index={index + 1}
                           on:paste={handlePaste}
-                          on:new-config={handleConfigInsertion}
+                          on:new-config={handleAddConfig}
                         />
-                      {:else}
-                        <div class="mr-6">
-                          <AddAction
-                            text={config.information.helperText}
-                            index={index + 1}
-                            on:paste={handlePaste}
-                            on:new-config={handleConfigInsertion}
-                          />
-                        </div>
-                      {/if}
+                      </div>
                     {:else}
-                      <DropZone
+                      <AddActionLine
                         index={index + 1}
-                        thresholdTop={10}
-                        thresholdBottom={10}
-                        class={index + 1 == $configManager.length
-                          ? "h-full"
-                          : ""}
-                        drag_target={draggedIndexes}
-                        on:drop-target-change={handleDropTargetChange}
+                        on:paste={handlePaste}
+                        on:new-config={handleAddConfig}
                       />
                     {/if}
-                  {/key}
+                  {:else}
+                    <DropZone
+                      index={index + 1}
+                      thresholdTop={10}
+                      thresholdBottom={10}
+                      class={index + 1 == $config_panel_blocks.length
+                        ? "h-full"
+                        : ""}
+                      drag_target={draggedIndexes}
+                      on:drop-target-change={handleDropTargetChange}
+                    />
+                  {/if}
                 </anim-block>
               {/each}
             </config-list>
@@ -508,12 +418,12 @@
         </div>
         <div
           class="w-full flex justify-between mb-3"
-          class:invisible={$runtime.length === 0}
+          class:invisible={$runtime.modules.length === 0}
         >
           <AddActionButton
-            index={$configManager.length}
+            index={$config_panel_blocks.length}
             on:paste={handlePaste}
-            on:new-config={handleConfigInsertion}
+            on:new-config={handleAddConfig}
           />
           <ExportConfigs />
         </div>

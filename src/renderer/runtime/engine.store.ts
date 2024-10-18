@@ -346,7 +346,7 @@ function createWriteBuffer() {
         obj.descr.brc_parameters.DX,
         obj.descr.brc_parameters.DY,
       ];
-      const sender: any = get(runtime).find(
+      const sender: any = runtime.modules.find(
         (e: any) => e.dx === dx && e.dy === dy
       )!;
 

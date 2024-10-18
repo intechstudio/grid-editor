@@ -1,16 +1,54 @@
 <script lang="ts">
-  import { ConfigObject } from "../../main/panels/configuration/Configuration.store";
+  import {
+    EventData,
+    GridAction,
+    GridEvent,
+    ActionData,
+  } from "./../../runtime/runtime";
   import { createEventDispatcher } from "svelte";
   import { toWords } from "number-to-words";
 
   const dispatch = createEventDispatcher();
 
-  export let access_tree;
-  export let config: ConfigObject;
-  export let index;
+  export let config: GridAction;
+
+  let step = 0;
+  const event = config.parent as GridEvent;
 
   function handleClick(e) {
     dispatch("toggle");
+  }
+
+  $: handleEventDataChange($event);
+
+  function handleEventDataChange(event: EventData) {
+    step = 0;
+    let stack = [];
+    for (const action of event.config) {
+      if (action.short === "bst0") {
+        stack.push(0);
+      }
+
+      if (action.short === "bste") {
+        stack.pop();
+      }
+
+      if (action.short === "bstn") {
+        step = ++stack[stack.length - 1];
+        if (action.id === config.id) {
+          const defaultScript = config.information.defaultLua;
+          const newScript = defaultScript.replace("N", String(step));
+          const oldScript = config.script;
+          if (newScript !== oldScript) {
+            config.updateData(
+              new ActionData(config.short, newScript, config.name)
+            );
+            config.sendToGrid();
+          }
+          return;
+        }
+      }
+    }
   }
 </script>
 
@@ -28,8 +66,7 @@
   {#if config.information.short === "bstn"}
     <span
       >{`Step ${
-        toWords(config.step)[0].toUpperCase() +
-        toWords(config.step).slice(1).toLowerCase()
+        toWords(step)[0].toUpperCase() + toWords(step).slice(1).toLowerCase()
       }`}</span
     >
   {:else}
