@@ -7,9 +7,9 @@ export class ConfigPage {
     // Common Locators
     this.addActionBlockButton = page.getByText("Add action block...");
     this.selectAllCheckbox = page.locator(".w-fit > .border-white");
-    this.noActionAddActionButton = page
-      .locator("div", { hasText: "There are no actions" })
-      .locator("button", { name: "Add" });
+    this.noActionAddActionButton = page.getByRole("button", {
+      name: "There are no actions",
+    });
 
     this.firstActionBlock = page.locator("#cfg-0");
 
@@ -106,10 +106,9 @@ export class ConfigPage {
   }
 
   async openActionsInIf() {
-    const divWithText = this.page.locator("div", {
-      hasText: "Actions here are triggered",
-    });
-    await divWithText.locator("button", { name: "Add" }).click();
+    await this.page
+      .getByRole("button", { name: "Actions here are triggered" })
+      .click();
   }
 
   async openActionsInElseIf() {
