@@ -7,9 +7,7 @@ export class ConfigPage {
     // Common Locators
     this.addActionBlockButton = page.getByText("Add action block...");
     this.selectAllCheckbox = page.locator(".w-fit > .border-white");
-    this.noActionAddActionButton = page.getByRole("button", {
-      name: "There are no actions",
-    });
+    this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
 
     this.firstActionBlock = page.locator("#cfg-0");
 
