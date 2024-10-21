@@ -49,6 +49,7 @@
     <span class="text-start">{text}</span>
     <div class="flex flex-row gap-2">
       <button
+        type="button"
         class="flex rounded px-3 py-1 bg-commit items-center"
         class:opacity-50={pasteDisabled}
         on:click={() => handlePaste(index)}
@@ -59,6 +60,7 @@
         <span class="text-white"> Paste </span>
       </button>
       <button
+        type="button"
         class="rounded px-2 py-1 border border-pick group-hover:bg-pick/40"
         on:click={handleShowActionPicker}
         on:mouseenter={() => (isButtonHovered = true)}
