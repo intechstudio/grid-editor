@@ -156,8 +156,8 @@
       <BlockRow>
         <MeltSlider
           bind:target={$appSettings.persistent.fontSize}
-          min={12}
-          max={14}
+          min={8}
+          max={36}
           step={0.1}
         />
         <MoltenButton
