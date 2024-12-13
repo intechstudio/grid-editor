@@ -24,7 +24,7 @@
   import UserLogin from "../../modals/UserLogin.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
-  import { profileCloudConfigDrag } from "./ProfileCloud";
+  import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -287,20 +287,6 @@
     }
   }
 
-  async function handleConfigDragChange(event) {
-    const { drag, config } = event.data;
-    switch (drag) {
-      case "start": {
-        profileCloudConfigDrag.set(config);
-        break;
-      }
-      case "end": {
-        profileCloudConfigDrag.set(undefined);
-        break;
-      }
-    }
-  }
-
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
       switch (event.data) {
@@ -339,7 +325,10 @@
           break;
 
         case "configDragChange":
-          channelMessageWrapper(event, handleConfigDragChange);
+          channelMessageWrapper(
+            event,
+            ProfileCloudEvent.handleConfigDragChange
+          );
           break;
       }
     }
@@ -425,11 +414,7 @@
   };
 
   function sendMessageToProfileCloud(message) {
-    let messageTarget = window;
-
-    if (!messageTarget?.postMessage) return;
-
-    messageTarget.postMessage(message, "*");
+    profile_cloud.sendMessage(message);
   }
 
   function handleMouseOut(e) {

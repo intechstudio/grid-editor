@@ -942,6 +942,14 @@ export class ElementData extends NodeData {
   }
 }
 
+export type ElementInfo = {
+  dx: number;
+  dy: number;
+  page: number;
+  element: number;
+  type: ElementType;
+};
+
 export class GridElement extends RuntimeNode<ElementData> {
   constructor(parent: GridPage, data?: ElementData) {
     super(parent, data);
@@ -951,6 +959,18 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
+  }
+
+  public getInfo(): ElementInfo {
+    const page = this.parent as GridPage;
+    const module = page.parent as GridModule;
+    return {
+      dx: module.dx,
+      dy: module.dy,
+      page: page.pageNumber,
+      element: this.elementIndex,
+      type: this.type,
+    };
   }
 
   public destroy() {
@@ -1144,6 +1164,12 @@ export interface PageData extends NodeData {
   control_elements?: Array<GridElement>;
 }
 
+export type PageInfo = {
+  dx: number;
+  dy: number;
+  page: number;
+};
+
 export class GridPage extends RuntimeNode<PageData> {
   constructor(parent: GridModule, type: ModuleType, data?: PageData) {
     super(parent, data);
@@ -1158,6 +1184,15 @@ export class GridPage extends RuntimeNode<PageData> {
         new GridElement(this, new ElementData(Number(index), element))
       );
     }
+  }
+
+  public getInfo(): PageInfo {
+    const module = this.parent as GridModule;
+    return {
+      dx: module.dx,
+      dy: module.dy,
+      page: this.pageNumber,
+    };
   }
 
   public destroy() {
