@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { appClipboard } from "./../../../runtime/clipboard.store.ts";
   import { runtime, user_input } from "./../../../runtime/runtime.store";
   import {
@@ -36,6 +36,8 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
+  import { p } from "../../../../../playwright-report/trace/assets/inspectorTab-DdpLd2bb.js";
+  import { profileCloudConfigDrag } from "../../panels/profileCloud/ProfileCloud.js";
 
   export let device = undefined;
   export let width = 225;
@@ -97,9 +99,33 @@
     window.navigator.platform.indexOf("Mac") != -1
       ? ["Cmd ⌘", "Alt ⌥"]
       : ["Ctrl", "Alt"];
+
+  function test(event: DragEvent) {
+    console.log("incoming");
+
+    if (!event.dataTransfer) {
+      return;
+    }
+    const data = event.dataTransfer.getData("sender");
+    console.log("data", typeof data, data);
+  }
+
+  function handleDrop(e: DragEvent) {
+    console.log("drop");
+    test(e);
+  }
+
+  function handleDragOver(e: DragEvent) {
+    console.log("drag-over");
+    test(e);
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    console.log("leave", e);
+  }
 </script>
 
-<div class="pointer-events-none {$$props.classs}" style={$$props.style}>
+<div class="pointer-events-none" style={$$props.style}>
   <svelte:component
     this={component}
     {device}
@@ -236,6 +262,18 @@
         visible={$moduleOverlay === "configuration-load-overlay" &&
           $selectedConfigStore?.configType === "profile"}
       />
+      {#if typeof $profileCloudConfigDrag !== "undefined"}
+        <div
+          role="region"
+          aria-label="Drop area for the image"
+          class="drop-zone w-full h-full bg-red-500/10 pointer-events-auto"
+          on:dragover|preventDefault={handleDragOver}
+          on:drop|preventDefault={handleDrop}
+          on:dragleave|preventDefault={handleDragLeave}
+        >
+          Drop Here
+        </div>
+      {/if}
     </svelte:fragment>
   </svelte:component>
 </div>

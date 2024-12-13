@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { GridModule } from "./../../../runtime/runtime.ts";
+  import { GridModule } from "./../../../runtime/runtime";
   import { ProfileCloud } from "./../../../runtime/string-table";
   import { RuntimeData } from "./../../../runtime/runtime";
-  import { user_input } from "./../../../runtime/runtime.store";
-  import { GridElement } from "./../../../runtime/runtime";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -26,6 +24,7 @@
   import UserLogin from "../../modals/UserLogin.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
+  import { profileCloudConfigDrag } from "./ProfileCloud";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -288,6 +287,20 @@
     }
   }
 
+  async function handleConfigDragChange(event) {
+    const { drag, config } = event.data;
+    switch (drag) {
+      case "start": {
+        profileCloudConfigDrag.set(config);
+        break;
+      }
+      case "end": {
+        profileCloudConfigDrag.set(undefined);
+        break;
+      }
+    }
+  }
+
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
       switch (event.data) {
@@ -323,6 +336,10 @@
           break;
         case "openExternalLink":
           channelMessageWrapper(event, handleOpenExternalLink);
+          break;
+
+        case "configDragChange":
+          channelMessageWrapper(event, handleConfigDragChange);
           break;
       }
     }

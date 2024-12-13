@@ -1277,6 +1277,12 @@ export interface ModuleData extends NodeData {
   pages?: Array<GridPage>;
 }
 
+export type ModuleInfo = {
+  dx: number;
+  dy: number;
+  type: ModuleType;
+};
+
 export class GridModule extends RuntimeNode<ModuleData> {
   constructor(parent: GridRuntime, data?: ModuleData) {
     super(parent, data);
@@ -1286,6 +1292,14 @@ export class GridModule extends RuntimeNode<ModuleData> {
       new GridPage(this, this.type, { pageNumber: 2 }),
       new GridPage(this, this.type, { pageNumber: 3 }),
     ];
+  }
+
+  public getInfo(): ModuleInfo {
+    return {
+      dx: this.dx,
+      dy: this.dy,
+      type: this.type,
+    };
   }
 
   public destroy() {
