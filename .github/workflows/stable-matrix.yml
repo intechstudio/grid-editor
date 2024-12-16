@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python3 -m pip install setuptools --break-system-packages
+          python3 -m pip install --break-system-packages --user setuptools
           npm i
 
       - name: Build
