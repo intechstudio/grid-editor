@@ -32,7 +32,9 @@ jobs:
           node-version: "18.16.1"
 
       - name: Install dependencies
-        run: npm i
+        run: |
+          python3 -m pip install setuptools
+          npm i
 
       - name: Build
         run: npm run export
