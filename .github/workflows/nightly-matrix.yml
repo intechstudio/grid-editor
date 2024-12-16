@@ -33,6 +33,7 @@ jobs:
           echo "WORKFLOW_NAME=nightly" >> $GITHUB_ENV
 
       - name: Install dependencies
+        run: python3 -m pip install setuptools
         run: npm i
 
       - name: Update package.json
