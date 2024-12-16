@@ -86,6 +86,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
       //console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
       $appSettings.firmwareNotificationState = value.code;
+      bootloader_path = value.path;
 
       if (value.message !== undefined) {
         uploadProgressText = value.message;
@@ -102,8 +103,14 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   async function firmwareDownload(nightly) {
     const folder = $appSettings.persistent.profileFolder;
-    const { product, architecture } =
-      await window.electron.firmware.findBootloaderPath();
+    let result = await window.electron.firmware.findBootloaderPath();
+    if (result === undefined) {
+      $appSettings.firmwareNotificationState = 6;
+      bootloader_path = undefined;
+      uploadProgressText = "Bootloader connection lost!";
+      return;
+    }
+    const { product, architecture } = result;
 
     Analytics.track({
       event: "FirmwareCheck",

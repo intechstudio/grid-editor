@@ -1,5 +1,4 @@
 import nodeDiskInfo from "node-disk-info";
-//import Drive from "node-disk-info/dist/classes/drive";
 
 import drivelist from "drivelist";
 
@@ -7,8 +6,6 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
-
-import configuration from "../../../configuration.json";
 
 export const firmware = {
   mainWindow: undefined,
@@ -24,7 +21,6 @@ export async function findBootloaderPath() {
   let diskInfo: drivelist.Drive[] = [];
 
   try {
-    console.log("START DRIVELIST CHECK");
     diskInfo = await drivelist.list();
   } catch (error) {
     log.warn(error);
@@ -34,36 +30,12 @@ export async function findBootloaderPath() {
     return;
   }
 
-  console.log({ diskInfo });
-
-  // log.info(diskInfo)
-  // 7929 MAC ||  15867 new
-  // 3965 for Linux and 4059648 for Windows (old bootloader)
-  // 7934 for Linux and 8123904 for Windows (new bootloader)
-
   let gridDrive = diskInfo.find(
-    (a) =>
-      // old bootloader Linux Mac Win
-      a.size === 3965 ||
-      a.size === 7929 ||
-      a.size === 4059648 ||
-      // new bootloader Linux, Mac, M1Mac, Win
-      a.size === 7934 ||
-      a.size === 15867 ||
-      a.size === 15868 ||
-      a.size === 8123904 ||
-      // add esp32 bootloader block size here LINUX & M1 Mac, M1 Mac & WINDOWS
-      a.size === 32640 ||
-      a.size === 65281 ||
-      a.size === 65280 ||
-      a.size === 33423360
+    (a) => a.size < 64 * 1024 * 1024 && a.isUSB && !a.isSystem && !a.isReadOnly
   );
-
-  //console.log("DiskInfo", diskInfo)
-  console.log({ gridDrive });
   if (gridDrive === undefined) return;
-  let mountPath = gridDrive.mountpoints[0];
-  console.log({ gridDrive, mountPath });
+
+  let mountPath = gridDrive.mountpoints[0].path;
   let data;
   try {
     data = fs.readFileSync(mountPath + "/INFO_UF2.TXT", {
