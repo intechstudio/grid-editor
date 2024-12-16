@@ -151,13 +151,6 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    if (typeof get(selectedConfigStore) !== "undefined") {
-      moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
-    } else {
-      if (get(moduleOverlay) === ModuleOverlayType.CONFIGURATION_LOAD) {
-        moduleOverlay.close();
-      }
-    }
   }
 
   async function handleDeleteLocalConfig(event) {
@@ -330,6 +323,8 @@
             ProfileCloudEvent.handleConfigDragChange
           );
           break;
+        case "showOverlay":
+          channelMessageWrapper(event, ProfileCloudEvent.handleShowOverlay);
       }
     }
   }

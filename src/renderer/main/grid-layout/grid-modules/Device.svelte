@@ -132,6 +132,7 @@
   $: {
     isDrag = typeof $profileCloudConfigDrag !== "undefined";
     if (isDrag) {
+      console.log($profileCloudConfigDrag.configType);
       switch ($profileCloudConfigDrag.configType) {
         case "profile": {
           dragged = {

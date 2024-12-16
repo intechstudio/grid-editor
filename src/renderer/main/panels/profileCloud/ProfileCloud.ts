@@ -1,7 +1,11 @@
 import { get, writable, Writable } from "svelte/store";
-import { runtime, user_input } from "../../../runtime/runtime.store";
+import { runtime } from "../../../runtime/runtime.store";
 import { loadPreset, loadProfile } from "../../../runtime/operations";
 import { GridPresetData, GridProfileData } from "../../../runtime/runtime";
+import {
+  moduleOverlay,
+  ModuleOverlayType,
+} from "../../../runtime/moduleOverlay";
 
 export const profileCloudConfigDrag: Writable<any> = writable(undefined);
 
@@ -33,7 +37,6 @@ export class ProfileCloudEvent {
       case "end": {
         profileCloudConfigDrag.set(undefined);
         if (target) {
-          const ui = get(user_input);
           switch (config.configType) {
             case "profile": {
               const page = runtime
@@ -49,7 +52,6 @@ export class ProfileCloudEvent {
                 .findModule(target.dx, target.dy)
                 .findPage(target.page)
                 .findElement(target.element);
-              console.log(element);
 
               const preset = GridPresetData.createFromCloudData(config);
               loadPreset(preset, element);
@@ -60,5 +62,9 @@ export class ProfileCloudEvent {
         }
       }
     }
+  }
+
+  static async handleShowOverlay(event: any) {
+    moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
   }
 }
