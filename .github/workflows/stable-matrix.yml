@@ -31,10 +31,12 @@ jobs:
         with:
           node-version: "18.16.1"
 
+      - name: Install python setup-tools dependency
+        if: runner.os == "macOS"
+        run: brew install python-setuptools
+
       - name: Install dependencies
-        run: |
-          python3 -m pip install --break-system-packages --user setuptools
-          npm i
+        run: npm i
 
       - name: Build
         run: npm run export

@@ -31,10 +31,12 @@ jobs:
           echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
           echo "WORKFLOW_NAME=alpha" >> $GITHUB_ENV
 
+      - name: Install python setup-tools dependency
+        if: runner.os == "macOS"
+        run: brew install python-setuptools
+
       - name: Install dependencies
-        run: |
-          python3 -m pip install --break-system-packages --user setuptools
-          npm i
+        run: npm i
 
       - name: Update package.json
         run: node ./build-scripts/alpha-packageModifier.js
