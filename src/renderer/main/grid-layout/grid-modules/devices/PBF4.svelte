@@ -127,10 +127,8 @@
 
           <Fader
             {elementNumber}
-            {id}
             position={elementposition_array[elementNumber][1]}
             size={2.1}
-            rotation={rotation * -90}
             faderHeight={37}
           />
         </div>
@@ -154,12 +152,7 @@
           <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
-            <Button
-              {id}
-              position={elementposition_array[elementNumber][0]}
-              {elementNumber}
-              size={2.1}
-            />
+            <Button {elementNumber} size={2.1} />
           </div>
           <div class="normal-cell-overlay-container">
             <slot

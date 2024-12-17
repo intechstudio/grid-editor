@@ -108,12 +108,7 @@
         </div>
         <div class="normal-cell-ui-container">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Encoder
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber][0]}
-            size={2.1}
-          />
+          <Encoder {elementNumber} size={2.1} />
         </div>
         <div class="normal-cell-overlay-container">
           <slot name="cell-overlay" {elementNumber} />
@@ -138,10 +133,8 @@
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
             <Fader
               {elementNumber}
-              {id}
               position={elementposition_array[elementNumber][0]}
               size={2.1}
-              rotation={rotation * -90}
               faderHeight={68}
             />
           </div>

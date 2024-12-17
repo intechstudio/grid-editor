@@ -120,12 +120,7 @@
               <slot name="cell-underlay" {elementNumber} />
             </div>
             <button class="normal-cell-ui-container opacity-70">
-              <Button
-                {elementNumber}
-                {id}
-                position={elementposition_array[elementNumber][0]}
-                size={1.0}
-              />
+              <Button {elementNumber} size={1.0} />
             </button>
             <div class="normal-cell-overlay-container">
               <slot name="cell-overlay" {elementNumber} />
@@ -186,12 +181,7 @@
           </div>
           <button class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Button
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber][0]}
-              size={2.1}
-            />
+            <Button {elementNumber} size={2.1} />
           </button>
           <div class="normal-cell-overlay-container">
             <slot name="cell-overlay" {elementNumber} />

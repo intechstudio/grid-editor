@@ -11,6 +11,7 @@
 
   export let moduleWidth;
   export let device = undefined;
+  export let id = device.type;
 
   let [dx, dy] = [device?.dx, device?.dy];
   let moduleType = device?.type;
@@ -225,6 +226,7 @@
             {/each}
 
             <EndlessPot
+              {id}
               {elementNumber}
               position={elementposition_array[elementNumber][1]}
               size={2.1}
@@ -244,11 +246,7 @@
           </div>
           <button class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Button
-              {elementNumber}
-              position={elementposition_array[elementNumber][0]}
-              size={2.1}
-            />
+            <Button {elementNumber} size={2.1} />
           </button>
           <div class="normal-cell-overlay-container">
             <slot name="cell-overlay" {elementNumber} />
