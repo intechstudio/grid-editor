@@ -61,11 +61,11 @@ const filter: SerialPortInfo[] = [
 
 class GridConnectionManager {
   private _ports: Writable<GridPort[]>;
-  private _active: GridPort;
+  private _active: Writable<GridPort>;
 
   constructor() {
     this._ports = writable([]);
-    this._active = undefined;
+    this._active = writable();
   }
 
   get ports() {
@@ -85,7 +85,7 @@ class GridConnectionManager {
             const ports = get(this._ports);
             this._ports.set(ports.filter((e) => e.id !== current.id));
             if (get(this._ports).length > 0) {
-              if (this._active.id === current.id) {
+              if (get(this._active).id === current.id) {
                 this.fetchStream(get(this._ports)[0]);
               }
             } else {
@@ -113,7 +113,7 @@ class GridConnectionManager {
   }
 
   isSerialWriteLocked() {
-    const port = this.active;
+    const port = get(this.active);
     if (port === undefined || port === null) {
       return true;
     }
@@ -132,7 +132,7 @@ class GridConnectionManager {
       return Promise.reject("Serial Write Error 1.");
     }
 
-    const port = this.active;
+    const port = get(this.active);
 
     if (port === undefined || port === null) {
       return Promise.reject("Serial Write Error 2.");
@@ -177,11 +177,11 @@ class GridConnectionManager {
       return;
     }
 
-    if (port.id === this.active?.id) {
+    if (port.id === get(this.active)?.id) {
       return;
     }
 
-    this._active = port;
+    this._active.set(port);
     const reader = port.readable.getReader();
     let charsReceived = 0;
     let rxBuffer = [];
@@ -190,7 +190,7 @@ class GridConnectionManager {
       while (true) {
         const { done, value } = await reader.read();
 
-        if (done || this.active !== port) {
+        if (done || get(this.active) !== port) {
           console.log("Stream complete");
           break;
         }

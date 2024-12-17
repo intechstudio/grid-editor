@@ -4,6 +4,32 @@ import { appSettings } from "./app-helper.store";
 import { modal, Snap } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
 import { GridAction, GridRuntime, aliveModules } from "./runtime";
+import { connection_manager, GridPort } from "../serialport/serialport";
+
+function create_runtime_store(): GridRuntime {
+  const _internal: Writable<{ data: GridRuntime; port: GridPort }[]> = writable(
+    []
+  );
+  let runtime = undefined;
+
+  connection_manager.active.subscribe((port) => {
+    const active = get(_internal).find((e) => e.port.id === port.id);
+    if (active) {
+      runtime = active.data;
+    } else {
+      const incoming = { data: new GridRuntime(), port: port };
+      _internal.update((store) => {
+        store.push(incoming);
+        return store;
+      });
+      runtime = incoming.data;
+    }
+  });
+
+  return runtime;
+}
+
+export let runtime: GridRuntime = create_runtime_store();
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -320,8 +346,6 @@ function create_user_input() {
   };
 }
 
-export const runtime = new GridRuntime();
-
 export type UserInputValue = {
   dx: number;
   dy: number;
@@ -388,6 +412,10 @@ const heartbeat_editor_ms = 300;
 const heartbeat_grid_ms = 250;
 
 const grid_heartbeat_interval_handler = async function () {
+  if (!runtime) {
+    return;
+  }
+
   for (const device of runtime.modules) {
     if (device.architecture === "virtual") {
       return;
@@ -420,6 +448,9 @@ const editor_heartbeat_interval_handler = async function () {
     type = 254;
   }
     */
+  if (!runtime) {
+    return;
+  }
 
   if (
     runtime.modules.length > 0 &&
