@@ -1,9 +1,8 @@
 <script lang="ts">
   import MultiEventView from "./../configuration/MultiEventView.svelte";
   import { modal } from "./../../modals/modal.store";
-  import { logger } from "./../../../runtime/runtime.store";
+  import { runtime_manager } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
-  import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
 
   import {
@@ -336,17 +335,7 @@
       <MoltenButton
         title={"Defrag"}
         click={() => {
-          instructions
-            .sendNVMDefragToGrid()
-            .then((res) => {})
-            .catch((e) => {
-              logger.set({
-                type: "fail",
-                mode: 0,
-                classname: "engine-disabled",
-                message: `Engine is disabled, NVM Defragmentation failed!`,
-              });
-            });
+          runtime_manager.NVMDefrag();
         }}
       />
     </Block>
@@ -358,35 +347,7 @@
       <MoltenButton
         title={"Erase"}
         click={() => {
-          logger.set({
-            type: "progress",
-            mode: 0,
-            classname: "nvmerase",
-            message: `Erasing all modules...`,
-          });
-          instructions
-            .sendNVMEraseToGrid()
-            .then((res) => {
-              //TODO
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "nvmerase",
-                message: `Erase complete!`,
-              });
-            })
-            .catch((e) => {
-              if (typeof e !== "undefined") {
-                logger.set(e);
-              } else {
-                logger.set({
-                  type: "alert",
-                  mode: 0,
-                  classname: "nvmerase",
-                  message: `Retry erase all modules...`,
-                });
-              }
-            });
+          runtime_manager.NVMErase();
         }}
       />
     </Block>

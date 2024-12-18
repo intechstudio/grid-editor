@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     runtime,
+    runtime_manager,
     user_input,
     UserInputValue,
   } from "./../../../runtime/runtime.store";
@@ -23,7 +24,6 @@
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
-  import { instructions } from "../../../serialport/instructions";
 
   let event: GridEvent;
 
@@ -196,7 +196,7 @@
   <MoltenInput bind:target={immediateCommand} />
   <MoltenPushButton
     click={() => {
-      instructions.sendImmediateToGrid(
+      runtime_manager.LUAExecImmediate(
         0,
         0,
         "<?lua " + immediateCommand + " ?>"

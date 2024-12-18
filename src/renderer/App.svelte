@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { modal } from "./main/modals/modal.store";
 
   import "./preload-window-config";
@@ -29,7 +29,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
 
-  import { runtime, logger } from "./runtime/runtime.store";
+  import { runtime, logger, runtime_manager } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
@@ -39,7 +39,6 @@
     reduced_motion_store,
   } from "../renderer/runtime/animations";
 
-  import { instructions } from "./serialport/instructions";
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
   import "redefine-custom-elements";
 
@@ -109,15 +108,11 @@
           }
           case "execute-lua-script":
             console.log(`Sending script: ${data.script}`);
-            instructions
-              .sendImmediateToGrid(
-                data.targetDx ?? -127,
-                data.targetDy ?? -127,
-                data.script
-              )
-              .catch((e) => {
-                console.warn(e);
-              });
+            runtime_manager.LUAExecImmediate(
+              data.targetDx ?? -127,
+              data.targetDy ?? -127,
+              data.script
+            );
             break;
           case "add-action": {
             addPackageAction({

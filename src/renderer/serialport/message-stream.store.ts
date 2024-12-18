@@ -1,6 +1,5 @@
 // Top level imports
 import { writable, get } from "svelte/store";
-import { writeBuffer } from "../runtime/engine.store";
 import { appSettings } from "../runtime/app-helper.store.js";
 import {
   runtime,
@@ -10,7 +9,7 @@ import {
   update_elementPositionStore,
   update_elementPositionStore_fromPreview,
   update_ledColorStore,
-} from "../runtime/runtime.store.ts";
+} from "../runtime/runtime.store";
 import {
   debug_monitor_store,
   lua_error_store,
@@ -22,6 +21,7 @@ import {
 import { logger } from "../runtime/runtime.store";
 
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
+import { WriteBuffer } from "../runtime/engine.store.js";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -49,8 +49,13 @@ export function get_datapoint_last(key) {
   return store?.value;
 }
 
-function createMessageStream() {
-  const _deliver_inbound = function (class_array) {
+export class MessageStream {
+  private _buffer: WriteBuffer;
+  constructor(buffer: WriteBuffer) {
+    this._buffer = buffer;
+  }
+
+  public deliver_inbound(class_array: any) {
     if (class_array === undefined) {
       return;
     }
@@ -163,8 +168,11 @@ function createMessageStream() {
         // update control element rotation
         update_elementPositionStore(class_descr);
 
-        // update active element selection
-        user_input.process_incoming_event_from_grid(class_descr);
+        // engine is enabled
+        if (get(this._buffer).length === 0) {
+          // update active element selection
+          user_input.process_incoming_event_from_grid(class_descr);
+        }
       }
 
       if (class_descr.class_name === "EVENTPREVIEW") {
@@ -211,13 +219,7 @@ function createMessageStream() {
         }
       }
 
-      writeBuffer.validate_incoming(class_descr);
+      this._buffer.validate_incoming(class_descr);
     });
-  };
-
-  return {
-    deliver_inbound: _deliver_inbound,
-  };
+  }
 }
-
-export const messageStream = createMessageStream();

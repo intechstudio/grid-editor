@@ -1,9 +1,8 @@
-<script>
-  import { tooltip } from "./../_actions/tooltip.ts";
+<script lang="ts">
+  import { tooltip } from "./../_actions/tooltip";
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { writeBuffer } from "../../runtime/engine.store.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
@@ -156,11 +155,11 @@
       <div class="mx-4 text-white font-medium">
         {changes} active changes
       </div>
-      {#if $appSettings.persistent.writeBufferDebugEnabled}
+      <!-- {#if $appSettings.persistent.writeBufferDebugEnabled}
         <div class="mx-4 text-white font-medium">
           writeBuffer: {$writeBuffer.length}
         </div>
-      {/if}
+      {/if} -->
     </div>
 
     <div

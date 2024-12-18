@@ -1,35 +1,184 @@
-import { writable, get, type Writable } from "svelte/store";
-import { writeBuffer, sendHeartbeat } from "./engine.store";
+import {
+  writable,
+  get,
+  type Writable,
+  derived,
+  Subscriber,
+  Unsubscriber,
+  Updater,
+  Readable,
+} from "svelte/store";
 import { appSettings } from "./app-helper.store";
 import { modal, Snap } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
 import { GridAction, GridRuntime, aliveModules } from "./runtime";
-import { connection_manager, GridPort } from "../serialport/serialport";
+import { GridInstruction } from "../serialport/instructions";
+import { GridConnection } from "../serialport/serialport";
+import { WriteBuffer } from "./engine.store";
+import { MessageStream } from "../serialport/message-stream.store";
 
-function create_runtime_store(): GridRuntime {
-  const _internal: Writable<{ data: GridRuntime; port: GridPort }[]> = writable(
-    []
-  );
-  let runtime = undefined;
+type GridRuntimeManagerData = {
+  data: GridRuntime[];
+  active: GridRuntime;
+};
 
-  connection_manager.active.subscribe((port) => {
-    const active = get(_internal).find((e) => e.port.id === port.id);
-    if (active) {
-      runtime = active.data;
-    } else {
-      const incoming = { data: new GridRuntime(), port: port };
-      _internal.update((store) => {
-        store.push(incoming);
-        return store;
-      });
-      runtime = incoming.data;
-    }
+class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
+  private _internal: Writable<GridRuntimeManagerData> = writable({
+    data: [],
+    active: undefined,
   });
 
-  return runtime;
+  public subscribe(
+    run: Subscriber<GridRuntimeManagerData>,
+    invalidate?: (value?: GridRuntimeManagerData) => void
+  ): Unsubscriber {
+    return this._internal.subscribe(run, invalidate);
+  }
+
+  private set(value: GridRuntimeManagerData) {
+    this._internal.set(value);
+  }
+
+  private update(updater: Updater<GridRuntimeManagerData>) {
+    this._internal.update(updater);
+  }
+
+  public allocate() {
+    const runtime = new GridRuntime();
+    this.update((store) => {
+      store.data.push(runtime);
+
+      if (typeof store.active === "undefined") {
+        store.active = runtime;
+      }
+      return store;
+    });
+
+    return runtime;
+  }
+
+  public free(runtime: GridRuntime) {
+    this.update((store) => {
+      const destroyed = store.data.find((e) => e.id === runtime.id);
+      if (!destroyed) {
+        throw new Error("");
+      }
+
+      store.data = store.data.filter((e) => e.id !== runtime.id);
+
+      if (store.active.id === runtime.id) {
+        store.active = store.data[0];
+      }
+      return store;
+    });
+  }
+
+  public NVMErase() {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "nvmerase",
+      message: `Erasing all modules...`,
+    });
+    const promises: Promise<any>[] = [];
+    for (const target of get(this._internal).data) {
+      const instruction = new GridInstruction.NVMErase(target.virtual);
+      promises.push(instruction.executeOn(target.connection));
+    }
+    Promise.all(promises)
+      .then((res) => {
+        //TODO
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "nvmerase",
+          message: `Erase complete!`,
+        });
+      })
+      .catch((e) => {
+        if (typeof e !== "undefined") {
+          logger.set(e);
+        } else {
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "nvmerase",
+            message: `Retry erase all modules...`,
+          });
+        }
+      });
+  }
+
+  public NVMDefrag() {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "nvmdefrag",
+      message: `Defragging all modules...`,
+    });
+
+    const promises: Promise<any>[] = [];
+    for (const target of get(this._internal).data) {
+      const instruction = new GridInstruction.NVMDefrag(target.virtual);
+      promises.push(instruction.executeOn(target.connection));
+    }
+    Promise.all(promises)
+      .then((res) => {
+        //TODO
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "nvmdefrag",
+          message: `Defrag complete!`,
+        });
+      })
+      .catch((e) => {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "engine-disabled",
+          message: `Engine is disabled, NVM Defragmentation failed!`,
+        });
+      });
+  }
+
+  public LUAExecImmediate(dx: number, dy: number, script: string) {
+    const target = get(this._internal).active;
+    if (!target) {
+      //ERROR HANDLING
+      return;
+    }
+
+    const instruction = new GridInstruction.SendConfigImmediate(
+      dx,
+      dy,
+      script,
+      target.virtual
+    );
+    instruction.executeOn(target.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
+  public createVirtualRuntime(): GridRuntime {
+    const buffer = new WriteBuffer(undefined);
+    const port = undefined;
+    const messageStream = new MessageStream(buffer);
+    const virtual_connection: GridConnection = {
+      id: undefined,
+      buffer: buffer,
+      port: port,
+      messageStream: messageStream,
+      virtual: true,
+    };
+
+    return new GridRuntime(virtual_connection, true);
+  }
 }
 
-export let runtime: GridRuntime = create_runtime_store();
+export const runtime_manager = new GridRuntimeManager();
+
+export let runtime: GridRuntime = runtime_manager.createVirtualRuntime();
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -236,11 +385,6 @@ function create_user_input() {
   }
 
   function process_incoming_event_from_grid(descr) {
-    // engine is disabled
-    if (get(writeBuffer).length > 0) {
-      return;
-    }
-
     // modal block track physical interaction setting
     if (
       typeof get(modal) !== "undefined" &&
@@ -367,103 +511,6 @@ function create_selected_actions_store() {
   return internal;
 }
 
-//Retrieves device name from coordinates of the device
-export function getDeviceName(x, y) {
-  const currentModule = runtime.modules.find(
-    (device) => device.dx == x && device.dy == y
-  );
-  return currentModule?.type;
-}
-
-export function getElementEventTypes(x, y, elementNumber) {
-  const currentModule = runtime.modules.find(
-    (device) => device.dx == x && device.dy == y
-  );
-
-  if (typeof currentModule === "undefined") {
-    console.warn(`Module does not exist on (${x}, ${y})`);
-    return undefined;
-  }
-  const element = currentModule.pages[0].control_elements.find(
-    (e) => e.elementIndex == elementNumber
-  );
-
-  if (typeof element === "undefined") {
-    console.warn(
-      `Control element ${elementNumber} does not exist on (${x}, ${y})`
-    );
-    return undefined;
-  }
-
-  return element.events.map((e) => e.type);
-}
-
-function createEngine() {
-  const _engine = writable("ENABLED");
-
-  return {
-    ..._engine,
-  };
-}
-
-export const engine = createEngine();
-
-const heartbeat_editor_ms = 300;
-const heartbeat_grid_ms = 250;
-
-const grid_heartbeat_interval_handler = async function () {
-  if (!runtime) {
-    return;
-  }
-
-  for (const device of runtime.modules) {
-    if (device.architecture === "virtual") {
-      return;
-    }
-
-    const last =
-      get(aliveModules).find((e) => e.id === device.id)?.last ?? Date.now();
-
-    // Allow less strict elapsedTimeLimit while writeBuffer is busy!
-    const elapsedTimeLimit =
-      get(writeBuffer).length > 0
-        ? heartbeat_grid_ms * 6
-        : heartbeat_grid_ms * 3;
-    const elapsedTime = Date.now() - last;
-
-    if (!last || elapsedTime > elapsedTimeLimit) {
-      // TIMEOUT! let's remove the device
-      runtime.destroy_module(device.dx, device.dy);
-    }
-  }
-};
-
-setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
-
-const editor_heartbeat_interval_handler = async function () {
-  let type = 255;
-
-  /*
-  if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
-    type = 254;
-  }
-    */
-  if (!runtime) {
-    return;
-  }
-
-  if (
-    runtime.modules.length > 0 &&
-    runtime.modules.filter((e) => e.architecture === "virtual").length === 0
-  ) {
-    sendHeartbeat(type);
-  } else {
-    //writeBuffer.clear();
-  }
-};
-
-setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
-
 export class LocalDefinitions {
   static getFrom({ configs, index }) {
     const config = configs[index];
@@ -499,4 +546,37 @@ export async function wss_send_message(message) {
   window.electron.websocket.transmit({ event: "message", data: message });
 }
 
-console.log("reached end of runtime");
+////////////////////////////////////////////////////////
+////////// Helper functions to refactor out ////////////
+////////////////////////////////////////////////////////
+
+//Retrieves device name from coordinates of the device
+export function getDeviceName(x, y) {
+  const currentModule = runtime.modules.find(
+    (device) => device.dx == x && device.dy == y
+  );
+  return currentModule?.type;
+}
+
+export function getElementEventTypes(x, y, elementNumber) {
+  const currentModule = runtime.modules.find(
+    (device) => device.dx == x && device.dy == y
+  );
+
+  if (typeof currentModule === "undefined") {
+    console.warn(`Module does not exist on (${x}, ${y})`);
+    return undefined;
+  }
+  const element = currentModule.pages[0].control_elements.find(
+    (e) => e.elementIndex == elementNumber
+  );
+
+  if (typeof element === "undefined") {
+    console.warn(
+      `Control element ${elementNumber} does not exist on (${x}, ${y})`
+    );
+    return undefined;
+  }
+
+  return element.events.map((e) => e.type);
+}

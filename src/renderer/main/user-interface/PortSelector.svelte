@@ -2,6 +2,7 @@
   import { get, writable } from "svelte/store";
   import { connection_manager, GridPort } from "./../../serialport/serialport";
   import { MeltSelect } from "@intechstudio/grid-uikit";
+  import { runtime_manager } from "../../runtime/runtime.store";
 
   export let visible = false;
   export let disabled = false;
@@ -10,9 +11,7 @@
 
   let options: any[] = [];
 
-  const ports = connection_manager.ports;
-
-  $: handlePortChange($ports);
+  $: handlePortChange($connection_manager.map((e) => e.port));
 
   async function handlePortChange(ports: GridPort[]) {
     options = [];
@@ -23,17 +22,19 @@
         title: `Port ${i + 1}`,
       });
     }
-    selected = connection_manager.active?.id;
+    //selected = runtime_manager.active?.id;
   }
 
   $: handleSelectedChange(selected);
 
   function handleSelectedChange(id: string) {
+    /*
     const port = get(ports).find((e) => e.id === id);
     if (typeof port === "undefined") {
       return;
     }
     connection_manager.fetchStream(port);
+    */
   }
 </script>
 
