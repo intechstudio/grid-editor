@@ -2,7 +2,6 @@
 import { writable, get } from "svelte/store";
 import { appSettings } from "../runtime/app-helper.store.js";
 import {
-  runtime,
   user_input,
   wss_send_message,
   update_element_name,
@@ -22,6 +21,7 @@ import { logger } from "../runtime/runtime.store";
 
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
+import { GridRuntime } from "../runtime/runtime.js";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -51,12 +51,22 @@ export function get_datapoint_last(key) {
 
 export class MessageStream {
   private _buffer: WriteBuffer;
+  public runtime: GridRuntime;
+
   constructor(buffer: WriteBuffer) {
     this._buffer = buffer;
   }
 
+  public bind(runtime: GridRuntime) {
+    this.runtime = runtime;
+  }
+
   public deliver_inbound(class_array: any) {
     if (class_array === undefined) {
+      return;
+    }
+
+    if (!this.runtime) {
       return;
     }
 
@@ -85,7 +95,7 @@ export class MessageStream {
 
       if (class_descr.class_name === "HEARTBEAT") {
         // check if it is online and if not then create a new module
-        runtime.incoming_heartbeat_handler(class_descr);
+        this.runtime.incoming_heartbeat_handler(class_descr);
       }
 
       if (class_descr.class_name === "PAGECOUNT") {

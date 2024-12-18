@@ -44,12 +44,22 @@ class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
   }
 
   public allocate() {
-    const runtime = new GridRuntime();
+    const incoming = new GridRuntime();
     this.update((store) => {
-      store.data.push(runtime);
+      for (const runtime of store.data) {
+        if (runtime.virtual) {
+          console.log("Killed (it's good):", runtime);
+          runtime.killHeartbeat();
+          store.data = store.data.filter((e) => e.id !== runtime.id);
+        }
+      }
+
+      console.log("Incoming runtime:", incoming);
+      store.data.push(incoming);
 
       if (typeof store.active === "undefined") {
-        store.active = runtime;
+        console.log("Active runtime:", incoming);
+        store.active = incoming;
       }
       return store;
     });
@@ -57,18 +67,49 @@ class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     return runtime;
   }
 
+  public allocateVirtual(): GridRuntime {
+    const buffer = new WriteBuffer(undefined);
+    const virtual_connection: GridConnection = {
+      id: undefined,
+      buffer: buffer,
+      port: undefined,
+      virtual: true,
+    };
+
+    const incoming = new GridRuntime(virtual_connection, true);
+
+    this.update((store) => {
+      store.data.push(incoming);
+
+      if (typeof store.active === "undefined") {
+        store.active = incoming;
+      }
+      return store;
+    });
+
+    return incoming;
+  }
+
   public free(runtime: GridRuntime) {
     this.update((store) => {
       const destroyed = store.data.find((e) => e.id === runtime.id);
       if (!destroyed) {
-        throw new Error("");
+        throw new Error("Ca");
       }
 
-      store.data = store.data.filter((e) => e.id !== runtime.id);
+      console.log("Killed (it's good):", runtime);
+      destroyed.killHeartbeat();
 
-      if (store.active.id === runtime.id) {
+      store.data = store.data.filter((e) => e.id !== destroyed.id);
+
+      if (store.active.id === destroyed.id) {
         store.active = store.data[0];
       }
+
+      if (typeof store.active === "undefined") {
+        store.active = this.allocateVirtual();
+      }
+
       return store;
     });
   }
@@ -159,26 +200,11 @@ class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       console.warn(e);
     });
   }
-
-  public createVirtualRuntime(): GridRuntime {
-    const buffer = new WriteBuffer(undefined);
-    const port = undefined;
-    const messageStream = new MessageStream(buffer);
-    const virtual_connection: GridConnection = {
-      id: undefined,
-      buffer: buffer,
-      port: port,
-      messageStream: messageStream,
-      virtual: true,
-    };
-
-    return new GridRuntime(virtual_connection, true);
-  }
 }
 
 export const runtime_manager = new GridRuntimeManager();
 
-export let runtime: GridRuntime = runtime_manager.createVirtualRuntime();
+export let runtime: GridRuntime = runtime_manager.allocateVirtual();
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {

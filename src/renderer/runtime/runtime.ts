@@ -19,7 +19,10 @@ import { GridInstruction } from "../serialport/instructions";
 import { connection_simulator } from "./virtual-engine";
 import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
-import { add_datapoint } from "../serialport/message-stream.store.js";
+import {
+  add_datapoint,
+  MessageStream,
+} from "../serialport/message-stream.store.js";
 import {
   elementPositionStore,
   ledColorStore,
@@ -34,7 +37,12 @@ import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation"
 import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
-import { setIntervalAsync } from "set-interval-async";
+import {
+  clearIntervalAsync,
+  setIntervalAsync,
+  SetIntervalAsyncTimer,
+} from "set-interval-async";
+import { WriteBuffer } from "./engine.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -1409,9 +1417,13 @@ export interface RuntimeData extends NodeData {
 
 export class GridRuntime extends RuntimeNode<RuntimeData> {
   public connection: GridConnection;
+
   public readonly heartbeat_editor_ms = 300;
   public readonly heartbeat_grid_ms = 250;
   public readonly virtual: boolean;
+
+  private grid_heartbeat: SetIntervalAsyncTimer<[]>;
+  private editor_heartbeat: SetIntervalAsyncTimer<[]>;
 
   constructor(
     connection: GridConnection = undefined,
@@ -1421,18 +1433,19 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.connection = connection;
     this.virtual = virtual;
 
-    setIntervalAsync(
+    this.editor_heartbeat = setIntervalAsync(
       () => GridRuntime.editor_heartbeat_interval_handler(this),
       this.heartbeat_editor_ms
     );
-    setIntervalAsync(
+    this.grid_heartbeat = setIntervalAsync(
       () => GridRuntime.grid_heartbeat_interval_handler(this),
       this.heartbeat_grid_ms
     );
   }
 
-  public bind(connection: GridConnection) {
-    this.connection = connection;
+  public killHeartbeat() {
+    clearIntervalAsync(this.grid_heartbeat);
+    clearIntervalAsync(this.editor_heartbeat);
   }
 
   get modules() {

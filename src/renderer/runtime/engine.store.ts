@@ -4,6 +4,7 @@ import { connection_manager, GridPort } from "../serialport/serialport";
 import { appSettings } from "./app-helper.store";
 import { Subscriber } from "svelte/motion";
 import { simulateProcess } from "./virtual-engine";
+import { MessageStream } from "../serialport/message-stream.store";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -155,8 +156,11 @@ export class WriteBuffer implements Readable<BufferElement[]> {
   private _internal = writable([]);
   private _port: GridPort;
 
+  public readonly messageStream: MessageStream;
+
   constructor(port: GridPort) {
     this._port = port;
+    this.messageStream = new MessageStream(this);
   }
 
   public subscribe(
@@ -361,15 +365,14 @@ export class WriteBuffer implements Readable<BufferElement[]> {
 
   public async execute(obj: BufferElement) {
     return new Promise((resolve, reject) => {
-      let process: (obj: BufferElement) => Promise<any>;
-      console.log(obj, obj.virtual);
+      let promise: Promise<any>;
       if (obj.virtual) {
-        process = simulateProcess;
+        promise = simulateProcess(obj);
       } else {
-        process = this.processElement;
+        promise = this.processElement(obj);
       }
 
-      process(obj)
+      promise
         .then((res) => {
           resolve(res);
         })

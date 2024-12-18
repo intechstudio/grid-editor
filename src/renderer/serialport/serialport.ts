@@ -14,6 +14,7 @@ import { Subscriber } from "svelte/motion";
 import { GridRuntime } from "../runtime/runtime.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
 import { MessageStream } from "./message-stream.store.js";
+import { runtime_manager } from "../runtime/runtime.store.js";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -70,7 +71,6 @@ export type GridConnection = {
   id: string;
   buffer: WriteBuffer;
   port: GridPort;
-  messageStream: MessageStream;
   virtual: boolean;
 };
 
@@ -102,26 +102,30 @@ class GridConnectionManager implements Readable<GridConnection[]> {
         .open({ baudRate: 2000000 })
         .then(() => {
           const buffer = new WriteBuffer(port);
-          const messageStream = new MessageStream(buffer);
           const current = {
             id: uuidv4(),
             port: port,
             buffer: buffer,
-            messageStream: messageStream,
             virtual: false,
           };
+
+          const runtime = runtime_manager.allocate();
+          buffer.messageStream.bind(runtime);
+          runtime.connection = current;
+
+          this.update((store) => {
+            console.log("Port connected:", current);
+            store.push(current);
+            return store;
+          });
 
           port.addEventListener("disconnect", (e) => {
             console.log("Port disconnected:", current);
             this.update((store) => {
               return store.filter((e) => e.id !== current.id);
             });
-          });
 
-          this.update((store) => {
-            console.log("Port connected:", current);
-            store.push(current);
-            return store;
+            runtime_manager.free(runtime);
           });
 
           resolve(current);
@@ -241,7 +245,7 @@ class GridConnectionManager implements Readable<GridConnection[]> {
             grid.decode_packet_classes(class_array);
 
             if (class_array !== false) {
-              connection.messageStream.deliver_inbound(class_array);
+              connection.buffer.messageStream.deliver_inbound(class_array);
             }
           }
         }
@@ -256,7 +260,6 @@ class GridConnectionManager implements Readable<GridConnection[]> {
   }
 
   static async tryConnectGrid() {
-    return;
     try {
       let ports: any[];
       if (import.meta.env.VITE_WEB_MODE == "true") {
