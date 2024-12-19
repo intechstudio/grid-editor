@@ -65,6 +65,11 @@ export class ProfileCloudEvent {
   }
 
   static async handleShowOverlay(event: any) {
-    moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
+    const { value } = event.data;
+    if (value) {
+      moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
+    } else {
+      moduleOverlay.close();
+    }
   }
 }

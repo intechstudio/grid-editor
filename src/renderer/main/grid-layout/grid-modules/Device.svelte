@@ -132,7 +132,6 @@
   $: {
     isDrag = typeof $profileCloudConfigDrag !== "undefined";
     if (isDrag) {
-      console.log($profileCloudConfigDrag.configType);
       switch ($profileCloudConfigDrag.configType) {
         case "profile": {
           dragged = {
@@ -291,7 +290,7 @@
       />
 
       {#if isDrag && dragged?.configType === "preset" && dragged?.targetType === element.type}
-        <div class="p-2 w-full h-full flex">
+        <div class="absolute p-2 w-full h-full flex">
           <div
             role="region"
             aria-label="Drop area for presets"
