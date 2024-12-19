@@ -81,12 +81,15 @@
   let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
   let page = element.parent as GridPage;
-  let runtime = page.parent as GridRuntime;
+  let module = page.parent as GridModule;
+  let runtime = module.parent as GridRuntime;
 
   let macroInputField;
 
   let isChanges = false;
-  $: isChanges = $runtime.unsavedChangesCount() > 0;
+  $: if ($runtime) {
+    isChanges = runtime.unsavedChangesCount() > 0;
+  }
 
   onMount(() => {
     selectedLayout = $appSettings.persistent.keyboardLayout;

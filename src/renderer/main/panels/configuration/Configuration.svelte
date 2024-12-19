@@ -25,7 +25,9 @@
 
   $: runtime = $runtime_manager.active.runtime;
 
-  $: handleUserInputChange($user_input);
+  $: if ($runtime) {
+    handleUserInputChange($user_input);
+  }
 
   function handleUserInputChange(ui: UserInputValue) {
     page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
@@ -47,9 +49,12 @@
 
     if (typeof element !== "undefined" && !element.isLoaded()) {
       console.log("LOADDD");
-      element.load().catch((err) => {
-        console.error("Failed to load event:", err);
-      });
+      element
+        .load()
+        .then((e) => {})
+        .catch((err) => {
+          console.error("Failed to load event:", err);
+        });
     }
   }
 

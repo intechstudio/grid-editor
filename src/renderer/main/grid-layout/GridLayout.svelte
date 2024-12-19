@@ -20,7 +20,6 @@
 
   const dispatch = createEventDispatcher();
 
-  const devices = writable([]);
   let columns = 0;
   let rows = 0;
   const deviceGap = 5;
@@ -84,6 +83,29 @@
     const min_y = Math.min(...active.modules.map((e) => e.dy));
     const max_x = Math.max(...active.modules.map((e) => e.dx));
     const max_y = Math.max(...active.modules.map((e) => e.dy));
+
+    layoutMargin = {
+      left:
+        active.modules.find((e) => e.dx == min_x)?.architecture ==
+        Architecture.VIRTUAL
+          ? 30
+          : 0,
+      right:
+        active.modules.find((e) => e.dx == max_x)?.architecture ==
+        Architecture.VIRTUAL
+          ? 30
+          : 0,
+      top:
+        active.modules.find((e) => e.dy == max_y)?.architecture ==
+        Architecture.VIRTUAL
+          ? 30
+          : 0,
+      bottom:
+        active.modules.find((e) => e.dy == min_y)?.architecture ==
+        Architecture.VIRTUAL
+          ? 30
+          : 0,
+    };
     return {
       min_x: min_x,
       min_y: min_y,
@@ -170,8 +192,8 @@
           grid-template-rows: repeat({rows}, auto);
             width: {width}px;  height: {height}px;"
         >
-          {#each $runtime.modules as module (module.id)}
-            {@const props = calculateModuleProperties(module)}
+          {#each $runtime.modules as device (device.id)}
+            {@const props = calculateModuleProperties(device)}
 
             <div
               in:fly|global={{
@@ -185,60 +207,60 @@
               out:fade|global={{ duration: 200 }}
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
-              id="grid-device-{'dx:' + module.dx + ';dy:' + module.dy}"
+              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
               class="relative"
             >
-              {#if module.architecture === Architecture.VIRTUAL}
+              {#if device.architecture === Architecture.VIRTUAL}
                 <!-- LEFT -->
-                {#if typeof $devices.find((e) => e.dx === module.dx - 1 && e.dy === module.dy) === "undefined"}
+                {#if typeof $runtime.modules.find((e) => e.dx === device.dx - 1 && e.dy === device.dy) === "undefined"}
                   <div
                     class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 h-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(module.dx - 1, module.dy)}
+                        handleAddModuleButtonClicked(device.dx - 1, device.dy)}
                     />
                   </div>
                 {/if}
 
                 <!-- RIGHT -->
-                {#if typeof $devices.find((e) => e.dx === module.dx + 1 && e.dy === module.dy) === "undefined"}
+                {#if typeof $runtime.modules.find((e) => e.dx === device.dx + 1 && e.dy === device.dy) === "undefined"}
                   <div
                     class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2 h-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(module.dx + 1, module.dy)}
+                        handleAddModuleButtonClicked(device.dx + 1, device.dy)}
                     />
                   </div>
                 {/if}
 
                 <!-- BOTTOM -->
-                {#if typeof $devices.find((e) => e.dy === module.dy - 1 && e.dx === module.dx) === "undefined"}
+                {#if typeof $runtime.modules.find((e) => e.dy === device.dy - 1 && e.dx === device.dx) === "undefined"}
                   <div
                     class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2 w-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(module.dx, module.dy - 1)}
+                        handleAddModuleButtonClicked(device.dx, device.dy - 1)}
                     />
                   </div>
                 {/if}
 
                 <!-- TOP -->
-                {#if typeof $devices.find((e) => e.dy === module.dy + 1 && e.dx === module.dx) === "undefined"}
+                {#if typeof $runtime.modules.find((e) => e.dy === device.dy + 1 && e.dx === device.dx) === "undefined" || true}
                   <div
                     class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(module.dx, module.dy + 1)}
+                        handleAddModuleButtonClicked(device.dx, device.dy + 1)}
                     />
                   </div>
                 {/if}
               {/if}
               <Device
-                device={module}
+                {device}
                 width={deviceWidth}
                 style="transform-origin: top left; transform: scale({$scalingPercent})"
               />

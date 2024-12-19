@@ -41,10 +41,24 @@ export class UserInput implements Writable<UserInputValue> {
   // Set the entire object
   public set(value: UserInputValue) {
     const runtime = get(runtime_manager).active.runtime;
+    console.log(
+      "YAY",
+      runtime.virtual,
+      typeof runtime,
+      value.dx,
+      value.dy,
+      runtime.findModule(
+        value.dx,
+        value.dy
+        //value.pagenumber,
+        //value.elementnumber
+      )
+    );
     const events = runtime
       .findElement(value.dx, value.dy, value.pagenumber, value.elementnumber)
       ?.events.map((e) => e.type);
     const closestEvent = Grid.getClosestEvent(events ?? [2], value.eventtype);
+    console.log(value, runtime, events, closestEvent);
 
     this._internal.set({
       dx: value.dx,

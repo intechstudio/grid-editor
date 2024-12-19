@@ -80,6 +80,12 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     };
 
     this.update((store) => {
+      if (store.active?.runtime.virtual) {
+        this.killHeartbeat(store.active);
+        store.data = [];
+        store.active = undefined;
+      }
+
       store.data.push(incoming);
       if (typeof store.active === "undefined") {
         store.active = incoming;
@@ -95,8 +101,6 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       (e) => e.runtime.id === runtime.id
     );
 
-    console.log(destroyed);
-
     if (!destroyed) {
       throw new Error("Destroyed module is not found...");
     }
@@ -110,6 +114,11 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
       if (store.active.runtime.id === destroyed.runtime.id) {
         store.active = store.data[0];
+      }
+
+      if (typeof store.active === "undefined") {
+        const virtual = this.createVirtual();
+        this.add(virtual);
       }
 
       return store;

@@ -29,7 +29,7 @@ import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
-import { user_input } from "./user-input.store";
+import { user_input, UserInput } from "./user-input.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -870,17 +870,19 @@ export class GridEvent extends RuntimeNode<EventData> {
         this.type,
         simulate
       );
+
+      this.loaded = true;
       const descr = await instruction.executeOn(runtime.connection);
 
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
       this.push(...actions);
       this.store();
-      this.loaded = true;
 
       console.log("EVENT LOADED");
       return Promise.resolve();
     } catch (e) {
+      this.loaded = false;
       return Promise.reject(e);
     }
   }
@@ -1543,6 +1545,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         );
 
         this.modules = [...this.modules, controller];
+        user_input.set(UserInput.defaultValue);
         this.aliveModules.update((s) => {
           s.push({ id: controller.id, last: Date.now() });
           return s;
@@ -1730,6 +1733,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     connection_simulator.createModule(dx, dy, moduleInfo.type);
 
     this.modules = [...this.modules, controller];
+    user_input.set(UserInput.defaultValue);
   }
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
