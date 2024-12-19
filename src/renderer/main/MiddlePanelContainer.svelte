@@ -1,18 +1,17 @@
-<script>
-  import { derived } from "svelte/store";
+<script lang="ts">
   import CursorLog from "./user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./user-interface/Tracker.svelte";
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./user-interface/ModulConnectionDialog.svelte";
   import { fade, blur, fly } from "svelte/transition";
-  import { runtime } from "../runtime/runtime.store";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import { onDestroy, onMount } from "svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
-  import { runtime_manager } from "../runtime/runtime.manager.store";
+  import { runtime_manager } from "../runtime/runtime-manager.store";
+  import { GridRuntime } from "../runtime/runtime";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -29,7 +28,10 @@
   let showFixedStickyContainer = false;
   let gridLayout;
 
-  function handleResize(e) {
+  let runtime: GridRuntime;
+  $: runtime = $runtime_manager.active.runtime;
+
+  function handleResize() {
     const stickyContainer = document.getElementById("sticky-container");
     const container = document.getElementById("container");
     const contRect = container.getBoundingClientRect();
@@ -124,7 +126,7 @@
     </div>
   </GridLayout>
 
-  {#if $runtime_manager.active.runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
+  {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
     <div
       in:fade|global={{ delay: 2000, duration: 1000 }}
       out:blur|global={{ duration: 150 }}

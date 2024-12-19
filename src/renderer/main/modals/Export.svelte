@@ -5,18 +5,16 @@
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
-  import {
-    runtime,
-    user_input,
-    UserInputValue,
-  } from "../../runtime/runtime.store";
+  import { user_input, UserInputValue } from "./../../runtime/user-input.store";
+  import { runtime_manager } from "../../runtime/runtime-manager.store";
 
   let event: GridEvent;
 
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
-    event = runtime.findEvent(
+    const active = get(runtime_manager).active.runtime;
+    event = active.findEvent(
       ui.dx,
       ui.dy,
       ui.pagenumber,

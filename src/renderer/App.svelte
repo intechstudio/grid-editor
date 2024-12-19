@@ -29,7 +29,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
 
-  import { runtime, logger } from "./runtime/runtime.store";
+  import { logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
@@ -41,7 +41,8 @@
 
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
   import "redefine-custom-elements";
-  import { runtime_manager } from "./runtime/runtime.manager.store";
+  import { runtime_manager } from "./runtime/runtime-manager.store";
+  import { get } from "svelte/store";
 
   console.log("Hello from Svelte main.js");
 
@@ -127,7 +128,7 @@
             break;
           }
           case "change-page": {
-            runtime.change_page(data.num);
+            get(runtime_manager).active.runtime.change_page(data.num);
             break;
           }
           case "persist-github-package": {

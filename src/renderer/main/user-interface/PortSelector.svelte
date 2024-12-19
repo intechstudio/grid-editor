@@ -3,8 +3,9 @@
   import {
     GridRuntimeManagerData,
     runtime_manager,
-  } from "../../runtime/runtime.manager.store";
+  } from "../../runtime/runtime-manager.store";
   import { get } from "svelte/store";
+  import { user_input, UserInput } from "../../runtime/user-input.store";
 
   export let visible = false;
   export let disabled = false;
@@ -46,6 +47,7 @@
   function handleSelectedChange(id: string) {
     const selected = runtime_manager.data.find((e) => e.runtime.id === id);
     runtime_manager.active = selected;
+    user_input.set(UserInput.defaultValue);
   }
 </script>
 

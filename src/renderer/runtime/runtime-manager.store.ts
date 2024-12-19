@@ -7,7 +7,7 @@ import {
   Updater,
   Readable,
 } from "svelte/store";
-import { GridRuntime, aliveModules } from "./runtime";
+import { GridRuntime } from "./runtime";
 import { GridInstruction } from "../serialport/instructions";
 import { GridConnection } from "../serialport/serialport";
 import { WriteBuffer } from "./engine.store";
@@ -244,7 +244,8 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
     if (
       runtime.modules.length > 0 &&
-      runtime.modules.filter((e) => e.architecture === "virtual").length === 0
+      runtime.modules.filter((e) => e.architecture === Architecture.VIRTUAL)
+        .length === 0
     ) {
       const instruction = new GridInstruction.SendHeartbeatImmediate(
         type,
@@ -265,18 +266,9 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
         return;
       }
 
-      const last =
-        get(aliveModules).find((e) => e.id === device.id)?.last ?? Date.now();
-
-      // Allow less strict elapsedTimeLimit while writeBuffer is busy!
-      const elapsedTimeLimit =
-        get(runtime.connection.buffer).length > 0
-          ? GridRuntimeManager.heartbeat_grid_ms * 6
-          : GridRuntimeManager.heartbeat_grid_ms * 3;
-      const elapsedTime = Date.now() - last;
-
-      if (!last || elapsedTime > elapsedTimeLimit) {
+      if (!runtime.isAlive(device)) {
         // TIMEOUT! let's remove the device
+        console.log("Heartbeat lost...");
         runtime.destroy_module(device.dx, device.dy);
       }
     }

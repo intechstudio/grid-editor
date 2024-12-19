@@ -1,41 +1,42 @@
 <script lang="ts">
   import {
-    UserInputValue,
-    runtime,
     user_input,
-  } from "./../../../runtime/runtime.store";
+    UserInputValue,
+  } from "./../../../runtime/user-input.store";
   import ActionList from "./ActionList.svelte";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
-  import {
-    blur,
-    crossfade,
-    draw,
-    fade,
-    fly,
-    scale,
-    slide,
-  } from "svelte/transition";
+  import { fade } from "svelte/transition";
   import EventPanel from "./EventPanel.svelte";
   import Toolbar from "./components/Toolbar.svelte";
-  import { GridElement, GridEvent } from "../../../runtime/runtime";
+  import {
+    GridElement,
+    GridEvent,
+    GridPage,
+    GridRuntime,
+  } from "../../../runtime/runtime";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
-  import { runtime_manager } from "../../../runtime/runtime.manager.store";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
+  let runtime: GridRuntime;
   let element: GridElement;
   let event: GridEvent;
+  let page: GridPage;
 
-  $: if ($runtime_manager.active) {
-    handleUserInputChange($user_input);
-  }
+  $: runtime = $runtime_manager.active.runtime;
+
+  $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
+    page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
+
     element = runtime.findElement(
       ui.dx,
       ui.dy,
       ui.pagenumber,
       ui.elementnumber
     );
+
     event = runtime.findEvent(
       ui.dx,
       ui.dy,
@@ -45,6 +46,7 @@
     );
 
     if (typeof element !== "undefined" && !element.isLoaded()) {
+      console.log("LOADDD");
       element.load().catch((err) => {
         console.error("Failed to load event:", err);
       });
@@ -85,11 +87,11 @@
     <configs
       class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
     >
-      <ElementSelectionPanel />
+      <ElementSelectionPanel {page} />
       {#if !$appSettings.isMultiView}
-        <EventPanel />
+        <EventPanel {element} />
       {/if}
-      <Toolbar />
+      <Toolbar {event} {element} />
       <div class="flex flex-row h-full w-full max-h-full gap-2 overflow-hidden">
         {#if $appSettings.isMultiView}
           {#each $element?.events ?? [] as event, i}

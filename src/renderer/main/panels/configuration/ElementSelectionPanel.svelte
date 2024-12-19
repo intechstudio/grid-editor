@@ -7,8 +7,10 @@
     moduleOverlay,
   } from "../../../runtime/moduleOverlay";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
-  import { user_input, runtime } from "../../../runtime/runtime.store";
+  import { user_input } from "./../../../runtime/user-input.store";
   import { GridPage, PageData } from "../../../runtime/runtime";
+
+  export let page: GridPage;
 
   function showControlElementNameOverlay() {
     const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
@@ -38,10 +40,6 @@
       eventtype: ui.eventtype,
     });
   }
-
-  $: handleUserInputChange($user_input);
-
-  let page: GridPage;
 
   $: handlePageChange($page);
 
@@ -73,14 +71,6 @@
     });
     selectedElementNumber = get(user_input).elementnumber;
   }
-
-  function handleUserInputChange(ui: any) {
-    const device = runtime.modules.find(
-      (device) => device.dx === ui.dx && device.dy === ui.dy
-    );
-
-    page = device?.pages.find((page) => page.pageNumber === ui.pagenumber);
-  }
 </script>
 
 <div class="flex flex-col text-white">
@@ -101,5 +91,11 @@
     </div>
   </div>
 
-  <MeltSelect bind:target={selectedElementNumber} {options} disabled={false} />
+  {#key $page}
+    <MeltSelect
+      bind:target={selectedElementNumber}
+      {options}
+      disabled={false}
+    />
+  {/key}
 </div>

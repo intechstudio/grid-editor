@@ -2,21 +2,27 @@
   import { tooltip } from "./../_actions/tooltip";
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
-  import { appSettings } from "../../runtime/app-helper.store";
-  import { runtime, user_input } from "../../runtime/runtime.store";
+  import { user_input } from "./../../runtime/user-input.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { connection_manager } from "../../serialport/serialport";
   import PortSelector from "./PortSelector.svelte";
+  import { runtime_manager } from "../../runtime/runtime-manager.store";
+  import { GridRuntime } from "../../runtime/runtime";
 
   let isChanges = false;
   let changes = 0;
-  $: if ($runtime) {
-    changes = runtime.unsavedChangesCount();
-    isChanges = changes > 0;
+
+  let runtime: GridRuntime;
+  $: runtime = $runtime_manager.active.runtime;
+
+  $: {
+    if ($runtime) {
+      changes = runtime.unsavedChangesCount();
+      isChanges = changes > 0;
+    }
   }
 
   function clearOverlays() {
@@ -203,7 +209,7 @@
         triggerEvents: ["show-buttons", "hover"],
       }}
     >
-      <MoltenPushButton text="Clear" />
+      <MoltenPushButton text="Clear" click={() => {}} />
     </div>
     {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
       <MoltenPushButton

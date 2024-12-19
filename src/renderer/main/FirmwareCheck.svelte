@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { get } from "svelte/store";
   /*
 STATE 0 | No notification (Init state)
@@ -11,14 +11,11 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 */
 
   import { onMount } from "svelte";
-
   import { appSettings } from "../runtime/app-helper.store";
-  import { runtime } from "../runtime/runtime.store";
-
   import { fade } from "svelte/transition";
-  import { escape } from "svelte/internal";
-
   import { Analytics } from "../runtime/analytics.js";
+  import { runtime_manager } from "../runtime/runtime-manager.store";
+  import { GridRuntime } from "../runtime/runtime";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -47,6 +44,13 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   };
 
   // check for parsed modules
+
+  let runtime: GridRuntime;
+  $: {
+    runtime = $runtime_manager.active.runtime;
+    $appSettings.firmwareNotificationState = 0;
+  }
+
   $: {
     let firmwareMismatchFound = false;
 
@@ -60,7 +64,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     }
 
     // check modules for firmware mismatch
-    runtime.modules.forEach((device) => {
+    $runtime.modules.forEach((device) => {
       if ($appSettings.firmwareNotificationState == 6) {
         $appSettings.firmwareNotificationState = 0;
         uploadProgressText = "";

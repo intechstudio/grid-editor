@@ -1,13 +1,13 @@
 <script>
-  import {
-    logger,
-    runtime,
-    user_input,
-  } from "../../../../runtime/runtime.store";
+  import { get } from "svelte/store";
+  import { logger } from "../../../../runtime/runtime.store";
+  import { runtime_manager } from "../../../../runtime/runtime-manager.store";
+  import { user_input } from "../../../../runtime/user-input.store";
 
   let selectedPage = undefined;
   function handleSelectPage(page) {
-    runtime
+    const active = get(runtime_manager).active.runtime;
+    active
       .change_page(page)
       .then(() => {
         selectedPage = page;

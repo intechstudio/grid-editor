@@ -1,21 +1,24 @@
 <script lang="ts">
-  import { GridPresetData } from "./../../../../runtime/runtime.ts";
+  import {
+    GridElement,
+    GridModule,
+    GridPage,
+    GridPresetData,
+  } from "./../../../../runtime/runtime";
   import { grid } from "@intechstudio/grid-protocol";
-  import { user_input, runtime } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
-  import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { Analytics } from "../../../../runtime/analytics.js";
   import { loadPreset } from "../../../../runtime/operations";
 
-  export let device = undefined;
+  export let element: GridElement;
   export let visible = false;
-  export let elementNumber = undefined;
   export let isRightCut = undefined;
   export let isLeftCut = undefined;
 
-  let type = undefined;
+  let page = element.parent as GridPage;
+  let module = page.parent as GridModule;
+
   let loaded = false;
 
   enum Compatibility {
@@ -26,25 +29,7 @@
 
   let compatible = Compatibility.INCOMPATIBLE;
 
-  $: {
-    if (elementNumber === 255) {
-      type =
-        device?.pages[0].control_elements[
-          device?.pages[0].control_elements.length - 1
-        ]?.type;
-    } else {
-      type = device?.pages[0].control_elements[elementNumber]?.type;
-    }
-  }
-
   function handlePresetLoad(e) {
-    const ui = get(user_input);
-    const element = runtime.findElement(
-      device.dx,
-      device.dy,
-      ui.pagenumber,
-      elementNumber
-    );
     const preset = GridPresetData.createFromCloudData($selectedConfigStore);
     loadPreset(preset, element)
       .then(() => {
@@ -55,26 +40,6 @@
       });
   }
 
-  let isChanged = false;
-
-  $: handleDeviceChange(device);
-
-  function handleDeviceChange(obj) {
-    const { dx, dy } = obj;
-    const ui = get(user_input);
-
-    const target = runtime.findElement(dx, dy, ui.pagenumber, elementNumber);
-
-    if (typeof target === "undefined") {
-      isChanged = false;
-      return;
-    }
-
-    //Find the event that has change
-    const changed = target.hasChanges();
-    isChanged = typeof changed !== "undefined";
-  }
-
   function handleSelectedConfigChange(store) {
     loaded = false;
 
@@ -83,12 +48,12 @@
     }
 
     const leftSideCompatible = grid.is_element_compatible_with(
-      type,
+      element.type,
       store.type
     );
     const rightSideCompatible = grid.is_element_compatible_with(
       store.type,
-      type
+      element.type
     );
 
     if (leftSideCompatible && rightSideCompatible) {
@@ -108,18 +73,18 @@
     {#if compatible === Compatibility.COMPATIBLE || compatible === Compatibility.MATCHING}
       <div
         class="w-full h-full relative overflow-hidden"
-        class:loaded-element={loaded && !isChanged}
-        class:element={!loaded && !isChanged}
+        class:loaded-element={loaded && !$element.hasChanges()}
+        class:element={!loaded && !$element.hasChanges()}
         class:corner-cut-r={isRightCut}
         class:corner-cut-l={isLeftCut}
-        style="{elementNumber == 255
+        style="{$element.elementIndex == 255
           ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
           : 'border-radius: var(--grid-rounding);'} "
       >
         <div
           class="flex w-full h-full items-center justify-center"
           style="transform: rotate({-$appSettings.persistent.moduleRotation +
-            device?.rot * 90}deg);"
+            $module?.rot * 90}deg);"
         >
           {#if !loaded}
             <button
@@ -130,7 +95,7 @@
                 : 'compatible-icon'} bg-opacity-75 p-1"
               class:icon-corner-cut-r={isRightCut}
               class:icon-corner-cut-l={isLeftCut}
-              class:scale-50={elementNumber == 255}
+              class:scale-50={$element.elementIndex === 255}
             >
               <SvgIcon
                 fill={compatible === Compatibility.MATCHING ? "#FFF" : "#000"}
@@ -143,10 +108,10 @@
     {:else}
       <div
         class="w-full h-full"
-        class:disabled-element={!isChanged}
+        class:disabled-element={!$element.hasChanges()}
         class:corner-cut-r={isRightCut}
         class:corner-cut-l={isLeftCut}
-        style="{elementNumber == 255
+        style="{$element.elementIndex === 255
           ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
           : 'border-radius: var(--grid-rounding);'} "
       />

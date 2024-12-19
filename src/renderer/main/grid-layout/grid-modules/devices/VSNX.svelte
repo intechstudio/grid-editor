@@ -1,17 +1,19 @@
-<script>
-  import { grid, ModuleType, ElementType } from "@intechstudio/grid-protocol";
+<script lang="ts">
+  import { ModuleType, ElementType } from "@intechstudio/grid-protocol";
 
   import Button from "../elements/Button.svelte";
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
   import LcdAndMenuButtons from "../elements/LcdAndMenuButtons.svelte";
-
-  import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import { GridModule, GridRuntime } from "../../../../runtime/runtime";
 
   export let moduleWidth;
-  export let device = undefined;
+  export let device: GridModule;
   export let id = device.type;
+
+  let runtime = device.parent as GridRuntime;
+  let eps = runtime?.elementPositionStore;
+  let lcs = runtime?.ledColorStore;
 
   let [dx, dy] = [device?.dx, device?.dy];
   let moduleType = device?.type;
@@ -58,7 +60,7 @@
   ];
 
   $: {
-    const value = $elementPositionStore;
+    const value = $eps;
     try {
       let eps = value[dx][dy];
 
@@ -71,7 +73,7 @@
   }
 
   $: {
-    const value = $ledColorStore;
+    const value = $lcs;
     try {
       let lcs = value[dx][dy];
 
@@ -202,7 +204,6 @@
             <slot name="cell-underlay" {elementNumber} />
           </div>
           <button
-            ariarole="button"
             class="normal-cell-ui-container"
             style="border-radius: 50%; padding: 6px;"
           >

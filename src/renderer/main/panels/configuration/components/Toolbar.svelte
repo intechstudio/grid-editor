@@ -12,12 +12,7 @@
   } from "./Toolbar";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
-  import {
-    runtime,
-    user_input,
-    UserInputValue,
-    selected_actions,
-  } from "./../../../../runtime/runtime.store";
+  import { selected_actions } from "./../../../../runtime/user-input.store";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import { get } from "svelte/store";
   import {
@@ -33,26 +28,15 @@
   } from "../../../../runtime/operations";
   import { appSettings } from "../../../../runtime/app-helper.store";
 
+  export let element: GridElement;
+  export let event: GridEvent;
+
   function handleOverwriteElement() {
-    const ui = get(user_input);
-    const target = runtime.findElement(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber
-    );
-    overwriteElement(target);
+    overwriteElement(element);
   }
 
   function handleCopyElement() {
-    const ui = get(user_input);
-    const target = runtime.findElement(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber
-    );
-    copyElement(target);
+    copyElement(element);
   }
 
   function handleCopy() {
@@ -60,25 +44,10 @@
   }
 
   function handleClearElement() {
-    const ui = get(user_input);
-    const target = runtime.findElement(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber
-    );
-
-    clearElement(target);
+    clearElement(element);
   }
 
   function handleDiscardElement() {
-    const ui = get(user_input);
-    const element = runtime.findElement(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber
-    );
     discardElement(element);
   }
 
@@ -129,27 +98,6 @@
     window.navigator.platform.indexOf("Mac") != -1
       ? ["Cmd ⌘", "Alt ⌥"]
       : ["Ctrl", "Alt"];
-
-  let event: GridEvent;
-  let element: GridElement;
-
-  $: handleUserInputChange($user_input);
-
-  function handleUserInputChange(ui: UserInputValue) {
-    element = runtime.findElement(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber
-    );
-    event = runtime.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
-    );
-  }
 </script>
 
 <div class="flex flex-col">

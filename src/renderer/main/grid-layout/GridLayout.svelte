@@ -3,16 +3,20 @@
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
   import { modal } from "./../modals/modal.store";
   import { watchResize } from "svelte-watch-resize";
-  import { writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { appSettings } from "../../runtime/app-helper.store.js";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
-  import { derived, get } from "svelte/store";
+  import { derived } from "svelte/store";
   import { createEventDispatcher } from "svelte";
   import AddModuleButton from "./AddModuleButton.svelte";
-  import { runtime_manager } from "../../runtime/runtime.manager.store";
+  import { runtime_manager } from "../../runtime/runtime-manager.store";
+  import { GridModule, GridRuntime } from "../../runtime/runtime";
 
   export let component;
+
+  let runtime: GridRuntime;
+  $: runtime = $runtime_manager.active.runtime;
 
   const dispatch = createEventDispatcher();
 
@@ -37,9 +41,6 @@
   let layoutMargin = { left: 0, right: 0, top: 0, bottom: 0 };
 
   $: calculateRotation($appSettings.persistent.moduleRotation);
-
-  $: calculateDevices($runtime_manager.active.runtime);
-
   $: handleScalingChange($scalingPercent);
 
   function handleResize(e) {
@@ -78,79 +79,46 @@
   }
 
   function getGridDimensions() {
-    const rt = get(runtime_manager).active.runtime;
-    const min_x = Math.min(...rt.modules.map((e) => e.dx));
-    const min_y = Math.min(...rt.modules.map((e) => e.dy));
-    const max_x = Math.max(...rt.modules.map((e) => e.dx));
-    const max_y = Math.max(...rt.modules.map((e) => e.dy));
+    const active = get(runtime_manager).active.runtime;
+    const min_x = Math.min(...active.modules.map((e) => e.dx));
+    const min_y = Math.min(...active.modules.map((e) => e.dy));
+    const max_x = Math.max(...active.modules.map((e) => e.dx));
+    const max_y = Math.max(...active.modules.map((e) => e.dy));
     return {
       min_x: min_x,
       min_y: min_y,
       max_x: max_x,
       max_y: max_y,
-      rows: rt.modules.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
-      columns: rt.modules.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
+      rows: active.modules.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
+      columns: active.modules.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
     };
   }
 
-  function calculateDevices(rt) {
-    devices.update((s) => {
-      const dim = getGridDimensions();
-      const { min_x, min_y, max_y, max_x } = dim;
+  function calculateModuleProperties(device: GridModule) {
+    let runtime = device.parent as GridRuntime;
+    const dim = getGridDimensions();
+    const { min_x, max_y } = dim;
 
-      s = [];
-      rt.modules.forEach((device) => {
-        let connection_top = 0;
-        let connection_bottom = 0;
-        let connection_left = 0;
-        let connection_right = 0;
+    const connection = { top: 0, bottom: 0, left: 0, right: 0 };
 
-        rt.modules.forEach((neighbor) => {
-          if (!(device.dx == neighbor.dx && device.dy == neighbor.dy)) {
-            const dxDiff = device.dx - neighbor.dx;
-            const dyDiff = device.dy - neighbor.dy;
+    runtime.modules.forEach((neighbor) => {
+      if (!(device.dx === neighbor.dx && device.dy === neighbor.dy)) {
+        const dxDiff = device.dx - neighbor.dx;
+        const dyDiff = device.dy - neighbor.dy;
 
-            connection_right = dxDiff > 0 ? 1 : 0;
-            connection_left = dxDiff < 0 ? 1 : 0;
-            connection_bottom = dyDiff > 0 ? 1 : 0;
-            connection_top = dyDiff < 0 ? 1 : 0;
-          }
-        });
-
-        const [x, y] = [
-          device.dx + (min_x < 0 ? Math.abs(min_x) : 0),
-          Math.abs(device.dy - (max_y > 0 ? max_y : 0)),
-        ];
-
-        const obj = device;
-        obj.fly_x_direction = connection_right - connection_left;
-        obj.fly_y_direction = connection_top - connection_bottom;
-        obj.gridX = x + 1;
-        obj.gridY = y + 1;
-        s.push(obj);
-      });
-
-      layoutMargin = {
-        left:
-          s.find((e) => e.dx == min_x)?.architecture == Architecture.VIRTUAL
-            ? 30
-            : 0,
-        right:
-          s.find((e) => e.dx == max_x)?.architecture == Architecture.VIRTUAL
-            ? 30
-            : 0,
-        top:
-          s.find((e) => e.dy == max_y)?.architecture == Architecture.VIRTUAL
-            ? 30
-            : 0,
-        bottom:
-          s.find((e) => e.dy == min_y)?.architecture == Architecture.VIRTUAL
-            ? 30
-            : 0,
-      };
-
-      return s;
+        connection.right = dxDiff > 0 ? 1 : 0;
+        connection.left = dxDiff < 0 ? 1 : 0;
+        connection.bottom = dyDiff > 0 ? 1 : 0;
+        connection.top = dyDiff < 0 ? 1 : 0;
+      }
     });
+
+    return {
+      fly_x_direction: connection.right - connection.left,
+      fly_y_direction: connection.top - connection.bottom,
+      gridX: device.dx + (min_x < 0 ? Math.abs(min_x) : 0) + 1,
+      gridY: Math.abs(device.dy - (max_y > 0 ? max_y : 0)) + 1,
+    };
   }
 
   let scalingPercent = derived(
@@ -202,75 +170,75 @@
           grid-template-rows: repeat({rows}, auto);
             width: {width}px;  height: {height}px;"
         >
-          {#each $devices as device (device.id)}
-            {@const [x, y] = [device.gridX, device.gridY]}
+          {#each $runtime.modules as module (module.id)}
+            {@const props = calculateModuleProperties(module)}
 
             <div
               in:fly|global={{
-                x: device.fly_x_direction * 100,
-                y: device.fly_y_direction * 100,
+                x: props.fly_x_direction * 100,
+                y: props.fly_y_direction * 100,
                 duration: 300,
               }}
               style="width: {deviceWidth * $scalingPercent}px; 
                 height: {deviceWidth * $scalingPercent}px;
-                grid-area: {`${y}/${x}/${y}/${x}`};"
+                grid-area: {`${props.gridY}/${props.gridX}/${props.gridY}/${props.gridX}`};"
               out:fade|global={{ duration: 200 }}
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
-              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+              id="grid-device-{'dx:' + module.dx + ';dy:' + module.dy}"
               class="relative"
             >
-              {#if device.architecture === "virtual"}
+              {#if module.architecture === Architecture.VIRTUAL}
                 <!-- LEFT -->
-                {#if typeof $devices.find((e) => e.dx === device.dx - 1 && e.dy === device.dy) === "undefined"}
+                {#if typeof $devices.find((e) => e.dx === module.dx - 1 && e.dy === module.dy) === "undefined"}
                   <div
                     class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 h-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(device.dx - 1, device.dy)}
+                        handleAddModuleButtonClicked(module.dx - 1, module.dy)}
                     />
                   </div>
                 {/if}
 
                 <!-- RIGHT -->
-                {#if typeof $devices.find((e) => e.dx === device.dx + 1 && e.dy === device.dy) === "undefined"}
+                {#if typeof $devices.find((e) => e.dx === module.dx + 1 && e.dy === module.dy) === "undefined"}
                   <div
                     class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2 h-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(device.dx + 1, device.dy)}
+                        handleAddModuleButtonClicked(module.dx + 1, module.dy)}
                     />
                   </div>
                 {/if}
 
                 <!-- BOTTOM -->
-                {#if typeof $devices.find((e) => e.dy === device.dy - 1 && e.dx === device.dx) === "undefined"}
+                {#if typeof $devices.find((e) => e.dy === module.dy - 1 && e.dx === module.dx) === "undefined"}
                   <div
                     class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2 w-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(device.dx, device.dy - 1)}
+                        handleAddModuleButtonClicked(module.dx, module.dy - 1)}
                     />
                   </div>
                 {/if}
 
                 <!-- TOP -->
-                {#if typeof $devices.find((e) => e.dy === device.dy + 1 && e.dx === device.dx) === "undefined"}
+                {#if typeof $devices.find((e) => e.dy === module.dy + 1 && e.dx === module.dx) === "undefined"}
                   <div
                     class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >
                     <AddModuleButton
                       on:click={() =>
-                        handleAddModuleButtonClicked(device.dx, device.dy + 1)}
+                        handleAddModuleButtonClicked(module.dx, module.dy + 1)}
                     />
                   </div>
                 {/if}
               {/if}
               <Device
-                {device}
+                device={module}
                 width={deviceWidth}
                 style="transform-origin: top left; transform: scale({$scalingPercent})"
               />

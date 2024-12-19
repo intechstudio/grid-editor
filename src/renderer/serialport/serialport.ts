@@ -13,7 +13,7 @@ import {
 import { Subscriber } from "svelte/motion";
 import { GridRuntime } from "../runtime/runtime.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
-import { runtime_manager } from "../runtime/runtime.manager.store.js";
+import { runtime_manager } from "../runtime/runtime-manager.store.js";
 
 const configuration = window.ctxProcess.configuration();
 

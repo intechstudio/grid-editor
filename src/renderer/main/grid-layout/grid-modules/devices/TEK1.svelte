@@ -1,17 +1,17 @@
-<script>
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
-
+<script lang="ts">
+  import { GridModule, GridRuntime } from "../../../../runtime/runtime";
   import Button from "../elements/Button.svelte";
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
 
-  import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
-
   export let moduleWidth;
   export let id = "TEK1";
   export let rotation = 0;
-  export let device = undefined;
+  export let device: GridModule;
+
+  let runtime = device.parent as GridRuntime;
+  let eps = runtime?.elementPositionStore;
+  let lcs = runtime?.ledColorStore;
 
   let [dx, dy] = [device?.dx, device?.dy];
   let elementposition_array = [
@@ -54,7 +54,7 @@
   ];
 
   $: {
-    const value = $elementPositionStore;
+    const value = $eps;
     try {
       let eps = value[dx][dy];
 
@@ -67,7 +67,7 @@
   }
 
   $: {
-    const value = $ledColorStore;
+    const value = $lcs;
     try {
       let lcs = value[dx][dy];
 
@@ -137,7 +137,6 @@
           <slot name="cell-underlay" {elementNumber} />
         </div>
         <button
-          ariarole="button"
           class="normal-cell-ui-container"
           style="border-radius: 50%; padding: 6px;"
         >

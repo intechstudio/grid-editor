@@ -1,12 +1,12 @@
-<script>
-  import { appClipboard } from "./../../../runtime/clipboard.store.ts";
-  import { runtime, user_input } from "./../../../runtime/runtime.store";
+<script lang="ts">
+  import { appClipboard } from "./../../../runtime/clipboard.store";
+  import { user_input } from "./../../../runtime/user-input.store";
   import {
     isCopyElementEnabled,
     isOverwriteElementEnabled,
     isDiscardElementEnabled,
     isClearElementEnabled,
-  } from "./../../panels/configuration/components/Toolbar.ts";
+  } from "./../../panels/configuration/components/Toolbar";
   import {
     overwriteElement,
     copyElement,
@@ -36,8 +36,9 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
+  import { GridModule } from "../../../runtime/runtime.js";
 
-  export let device = undefined;
+  export let device: GridModule;
   export let width = 225;
   let component = undefined;
 
@@ -57,7 +58,6 @@
     ];
 
     const index = components.findIndex((e) => e.type === device?.type);
-    device.type = components[index].type;
     component = components[index].component;
   });
 
@@ -133,12 +133,9 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const element = runtime.findElement(
-        device.dx,
-        device.dy,
-        $user_input.pagenumber,
-        elementNumber
-      )}
+      {@const element = device
+        .findPage($user_input.pagenumber)
+        .findElement(elementNumber)}
       <button
         use:contextTarget={{
           items: [
@@ -178,18 +175,16 @@
         }}
       >
         <ActiveChanges
-          {elementNumber}
+          {element}
           {isLeftCut}
           {isRightCut}
-          {device}
           visible={typeof $moduleOverlay === "undefined" ||
             $moduleOverlay === "configuration-load-overlay"}
         />
         <ElementSelection
-          {elementNumber}
+          {element}
           {isLeftCut}
           {isRightCut}
-          {device}
           visible={typeof $moduleOverlay === "undefined" &&
             (typeof $contextMenu === "undefined" ||
               ($user_input.dx === device.dx &&
@@ -207,6 +202,9 @@
       let:isLeftCut
       let:isRightCut
     >
+      {@const element = device
+        .findPage($user_input.pagenumber)
+        .findElement(elementNumber)}
       <div
         class="absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
@@ -214,8 +212,7 @@
           margin: var(--element-margin);"
       >
         <PresetLoadOverlay
-          {device}
-          {elementNumber}
+          {element}
           {isLeftCut}
           {isRightCut}
           visible={$moduleOverlay === "configuration-load-overlay" &&
@@ -223,8 +220,7 @@
         />
       </div>
       <ControlNameOverlay
-        {device}
-        {elementNumber}
+        {element}
         visible={$moduleOverlay === "control-name-overlay"}
       />
     </svelte:fragment>

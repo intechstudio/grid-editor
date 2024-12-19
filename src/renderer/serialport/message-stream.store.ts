@@ -1,14 +1,7 @@
 // Top level imports
 import { writable, get } from "svelte/store";
 import { appSettings } from "../runtime/app-helper.store.js";
-import {
-  user_input,
-  wss_send_message,
-  update_element_name,
-  update_elementPositionStore,
-  update_elementPositionStore_fromPreview,
-  update_ledColorStore,
-} from "../runtime/runtime.store";
+import { wss_send_message } from "../runtime/runtime.store";
 import {
   debug_monitor_store,
   lua_error_store,
@@ -22,6 +15,7 @@ import { logger } from "../runtime/runtime.store";
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
 import { GridRuntime } from "../runtime/runtime.js";
+import { user_input } from "../runtime/user-input.store";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -59,6 +53,142 @@ export class MessageStream {
 
   public bind(runtime: GridRuntime) {
     this.runtime = runtime;
+  }
+
+  private update_elementPositionStore(descr) {
+    if (descr.class_parameters.EVENTTYPE == 3) {
+      // button change must not be registered
+
+      return;
+    }
+
+    let eps = get(this.runtime.elementPositionStore);
+
+    if (eps[descr.brc_parameters.SX] === undefined) {
+      eps[descr.brc_parameters.SX] = {};
+    }
+    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined) {
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+    }
+    if (
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
+        descr.class_parameters.ELEMENTNUMBER
+      ] === undefined
+    ) {
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
+        descr.class_parameters.ELEMENTNUMBER
+      ] = -1;
+    }
+
+    eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
+      descr.class_parameters.ELEMENTNUMBER
+    ] = [
+      descr.class_parameters.EVENTPARAM1,
+      descr.class_parameters.EVENTPARAM2,
+    ];
+
+    //console.log("Pos", descr.class_parameters.EVENTPARAM)
+
+    this.runtime.elementPositionStore.set(eps);
+  }
+
+  private update_element_name(descr) {
+    const [dx, dy, element, name] = [
+      Number(descr.brc_parameters.SX),
+      Number(descr.brc_parameters.SY),
+      Number(descr.class_parameters.NUM),
+      String(descr.class_parameters.NAME),
+    ];
+
+    this.runtime.modules
+      .find((e) => e.dx === dx && e.dy === dy)
+      .pages.forEach(
+        (e) =>
+          (e.control_elements.find((e) => e.elementIndex === element).name =
+            name.length > 0 ? name : undefined)
+      );
+  }
+
+  private update_elementPositionStore_fromPreview(descr) {
+    let eps = get(this.runtime.elementPositionStore);
+
+    if (eps[descr.brc_parameters.SX] === undefined) {
+      eps[descr.brc_parameters.SX] = {};
+    }
+    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined) {
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+    }
+
+    for (let i = 1; i < descr.class_parameters.LENGTH / 4; i++) {
+      const num = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
+          String.fromCharCode(descr.raw[4 + i * 4 + 1])
+      );
+      const val = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
+          String.fromCharCode(descr.raw[4 + i * 4 + 3])
+      );
+      //console.log(num, val)
+
+      if (
+        eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] === undefined
+      ) {
+        eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = -1;
+      }
+
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = val;
+
+      this.runtime.elementPositionStore.set(eps);
+    }
+  }
+
+  private update_ledColorStore(descr) {
+    for (let i = 0; i < descr.class_parameters.LENGTH / 8; i++) {
+      const num = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
+          String.fromCharCode(descr.raw[8 + i * 8 + 1])
+      );
+      const red = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
+          String.fromCharCode(descr.raw[8 + i * 8 + 3])
+      );
+      const gre = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
+          String.fromCharCode(descr.raw[8 + i * 8 + 5])
+      );
+      const blu = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
+          String.fromCharCode(descr.raw[8 + i * 8 + 7])
+      );
+
+      //console.log(num, red, gre, blu)
+
+      let lcs = get(this.runtime.ledColorStore);
+
+      if (lcs[descr.brc_parameters.SX] === undefined) {
+        lcs[descr.brc_parameters.SX] = {};
+      }
+      if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined) {
+        lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+      }
+      if (
+        lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num] === undefined
+      ) {
+        lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = [0, 0, 0];
+      }
+
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num][0] = red * 4;
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num][1] = gre * 4;
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num][2] = blu * 4;
+
+      this.runtime.ledColorStore.set(lcs);
+    }
   }
 
   public deliver_inbound(class_array: any) {
@@ -105,6 +235,11 @@ export class MessageStream {
       if (class_descr.class_name === "DEBUGTEXT") {
         debug_monitor_store.update_debugtext(class_descr);
         const text = class_descr.class_parameters.TEXT;
+        const [sx, sy] = [
+          class_descr.brc_parameters.SX,
+          class_descr.brc_parameters.SY,
+        ];
+        const device = this.runtime.findModule(sx, sy);
 
         //LUA not OK
         const regex = /EL:\s*(\d+(?:\.\d+)?)\s*EV:\s*(\d+(?:\.\d+)?)/;
@@ -129,11 +264,12 @@ export class MessageStream {
         if (luaNotOKMatch) {
           class_descr.element = Number(luaNotOKMatch[1]);
           class_descr.event = Number(luaNotOKMatch[2]);
-          lua_error_store.update_lua_error("luanotok", class_descr);
+
+          lua_error_store.update_lua_error("luanotok", class_descr, device);
         }
         //KB IS DISABLED
         else if (text == "KB IS DISABLED") {
-          lua_error_store.update_lua_error("kbisdisabled", class_descr);
+          lua_error_store.update_lua_error("kbisdisabled", class_descr, device);
         } else if (text == "page change is disabled") {
           logger.set({
             type: "alert",
@@ -157,18 +293,28 @@ export class MessageStream {
       }
 
       if (class_descr.class_name === "LEDPREVIEW") {
-        update_ledColorStore(class_descr);
+        this.update_ledColorStore(class_descr);
       }
 
       if (class_descr.class_name === "MIDI") {
-        midi_monitor_store.update_midi(class_descr);
+        const [sx, sy] = [
+          class_descr.brc_parameters.SX,
+          class_descr.brc_parameters.SY,
+        ];
+        const device = this.runtime.findModule(sx, sy);
+        midi_monitor_store.update_midi(class_descr, device);
 
         // websocket send data to package
         // ipcRenderer.send('websocket_tx', class_descr);
       }
 
       if (class_descr.class_name === "MIDISYSEX") {
-        sysex_monitor_store.update_sysex(class_descr);
+        const [sx, sy] = [
+          class_descr.brc_parameters.SX,
+          class_descr.brc_parameters.SY,
+        ];
+        const device = this.runtime.findModule(sx, sy);
+        sysex_monitor_store.update_sysex(class_descr, device);
       }
 
       if (class_descr.class_name === "CONFIG") {
@@ -176,7 +322,7 @@ export class MessageStream {
 
       if (class_descr.class_name === "EVENT") {
         // update control element rotation
-        update_elementPositionStore(class_descr);
+        this.update_elementPositionStore(class_descr);
 
         // engine is enabled
         if (get(this._buffer).length === 0) {
@@ -188,7 +334,7 @@ export class MessageStream {
       if (class_descr.class_name === "EVENTPREVIEW") {
         //console.log("EVENTPREVIEW", class_descr.class_parameters["LENGTH"])
 
-        update_elementPositionStore_fromPreview(class_descr);
+        this.update_elementPositionStore_fromPreview(class_descr);
 
         // update control element rotation
         //update_elementPositionStore(class_descr);
@@ -201,7 +347,7 @@ export class MessageStream {
         class_descr.class_name === "ELEMENTNAME" &&
         class_descr.class_instr === "EXECUTE"
       ) {
-        update_element_name(class_descr);
+        this.update_element_name(class_descr);
       }
 
       if (

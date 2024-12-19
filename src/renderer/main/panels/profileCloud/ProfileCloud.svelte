@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { GridModule } from "./../../../runtime/runtime.ts";
+  import { GridModule, GridRuntime } from "./../../../runtime/runtime";
   import { ProfileCloud } from "./../../../runtime/string-table";
   import { RuntimeData } from "./../../../runtime/runtime";
-  import { user_input } from "./../../../runtime/runtime.store";
-  import { GridElement } from "./../../../runtime/runtime";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -16,7 +14,11 @@
 
   import { get } from "svelte/store";
 
-  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
+  import { logger } from "../../../runtime/runtime.store";
+  import {
+    user_input,
+    UserInputValue,
+  } from "./../../../runtime/user-input.store";
 
   import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
@@ -26,6 +28,7 @@
   import UserLogin from "../../modals/UserLogin.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -34,9 +37,14 @@
 
   $: sendConfigLinkToProfileCloud($configLinkStore);
 
-  $: handleRuntimeChange($runtime);
+  let runtime: GridRuntime;
+  $: runtime = $runtime_manager.active.runtime;
 
-  function handleRuntimeChange(rt: RuntimeData) {
+  $: if ($runtime) {
+    handleRuntimeChange(runtime);
+  }
+
+  function handleRuntimeChange(rt: GridRuntime) {
     const compatible = new Set([]);
     const ui = get(user_input);
     for (const module of rt.modules) {
@@ -54,11 +62,11 @@
     });
   }
 
-  $: handleUserInputChange($user_input);
+  $: handleDataChange($user_input, $runtime_manager.active.runtime);
 
-  function handleUserInputChange(ui) {
-    const module = runtime.findModule(ui.dx, ui.dy);
-    const element = runtime.findElement(
+  function handleDataChange(ui: UserInputValue, rt: GridRuntime) {
+    const module = rt.findModule(ui.dx, ui.dy);
+    const element = rt.findElement(
       ui.dx,
       ui.dy,
       ui.pagenumber,
@@ -169,7 +177,8 @@
   }
 
   async function handleGetCurrentConfigurationFromEditor(event): Promise<any> {
-    if (runtime.modules.length === 0) {
+    const active = get(runtime_manager).active.runtime;
+    if (active.modules.length === 0) {
       logger.set({
         type: "fail",
         mode: 0,
