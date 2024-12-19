@@ -1,16 +1,16 @@
-<script>
+<script lang="ts">
   import { Architecture } from "@intechstudio/grid-protocol";
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
-  import { modal } from "./../modals/modal.store.ts";
+  import { modal } from "./../modals/modal.store";
   import { watchResize } from "svelte-watch-resize";
   import { writable } from "svelte/store";
-  import { runtime } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store.js";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
-  import { derived } from "svelte/store";
+  import { derived, get } from "svelte/store";
   import { createEventDispatcher } from "svelte";
   import AddModuleButton from "./AddModuleButton.svelte";
+  import { runtime_manager } from "../../runtime/runtime.manager.store";
 
   export let component;
 
@@ -38,7 +38,7 @@
 
   $: calculateRotation($appSettings.persistent.moduleRotation);
 
-  $: calculateDevices($runtime);
+  $: calculateDevices($runtime_manager.active.runtime);
 
   $: handleScalingChange($scalingPercent);
 
@@ -78,7 +78,7 @@
   }
 
   function getGridDimensions() {
-    const rt = $runtime;
+    const rt = get(runtime_manager).active.runtime;
     const min_x = Math.min(...rt.modules.map((e) => e.dx));
     const min_y = Math.min(...rt.modules.map((e) => e.dy));
     const max_x = Math.max(...rt.modules.map((e) => e.dx));

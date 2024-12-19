@@ -12,6 +12,7 @@
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import { onDestroy, onMount } from "svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
+  import { runtime_manager } from "../runtime/runtime.manager.store";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -123,7 +124,7 @@
     </div>
   </GridLayout>
 
-  {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
+  {#if $runtime_manager.active.runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
     <div
       in:fade|global={{ delay: 2000, duration: 1000 }}
       out:blur|global={{ duration: 150 }}

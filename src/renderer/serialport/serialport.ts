@@ -13,8 +13,7 @@ import {
 import { Subscriber } from "svelte/motion";
 import { GridRuntime } from "../runtime/runtime.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
-import { MessageStream } from "./message-stream.store.js";
-import { runtime_manager } from "../runtime/runtime.store.js";
+import { runtime_manager } from "../runtime/runtime.manager.store.js";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -74,7 +73,7 @@ export type GridConnection = {
   virtual: boolean;
 };
 
-class GridConnectionManager implements Readable<GridConnection[]> {
+export class GridConnectionManager implements Readable<GridConnection[]> {
   private _internal: Writable<GridConnection[]> = writable([]);
 
   public subscribe(
@@ -109,9 +108,11 @@ class GridConnectionManager implements Readable<GridConnection[]> {
             virtual: false,
           };
 
-          const runtime = runtime_manager.allocate();
-          buffer.messageStream.bind(runtime);
-          runtime.connection = current;
+          const incoming = new GridRuntime();
+          buffer.messageStream.bind(incoming);
+          incoming.connection = current;
+
+          runtime_manager.add(incoming);
 
           this.update((store) => {
             console.log("Port connected:", current);
@@ -124,8 +125,7 @@ class GridConnectionManager implements Readable<GridConnection[]> {
             this.update((store) => {
               return store.filter((e) => e.id !== current.id);
             });
-
-            runtime_manager.free(runtime);
+            runtime_manager.destroy(incoming);
           });
 
           resolve(current);

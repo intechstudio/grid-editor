@@ -1,7 +1,6 @@
 <script lang="ts">
   import {
     runtime,
-    runtime_manager,
     user_input,
     UserInputValue,
   } from "./../../../runtime/runtime.store";
@@ -24,6 +23,7 @@
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
+  import { runtime_manager } from "../../../runtime/runtime.manager.store";
 
   let event: GridEvent;
 

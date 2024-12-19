@@ -1,7 +1,6 @@
 <script lang="ts">
   import MultiEventView from "./../configuration/MultiEventView.svelte";
   import { modal } from "./../../modals/modal.store";
-  import { runtime_manager } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { appSettings } from "../../../runtime/app-helper.store";
 
@@ -18,6 +17,7 @@
     MoltenInput,
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
+  import { runtime_manager } from "../../../runtime/runtime.manager.store";
   const configuration = window.ctxProcess.configuration();
 
   async function selectDirectory() {

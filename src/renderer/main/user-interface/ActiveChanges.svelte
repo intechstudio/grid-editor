@@ -130,8 +130,6 @@
     }
   }
 
-  const ports = connection_manager.ports;
-
   function handleConnectModules(e) {
     navigator.tryConnectGrid().catch((e) => {
       logger.set({
@@ -150,7 +148,7 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <PortSelector visible={$ports.length > 1} disabled={isChanges} />
+    <PortSelector visible={true} disabled={isChanges} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes

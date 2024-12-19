@@ -8,13 +8,6 @@ const RECONNECT_INTERVAL = 1000;
 
 let port_disovery_interval;
 
-/* const setIntervalAsync = (fn, ms) => {
-  fn().then(() => {
-    port_disovery_interval = setTimeout(() => setIntervalAsync(fn, ms), ms);
-  });
-};
- */
-
 // Basic serial usage
 async function attemptSerialConnection() {
   if (serial.mainWindow !== undefined) {

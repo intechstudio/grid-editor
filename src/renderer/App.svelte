@@ -29,7 +29,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
 
-  import { runtime, logger, runtime_manager } from "./runtime/runtime.store";
+  import { runtime, logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
@@ -41,6 +41,7 @@
 
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
   import "redefine-custom-elements";
+  import { runtime_manager } from "./runtime/runtime.manager.store";
 
   console.log("Hello from Svelte main.js");
 

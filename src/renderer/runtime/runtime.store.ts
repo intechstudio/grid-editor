@@ -1,216 +1,11 @@
-import {
-  writable,
-  get,
-  type Writable,
-  derived,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
-} from "svelte/store";
+import { writable, get, type Writable } from "svelte/store";
 import { appSettings } from "./app-helper.store";
 import { modal, Snap } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
-import { GridAction, GridRuntime, aliveModules } from "./runtime";
-import { GridInstruction } from "../serialport/instructions";
-import { GridConnection } from "../serialport/serialport";
-import { WriteBuffer } from "./engine.store";
-import { MessageStream } from "../serialport/message-stream.store";
+import { GridAction, GridRuntime } from "./runtime";
+import { runtime_manager } from "./runtime.manager.store";
 
-type GridRuntimeManagerData = {
-  data: GridRuntime[];
-  active: GridRuntime;
-};
-
-class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
-  private _internal: Writable<GridRuntimeManagerData> = writable({
-    data: [],
-    active: undefined,
-  });
-
-  public subscribe(
-    run: Subscriber<GridRuntimeManagerData>,
-    invalidate?: (value?: GridRuntimeManagerData) => void
-  ): Unsubscriber {
-    return this._internal.subscribe(run, invalidate);
-  }
-
-  private set(value: GridRuntimeManagerData) {
-    this._internal.set(value);
-  }
-
-  private update(updater: Updater<GridRuntimeManagerData>) {
-    this._internal.update(updater);
-  }
-
-  public allocate() {
-    const incoming = new GridRuntime();
-    this.update((store) => {
-      for (const runtime of store.data) {
-        if (runtime.virtual) {
-          console.log("Killed (it's good):", runtime);
-          runtime.killHeartbeat();
-          store.data = store.data.filter((e) => e.id !== runtime.id);
-        }
-      }
-
-      console.log("Incoming runtime:", incoming);
-      store.data.push(incoming);
-
-      if (typeof store.active === "undefined") {
-        console.log("Active runtime:", incoming);
-        store.active = incoming;
-      }
-      return store;
-    });
-
-    return runtime;
-  }
-
-  public allocateVirtual(): GridRuntime {
-    const buffer = new WriteBuffer(undefined);
-    const virtual_connection: GridConnection = {
-      id: undefined,
-      buffer: buffer,
-      port: undefined,
-      virtual: true,
-    };
-
-    const incoming = new GridRuntime(virtual_connection, true);
-
-    this.update((store) => {
-      store.data.push(incoming);
-
-      if (typeof store.active === "undefined") {
-        store.active = incoming;
-      }
-      return store;
-    });
-
-    return incoming;
-  }
-
-  public free(runtime: GridRuntime) {
-    this.update((store) => {
-      const destroyed = store.data.find((e) => e.id === runtime.id);
-      if (!destroyed) {
-        throw new Error("Ca");
-      }
-
-      console.log("Killed (it's good):", runtime);
-      destroyed.killHeartbeat();
-
-      store.data = store.data.filter((e) => e.id !== destroyed.id);
-
-      if (store.active.id === destroyed.id) {
-        store.active = store.data[0];
-      }
-
-      if (typeof store.active === "undefined") {
-        store.active = this.allocateVirtual();
-      }
-
-      return store;
-    });
-  }
-
-  public NVMErase() {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "nvmerase",
-      message: `Erasing all modules...`,
-    });
-    const promises: Promise<any>[] = [];
-    for (const target of get(this._internal).data) {
-      const instruction = new GridInstruction.NVMErase(target.virtual);
-      promises.push(instruction.executeOn(target.connection));
-    }
-    Promise.all(promises)
-      .then((res) => {
-        //TODO
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "nvmerase",
-          message: `Erase complete!`,
-        });
-      })
-      .catch((e) => {
-        if (typeof e !== "undefined") {
-          logger.set(e);
-        } else {
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "nvmerase",
-            message: `Retry erase all modules...`,
-          });
-        }
-      });
-  }
-
-  public NVMDefrag() {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "nvmdefrag",
-      message: `Defragging all modules...`,
-    });
-
-    const promises: Promise<any>[] = [];
-    for (const target of get(this._internal).data) {
-      const instruction = new GridInstruction.NVMDefrag(target.virtual);
-      promises.push(instruction.executeOn(target.connection));
-    }
-    Promise.all(promises)
-      .then((res) => {
-        //TODO
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "nvmdefrag",
-          message: `Defrag complete!`,
-        });
-      })
-      .catch((e) => {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "engine-disabled",
-          message: `Engine is disabled, NVM Defragmentation failed!`,
-        });
-      });
-  }
-
-  public LUAExecImmediate(dx: number, dy: number, script: string) {
-    const target = get(this._internal).active;
-    if (!target) {
-      //ERROR HANDLING
-      return;
-    }
-
-    const instruction = new GridInstruction.SendConfigImmediate(
-      dx,
-      dy,
-      script,
-      target.virtual
-    );
-    instruction.executeOn(target.connection).catch((e) => {
-      console.warn(e);
-    });
-  }
-}
-
-export const runtime_manager = new GridRuntimeManager();
-
-export let runtime: GridRuntime = runtime_manager.allocateVirtual();
-
-const setIntervalAsync = (fn, ms) => {
-  fn().then(() => {
-    setTimeout(() => setIntervalAsync(fn, ms), ms);
-  });
-};
+export let runtime: GridRuntime;
 
 // The controller which is added to runtime first, load a default config!
 
@@ -356,15 +151,15 @@ export function update_ledColorStore(descr) {
 export const logger = writable();
 
 function create_user_input() {
-  const defaultValues: UserInputValue = {
-    dx: undefined,
-    dy: undefined,
-    pagenumber: undefined,
-    elementnumber: undefined,
-    eventtype: undefined,
+  const ui_default: UserInputValue = {
+    dx: 0,
+    dy: 0,
+    pagenumber: 0,
+    elementnumber: 0,
+    eventtype: 2,
   };
 
-  const store = new ProtectedStore(defaultValues);
+  const store = new ProtectedStore(ui_default);
 
   function setOverride({ dx, dy, pagenumber, elementnumber, eventtype }) {
     for (const [key, value] of Object.entries({
@@ -376,7 +171,7 @@ function create_user_input() {
     })) {
       if (typeof value === "undefined") {
         store.set({
-          ...defaultValues,
+          ...ui_default,
         });
         return;
       }
@@ -502,7 +297,7 @@ function create_user_input() {
         });
       } else {
         setOverride({
-          ...defaultValues,
+          ...ui_default,
         });
       }
     }
@@ -606,3 +401,7 @@ export function getElementEventTypes(x, y, elementNumber) {
 
   return element.events.map((e) => e.type);
 }
+
+runtime_manager.subscribe((store) => {
+  runtime = store.active.runtime;
+});

@@ -20,11 +20,14 @@
   import { GridElement, GridEvent } from "../../../runtime/runtime";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
+  import { runtime_manager } from "../../../runtime/runtime.manager.store";
 
   let element: GridElement;
   let event: GridEvent;
 
-  $: handleUserInputChange($user_input);
+  $: if ($runtime_manager.active) {
+    handleUserInputChange($user_input);
+  }
 
   function handleUserInputChange(ui: UserInputValue) {
     element = runtime.findElement(

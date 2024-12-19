@@ -37,12 +37,6 @@ import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation"
 import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
-import {
-  clearIntervalAsync,
-  setIntervalAsync,
-  SetIntervalAsyncTimer,
-} from "set-interval-async";
-import { WriteBuffer } from "./engine.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -1418,12 +1412,7 @@ export interface RuntimeData extends NodeData {
 export class GridRuntime extends RuntimeNode<RuntimeData> {
   public connection: GridConnection;
 
-  public readonly heartbeat_editor_ms = 300;
-  public readonly heartbeat_grid_ms = 250;
   public readonly virtual: boolean;
-
-  private grid_heartbeat: SetIntervalAsyncTimer<[]>;
-  private editor_heartbeat: SetIntervalAsyncTimer<[]>;
 
   constructor(
     connection: GridConnection = undefined,
@@ -1432,20 +1421,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     super(undefined, { modules: [] });
     this.connection = connection;
     this.virtual = virtual;
-
-    this.editor_heartbeat = setIntervalAsync(
-      () => GridRuntime.editor_heartbeat_interval_handler(this),
-      this.heartbeat_editor_ms
-    );
-    this.grid_heartbeat = setIntervalAsync(
-      () => GridRuntime.grid_heartbeat_interval_handler(this),
-      this.heartbeat_grid_ms
-    );
-  }
-
-  public killHeartbeat() {
-    clearIntervalAsync(this.grid_heartbeat);
-    clearIntervalAsync(this.editor_heartbeat);
   }
 
   get modules() {
@@ -1882,53 +1857,5 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       },
       mandatory: false,
     });
-  }
-
-  private static async editor_heartbeat_interval_handler(runtime: GridRuntime) {
-    let type = 255;
-
-    // if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
-    //   type = 254;
-    // }
-
-    if (
-      runtime.modules.length > 0 &&
-      runtime.modules.filter((e) => e.architecture === "virtual").length === 0
-    ) {
-      const instruction = new GridInstruction.SendHeartbeatImmediate(
-        type,
-        runtime.virtual
-      );
-
-      console.log(runtime);
-      instruction.executeOn(runtime.connection).catch((e) => {
-        console.log("EDITOR: Heartbeat skipped...");
-      });
-    } else {
-      //writeBuffer.clear();
-    }
-  }
-
-  private static async grid_heartbeat_interval_handler(runtime: GridRuntime) {
-    for (const device of runtime.modules) {
-      if (device.architecture === Architecture.VIRTUAL) {
-        return;
-      }
-
-      const last =
-        get(aliveModules).find((e) => e.id === device.id)?.last ?? Date.now();
-
-      // Allow less strict elapsedTimeLimit while writeBuffer is busy!
-      const elapsedTimeLimit =
-        get(runtime.connection.buffer).length > 0
-          ? runtime.heartbeat_grid_ms * 6
-          : runtime.heartbeat_grid_ms * 3;
-      const elapsedTime = Date.now() - last;
-
-      if (!last || elapsedTime > elapsedTimeLimit) {
-        // TIMEOUT! let's remove the device
-        runtime.destroy_module(device.dx, device.dy);
-      }
-    }
   }
 }
