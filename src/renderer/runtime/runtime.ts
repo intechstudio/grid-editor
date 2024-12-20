@@ -423,6 +423,7 @@ export class EventData extends NodeData {
   public type: number;
   public stored: LuaScript;
   public loaded: boolean;
+  private loading: boolean;
 
   constructor(type: number) {
     super();
@@ -871,7 +872,6 @@ export class GridEvent extends RuntimeNode<EventData> {
         simulate
       );
 
-      this.loaded = true;
       const descr = await instruction.executeOn(runtime.connection);
 
       const script = descr.class_parameters.ACTIONSTRING;
@@ -879,10 +879,10 @@ export class GridEvent extends RuntimeNode<EventData> {
       this.push(...actions);
       this.store();
 
+      this.loaded = true;
       console.log("EVENT LOADED");
       return Promise.resolve();
     } catch (e) {
-      this.loaded = false;
       return Promise.reject(e);
     }
   }

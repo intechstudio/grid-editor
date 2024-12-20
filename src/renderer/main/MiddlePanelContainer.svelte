@@ -6,12 +6,15 @@
   import { fade, blur, fly } from "svelte/transition";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
+  import MinimapDevice from "./grid-layout/minimap/MinimapDevice.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import { onDestroy, onMount } from "svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";
   import { GridRuntime } from "../runtime/runtime";
+  import { ModuleType } from "@intechstudio/grid-protocol";
+  import Minimap from "./grid-layout/minimap/Minimap.svelte";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -132,7 +135,8 @@
       out:blur|global={{ duration: 150 }}
       class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
     >
-      <ModulConnectionDialog />
+      <!-- <ModulConnectionDialog /> -->
+      <Minimap />
     </div>
   {/if}
 
