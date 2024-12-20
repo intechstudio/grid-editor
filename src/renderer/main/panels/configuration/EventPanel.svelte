@@ -7,6 +7,7 @@
     GridElement,
     ElementData,
   } from "../../../runtime/runtime";
+  import { Grid } from "../../../lib/_utils";
 
   export let element: GridElement;
 
@@ -41,7 +42,11 @@
       })
     );
 
-    selected = options.find((e) => e.value === ui.eventtype).value;
+    const closestEvent = Grid.getClosestEvent(
+      options.map((e) => e.value),
+      ui.eventtype
+    );
+    selected = closestEvent;
   }
 
   $: handleSelectEvent(selected);

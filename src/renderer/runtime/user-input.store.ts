@@ -35,38 +35,42 @@ export class UserInput implements Writable<UserInputValue> {
     run: Subscriber<UserInputValue>,
     invalidate?: (value?: UserInputValue) => void
   ): Unsubscriber {
+    const runtime = get(runtime_manager).active.runtime;
+    const value = get(this._internal);
+
+    const element = runtime.findElement(
+      value.dx,
+      value.dy,
+      value.pagenumber,
+      value.elementnumber
+    );
+
+    if (typeof element !== "undefined") {
+      const event = element.findEvent(value.eventtype);
+
+      if (typeof event === "undefined") {
+        const closestEvent = Grid.getClosestEvent(
+          element.events.map((e) => e.type),
+          value.eventtype
+        );
+        this.set({
+          dx: value.dx,
+          dy: value.dy,
+          pagenumber: value.pagenumber,
+          elementnumber: value.elementnumber,
+          eventtype: closestEvent,
+        });
+      }
+    } else {
+      this.set(UserInput.defaultValue);
+    }
+
     return this._internal.subscribe(run, invalidate);
   }
 
   // Set the entire object
   public set(value: UserInputValue) {
-    const runtime = get(runtime_manager).active.runtime;
-    console.log(
-      "YAY",
-      runtime.virtual,
-      typeof runtime,
-      value.dx,
-      value.dy,
-      runtime.findModule(
-        value.dx,
-        value.dy
-        //value.pagenumber,
-        //value.elementnumber
-      )
-    );
-    const events = runtime
-      .findElement(value.dx, value.dy, value.pagenumber, value.elementnumber)
-      ?.events.map((e) => e.type);
-    const closestEvent = Grid.getClosestEvent(events ?? [2], value.eventtype);
-    console.log(value, runtime, events, closestEvent);
-
-    this._internal.set({
-      dx: value.dx,
-      dy: value.dy,
-      pagenumber: value.pagenumber,
-      elementnumber: value.elementnumber,
-      eventtype: closestEvent,
-    });
+    this._internal.set(value);
   }
 
   // Update the object with a partial update function

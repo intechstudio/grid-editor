@@ -871,13 +871,19 @@ export class GridEvent extends RuntimeNode<EventData> {
         simulate
       );
 
-      this.loaded = true;
       const descr = await instruction.executeOn(runtime.connection);
 
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
+
+      //Handling multiple load call at the same time
+      if (this.isLoaded()) {
+        return Promise.resolve();
+      }
+
       this.push(...actions);
       this.store();
+      this.loaded = true;
 
       console.log("EVENT LOADED");
       return Promise.resolve();
@@ -1524,8 +1530,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           false
         );
         // check if the firmware version of the newly connected device is acceptable
-        console.log("Incoming Device");
-        console.log("Architecture", controller.architecture);
+        console.log(
+          "Incoming Device:",
+          `${controller.dx} ${controller.dy} ${controller.type} (${controller.architecture})`
+        );
 
         const as = get(appSettings);
         const firmware_required =
@@ -1545,7 +1553,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         );
 
         this.modules = [...this.modules, controller];
-        user_input.set(UserInput.defaultValue);
         this.aliveModules.update((s) => {
           s.push({ id: controller.id, last: Date.now() });
           return s;
@@ -1733,7 +1740,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     connection_simulator.createModule(dx, dy, moduleInfo.type);
 
     this.modules = [...this.modules, controller];
-    user_input.set(UserInput.defaultValue);
   }
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
@@ -1798,11 +1804,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   destroy_module(dx, dy) {
-    console.log("DESTORY", dx, dy);
     user_input.module_destroy_handler(dx, dy);
     // remove the destroyed device from runtime
-    const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
-    this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
+    const removed = this.findModule(dx, dy);
+    this.modules = this.modules.filter((e) => e.id !== removed.id);
     removed.destroy();
 
     this.aliveModules.update((s) => {

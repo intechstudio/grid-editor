@@ -16,6 +16,7 @@ import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
 import { GridRuntime } from "../runtime/runtime.js";
 import { user_input } from "../runtime/user-input.store";
+import { runtime_manager } from "../runtime/runtime-manager.store.js";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -324,8 +325,12 @@ export class MessageStream {
         // update control element rotation
         this.update_elementPositionStore(class_descr);
 
+        const active = get(runtime_manager).active.runtime;
         // engine is enabled
-        if (get(this._buffer).length === 0) {
+        if (
+          get(this._buffer).length === 0 &&
+          this.runtime.id === get(active).id
+        ) {
           // update active element selection
           user_input.process_incoming_event_from_grid(class_descr);
         }
@@ -362,9 +367,11 @@ export class MessageStream {
         class_descr.class_instr === "REPORT"
       ) {
         const ui = get(user_input);
-        if (typeof ui === "undefined") return;
-
-        if (ui.pagenumber !== class_descr.class_parameters.PAGENUMBER) {
+        const active = get(runtime_manager).active.runtime;
+        if (
+          ui.pagenumber !== class_descr.class_parameters.PAGENUMBER &&
+          this.runtime.id === get(active).id
+        ) {
           user_input.set({
             dx: ui.dx,
             dy: ui.dy,

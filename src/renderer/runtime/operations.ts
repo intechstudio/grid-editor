@@ -355,7 +355,6 @@ export async function loadProfile(
     payload: {},
     mandatory: false,
   });
-
   target
     .loadProfile(profile)
     .then(() => {

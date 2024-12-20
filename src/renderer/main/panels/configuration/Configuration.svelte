@@ -48,7 +48,6 @@
     );
 
     if (typeof element !== "undefined" && !element.isLoaded()) {
-      console.log("LOADDD");
       element
         .load()
         .then((e) => {})

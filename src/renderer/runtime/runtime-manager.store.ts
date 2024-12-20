@@ -277,7 +277,12 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
       if (!runtime.isAlive(device)) {
         // TIMEOUT! let's remove the device
-        console.log("Heartbeat lost...");
+        console.log(
+          "Heartbeat lost. DESTROY:",
+          device.dx,
+          device.dy,
+          device.type
+        );
         runtime.destroy_module(device.dx, device.dy);
       }
     }

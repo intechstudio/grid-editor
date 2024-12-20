@@ -154,10 +154,7 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <PortSelector
-      visible={$runtime_manager.data.length > 1}
-      disabled={isChanges}
-    />
+    <PortSelector visible={$runtime_manager.data.length > 1} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes

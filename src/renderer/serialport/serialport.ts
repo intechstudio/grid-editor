@@ -245,7 +245,12 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
             grid.decode_packet_classes(class_array);
 
             if (class_array !== false) {
-              connection.buffer.messageStream.deliver_inbound(class_array);
+              try {
+                connection.buffer.messageStream.deliver_inbound(class_array);
+              } catch (e) {
+                //TODO: Serialize properly messageStream
+                console.error("MessageStrem works to fast (TODO):", e);
+              }
             }
           }
         }

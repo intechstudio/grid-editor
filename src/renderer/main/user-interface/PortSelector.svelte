@@ -45,7 +45,6 @@
   $: handleSelectedChange(selected);
 
   function handleSelectedChange(id: string) {
-    user_input.set(UserInput.defaultValue);
     const selected = runtime_manager.data.find((e) => e.runtime.id === id);
     runtime_manager.active = selected;
   }
