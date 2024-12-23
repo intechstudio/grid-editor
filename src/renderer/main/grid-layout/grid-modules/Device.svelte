@@ -36,7 +36,6 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
-  import { p } from "../../../../../playwright-report/trace/assets/inspectorTab-DdpLd2bb.js";
   import {
     profile_cloud,
     profileCloudConfigDrag,
