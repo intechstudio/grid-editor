@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { GridModule } from "./../../../runtime/runtime.ts";
+  import { GridModule } from "./../../../runtime/runtime";
   import { ProfileCloud } from "./../../../runtime/string-table";
   import { RuntimeData } from "./../../../runtime/runtime";
-  import { user_input } from "./../../../runtime/runtime.store";
-  import { GridElement } from "./../../../runtime/runtime";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -26,6 +24,7 @@
   import UserLogin from "../../modals/UserLogin.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
+  import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -152,13 +151,6 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    if (typeof get(selectedConfigStore) !== "undefined") {
-      moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
-    } else {
-      if (get(moduleOverlay) === ModuleOverlayType.CONFIGURATION_LOAD) {
-        moduleOverlay.close();
-      }
-    }
   }
 
   async function handleDeleteLocalConfig(event) {
@@ -324,6 +316,15 @@
         case "openExternalLink":
           channelMessageWrapper(event, handleOpenExternalLink);
           break;
+
+        case "configDragChange":
+          channelMessageWrapper(
+            event,
+            ProfileCloudEvent.handleConfigDragChange
+          );
+          break;
+        case "showOverlay":
+          channelMessageWrapper(event, ProfileCloudEvent.handleShowOverlay);
       }
     }
   }
@@ -408,11 +409,7 @@
   };
 
   function sendMessageToProfileCloud(message) {
-    let messageTarget = window;
-
-    if (!messageTarget?.postMessage) return;
-
-    messageTarget.postMessage(message, "*");
+    profile_cloud.sendMessage(message);
   }
 
   function handleMouseOut(e) {

@@ -1,12 +1,12 @@
-<script>
-  import { appClipboard } from "./../../../runtime/clipboard.store.ts";
+<script lang="ts">
+  import { appClipboard } from "./../../../runtime/clipboard.store";
   import { runtime, user_input } from "./../../../runtime/runtime.store";
   import {
     isCopyElementEnabled,
     isOverwriteElementEnabled,
     isDiscardElementEnabled,
     isClearElementEnabled,
-  } from "./../../panels/configuration/components/Toolbar.ts";
+  } from "./../../panels/configuration/components/Toolbar";
   import {
     overwriteElement,
     copyElement,
@@ -36,8 +36,15 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
+  import {
+    profile_cloud,
+    profileCloudConfigDrag,
+  } from "../../panels/profileCloud/ProfileCloud.js";
+  import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
+  import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
+  import { fade } from "svelte/transition";
 
-  export let device = undefined;
+  export let device: GridModule = undefined;
   export let width = 225;
   let component = undefined;
 
@@ -57,7 +64,6 @@
     ];
 
     const index = components.findIndex((e) => e.type === device?.type);
-    device.type = components[index].type;
     component = components[index].component;
   });
 
@@ -97,9 +103,57 @@
     window.navigator.platform.indexOf("Mac") != -1
       ? ["Cmd ⌘", "Alt ⌥"]
       : ["Ctrl", "Alt"];
+
+  function handleDragEnter(target: GridPage | GridElement) {
+    const message = {
+      messageType: "configDragTargetChange",
+      target: target.getInfo(),
+    };
+
+    profile_cloud.sendMessage(message);
+  }
+
+  function handleDragLeave() {
+    const message = {
+      messageType: "configDragTargetChange",
+      target: undefined,
+    };
+
+    profile_cloud.sendMessage(message);
+  }
+
+  let isDrag = false;
+  let dragged: {
+    configType: "profile" | "preset";
+    targetType: ModuleType | ElementType;
+  } = undefined;
+
+  $: {
+    isDrag = typeof $profileCloudConfigDrag !== "undefined";
+    if (isDrag) {
+      switch ($profileCloudConfigDrag.configType) {
+        case "profile": {
+          dragged = {
+            configType: "profile",
+            targetType: $profileCloudConfigDrag.type as ModuleType,
+          };
+          break;
+        }
+        case "preset": {
+          dragged = {
+            configType: "preset",
+            targetType: $profileCloudConfigDrag.type as ElementType,
+          };
+          break;
+        }
+      }
+    } else {
+      dragged = undefined;
+    }
+  }
 </script>
 
-<div class="pointer-events-none {$$props.classs}" style={$$props.style}>
+<div class="pointer-events-none" style={$$props.style}>
   <svelte:component
     this={component}
     {device}
@@ -207,6 +261,12 @@
       let:isLeftCut
       let:isRightCut
     >
+      {@const element = runtime.findElement(
+        device.dx,
+        device.dy,
+        $user_input.pagenumber,
+        elementNumber
+      )}
       <div
         class="absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
@@ -227,6 +287,19 @@
         {elementNumber}
         visible={$moduleOverlay === "control-name-overlay"}
       />
+
+      {#if isDrag && dragged?.configType === "preset" && dragged?.targetType === element.type}
+        <div class="absolute p-2 w-full h-full flex">
+          <div
+            role="region"
+            aria-label="Drop area for presets"
+            class="w-full h-full bg-commit/25 pointer-events-auto rounded"
+            on:dragenter={() => handleDragEnter(element)}
+            on:dragleave|preventDefault={handleDragLeave}
+            on:dragover|preventDefault
+          />
+        </div>
+      {/if}
     </svelte:fragment>
 
     <!-- Module Overlays -->
@@ -236,6 +309,19 @@
         visible={$moduleOverlay === "configuration-load-overlay" &&
           $selectedConfigStore?.configType === "profile"}
       />
+      {#if isDrag && dragged?.configType === "profile" && dragged?.targetType === device.type}
+        <div class="absolute p-2 w-full h-full flex">
+          <div
+            role="region"
+            aria-label="Drop area for profiles"
+            class="w-full h-full bg-commit/25 pointer-events-auto rounded"
+            on:dragenter={() =>
+              handleDragEnter(device.findPage($user_input.pagenumber))}
+            on:dragleave|preventDefault={handleDragLeave}
+            on:dragover|preventDefault
+          />
+        </div>
+      {/if}
     </svelte:fragment>
   </svelte:component>
 </div>
