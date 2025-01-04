@@ -208,7 +208,7 @@
     >
       <MoltenPushButton text="Clear" />
     </div>
-    {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
+    {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
         text="Connect"
         style={"outlined"}

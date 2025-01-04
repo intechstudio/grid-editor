@@ -2,7 +2,6 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   import { Analytics } from "../runtime/analytics.js";
-  import buildVariables from "../../../buildVariables.json";
 
   const ipcRenderer = window.sketchyAPI;
   const configuration = window.ctxProcess.configuration();
@@ -31,7 +30,7 @@
         version = value.version;
         state = UpdateState.AVAILABLE;
         updateFromStableToNightly =
-          buildVariables.BUILD_ENV == "production" &&
+          import.meta.env.VITE_BUILD_ENV == "production" &&
           version.includes("nightly");
         break;
       }

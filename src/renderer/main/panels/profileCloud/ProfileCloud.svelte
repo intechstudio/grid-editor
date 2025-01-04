@@ -27,7 +27,6 @@
   import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
 
   const configuration = window.ctxProcess.configuration();
-  const buildVariables = window.ctxProcess.buildVariables();
 
   $: profileCloudIsMounted && sendAuthEventToProfileCloud($authStore);
 
@@ -273,7 +272,7 @@
 
   async function handleOpenExternalLink(event) {
     const { link } = event.data;
-    if (window.ctxProcess.buildVariables().BUILD_TARGET === "web") {
+    if (import.meta.env.VITE_BUILD_TARGET === "web") {
       window.open(link);
     } else {
       window.electron.openInBrowser(link);

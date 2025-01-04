@@ -217,7 +217,7 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          if (window.ctxProcess.buildVariables().BUILD_TARGET !== "web") {
+          if (import.meta.env.VITE_BUILD_TARGET !== "web") {
             modal.show({ component: Welcome });
           }
           return s;

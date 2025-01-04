@@ -26,6 +26,7 @@ export default defineConfig({
       },
       outDir: "dist/main",
     },
+    envPrefix: "VITE_",
   },
   preload: {
     plugins: [externalizeDepsPlugin()],

@@ -243,7 +243,7 @@ export const connection_manager = new GridConnectionManager();
 navigator.tryConnectGrid = async () => {
   try {
     let ports: any[];
-    if (import.meta.env.VITE_WEB_MODE == "true") {
+    if (import.meta.env.VITE_BUILD_TARGET == "web") {
       const port = await navigator.serial.requestPort({ filters: filter });
       ports = [port]; // Add the newly requested port to the list
     } else {

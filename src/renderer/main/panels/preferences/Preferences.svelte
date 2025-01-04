@@ -80,7 +80,6 @@
   ];
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
-  const buildVariables = window.ctxProcess.buildVariables();
 </script>
 
 <div
@@ -465,7 +464,7 @@
       />
     </Block>
 
-    {#if buildVariables.BRANCH_NAME === "stable"}
+    {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
       <Block>
         <BlockTitle>Nightly Editor Update</BlockTitle>
         <BlockBody>
