@@ -16,10 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Test rename
-        run: |
-          touch test.txt
-          prename 's/-test$/-testtest/' ./build/*-artifact*
       - name: Read current version and append date
         id: get-version
         run: |
@@ -111,7 +107,11 @@ jobs:
           merge-multiple: true
 
       - name: Rename files from *-artifact to *-nightly
-        run: rename 's/-artifact$/-nightly/' ./build/*-artifact*
+        run: |
+          for file in $(find ./build -type f -name '*-artifact*'); do
+            new_file=$(echo "$file" | sed 's/-artifact/-nightly/g')
+            mv "$file" "$new_file"
+          done
 
       - name: Release Nightly
         uses: softprops/action-gh-release@v1

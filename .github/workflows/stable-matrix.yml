@@ -23,8 +23,13 @@ jobs:
           pattern: "*-artifact" # This will match ubuntu-latest-artifact, windows-latest-artifact, and macos-latest-artifact
           path: build/ # Path to save the downloaded artifacts
           merge-multiple: true
-      - name: Rename files from *-artifact to *
-        run: rename 's/-artifact$//' ./build/*-artifact*
+      - name: Remove *-artifact from file name 
+        run: |
+          for file in $(find ./build -type f -name '*-artifact*'); do
+            new_file=$(echo "$file" | sed 's/-artifact//g')
+            mv "$file" "$new_file"
+          done
+
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
