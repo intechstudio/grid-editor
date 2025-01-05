@@ -88,7 +88,7 @@
     "postinstall": "electron-builder install-app-deps",
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 VITE_BUILD_TARGET=electron VITE_BUILD_ENV=development electron-vite dev --watch",
-    "electron-dev": "electron:dev",
+    "electron-dev": "npm run electron:dev",
     "format": "prettier --write .",
     "web:dev": "vite dev --mode web",
     "web:build": "vite build --mode web",
