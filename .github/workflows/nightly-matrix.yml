@@ -26,7 +26,7 @@ jobs:
           VERSION_OVERRIDE=$(date +"${CURRENT_VERSION}-nightly.1.%Y%m%d.%-H%M")
 
           # Export as output
-          echo "$VERSION_OVERRIDE" >> "$GITHUB_OUTPUT"
+          echo "versionOverride=$VERSION_OVERRIDE" >> "$GITHUB_OUTPUT"
 
   matrix-build:
     needs: prepare-version
