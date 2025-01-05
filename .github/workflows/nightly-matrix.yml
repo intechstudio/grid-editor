@@ -19,7 +19,7 @@ jobs:
       - name: Test rename
         run: |
           touch test.txt
-          rename 's/-test$/-testtest/' ./build/*-artifact*
+          prename 's/-test$/-testtest/' ./build/*-artifact*
       - name: Read current version and append date
         id: get-version
         run: |
