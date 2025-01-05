@@ -8,7 +8,7 @@ on:
 
 jobs:
   matrix-build:
-    uses: ./.github/workflows/build-matrix.yaml
+    uses: ./.github/workflows/build-matrix.yml
     with:
       exportScript: export
     secrets: inherit

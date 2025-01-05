@@ -32,7 +32,7 @@ jobs:
 
   matrix-build:
     needs: prepare-version
-    uses: ./.github/workflows/build-matrix.yaml
+    uses: ./.github/workflows/build-matrix.yml
     with:
       exportScript: export:nightly
       versionOverride: ${{ needs.prepare-version.outputs.versionOverride }}
@@ -123,5 +123,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   linux-unit-test:
-    uses: ./.github/workflows/linux-unit-test.yaml
+    uses: ./.github/workflows/linux-unit-test.yml
     secrets: inherit
