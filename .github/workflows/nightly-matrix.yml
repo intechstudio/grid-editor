@@ -26,13 +26,12 @@ jobs:
           VERSION_OVERRIDE=$(date +"${CURRENT_VERSION}-nightly.1.%Y%m%d.%-H%M")
 
           # Export as output
-          echo "::set-output name=versionOverride::$VERSION_OVERRIDE"
-        outputs:
-          versionOverride: ${{ steps.get-version.outputs.versionOverride }}
+          echo $VERSION_OVERRIDE
+          echo $VERSION_OVERRIDE >> "$GITHUB_OUTPUT"
 
   matrix-build:
     needs: prepare-version
-    uses: ./.github/workflows/build-matrix.yml
+    uses: .github/workflows/build-matrix.yml
     with:
       exportScript: export:nightly
       versionOverride: ${{ needs.prepare-version.outputs.versionOverride }}
