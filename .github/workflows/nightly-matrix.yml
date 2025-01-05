@@ -31,7 +31,7 @@ jobs:
 
   matrix-build:
     needs: prepare-version
-    uses: .github/workflows/build-matrix.yml
+    uses: ./.github/workflows/build-matrix.yml
     with:
       exportScript: export:nightly
       versionOverride: ${{ needs.prepare-version.outputs.versionOverride }}
