@@ -39,7 +39,7 @@ jobs:
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
       - name: Build
-        run: npm run ${{ inputs.exportCommand }}
+        run: npm run ${{ inputs.exportScript }}
         env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
