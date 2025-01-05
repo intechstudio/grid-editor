@@ -16,6 +16,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Test rename
+        run: |
+          touch test.txt
+          rename 's/-test$/-testtest/' ./build/*-artifact*
       - name: Read current version and append date
         id: get-version
         run: |
