@@ -1,4 +1,0 @@
-{
-  "BUILD_ENV": "development",
-  "BUILD_TARGET": "electron"
-}
