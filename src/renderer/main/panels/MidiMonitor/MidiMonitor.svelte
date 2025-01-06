@@ -2,8 +2,7 @@
   import {
     user_input,
     UserInputValue,
-    runtime,
-  } from "./../../../runtime/runtime.store";
+  } from "./../../../runtime/user-input.store";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { derived, get, writable } from "svelte/store";
@@ -18,13 +17,15 @@
   import { grid } from "@intechstudio/grid-protocol";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   let event: GridEvent;
 
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
-    event = runtime.findEvent(
+    const active = get(runtime_manager).active.runtime;
+    event = active.findEvent(
       ui.dx,
       ui.dy,
       ui.pagenumber,

@@ -1,9 +1,8 @@
-<script>
+<!-- <script lang="ts">
   import Spinner from "./Spinner.svelte";
   import SendFeedback from "./SendFeedback.svelte";
   import { fade, blur } from "svelte/transition";
   import { Analytics } from "../../runtime/analytics";
-  import { writeBuffer } from "../../runtime/engine.store.ts";
   import { logger } from "../../runtime/runtime.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "../modals/MoltenModal.svelte";
@@ -113,4 +112,4 @@
       >
     {/if}
   </div>
-</div>
+</div> -->

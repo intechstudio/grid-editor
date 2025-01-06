@@ -1,6 +1,6 @@
 <script lang="ts">
   import { appClipboard } from "./../../../runtime/clipboard.store";
-  import { runtime, user_input } from "./../../../runtime/runtime.store";
+  import { user_input } from "./../../../runtime/user-input.store";
   import {
     isCopyElementEnabled,
     isOverwriteElementEnabled,
@@ -187,12 +187,9 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const element = runtime.findElement(
-        device.dx,
-        device.dy,
-        $user_input.pagenumber,
-        elementNumber
-      )}
+      {@const element = device
+        .findPage($user_input.pagenumber)
+        .findElement(elementNumber)}
       <button
         use:contextTarget={{
           items: [
@@ -232,18 +229,16 @@
         }}
       >
         <ActiveChanges
-          {elementNumber}
+          {element}
           {isLeftCut}
           {isRightCut}
-          {device}
           visible={typeof $moduleOverlay === "undefined" ||
             $moduleOverlay === "configuration-load-overlay"}
         />
         <ElementSelection
-          {elementNumber}
+          {element}
           {isLeftCut}
           {isRightCut}
-          {device}
           visible={typeof $moduleOverlay === "undefined" &&
             (typeof $contextMenu === "undefined" ||
               ($user_input.dx === device.dx &&
@@ -261,12 +256,9 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const element = runtime.findElement(
-        device.dx,
-        device.dy,
-        $user_input.pagenumber,
-        elementNumber
-      )}
+      {@const element = device
+        .findPage($user_input.pagenumber)
+        .findElement(elementNumber)}
       <div
         class="absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
@@ -274,8 +266,7 @@
           margin: var(--element-margin);"
       >
         <PresetLoadOverlay
-          {device}
-          {elementNumber}
+          {element}
           {isLeftCut}
           {isRightCut}
           visible={$moduleOverlay === "configuration-load-overlay" &&
@@ -283,8 +274,7 @@
         />
       </div>
       <ControlNameOverlay
-        {device}
-        {elementNumber}
+        {element}
         visible={$moduleOverlay === "control-name-overlay"}
       />
 
