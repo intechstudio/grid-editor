@@ -23,7 +23,7 @@ jobs:
           pattern: "*-artifact" # This will match ubuntu-latest-artifact, windows-latest-artifact, and macos-latest-artifact
           path: build/ # Path to save the downloaded artifacts
           merge-multiple: true
-      - name: Remove *-artifact from file name 
+      - name: Remove *-artifact from file name
         run: |
           for file in $(find ./build -type f -name '*-artifact*'); do
             new_file=$(echo "$file" | sed 's/-artifact//g')
