@@ -30,53 +30,55 @@ export async function findBootloaderPath() {
     return;
   }
 
-  let gridDrive = diskInfo.find(
+  let gridDrives = diskInfo.filter(
     (a) => a.size < 64 * 1024 * 1024 && a.isUSB && !a.isSystem && !a.isReadOnly
   );
-  if (gridDrive === undefined) return;
+  if (gridDrives.length === 0) return;
 
-  let mountPath = gridDrive.mountpoints[0].path;
-  let data;
-  try {
-    data = fs.readFileSync(mountPath + "/INFO_UF2.TXT", {
-      encoding: "utf8",
-      flag: "r",
-    });
-  } catch (error) {
-    console.warn(error);
-  }
-  if (data === undefined) return;
+  for (const gridDrive of gridDrives) {
+    let mountPath = gridDrive.mountpoints[0].path;
+    let data: string;
+    try {
+      data = fs.readFileSync(mountPath + "/INFO_UF2.TXT", {
+        encoding: "utf8",
+        flag: "r",
+      });
+    } catch (error) {
+      console.warn(error);
+    }
+    if (data === undefined) continue;
 
-  // is it grid
-  if (data.indexOf("SAMD51N20A-GRID") !== -1) {
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Grid D51 bootloader is detected!",
-      code: 3,
-      path: mountPath,
-    });
-    return { path: mountPath, architecture: "d51", product: "grid" };
-  } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Grid") !== -1) {
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Grid ESP32 bootloader is detected!",
-      code: 3,
-      path: mountPath,
-    });
-    return {
-      path: mountPath,
-      architecture: "esp32",
-      product: "grid",
-    };
-  } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Knot") !== -1) {
-    firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Knot ESP32 bootloader is detected!",
-      code: 3,
-      path: mountPath,
-    });
-    return {
-      path: mountPath,
-      architecture: "esp32",
-      product: "knot",
-    };
+    // is it grid
+    if (data.indexOf("SAMD51N20A-GRID") !== -1) {
+      firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+        message: "Grid D51 bootloader is detected!",
+        code: 3,
+        path: mountPath,
+      });
+      return { path: mountPath, architecture: "d51", product: "grid" };
+    } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Grid") !== -1) {
+      firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+        message: "Grid ESP32 bootloader is detected!",
+        code: 3,
+        path: mountPath,
+      });
+      return {
+        path: mountPath,
+        architecture: "esp32",
+        product: "grid",
+      };
+    } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Knot") !== -1) {
+      firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+        message: "Knot ESP32 bootloader is detected!",
+        code: 3,
+        path: mountPath,
+      });
+      return {
+        path: mountPath,
+        architecture: "esp32",
+        product: "knot",
+      };
+    }
   }
 }
 
