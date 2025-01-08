@@ -4,8 +4,6 @@ import { getAuth } from "firebase/auth";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-const buildVariables = window.ctxProcess.buildVariables();
-
 const devCentralAuthConfig = {
   apiKey: "AIzaSyDla2zilILl5X0sQ4fbhAO61uFCqCoVhZc",
   authDomain: "is-auth-dev.firebaseapp.com",
@@ -23,11 +21,6 @@ const prodCentralAuthConfig = {
   messagingSenderId: "611038678816",
   appId: "1:611038678816:web:5d8fab312b614702539145",
 };
-
-/*const centralAuthConfig =
-  buildVariables.BUILD_ENV === "production"
-    ? prodCentralAuthConfig
-    : devCentralAuthConfig;*/
 
 export const devCentralApp = initializeApp(devCentralAuthConfig, "dev-central");
 export const devCentralAuth = getAuth(devCentralApp);

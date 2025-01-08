@@ -1,0 +1,39 @@
+name: Linux Unit Test
+
+on:
+  workflow_call:
+
+jobs:
+  unit-test:
+    name: Unit Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Setup nodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16.1"
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: "Run unit tests"
+        run: |
+          npm test >> unit_test.txt
+          cat unit_test.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-unit-test
+          path: unit_test.txt
+
+      - uses: tsickert/discord-webhook@v4.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+          content: "Heyo, here are the editor unit test results!"
+          filename: "unit_test.txt"

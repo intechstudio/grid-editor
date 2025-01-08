@@ -8,65 +8,33 @@ on:
       - "*"
 
 jobs:
-  matrix-build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  prepare-version:
+    runs-on: ubuntu-latest
+    outputs:
+      versionOverride: ${{ steps.get-version.outputs.versionOverride }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ""
-          submodules: true
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Setup NodeJs
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18.16.1"
-
-      # WORKFLOW_NAME is used for productName extension in electron-builder.js
-      - name: Set Env
-        shell: bash
+      - name: Read current version and append date
+        id: get-version
         run: |
-          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "WORKFLOW_NAME=nightly" >> $GITHUB_ENV
+          # Extract current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
 
-      - name: Install python setup-tools dependency
-        if: runner.os == 'macOS'
-        run: brew install python-setuptools
+          # Append date-based patch string
+          VERSION_OVERRIDE=$(date +"${CURRENT_VERSION}-nightly.1.%Y%m%d.%-H%M")
 
-      - name: Install dependencies
-        run: npm i
+          # Export as output
+          echo "versionOverride=$VERSION_OVERRIDE" >> "$GITHUB_OUTPUT"
 
-      - name: Update package.json
-        run: node ./build-scripts/nightly-packageModifier.js
-
-      - name: Build
-        run: npm run export:nightly
-        if: ${{ always() }}
-        env:
-          # gh repo token
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # windows Code signing
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-
-          # Apple ID
-          APPLE_ID: ${{secrets.APPLE_ID}}
-          APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
-
-          # macOS Code signing
-          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-nightly
-          path: build/*.*
+  matrix-build:
+    needs: prepare-version
+    uses: ./.github/workflows/build-matrix.yml
+    with:
+      exportScript: export:nightly
+      versionOverride: ${{ needs.prepare-version.outputs.versionOverride }}
+    secrets: inherit
 
   publish-nightly-release:
     runs-on: ubuntu-latest
@@ -134,10 +102,16 @@ jobs:
       - name: Download all nightly artifacts
         uses: actions/download-artifact@v4
         with:
-          # Use the pattern to match all nightly artifacts
-          pattern: "*-nightly" # This will match ubuntu-latest-nightly, windows-latest-nightly, and macos-latest-nightly
+          pattern: "*-artifact" # This will match ubuntu-latest-artifact, windows-latest-artifact, and macos-latest-artifact
           path: build/ # Path to save the downloaded artifacts
           merge-multiple: true
+
+      - name: Rename files from *-artifact to *-nightly
+        run: |
+          for file in $(find ./build -type f -name '*-artifact*'); do
+            new_file=$(echo "$file" | sed 's/-artifact/-nightly/g')
+            mv "$file" "$new_file"
+          done
 
       - name: Release Nightly
         uses: softprops/action-gh-release@v1
@@ -151,36 +125,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   linux-unit-test:
-    name: Linux Unit Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ""
-          submodules: true
-
-      - name: Setup nodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18.16.1"
-
-      - name: Install dependencies
-        run: npm i
-
-      - name: "Run unit tests"
-        run: |
-          npm test >> unit_test.txt
-          cat unit_test.txt
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-unit-test
-          path: unit_test.txt
-
-      - uses: tsickert/discord-webhook@v4.0.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_DEV_WEBHOOK }}
-          content: "Heyo, here are the editor unit test results!"
-          filename: "unit_test.txt"
+    uses: ./.github/workflows/linux-unit-test.yml
+    secrets: inherit

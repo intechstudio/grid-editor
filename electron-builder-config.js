@@ -2,9 +2,9 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 function productNameByWorkflow() {
-  if (process.env.WORKFLOW_NAME == "nightly") {
+  if (process.env.VITE_BUILD_ENV == "nightly") {
     return `Grid Editor (Nightly) ${process.env.BRANCH_NAME}`;
-  } else if (process.env.WORKFLOW_NAME == "alpha") {
+  } else if (process.env.VITE_BUILD_ENV == "alpha") {
     return `Grid Editor (Alpha) ${process.env.RELEASE_VERSION}`;
   } else {
     return "Grid Editor";

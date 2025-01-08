@@ -28,7 +28,7 @@
   }
 
   function socialLogin() {
-    if (import.meta.env.VITE_WEB_MODE) {
+    if (import.meta.env.VITE_BUILD_TARGET == "web") {
       authStore.googleLoginPopup();
     } else {
       window.electron.openInBrowser(

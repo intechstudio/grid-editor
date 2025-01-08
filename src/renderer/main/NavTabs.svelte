@@ -322,7 +322,7 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
     </button>
-    {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
+    {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
       <button
         use:tooltip={{
           nowrap: true,

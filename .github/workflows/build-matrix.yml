@@ -1,0 +1,70 @@
+name: Build matrix
+
+on:
+  workflow_call:
+    inputs:
+      exportScript:
+        description: "The npm script to run for export"
+        required: true
+        type: string
+      versionOverride:
+        description: "Override package version string"
+        required: false
+        type: string
+
+jobs:
+  matrix-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16.1"
+
+      - name: Install python setup-tools dependency
+        if: runner.os == 'macOS'
+        run: brew install python-setuptools
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Update package.json
+        if: ${{ inputs.versionOverride != '' }}
+        run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
+
+      - name: Build
+        run: npm run ${{ inputs.exportScript }}
+        env:
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # windows Code signing
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+          # Apple ID
+          APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
+
+          # macOS Code signing
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+
+          # Branch name
+          VITE_BRANCH_NAME: ${{ github.ref_name }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-artifact
+          path: build/*.*
