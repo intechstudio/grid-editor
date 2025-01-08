@@ -1,10 +1,10 @@
 <script lang="ts">
   import {
     user_input,
-    type UserInputValue,
-  } from "./../../../runtime/runtime.store.ts";
+    UserInputValue,
+  } from "./../../../runtime/user-input.store";
   import ActionList from "./ActionList.svelte";
-  import { GridElement } from "./../../../runtime/runtime.ts";
+  import { GridElement } from "./../../../runtime/runtime";
   import MoltenModal from "./../../modals/MoltenModal.svelte";
 
   let element: GridElement;

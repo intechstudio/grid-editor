@@ -1,18 +1,18 @@
-<script>
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
+<script lang="ts">
+  import { GridModule, GridRuntime } from "../../../../runtime/runtime.js";
 
   import Encoder from "../elements/Encoder.svelte";
   import Fader from "../elements/Fader.svelte";
   import Led from "../elements/Led.svelte";
 
-  import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
-
   export let moduleWidth;
   export let id = "EF44";
-  export let device = undefined;
+  export let device: GridModule;
 
-  let rotation = $appSettings.rotation;
+  let runtime = device.parent as GridRuntime;
+  let eps = runtime?.elementPositionStore;
+  let lcs = runtime?.ledColorStore;
+
   let [dx, dy] = [device?.dx, device?.dy];
 
   let elementposition_array = [
@@ -54,7 +54,7 @@
   ];
 
   $: {
-    const value = $elementPositionStore;
+    const value = $eps;
     try {
       let eps = value[dx][dy];
 
@@ -67,7 +67,7 @@
   }
 
   $: {
-    const value = $ledColorStore;
+    const value = $lcs;
     try {
       let lcs = value[dx][dy];
 
@@ -108,12 +108,7 @@
         </div>
         <div class="normal-cell-ui-container">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Encoder
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber][0]}
-            size={2.1}
-          />
+          <Encoder {elementNumber} size={2.1} />
         </div>
         <div class="normal-cell-overlay-container">
           <slot name="cell-overlay" {elementNumber} />
@@ -138,10 +133,8 @@
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
             <Fader
               {elementNumber}
-              {id}
               position={elementposition_array[elementNumber][0]}
               size={2.1}
-              rotation={rotation * -90}
               faderHeight={68}
             />
           </div>

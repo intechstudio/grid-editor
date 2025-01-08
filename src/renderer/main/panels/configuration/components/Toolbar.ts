@@ -1,11 +1,12 @@
 import { derived } from "svelte/store";
-import { runtime, selected_actions } from "../../../../runtime/runtime.store";
+import { selected_actions } from "../../../../runtime/user-input.store";
 import {
   appClipboard,
   ClipboardData,
   ClipboardKey,
 } from "../../../../runtime/clipboard.store";
 import { ElementData } from "../../../../runtime/runtime";
+import { runtime_manager } from "../../../../runtime/runtime-manager.store";
 
 export const isCutActionsEnabled = derived(
   selected_actions,
@@ -15,9 +16,10 @@ export const isCutActionsEnabled = derived(
 );
 
 export const isCopyElementEnabled = derived(
-  [selected_actions],
-  ([$selected_actions]) => {
-    return $selected_actions.length === 0 && runtime.modules.length > 0;
+  [selected_actions, runtime_manager],
+  ([$selected_actions, $runtime_manager]) => {
+    const active = $runtime_manager.active.runtime;
+    return $selected_actions.length === 0 && active.modules.length > 0;
   }
 );
 

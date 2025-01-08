@@ -1,18 +1,18 @@
-<script>
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
-
+<script lang="ts">
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
   import Fader from "../elements/Fader.svelte";
   import Button from "../elements/Button.svelte";
-
-  import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import { GridModule, GridRuntime } from "../../../../runtime/runtime";
 
   export let id = "PBF4";
   export let rotation = 0;
   export let moduleWidth;
-  export let device = undefined;
+  export let device: GridModule;
+
+  let runtime = device.parent as GridRuntime;
+  let eps = runtime?.elementPositionStore;
+  let lcs = runtime?.ledColorStore;
 
   let [dx, dy] = [device?.dx, device?.dy];
   let elementposition_array = [
@@ -49,7 +49,7 @@
   ];
 
   $: {
-    const value = $elementPositionStore;
+    const value = $eps;
     try {
       let eps = value[dx][dy];
 
@@ -62,7 +62,7 @@
   }
 
   $: {
-    const value = $ledColorStore;
+    const value = $lcs;
     try {
       let lcs = value[dx][dy];
 
@@ -127,10 +127,8 @@
 
           <Fader
             {elementNumber}
-            {id}
             position={elementposition_array[elementNumber][1]}
             size={2.1}
-            rotation={rotation * -90}
             faderHeight={37}
           />
         </div>
@@ -154,12 +152,7 @@
           <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
-            <Button
-              {id}
-              position={elementposition_array[elementNumber][0]}
-              {elementNumber}
-              size={2.1}
-            />
+            <Button {elementNumber} size={2.1} />
           </div>
           <div class="normal-cell-overlay-container">
             <slot

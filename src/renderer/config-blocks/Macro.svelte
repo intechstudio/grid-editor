@@ -35,7 +35,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   /* ========== Macro block documentation ==========
   1. Detect key press
   2. Display the key assuming layout is English-US
@@ -43,9 +43,7 @@
   4. Send changes to grid
   */
 
-  import { runtime } from "../runtime/runtime.store";
-
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
 
   import { clickOutside } from "../main/_actions/click-outside.action";
 
@@ -61,6 +59,13 @@
   import * as keyMap_de from "../../external/macro/map-de.json";
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import {
+    GridAction,
+    GridElement,
+    GridEvent,
+    GridPage,
+    GridRuntime,
+  } from "../runtime/runtime";
 
   const layouts = [
     { name: "En", lookup: keyMap_en.default },
@@ -70,10 +75,14 @@
 
   let layout = layouts[0];
 
-  export let config;
+  export let config: GridAction;
   export let index;
-  export let eventInfo;
-  export let elementInfo;
+
+  let event = config.parent as GridEvent;
+  let element = event.parent as GridElement;
+  let page = element.parent as GridPage;
+  let module = page.parent as GridModule;
+  let runtime = module.parent as GridRuntime;
 
   let macroInputField;
 

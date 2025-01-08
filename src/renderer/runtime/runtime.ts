@@ -4,7 +4,6 @@ import {
   ElementType,
   ModuleType,
   GridScript,
-  EventType,
   NumberToEventType,
 } from "@intechstudio/grid-protocol";
 import {
@@ -15,18 +14,12 @@ import {
   Unsubscriber,
   Updater,
 } from "svelte/store";
-import { instructions } from "../serialport/instructions";
-import { writeBuffer } from "./engine.store";
-import { createVirtualModule, virtual_runtime } from "./virtual-engine";
+import { GridInstruction } from "../serialport/instructions";
+import { connection_simulator } from "./virtual-engine";
 import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
-import {
-  elementPositionStore,
-  ledColorStore,
-  logger,
-  user_input,
-} from "./runtime.store";
+import { logger } from "./runtime.store";
 import { v4 as uuidv4 } from "uuid";
 import { getComponentInformation } from "../lib/_configs";
 import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
@@ -34,6 +27,9 @@ import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
+import { GridConnection } from "../serialport/serialport";
+import { GridRuntimeManager } from "./runtime-manager.store";
+import { user_input, UserInput } from "./user-input.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -42,9 +38,6 @@ class NodeData {
   id?: UUID;
   parent?: RuntimeNode<any>;
 }
-
-export const aliveModules: Writable<Array<{ id: UUID; last: number }>> =
-  writable([]);
 
 export class GridProfileData {
   public presets: GridPresetData[] = [];
@@ -696,17 +689,21 @@ export class GridEvent extends RuntimeNode<EventData> {
     const element = this.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
+    const runtime = module.parent as GridRuntime;
 
     try {
       const script = this.toLua();
-      await instructions.sendConfigToGrid(
+      const simulate = module.architecture === Architecture.VIRTUAL;
+      const instruction = new GridInstruction.SendConfig(
         module.dx,
         module.dy,
         page.pageNumber,
         element.elementIndex,
         this.type,
-        script
+        script,
+        simulate
       );
+      await instruction.executeOn(runtime.connection);
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -861,18 +858,29 @@ export class GridEvent extends RuntimeNode<EventData> {
     const element = this.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
+    const runtime = module.parent as GridRuntime;
 
     try {
-      const descr = await instructions.fetchConfigFromGrid(
+      const simulate = module.architecture === Architecture.VIRTUAL;
+      const instruction = new GridInstruction.FetchConfig(
         module.dx,
         module.dy,
         page.pageNumber,
         element.elementIndex,
-        this.type
+        this.type,
+        simulate
       );
+
+      const descr = await instruction.executeOn(runtime.connection);
 
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
+
+      //Handling multiple load call at the same time
+      if (this.isLoaded()) {
+        return Promise.resolve();
+      }
+
       this.push(...actions);
       this.store();
       this.loaded = true;
@@ -880,6 +888,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       console.log("EVENT LOADED");
       return Promise.resolve();
     } catch (e) {
+      this.loaded = false;
       return Promise.reject(e);
     }
   }
@@ -942,6 +951,14 @@ export class ElementData extends NodeData {
   }
 }
 
+export type ElementInfo = {
+  dx: number;
+  dy: number;
+  page: number;
+  element: number;
+  type: ElementType;
+};
+
 export class GridElement extends RuntimeNode<ElementData> {
   constructor(parent: GridPage, data?: ElementData) {
     super(parent, data);
@@ -951,6 +968,18 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
+  }
+
+  public getInfo(): ElementInfo {
+    const page = this.parent as GridPage;
+    const module = page.parent as GridModule;
+    return {
+      dx: module.dx,
+      dy: module.dy,
+      page: page.pageNumber,
+      element: this.elementIndex,
+      type: this.type,
+    };
   }
 
   public destroy() {
@@ -1144,6 +1173,12 @@ export interface PageData extends NodeData {
   control_elements?: Array<GridElement>;
 }
 
+export type PageInfo = {
+  dx: number;
+  dy: number;
+  page: number;
+};
+
 export class GridPage extends RuntimeNode<PageData> {
   constructor(parent: GridModule, type: ModuleType, data?: PageData) {
     super(parent, data);
@@ -1158,6 +1193,15 @@ export class GridPage extends RuntimeNode<PageData> {
         new GridElement(this, new ElementData(Number(index), element))
       );
     }
+  }
+
+  public getInfo(): PageInfo {
+    const module = this.parent as GridModule;
+    return {
+      dx: module.dx,
+      dy: module.dy,
+      page: this.pageNumber,
+    };
   }
 
   public destroy() {
@@ -1277,6 +1321,12 @@ export interface ModuleData extends NodeData {
   pages?: Array<GridPage>;
 }
 
+export type ModuleInfo = {
+  dx: number;
+  dy: number;
+  type: ModuleType;
+};
+
 export class GridModule extends RuntimeNode<ModuleData> {
   constructor(parent: GridRuntime, data?: ModuleData) {
     super(parent, data);
@@ -1286,6 +1336,14 @@ export class GridModule extends RuntimeNode<ModuleData> {
       new GridPage(this, this.type, { pageNumber: 2 }),
       new GridPage(this, this.type, { pageNumber: 3 }),
     ];
+  }
+
+  public getInfo(): ModuleInfo {
+    return {
+      dx: this.dx,
+      dy: this.dy,
+      type: this.type,
+    };
   }
 
   public destroy() {
@@ -1399,8 +1457,20 @@ export interface RuntimeData extends NodeData {
 }
 
 export class GridRuntime extends RuntimeNode<RuntimeData> {
-  constructor() {
+  public connection: GridConnection;
+  public readonly virtual: boolean;
+  private aliveModules: Writable<Array<{ id: UUID; last: number }>>;
+  public elementPositionStore: Writable<any> = writable({});
+  public ledColorStore: Writable<any> = writable({});
+
+  constructor(
+    connection: GridConnection = undefined,
+    virtual: boolean = false
+  ) {
     super(undefined, { modules: [] });
+    this.connection = connection;
+    this.virtual = virtual;
+    this.aliveModules = writable([]);
   }
 
   get modules() {
@@ -1475,12 +1545,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   incoming_heartbeat_handler(descr) {
     try {
-      for (const module of this.modules) {
-        if (module.architecture === "virtual") {
-          this.destroy_module(module.dx, module.dy);
-        }
-      }
-
       const [sx, sy] = [descr.brc_parameters.SX, descr.brc_parameters.SY];
 
       let firstConnection = false;
@@ -1494,17 +1558,17 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           module.portstate = descr.class_parameters.PORTSTATE;
         }
 
-        aliveModules.update((s) => {
-          const index = s.findIndex((e) => e.id === module.id);
-          const lastDate = s[index].last;
+        this.aliveModules.update((store) => {
+          const obj = store.find((e) => e.id === module.id);
+          const lastDate = obj.last;
           const newDate = Date.now();
-          s[index].last = newDate;
+          obj.last = newDate;
 
           if (get(appSettings).persistent.heartbeatDebugEnabled) {
             const key1 = `Hearbeat (${module.dx}, ${module.dy})`;
             add_datapoint(key1, newDate - lastDate);
           }
-          return s;
+          return store;
         });
       }
       // device not found, add it to runtime and get page count from grid
@@ -1515,8 +1579,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           false
         );
         // check if the firmware version of the newly connected device is acceptable
-        console.log("Incoming Device");
-        console.log("Architecture", controller.architecture);
+        console.log(
+          "Incoming Device:",
+          `${controller.dx} ${controller.dy} ${controller.type} (${controller.architecture})`
+        );
 
         const as = get(appSettings);
         const firmware_required =
@@ -1536,12 +1602,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         );
 
         this.modules = [...this.modules, controller];
-        aliveModules.update((s) => {
+        this.aliveModules.update((s) => {
           s.push({ id: controller.id, last: Date.now() });
           return s;
         });
-
-        firstConnection = this.modules.length === 1;
 
         Analytics.track({
           event: "Connect Module",
@@ -1553,28 +1617,14 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           mandatory: false,
         });
       }
-
-      if (firstConnection) {
-        this.setDefaultSelectedElement();
-      }
     } catch (error) {
       console.warn(error);
     }
   }
 
-  setDefaultSelectedElement() {
-    user_input.set({
-      dx: this.modules[0].dx,
-      dy: this.modules[0].dy,
-      pagenumber: 0,
-      elementnumber: 0,
-      eventtype: 2,
-    });
-  }
-
   public async change_page(new_page_number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (get(writeBuffer).length > 0) {
+      if (get(this.connection.buffer).length > 0) {
         reject("Wait before all operations are finished.");
         return;
       }
@@ -1594,8 +1644,12 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       // clean up the writebuffer if pagenumber changes!
       // writeBuffer.clear();
 
-      instructions
-        .changeActivePage(new_page_number)
+      const instruction = new GridInstruction.ChangePage(
+        new_page_number,
+        this.virtual
+      );
+      instruction
+        .executeOn(this.connection)
         .then(() => {
           const ui = get(user_input);
           user_input.set({
@@ -1631,8 +1685,9 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   public async storePage(index: number) {
     return new Promise((resolve, reject) => {
-      instructions
-        .sendPageStoreToGrid()
+      const instruction = new GridInstruction.StorePage(this.virtual);
+      instruction
+        .executeOn(this.connection)
         .then((res) => {
           for (const module of this.modules) {
             const page = module.findPage(index);
@@ -1654,8 +1709,9 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       message: `Clearing configurations from page...`,
     });
     return new Promise((resolve, reject) => {
-      instructions
-        .sendPageClearToGrid()
+      const instruction = new GridInstruction.ClearPage(this.virtual);
+      instruction
+        .executeOn(this.connection)
         .then(() => {
           for (const module of this.modules) {
             const page = module.findPage(index);
@@ -1686,8 +1742,9 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       message: `Discarding configurations...`,
     });
     return new Promise((resolve, reject) => {
-      instructions
-        .sendPageDiscardToGrid()
+      const instruction = new GridInstruction.DiscardPage(this.virtual);
+      instruction
+        .executeOn(this.connection)
         .then(() => {
           for (const module of this.modules) {
             const page = module.findPage(index);
@@ -1729,10 +1786,9 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       true
     );
 
-    createVirtualModule(dx, dy, moduleInfo.type);
+    connection_simulator.createModule(dx, dy, moduleInfo.type);
 
     this.modules = [...this.modules, controller];
-    this.setDefaultSelectedElement();
   }
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
@@ -1781,15 +1837,29 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     });
   }
 
+  public isAlive(device: GridModule) {
+    const last =
+      get(this.aliveModules).find((e) => e.id === device.id)?.last ??
+      Date.now();
+
+    // Allow less strict elapsedTimeLimit while writeBuffer is busy!
+    const elapsedTimeLimit =
+      get(this.connection.buffer).length > 0
+        ? GridRuntimeManager.heartbeat_grid_ms * 6
+        : GridRuntimeManager.heartbeat_grid_ms * 3;
+    const elapsedTime = Date.now() - last;
+
+    return last && elapsedTime <= elapsedTimeLimit;
+  }
+
   destroy_module(dx, dy) {
-    console.log("DESTORY", dx, dy);
     user_input.module_destroy_handler(dx, dy);
     // remove the destroyed device from runtime
-    const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
-    this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
+    const removed = this.findModule(dx, dy);
+    this.modules = this.modules.filter((e) => e.id !== removed.id);
     removed.destroy();
 
-    aliveModules.update((s) => {
+    this.aliveModules.update((s) => {
       const index = s.findIndex((e) => e.id === removed.id);
       s.splice(index, 1);
       return s;
@@ -1802,21 +1872,21 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       });
     }
 
-    if (removed.architecture === "virtual") {
-      virtual_runtime.destroyModule(dx, dy);
+    if (removed.architecture === Architecture.VIRTUAL) {
+      connection_simulator.destroyModule(dx, dy);
     } else {
-      writeBuffer.module_destroy_handler(dx, dy);
+      this.connection.buffer.module_destroy_handler(dx, dy);
     }
 
     // reset rendering helper stores
 
     try {
-      elementPositionStore.update((eps) => {
+      this.elementPositionStore.update((eps) => {
         eps[dx][dy] = undefined;
         return eps;
       });
 
-      ledColorStore.update((lcs) => {
+      this.ledColorStore.update((lcs) => {
         lcs[dx][dy] = undefined;
         return lcs;
       });

@@ -1,10 +1,8 @@
-<script>
-  import { appSettings } from "./../../../../runtime/app-helper.store.js";
-  import { createEventDispatcher } from "svelte";
-  import { user_input } from "../../../../runtime/runtime.store";
+<script lang="ts">
+  import { appSettings } from "./../../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
   import { reduced_motion_store } from "../../../../runtime/animations";
-  import { get } from "svelte/store";
+  import { user_input } from "../../../../runtime/user-input.store";
 
   export let device = undefined;
   export let visible = false;

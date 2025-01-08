@@ -1,5 +1,4 @@
 <script lang="ts" context="module">
-  import { runtime } from "./../runtime/runtime.store";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -48,19 +47,18 @@ A -> B : AB-First step
 
 */
 
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import Toggle from "../main/user-interface/Toggle.svelte";
-  import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Validator } from "./_validators";
   import { Script } from "./_script_parsers.js";
-  import { LocalDefinitions, user_input } from "../runtime/runtime.store";
-  import { GridEvent } from "./../runtime/runtime";
+  import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
 
-  export let config;
+  export let config: GridAction;
   export let index;
 
   let event = config.parent as GridEvent;
@@ -155,13 +153,7 @@ A -> B : AB-First step
     });
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
-        const ui = get(user_input);
-        const target = runtime.findElement(
-          ui.dx,
-          ui.dy,
-          ui.pagenumber,
-          ui.elementnumber
-        );
+        const target = event.parent as GridElement;
         switch (target.type) {
           case ElementType.BUTTON:
             return [
@@ -473,9 +465,6 @@ A -> B : AB-First step
 
     sendData();
   }
-
-  let suggestionElement1 = undefined;
-  let suggestionElement2 = undefined;
 </script>
 
 <svelte:window bind:innerWidth={sidebarWidth} />

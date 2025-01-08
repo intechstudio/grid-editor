@@ -6,13 +6,13 @@
 
   import { ModuleType } from "@intechstudio/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
-  import { runtime } from "../../runtime/runtime.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "./MoltenModal.svelte";
   import { modal } from "./modal.store";
-  import { get } from "svelte/store";
 
   import { appSettings } from "../../runtime/app-helper.store";
+  import { get } from "svelte/store";
+  import { runtime_manager } from "../../runtime/runtime-manager.store";
 
   let devices = [
     { id: ModuleType.BU16, type: ModuleType.BU16, component: XX16 },
@@ -58,13 +58,12 @@
   let selectedModule: number = -1;
 
   function handleAddClicked() {
-    if (
-      typeof runtime.modules.find((e) => e.dx === dx && e.dy === dy) !==
-      "undefined"
-    ) {
-      runtime.destroy_module(dx, dy);
+    const active = get(runtime_manager).active.runtime;
+    if (typeof active.findModule(dx, dy) !== "undefined") {
+      active.destroy_module(dx, dy);
     }
-    runtime.addVirtualModule({
+
+    active.addVirtualModule({
       dx: dx,
       dy: dy,
       type: devices[selectedModule].id,

@@ -1,22 +1,13 @@
 <script lang="ts">
-  import { GridModule, GridElement } from "./../../../../runtime/runtime";
-  import { user_input, runtime } from "../../../../runtime/runtime.store";
+  import { GridElement } from "./../../../../runtime/runtime";
   import { createEventDispatcher } from "svelte";
 
-  export let elementNumber: number;
-  export let isLeftCut: boolean;
-  export let isRightCut: boolean;
-  export let device: GridModule;
-  export let visible: boolean = false;
+  export let element: GridElement;
+  export let isLeftCut = false;
+  export let isRightCut = false;
+  export let visible = false;
 
   const dispatch = createEventDispatcher();
-
-  const element: GridElement = runtime.findElement(
-    device.dx,
-    device.dy,
-    $user_input.pagenumber,
-    elementNumber
-  );
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -27,12 +18,12 @@
     {$element.hasChanges() ? 'changed-element' : ''}
       {isRightCut ? 'corner-cut-r' : ''}
       {isLeftCut ? 'corner-cut-l' : ''}"
-    style="   {elementNumber == 255
+    style="   {$element.elementIndex == 255
       ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
       : 'border-radius: var(--grid-rounding);'}   "
     on:click={() => {
       dispatch("click", {
-        elementNumber: elementNumber,
+        elementNumber: $element.elementIndex,
       });
     }}
   />

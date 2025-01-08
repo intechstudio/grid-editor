@@ -1,6 +1,6 @@
 import { writable, type Writable } from "svelte/store";
-import { getDeviceName } from "../../../runtime/runtime.store";
 import { v4 as uuidv4 } from "uuid";
+import { GridModule } from "../../../runtime/runtime";
 
 class DeviceInfo {
   public name: string;
@@ -223,7 +223,7 @@ function createMidiMonitor(max_length) {
   const store: Writable<MidiMonitorItem[]> = writable([]);
   return {
     ...store,
-    update_midi: (descr: any) => {
+    update_midi: (descr: any, device: GridModule) => {
       if (descr.class_name !== "MIDI") return;
 
       store.update((s) => {
@@ -247,7 +247,7 @@ function createMidiMonitor(max_length) {
             cp.PARAM2,
             descr.class_instr
           ),
-          device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
+          device: new DeviceInfo(device.type, bc.SX, bc.SY),
         };
         return [...s, item];
       });
@@ -267,7 +267,7 @@ function createSysExMonitor(max_val) {
   const store: Writable<SysExMonitorItem[]> = writable([]);
   return {
     ...store,
-    update_sysex: (descr: any) => {
+    update_sysex: (descr: any, device: GridModule) => {
       if (descr.class_name !== "MIDISYSEX") return;
 
       store.update((s) => {
@@ -283,7 +283,7 @@ function createSysExMonitor(max_val) {
           date: Date.now(),
           type: "SYSEX",
           data: new SysExMessage(cp.CHANNEL, descr.class_instr, descr.raw),
-          device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
+          device: new DeviceInfo(device.type, bc.SX, bc.SY),
         };
 
         return [...s, item];

@@ -1,17 +1,10 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-  import {
-    user_input,
-    runtime,
-    LocalDefinitions,
-  } from "./../../../../runtime/runtime.store";
   import {
     GridAction,
     ActionData,
     GridEvent,
     EventData,
   } from "./../../../../runtime/runtime";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
     ClipboardKey,

@@ -41,4 +41,17 @@ export class Grid {
     // Check if all stacks are empty, meaning all parentheses are closed correctly
     return [...stacks.values()].every((stack) => stack.length === 0);
   }
+
+  static getClosestEvent(events: number[], event: number) {
+    if (events.map((e) => Number(e)).includes(Number(event))) {
+      return event;
+    }
+
+    //Select closest event type if incoming device does not have the corrently selected event type
+    const closestEvent = Math.min(
+      ...events.map((e) => Number(e)).filter((e) => e > 0)
+    );
+
+    return closestEvent !== Infinity ? closestEvent : 0;
+  }
 }

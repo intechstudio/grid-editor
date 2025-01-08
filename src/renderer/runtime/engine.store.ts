@@ -1,13 +1,10 @@
-import { get, writable } from "svelte/store";
+import { get, Readable, Unsubscriber, Updater, writable } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
-import { connection_manager } from "../serialport/serialport";
+import { connection_manager, GridPort } from "../serialport/serialport";
 import { appSettings } from "./app-helper.store";
-
-import { instructions } from "../serialport/instructions";
+import { Subscriber } from "svelte/motion";
 import { simulateProcess } from "./virtual-engine";
-import { runtime } from "./runtime.store";
-import { virtual_runtime } from "./virtual-engine";
-import { buffer } from "stream/consumers";
+import { MessageStream } from "../serialport/message-stream.store";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -31,8 +28,9 @@ export enum InstructionClass {
 
 export type BufferElement = {
   id: number;
+  virtual: boolean;
   descr: {
-    brc_parameters: { DX: number; DY: number };
+    brc_parameters: { DX: number; DY: number; ROT?: number };
     class_name: InstructionClassName;
     class_instr: InstructionClass;
     class_parameters: {
@@ -154,12 +152,35 @@ class ResponseWaiter {
 
 let waiter: ResponseWaiter | undefined = undefined;
 
-function createWriteBuffer() {
-  let _write_buffer = writable([] as any[]);
+export class WriteBuffer implements Readable<BufferElement[]> {
+  private _internal = writable([]);
+  private _port: GridPort;
 
-  function module_destroy_handler(dx: Number, dy: Number) {
+  public readonly messageStream: MessageStream;
+
+  constructor(port: GridPort) {
+    this._port = port;
+    this.messageStream = new MessageStream(this);
+  }
+
+  public subscribe(
+    run: Subscriber<BufferElement[]>,
+    invalidate?: (value?: BufferElement[]) => void
+  ): Unsubscriber {
+    return this._internal.subscribe(run, invalidate);
+  }
+
+  private set(value: BufferElement[]) {
+    this._internal.set(value);
+  }
+
+  private update(updater: Updater<BufferElement[]>) {
+    this._internal.update(updater);
+  }
+
+  public module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
-    _write_buffer.update((s) =>
+    this.update((s) =>
       s.filter(
         (g) =>
           g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy
@@ -176,18 +197,18 @@ function createWriteBuffer() {
     }
   }
 
-  function clear() {
-    _write_buffer.set([]);
+  public clear() {
+    this.set([]);
     waiter?.destroy();
     waiter = undefined;
   }
 
-  function sendDataToGrid(descr: any): Promise<any> {
+  public sendDataToGrid(descr: any): Promise<any> {
     return new Promise((resolve, reject) => {
       let retval: any = grid.encode_packet(descr);
 
       connection_manager
-        .serialWrite(retval.serial)
+        .serialWrite(retval.serial, this._port)
         .then(() => {
           // debugger for message ASCII frames
           let str = "";
@@ -201,7 +222,7 @@ function createWriteBuffer() {
     });
   }
 
-  async function waitResponseFromGrid(
+  public async waitResponseFromGrid(
     bufferElement: any,
     timeout: number
   ): Promise<GridResponse> {
@@ -211,16 +232,16 @@ function createWriteBuffer() {
     return response;
   }
 
-  async function sleep(time: number) {
+  public async sleep(time: number) {
     await new Promise((resolve) => setTimeout(resolve, time));
   }
 
-  async function sendToGrid(
+  public async sendToGrid(
     bufferElement: BufferElement,
     sendImmediate: boolean = false
   ) {
     return new Promise((resolve, reject) => {
-      sendDataToGrid(bufferElement.descr)
+      this.sendDataToGrid(bufferElement.descr)
         .then(async (result) => {
           const { id } = result;
           if (bufferElement.responseRequired === true && !sendImmediate) {
@@ -229,7 +250,10 @@ function createWriteBuffer() {
               class_parameters.LASTHEADER = id;
             }
             const timeout = bufferElement.responseTimeout ?? 1000;
-            const response = await waitResponseFromGrid(bufferElement, timeout);
+            const response = await this.waitResponseFromGrid(
+              bufferElement,
+              timeout
+            );
             switch (response.status) {
               case ResponseStatus.OK: {
                 resolve(response.data);
@@ -241,7 +265,7 @@ function createWriteBuffer() {
               }
               case ResponseStatus.TIMEOUT: {
                 console.log(response.error);
-                resolve(sendToGrid(bufferElement)); // RETRY recursively until processed
+                resolve(this.sendToGrid(bufferElement)); // RETRY recursively until processed
                 break;
               }
             }
@@ -255,19 +279,19 @@ function createWriteBuffer() {
     });
   }
 
-  function processElement(current: BufferElement): Promise<any> {
+  public processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
       const sendImmediate =
         (current.sendImmediate ?? false) &&
         get(appSettings).persistent.sendHeartbeatImmediate;
 
       while (
-        connection_manager.isSerialWriteLocked() ||
-        get(writeBuffer)[0] !== current ||
+        connection_manager.isSerialWriteLocked(this._port) ||
+        get(this._internal)[0] !== current ||
         (typeof waiter !== "undefined" && !sendImmediate)
       ) {
-        if (get(writeBuffer).includes(current)) {
-          await sleep(1);
+        if (get(this._internal).includes(current)) {
+          await this.sleep(1);
         } else {
           reject(
             `Instruction ${current.descr.class_name} was removed from write buffer.`
@@ -276,12 +300,12 @@ function createWriteBuffer() {
         }
       }
 
-      await sleep(10);
-      sendToGrid(current, sendImmediate).then(resolve).catch(reject);
+      await this.sleep(10);
+      this.sendToGrid(current, sendImmediate).then(resolve).catch(reject);
     });
   }
 
-  function validate_incoming(descr: any) {
+  public validate_incoming(descr: any) {
     if (typeof waiter === "undefined") return;
 
     if (!waiter.bufferelement.hasOwnProperty("filter")) return;
@@ -321,47 +345,34 @@ function createWriteBuffer() {
     }
   }
 
-  function validateBufferElement(obj: BufferElement) {
+  public validateBufferElement(obj: BufferElement) {
     if (obj.responseRequired && obj.sendImmediate) {
       throw "Response required and send immediate can not be used together!";
     }
   }
 
-  function add_first(obj: BufferElement) {
-    validateBufferElement(obj);
-    _write_buffer.update((s) => [obj, ...s]);
-    return execute(obj);
+  public add_first(obj: BufferElement) {
+    this.validateBufferElement(obj);
+    this.update((s) => [obj, ...s]);
+    return this.execute(obj);
   }
 
-  async function add_last(obj: BufferElement) {
-    validateBufferElement(obj);
-    _write_buffer.update((s) => [...s, obj]);
-    return execute(obj);
+  public async add_last(obj: BufferElement) {
+    this.validateBufferElement(obj);
+    this.update((s) => [...s, obj]);
+    return this.execute(obj);
   }
 
-  async function execute(obj: BufferElement) {
+  public async execute(obj: BufferElement) {
     return new Promise((resolve, reject) => {
-      let process: (obj: BufferElement) => Promise<any>;
-      const [dx, dy]: number[] = [
-        obj.descr.brc_parameters.DX,
-        obj.descr.brc_parameters.DY,
-      ];
-      const sender: any = runtime.modules.find(
-        (e: any) => e.dx === dx && e.dy === dy
-      )!;
-
-      //TODO: rework instructions into well defined ones,
-      //where the checking of virtual_runtime is unnecessary
-      if (
-        sender?.architecture === "virtual" ||
-        get(virtual_runtime).length > 0
-      ) {
-        process = simulateProcess;
+      let promise: Promise<any>;
+      if (obj.virtual) {
+        promise = simulateProcess(obj);
       } else {
-        process = processElement;
+        promise = this.processElement(obj);
       }
 
-      process(obj)
+      promise
         .then((res) => {
           resolve(res);
         })
@@ -371,37 +382,11 @@ function createWriteBuffer() {
           reject(e);
         })
         .finally(() => {
-          _write_buffer.update((s) => {
+          this.update((s) => {
             s.shift();
             return s;
           });
         });
     });
   }
-
-  return {
-    subscribe: _write_buffer.subscribe,
-    add_fist: add_first,
-    add_last: add_last,
-    clear: clear,
-    validate_incoming: validate_incoming,
-    module_destroy_handler: module_destroy_handler,
-  };
-}
-
-export const writeBuffer = createWriteBuffer();
-
-export function sendHeartbeat(type: number) {
-  // Only add heatbeat into the write buffer if it is not in it already
-  const buffer = get(writeBuffer);
-  const isHeartbeatPresent = buffer.some(
-    (e: any) => e.descr.class_name === "HEARTBEAT"
-  );
-
-  if (isHeartbeatPresent) {
-    return;
-  }
-  instructions.sendEditorHeartbeat_immediate(type).catch((e) => {
-    console.log("EDITOR: Heartbeat skipped...");
-  });
 }
