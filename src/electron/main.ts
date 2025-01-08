@@ -56,7 +56,18 @@ import { usb } from "usb";
 
 log.info("App starting...");
 
-usb.on("attach", () => setTimeout(findBootloaderPath, 500));
+usb.on("attach", () => {
+  let delay = 500;
+  async function retryFind() {
+    let result = await findBootloaderPath();
+    if (result) return;
+
+    delay += 500;
+    if (delay > 1500) return;
+    setTimeout(retryFind, delay);
+  }
+  setTimeout(retryFind, delay);
+});
 setTimeout(findBootloaderPath, 10000); //Initial check
 
 // Keep a global reference of the window object, if you don't, the window will
