@@ -1,29 +1,34 @@
-<script>
-  import { user_input } from "../../../../runtime/runtime.store";
-  import { get } from "svelte/store";
+<script lang="ts">
+  import {
+    GridElement,
+    GridModule,
+    GridPage,
+  } from "../../../../runtime/runtime";
+  import {
+    user_input,
+    UserInputValue,
+  } from "../../../../runtime/user-input.store";
+
   import { createEventDispatcher } from "svelte";
 
-  export let elementNumber;
-  export let isLeftCut;
-  export let isRightCut;
-  export let device;
+  export let element: GridElement;
+  export let isLeftCut = false;
+  export let isRightCut = false;
   export let visible = false;
 
+  let page = element.parent as GridPage;
+  let module = page.parent as GridModule;
+
   const dispatch = createEventDispatcher();
-
-  let [dx, dy] = [undefined, undefined];
-
-  $: {
-    dx = device?.dx;
-    dy = device?.dy;
-  }
 
   let isSelected = false;
   $: handleUserInputChange($user_input);
 
-  function handleUserInputChange(ui) {
+  function handleUserInputChange(ui: UserInputValue) {
     isSelected =
-      dx == ui?.dx && dy == ui?.dy && ui?.elementnumber == elementNumber;
+      module.dx == ui?.dx &&
+      module.dy == ui?.dy &&
+      ui?.elementnumber == element.elementIndex;
   }
 </script>
 
@@ -38,12 +43,12 @@
       {isRightCut ? 'corner-cut-r' : ''}
       {isLeftCut ? 'corner-cut-l' : ''}
       "
-    style="   {elementNumber == 255
+    style="   {$element.elementIndex == 255
       ? 'border-top-left-radius: 9999px; border-top-right-radius: 9999px;'
       : 'border-radius: var(--grid-rounding);'}   "
     on:click={() => {
       dispatch("click", {
-        elementNumber: elementNumber,
+        elementNumber: $element.elementIndex,
       });
     }}
   />

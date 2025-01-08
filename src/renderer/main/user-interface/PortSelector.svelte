@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { get, writable } from "svelte/store";
-  import { connection_manager, GridPort } from "./../../serialport/serialport";
   import { MeltSelect } from "@intechstudio/grid-uikit";
+  import {
+    GridRuntimeManagerData,
+    runtime_manager,
+  } from "../../runtime/runtime-manager.store";
+  import { get } from "svelte/store";
+  import { user_input, UserInput } from "../../runtime/user-input.store";
 
   export let visible = false;
   export let disabled = false;
@@ -10,40 +14,51 @@
 
   let options: any[] = [];
 
-  const ports = connection_manager.ports;
+  $: handleConnectionChange($runtime_manager);
 
-  $: handlePortChange($ports);
-
-  async function handlePortChange(ports: GridPort[]) {
+  function handleConnectionChange(rtm: GridRuntimeManagerData) {
+    let [virtual, physical] = [0, 0];
     options = [];
-    for (const [i, port] of ports.entries()) {
-      const info = port.getInfo();
+    rtm.data.forEach((e) => {
+      let title = "";
+      if (e.runtime.virtual) {
+        title = `Virtual ${virtual + 1}`;
+        ++virtual;
+      } else {
+        title = `Port ${physical + 1}`;
+        ++physical;
+      }
       options.push({
-        value: port.id,
-        title: `Port ${i + 1}`,
+        value: e.runtime.id,
+        title: title,
       });
+    });
+
+    if (options.length === 0) {
+      options.push({ value: "", title: "None" });
+      selected = "";
+    } else {
+      selected = rtm.active?.runtime.id;
     }
-    selected = connection_manager.active?.id;
   }
 
   $: handleSelectedChange(selected);
 
   function handleSelectedChange(id: string) {
-    const port = get(ports).find((e) => e.id === id);
-    if (typeof port === "undefined") {
-      return;
-    }
-    connection_manager.fetchStream(port);
+    const selected = runtime_manager.data.find((e) => e.runtime.id === id);
+    runtime_manager.active = selected;
   }
 </script>
 
-<div
-  class:hidden={!visible}
-  class="w-24 h-fit text-white {disabled ? 'opacity-50' : ''}"
->
-  {#if disabled}
-    <MeltSelect bind:target={selected} {options} disabled={true} />
-  {:else}
-    <MeltSelect bind:target={selected} {options} disabled={false} />
-  {/if}
-</div>
+{#key options}
+  <div
+    class:hidden={!visible}
+    class="w-24 h-fit text-white {disabled ? 'opacity-50' : ''}"
+  >
+    {#if disabled}
+      <MeltSelect bind:target={selected} {options} disabled={true} />
+    {:else}
+      <MeltSelect bind:target={selected} {options} disabled={false} />
+    {/if}
+  </div>
+{/key}

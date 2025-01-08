@@ -1,9 +1,8 @@
 <script lang="ts">
   import {
-    runtime,
     user_input,
     UserInputValue,
-  } from "./../../../runtime/runtime.store";
+  } from "./../../../runtime/user-input.store";
   import { GridEvent } from "./../../../runtime/runtime";
   import { modal } from "./../../modals/modal.store";
   import Export from "./../../modals/Export.svelte";
@@ -18,19 +17,20 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
   import { grid } from "@intechstudio/grid-protocol";
-  import { writable, readable } from "svelte/store";
+  import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
-  import { instructions } from "../../../serialport/instructions";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   let event: GridEvent;
 
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
-    event = runtime.findEvent(
+    const active = get(runtime_manager).active.runtime;
+    event = active.findEvent(
       ui.dx,
       ui.dy,
       ui.pagenumber,
@@ -196,7 +196,7 @@
   <MoltenInput bind:target={immediateCommand} />
   <MoltenPushButton
     click={() => {
-      instructions.sendImmediateToGrid(
+      runtime_manager.LUAExecImmediate(
         0,
         0,
         "<?lua " + immediateCommand + " ?>"

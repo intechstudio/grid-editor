@@ -1,4 +1,12 @@
-import { get, writable } from "svelte/store";
+import {
+  get,
+  Readable,
+  Subscriber,
+  Unsubscriber,
+  Updater,
+  Writable,
+  writable,
+} from "svelte/store";
 import { grid, ModuleType, ElementType } from "@intechstudio/grid-protocol";
 import {
   InstructionClass,
@@ -6,173 +14,7 @@ import {
   BufferElement,
 } from "../runtime/engine.store";
 
-function answerExecuteTypeRequest(obj: BufferElement) {
-  return new Promise((resolve, reject) => {
-    const class_name = obj.descr.class_name;
-    const [dx, dy, page, element, event]: number[] = [
-      obj.descr.brc_parameters.DX,
-      obj.descr.brc_parameters.DY,
-      obj.descr.class_parameters.PAGENUMBER ?? -1,
-      obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
-      obj.descr.class_parameters.EVENTTYPE ?? -1,
-    ];
-    switch (class_name) {
-      case InstructionClassName.CONFIG: {
-        virtual_runtime.update((s) => {
-          const device = s.find((e) => e.dx == dx && e.dy == dy);
-          const events = device?.pages[page].elements.find(
-            (e) => e.elementIndex === element
-          ).events;
-          events.find((e: any) => e.value == event).config =
-            obj.descr.class_parameters.ACTIONSTRING;
-          return s;
-        });
-
-        resolve({
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-            SX: dx,
-            SY: dy,
-          },
-          class_name: InstructionClassName.CONFIG,
-          class_instr: InstructionClass.ACKNOWLEDGE,
-          class_parameters: {
-            ELEMENTNUMBER: element,
-            EVENTTYPE: event,
-            LASTHEADER: 0,
-            PAGENUMBER: page,
-          },
-        });
-        break;
-      }
-      case InstructionClassName.PAGESTORE: {
-        virtual_runtime.update((s) => {
-          s.forEach((device) => {
-            device.storeChanges();
-          });
-          return s;
-        });
-        resolve({
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-            SX: dx,
-            SY: dy,
-          },
-          class_name: class_name,
-          class_instr: InstructionClass.ACKNOWLEDGE,
-          class_parameters: {
-            ELEMENTNUMBER: element,
-            EVENTTYPE: event,
-            LASTHEADER: 0,
-            PAGENUMBER: page,
-          },
-        });
-        break;
-      }
-      case InstructionClassName.PAGECLEAR: {
-        virtual_runtime.update((s) => {
-          s.forEach((device) => {
-            device.resetDefaultConfiguration();
-          });
-          return s;
-        });
-        resolve({
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-            SX: dx,
-            SY: dy,
-          },
-          class_name: class_name,
-          class_instr: InstructionClass.ACKNOWLEDGE,
-          class_parameters: {
-            ELEMENTNUMBER: element,
-            EVENTTYPE: event,
-            LASTHEADER: 0,
-            PAGENUMBER: page,
-          },
-        });
-        break;
-      }
-      case InstructionClassName.PAGEDISCARD: {
-        virtual_runtime.update((s) => {
-          s.forEach((device) => {
-            device.discardChanges();
-          });
-          return s;
-        });
-        resolve({
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-            SX: dx,
-            SY: dy,
-          },
-          class_name: class_name,
-          class_instr: InstructionClass.ACKNOWLEDGE,
-          class_parameters: {
-            ELEMENTNUMBER: element,
-            EVENTTYPE: event,
-            LASTHEADER: 0,
-            PAGENUMBER: page,
-          },
-        });
-        break;
-      }
-      default: {
-        reject("This operation is not available in virtual mode!");
-      }
-    }
-  });
-}
-
-function answerFetchTypeRequests(obj: BufferElement) {
-  return new Promise((resolve, reject) => {
-    const class_name = obj.descr.class_name;
-    const [dx, dy, page, element, event]: number[] = [
-      obj.descr.brc_parameters.DX,
-      obj.descr.brc_parameters.DY,
-      obj.descr.class_parameters.PAGENUMBER ?? -1,
-      obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
-      obj.descr.class_parameters.EVENTTYPE ?? -1,
-    ];
-    const device = get(virtual_runtime).find((e) => e.dx === dx && e.dy === dy);
-    switch (class_name) {
-      case InstructionClassName.CONFIG: {
-        const events = device?.pages[page].elements.find(
-          (e) => e.elementIndex === element
-        ).events;
-        const config = events.find((e: any) => e.value == event).config;
-        resolve({
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-            SX: dx,
-            SY: dy,
-          },
-          class_name: "CONFIG",
-          class_instr: "REPORT",
-          class_parameters: {
-            ACTIONLENGT: config.length,
-            ACTIONSTRING: config,
-            ELEMENTNUMBER: element,
-            EVENTTYPE: event,
-            LASTHEADER: 0,
-            PAGENUMBER: page,
-          },
-        });
-        break;
-      }
-      default: {
-        reject("This operation is not implemented ye in virtual mode!");
-      }
-    }
-  });
-}
-
-class VirtualModule {
+export class VirtualModule {
   public dx: number;
   public dy: number;
   public type: ModuleType;
@@ -235,46 +77,224 @@ class VirtualModule {
   }
 }
 
-function create_virtual_runtime() {
-  const store = writable([] as VirtualModule[]);
+export class ConnectionSimulator implements Readable<VirtualModule[]> {
+  private _internal: Writable<VirtualModule[]> = writable([]);
 
-  function destroyModule(dx: number, dy: number) {
-    const vrt = get(store);
+  public subscribe(
+    run: Subscriber<VirtualModule[]>,
+    invalidate?: (value?: VirtualModule[]) => void
+  ): Unsubscriber {
+    return this._internal.subscribe(run, invalidate);
+  }
+
+  private set(value: VirtualModule[]) {
+    this._internal.set(value);
+  }
+
+  private update(updater: Updater<VirtualModule[]>) {
+    this._internal.update(updater);
+  }
+
+  public destroyModule(dx: number, dy: number) {
+    const vrt = get(this._internal);
     const index = vrt.findIndex((e) => e.dx === dx && e.dy === dy);
     if (index === -1) {
       return;
     }
 
-    store.update((s) => {
+    this.update((s) => {
       s.splice(index, 1);
       return s;
     });
   }
 
-  return {
-    ...store,
-    destroyModule: destroyModule,
-  };
+  public createModule(dx: number, dy: number, type: ModuleType) {
+    const device = new VirtualModule(dx, dy, type);
+    this.update((s) => [...s, device]);
+  }
+
+  public answerExecuteTypeRequest(obj: BufferElement) {
+    return new Promise((resolve, reject) => {
+      const class_name = obj.descr.class_name;
+      const [dx, dy, page, element, event]: number[] = [
+        obj.descr.brc_parameters.DX,
+        obj.descr.brc_parameters.DY,
+        obj.descr.class_parameters.PAGENUMBER ?? -1,
+        obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
+        obj.descr.class_parameters.EVENTTYPE ?? -1,
+      ];
+      switch (class_name) {
+        case InstructionClassName.CONFIG: {
+          connection_simulator.update((s) => {
+            const device = s.find((e) => e.dx == dx && e.dy == dy);
+            const events = device?.pages[page].elements.find(
+              (e) => e.elementIndex === element
+            ).events;
+            events.find((e: any) => e.value == event).config =
+              obj.descr.class_parameters.ACTIONSTRING;
+            return s;
+          });
+
+          resolve({
+            brc_parameters: {
+              DX: -127,
+              DY: -127,
+              SX: dx,
+              SY: dy,
+            },
+            class_name: InstructionClassName.CONFIG,
+            class_instr: InstructionClass.ACKNOWLEDGE,
+            class_parameters: {
+              ELEMENTNUMBER: element,
+              EVENTTYPE: event,
+              LASTHEADER: 0,
+              PAGENUMBER: page,
+            },
+          });
+          break;
+        }
+        case InstructionClassName.PAGESTORE: {
+          connection_simulator.update((s) => {
+            s.forEach((device) => {
+              device.storeChanges();
+            });
+            return s;
+          });
+          resolve({
+            brc_parameters: {
+              DX: -127,
+              DY: -127,
+              SX: dx,
+              SY: dy,
+            },
+            class_name: class_name,
+            class_instr: InstructionClass.ACKNOWLEDGE,
+            class_parameters: {
+              ELEMENTNUMBER: element,
+              EVENTTYPE: event,
+              LASTHEADER: 0,
+              PAGENUMBER: page,
+            },
+          });
+          break;
+        }
+        case InstructionClassName.PAGECLEAR: {
+          connection_simulator.update((s) => {
+            s.forEach((device) => {
+              device.resetDefaultConfiguration();
+            });
+            return s;
+          });
+          resolve({
+            brc_parameters: {
+              DX: -127,
+              DY: -127,
+              SX: dx,
+              SY: dy,
+            },
+            class_name: class_name,
+            class_instr: InstructionClass.ACKNOWLEDGE,
+            class_parameters: {
+              ELEMENTNUMBER: element,
+              EVENTTYPE: event,
+              LASTHEADER: 0,
+              PAGENUMBER: page,
+            },
+          });
+          break;
+        }
+        case InstructionClassName.PAGEDISCARD: {
+          connection_simulator.update((s) => {
+            s.forEach((device) => {
+              device.discardChanges();
+            });
+            return s;
+          });
+          resolve({
+            brc_parameters: {
+              DX: -127,
+              DY: -127,
+              SX: dx,
+              SY: dy,
+            },
+            class_name: class_name,
+            class_instr: InstructionClass.ACKNOWLEDGE,
+            class_parameters: {
+              ELEMENTNUMBER: element,
+              EVENTTYPE: event,
+              LASTHEADER: 0,
+              PAGENUMBER: page,
+            },
+          });
+          break;
+        }
+        default: {
+          reject("This operation is not available in virtual mode!");
+        }
+      }
+    });
+  }
+
+  public answerFetchTypeRequests(obj: BufferElement) {
+    return new Promise((resolve, reject) => {
+      const class_name = obj.descr.class_name;
+      const [dx, dy, page, element, event]: number[] = [
+        obj.descr.brc_parameters.DX,
+        obj.descr.brc_parameters.DY,
+        obj.descr.class_parameters.PAGENUMBER ?? -1,
+        obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
+        obj.descr.class_parameters.EVENTTYPE ?? -1,
+      ];
+      const device = get(connection_simulator).find(
+        (e) => e.dx === dx && e.dy === dy
+      );
+      switch (class_name) {
+        case InstructionClassName.CONFIG: {
+          const events = device?.pages[page].elements.find(
+            (e) => e.elementIndex === element
+          ).events;
+          const config = events.find((e: any) => e.value == event).config;
+          resolve({
+            brc_parameters: {
+              DX: -127,
+              DY: -127,
+              SX: dx,
+              SY: dy,
+            },
+            class_name: "CONFIG",
+            class_instr: "REPORT",
+            class_parameters: {
+              ACTIONLENGT: config.length,
+              ACTIONSTRING: config,
+              ELEMENTNUMBER: element,
+              EVENTTYPE: event,
+              LASTHEADER: 0,
+              PAGENUMBER: page,
+            },
+          });
+          break;
+        }
+        default: {
+          reject("This operation is not implemented ye in virtual mode!");
+        }
+      }
+    });
+  }
 }
 
-export const virtual_runtime = create_virtual_runtime();
-
-export function createVirtualModule(dx: number, dy: number, type: ModuleType) {
-  const device = new VirtualModule(dx, dy, type);
-  virtual_runtime.update((s) => [...s, device]);
-}
+export const connection_simulator = new ConnectionSimulator();
 
 export function simulateProcess(obj: BufferElement): Promise<any> {
   const class_instr = obj.descr.class_instr;
   switch (class_instr) {
     case InstructionClass.FETCH: {
-      return answerFetchTypeRequests(obj);
+      return connection_simulator.answerFetchTypeRequests(obj);
     }
     case InstructionClass.ACKNOWLEDGE: {
       return Promise.reject();
     }
     case InstructionClass.EXECUTE: {
-      return answerExecuteTypeRequest(obj);
+      return connection_simulator.answerExecuteTypeRequest(obj);
     }
     case InstructionClass.REPORT: {
       return Promise.reject();

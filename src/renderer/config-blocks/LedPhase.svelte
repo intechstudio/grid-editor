@@ -48,20 +48,15 @@
 </script>
 
 <script lang="ts">
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Script } from "./_script_parsers.js";
-  import {
-    LocalDefinitions,
-    runtime,
-    user_input,
-  } from "../runtime/runtime.store";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
-  import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
-  import { GridEvent } from "./../runtime/runtime";
+  import { GridElement, GridEvent } from "./../runtime/runtime";
 
   export let config;
   export let index;
@@ -135,13 +130,7 @@
     });
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
-        const ui = get(user_input);
-        const target = runtime.findElement(
-          ui.dx,
-          ui.dy,
-          ui.pagenumber,
-          ui.elementnumber
-        );
+        const target = event.parent as GridElement;
         switch (target.type) {
           case ElementType.BUTTON:
             return [
@@ -175,8 +164,6 @@
   onMount(() => {
     updateSuggestions();
   });
-
-  let suggestionElement = undefined;
 </script>
 
 <config-led-phase

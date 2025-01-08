@@ -1,14 +1,17 @@
 <script lang="ts">
-  import { Analytics } from "./../../../../runtime/analytics.js";
-  import { get } from "svelte/store";
-  import { user_input, runtime } from "./../../../../runtime/runtime.store";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { GridProfileData } from "../../../../runtime/runtime.js";
+  import {
+    GridModule,
+    GridPage,
+    GridProfileData,
+  } from "../../../../runtime/runtime.js";
   import { loadProfile } from "../../../../runtime/operations";
+  import { user_input } from "../../../../runtime/user-input.store";
+  import { get } from "svelte/store";
 
-  export let device = undefined;
+  export let device: GridModule;
   export let visible = false;
 
   enum LoadState {
@@ -26,8 +29,7 @@
   }
 
   function handleProfileLoad(e) {
-    const ui = get(user_input);
-    const page = runtime.findPage(device.dx, device.dy, ui.pagenumber);
+    const page = device.findPage(get(user_input).pagenumber) as GridPage;
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
 
     state = LoadState.BUSY;
@@ -36,6 +38,7 @@
         state = LoadState.LOADED;
       })
       .catch((e) => {
+        console.log(e);
         state = LoadState.READY;
       });
   }

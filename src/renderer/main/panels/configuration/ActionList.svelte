@@ -12,7 +12,7 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
-  import { selected_actions } from "../../../runtime/runtime.store";
+  import { selected_actions } from "../../../runtime/user-input.store";
   import { get } from "svelte/store";
   import { grid } from "@intechstudio/grid-protocol";
   import { shortcut } from "./../../_actions/shortcut.action";

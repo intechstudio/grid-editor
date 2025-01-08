@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { Grid } from "./../../../lib/_utils";
-  import { EventType, NumberToEventType } from "@intechstudio/grid-protocol";
-  import {
-    runtime,
-    user_input,
-    type UserInputValue,
-  } from "../../../runtime/runtime.store";
-
+  import { user_input } from "./../../../runtime/user-input.store";
   import { get } from "svelte/store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
-  import { GridEvent, GridElement } from "../../../runtime/runtime";
+  import {
+    GridEvent,
+    GridElement,
+    ElementData,
+  } from "../../../runtime/runtime";
+  import { Grid } from "../../../lib/_utils";
+
+  export let element: GridElement;
 
   type EventPanelOption = {
     title: string;
@@ -23,27 +23,30 @@
 
   let options = defaultOptions;
   let selected = defaultSelected;
-  let target: GridElement;
 
-  $: handleUserInputChange($user_input);
+  $: handleElementChange($element);
 
-  function handleUserInputChange(ui: UserInputValue) {
-    target = runtime.findElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber);
+  function handleElementChange(element: ElementData) {
+    const ui = get(user_input);
 
-    if (typeof target === "undefined") {
+    if (typeof element === "undefined") {
       options = defaultOptions;
       selected = defaultSelected;
       return;
     }
 
-    options = target.events.map((e: GridEvent) =>
+    options = element.events.map((e: GridEvent) =>
       Object({
         title: e.getName(),
         value: e.type,
       })
     );
 
-    selected = options.find((e) => e.value === ui.eventtype).value;
+    const closestEvent = Grid.getClosestEvent(
+      options.map((e) => e.value),
+      ui.eventtype
+    );
+    selected = closestEvent;
   }
 
   $: handleSelectEvent(selected);
@@ -73,8 +76,8 @@
     {options}
   >
     <svelte:fragment slot="item" let:value>
-      {@const event = target?.events.find((e) => e.type === Number(value))}
-      {#key $runtime}
+      {@const event = element?.events.find((e) => e.type === Number(value))}
+      {#key $element}
         <unsaved-changes-marker
           class:hidden={!event?.hasChanges()}
           class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"

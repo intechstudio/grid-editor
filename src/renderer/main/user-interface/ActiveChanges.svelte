@@ -1,23 +1,28 @@
-<script>
-  import { tooltip } from "./../_actions/tooltip.ts";
+<script lang="ts">
+  import { tooltip } from "./../_actions/tooltip";
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
-  import { appSettings } from "../../runtime/app-helper.store";
-  import { writeBuffer } from "../../runtime/engine.store.ts";
-  import { runtime, user_input } from "../../runtime/runtime.store";
+  import { user_input } from "./../../runtime/user-input.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { connection_manager } from "../../serialport/serialport";
   import PortSelector from "./PortSelector.svelte";
+  import { runtime_manager } from "../../runtime/runtime-manager.store";
+  import { GridRuntime } from "../../runtime/runtime";
 
   let isChanges = false;
   let changes = 0;
-  $: if ($runtime) {
-    changes = runtime.unsavedChangesCount();
-    isChanges = changes > 0;
+
+  let runtime: GridRuntime;
+  $: runtime = $runtime_manager.active.runtime;
+
+  $: {
+    if ($runtime) {
+      changes = runtime.unsavedChangesCount();
+      isChanges = changes > 0;
+    }
   }
 
   function clearOverlays() {
@@ -131,8 +136,6 @@
     }
   }
 
-  const ports = connection_manager.ports;
-
   function handleConnectModules(e) {
     navigator.tryConnectGrid().catch((e) => {
       logger.set({
@@ -151,16 +154,16 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <PortSelector visible={$ports.length > 1} disabled={isChanges} />
+    <PortSelector visible={$runtime_manager.data.length > 1} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes
       </div>
-      {#if $appSettings.persistent.writeBufferDebugEnabled}
+      <!-- {#if $appSettings.persistent.writeBufferDebugEnabled}
         <div class="mx-4 text-white font-medium">
           writeBuffer: {$writeBuffer.length}
         </div>
-      {/if}
+      {/if} -->
     </div>
 
     <div
@@ -206,7 +209,7 @@
         triggerEvents: ["show-buttons", "hover"],
       }}
     >
-      <MoltenPushButton text="Clear" />
+      <MoltenPushButton text="Clear" click={() => {}} />
     </div>
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton

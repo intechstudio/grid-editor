@@ -1,10 +1,19 @@
 import { grid } from "@intechstudio/grid-protocol";
 
-import { messageStream } from "./message-stream.store.js";
-
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 import { v4 as uuidv4 } from "uuid";
-import { get, type Writable, writable } from "svelte/store";
+import {
+  get,
+  Readable,
+  Unsubscriber,
+  Updater,
+  type Writable,
+  writable,
+} from "svelte/store";
+import { Subscriber } from "svelte/motion";
+import { GridRuntime } from "../runtime/runtime.js";
+import { WriteBuffer } from "../runtime/engine.store.js";
+import { runtime_manager } from "../runtime/runtime-manager.store.js";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -40,9 +49,7 @@ interface SerialPortInfo {
   usbProductId?: number;
 }
 
-export interface GridPort extends WebSerialPort {
-  id: string;
-}
+export type GridPort = WebSerialPort;
 
 const filter: SerialPortInfo[] = [
   {
@@ -59,43 +66,66 @@ const filter: SerialPortInfo[] = [
   },
 ];
 
-class GridConnectionManager {
-  private _ports: Writable<GridPort[]>;
-  private _active: GridPort;
+export type GridConnection = {
+  id: string;
+  buffer: WriteBuffer;
+  port: GridPort;
+  virtual: boolean;
+};
 
-  constructor() {
-    this._ports = writable([]);
-    this._active = undefined;
+export class GridConnectionManager implements Readable<GridConnection[]> {
+  private _internal: Writable<GridConnection[]> = writable([]);
+
+  public subscribe(
+    run: Subscriber<GridConnection[]>,
+    invalidate?: (value?: GridConnection[]) => void
+  ): Unsubscriber {
+    return this._internal.subscribe(run, invalidate);
+  }
+
+  private set(value: GridConnection[]) {
+    this._internal.set(value);
+  }
+
+  private update(updater: Updater<GridConnection[]>) {
+    this._internal.update(updater);
   }
 
   get ports() {
-    return this._ports;
+    return this._internal;
   }
 
-  openPort(port: any): Promise<GridPort> {
+  openPort(port: GridPort): Promise<GridConnection> {
     return new Promise((resolve, reject) => {
       port
         .open({ baudRate: 2000000 })
         .then(() => {
-          const current = port as GridPort;
-          current.id = uuidv4();
-          current.addEventListener("disconnect", (e) => {
-            console.log("Port disconnected:", current);
+          const buffer = new WriteBuffer(port);
+          const current = {
+            id: uuidv4(),
+            port: port,
+            buffer: buffer,
+            virtual: false,
+          };
 
-            const ports = get(this._ports);
-            this._ports.set(ports.filter((e) => e.id !== current.id));
-            if (get(this._ports).length > 0) {
-              if (this._active.id === current.id) {
-                this.fetchStream(get(this._ports)[0]);
-              }
-            } else {
-              this._active = undefined;
-            }
-          });
+          const incoming = new GridRuntime();
+          buffer.messageStream.bind(incoming);
+          incoming.connection = current;
 
-          this._ports.update((store) => {
+          runtime_manager.add(incoming);
+
+          this.update((store) => {
+            console.log("Port connected:", current);
             store.push(current);
             return store;
+          });
+
+          port.addEventListener("disconnect", (e) => {
+            console.log("Port disconnected:", current);
+            this.update((store) => {
+              return store.filter((e) => e.id !== current.id);
+            });
+            runtime_manager.destroy(incoming);
           });
 
           resolve(current);
@@ -106,14 +136,7 @@ class GridConnectionManager {
     });
   }
 
-  disconnectPort() {}
-
-  get active() {
-    return this._active;
-  }
-
-  isSerialWriteLocked() {
-    const port = this.active;
+  isSerialWriteLocked(port: GridPort) {
     if (port === undefined || port === null) {
       return true;
     }
@@ -127,12 +150,10 @@ class GridConnectionManager {
     }
   }
 
-  serialWrite(param) {
+  serialWrite(param: any, port: GridPort) {
     if (param === undefined) {
       return Promise.reject("Serial Write Error 1.");
     }
-
-    const port = this.active;
 
     if (port === undefined || port === null) {
       return Promise.reject("Serial Write Error 2.");
@@ -171,17 +192,13 @@ class GridConnectionManager {
     });
   }
 
-  async fetchStream(port: GridPort) {
+  async fetchStream(connection: GridConnection) {
+    const port = connection.port;
     if (!port || !port.readable) {
       console.warn("Invalid port: ", port);
       return;
     }
 
-    if (port.id === this.active?.id) {
-      return;
-    }
-
-    this._active = port;
     const reader = port.readable.getReader();
     let charsReceived = 0;
     let rxBuffer = [];
@@ -190,7 +207,12 @@ class GridConnectionManager {
       while (true) {
         const { done, value } = await reader.read();
 
-        if (done || this.active !== port) {
+        if (
+          done ||
+          !get(this._internal)
+            .map((e) => e.port)
+            .includes(port)
+        ) {
           console.log("Stream complete");
           break;
         }
@@ -223,7 +245,12 @@ class GridConnectionManager {
             grid.decode_packet_classes(class_array);
 
             if (class_array !== false) {
-              messageStream.deliver_inbound(class_array);
+              try {
+                connection.buffer.messageStream.deliver_inbound(class_array);
+              } catch (e) {
+                //TODO: Serialize properly messageStream
+                console.error("MessageStrem works to fast (TODO):", e);
+              }
             }
           }
         }
@@ -236,53 +263,54 @@ class GridConnectionManager {
       reader.releaseLock();
     }
   }
+
+  static async tryConnectGrid() {
+    try {
+      let ports: any[];
+      if (import.meta.env.VITE_BUILD_TARGET == "web") {
+        const port = await navigator.serial.requestPort({ filters: filter });
+        ports = [port]; // Add the newly requested port to the list
+      } else {
+        // Retrieve all available ports. Must requestPort before getPort to allow MACOS to open D51
+        const port = await navigator.serial.requestPort({ filters: filter });
+        if (navigator.debugSerial) {
+          console.warn("port:", port);
+        }
+        ports = await navigator.serial.getPorts();
+      }
+
+      // Filter ports based on the provided filter criteria
+      const matchingPorts = ports.filter((port) => {
+        const { usbVendorId, usbProductId } = port.getInfo();
+        return filter.some(
+          (f) =>
+            f.usbVendorId === usbVendorId && f.usbProductId === usbProductId
+        );
+      });
+
+      // Attempt to open each matching port
+      for (const port of matchingPorts) {
+        connection_manager
+          .openPort(port as GridPort)
+          .then((connection) => {
+            connection_manager.fetchStream(connection);
+          })
+          .catch((openError) => {
+            // Handle any errors that occur when opening the port
+            if (navigator.debugSerial) {
+              console.warn("Failed to open port:", openError);
+            }
+          });
+      }
+    } catch (listPortsError) {
+      // Handle any errors that occur when listing the ports
+      if (navigator.debugSerial) {
+        console.warn("Failed to list ports:", listPortsError);
+      }
+    }
+  }
 }
 
 export const connection_manager = new GridConnectionManager();
 
-navigator.tryConnectGrid = async () => {
-  try {
-    let ports: any[];
-    if (import.meta.env.VITE_BUILD_TARGET == "web") {
-      const port = await navigator.serial.requestPort({ filters: filter });
-      ports = [port]; // Add the newly requested port to the list
-    } else {
-      // Retrieve all available ports. Must requestPort before getPort to allow MACOS to open D51
-      const port = await navigator.serial.requestPort({ filters: filter });
-      if (navigator.debugSerial) {
-        console.warn("port:", port);
-      }
-      ports = await navigator.serial.getPorts();
-    }
-
-    // Filter ports based on the provided filter criteria
-    const matchingPorts = ports.filter((port) => {
-      const { usbVendorId, usbProductId } = port.getInfo();
-      return filter.some(
-        (f) => f.usbVendorId === usbVendorId && f.usbProductId === usbProductId
-      );
-    });
-
-    // Attempt to open each matching port
-    for (const port of matchingPorts) {
-      connection_manager
-        .openPort(port)
-        .then((port) => {
-          if (typeof connection_manager.active === "undefined") {
-            connection_manager.fetchStream(port);
-          }
-        })
-        .catch((openError) => {
-          // Handle any errors that occur when opening the port
-          if (navigator.debugSerial) {
-            console.warn("Failed to open port:", openError);
-          }
-        });
-    }
-  } catch (listPortsError) {
-    // Handle any errors that occur when listing the ports
-    if (navigator.debugSerial) {
-      console.warn("Failed to list ports:", listPortsError);
-    }
-  }
-};
+navigator.tryConnectGrid = GridConnectionManager.tryConnectGrid;

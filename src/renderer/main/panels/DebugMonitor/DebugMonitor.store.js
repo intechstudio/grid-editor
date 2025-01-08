@@ -1,5 +1,4 @@
 import { writable } from "svelte/store";
-import { getDeviceName } from "../../../runtime/runtime.store";
 import { NumberToEventType } from "@intechstudio/grid-protocol";
 
 function createDebugMonitor() {
@@ -145,7 +144,7 @@ function createLuaError() {
 
   return {
     ...store,
-    update_lua_error: (type, descr) => {
+    update_lua_error: (type, descr, device) => {
       store.update((d) => {
         if (!disabled) {
           let sx = descr.brc_parameters.SX;
@@ -160,7 +159,7 @@ function createLuaError() {
                 ...d,
                 {
                   type: "luanotok",
-                  device: getDeviceName(sx, sy),
+                  device: device.type,
                   x: sx,
                   y: sy,
                   element: { no: descr.element },
@@ -179,7 +178,7 @@ function createLuaError() {
                 ...d,
                 {
                   type: "kbisdisabled",
-                  device: getDeviceName(sx, sy),
+                  device: device.type.type,
                   x: sx,
                   y: sy,
                 },
