@@ -47,6 +47,7 @@
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",
+    "drivelist": "^12.0.2",
     "electron-dl": "^3.4.1",
     "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",
@@ -69,6 +70,7 @@
     "svelte-watch-resize": "^1.0.3",
     "ts-jest": "^29.1.2",
     "typescript": "^5.0.0",
+    "usb": "^2.14.0",
     "uuid": "^9.0.0",
     "vite": "^4.5.2",
     "ws": "^7.5.8"
