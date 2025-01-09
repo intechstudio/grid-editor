@@ -125,7 +125,7 @@
     id="cfg-{index}"
     class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
-      : 'border-transparent'}"
+      : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
     use:draggable={(this,
@@ -156,17 +156,19 @@
         <!-- Content of block -->
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="bg-secondary bg-opacity-30 h-full w-full">
-            <svelte:component
-              this={component}
-              {index}
-              config={action}
-              on:replace={handleReplace}
-              on:validator={handleValidator}
-              on:update-action={handleUpdateAction}
-              on:sync={handleSendActionToGrid}
-              on:toggle={handleToggle}
-            />
+          <div class="bg-secondary h-full w-full">
+            <div class="bg-black/15 h-full w-full">
+              <svelte:component
+                this={component}
+                {index}
+                config={action}
+                on:replace={handleReplace}
+                on:validator={handleValidator}
+                on:update-action={handleUpdateAction}
+                on:sync={handleSendActionToGrid}
+                on:toggle={handleToggle}
+              />
+            </div>
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->

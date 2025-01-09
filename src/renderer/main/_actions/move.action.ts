@@ -109,11 +109,17 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
   function handleMouseDown(e: MouseEvent) {
     const target = e.target as HTMLElement;
-    if (movable) {
-      handleDragStart(e.clientX, e.clientY);
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+    if (e.target !== e.currentTarget) {
+      return;
     }
+
+    if (!movable) {
+      return;
+    }
+
+    handleDragStart(e.clientX, e.clientY);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   }
 
   function handleMouseUp(e: MouseEvent) {
