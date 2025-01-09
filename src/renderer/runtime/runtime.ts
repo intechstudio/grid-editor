@@ -1630,7 +1630,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       }
 
       if (this.unsavedChangesCount() != 0) {
-        reject("Store your changes before changin pages!");
+        reject(Runtime.ErrorText.PAGE_CHANGE_DISABLED);
         return;
       }
 
