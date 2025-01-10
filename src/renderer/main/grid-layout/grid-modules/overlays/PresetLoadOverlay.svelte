@@ -10,6 +10,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { loadPreset } from "../../../../runtime/operations";
+  import { get } from "svelte/store";
 
   export let element: GridElement;
   export let visible = false;
@@ -30,7 +31,8 @@
   let compatible = Compatibility.INCOMPATIBLE;
 
   function handlePresetLoad(e) {
-    const preset = GridPresetData.createFromCloudData($selectedConfigStore);
+    const data = get(selectedConfigStore);
+    const preset = GridPresetData.createFromCloudData(data);
     loadPreset(preset, element)
       .then(() => {
         loaded = true;
@@ -40,32 +42,28 @@
       });
   }
 
-  function handleSelectedConfigChange(store) {
+  function handleSelectedConfigChange(data: GridPresetData) {
     loaded = false;
 
-    if (typeof store === "undefined" || store?.configType === "profile") {
-      return;
-    }
-
-    const leftSideCompatible = grid.is_element_compatible_with(
-      element.type,
-      store.type
-    );
-    const rightSideCompatible = grid.is_element_compatible_with(
-      store.type,
-      element.type
-    );
+    const leftSideCompatible = element.isCompatible(data.element.type);
+    const rightSideCompatible = data.element.isCompatible(element.type);
 
     if (leftSideCompatible && rightSideCompatible) {
       compatible = Compatibility.MATCHING;
-    } else if (rightSideCompatible) {
+    } else if (leftSideCompatible) {
       compatible = Compatibility.COMPATIBLE;
     } else {
       compatible = Compatibility.INCOMPATIBLE;
     }
   }
 
-  $: handleSelectedConfigChange($selectedConfigStore);
+  $: {
+    const store = $selectedConfigStore;
+    if (typeof store !== "undefined" && store.configType === "preset") {
+      const preset = GridPresetData.createFromCloudData(store);
+      handleSelectedConfigChange(preset);
+    }
+  }
 </script>
 
 <container>
