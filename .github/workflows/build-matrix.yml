@@ -65,9 +65,9 @@ jobs:
 
       - name: Retry build on fail (macos sporadically fails)
         uses: nick-fields/retry@v3.0.0
+        if: ${{ matrix.os == 'macos-latest' }}
         with:
           retry_on: error
-          if: ${{ matrix.os == 'macos-latest' }}
           timeout_minutes: 12
           max_attempts: 3
           command: npm run ${{ inputs.exportScript }}
