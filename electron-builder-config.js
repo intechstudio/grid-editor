@@ -65,6 +65,8 @@ const config = {
     entitlementsInherit: "build-assets/entitlements.mac.plist",
     notarize: {
       teamId: process.env.APPLE_TEAM_ID,
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
     },
   },
   dmg: {
