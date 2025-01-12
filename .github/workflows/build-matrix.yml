@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -62,6 +62,13 @@ jobs:
 
           # Branch name
           VITE_BRANCH_NAME: ${{ github.ref_name }}
+
+      - name: Retry build on fail (macos sporadically fails)
+        uses: nick-fields/retry@v3.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: npm run ${{ inputs.exportScript }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
