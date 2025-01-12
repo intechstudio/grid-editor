@@ -76,7 +76,7 @@
   },
   "scripts": {
     "e:builder": "cross-env VITE_BUILD_TARGET=electron NOTARIZE=true electron-builder --config electron-builder-config.js --publish onTagOrDraft",
-    "e:builder:nightly": "cross-env VITE_BUILD_ENV=nightly VITE_BUILD_TARGET=electron NOTARIZE=true DEBUG=electron-builder electron-builder --config electron-builder-config.js --publish never",
+    "e:builder:nightly": "cross-env VITE_BUILD_ENV=nightly VITE_BUILD_TARGET=electron NOTARIZE=true DEBUG=electron-notarize* electron-builder --config electron-builder-config.js --publish never",
     "e:builder:local": "cross-env VITE_BUILD_ENV=nightly VITE_BUILD_TARGET=electron DEBUG=electron-builder DEBUG=electron-notarize* electron-builder --config electron-builder-config.js --publish never",
     "export": "cross-env VITE_BUILD_ENV=production run-s s:build e:builder",
     "export:nightly": "run-s s:build e:builder:nightly",
