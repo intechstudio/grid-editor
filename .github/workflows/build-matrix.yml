@@ -41,8 +41,8 @@ jobs:
         if: ${{ inputs.versionOverride != '' }}
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
-      - name: Build
-        run: npm run ${{ inputs.exportScript }}
+      - name: Build with auto retry on fail (macos sporadically fails)
+        uses: nick-fields/retry@v3.0.0
         env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,6 +62,11 @@ jobs:
 
           # Branch name
           VITE_BRANCH_NAME: ${{ github.ref_name }}
+        with:
+          retry_on: error
+          timeout_minutes: 15
+          max_attempts: 3
+          command: npm run ${{ inputs.exportScript }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
