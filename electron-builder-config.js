@@ -63,7 +63,9 @@ const config = {
     gatekeeperAssess: false,
     entitlements: "build-assets/entitlements.mac.plist",
     entitlementsInherit: "build-assets/entitlements.mac.plist",
-    // notarize: {} <- this step is automatically setup if APPLE_XXX env variables are provided
+    notarize: {
+      teamId: process.env.APPLE_TEAM_ID
+    }
   },
   dmg: {
     sign: false,
