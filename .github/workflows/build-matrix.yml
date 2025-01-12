@@ -63,15 +63,6 @@ jobs:
           # Branch name
           VITE_BRANCH_NAME: ${{ github.ref_name }}
 
-      - name: Retry build on fail (macos sporadically fails)
-        uses: nick-fields/retry@v3.0.0
-        if: ${{ matrix.os == 'macos-latest' }}
-        with:
-          retry_on: error
-          timeout_minutes: 12
-          max_attempts: 3
-          command: npm run ${{ inputs.exportScript }}
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
