@@ -87,165 +87,161 @@
     configLinkStore.set({ id: value });
   });
 
+  async function handlePackageManagerMessage(event) {
+    $appSettings.packageManagerRunning = true;
+    const data = event.data;
+    // action towards runtime
+    switch (data.type) {
+      case "persist-data": {
+        appSettings.update((s) => {
+          const newStorage = structuredClone(s.persistent.packagesDataStorage);
+          newStorage[data.packageId] = data.data;
+          s.persistent.packagesDataStorage = newStorage;
+          return s;
+        });
+        break;
+      }
+      case "execute-lua-script":
+        console.log(`Sending script: ${data.script}`);
+        runtime_manager.LUAExecImmediate(
+          data.targetDx ?? -127,
+          data.targetDy ?? -127,
+          data.script
+        );
+        break;
+      case "add-action": {
+        addPackageAction({
+          ...data.info,
+          packageId: data.packageId,
+        });
+        break;
+      }
+      case "remove-action": {
+        removePackageAction(data.packageId, data.actionId);
+        break;
+      }
+      case "change-page": {
+        get(runtime_manager).active.runtime.change_page(data.num);
+        break;
+      }
+      case "persist-github-package": {
+        appSettings.update((s) => {
+          let persistent = structuredClone(s.persistent);
+          persistent.githubPackages[data.id] = {
+            name: data.packageName,
+            gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+            gitHubRepositoryName: data.gitHubRepositoryName,
+          };
+          s.persistent = persistent;
+          return s;
+        });
+        break;
+      }
+      case "remove-github-package": {
+        appSettings.update((s) => {
+          let persistent = structuredClone(s.persistent);
+          delete persistent.githubPackages[data.id];
+          s.persistent = persistent;
+          return s;
+        });
+        break;
+      }
+      case "persist-local-package": {
+        appSettings.update((s) => {
+          let persistent = structuredClone(s.persistent);
+          persistent.localPackages[data.id] = data.rootPath;
+          s.persistent = persistent;
+          return s;
+        });
+        break;
+      }
+      case "remove-local-package": {
+        appSettings.update((s) => {
+          let persistent = structuredClone(s.persistent);
+          delete persistent.localPackages[data.id];
+          s.persistent = persistent;
+          return s;
+        });
+        break;
+      }
+      case "packages": {
+        // refresh packagelist
+        const enabledPackages = data.packages.filter(
+          (e) => e.status == "Enabled"
+        );
+        for (const _package of enabledPackages) {
+          if (_package.componentsPath) {
+            import(`package://${_package.componentsPath}`);
+          }
+        }
+        appSettings.update((s) => {
+          s.packageList = data.packages;
+          s.persistent.enabledPackages = enabledPackages.map((e) => e.id);
+          return s;
+        });
+        break;
+      }
+      case "request-developer-package":
+        appSettings.update((s) => {
+          let list = s.developerPackagesRequested ?? [];
+          let newList = list.filter((e) => e.id != data.id);
+          newList.push({
+            id: data.id,
+            name: data.name,
+            rootPath: data.rootPath,
+          });
+          s.developerPackagesRequested = newList;
+          return s;
+        });
+        logger.set({
+          message: `New developer package: ${data.name}. Approve at Packages tab!`,
+          type: "progress",
+        });
+        break;
+      case "reload-package-components":
+        let packageInfo = $appSettings.packageList.find((e) => e.id == data.id);
+        if (
+          packageInfo.loadable &&
+          !$appSettings.persistent.enabledPackages.includes(data.id)
+        )
+          return;
+        if (!packageInfo.componentsPath) return;
+
+        let versionKey = new Date().getTime();
+        await import(`package://v${versionKey}/${packageInfo.componentsPath}`);
+        appSettings.update((s) => {
+          s.packageComponentKeys[data.id] = versionKey;
+          return s;
+        });
+        break;
+      case "show-message": {
+        logger.set({
+          message: data.message,
+          type: data.messageType,
+        });
+        break;
+      }
+      case "debug-error": {
+        console.log(`Package error: ${data.error}`);
+        break;
+      }
+      default: {
+        console.info(
+          `Unhandled message type of ${
+            data.type
+          } received on port, data: ${JSON.stringify(data)}`
+        );
+      }
+    }
+  }
+
   window.onmessage = (event) => {
     // extract this part on refactor
     if (event.source === window && event.data === "package-manager-port") {
       const [port] = event.ports;
       window.packageManagerPort = port;
       // register message handler
-      port.onmessage = async (event) => {
-        $appSettings.packageManagerRunning = true;
-        const data = event.data;
-        // action towards runtime
-        switch (data.type) {
-          case "persist-data": {
-            appSettings.update((s) => {
-              const newStorage = structuredClone(
-                s.persistent.packagesDataStorage
-              );
-              newStorage[data.packageId] = data.data;
-              s.persistent.packagesDataStorage = newStorage;
-              return s;
-            });
-            break;
-          }
-          case "execute-lua-script":
-            console.log(`Sending script: ${data.script}`);
-            runtime_manager.LUAExecImmediate(
-              data.targetDx ?? -127,
-              data.targetDy ?? -127,
-              data.script
-            );
-            break;
-          case "add-action": {
-            addPackageAction({
-              ...data.info,
-              packageId: data.packageId,
-            });
-            break;
-          }
-          case "remove-action": {
-            removePackageAction(data.packageId, data.actionId);
-            break;
-          }
-          case "change-page": {
-            get(runtime_manager).active.runtime.change_page(data.num);
-            break;
-          }
-          case "persist-github-package": {
-            appSettings.update((s) => {
-              let persistent = structuredClone(s.persistent);
-              persistent.githubPackages[data.id] = {
-                name: data.packageName,
-                gitHubRepositoryOwner: data.gitHubRepositoryOwner,
-                gitHubRepositoryName: data.gitHubRepositoryName,
-              };
-              s.persistent = persistent;
-              return s;
-            });
-            break;
-          }
-          case "remove-github-package": {
-            appSettings.update((s) => {
-              let persistent = structuredClone(s.persistent);
-              delete persistent.githubPackages[data.id];
-              s.persistent = persistent;
-              return s;
-            });
-            break;
-          }
-          case "persist-local-package": {
-            appSettings.update((s) => {
-              let persistent = structuredClone(s.persistent);
-              persistent.localPackages[data.id] = data.rootPath;
-              s.persistent = persistent;
-              return s;
-            });
-            break;
-          }
-          case "remove-local-package": {
-            appSettings.update((s) => {
-              let persistent = structuredClone(s.persistent);
-              delete persistent.localPackages[data.id];
-              s.persistent = persistent;
-              return s;
-            });
-            break;
-          }
-          case "packages": {
-            // refresh packagelist
-            const enabledPackages = data.packages.filter(
-              (e) => e.status == "Enabled"
-            );
-            for (const _package of enabledPackages) {
-              if (_package.componentsPath) {
-                import(`package://${_package.componentsPath}`);
-              }
-            }
-            appSettings.update((s) => {
-              s.packageList = data.packages;
-              s.persistent.enabledPackages = enabledPackages.map((e) => e.id);
-              return s;
-            });
-            break;
-          }
-          case "request-developer-package":
-            appSettings.update((s) => {
-              let list = s.developerPackagesRequested ?? [];
-              let newList = list.filter((e) => e.id != data.id);
-              newList.push({
-                id: data.id,
-                name: data.name,
-                rootPath: data.rootPath,
-              });
-              s.developerPackagesRequested = newList;
-              return s;
-            });
-            logger.set({
-              message: `New developer package: ${data.name}. Approve at Packages tab!`,
-              type: "progress",
-            });
-            break;
-          case "reload-package-components":
-            let packageInfo = $appSettings.packageList.find(
-              (e) => e.id == data.id
-            );
-            if (
-              packageInfo.loadable &&
-              !$appSettings.persistent.enabledPackages.includes(data.id)
-            )
-              return;
-            if (!packageInfo.componentsPath) return;
-
-            let versionKey = new Date().getTime();
-            await import(
-              `package://v${versionKey}/${packageInfo.componentsPath}`
-            );
-            appSettings.update((s) => {
-              s.packageComponentKeys[data.id] = versionKey;
-              return s;
-            });
-            break;
-          case "show-message": {
-            logger.set({
-              message: data.message,
-              type: data.messageType,
-            });
-            break;
-          }
-          case "debug-error": {
-            console.log(`Package error: ${data.error}`);
-            break;
-          }
-          default: {
-            console.info(
-              `Unhandled message type of ${
-                data.type
-              } received on port, data: ${JSON.stringify(data)}`
-            );
-          }
-        }
-      };
+      port.onmessage = handlePackageManagerMessage;
       port.onclose = () => {
         //Clear package list without deleting enabled packages
         $appSettings.packageList = [];
