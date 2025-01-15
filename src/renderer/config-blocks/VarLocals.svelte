@@ -22,119 +22,59 @@
   };
 </script>
 
-<script>
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
-  import { fly } from "svelte/transition";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-
-  import { parenthesis } from "./_validators.js";
-
+  import { parenthesis, Validator } from "./_validators.js";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-
-  import { checkVariableName } from "../validators/local_validator.mjs";
-
-  import { find_forbidden_identifiers } from "../runtime/monaco-helper";
-  let error_messsage = "";
-
-  export let config;
-  export let index;
-
   import LineEditor from "../main/user-interface/LineEditor.svelte";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { Grid } from "../lib/_utils.js";
 
-  let sidebarWidth;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
-  /**
-   * Locals specific variables
-   * @locals []
-   */
+  type ScriptSegment = Grid.VariableBlock.ScriptSegment;
 
-  let scriptSegments = [{ variable: "", value: "" }];
-
-  let codeEditorContent = "";
-  let committedCode = "";
-  let parenthesisError = 0;
-  let variableNameError = 0;
-
-  export let commitState = 1;
+  let scriptSegments: ScriptSegment[];
 
   $: handleConfigChange($config);
 
-  function handleConfigChange(config) {
+  function handleConfigChange(config: ActionData) {
     // this works differently from normal _utils...
-    scriptSegments = localsToConfig({ script: config.script });
+    scriptSegments = localsToConfig(config.script);
+    updateErrorText();
   }
 
-  function saveChangesOnInput(e, i, k) {
-    scriptSegments[i][k] = e;
-
-    codeEditorContent = localArrayToScript(scriptSegments);
-
-    let variableNameValidity = [];
-    scriptSegments.forEach((s) => {
-      variableNameValidity.push(checkVariableName(s.variable));
-    });
-
-    if (variableNameValidity.includes(false)) {
-      variableNameError = 1;
-    } else {
-      variableNameError = 0;
-    }
-
-    if (parenthesis(codeEditorContent)) {
-      parenthesisError = 0;
-    } else {
-      parenthesisError = 1;
-    }
+  function updateErrorText() {
+    errorText = Grid.VariableBlock.getError(scriptSegments).text;
   }
 
-  function humanizeLocals(segments) {
-    return segments.map((elem) => {
-      elem.value = GridScript.humanize(elem.value);
-      return elem;
-    });
+  function addLocalVariable() {
+    scriptSegments.push({ variable: "", value: "" });
+    sendData();
   }
 
-  let rerenderList = 0;
+  function removeLocalVariable(i: number) {
+    scriptSegments.splice(i, 1);
+    sendData();
+  }
+
+  let errorText = "";
 
   // Commit button
   function sendData() {
-    error_messsage = "";
-
-    let outputCode = codeEditorContent;
-
-    let forbiddenList = find_forbidden_identifiers(outputCode);
-
-    if (forbiddenList.length > 0) {
-      const uniqueForbiddenList = [...new Set(forbiddenList)];
-      const readable = uniqueForbiddenList.toString().replaceAll(",", ", ");
-      error_messsage =
-        "Reserved identifiers [" + readable + "] cannot be used!";
-      return;
-    }
-
-    if (parenthesis(outputCode)) {
-      committedCode = outputCode;
-      outputCode = GridScript.shortify(outputCode);
-      dispatch("update-action", { short: "l", script: outputCode });
-      dispatch("sync");
-      commitState = 0;
-    }
-
-    rerenderList++;
+    const script = localArrayToScript(scriptSegments);
+    updateErrorText();
+    dispatch("update-action", {
+      short: "l",
+      script: GridScript.shortify(script),
+    });
   }
 
-  $: {
-    if (codeEditorContent.trim() == committedCode.trim()) {
-      commitState = 0;
-    } else {
-      commitState = 1;
-    }
-  }
-
-  function localArrayToScript(arr) {
+  function localArrayToScript(arr: ScriptSegment[]): string {
     let script = [
       "local ",
       arr.map((e) => e.variable).join(","),
@@ -144,12 +84,17 @@
     return script;
   }
 
-  function localsToConfig({ script }) {
+  function humanizeLocals(segments: ScriptSegment[]): ScriptSegment[] {
+    return segments.map((elem) => {
+      elem.value = GridScript.humanize(elem.value);
+      return elem;
+    });
+  }
+
+  function localsToConfig(script: string): ScriptSegment[] {
     if (parenthesis(script)) {
       // this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
-      let _variable_array = script.split("=")[0];
-      _variable_array = _variable_array.split("local")[1];
-      let _value_array = script.split("=")[1];
+      const _value_array = script.split("=")[1];
 
       let slice_pos = [];
       let _part = "";
@@ -167,9 +112,9 @@
         }
       });
 
-      _variable_array = _variable_array.split(",");
+      const _variable_array = script.split("=")[0].split("local")[1].split(",");
 
-      let arr = [];
+      let arr: ScriptSegment[] = [];
 
       slice_pos.forEach((pos, i) => {
         arr.push({
@@ -183,128 +128,81 @@
       return arr;
     }
   }
-
-  function addLocalVariable() {
-    scriptSegments = [...scriptSegments, { variable: "", value: "" }];
-    codeEditorContent = localArrayToScript(scriptSegments);
-  }
-
-  function removeLocalVariable(i) {
-    scriptSegments.splice(i, 1);
-    scriptSegments = [...scriptSegments];
-    codeEditorContent = localArrayToScript(scriptSegments);
-    sendData();
-  }
-
-  onMount(() => {});
 </script>
 
-<svelte:window bind:innerWidth={sidebarWidth} />
-
 <config-local-definitions
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+  class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto"
 >
-  <div class="flex justify-between items-center my-2 px-2">
-    {#if variableNameError}
-      <div class="text-sm text-red-500">Variable name error!</div>
-    {/if}
-    {#if error_messsage !== ""}
-      <div class="text-sm text-red-500">{error_messsage}</div>
-    {/if}
-    {#key commitState}
-      <div
-        in:fly|global={{ x: -5, duration: 200 }}
-        class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm"
-      >
-        {commitState ? "Unsaved changes!" : "Synced with Grid!"}
-      </div>
-    {/key}
-    {#if parenthesisError}
-      <div class="text-sm text-red-500">Parenthesis must be closed!</div>
-    {/if}
-    <MoltenPushButton
-      click={sendData}
-      disabled={Boolean(!commitState || parenthesisError || variableNameError)}
-      text={"Commit"}
-      style={"accept"}
-    />
+  <div class="flex flex-col">
+    <span class="text-white text-sm">Local Variables:</span>
+    <span class="text-sm text-error" class:hidden={errorText === "OK"}
+      >Error: {errorText}</span
+    >
   </div>
 
-  <div class="w-full flex flex-col p-2">
-    {#each scriptSegments as script, i (i)}
-      <div class="w-full h-full flex local-defs py-2">
-        <div class="w-2/12 pr-1">
-          <input
-            class="py-1 pl-1 w-full h-full mr-2 bg-secondary text-white"
-            placeholder="variable name"
-            value={script.variable}
+  <div class="flex flex-col gap-2">
+    {#each scriptSegments as script, i}
+      <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
+        <MeltCombo
+          title={" "}
+          bind:value={script.variable}
+          validator={(e) => {
+            return new Validator(e).NotEmpty().Result();
+          }}
+          on:validator={(e) => {
+            const data = e.detail;
+            dispatch("validator", data);
+          }}
+          on:input={(e) => {
+            sendData();
+          }}
+          on:change={() => {
+            dispatch("sync");
+          }}
+        />
+
+        <div class="border border-black flex items-center flex-grow h-full">
+          <LineEditor
             on:input={(e) => {
-              saveChangesOnInput(e.target.value, i, "variable");
+              script.value = e.detail.script ?? "";
+              sendData();
             }}
+            on:change={() => dispatch("sync")}
+            action={config}
+            value={script.value}
           />
         </div>
-        <div class="w-9/12 pl-1">
-          <div class="w-full h-full bg-secondary">
-            {#key rerenderList}
-              <LineEditor
-                on:input={(e) => {
-                  saveChangesOnInput(e.detail.script, i, "value");
-                }}
-                action={config}
-                {sidebarWidth}
-                value={script.value}
-              />
-            {/key}
-          </div>
-        </div>
-        <div class="w-1/12 pl-1 flex items-center justify-center">
-          {#if i !== 0}
-            <button
-              on:click={() => {
-                removeLocalVariable(i);
-              }}
-              class="flex items-center group cursor-pointer pl-1"
-            >
-              <svg
-                class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
-                viewBox="0 0 29 29"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-                />
-                <path
-                  d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-                />
-              </svg>
-            </button>
-          {:else}
-            <div class=" flex invisible items-center group cursor-pointer pl-1">
-              <div class="w-5 h-5 p-1">x</div>
-            </div>
-          {/if}
-        </div>
+
+        <button
+          class:invisible={i === 0}
+          on:click={() => {
+            removeLocalVariable(i);
+          }}
+          class="flex group cursor-pointer"
+        >
+          <svg
+            class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
+            viewBox="0 0 29 29"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
+            />
+            <path
+              d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
+            />
+          </svg>
+        </button>
       </div>
     {/each}
   </div>
 
-  <div class="w-full flex group p-2">
-    <button
-      on:click={() => {
-        addLocalVariable();
-      }}
-      class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5"
-    >
-      Add local variable...
-    </button>
-  </div>
+  <MoltenPushButton
+    click={addLocalVariable}
+    text={"Add New Local"}
+    snap={"full"}
+  />
 
-  <SendFeedback feedback_context="Locals" class="mt-2 text-sm text-gray-500" />
+  <SendFeedback feedback_context="Locals" class="text-sm text-gray-500" />
 </config-local-definitions>
-
-<style>
-  .local-defs:first-child {
-    padding-top: 0;
-  }
-</style>
