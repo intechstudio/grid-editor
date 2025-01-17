@@ -30,25 +30,8 @@
 </script>
 
 <script lang="ts">
-  /*
-
-@startuml
-A -> B : AB-First step 
-B -> C : BC-Second step hi   
-D -> E : DE-Third step test
-@enduml
-
-
-@startuml
-A -> B : AB-First step 
-
-@enduml
-
-
-*/
-
   import { onMount, createEventDispatcher } from "svelte";
-  import { MeltCombo } from "@intechstudio/grid-uikit";
+  import { MeltCombo, MeltSelect } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { ElementType } from "@intechstudio/grid-protocol";
@@ -56,10 +39,15 @@ A -> B : AB-First step
   import { Validator } from "./_validators";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
-  import convert from "color-convert";
+  import {
+    ActionData,
+    GridAction,
+    GridElement,
+    GridEvent,
+  } from "./../runtime/runtime";
   import { Grid } from "../lib/_utils.js";
-  import ColorPicker from "../main/user-interface/ColorPicker.svelte";
+  import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
+  import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
 
   export let config: GridAction;
   export let index;
@@ -91,12 +79,12 @@ A -> B : AB-First step
   let beautyMode = 0;
   let beautify = true;
 
-  const defaultColor = new Grid.RGB(255, 0, 0).toHSL();
+  const defaultColor = new Grid.RGB(255, 255, 255).toHSL();
   let color: Grid.HSL = defaultColor;
 
   $: handleConfigChange($config);
 
-  function handleConfigChange(config) {
+  function handleConfigChange(config: ActionData) {
     const _segments = Script.toSegments({
       short: config.short,
       script: config.script,
@@ -203,6 +191,22 @@ A -> B : AB-First step
     sendData();
     dispatch("sync");
   }
+
+  enum ColorPickerModel {
+    RGB,
+    HSL,
+  }
+
+  const colorPickerComponent = new Map([
+    [ColorPickerModel.RGB, SquareColorPicker],
+    [ColorPickerModel.HSL, SliderColorPicker],
+  ]);
+
+  const options = [
+    { title: "RGB", value: ColorPickerModel.RGB },
+    { title: "HSL", value: ColorPickerModel.HSL },
+  ];
+  let selected = ColorPickerModel.RGB;
 </script>
 
 <config-led-color class="flex flex-col gap-2 w-full p-2 pointer-events-auto">
@@ -218,7 +222,7 @@ A -> B : AB-First step
           dispatch("validator", data);
         }}
         on:input={(e) => {
-          sendData(e.detail, i);
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -227,7 +231,14 @@ A -> B : AB-First step
     {/each}
   </div>
 
-  <ColorPicker {color} on:change={updateColor} />
+  <div class="text-white">
+    <MeltSelect bind:target={selected} {options} disabled={false} />
+  </div>
+  <svelte:component
+    this={colorPickerComponent.get(selected)}
+    {color}
+    on:change={updateColor}
+  />
 
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each [2, 3, 4] as i}

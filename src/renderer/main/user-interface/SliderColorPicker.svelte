@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { Grid } from "../../lib/_utils";
+  import RandomColorGenerator from "./RandomColorGenerator.svelte";
 
   let mounted = false;
   const dispatch = createEventDispatcher();
@@ -8,7 +9,6 @@
   export let color: Grid.HSL;
 
   let container: HTMLElement;
-  let colorPreview: HTMLElement;
   let resizeObserver: ResizeObserver;
 
   let dragParam: Grid.HSLParam;
@@ -135,10 +135,8 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  function generateRandomColor() {
-    color = Grid.RGB.getRandom().toHSL();
-    color.s = 100;
-    color.l = 50;
+  function handleRandomColorPick(e: any) {
+    const { color } = e.detail;
     dispatch("change", { color: color });
   }
 
@@ -201,53 +199,6 @@
       {/each}
     </div>
 
-    <button
-      bind:this={colorPreview}
-      on:click={generateRandomColor}
-      class="group flex h-14 w-14 border border-black"
-      style="background-color: {color.toCSS()};"
-    >
-      <div
-        class="preview w-full h-full items-center text-2xl justify-center flex group-hover:opacity-100 opacity-0 transition-opacity"
-      />
-    </button>
+    <RandomColorGenerator {color} on:generate={handleRandomColorPick} />
   </div>
 </container>
-
-<style>
-  @keyframes changeLetter {
-    0% {
-      content: "⚀";
-      transform: rotate(0deg);
-    }
-    18% {
-      content: "⚁";
-      transform: rotate(20deg);
-    }
-    36% {
-      content: "⚂";
-      transform: rotate(30deg);
-    }
-    52% {
-      content: "⚃";
-      transform: rotate(20deg);
-    }
-    69% {
-      content: "⚄";
-      transform: rotate(0deg);
-    }
-    86% {
-      content: "⚅";
-      transform: rotate(-10deg);
-    }
-  }
-
-  .preview:hover {
-    cursor: pointer;
-  }
-  .preview::after {
-    animation: changeLetter 1s linear infinite;
-    content: "⚄";
-    font-size: 150%;
-  }
-</style>
