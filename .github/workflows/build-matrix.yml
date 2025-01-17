@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -41,8 +41,8 @@ jobs:
         if: ${{ inputs.versionOverride != '' }}
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
-      - name: Build with auto retry on fail (macos sporadically fails)
-        uses: nick-fields/retry@v3.0.0
+      - name: Build package
+        run: npm run ${{ inputs.exportScript }}
         env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,11 +62,6 @@ jobs:
 
           # Branch name
           VITE_BRANCH_NAME: ${{ github.ref_name }}
-        with:
-          retry_on: error
-          timeout_minutes: 15
-          max_attempts: 3
-          command: npm run ${{ inputs.exportScript }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
