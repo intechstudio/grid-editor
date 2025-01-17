@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -31,8 +31,7 @@ jobs:
           node-version: "18.16.1"
 
       - name: Install python setup-tools dependency
-        if: runner.os == 'macOS'
-        run: brew install python-setuptools
+        run: pip install setuptools --break-system-packages
 
       - name: Install dependencies
         run: npm i
@@ -41,7 +40,7 @@ jobs:
         if: ${{ inputs.versionOverride != '' }}
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
-      - name: Build
+      - name: Build package
         run: npm run ${{ inputs.exportScript }}
         env:
           # gh repo token
