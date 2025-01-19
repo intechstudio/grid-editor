@@ -188,7 +188,20 @@ export async function clearElement(target: GridElement) {
 }
 
 export async function syncWithGrid(target: GridAction) {
-  target.sendToGrid();
+  target.sendToGrid().finally(() => {
+    const event = target.parent as GridEvent;
+    const element = event.parent as GridElement;
+    Analytics.track({
+      event: "Config Action",
+      payload: {
+        click: "Update",
+        elementType: element.type,
+        eventType: event.type,
+        short: target.short,
+      },
+      mandatory: false,
+    });
+  });
 }
 
 export async function updateAction(
@@ -205,6 +218,9 @@ export async function updateAction(
     })
     .catch(handleError)
     .finally(() => {
+      if (!syncWithGrid) {
+        return;
+      }
       const event = target.parent as GridEvent;
       const element = event.parent as GridElement;
       Analytics.track({
