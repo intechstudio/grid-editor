@@ -39,6 +39,7 @@
   type ScriptSegment = Grid.VariableBlock.ScriptSegment;
 
   let scriptSegments: ScriptSegment[];
+  let errorText = "";
 
   $: handleConfigChange($config);
 
@@ -62,9 +63,13 @@
     sendData();
   }
 
-  let errorText = "";
+  function humanizeLocals(segments: ScriptSegment[]): ScriptSegment[] {
+    return segments.map((elem) => {
+      elem.value = GridScript.humanize(elem.value);
+      return elem;
+    });
+  }
 
-  // Commit button
   function sendData() {
     const script = localArrayToScript(scriptSegments);
     updateErrorText();
@@ -82,13 +87,6 @@
       arr.map((e) => e.value).join(","),
     ].join("");
     return script;
-  }
-
-  function humanizeLocals(segments: ScriptSegment[]): ScriptSegment[] {
-    return segments.map((elem) => {
-      elem.value = GridScript.humanize(elem.value);
-      return elem;
-    });
   }
 
   function localsToConfig(script: string): ScriptSegment[] {
@@ -130,79 +128,80 @@
   }
 </script>
 
-<config-local-definitions
-  class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto"
->
-  <div class="flex flex-col">
-    <span class="text-white text-sm">Local Variables:</span>
-    <span class="text-sm text-error" class:hidden={errorText === "OK"}
-      >Error: {errorText}</span
-    >
-  </div>
+<container>
+  <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
+    <div class="flex flex-col">
+      <span class="text-white text-sm">Local Variables:</span>
+      <span class="text-sm text-error" class:hidden={errorText === "OK"}
+        >Error: {errorText}</span
+      >
+    </div>
 
-  <div class="flex flex-col gap-2">
-    {#each scriptSegments as script, i}
-      <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
-        <MeltCombo
-          title={" "}
-          bind:value={script.variable}
-          validator={(e) => {
-            return new Validator(e).NotEmpty().Result();
-          }}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:input={(e) => {
-            sendData();
-          }}
-          on:change={() => {
-            dispatch("sync");
-          }}
-        />
-
-        <div class="border border-black flex items-center flex-grow h-full">
-          <LineEditor
+    <div class="flex flex-col gap-2">
+      {#each scriptSegments as script, i}
+        <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
+          <MeltCombo
+            title={" "}
+            bind:value={script.variable}
+            validator={(e) => {
+              return new Validator(e).NotEmpty().Result();
+            }}
+            on:validator={(e) => {
+              const data = e.detail;
+              dispatch("validator", data);
+            }}
             on:input={(e) => {
-              script.value = e.detail.script ?? "";
               sendData();
             }}
-            on:change={() => dispatch("sync")}
-            action={config}
-            value={script.value}
+            on:change={() => {
+              dispatch("sync");
+            }}
           />
-        </div>
 
-        <button
-          class:invisible={i === 0}
-          on:click={() => {
-            removeLocalVariable(i);
-          }}
-          class="flex group cursor-pointer"
-        >
-          <svg
-            class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
-            viewBox="0 0 29 29"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+          <div class="border border-black flex items-center flex-grow h-full">
+            <LineEditor
+              on:input={(e) => {
+                script.value = e.detail.script ?? "";
+                sendData();
+              }}
+              on:change={() => dispatch("sync")}
+              action={config}
+              value={script.value}
+            />
+          </div>
+
+          <button
+            class:invisible={i === 0}
+            on:click={() => {
+              removeLocalVariable(i);
+            }}
+            class="flex group cursor-pointer"
           >
-            <path
-              d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-            />
-            <path
-              d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-            />
-          </svg>
-        </button>
-      </div>
-    {/each}
+            <svg
+              class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
+              viewBox="0 0 29 29"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
+              />
+              <path
+                d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
+              />
+            </svg>
+          </button>
+        </div>
+      {/each}
+    </div>
+
+    <div class="self-center">
+      <MoltenPushButton
+        click={addLocalVariable}
+        text={"Add New Local Variable"}
+      />
+    </div>
+
+    <SendFeedback feedback_context="Locals" class="text-sm text-gray-500" />
   </div>
-
-  <MoltenPushButton
-    click={addLocalVariable}
-    text={"Add New Local"}
-    snap={"full"}
-  />
-
-  <SendFeedback feedback_context="Locals" class="text-sm text-gray-500" />
-</config-local-definitions>
+</container>
