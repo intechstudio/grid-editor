@@ -4,6 +4,7 @@ export namespace Runtime {
         maximum character limit reached. Shorten your code or delete action blocks.`,
     SYNTAX_ERROR = `Action(s) with syntax error(s) can not be merged!`,
     UNCLOSED_PARENTHESIS = `Action(s) with unclosed parenthesis will not be synced with grid!`,
+    PAGE_CHANGE_DISABLED = `Page change is disabled! Store or discard your unsaved change(s)!`,
   }
 }
 
