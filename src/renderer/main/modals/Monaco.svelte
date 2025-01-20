@@ -148,7 +148,7 @@
       scriptLength = ($monaco_action.parent as GridEvent).toLua().length;
 
       //Check the minified config length
-      if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
+      if (scriptLength >= Grid.Protocol.maxScriptLength) {
         throw new LengthError("Config limit reached.");
       }
 
@@ -277,7 +277,7 @@
           <span class:invisible={isDeleted($monaco_action)}
             >{`Character Count: ${
               typeof scriptLength === "undefined" ? "?" : scriptLength
-            }/${grid.getProperty("CONFIG_LENGTH") - 1} (max)`}</span
+            }/${Grid.Protocol.maxScriptLength - 1} (max)`}</span
           >
         </div>
       </div>

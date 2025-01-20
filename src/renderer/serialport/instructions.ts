@@ -12,6 +12,7 @@ import { logger } from "../runtime/runtime.store";
 import { v4 as uuidv4 } from "uuid";
 import { GridConnection } from "./serialport.js";
 import { GridRuntime } from "../runtime/runtime.js";
+import { Grid } from "../lib/_utils.js";
 
 export namespace GridInstruction {
   abstract class AbstractInstruction {
@@ -125,6 +126,8 @@ export namespace GridInstruction {
       virtual: boolean = false
     ) {
       super(virtual);
+      const actionString =
+        Grid.Protocol.scriptStart + config + Grid.Protocol.scriptEnd;
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
@@ -142,8 +145,8 @@ export namespace GridInstruction {
             PAGENUMBER: page,
             ELEMENTNUMBER: element,
             EVENTTYPE: event,
-            ACTIONLENGTH: config.length,
-            ACTIONSTRING: config,
+            ACTIONLENGTH: actionString.length,
+            ACTIONSTRING: actionString,
           },
         },
         responseRequired: true,
@@ -183,6 +186,8 @@ export namespace GridInstruction {
       virtual: boolean = false
     ) {
       super(virtual);
+      const actionString =
+        Grid.Protocol.scriptStart + script + Grid.Protocol.scriptEnd;
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
@@ -194,8 +199,8 @@ export namespace GridInstruction {
           class_name: InstructionClassName.IMMEDIATE,
           class_instr: InstructionClass.EXECUTE,
           class_parameters: {
-            ACTIONLENGTH: script.length,
-            ACTIONSTRING: script,
+            ACTIONLENGTH: actionString.length,
+            ACTIONSTRING: actionString,
           },
         },
       };

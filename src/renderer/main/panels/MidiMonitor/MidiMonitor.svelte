@@ -18,6 +18,7 @@
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { Grid } from "../../../lib/_utils";
 
   let event: GridEvent;
 
@@ -453,10 +454,10 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={configScriptLength >= grid.getProperty("CONFIG_LENGTH")
+                  class={configScriptLength >= Grid.Protocol.maxScriptLength
                     ? "text-error"
                     : configScriptLength >=
-                      (grid.getProperty("CONFIG_LENGTH") / 3) * 2
+                      (Grid.Protocol.maxScriptLength / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >
