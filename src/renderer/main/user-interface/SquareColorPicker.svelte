@@ -92,8 +92,12 @@
 
 <svelte:window
   on:mouseup={() => {
-    isDrag = false;
+    if (!isDrag) {
+      return;
+    }
+
     handleMouseUp();
+    isDrag = false;
   }}
   on:mousemove={calculateColor}
 />
