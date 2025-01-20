@@ -23,6 +23,7 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { Grid } from "../../../lib/_utils";
 
   let event: GridEvent;
 
@@ -181,9 +182,9 @@
         <div class="text-white">
           <span
             class:text-error={configScriptLength >=
-              grid.getProperty("CONFIG_LENGTH")}
+              Grid.Protocol.maxScriptLength}
             class:text-yellow-400={configScriptLength >
-              (grid.getProperty("CONFIG_LENGTH") / 3) * 2}
+              (Grid.Protocol.maxScriptLength / 3) * 2}
             >{configScriptLength}
           </span>
         </div>
@@ -196,11 +197,7 @@
   <MoltenInput bind:target={immediateCommand} />
   <MoltenPushButton
     click={() => {
-      runtime_manager.LUAExecImmediate(
-        0,
-        0,
-        "<?lua " + immediateCommand + " ?>"
-      );
+      runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
     }}
     text="Immediate"
   />

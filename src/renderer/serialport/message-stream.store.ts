@@ -17,6 +17,7 @@ import { WriteBuffer } from "../runtime/engine.store.js";
 import { GridRuntime } from "../runtime/runtime.js";
 import { user_input } from "../runtime/user-input.store";
 import { runtime_manager } from "../runtime/runtime-manager.store.js";
+import { Runtime } from "../runtime/string-table.js";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -276,7 +277,7 @@ export class MessageStream {
             type: "alert",
             classname: "pagechange",
             mode: 0,
-            message: "Store your config before switching pages!",
+            message: Runtime.ErrorText.PAGE_CHANGE_DISABLED,
           });
         }
       }

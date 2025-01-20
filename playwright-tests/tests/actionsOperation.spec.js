@@ -244,6 +244,6 @@ test.describe("Character limit", () => {
     await configPage.removeAllActions();
     await configPage.addAndEditCodeBlock(text);
     await configPage.commitCode();
-    await expect(configPage.characterCount).toContainText("32");
+    await expect(configPage.characterCount).toContainText("23");
   });
 });

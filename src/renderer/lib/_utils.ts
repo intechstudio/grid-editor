@@ -1,7 +1,7 @@
-import { GridScript } from "@intechstudio/grid-protocol";
 import { checkVariableName } from "../validators/local_validator.mjs";
 import { parenthesis } from "../config-blocks/_validators";
 import { find_forbidden_identifiers } from "../runtime/monaco-helper";
+import { grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -107,5 +107,12 @@ export namespace Grid {
 
       return { value: false, text: "OK" };
     }
+  }
+
+  export namespace Protocol {
+    export const scriptStart = "<?lua ";
+    export const scriptEnd = " ?>";
+    export const maxScriptLength =
+      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
   }
 }
