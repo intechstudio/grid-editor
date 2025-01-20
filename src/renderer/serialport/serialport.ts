@@ -267,7 +267,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
   static async tryConnectGrid() {
     try {
       let ports: any[];
-      if (import.meta.env.VITE_WEB_MODE == "true") {
+      if (import.meta.env.VITE_BUILD_TARGET == "web") {
         const port = await navigator.serial.requestPort({ filters: filter });
         ports = [port]; // Add the newly requested port to the list
       } else {

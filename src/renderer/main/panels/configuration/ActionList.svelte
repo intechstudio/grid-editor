@@ -17,6 +17,7 @@
   import { grid } from "@intechstudio/grid-protocol";
   import { shortcut } from "./../../_actions/shortcut.action";
   import Options from "./components/Options.svelte";
+  import { Grid } from "../../../lib/_utils";
 
   export let event: GridEvent;
 
@@ -101,7 +102,7 @@
       <div class="flex flex-row gap-2">
         <span class="text-gray-500 text-sm">Script length:</span>
         <span data-testid="charCount" class="text-white text-sm">
-          {$event?.toLua().length ?? 0}/{grid.getProperty("CONFIG_LENGTH") - 1}
+          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
         </span>
       </div>
     </div>

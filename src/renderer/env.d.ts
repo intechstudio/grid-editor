@@ -1,6 +1,7 @@
 interface ImportMetaEnv {
-  readonly VITE_WEB_MODE: string; // for web:dev
-  // more env variables...
+  readonly VITE_BUILD_TARGET: string;
+  readonly VITE_BUILD_ENV: string;
+  readonly VITE_BRANCH_NAME: string;
 }
 
 interface ImportMeta {

@@ -13,10 +13,6 @@ export default defineConfig({
             src: "configuration.json",
             dest: resolve(__dirname, "dist-web"),
           },
-          {
-            src: "buildVariables.json",
-            dest: resolve(__dirname, "dist-web"),
-          },
         ],
       }),
     ],

@@ -1,6 +1,6 @@
 /**
  * While web browser mode is active, the electron preload script functions are replaced with mock functions found here.
- * VITE_WEB_MODE=true indicates, that the project is running in web browser mode.
+ * VITE_BUILD_TARGET=web indicates, that the project is running in web browser mode.
  *
  * I added vite to package.json and put a separate vite.config.mjs file in the root directory for web dev and build.
  * The vite config is the same in electron.vite.config.mjs and vite.config.mjs, the shared part is in renderer.vite.config.mjs
@@ -10,7 +10,6 @@
  */
 
 import configuration from "../../configuration.json";
-import buildVariables from "../../buildVariables.json";
 import { version } from "../../package.json";
 
 configuration.EDITOR_VERSION = version;
@@ -28,7 +27,7 @@ declare global {
   }
 }
 
-if (import.meta.env.VITE_WEB_MODE == "true") {
+if (import.meta.env.VITE_BUILD_TARGET == "web") {
   // handle non-chromium based browsers
   if (window.chrome == null) {
     navigator.serial = {
@@ -38,13 +37,6 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
   window.ctxProcess = {
     configuration: () => {
       return configuration;
-    },
-    buildVariables: () => {
-      // overwrite build target to web, used for mixpanel analytics primarily
-      // when deploying to web, consider overwriting the build target in buildVariables.json during a build step
-      const buildVars = buildVariables;
-      buildVars.BUILD_TARGET = "web";
-      return buildVars;
     },
     platform: () => {
       return "web";

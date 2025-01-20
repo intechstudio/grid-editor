@@ -45,6 +45,7 @@
   import { get } from "svelte/store";
 
   console.log("Hello from Svelte main.js");
+  console.log(import.meta.env);
 
   let shapeSelected;
   let colorSelected;
@@ -309,7 +310,7 @@
   );
 </script>
 
-{#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
+{#if import.meta.env.VITE_BUILD_TARGET !== "web"}
   <Titlebar />
 {/if}
 

@@ -36,7 +36,7 @@
 
 <div class={$$props.class}>
   <div class="flex flex-col bg-primary rounded-md shadow-xl w-64 p-4 relative">
-    {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
+    {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <div class="flex flex-col">
         <span class="text-xl text-white text-center mb-4"
           >Connect your modules!</span

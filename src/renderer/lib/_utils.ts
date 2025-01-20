@@ -1,4 +1,5 @@
 import convert from "color-convert";
+import { grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -171,5 +172,12 @@ export namespace Grid {
     }
 
     return new RGB(parseInt(r), parseInt(g), parseInt(b));
+  }
+
+  export namespace Protocol {
+    export const scriptStart = "<?lua ";
+    export const scriptEnd = " ?>";
+    export const maxScriptLength =
+      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
   }
 }

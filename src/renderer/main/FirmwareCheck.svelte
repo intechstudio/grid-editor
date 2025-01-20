@@ -21,27 +21,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   let fwMismatch = false;
 
-  let dotdotdot = "";
-
-  let flagBootloaderCheck = 0;
-  let booloaderConnectionCheck = undefined;
-
   let bootloader_path = undefined;
-
-  const startBootloaderCheck = () => {
-    if (flagBootloaderCheck === 1) {
-      return;
-    }
-
-    booloaderConnectionCheck = setInterval(() => find_bootloader_path(), 750);
-    flagBootloaderCheck = 1;
-  };
-
-  const stopBootloaderCheck = () => {
-    ////console.log("Stop Trying")
-    clearInterval(booloaderConnectionCheck);
-    flagBootloaderCheck = 0;
-  };
 
   // check for parsed modules
 
@@ -53,15 +33,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   $: {
     let firmwareMismatchFound = false;
-
-    if ($runtime.modules.length === 0) {
-      startBootloaderCheck();
-      if ($appSettings.firmwareNotificationState == 1) {
-        $appSettings.firmwareNotificationState = 2;
-      }
-    } else {
-      stopBootloaderCheck();
-    }
 
     // check modules for firmware mismatch
     $runtime.modules.forEach((device) => {
@@ -95,11 +66,17 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         fwMismatch = true;
       }
     } else {
+      if (fwMismatch) {
+        //All mismatched module have been removed, progress state
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 2;
+          return s;
+        });
+      }
       fwMismatch = false;
     }
   }
 
-  let text = "";
   let uploadProgressText = "";
 
   window.electron.firmware.onFirmwareUpdate((_event, value) => {
@@ -114,6 +91,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
       //console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
       $appSettings.firmwareNotificationState = value.code;
+      bootloader_path = value.path;
 
       if (value.message !== undefined) {
         uploadProgressText = value.message;
@@ -128,62 +106,16 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     }
   });
 
-  onMount(() => {
-    startBootloaderCheck();
-
-    if (ctxProcess.platform() == "darwin") {
-      text = "Command + Shift + R";
-    } else {
-      text = "Ctrl + Shift + R";
-    }
-  });
-
-  async function find_bootloader_path() {
-    //console.log("Try Detect Bootloader")
-
-    const value = await window.electron.firmware.findBootloaderPath();
-
-    if (value !== undefined) {
-      if (
-        $appSettings.firmwareNotificationState == 1 ||
-        $appSettings.firmwareNotificationState == 2 ||
-        $appSettings.firmwareNotificationState == 6
-      ) {
-        //console.log("Successfuly detection", value.path)
-
-        bootloader_path = value.path;
-      } else {
-        //console.log("Dont care detection", value.path)
-        bootloader_path = value.path;
-      }
-
-      //stopBootloaderCheck();
-    } else {
-      if (
-        $appSettings.firmwareNotificationState == 4 ||
-        $appSettings.firmwareNotificationState == 5 ||
-        $appSettings.firmwareNotificationState == 6
-      ) {
-        bootloader_path = undefined;
-        //console.log("Disconnect but no problem")
-      } else {
-        //console.log("Disconnect from state", $appSettings.firmwareNotificationState)
-
-        if (typeof bootloader_path !== "undefined") {
-          ////console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
-
-          bootloader_path = undefined;
-          uploadProgressText = "Bootloader connection lost!";
-          $appSettings.firmwareNotificationState = 6;
-        }
-      }
-    }
-  }
-
   async function firmwareDownload(nightly) {
     const folder = $appSettings.persistent.profileFolder;
-    const { product, architecture } =
-      await window.electron.firmware.findBootloaderPath();
+    let result = await window.electron.firmware.findBootloaderPath();
+    if (result === undefined) {
+      $appSettings.firmwareNotificationState = 6;
+      bootloader_path = undefined;
+      uploadProgressText = "Bootloader connection lost!";
+      return;
+    }
+    const { product, architecture } = result;
 
     Analytics.track({
       event: "FirmwareCheck",
@@ -285,7 +217,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   >
     <div class="flex-col">
       <div class="mx-2">
-        <b>Waiting for the bootloader to enumerate {dotdotdot} </b>
+        <b>Waiting for the bootloader to enumerate</b>
       </div>
       <div class="mx-2">Connect the module in bootloader mode!</div>
     </div>

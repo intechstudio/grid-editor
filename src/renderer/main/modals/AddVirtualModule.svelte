@@ -154,7 +154,7 @@
           style={"accept"}
           disabled={selectedModule === -1}
         />
-        {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
+        {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
           <MoltenPushButton text="Cancel" click={handleCancelClicked} />
         {/if}
       </div>

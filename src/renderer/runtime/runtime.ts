@@ -75,6 +75,10 @@ export class GridPresetData {
     this.element = element;
   }
 
+  public isCompatible(type: ElementType) {
+    return grid.is_element_compatible_with(this.element.type, type);
+  }
+
   static createFromCloudData(cloudPreset: any) {
     return new GridPresetData(cloudPreset.type, -1, cloudPreset.configs.events);
   }
@@ -297,8 +301,10 @@ export class GridAction extends RuntimeNode<ActionData> {
     actionString = actionString.replace(/\s{2,10}/g, " ");
     // remove lua opening and closing characters
     // this function is used for both parsing full config (long complete lua) and individiual actions lua
-    if (actionString.startsWith("<?lua")) {
-      actionString = actionString.split("<?lua")[1].split("?>")[0];
+    if (actionString.startsWith(Grid.Protocol.scriptStart)) {
+      actionString = actionString
+        .split(Grid.Protocol.scriptStart)[1]
+        .split(Grid.Protocol.scriptEnd)[0];
     }
     // split by meta comments
     configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
@@ -445,14 +451,14 @@ export class EventData extends NodeData {
   }
 
   public toLua(): string {
-    return `<?lua ${this.config
+    return `${this.config
       .map((e) => e.toLua())
       .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
+      .replace(/(\r\n|\n|\r)/gm, "")}`;
   }
 
   public getAvailableChars(): number {
-    return grid.getProperty("CONFIG_LENGTH") - this.toLua().length - 1;
+    return Grid.Protocol.maxScriptLength - this.toLua().length - 1;
   }
 
   public isStored() {
@@ -1022,7 +1028,7 @@ export class GridElement extends RuntimeNode<ElementData> {
   }
 
   public async overwrite(data: ElementData): Promise<OverwriteElementResult> {
-    if (this.type !== data.type) {
+    if (!this.isCompatible(data.type)) {
       return Promise.reject({
         value: false,
         text: `Incompatible element types of ${data.type} and ${this.type}!`,
@@ -1042,6 +1048,9 @@ export class GridElement extends RuntimeNode<ElementData> {
 
     for (const event of this.events) {
       const newEvent = data.events.find((e) => e.type === event.type);
+      if (typeof newEvent === "undefined") {
+        continue;
+      }
       event.overwrite(newEvent);
     }
 
@@ -1630,7 +1639,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       }
 
       if (this.unsavedChangesCount() != 0) {
-        reject("Store your changes before changin pages!");
+        reject(Runtime.ErrorText.PAGE_CHANGE_DISABLED);
         return;
       }
 

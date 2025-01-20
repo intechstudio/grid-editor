@@ -20,7 +20,6 @@ import chokidar from "chokidar";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
-import buildVariables from "../../buildVariables.json";
 
 configuration.EDITOR_VERSION = app.getVersion();
 configuration.EDITOR_NAME = app.getName();
@@ -52,9 +51,24 @@ import {
 } from "./src/profiles";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { SerialPort } from "serialport";
+import { usb } from "usb";
 
 log.info("App starting...");
+log.info("BUILD ENVS:", import.meta.env);
+
+usb.on("attach", () => {
+  let delay = 500;
+  async function retryFind() {
+    let result = await findBootloaderPath();
+    if (result) return;
+
+    delay += 500;
+    if (delay > 1500) return;
+    setTimeout(retryFind, delay);
+  }
+  setTimeout(retryFind, delay);
+});
+setTimeout(findBootloaderPath, 10000); //Initial check
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -274,8 +288,8 @@ function createWindow() {
     updater.installUpdate();
   });
 
-  console.log("here what is buildVariables.BUILD_ENV");
-  if (buildVariables.BUILD_ENV === "development") {
+  console.log(`here what is VITE_BUILD_ENV: ${import.meta.env.VITE_BUILD_ENV}`);
+  if (import.meta.env.VITE_BUILD_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
     mainWindow.webContents.openDevTools();
@@ -742,11 +756,6 @@ ipcMain.handle("isMaximized", async (event, args) => {
 // configuration variables
 ipcMain.on("getConfiguration", (event) => {
   event.returnValue = configuration;
-});
-
-// build variables
-ipcMain.on("getBuildVariables", (event) => {
-  event.returnValue = buildVariables;
 });
 
 ipcMain.on("get-app-path", (event) => {

@@ -11,7 +11,6 @@
   const { platform } = window.ctxProcess;
 
   const configuration = window.ctxProcess.configuration();
-  const buildVariables = window.ctxProcess.buildVariables();
 
   function init() {
     document
@@ -102,11 +101,11 @@
 
         <div class="flex items-center text-gray-500 text-sm pt-1">
           Grid Editor {configuration?.EDITOR_VERSION}
-          {#if buildVariables.BUILD_ENV == "nightly"}
-            {buildVariables?.BRANCH_NAME}
+          {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
+            {import.meta.env.VITE_BRANCH_NAME}
           {/if}
-          {#if buildVariables.BUILD_ENV === "development"}
-            {buildVariables.BUILD_ENV}
+          {#if import.meta.env.VITE_BUILD_ENV === "development"}
+            {import.meta.env.VITE_BUILD_ENV}
           {/if}
         </div>
 
@@ -201,11 +200,11 @@
     <div class="draggable flex items-center justify-center h-7">
       <div class="flex text-gray-500 text-sm pt-1">
         Grid Editor {configuration.EDITOR_VERSION}
-        {#if buildVariables.BUILD_ENV == "nightly"}
-          {buildVariables?.BRANCH_NAME}
+        {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
+          {import.meta.env.VITE_BRANCH_NAME}
         {/if}
-        {#if buildVariables.BUILD_ENV == "development"}
-          {buildVariables?.BUILD_ENV}
+        {#if import.meta.env.VITE_BUILD_ENV == "development"}
+          {import.meta.env.VITE_BUILD_ENV}
         {/if}
       </div>
     </div>
