@@ -4,9 +4,9 @@
   },
   "variables": {
     "Lookup": ["source", "input", "output", "destination", "addNewPair"],
-    "Global": ["Commit", "var", "i", "addNewPair"],
-    "Locals": ["Commit", "var", "i", "addNewPair"],
-    "Self": ["Commit", "var", "i", "addNewPair"]
+    "Global": ["var", "i", "addNewPair"],
+    "Locals": ["var", "i", "addNewPair"],
+    "Self": ["var", "i", "addNewPair"]
   },
   "led": {
     "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],

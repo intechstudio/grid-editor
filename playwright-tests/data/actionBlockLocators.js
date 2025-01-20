@@ -23,7 +23,6 @@ export const blocks = (page) => ({
     Global: {
       block: page.getByText("Global"),
       elements: {
-        Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
         i: page.locator("#monaco_container"),
         addNewPair: page.getByText("Add global variable..."),
@@ -32,7 +31,6 @@ export const blocks = (page) => ({
     Locals: {
       block: page.getByText("Locals"),
       elements: {
-        Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
         i: page.locator("#monaco_container"),
         addNewPair: page.getByText("Add local variable..."),
@@ -41,7 +39,6 @@ export const blocks = (page) => ({
     Self: {
       block: page.getByText("Self"),
       elements: {
-        Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
         i: page.locator("#monaco_container"),
         addNewPair: page.getByText("Add self variable..."),
