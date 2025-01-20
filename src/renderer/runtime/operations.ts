@@ -207,32 +207,15 @@ export async function syncWithGrid(target: GridAction) {
 export async function updateAction(
   target: GridAction,
   data: ActionData,
-  syncWithGrid: boolean
+  sync: boolean
 ) {
   target
     .updateData(data)
-    .then((result) => {
-      if (syncWithGrid) {
-        target.sendToGrid();
-      }
-    })
     .catch(handleError)
     .finally(() => {
-      if (!syncWithGrid) {
-        return;
+      if (sync) {
+        syncWithGrid(target);
       }
-      const event = target.parent as GridEvent;
-      const element = event.parent as GridElement;
-      Analytics.track({
-        event: "Config Action",
-        payload: {
-          click: "Update",
-          elementType: element.type,
-          eventType: event.type,
-          short: target.short,
-        },
-        mandatory: false,
-      });
     });
 }
 
