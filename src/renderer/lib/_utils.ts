@@ -1,3 +1,5 @@
+import { grid } from "@intechstudio/grid-protocol";
+
 export class Grid {
   static toFirstCase(value: string) {
     return value[0].toUpperCase() + value.slice(1, value.length);
@@ -53,5 +55,13 @@ export class Grid {
     );
 
     return closestEvent !== Infinity ? closestEvent : 0;
+  }
+}
+export namespace Grid {
+  export namespace Protocol {
+    export const scriptStart = "<?lua ";
+    export const scriptEnd = " ?>";
+    export const maxScriptLength =
+      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
   }
 }

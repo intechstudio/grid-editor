@@ -301,8 +301,10 @@ export class GridAction extends RuntimeNode<ActionData> {
     actionString = actionString.replace(/\s{2,10}/g, " ");
     // remove lua opening and closing characters
     // this function is used for both parsing full config (long complete lua) and individiual actions lua
-    if (actionString.startsWith("<?lua")) {
-      actionString = actionString.split("<?lua")[1].split("?>")[0];
+    if (actionString.startsWith(Grid.Protocol.scriptStart)) {
+      actionString = actionString
+        .split(Grid.Protocol.scriptStart)[1]
+        .split(Grid.Protocol.scriptEnd)[0];
     }
     // split by meta comments
     configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
@@ -449,14 +451,14 @@ export class EventData extends NodeData {
   }
 
   public toLua(): string {
-    return `<?lua ${this.config
+    return `${this.config
       .map((e) => e.toLua())
       .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
+      .replace(/(\r\n|\n|\r)/gm, "")}`;
   }
 
   public getAvailableChars(): number {
-    return grid.getProperty("CONFIG_LENGTH") - this.toLua().length - 1;
+    return Grid.Protocol.maxScriptLength - this.toLua().length - 1;
   }
 
   public isStored() {
