@@ -144,25 +144,30 @@
     <div class="flex flex-col gap-2">
       {#each scriptSegments as script, i}
         <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
-          <MeltCombo
-            title={" "}
-            bind:value={script.variable}
-            validator={(e) => {
-              return new Validator(e).NotEmpty().Result();
-            }}
-            on:validator={(e) => {
-              const data = e.detail;
-              dispatch("validator", data);
-            }}
-            on:input={(e) => {
-              sendData();
-            }}
-            on:change={() => {
-              dispatch("sync");
-            }}
-          />
+          <div data-testid="variable-name">
+            <MeltCombo
+              title={" "}
+              bind:value={script.variable}
+              validator={(e) => {
+                return new Validator(e).NotEmpty().Result();
+              }}
+              on:validator={(e) => {
+                const data = e.detail;
+                dispatch("validator", data);
+              }}
+              on:input={(e) => {
+                sendData();
+              }}
+              on:change={() => {
+                dispatch("sync");
+              }}
+            />
+          </div>
 
-          <div class="border border-black flex items-center flex-grow h-full">
+          <div
+            data-testid="variable-value"
+            class="border border-black flex items-center flex-grow h-full"
+          >
             <LineEditor
               on:input={(e) => {
                 script.value = e.detail.script ?? "";
@@ -199,7 +204,7 @@
       {/each}
     </div>
 
-    <div class="self-center">
+    <div data-testid="add-variable" class="self-center">
       <MoltenPushButton
         click={addSelfVariable}
         text={"Add New Self Variable"}
