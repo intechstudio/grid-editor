@@ -4,9 +4,9 @@
   },
   "variables": {
     "Lookup": ["source", "input", "output", "destination", "addNewPair"],
-    "Global": ["var", "i", "addNewPair"],
-    "Locals": ["var", "i", "addNewPair"],
-    "Self": ["var", "i", "addNewPair"]
+    "Global": ["name", "value", "addNewPair"],
+    "Locals": ["name", "value", "addNewPair"],
+    "Self": ["name", "value", "addNewPair"]
   },
   "led": {
     "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],

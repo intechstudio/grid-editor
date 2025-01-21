@@ -23,25 +23,25 @@ export const blocks = (page) => ({
     Global: {
       block: page.getByText("Global"),
       elements: {
-        var: page.getByPlaceholder("variable name"),
-        i: page.locator("#monaco_container"),
-        addNewPair: page.getByText("Add global variable..."),
+        name: page.getByTestId("variable-name"),
+        value: page.getByTestId("variable-value"),
+        addNewPair: page.getByTestId("add-variable"),
       },
     },
     Locals: {
       block: page.getByText("Locals"),
       elements: {
-        var: page.getByPlaceholder("variable name"),
-        i: page.locator("#monaco_container"),
-        addNewPair: page.getByText("Add local variable..."),
+        name: page.getByTestId("variable-name"),
+        value: page.getByTestId("variable-value"),
+        addNewPair: page.getByTestId("add-variable"),
       },
     },
     Self: {
       block: page.getByText("Self"),
       elements: {
-        var: page.getByPlaceholder("variable name"),
-        i: page.locator("#monaco_container"),
-        addNewPair: page.getByText("Add self variable..."),
+        name: page.getByTestId("variable-name"),
+        value: page.getByTestId("variable-value"),
+        addNewPair: page.getByTestId("add-variable"),
       },
     },
   },
