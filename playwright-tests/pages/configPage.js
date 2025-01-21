@@ -92,6 +92,10 @@ export class ConfigPage {
     ].inputValue();
   }
 
+  async getActionBlockField(category, blockName, field) {
+    return this.blocks[category][blockName]["elements"][field];
+  }
+
   async getActionBlock(category, blockName) {
     return await this.blocks[category][blockName]["block"];
   }

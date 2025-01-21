@@ -74,6 +74,31 @@ test.describe("Action Block Operations", () => {
     await configPage.removeAllActions();
     await expect(await configPage.noActionAddActionButton).toBeVisible();
   });
+
+  test("Copy and Paste 14bit MIDI-block with Math Library", async ({
+    page,
+  }) => {
+    const expectedValue = "math.random(1,33)";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI 14");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI 14",
+      "Controller Value",
+      expectedValue
+    );
+    await configPage.selectAllActions();
+    await configPage.copyAction();
+    await configPage.removeAction();
+    await configPage.pasteAction();
+
+    const recieved = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI 14",
+      "Controller Value"
+    );
+    await expect(recieved).toBe(expectedValue);
+  });
 });
 
 test.describe("Element Operations", () => {
