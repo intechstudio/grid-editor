@@ -426,7 +426,7 @@ export function dropActions(
   target: GridEvent,
   index: number,
   actions: GridAction[]
-) {
+): Promise<void> {
   let targetActions = actions.filter((e) => e.parent === target);
   let targetIndexes = targetActions.map((action) =>
     target.config.findIndex((e) => e.id === action.id)
@@ -435,7 +435,7 @@ export function dropActions(
   const targetMaxIndex = Math.max(...targetIndexes);
 
   if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
-    return; // Invalid drop zone, return the original list
+    return Promise.reject("Invalid drop zone!");
   }
 
   for (const action of actions) {
@@ -449,4 +449,5 @@ export function dropActions(
   }
 
   target.insert(index, ...actions);
+  return Promise.resolve();
 }

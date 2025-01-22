@@ -1,4 +1,7 @@
 import convert from "color-convert";
+import { checkVariableName } from "../validators/local_validator.mjs";
+import { parenthesis } from "../config-blocks/_validators";
+import { find_forbidden_identifiers } from "../runtime/monaco-helper";
 import { grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
@@ -172,6 +175,55 @@ export namespace Grid {
     }
 
     return new RGB(parseInt(r), parseInt(g), parseInt(b));
+  }
+
+  export namespace VariableBlock {
+    export type Error = {
+      value: boolean;
+      text: string;
+    };
+
+    export type ScriptSegment = { variable: string; value: string };
+
+    export function localArrayToScript(arr: ScriptSegment[]) {
+      let script = [
+        "local ",
+        arr.map((e) => e.variable).join(","),
+        "=",
+        arr.map((e) => e.value).join(","),
+      ].join("");
+      return script;
+    }
+
+    export function getError(scriptSegments: ScriptSegment[]): Error {
+      let variableNameValidity = [];
+      scriptSegments.forEach((s) => {
+        variableNameValidity.push(checkVariableName(s.variable));
+      });
+
+      const script = localArrayToScript(scriptSegments);
+
+      if (variableNameValidity.includes(false)) {
+        return { value: true, text: "Invalid variable name!" };
+      }
+
+      if (!parenthesis(script)) {
+        return { value: true, text: "Parenthesis must be closed!" };
+      }
+
+      let forbiddenList = find_forbidden_identifiers(script);
+
+      if (forbiddenList.length > 0) {
+        const uniqueForbiddenList = [...new Set(forbiddenList)];
+        const readable = uniqueForbiddenList.toString().replace(",", ", ");
+        return {
+          value: true,
+          text: "Reserved identifiers [" + readable + "] cannot be used!",
+        };
+      }
+
+      return { value: false, text: "OK" };
+    }
   }
 
   export namespace Protocol {
