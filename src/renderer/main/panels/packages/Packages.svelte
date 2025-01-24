@@ -256,7 +256,7 @@
       pushOtherPanes={false}
       class="h-full w-full"
     >
-      <Pane size={25}>
+      <Pane size={35}>
         <div
           class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip"
         >
@@ -502,7 +502,7 @@
           </table>
         </div></Pane
       >
-      <Pane size={75}>
+      <Pane size={65}>
         <div
           class="flex flex-col pt-2 h-full w-full overflow-y-auto overflow-x-clip {packagePreferenceComponents.length >
           0

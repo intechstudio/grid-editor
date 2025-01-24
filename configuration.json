@@ -45,15 +45,25 @@
   "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app/wc/components.js",
   "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth",
   "RECOMMENDED_PACKAGES": {
+    "package-spotify": {
+      "name": "Spotify",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-spotify"
+    },
+    "package-photoshop": {
+      "name": "Photoshop",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-photoshop"
+    },
+    "package-discord": {
+      "name": "Discord",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-discord"
+    },
     "package-active-win": {
       "name": "Active Window",
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-active-win"
-    },
-    "package-photoshop": {
-      "name": "Photoshop package",
-      "gitHubRepositoryOwner": "intechstudio",
-      "gitHubRepositoryName": "package-photoshop"
     }
   }
 }
