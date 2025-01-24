@@ -289,7 +289,7 @@ function createWindow() {
   });
 
   console.log(`here what is VITE_BUILD_ENV: ${import.meta.env.VITE_BUILD_ENV}`);
-  if (import.meta.env.VITE_BUILD_ENV === "development") {
+  if (import.meta.env.VITE_BUILD_ENV === "development" || true) {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
     mainWindow.webContents.openDevTools();

@@ -2,7 +2,7 @@
   "name": "grid-editor",
   "productName": "Grid Editor",
   "description": "Powerful Editor software for Intech Studio products.",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "engines": {
     "node": ">=18.16.1"
   },
@@ -89,7 +89,7 @@
     "preinstall": "node ./build-scripts/check-node-version.js",
     "postinstall": "electron-builder install-app-deps",
     "test": "mocha",
-    "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 VITE_BUILD_TARGET=electron VITE_BUILD_ENV=development electron-vite dev --watch",
+    "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 VITE_BUILD_TARGET=electron VITE_BUILD_ENV=production VITE_BRANCH_NAME=stable electron-vite dev --watch",
     "electron-dev": "npm run electron:dev",
     "format": "prettier --write .",
     "web:dev": "vite dev --mode web",
