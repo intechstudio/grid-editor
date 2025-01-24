@@ -30,25 +30,8 @@
 </script>
 
 <script lang="ts">
-  /*
-
-@startuml
-A -> B : AB-First step 
-B -> C : BC-Second step hi   
-D -> E : DE-Third step test
-@enduml
-
-
-@startuml
-A -> B : AB-First step 
-
-@enduml
-
-
-*/
-
   import { onMount, createEventDispatcher } from "svelte";
-  import { MeltCombo } from "@intechstudio/grid-uikit";
+  import { MeltCombo, MeltSelect } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { ElementType } from "@intechstudio/grid-protocol";
@@ -56,7 +39,15 @@ A -> B : AB-First step
   import { Validator } from "./_validators";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import {
+    ActionData,
+    GridAction,
+    GridElement,
+    GridEvent,
+  } from "./../runtime/runtime";
+  import { Grid } from "../lib/_utils.js";
+  import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
+  import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
 
   export let config: GridAction;
   export let index;
@@ -86,14 +77,14 @@ A -> B : AB-First step
   let scriptSegments = [];
 
   let beautyMode = 0;
+  let beautify = true;
 
-  let beautify = 1;
-
-  // config.script cannot be undefined
+  const defaultColor = new Grid.RGB(255, 255, 255).toHSL();
+  let color: Grid.HSL = defaultColor;
 
   $: handleConfigChange($config);
 
-  function handleConfigChange(config) {
+  function handleConfigChange(config: ActionData) {
     const _segments = Script.toSegments({
       short: config.short,
       script: config.script,
@@ -101,42 +92,46 @@ A -> B : AB-First step
 
     // handle legacy and new beautify command
     if (_segments.length == 6) {
-      beautify = +_segments[5] == 1 ? 0 : 1; // check on number instead of string!
+      beautify = +_segments[5] == 1 ? false : true; // check on number instead of string!
       scriptSegments = _segments.slice(0, -1);
     } else {
       scriptSegments = _segments;
-      beautify = 1;
+      beautify = true;
     }
+
+    color =
+      Grid.parseRGB(
+        scriptSegments[2],
+        scriptSegments[3],
+        scriptSegments[4]
+      )?.toHSL() ?? defaultColor;
   }
-
-  let sidebarWidth;
-
-  $: updatePicker(sidebarWidth);
 
   function changeBeautify() {
     beautyMode = beautify ? 0 : 1;
     sendData();
+    dispatch("sync");
   }
 
-  function sendData(e, index) {
-    scriptSegments[index] = e;
-
-    const _temp_segments = [...scriptSegments, beautyMode];
-
+  function sendData() {
     const script = Script.toScript({
       short: config.short,
-      array: _temp_segments,
+      array: [...scriptSegments, beautyMode],
     });
 
     dispatch("update-action", { short: config.short, script: script });
   }
 
-  const defaultLayerSuggestion = [
-    { value: "1", info: "layer 1" },
-    { value: "2", info: "layer 2" },
+  const _suggestions = [
+    [],
+    [
+      { value: "1", info: "layer 1" },
+      { value: "2", info: "layer 2" },
+    ],
+    [],
+    [],
+    [],
   ];
-
-  const _suggestions = [[], defaultLayerSuggestion, [], [], []];
 
   let suggestions = [];
 
@@ -186,292 +181,36 @@ A -> B : AB-First step
 
   onMount(() => {
     updateSuggestions();
-    initColorPicker();
-
-    updatePicker();
   });
 
-  /* accepts parameters
-   * h  Object = {h:x, s:y, v:z}
-   * OR
-   * h, s, v
-   */
-  function HSVtoRGB(h, s, v) {
-    var r, g, b, i, f, p, q, t;
-    if (arguments.length === 1) {
-      (s = h.s), (v = h.v), (h = h.h);
-    }
-    i = Math.floor(h * 6);
-    f = h * 6 - i;
-    p = v * (1 - s);
-    q = v * (1 - f * s);
-    t = v * (1 - (1 - f) * s);
-    switch (i % 6) {
-      case 0:
-        (r = v), (g = t), (b = p);
-        break;
-      case 1:
-        (r = q), (g = v), (b = p);
-        break;
-      case 2:
-        (r = p), (g = v), (b = t);
-        break;
-      case 3:
-        (r = p), (g = q), (b = v);
-        break;
-      case 4:
-        (r = t), (g = p), (b = v);
-        break;
-      case 5:
-        (r = v), (g = p), (b = q);
-        break;
-    }
-    return {
-      r: Math.round(r * 255),
-      g: Math.round(g * 255),
-      b: Math.round(b * 255),
-    };
-  }
-
-  /* accepts parameters
-   * r  Object = {r:x, g:y, b:z}
-   * OR
-   * r, g, b
-   */
-  function RGBtoHSV(r, g, b) {
-    if (arguments.length === 1) {
-      (g = r.g), (b = r.b), (r = r.r);
-    }
-    var max = Math.max(r, g, b),
-      min = Math.min(r, g, b),
-      d = max - min,
-      h,
-      s = max === 0 ? 0 : d / max,
-      v = max / 255;
-
-    switch (max) {
-      case min:
-        h = 0;
-        break;
-      case r:
-        h = g - b + d * (g < b ? 6 : 0);
-        h /= 6 * d;
-        break;
-      case g:
-        h = b - r + d * 2;
-        h /= 6 * d;
-        break;
-      case b:
-        h = r - g + d * 4;
-        h /= 6 * d;
-        break;
-    }
-
-    return {
-      h: h,
-      s: s,
-      v: v,
-    };
-  }
-
-  let canvas, picker, preview;
-  let hue = 0;
-  let sat = 0;
-
-  let red = 0;
-  let gre = 0;
-  let blu = 0;
-
-  function updatePicker(e) {
-    if (typeof canvas === "undefined" || canvas === null) {
-      console.log("CANVAS NOT AVAILABLE");
-      return; // not initialized yet
-    }
-
-    if (
-      isNaN(parseInt(scriptSegments[2])) ||
-      isNaN(parseInt(scriptSegments[3])) ||
-      isNaN(parseInt(scriptSegments[4]))
-    ) {
-      red = 255;
-      gre = 255;
-      blu = 255;
-
-      picker.style.left = -20 + "px";
-      picker.style.top = -20 + "px";
-    } else {
-      // all color components are numbers so we can use the colorpicker
-
-      let hsv = RGBtoHSV(
-        parseInt(scriptSegments[2]),
-        parseInt(scriptSegments[3]),
-        parseInt(scriptSegments[4])
-      );
-
-      var offsets = canvas.getBoundingClientRect();
-      var top = offsets.top;
-      var left = offsets.left;
-      var width = offsets.width;
-      var height = offsets.height;
-
-      let x = hsv.h * width;
-      let y = (1 - hsv.s) * height;
-
-      if (x < 0) x = 0;
-      if (y < 0) y = 0;
-      if (x > width) x = width;
-      if (y > height) y = height;
-
-      hue = hsv.h * 360;
-      sat = hsv.s * 100;
-
-      picker.style.left = x - 3 + "px";
-      picker.style.top = y - 6 + "px";
-
-      let color = HSVtoRGB(hue / 360, sat / 100, 1);
-      red = color.r;
-      gre = color.g;
-      blu = color.b;
-    }
-  }
-
-  function initColorPicker() {
-    if (typeof canvas === "undefined" || canvas === null) {
-      console.log("CANVAS NOT AVAILABLE");
-      return; // not initialized yet
-    }
-
-    var ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FF0000";
-    ctx.fillRect(0, 0, 150, 75);
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    var hGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    hGrad.addColorStop(0 / 6, "#F00");
-    hGrad.addColorStop(1 / 6, "#FF0");
-    hGrad.addColorStop(2 / 6, "#0F0");
-    hGrad.addColorStop(3 / 6, "#0FF");
-    hGrad.addColorStop(4 / 6, "#00F");
-    hGrad.addColorStop(5 / 6, "#F0F");
-    hGrad.addColorStop(6 / 6, "#F00");
-
-    ctx.fillStyle = hGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    var vGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-
-    const type = "s";
-
-    switch (type) {
-      case "s":
-        vGrad.addColorStop(0, "rgba(255,255,255,0)");
-        vGrad.addColorStop(1, "rgba(255,255,255,1)");
-        break;
-      case "v":
-        vGrad.addColorStop(0, "rgba(0,0,0,0)");
-        vGrad.addColorStop(1, "rgba(0,0,0,1)");
-        break;
-    }
-    ctx.fillStyle = vGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function onMouseMove(e) {
-    if (typeof canvas === "undefined" || canvas === null) {
-      console.log("CANVAS NOT AVAILABLE");
-      return; // not initialized yet
-    }
-
-    var offsets = canvas.getBoundingClientRect();
-    var top = offsets.top;
-    var left = offsets.left;
-    var width = offsets.width;
-    var height = offsets.height;
-
-    let x = e.clientX - left;
-    let y = e.clientY - top;
-
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (x > width) x = width;
-    if (y > height) y = height;
-
-    hue = (x / width) * 360;
-    sat = ((height - y) / height) * 100;
-
-    picker.style.left = x - 3 + "px";
-    picker.style.top = y - 6 + "px";
-
-    let color = HSVtoRGB(hue / 360, sat / 100, 1);
-    red = color.r;
-    gre = color.g;
-    blu = color.b;
-
-    scriptSegments[2] = red;
-    scriptSegments[3] = gre;
-    scriptSegments[4] = blu;
-  }
-
-  function onMouseDown(event) {
-    onMouseMove(event);
-    addEventListener("mousemove", onMouseMove);
-    addEventListener("mouseup", onMouseUp);
-  }
-
-  function onMouseUp() {
-    removeEventListener("mousemove", onMouseMove);
-    removeEventListener("mouseup", onMouseUp);
+  function updateColor(e: any) {
+    const color: Grid.RGB = e.detail.color.toRGB();
+    scriptSegments[2] = color.r;
+    scriptSegments[3] = color.g;
+    scriptSegments[4] = color.b;
 
     sendData();
+    dispatch("sync");
   }
 
-  function generateColor() {
-    if (typeof canvas === "undefined" || canvas === null) {
-      console.log("CANVAS NOT AVAILABLE");
-      return; // not initialized yet
-    }
-
-    let hsv = { h: Math.random(), s: 1, v: 1 };
-
-    var offsets = canvas.getBoundingClientRect();
-    var top = offsets.top;
-    var left = offsets.left;
-    var width = offsets.width;
-    var height = offsets.height;
-
-    let x = hsv.h * width;
-    let y = (1 - hsv.s) * height;
-
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (x > width) x = width;
-    if (y > height) y = height;
-
-    hue = hsv.h * 360;
-    sat = hsv.s * 100;
-
-    picker.style.left = x - 3 + "px";
-    picker.style.top = y - 6 + "px";
-
-    let color = HSVtoRGB(hue / 360, sat / 100, 1);
-    red = color.r;
-    gre = color.g;
-    blu = color.b;
-
-    scriptSegments[2] = red;
-    scriptSegments[3] = gre;
-    scriptSegments[4] = blu;
-
-    sendData();
+  enum ColorPickerModel {
+    RGB,
+    HSL,
   }
+
+  const colorPickerComponent = new Map([
+    [ColorPickerModel.RGB, SquareColorPicker],
+    [ColorPickerModel.HSL, SliderColorPicker],
+  ]);
+
+  const options = [
+    { title: "RGB", value: ColorPickerModel.RGB },
+    { title: "HSL", value: ColorPickerModel.HSL },
+  ];
+  let selected = ColorPickerModel.RGB;
 </script>
 
-<svelte:window bind:innerWidth={sidebarWidth} />
-
-<config-led-color
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<config-led-color class="flex flex-col gap-2 w-full p-2 pointer-events-auto">
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <MeltCombo
@@ -484,7 +223,7 @@ A -> B : AB-First step
           dispatch("validator", data);
         }}
         on:input={(e) => {
-          sendData(e.detail, i);
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -493,45 +232,28 @@ A -> B : AB-First step
     {/each}
   </div>
 
-  <div class="inline-flex relative flex-row p-1 m-1 overflow-hidden">
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div
-      bind:this={picker}
-      on:mousedown={onMouseDown}
-      class="absolute -top-10 -left-10"
-    >
-      🮻
-    </div>
-    <canvas
-      class="w-4/5 mr-1"
-      bind:this={canvas}
-      on:mousedown={onMouseDown}
-      style="min-height: 30px; height: 30px;"
-      id="myCanvas"
-    />
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div
-      bind:this={preview}
-      on:mouseup={generateColor}
-      class="w-1/5 ml-1 preview flex justify-center items-center"
-      style="background-color: rgb({red}, {gre}, {blu}); min-height: 30px; height: 30px;"
-    />
+  <div class="text-white">
+    <MeltSelect bind:target={selected} {options} disabled={false} />
   </div>
+  <svelte:component
+    this={colorPickerComponent.get(selected)}
+    {color}
+    on:change={updateColor}
+  />
 
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
-    {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
+    {#each [2, 3, 4] as i}
       <MeltCombo
-        title={parameterNames[i + 2]}
-        bind:value={script}
-        validator={validators[i + 2]}
-        suggestions={suggestions[i + 2]}
+        title={parameterNames[i]}
+        bind:value={scriptSegments[i]}
+        validator={validators[i]}
+        suggestions={suggestions[i]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
         on:input={(e) => {
-          sendData(e.detail, i + 2);
-          updatePicker(e);
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -550,41 +272,3 @@ A -> B : AB-First step
     class="mt-2 text-sm text-gray-500"
   />
 </config-led-color>
-
-<style>
-  @keyframes changeLetter {
-    0% {
-      content: "⚀";
-      transform: rotate(0deg);
-    }
-    18% {
-      content: "⚁";
-      transform: rotate(20deg);
-    }
-    36% {
-      content: "⚂";
-      transform: rotate(30deg);
-    }
-    52% {
-      content: "⚃";
-      transform: rotate(20deg);
-    }
-    69% {
-      content: "⚄";
-      transform: rotate(0deg);
-    }
-    86% {
-      content: "⚅";
-      transform: rotate(-10deg);
-    }
-  }
-
-  .preview:hover {
-    cursor: pointer;
-  }
-  .preview:hover::after {
-    animation: changeLetter 1s linear infinite;
-    content: "⚄";
-    font-size: 150%;
-  }
-</style>

@@ -113,11 +113,17 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
   function handleMouseDown(e: MouseEvent) {
     const target = e.target as HTMLElement;
-    if (movable) {
-      handleDragStart(e.clientX, e.clientY);
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+    if (e.target !== e.currentTarget) {
+      return;
     }
+
+    if (!movable) {
+      return;
+    }
+
+    handleDragStart(e.clientX, e.clientY);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   }
 
   function handleMouseUp(e: MouseEvent) {
@@ -173,9 +179,13 @@ export function dropzone(node: HTMLElement, params: DropParameters) {
   function handleDropAction(e: DropActionEvent) {
     const { dropped } = e.detail;
     const { event, index } = params;
-    dropActions(event, index, dropped).then(() => {
-      event.sendToGrid();
-    });
+    dropActions(event, index, dropped)
+      .then(() => {
+        event.sendToGrid();
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }
 
   function handleMouseOver() {

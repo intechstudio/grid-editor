@@ -45,6 +45,7 @@
     "@intechstudio/profile-cloud-webcomponent": "^1.20241206.1604",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
+    "color-convert": "^2.0.1",
     "discord.js": "^13.6.0",
     "drivelist": "^12.0.2",
     "electron-dl": "^3.4.1",
