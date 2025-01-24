@@ -110,6 +110,7 @@
   function changeBeautify() {
     beautyMode = beautify ? 0 : 1;
     sendData();
+    dispatch("sync");
   }
 
   function sendData() {
