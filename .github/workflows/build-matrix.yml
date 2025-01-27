@@ -55,11 +55,7 @@ jobs:
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
       - name: Build package
-        run: |
-          echo "BRANCH_NAME"
-          echo ${{env.VITE_BRANCH_NAME}}
-          export VITE_BRANCH_NAME=${{env.VITE_BRANCH_NAME}} 
-          npm run ${{ inputs.exportScript }}
+        run: npm run ${{ inputs.exportScript }}
         env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
