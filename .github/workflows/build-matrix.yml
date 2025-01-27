@@ -13,7 +13,21 @@ on:
         type: string
 
 jobs:
+  set-branch-name:
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.set-branch-name.outputs.branch_name }}
+    steps:
+      - name: Set VITE_BRANCH_NAME for tag
+        if: ${{ github.ref_type == 'tag' }}
+        run: echo "branch_name=stable" >> $GITHUB_OUTPUT
+
+      - name: Set VITE_BRANCH_NAME for branch
+        if: ${{ github.ref_type != 'tag' }}
+        run: echo "branch_name=stable" >> $GITHUB_OUTPUT
+
   matrix-build:
+    needs: set-branch-name
     strategy:
       fail-fast: false
       matrix:
@@ -40,14 +54,6 @@ jobs:
         if: ${{ inputs.versionOverride != '' }}
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
-      - name: Set VITE_BRANCH_NAME for tag
-        if: ${{ github.ref_type == 'tag' }}
-        run: echo "VITE_BRANCH_NAME=stable" >> $GITHUB_ENV
-
-      - name: Set VITE_BRANCH_NAME for branch
-        if: ${{ github.ref_type != 'tag' }}
-        run: echo "VITE_BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-
       - name: Build package
         run: |
           echo "BRANCH_NAME"
@@ -70,6 +76,8 @@ jobs:
           # macOS Code signing
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+
+          VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
