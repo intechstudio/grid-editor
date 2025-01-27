@@ -40,9 +40,9 @@
   "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
   "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor",
   "EDITOR_VERSION": "",
-  "PROFILE_CLOUD_URL_LOCAL": "package://profile-cloud/public/wc/components.js",
-  "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app/wc/components.js",
-  "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app/wc/components.js",
+  "PROFILE_CLOUD_URL_LOCAL": "package://profile-cloud/public",
+  "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app",
+  "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
   "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth",
   "RECOMMENDED_PACKAGES": {
     "package-spotify": {

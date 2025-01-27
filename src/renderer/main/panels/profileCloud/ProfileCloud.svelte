@@ -376,16 +376,16 @@
         .then(() => {
           if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
             profileCloudWebComponentName = "profile-cloud-nightly";
-          } else if (fixedUrl === configuration.PROFILE_CLOUD_URL_PROD) {
-            profileCloudWebComponentName = "profile-cloud-prod";
+          } else if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
+            profileCloudWebComponentName = "profile-cloud-dev";
           } else if (profileCloudUrl.includes("profile-cloud-dev--pr")) {
             profileCloudWebComponentName = "profile-cloud-pr";
           } else {
-            profileCloudWebComponentName = "profile-cloud-dev";
+            profileCloudWebComponentName = "profile-cloud-prod";
           }
         })
         .catch((e) => {
-          profileCloudWebComponentName = "profile-cloud-dev";
+          profileCloudWebComponentName = "profile-cloud-prod";
           console.log(e);
         });
     }
