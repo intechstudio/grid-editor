@@ -16,17 +16,17 @@ jobs:
   set-branch-name:
     runs-on: ubuntu-latest
     outputs:
-      branch_name: ${{ steps.set-bash-shell-name.outputs.branch_name }}
+      branch_name: ${{ steps.set-branch-name-shell.outputs.branch_name }}
     steps:
-    - name: Set VITE_BRANCH_NAME
-      id: set-bash-shell-name
-      run: |
-        if [ "${{ github.ref_type }}" == "tag" ]; then
-          echo "branch_name=stable" >> $GITHUB_OUTPUT
-        else
-          echo "branch_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-        fi
-      shell: bash
+      - name: Set VITE_BRANCH_NAME
+        id: set-branch-name-shell
+        run: |
+          if [ "${{ github.ref_type }}" == "tag" ]; then
+            echo "branch_name=stable" >> $GITHUB_OUTPUT
+          else
+            echo "branch_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
 
   matrix-build:
     needs: set-branch-name
@@ -36,51 +36,49 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Echo branch name
-        run: echo "${{needs.set-branch-name.outputs.branch_name}}"
-      # - uses: actions/checkout@v3
-      #   with:
-      #     ref: ""
-      #     submodules: true
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
 
-      # - name: Setup NodeJs
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: "18.16.1"
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16.1"
 
-      # - name: Install python setup-tools dependency
-      #   run: pip install setuptools --break-system-packages
+      - name: Install python setup-tools dependency
+        run: pip install setuptools --break-system-packages
 
-      # - name: Install dependencies
-      #   run: npm i
+      - name: Install dependencies
+        run: npm i
 
-      # - name: Update package.json
-      #   if: ${{ inputs.versionOverride != '' }}
-      #   run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
+      - name: Update package.json
+        if: ${{ inputs.versionOverride != '' }}
+        run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
 
-      # - name: Build package
-      #   run: npm run ${{ inputs.exportScript }}
-      #   env:
-      #     # gh repo token
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build package
+        run: npm run ${{ inputs.exportScript }}
+        env:
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      #     # windows Code signing
-      #     WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-      #     WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          # windows Code signing
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
-      #     # Apple ID
-      #     APPLE_ID: ${{secrets.APPLE_ID}}
-      #     APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
-      #     APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
+          # Apple ID
+          APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
 
-      #     # macOS Code signing
-      #     CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-      #     CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          # macOS Code signing
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
 
-      #     VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
+          VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
 
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{ matrix.os }}-artifact
-      #     path: build/*.*
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-artifact
+          path: build/*.*
