@@ -16,15 +16,17 @@ jobs:
   set-branch-name:
     runs-on: ubuntu-latest
     outputs:
-      branch_name: ${{ steps.set-branch-name.outputs.branch_name }}
+      branch_name: ${{ steps.set-bash-shell-name.outputs.branch_name }}
     steps:
-      - name: Set VITE_BRANCH_NAME for tag
-        if: ${{ github.ref_type == 'tag' }}
-        run: echo "branch_name=stable" >> $GITHUB_OUTPUT
-
-      - name: Set VITE_BRANCH_NAME for branch
-        if: ${{ github.ref_type != 'tag' }}
-        run: echo "branch_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+    - name: Set VITE_BRANCH_NAME
+      id: set-bash-shell-name
+      run: |
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          echo "branch_name=stable" >> $GITHUB_OUTPUT
+        else
+          echo "branch_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
 
   matrix-build:
     needs: set-branch-name
