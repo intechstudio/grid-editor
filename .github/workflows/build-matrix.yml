@@ -67,6 +67,8 @@ jobs:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
 
+          VITE_BRANCH_NAME: ${{ env.VITE_BRANCH_NAME }}
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
