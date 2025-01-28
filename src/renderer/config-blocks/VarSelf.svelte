@@ -24,13 +24,10 @@
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis, Validator } from "./_validators.js";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-  import LineEditor from "../main/user-interface/LineEditor.svelte";
-  import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { GridAction } from "../runtime/runtime.js";
+  import VariableManager from "./components/VariableManager.svelte";
   import { Grid } from "../lib/_utils.js";
+  import { parenthesis } from "./_validators.js";
 
   export let config: GridAction;
 
@@ -38,179 +35,66 @@
 
   type ScriptSegment = Grid.VariableBlock.ScriptSegment;
 
-  let scriptSegments: ScriptSegment[];
-  let errorText = "";
-
-  $: handleConfigChange($config);
-
-  function handleConfigChange(config: ActionData) {
-    // this works differently from normal _utils...
-    scriptSegments = selfsToConfig(config.script);
-    updateErrorText();
+  function handleUpdateAction(e: any) {
+    dispatch("update-action", e.detail);
   }
 
-  function updateErrorText() {
-    errorText = Grid.VariableBlock.getError(scriptSegments).text;
-  }
-
-  function addSelfVariable() {
-    scriptSegments.push({ variable: "", value: "" });
-    sendData();
-  }
-
-  function removeSelfVariable(i: number) {
-    scriptSegments.splice(i, 1);
-    sendData();
-  }
-
-  function humanizeSelfs(segments: ScriptSegment[]): ScriptSegment[] {
-    return segments.map((elem) => {
-      elem.value = GridScript.humanize(elem.value);
-      return elem;
-    });
-  }
-
-  function sendData() {
-    const script = selfArrayToScript(scriptSegments);
-    updateErrorText();
-    dispatch("update-action", {
-      short: "s",
-      script: GridScript.shortify(script),
-    });
-  }
-
-  function selfArrayToScript(arr) {
-    let script = [
-      arr.map((e) => "self." + e.variable).join(","),
-      "=",
-      arr.map((e) => e.value).join(","),
-    ].join("");
-    return script;
-  }
-
-  function selfsToConfig(script: string) {
-    if (parenthesis(script)) {
-      // this had to be moved out of selfs function, as array refresh was killed by $ with scriptSegments..
-      const _value_array = script.split("=")[1];
-
-      let slice_pos = [];
-      let _part = "";
-      let offset = 0;
-
-      Array.from(_value_array).forEach((element, index) => {
-        _part += element;
-        const closed = parenthesis(_part);
-        if (closed && element == ",") {
-          slice_pos.push({ off: offset, ind: index });
-          offset = index + 1;
-        }
-        if (index == _value_array.length - 1) {
-          slice_pos.push({ off: offset, ind: index + 1 });
-        }
-      });
-
-      const _variable_array = script
-        .split("=")[0]
-        .split(",")
-        .map((e) => {
-          return e.split(".")[1];
-        });
-
-      let arr = [];
-
-      slice_pos.forEach((pos, i) => {
-        arr.push({
-          variable: _variable_array[i].trim(),
-          value: _value_array.slice(pos.off, pos.ind).trim(),
-        });
-      });
-
-      arr = humanizeSelfs(arr);
-
-      return arr;
+  function scriptToSegments(script: string) {
+    if (!parenthesis(script)) {
+      return;
     }
+    // this had to be moved out of selfs function, as array refresh was killed by $ with scriptSegments..
+    const _value_array = script.split("=")[1];
+
+    let slice_pos = [];
+    let _part = "";
+    let offset = 0;
+
+    Array.from(_value_array).forEach((element, index) => {
+      _part += element;
+      const closed = parenthesis(_part);
+      if (closed && element == ",") {
+        slice_pos.push({ off: offset, ind: index });
+        offset = index + 1;
+      }
+      if (index == _value_array.length - 1) {
+        slice_pos.push({ off: offset, ind: index + 1 });
+      }
+    });
+
+    const _variable_array = script
+      .split("=")[0]
+      .split(",")
+      .map((e) => {
+        return e.split(".")[1];
+      });
+
+    let arr = [];
+
+    slice_pos.forEach((pos, i) => {
+      arr.push({
+        variable: _variable_array[i].trim(),
+        value: _value_array.slice(pos.off, pos.ind).trim(),
+      });
+    });
+
+    return arr;
+  }
+
+  function segmentsToScript(segments: ScriptSegment[]): string {
+    const variables = segments
+      .map((segment) => `self.${segment.variable}`)
+      .join(",");
+    const values = segments.map((segment) => segment.value).join(",");
+    return `${variables}=${values}`;
   }
 </script>
 
 <container>
-  <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
-    <div class="flex flex-col">
-      <span class="text-white text-sm">Self Variables:</span>
-      <span class="text-sm text-error" class:hidden={errorText === "OK"}
-        >Error: {errorText}</span
-      >
-    </div>
-
-    <div class="flex flex-col gap-2">
-      {#each scriptSegments as script, i}
-        <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
-          <div data-testid="variable-name">
-            <MeltCombo
-              title={" "}
-              bind:value={script.variable}
-              validator={(e) => {
-                return new Validator(e).NotEmpty().Result();
-              }}
-              on:validator={(e) => {
-                const data = e.detail;
-                dispatch("validator", data);
-              }}
-              on:input={(e) => {
-                sendData();
-              }}
-              on:change={() => {
-                dispatch("sync");
-              }}
-            />
-          </div>
-
-          <div
-            data-testid="variable-value"
-            class="border border-black flex items-center flex-grow h-full"
-          >
-            <LineEditor
-              on:input={(e) => {
-                script.value = e.detail.script ?? "";
-                sendData();
-              }}
-              on:change={() => dispatch("sync")}
-              action={config}
-              value={script.value}
-            />
-          </div>
-
-          <button
-            class:invisible={i === 0}
-            on:click={() => {
-              removeSelfVariable(i);
-            }}
-            class="flex group cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
-              viewBox="0 0 29 29"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-              />
-              <path
-                d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-              />
-            </svg>
-          </button>
-        </div>
-      {/each}
-    </div>
-
-    <div data-testid="add-variable" class="self-center">
-      <MoltenPushButton
-        click={addSelfVariable}
-        text={"Add New Self Variable"}
-      />
-    </div>
-
-    <SendFeedback feedback_context="Selfs" class="text-sm text-gray-500" />
-  </div>
+  <VariableManager
+    {config}
+    parseScript={scriptToSegments}
+    buildScript={segmentsToScript}
+    on:update-action={handleUpdateAction}
+  />
 </container>
