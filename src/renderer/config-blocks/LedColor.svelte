@@ -48,6 +48,7 @@
   import { Grid } from "../lib/_utils.js";
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
+  import RandomColorGenerator from "../main/user-interface/RandomColorGenerator.svelte";
 
   export let config: GridAction;
   export let index;
@@ -170,8 +171,6 @@
               { value: "1", info: "Potmeter layer" },
               { value: "2", info: "Unused layer" },
             ];
-          default:
-            return defaultLayerSuggestion;
         }
       } else {
         return [...localDefinitions, ...s];
@@ -235,11 +234,14 @@
   <div class="text-white">
     <MeltSelect bind:target={selected} {options} disabled={false} />
   </div>
-  <svelte:component
-    this={colorPickerComponent.get(selected)}
-    {color}
-    on:change={updateColor}
-  />
+  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+    <svelte:component
+      this={colorPickerComponent.get(selected)}
+      {color}
+      on:change={updateColor}
+    />
+    <RandomColorGenerator {color} on:generate={updateColor} />
+  </div>
 
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each [2, 3, 4] as i}

@@ -83,11 +83,6 @@
   function handleMouseUp() {
     dispatch("change", { color: color });
   }
-
-  function handleRandomColorPick(e: any) {
-    const { color } = e.detail;
-    dispatch("change", { color: color });
-  }
 </script>
 
 <svelte:window
@@ -119,7 +114,5 @@
         class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
       />
     </div>
-
-    <RandomColorGenerator {color} on:generate={handleRandomColorPick} />
   </div>
 </container>

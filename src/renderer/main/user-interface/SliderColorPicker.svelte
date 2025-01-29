@@ -135,11 +135,6 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  function handleRandomColorPick(e: any) {
-    const { color } = e.detail;
-    dispatch("change", { color: color });
-  }
-
   function handleCalculateColor(e: MouseEvent) {
     const dragged = componentData.find((e) => e.param === dragParam);
     if (dragged) {
@@ -198,7 +193,5 @@
         </div>
       {/each}
     </div>
-
-    <RandomColorGenerator {color} on:generate={handleRandomColorPick} />
   </div>
 </container>
