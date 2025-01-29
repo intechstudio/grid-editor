@@ -24,71 +24,31 @@
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { GridAction } from "../runtime/runtime.js";
+  import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
-  import { Grid } from "../lib/_utils.js";
-  import { parenthesis } from "./_validators.js";
-
-  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
-  type ScriptSegment = Grid.VariableBlock.ScriptSegment;
+  export let config: GridAction;
+
+  let event = config.parent as GridEvent;
 
   function handleUpdateAction(e: any) {
-    dispatch("update-action", e.detail);
-  }
-
-  function scriptToSegments(script: string) {
-    if (!parenthesis(script)) {
-      return;
-    }
-    // this had to be moved out of globals function, as array refresh was killed by $ with scriptSegments..
-
-    const _value_array = script.split("=")[1];
-
-    let slice_pos = [];
-    let _part = "";
-    let offset = 0;
-
-    Array.from(_value_array).forEach((element, index) => {
-      _part += element;
-      const closed = parenthesis(_part);
-      if (closed && element == ",") {
-        slice_pos.push({ off: offset, ind: index });
-        offset = index + 1;
-      }
-      if (index == _value_array.length - 1) {
-        slice_pos.push({ off: offset, ind: index + 1 });
-      }
+    const { script } = e.detail;
+    dispatch("update-action", {
+      short: config.information.short,
+      script: script,
     });
-
-    const _variable_array = script.split("=")[0].split(",");
-
-    let arr = [];
-
-    slice_pos.forEach((pos, i) => {
-      arr.push({
-        variable: _variable_array[i].trim(),
-        value: _value_array.slice(pos.off, pos.ind).trim(),
-      });
-    });
-
-    return arr;
-  }
-
-  function segmentsToScript(segments: ScriptSegment[]): string {
-    const variables = segments.map((segment) => segment.variable).join(",");
-    const values = segments.map((segment) => segment.value).join(",");
-    return `${variables}=${values}`;
   }
 </script>
 
 <container>
   <VariableManager
-    {config}
-    parseScript={scriptToSegments}
-    buildScript={segmentsToScript}
-    on:update-action={handleUpdateAction}
+    script={config.script}
+    preProcessor={(script) => script}
+    postProcessor={(script) => script}
+    type={"Self"}
+    availableCharacters={$event.getAvailableChars()}
+    on:script={handleUpdateAction}
   />
 </container>

@@ -78,10 +78,10 @@
       on:click|stopPropagation
     >
       <LineEditor
-        action={config}
         value={name}
         on:input={handleNameChange}
         on:change={() => dispatch("sync")}
+        availableCharacters={$config.parent.getAvailableChars()}
       />
     </div>
   {:else}

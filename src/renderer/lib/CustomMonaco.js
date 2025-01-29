@@ -8,7 +8,6 @@ import { grid } from "@intechstudio/grid-protocol";
 import { writable, get } from "svelte/store";
 
 let hoverTips = {};
-export const monaco_elementtype = writable();
 
 const language_config = {
   comments: {
@@ -261,8 +260,6 @@ function initialize_theme() {
 function initialize_autocomplete() {
   (function init_autocomplete() {
     function createProposals(range) {
-      const elementtype = get(monaco_elementtype);
-
       let proposalList = [];
 
       for (const element of language.functions) {
@@ -318,6 +315,8 @@ function initialize_autocomplete() {
           range: range,
         };
 
+        //TODO: CHECK THIS!
+
         if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
           if (elementtype === "endless" || elementtype === undefined) {
             proposalItem.label = "self:" + value;
@@ -355,6 +354,8 @@ function initialize_autocomplete() {
 
         proposalList.push(proposalItem);
       });
+
+      console.log(proposalList);
 
       // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
       // here you could do a server side lookup

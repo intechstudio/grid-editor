@@ -45,8 +45,8 @@
           sendData(e.detail.script);
         }}
         on:change={() => dispatch("sync")}
-        action={config}
         value={scriptSegment}
+        availableCharacters={$config.parent.getAvailableChars()}
       />
     </div>
     <span class="mx-3">Then</span>

@@ -53,8 +53,6 @@
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { monaco_elementtype } from "../lib/CustomMonaco";
-
   import { monaco_editor } from "$lib/CustomMonaco";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
@@ -115,9 +113,6 @@
   }
 
   async function open_monaco() {
-    const event = config.parent as GridEvent;
-    const element = event.parent as GridElement;
-    monaco_elementtype.set(element.type);
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },
