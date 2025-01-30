@@ -17,6 +17,7 @@
     replaceAction,
     syncWithGrid,
   } from "./../../../../runtime/operations";
+  import { grid } from "@intechstudio/grid-protocol";
 
   const dispatch = createEventDispatcher();
 
@@ -29,6 +30,7 @@
   let validationError = false;
   let ctrlIsDown = false;
   let toggled = false;
+  let isSyntaxError = false;
 
   onMount(() => {
     if (action.information.toggleable !== false) {
@@ -61,7 +63,11 @@
 
   function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
-    updateAction(action, new ActionData(short, script, name), false);
+    const data = new ActionData(short, script, name);
+    isSyntaxError = !data.checkSyntax();
+    if (isSyntaxError) {
+      updateAction(action, data, false);
+    }
   }
 
   function handleSendActionToGrid() {
@@ -123,7 +129,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {isSyntaxError
       ? 'border-error'
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}

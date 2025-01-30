@@ -65,37 +65,6 @@ export class Validator {
   }
 }
 
-const _v = {
-  check: function (value = 0) {
-    this.value = value;
-
-    this.valid = 1;
-
-    this.min = function (mn) {
-      Number(this.value) <= mn - 1 ? (this.valid = 0) : null;
-      return this;
-    };
-
-    this.max = function (mx) {
-      Number(this.value) >= mx + 1 ? (this.valid = 0) : null;
-      return this;
-    };
-
-    this.isLocal = function (arr) {
-      if (this.valid == 0 && !arr.includes(this.value)) {
-        this.valid = 0;
-      } else {
-        this.valid = 1;
-      }
-      return this;
-    };
-
-    this.result = function () {
-      return this.valid;
-    };
-  },
-};
-
 export const parenthesis = function (expression) {
   let stack = [];
   let current;
@@ -121,5 +90,3 @@ export const parenthesis = function (expression) {
   }
   return stack.length === 0; //any elements mean brackets left open
 };
-
-export default _v;
