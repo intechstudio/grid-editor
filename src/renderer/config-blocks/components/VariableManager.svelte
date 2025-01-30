@@ -25,57 +25,58 @@
 
   function handleScriptChange(script: string) {
     const processed = preProcessor(script);
-    segments = parseScript(processed);
+    segments = parseVariableAssignments(processed);
     for (const segment of segments) {
       segment.value = GridScript.humanize(segment.value);
     }
     updateErrorText();
   }
 
-  function parseScript(script: string) {
-    if (!parenthesis(script)) {
+  function splitParts(expression: string): string[] {
+    const parts: string[] = [];
+    let currentPart = "";
+    for (const char of Array.from(expression)) {
+      const isParenthesesBalanced = parenthesis(currentPart);
+      if (isParenthesesBalanced && char === ",") {
+        parts.push(currentPart);
+        currentPart = "";
+      } else {
+        currentPart += char;
+      }
+    }
+    parts.push(currentPart);
+    return parts;
+  }
+
+  function parseVariableAssignments(
+    statement: string
+  ): ScriptSegment[] | undefined {
+    if (!parenthesis(statement)) {
       return;
     }
 
-    const _value_array = script.split("=")[1];
+    const assignments: ScriptSegment[] = [];
+    const variableNames = splitParts(statement.split("=")[0]);
+    const variableValues = splitParts(statement.split("=")[1]);
 
-    let slice_pos = [];
-    let _part = "";
-    let offset = 0;
+    if (variableNames.length !== variableValues.length) {
+      throw new Error("Error parsing variables: mismatched names and values!");
+    }
 
-    Array.from(_value_array).forEach((element, index) => {
-      _part += element;
-      const closed = parenthesis(_part);
-      if (closed && element == ",") {
-        slice_pos.push({ off: offset, ind: index });
-        offset = index + 1;
-      }
-      if (index == _value_array.length - 1) {
-        slice_pos.push({ off: offset, ind: index + 1 });
-      }
-    });
-
-    const _variable_array = script.split("=")[0].split(",");
-    console.log(_variable_array.length);
-
-    let arr = [];
-
-    slice_pos.forEach((pos, i) => {
-      arr.push({
+    for (let i = 0; i < variableNames.length; i++) {
+      assignments.push({
         id: uuidv4(),
-        name: _variable_array[i].trim(),
-        value: _value_array.slice(pos.off, pos.ind).trim(),
+        name: variableNames[i],
+        value: variableValues[i],
       });
-    });
+    }
 
-    console.log(arr, script);
-
-    return arr;
+    return assignments;
   }
 
   function buildScript(segments: ScriptSegment[]) {
     const variables = segments.map((segment) => segment.name).join(",");
-    const values = segments.map((segment) => segment.name).join(",");
+    const values = segments.map((segment) => segment.value).join(",");
     return `${variables}=${values}`;
   }
 
@@ -127,7 +128,7 @@
   }
 
   function removeVariable(id: string) {
-    //segments = segments.filter((e) => e.id !== id);
+    segments = segments.filter((e) => e.id !== id);
     sendData();
   }
 </script>
