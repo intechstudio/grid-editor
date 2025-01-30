@@ -1,7 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis } from "../_validators";
 
   export let config;
   export let index;
@@ -19,14 +18,12 @@
   }
 
   function sendData(e) {
-    if (parenthesis(e)) {
-      const script = GridScript.shortify(e);
+    const script = GridScript.shortify(e);
 
-      dispatch("update-action", {
-        short: `if`,
-        script: `if ${script} then`,
-      });
-    }
+    dispatch("update-action", {
+      short: `if`,
+      script: `if ${script} then`,
+    });
   }
 </script>
 

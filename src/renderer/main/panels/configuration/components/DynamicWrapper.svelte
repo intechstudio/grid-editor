@@ -65,7 +65,7 @@
     const { short, script, name } = e.detail;
     const data = new ActionData(short, script, name);
     isSyntaxError = !data.checkSyntax();
-    if (isSyntaxError) {
+    if (!isSyntaxError) {
       updateAction(action, data, false);
     }
   }

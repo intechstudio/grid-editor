@@ -1,7 +1,4 @@
 import convert from "color-convert";
-import { checkVariableName } from "../validators/local_validator.mjs";
-import { parenthesis } from "../config-blocks/_validators";
-import { find_forbidden_identifiers } from "../runtime/monaco-helper";
 import { grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
@@ -13,6 +10,7 @@ export namespace Grid {
     const pairs = [
       { start: "(", end: ")" },
       { start: "[", end: "]" },
+      { start: "{", end: "}" },
     ];
     const stacks = new Map();
 

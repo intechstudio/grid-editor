@@ -1,13 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis, Validator } from "../_validators.js";
+  import { Validator } from "../_validators.js";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { v4 as uuidv4 } from "uuid";
   import { checkVariableName } from "../../validators/local_validator.mjs";
   import { find_forbidden_identifiers } from "../../runtime/monaco-helper.js";
+  import { Grid } from "../../lib/_utils.js";
 
   const dispatch = createEventDispatcher();
   type ScriptSegment = { id: string; name: string; value: string };
@@ -32,29 +33,25 @@
     updateErrorText();
   }
 
-  function splitParts(expression: string): string[] {
+  function splitParts(expression: string) {
     const parts: string[] = [];
-    let currentPart = "";
+    let part = "";
     for (const char of Array.from(expression)) {
-      const isParenthesesBalanced = parenthesis(currentPart);
-      if (isParenthesesBalanced && char === ",") {
-        parts.push(currentPart);
-        currentPart = "";
+      const closed = Grid.isParenthesisClosed(part);
+      if (closed && char === ",") {
+        parts.push(part);
+        part = "";
       } else {
-        currentPart += char;
+        part += char;
       }
     }
-    parts.push(currentPart);
+    parts.push(part);
     return parts;
   }
 
   function parseVariableAssignments(
     statement: string
   ): ScriptSegment[] | undefined {
-    if (!parenthesis(statement)) {
-      return;
-    }
-
     const assignments: ScriptSegment[] = [];
     const variableNames = splitParts(statement.split("=")[0]);
     const variableValues = splitParts(statement.split("=")[1]);
@@ -94,7 +91,7 @@
 
     const script = buildScript(segments);
 
-    if (!parenthesis(script)) {
+    if (!Grid.isParenthesisClosed(script)) {
       errorText = "Parenthesis must be closed!";
       return;
     }
