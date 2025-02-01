@@ -81,8 +81,6 @@
   }
 
   function updateErrorText() {
-    return;
-    console.log(segments);
     let variableNameValidity = [];
 
     segments.forEach((s) => {
