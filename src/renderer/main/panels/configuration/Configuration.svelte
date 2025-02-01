@@ -17,6 +17,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { isSyntaxError } from "./components/DynamicWrapper";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -55,6 +56,7 @@
           console.error("Failed to load event:", err);
         });
     }
+    isSyntaxError.set(false);
   }
 
   let containerWidth: number;

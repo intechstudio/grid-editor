@@ -6,9 +6,6 @@
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { v4 as uuidv4 } from "uuid";
-  import { checkVariableName } from "../../validators/local_validator.mjs";
-  import { find_forbidden_identifiers } from "../../runtime/monaco-helper.js";
-  import { Grid } from "../../lib/_utils.js";
 
   const dispatch = createEventDispatcher();
   type ScriptSegment = { id: string; name: string; value: string };
@@ -30,14 +27,53 @@
     for (const segment of segments) {
       segment.value = GridScript.humanize(segment.value);
     }
-    updateErrorText();
+  }
+
+  function isParenthesisClosed(value: string) {
+    const pairs = [
+      { start: "(", end: ")" },
+      { start: "[", end: "]" },
+      { start: "{", end: "}" },
+    ];
+    const stacks = new Map();
+
+    // Initialize stacks for each pair
+    pairs.forEach((pair) => {
+      stacks.set(pair, []);
+    });
+
+    // Process each character in the input value
+    for (const char of value) {
+      // Find the corresponding pair for the current character
+      const pair = pairs.find((e) => e.start === char || e.end === char);
+
+      // If no pair is found (invalid character), continue
+      if (!pair) continue;
+
+      // Check if the character is a start or end bracket for the pair
+      switch (char) {
+        case pair.start:
+          stacks.get(pair).push(char); // Push to the stack of the corresponding pair
+          break;
+        case pair.end:
+          // Check if there's a corresponding start, and pop from the stack
+          if (stacks.get(pair).length === 0) {
+            return false; // Unmatched closing bracket
+          }
+          stacks.get(pair).pop();
+          break;
+      }
+    }
+
+    // Check if all stacks are empty, meaning all parentheses are closed correctly
+    return [...stacks.values()].every((stack) => stack.length === 0);
   }
 
   function splitParts(expression: string) {
     const parts: string[] = [];
     let part = "";
     for (const char of Array.from(expression)) {
-      const closed = Grid.isParenthesisClosed(part);
+      const closed = isParenthesisClosed(part);
       if (closed && char === ",") {
         parts.push(part);
         part = "";
@@ -77,41 +113,9 @@
     return `${variables}=${values}`;
   }
 
-  function updateErrorText() {
-    let variableNameValidity = [];
-
-    segments.forEach((s) => {
-      variableNameValidity.push(checkVariableName(s.name));
-    });
-
-    if (variableNameValidity.includes(false)) {
-      errorText = "Invalid variable name!";
-      return;
-    }
-
-    const script = buildScript(segments);
-
-    if (!Grid.isParenthesisClosed(script)) {
-      errorText = "Parenthesis must be closed!";
-      return;
-    }
-
-    let forbiddenList = find_forbidden_identifiers(script);
-
-    if (forbiddenList.length > 0) {
-      const uniqueForbiddenList = [...new Set(forbiddenList)];
-      const readable = uniqueForbiddenList.toString().replace(",", ", ");
-      errorText = "Reserved identifiers [" + readable + "] cannot be used!";
-      return;
-    }
-
-    errorText = "";
-  }
-
   function sendData() {
     const built = buildScript(segments);
     const script = postProcessor(built);
-    updateErrorText();
     dispatch("script", {
       script: GridScript.shortify(script),
     });

@@ -18,13 +18,11 @@
   }
 
   function sendData(e) {
-    if (parenthesis(e)) {
-      const script = GridScript.shortify(e);
-      dispatch("update-action", {
-        short: `fst`,
-        script: `function ${script}`,
-      });
-    }
+    const script = GridScript.shortify(e);
+    dispatch("update-action", {
+      short: `fst`,
+      script: `function ${script}`,
+    });
   }
 </script>
 

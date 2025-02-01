@@ -17,6 +17,8 @@
     replaceAction,
     syncWithGrid,
   } from "./../../../../runtime/operations";
+  import { isSyntaxError } from "./DynamicWrapper";
+  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
@@ -62,8 +64,8 @@
   function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
     const data = new ActionData(short, script, name);
-    isSyntaxError = !data.checkSyntax();
-    if (!isSyntaxError) {
+    isSyntaxError.set(!data.checkSyntax());
+    if (!get(isSyntaxError)) {
       updateAction(action, data, false);
     }
   }
@@ -127,7 +129,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {isSyntaxError
       ? 'border-error'
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
