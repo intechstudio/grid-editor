@@ -17,8 +17,6 @@
     replaceAction,
     syncWithGrid,
   } from "./../../../../runtime/operations";
-  import { isSyntaxError } from "./DynamicWrapper";
-  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
@@ -28,6 +26,7 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
+  let isSyntaxError = false;
   let validationError = false;
   let ctrlIsDown = false;
   let toggled = false;
@@ -64,8 +63,8 @@
   function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
     const data = new ActionData(short, script, name);
-    isSyntaxError.set(!data.checkSyntax());
-    if (!get(isSyntaxError)) {
+    isSyntaxError = !data.checkSyntax();
+    if (!isSyntaxError) {
       updateAction(action, data, false);
     }
   }
