@@ -1,18 +1,15 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { parenthesis, Validator } from "../_validators.js";
-  import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { v4 as uuidv4 } from "uuid";
   import { checkVariableName } from "../../validators/local_validator.mjs";
   import { find_forbidden_identifiers } from "../../runtime/monaco-helper.js";
 
   const dispatch = createEventDispatcher();
-  type ScriptSegment = { id: string; name: string; value: string };
+  type ScriptSegment = { name: string; value: string };
 
-  export let type: "Global" | "Locale" | "Self";
   export let script: string;
   export let availableCharacters: number;
   export let preProcessor: (script: string) => string;
@@ -65,7 +62,6 @@
 
     for (let i = 0; i < variableNames.length; i++) {
       assignments.push({
-        id: uuidv4(),
         name: variableNames[i],
         value: variableValues[i],
       });
@@ -121,27 +117,21 @@
   }
 
   function addVariable() {
-    segments.push({ id: uuidv4(), name: "", value: "" });
+    const obj = { name: "", value: "" };
+    segments.push(obj);
     sendData();
   }
 
-  function removeVariable(id: string) {
-    segments = segments.filter((e) => e.id !== id);
+  function removeVariable(index: number) {
+    segments = segments.filter((e, i) => i !== index);
     sendData();
   }
 </script>
 
 <container>
-  <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
-    <div class="flex flex-col">
-      <span class="text-white text-sm">{type} Variables:</span>
-      <span class="text-sm text-error" class:hidden={errorText === ""}
-        >Error: {errorText}</span
-      >
-    </div>
-
-    <div class="flex flex-col gap-2">
-      {#each segments as segment, i (segment.id)}
+  <div class="flex flex-col gap-2">
+    {#key segments.length}
+      {#each segments as segment, i}
         <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
           <div data-testid="variable-name">
             <MeltCombo
@@ -181,7 +171,7 @@
           <button
             class:invisible={i === 0}
             on:click={() => {
-              removeVariable(segment.id);
+              removeVariable(i);
             }}
             class="flex group cursor-pointer"
           >
@@ -201,12 +191,9 @@
           </button>
         </div>
       {/each}
-    </div>
-
+    {/key}
     <div data-testid="add-variable" class="self-center">
-      <MoltenPushButton click={addVariable} text={`Add New ${type} Variable`} />
+      <MoltenPushButton click={addVariable} text={`Add New Variable`} />
     </div>
-
-    <SendFeedback feedback_context={`${type}s`} class="text-sm text-gray-500" />
   </div>
 </container>

@@ -26,6 +26,7 @@
   import { createEventDispatcher } from "svelte";
   import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -42,34 +43,33 @@
   }
 
   function preProcessor(script: string): string {
-    return script.replace("self.", "");
+    const leftSide = script.split("=")[0].replaceAll("self.", "");
+    const rightSide = script.split("=")[1];
+    return `${leftSide}=${rightSide}`;
   }
 
   function postProcessor(script: string): string {
-    return script.replace(
-      /(^|,)([^=]*)(=|$)/g,
-      (match, separator, variable, equals) => {
-        // Trim whitespace from variable names if any
-        const trimmedVariable = variable.trim();
-
-        // Add "self." if the variable name is not empty
-        const prefixedVariable = trimmedVariable
-          ? `self.${trimmedVariable}`
-          : "self.";
-
-        return `${separator}${prefixedVariable}${equals}`;
-      }
-    );
+    const leftSide = script
+      .split("=")[0]
+      .split(",")
+      .map((e) => `self.${e.trim()}`);
+    const rightSide = script.split("=")[1].trim();
+    return `${leftSide}=${rightSide}`;
   }
 </script>
 
 <container>
-  <VariableManager
-    script={config.script}
-    {preProcessor}
-    {postProcessor}
-    type={"Global"}
-    availableCharacters={$event.getAvailableChars()}
-    on:script={handleUpdateAction}
-  />
+  <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
+    <span class="text-white text-sm">Self Variables:</span>
+
+    <VariableManager
+      script={config.script}
+      {preProcessor}
+      {postProcessor}
+      availableCharacters={$event.getAvailableChars()}
+      on:script={handleUpdateAction}
+    />
+
+    <SendFeedback feedback_context={`Selfs`} class="text-sm text-gray-500" />
+  </div>
 </container>

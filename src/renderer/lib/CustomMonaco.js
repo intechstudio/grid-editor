@@ -355,8 +355,6 @@ function initialize_autocomplete() {
         proposalList.push(proposalItem);
       });
 
-      console.log(proposalList);
-
       // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
       // here you could do a server side lookup
       return [...proposalList];
