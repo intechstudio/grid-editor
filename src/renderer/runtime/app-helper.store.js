@@ -48,6 +48,7 @@ const persistentDefaultValues = {
   actionHelperText: true,
   editableBlockNames: false,
   unreleasedVirtualModules: false,
+  multiViewEnabled: false,
 };
 
 function createSplitPanes() {
