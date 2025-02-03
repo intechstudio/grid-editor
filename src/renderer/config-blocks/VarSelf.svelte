@@ -43,17 +43,16 @@
   }
 
   function preProcessor(script: string): string {
-    const leftSide = script.split("=")[0].replaceAll("self.", "");
-    const rightSide = script.split("=")[1];
+    const split = script.split("=");
+    const leftSide = split[0].replaceAll("self.", "");
+    const rightSide = split.slice(1, split.length).join("");
     return `${leftSide}=${rightSide}`;
   }
 
   function postProcessor(script: string): string {
-    const leftSide = script
-      .split("=")[0]
-      .split(",")
-      .map((e) => `self.${e.trim()}`);
-    const rightSide = script.split("=")[1].trim();
+    const split = script.split("=");
+    const leftSide = split[0].split(",").map((e) => `self.${e.trim()}`);
+    const rightSide = split.slice(1, split.length).join("").trim();
     return `${leftSide}=${rightSide}`;
   }
 </script>
