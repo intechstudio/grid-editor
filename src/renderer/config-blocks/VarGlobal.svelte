@@ -26,6 +26,7 @@
   import { createEventDispatcher } from "svelte";
   import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -43,12 +44,17 @@
 </script>
 
 <container>
-  <VariableManager
-    script={config.script}
-    preProcessor={(script) => script}
-    postProcessor={(script) => script}
-    type={"Self"}
-    availableCharacters={$event.getAvailableChars()}
-    on:script={handleUpdateAction}
-  />
+  <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
+    <span class="text-white text-sm">Global Variables:</span>
+
+    <VariableManager
+      script={config.script}
+      preProcessor={(script) => script}
+      postProcessor={(script) => script}
+      availableCharacters={$event.getAvailableChars()}
+      on:script={handleUpdateAction}
+    />
+
+    <SendFeedback feedback_context={`Globals`} class="text-sm text-gray-500" />
+  </div>
 </container>

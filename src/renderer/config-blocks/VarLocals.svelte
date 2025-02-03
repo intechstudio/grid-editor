@@ -9,7 +9,7 @@
     name: "VarLocal",
     rendering: "standard",
     category: "variables",
-    displayName: "Local",
+    displayName: "Locals",
     defaultLua: "local num = self:ind()",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
@@ -26,6 +26,7 @@
   import { createEventDispatcher } from "svelte";
   import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -42,7 +43,8 @@
   }
 
   function preProcessor(script: string): string {
-    return script.replace("local ", "");
+    // Matches "local " only at the start of the string
+    return script.replace(/^local\s+/, "");
   }
 
   function postProcessor(script: string): string {
@@ -51,12 +53,17 @@
 </script>
 
 <container>
-  <VariableManager
-    script={config.script}
-    {preProcessor}
-    {postProcessor}
-    type={"Locale"}
-    availableCharacters={$event.getAvailableChars()}
-    on:script={handleUpdateAction}
-  />
+  <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
+    <span class="text-white text-sm">Local Variables:</span>
+
+    <VariableManager
+      script={config.script}
+      {preProcessor}
+      {postProcessor}
+      availableCharacters={$event.getAvailableChars()}
+      on:script={handleUpdateAction}
+    />
+
+    <SendFeedback feedback_context={`Locals`} class="text-sm text-gray-500" />
+  </div>
 </container>
