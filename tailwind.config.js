@@ -76,9 +76,6 @@ const config = {
         purple: colors.purple,
         orange: colors.orange,
       },
-      thirdery: {
-        DEFAULT: "#31313F",
-      },
     },
   },
   plugins: [],
