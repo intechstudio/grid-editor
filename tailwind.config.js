@@ -3,10 +3,7 @@ const uiKitConfig = require("@intechstudio/grid-uikit/tailwind.config");
 
 const config = {
   mode: "jit",
-  content: [
-    "./src/renderer/**/*.{html,js,svelte,ts}",
-    "./node_modules/@intechstudio/grid-uikit/dist/*.{html,js,svelte,ts}",
-  ],
+  content: ["./src/renderer/**/*.{html,js,svelte,ts}"],
   darkMode: "class",
   presets: [uiKitConfig], // Use the UI kit's Tailwind configuration as a preset
   theme: {
