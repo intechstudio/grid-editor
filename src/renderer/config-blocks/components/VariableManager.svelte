@@ -1,11 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis, Validator } from "../_validators.js";
+  import { Validator } from "../_validators.js";
+  import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { checkVariableName } from "../../validators/local_validator.mjs";
-  import { find_forbidden_identifiers } from "../../runtime/monaco-helper.js";
+  import { Validator } from "../_validators.js";
 
   const dispatch = createEventDispatcher();
   type ScriptSegment = { name: string; value: string };
@@ -26,32 +26,67 @@
     for (const segment of segments) {
       segment.value = GridScript.humanize(segment.value);
     }
-    updateErrorText();
   }
 
-  function splitParts(expression: string): string[] {
-    const parts: string[] = [];
-    let currentPart = "";
-    for (const char of Array.from(expression)) {
-      const isParenthesesBalanced = parenthesis(currentPart);
-      if (isParenthesesBalanced && char === ",") {
-        parts.push(currentPart);
-        currentPart = "";
-      } else {
-        currentPart += char;
+  function isParenthesisClosed(value: string) {
+    const pairs = [
+      { start: "(", end: ")" },
+      { start: "[", end: "]" },
+      { start: "{", end: "}" },
+    ];
+    const stacks = new Map();
+
+    // Initialize stacks for each pair
+    pairs.forEach((pair) => {
+      stacks.set(pair, []);
+    });
+
+    // Process each character in the input value
+    for (const char of value) {
+      // Find the corresponding pair for the current character
+      const pair = pairs.find((e) => e.start === char || e.end === char);
+
+      // If no pair is found (invalid character), continue
+      if (!pair) continue;
+
+      // Check if the character is a start or end bracket for the pair
+      switch (char) {
+        case pair.start:
+          stacks.get(pair).push(char); // Push to the stack of the corresponding pair
+          break;
+        case pair.end:
+          // Check if there's a corresponding start, and pop from the stack
+          if (stacks.get(pair).length === 0) {
+            return false; // Unmatched closing bracket
+          }
+          stacks.get(pair).pop();
+          break;
       }
     }
-    parts.push(currentPart);
+
+    // Check if all stacks are empty, meaning all parentheses are closed correctly
+    return [...stacks.values()].every((stack) => stack.length === 0);
+  }
+
+  function splitParts(expression: string) {
+    const parts: string[] = [];
+    let part = "";
+    for (const char of Array.from(expression)) {
+      const closed = isParenthesisClosed(part);
+      if (closed && char === ",") {
+        parts.push(part);
+        part = "";
+      } else {
+        part += char;
+      }
+    }
+    parts.push(part);
     return parts;
   }
 
   function parseVariableAssignments(
     statement: string
   ): ScriptSegment[] | undefined {
-    if (!parenthesis(statement)) {
-      return;
-    }
-
     const assignments: ScriptSegment[] = [];
     const variableNames = splitParts(statement.split("=")[0]);
     const variableValues = splitParts(statement.split("=")[1]);
@@ -76,41 +111,9 @@
     return `${variables}=${values}`;
   }
 
-  function updateErrorText() {
-    let variableNameValidity = [];
-
-    segments.forEach((s) => {
-      variableNameValidity.push(checkVariableName(s.name));
-    });
-
-    if (variableNameValidity.includes(false)) {
-      errorText = "Invalid variable name!";
-      return;
-    }
-
-    const script = buildScript(segments);
-
-    if (!parenthesis(script)) {
-      errorText = "Parenthesis must be closed!";
-      return;
-    }
-
-    let forbiddenList = find_forbidden_identifiers(script);
-
-    if (forbiddenList.length > 0) {
-      const uniqueForbiddenList = [...new Set(forbiddenList)];
-      const readable = uniqueForbiddenList.toString().replace(",", ", ");
-      errorText = "Reserved identifiers [" + readable + "] cannot be used!";
-      return;
-    }
-
-    errorText = "";
-  }
-
   function sendData() {
     const built = buildScript(segments);
     const script = postProcessor(built);
-    updateErrorText();
     dispatch("script", {
       script: GridScript.shortify(script),
     });

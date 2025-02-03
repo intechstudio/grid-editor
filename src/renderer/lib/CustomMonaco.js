@@ -8,6 +8,7 @@ import { grid } from "@intechstudio/grid-protocol";
 import { writable, get } from "svelte/store";
 
 let hoverTips = {};
+export const monaco_elementtype = writable();
 
 const language_config = {
   comments: {
@@ -306,6 +307,7 @@ function initialize_autocomplete() {
         proposalList.push(proposalItem);
       }
 
+      const elementtype = get(monaco_elementtype);
       grid.lua_function_to_human_map().forEach((value, key) => {
         let proposalItem = {
           label: "",
@@ -314,8 +316,6 @@ function initialize_autocomplete() {
           insertText: "",
           range: range,
         };
-
-        //TODO: CHECK THIS!
 
         if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
           if (elementtype === "endless" || elementtype === undefined) {

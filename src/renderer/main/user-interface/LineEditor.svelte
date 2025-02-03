@@ -9,12 +9,15 @@
   } from "svelte";
 
   import { monaco_editor } from "$lib/CustomMonaco";
+  import { ElementType } from "@intechstudio/grid-protocol";
+  import { monaco_elementtype } from "../../lib/CustomMonaco";
 
   const dispatch = createEventDispatcher();
 
   export let value;
   export let disabled = false;
   export let availableCharacters = Infinity;
+  export let restrictScopeTo: ElementType | undefined = undefined;
 
   let monaco_block;
 
@@ -34,7 +37,7 @@
   }
 
   onDestroy(() => {
-    //editor.dispose();
+    editor.dispose();
   });
 
   $: handleFontSizechange($appSettings.persistent.fontSize);
@@ -46,6 +49,7 @@
   onMount(() => {
     input_buffer = value;
 
+    monaco_elementtype.set(restrictScopeTo);
     editor = monaco_editor.create(monaco_block, {
       value: value,
       language: "intech_lua",
