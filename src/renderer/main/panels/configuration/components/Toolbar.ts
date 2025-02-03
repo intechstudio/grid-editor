@@ -11,7 +11,10 @@ import { runtime_manager } from "../../../../runtime/runtime-manager.store";
 export const isCutActionsEnabled = derived(
   selected_actions,
   ($selected_actions) => {
-    return $selected_actions.length > 0;
+    return (
+      $selected_actions.length > 0 &&
+      $selected_actions.every((e) => e.checkSyntax())
+    );
   }
 );
 
@@ -19,21 +22,31 @@ export const isCopyElementEnabled = derived(
   [selected_actions, runtime_manager],
   ([$selected_actions, $runtime_manager]) => {
     const active = $runtime_manager.active.runtime;
-    return $selected_actions.length === 0 && active.modules.length > 0;
+    return (
+      $selected_actions.length === 0 &&
+      active.modules.length > 0 &&
+      active.checkSyntax()
+    );
   }
 );
 
 export const isCopyActionsEnabled = derived(
   selected_actions,
   ($selected_actions) => {
-    return $selected_actions.length > 0;
+    return (
+      $selected_actions.length > 0 &&
+      $selected_actions.every((e) => e.checkSyntax())
+    );
   }
 );
 
 export const isMergeActionsEnabled = derived(
   selected_actions,
   ($selected_actions) => {
-    return $selected_actions.length > 0;
+    return (
+      $selected_actions.length > 0 &&
+      $selected_actions.every((e) => e.checkSyntax())
+    );
   }
 );
 

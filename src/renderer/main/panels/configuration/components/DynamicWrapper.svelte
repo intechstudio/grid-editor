@@ -4,7 +4,12 @@
     ActionData,
     GridEvent,
   } from "./../../../../runtime/runtime";
-  import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
+  import {
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+    type SvelteComponent,
+  } from "svelte";
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
@@ -26,7 +31,6 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
-  let isSyntaxError = false;
   let validationError = false;
   let ctrlIsDown = false;
   let toggled = false;
@@ -47,6 +51,14 @@
     component = result.component;
   });
 
+  onDestroy(() => {
+    updateAction(
+      action,
+      new ActionData(action.short, action.synced, action.name),
+      false
+    );
+  });
+
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;
     const oldAction = action;
@@ -63,10 +75,7 @@
   function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
     const data = new ActionData(short, script, name);
-    isSyntaxError = !data.checkSyntax();
-    if (!isSyntaxError) {
-      updateAction(action, data, false);
-    }
+    updateAction(action, data, false);
   }
 
   function handleSendActionToGrid() {
@@ -128,7 +137,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {isSyntaxError
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}

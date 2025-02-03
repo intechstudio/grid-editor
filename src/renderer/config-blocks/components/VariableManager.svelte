@@ -2,10 +2,8 @@
   import { createEventDispatcher, onMount } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "../_validators.js";
-  import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { Validator } from "../_validators.js";
 
   const dispatch = createEventDispatcher();
   type ScriptSegment = { name: string; value: string };
@@ -15,7 +13,6 @@
   export let preProcessor: (script: string) => string;
   export let postProcessor: (script: string) => string;
 
-  let errorText = "";
   let segments: ScriptSegment[] = [];
 
   $: handleScriptChange(script);
