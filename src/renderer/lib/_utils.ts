@@ -158,8 +158,7 @@ export namespace Grid {
     }
 
     toCSS() {
-      const rgb = this.toRGB();
-      return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      return `hsl(${this.h}deg, ${this.s}%, ${this.l}%)`;
     }
   }
 

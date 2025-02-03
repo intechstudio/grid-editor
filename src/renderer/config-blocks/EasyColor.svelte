@@ -49,6 +49,7 @@
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
+  import RandomColorGenerator from "../main/user-interface/RandomColorGenerator.svelte";
 
   export let config: GridAction;
   export let index;
@@ -80,7 +81,7 @@
   let beautyMode = 0;
   let beautify = true;
 
-  const defaultColor = new Grid.RGB(255, 255, 255).toHSL();
+  const defaultColor = new Grid.RGB(255, 0, 0).toHSL();
   let color: Grid.HSL = defaultColor;
 
   $: handleConfigChange($config);
@@ -172,8 +173,6 @@
               { value: "1", info: "Potmeter layer" },
               { value: "2", info: "Unused layer" },
             ];
-          default:
-            return defaultLayerSuggestion;
         }
       } else {
         return [...localDefinitions, ...s];
@@ -186,7 +185,7 @@
   });
 
   function updateColor(e: any) {
-    const color: Grid.RGB = e.detail.color.toRGB();
+    const color = e.detail.color.toRGB();
     scriptSegments[2] = color.r;
     scriptSegments[3] = color.g;
     scriptSegments[4] = color.b;
@@ -196,20 +195,23 @@
   }
 
   enum ColorPickerModel {
-    RGB,
-    HSL,
+    Square,
+    Slider,
+    Circle,
   }
 
   const colorPickerComponent = new Map([
-    [ColorPickerModel.RGB, SquareColorPicker],
-    [ColorPickerModel.HSL, SliderColorPicker],
+    [ColorPickerModel.Square, SquareColorPicker],
+    [ColorPickerModel.Slider, SliderColorPicker],
+    [ColorPickerModel.Circle, CircleColorPicker],
   ]);
 
   const options = [
-    { title: "RGB", value: ColorPickerModel.RGB },
-    { title: "HSL", value: ColorPickerModel.HSL },
+    { title: "Circle", value: ColorPickerModel.Circle },
+    { title: "Square", value: ColorPickerModel.Square },
+    { title: "Slider", value: ColorPickerModel.Slider },
   ];
-  let selected = ColorPickerModel.RGB;
+  let selected = ColorPickerModel.Circle;
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
@@ -239,12 +241,26 @@
     <div class="absolute inset-0 bg-checkboard opacity-20" />
     <div class="absolute w-full h-full grid grid-cols-1">
       <div
-        class="flex flex-grow h-full bg-gradient-to-r from-transparent to-red-500"
+        class="flex flex-grow h-full"
+        style="background-image: linear-gradient(to right, transparent , {color.toCSS()});"
       />
     </div>
   </div>
 
-  <CircleColorPicker {color} on:change={updateColor} />
+  <div
+    class="grid grid-cols-2 w-full gap-2 min-h-32 text-white place-items-center"
+  >
+    <div class="flex flex-grow bg-red-500 text-white">
+      <MeltSelect bind:target={selected} {options} disabled={false} />
+    </div>
+    <span class="text-white">Intensity</span>
+    <svelte:component
+      this={colorPickerComponent.get(selected)}
+      {color}
+      on:change={updateColor}
+    />
+    <div class="flex h-full w-5 bg-lightness" />
+  </div>
 
   <SendFeedback
     feedback_context="LedColor"
@@ -257,5 +273,9 @@
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="50" height="50" fill="white" /><rect x="50" y="50" width="50" height="50" fill="white" /><rect x="50" width="50" height="50" fill="transparent" /><rect y="50" width="50" height="50" fill="transparent" /></svg>');
     background-size: 10px 10px;
     background-repeat: repeat;
+  }
+
+  .bg-lightness {
+    background: linear-gradient(to top, black, white);
   }
 </style>
