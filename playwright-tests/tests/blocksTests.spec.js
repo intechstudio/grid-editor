@@ -83,6 +83,13 @@ test.describe("Issues", () => {
     const actualValue = await configPage.getTextFromName();
     await expect(actualValue).toBe("testwrite");
   });
+
+  test("Nested action block should not prevent opening other actions", async () => {
+    await configPage.addActionBlockToTop("condition", "If");
+    await configPage.clickActionBlock(3);
+    const element = configPage.blocks["midi"]["MIDI"]["elements"]["Channel"];
+    await expect(element).toBeVisible();
+  });
 });
 
 test.describe("NRPN converting", () => {

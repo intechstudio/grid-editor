@@ -6,6 +6,7 @@ export class ConfigPage {
 
     // Common Locators
     this.addActionBlockButton = page.getByText("Add action block...");
+    this.addActionLineFirst = page.locator("add-line").first();
     this.selectAllCheckbox = page.locator(".w-fit > .border-white");
     this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
 
@@ -76,6 +77,11 @@ export class ConfigPage {
 
   async openActionsOnEmptyElement() {
     await this.noActionAddActionButton.click();
+  }
+
+  async addActionBlockToTop(category, blockName) {
+    await this.addActionLineFirst.click();
+    await this.blocks[category][blockName]["block"].click();
   }
 
   async addActionBlock(category, blockName) {
@@ -243,8 +249,8 @@ export class ConfigPage {
     ].inputValue();
   }
 
-  async openFirstActionBlock() {
-    await this.firstActionBlock.click();
+  async clickActionBlock(index) {
+    await this.page.locator(`#cfg-${index}`).click();
   }
 
   async getCharacterCount() {
