@@ -702,7 +702,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     try {
       let syntaxError = false;
       for (const action of this.config) {
-        if (action.checkSyntax()) {
+        if (!action.checkSyntax()) {
           syntaxError = true;
           action.synced = action.script;
         }
