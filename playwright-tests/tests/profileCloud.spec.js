@@ -18,6 +18,20 @@ test("search", async () => {
   await profileCloudPage.searchProfile("Endless");
 });
 
-test("clicknCategory", async () => {
+test("click category", async () => {
   await profileCloudPage.clickMainProfileCategory("community");
+});
+
+test("cancel Save process", async () => {
+  await profileCloudPage.saveProcess();
+});
+
+test("login fail", async () => {
+  await profileCloudPage.loginProcess("asd", "asd");
+  await expect(profileCloudPage.loginFailWarning).toBeVisible();
+});
+
+test("login fail with empty field", async () => {
+  await profileCloudPage.loginProcess("", "");
+  await expect(profileCloudPage.loginFailWarning).toBeVisible();
 });
