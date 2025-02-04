@@ -1,12 +1,12 @@
 [
   {
-    "type": "notificationBAK",
+    "type": "notification",
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
     "link": "https://intech.studio/support-and-downloads",
     "message": "New Editor version is available, but AutoUpdate is broken :( Please downloading manually from https://intech.studio/",
-    "version": "1.3.6"
+    "version": "1.3.8"
   },
   {
     "type": "notificationBAK",
