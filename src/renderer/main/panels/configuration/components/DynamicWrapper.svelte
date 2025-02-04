@@ -57,6 +57,7 @@
       new ActionData(action.short, action.synced, action.name),
       false
     );
+    console.log("nay", action.script);
   });
 
   function handleReplace(e: any) {
@@ -76,10 +77,12 @@
     const { short, script, name } = e.detail;
     const data = new ActionData(short, script, name);
     updateAction(action, data, false);
+    console.log("yay", action.script);
   }
 
   function handleSendActionToGrid() {
     syncWithGrid(action);
+    console.log("sync", action.script);
   }
 
   function handleValidator(e) {
