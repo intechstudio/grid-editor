@@ -15,11 +15,16 @@
   import { selected_actions } from "../../../runtime/user-input.store";
   import { get } from "svelte/store";
   import { grid } from "@intechstudio/grid-protocol";
-  import { shortcut } from "./../../_actions/shortcut.action";
+  import {
+    shortcut,
+    ShortcutParameter,
+  } from "./../../_actions/shortcut.action";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
+  import { onMount } from "svelte";
 
   export let event: GridEvent;
+  export let targetPanel: HTMLElement;
 
   let autoScroll;
   let configList: HTMLElement;
@@ -95,7 +100,7 @@
   }
 </script>
 
-<div class="flex flex-col h-full w-full overflow-hidden gap-2">
+<container class="flex flex-col h-full w-full overflow-hidden gap-2">
   <div class="flex flex-row gap-2 justify-between items-center flex-none">
     <div class="flex flex-col">
       <span class="text-white">{$event?.getName() ?? "No Device"}</span>
@@ -112,6 +117,7 @@
         control: true,
         code: "KeyA",
         callback: handleSelectAll,
+        targetPanel: targetPanel,
       }}
     >
       <Options
@@ -190,7 +196,7 @@
       on:new-config={handleNewConfig}
     />
   {/if}
-</div>
+</container>
 
 <style global>
   ::-webkit-scrollbar {

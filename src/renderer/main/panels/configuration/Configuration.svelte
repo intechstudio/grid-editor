@@ -15,13 +15,27 @@
     GridRuntime,
   } from "../../../runtime/runtime";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   let runtime: GridRuntime;
   let element: GridElement;
   let event: GridEvent;
   let page: GridPage;
+
+  let container: HTMLElement;
+  let mounted = false;
+
+  onMount(() => {
+    mounted = true;
+  });
+
+  onDestroy(() => {
+    appSettings.update((store) => {
+      store.isMultiView = false;
+      return store;
+    });
+  });
 
   $: runtime = $runtime_manager.active.runtime;
 
@@ -71,45 +85,42 @@
       });
     }
   }
-
-  onDestroy(() => {
-    appSettings.update((store) => {
-      store.isMultiView = false;
-      return store;
-    });
-  });
 </script>
 
-<container class="flex w-full h-full bg-primary">
-  <div
-    bind:clientWidth={containerWidth}
-    class="w-full h-full flex flex-col bg-primary"
-    transition:fade={{
-      duration: 150,
-      delay: 0,
-    }}
-  >
-    <configs
-      class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
+{#if mounted}
+  <container bind:this={container} class="flex w-full h-full bg-primary">
+    <div
+      bind:clientWidth={containerWidth}
+      class="w-full h-full flex flex-col bg-primary"
+      transition:fade={{
+        duration: 150,
+        delay: 0,
+      }}
     >
-      <ElementSelectionPanel {page} />
-      {#if !$appSettings.isMultiView}
-        <EventPanel {element} />
-      {/if}
-      <Toolbar {event} {element} />
-      <div class="flex flex-row h-full w-full max-h-full gap-2 overflow-hidden">
-        {#if $appSettings.isMultiView}
-          {#each $element?.events ?? [] as event, i}
-            <ActionList {event} />
-            <div
-              class="h-full flex border-r border-black"
-              class:hidden={i === $element.events.length - 1}
-            />
-          {/each}
-        {:else}
-          <ActionList {event} />
+      <configs
+        class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
+      >
+        <ElementSelectionPanel {page} />
+        {#if !$appSettings.isMultiView}
+          <EventPanel {element} />
         {/if}
-      </div>
-    </configs>
-  </div>
-</container>
+        <Toolbar {event} {element} targetPanel={container} />
+        <div
+          class="flex flex-row h-full w-full max-h-full gap-2 overflow-hidden"
+        >
+          {#if $appSettings.isMultiView}
+            {#each $element?.events ?? [] as event, i}
+              <ActionList {event} targetPanel={container} />
+              <div
+                class="h-full flex border-r border-black"
+                class:hidden={i === $element.events.length - 1}
+              />
+            {/each}
+          {:else}
+            <ActionList {event} targetPanel={container} />
+          {/if}
+        </div>
+      </configs>
+    </div>
+  </container>
+{/if}

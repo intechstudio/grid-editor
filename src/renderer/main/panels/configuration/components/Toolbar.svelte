@@ -30,6 +30,7 @@
 
   export let element: GridElement;
   export let event: GridEvent;
+  export let targetPanel: HTMLElement;
 
   function handleOverwriteElement() {
     overwriteElement(element);
@@ -124,7 +125,7 @@
             on:mouseenter={() =>
               setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyC" }}
+            shortcut={{ control: true, code: "KeyC", targetPanel: targetPanel }}
             iconPath={"copy_all"}
             disabled={$isCopyElementEnabled === false}
             color={"#03cb00"}
@@ -137,7 +138,7 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyV" }}
+            shortcut={{ control: true, code: "KeyV", targetPanel: targetPanel }}
             iconPath={"paste_all"}
             disabled={!isOverwriteElementEnabled($element, $appClipboard)}
             color={"#006cb7"}
@@ -157,6 +158,7 @@
               control: true,
               shift: true,
               code: "KeyD",
+              targetPanel: targetPanel,
             }}
             iconPath={"clear_from_device_01"}
             disabled={!isDiscardElementEnabled($element)}
@@ -173,6 +175,7 @@
             shortcut={{
               shift: true,
               code: "Delete",
+              targetPanel: targetPanel,
             }}
             iconPath={"clear_element"}
             disabled={!isClearElementEnabled($element)}
@@ -187,7 +190,7 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyC" }}
+            shortcut={{ control: true, code: "KeyC", targetPanel: targetPanel }}
             disabled={$isCopyActionsEnabled === false}
             iconPath={"copy"}
             color={"#03cb00"}
@@ -201,7 +204,11 @@
               on:mouseenter={() =>
                 setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
               on:mouseleave={handleToolbarButtonBlur}
-              shortcut={{ control: true, code: "KeyV" }}
+              shortcut={{
+                control: true,
+                code: "KeyV",
+                targetPanel: targetPanel,
+              }}
               disabled={$isPasteActionsEnabled === false}
               iconPath={"paste"}
               color={"#006cb7"}
@@ -215,7 +222,7 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyX" }}
+            shortcut={{ control: true, code: "KeyX", targetPanel: targetPanel }}
             disabled={$isCutActionsEnabled === false}
             iconPath={"cut"}
             color={"#ff6100"}
@@ -235,6 +242,7 @@
               control: true,
               shift: true,
               code: "KeyM",
+              targetPanel: targetPanel,
             }}
             disabled={$isMergeActionsEnabled === false}
             iconPath={"merge_as_code"}
@@ -250,6 +258,7 @@
             on:mouseleave={handleToolbarButtonBlur}
             shortcut={{
               code: "Delete",
+              targetPanel: targetPanel,
             }}
             disabled={$isRemoveActionsEnabled === false}
             iconPath={"remove"}
