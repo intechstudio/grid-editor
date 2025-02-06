@@ -153,7 +153,19 @@
   }
 </script>
 
-<button class="module activator-button">
+<button
+  class="module activator-button"
+  on:keydown={(e) => {
+    console.log(
+      "Keydown on module",
+      e.key,
+      e.ctrlKey,
+      e.metaKey,
+      e.shiftKey,
+      e.altKey
+    );
+  }}
+>
   <svelte:component
     this={component}
     {device}
@@ -194,8 +206,29 @@
         on:focus={selectElement(elementNumber)}
         on:keydown={(e) => {
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
-            console.log("Copy element", elementNumber);
+            console.log("Ctrl + C = Copy element", elementNumber);
+            handleCopyElement(element);
             e.preventDefault();
+            e.stopPropagation();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+            console.log("Ctrl + V = Overwrite element", elementNumber);
+            handleOverwriteElement(element);
+            e.preventDefault();
+            e.stopPropagation();
+          } else if (
+            (e.ctrlKey || e.metaKey) &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "d"
+          ) {
+            console.log("Ctrl + Shift + D = Discard element", elementNumber);
+            handleDiscardElement(element);
+            e.preventDefault();
+            e.stopPropagation();
+          } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
+            console.log("Shift + Delete = Clear element", elementNumber);
+            handleClearElement(element);
+            e.preventDefault();
+            e.stopPropagation();
           }
         }}
         use:contextTarget={{
