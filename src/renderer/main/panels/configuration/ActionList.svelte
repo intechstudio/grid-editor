@@ -147,7 +147,7 @@
         $event.config[index + 1]?.indentation === action.indentation &&
         $appSettings.persistent.actionHelperText}
 
-      <anim-block
+      <div
         animate:flip={{ duration: 300, easing: eases.backOut }}
         in:fade|global={{ delay: 0 }}
       >
@@ -179,7 +179,7 @@
         {:else}
           <SeparatorLine target={{ event: event, index: index + 1 }} />
         {/if}
-      </anim-block>
+      </div>
     {/each}
   </ul>
 

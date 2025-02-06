@@ -922,7 +922,6 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   // Setters
   private set config(value: Array<GridAction>) {
-    const temp = this.config;
     this.setField("config", value);
   }
 
