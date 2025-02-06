@@ -103,6 +103,19 @@ test.describe("Issues", () => {
     const actualValue = await configPage.getTextFromName();
     await expect(actualValue).toBe("testwrite");
   });
+
+  test("Add new Variable pair not deletes previous variables", async () => {
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("variables", "Locals");
+    await configPage.clickActionBlockElement(
+      "variables",
+      "Locals",
+      "addNewPair"
+    );
+    const element =
+      configPage.blocks["variables"]["Locals"]["elements"]["name"];
+    await expect(element).toBeVisible();
+  });
 });
 
 test.describe("NRPN converting", () => {
