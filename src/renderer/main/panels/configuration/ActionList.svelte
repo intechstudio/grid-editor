@@ -93,8 +93,6 @@
       selected_actions.set(event.config);
     }
   }
-
-  $: console.log($event.config.map((e) => e.id));
 </script>
 
 <div class="flex flex-col h-full w-full overflow-hidden gap-2">
