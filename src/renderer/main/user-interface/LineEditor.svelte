@@ -36,10 +36,6 @@
     }
   }
 
-  onDestroy(() => {
-    editor.dispose();
-  });
-
   $: handleFontSizechange($appSettings.persistent.fontSize);
 
   function handleFontSizechange(fontSize) {
