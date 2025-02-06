@@ -601,8 +601,12 @@ export class GridEvent extends RuntimeNode<EventData> {
         actions.map((e) => e.toLua()).join("").length >=
       0
     ) {
-      this.config.splice(index, 0, ...actions);
-      this.config = this.config; //TODO: Is there a better solution? Needed for reactivity
+      // Create a new array reference to trigger Svelte reactivity
+      this.config = [
+        ...this.config.slice(0, index),
+        ...actions,
+        ...this.config.slice(index),
+      ];
       actions.forEach((e) => ((e as any).parent = this));
       return Promise.resolve({
         value: true,
