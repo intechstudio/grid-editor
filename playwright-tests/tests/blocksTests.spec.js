@@ -68,6 +68,26 @@ test.describe("Issues", () => {
     await expect(actualValue).toBe(expectedValue);
   });
 
+  test("Coma character in MIDI NRPN ", async ({ page }) => {
+    const expectedValue = ",";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      expectedValue
+    );
+    await configPage.selectElementEvent("Timer");
+    await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
+
   test("Element name freezes Editor", async () => {
     await configPage.removeAllActions();
     await configPage.openAndAddActionBlock("code", "Element Name");
@@ -82,6 +102,19 @@ test.describe("Issues", () => {
 
     const actualValue = await configPage.getTextFromName();
     await expect(actualValue).toBe("testwrite");
+  });
+
+  test("Add new Variable pair not deletes previous variables", async () => {
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("variables", "Locals");
+    await configPage.clickActionBlockElement(
+      "variables",
+      "Locals",
+      "addNewPair"
+    );
+    const element =
+      configPage.blocks["variables"]["Locals"]["elements"]["name"];
+    await expect(element).toBeVisible();
   });
 });
 

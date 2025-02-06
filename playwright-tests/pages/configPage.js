@@ -86,6 +86,10 @@ export class ConfigPage {
     await this.blocks[category][blockName]["elements"][field].fill(input);
   }
 
+  async clickActionBlockElement(category, blockName, field) {
+    await this.blocks[category][blockName]["elements"][field].click();
+  }
+
   async getActionBlockFieldValue(category, blockName, field) {
     return await this.blocks[category][blockName]["elements"][
       field
