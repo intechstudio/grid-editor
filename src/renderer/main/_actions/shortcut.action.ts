@@ -4,44 +4,45 @@ export interface ShortcutParameter {
   control?: boolean;
   callback?: (...args: any) => void;
   code: string;
+  targetPanel?: HTMLElement;
 }
 
-export const shortcut = (node: HTMLElement, params?: ShortcutParameter) => {
+export function shortcut(node: HTMLElement, params?: ShortcutParameter) {
   let handler: any;
-  const removeHandler = () => window.removeEventListener("keydown", handler),
-    setHandler = () => {
-      removeHandler();
-      if (!params) return;
+  const removeHandler = () => window.removeEventListener("keydown", handler);
+  const setHandler = () => {
+    removeHandler();
+    if (!params) return;
 
-      handler = (e: KeyboardEvent) => {
-        // Check if the event target is an input, textarea, or contenteditable element
-        const target = e.target as HTMLElement;
-        const isInputField =
-          target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable;
+    handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInputField =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable;
+      const isWebcomponent = target.shadowRoot;
 
-        // If the target is an input field, textarea, or contenteditable, allow default behavior
-        if (isInputField) {
-          return;
-        }
+      //Ignore input fields and webcomponents, let them have they own shortcut handling work
+      if (isInputField || isWebcomponent) {
+        return;
+      }
 
-        if (
-          !!params.alt != e.altKey ||
-          !!params.shift != e.shiftKey ||
-          !!params.control != (e.ctrlKey || e.metaKey) ||
-          params.code != e.code
-        ) {
-          return;
-        }
-        e.preventDefault();
-        params.callback ? params.callback() : node.click();
-      };
-      window.addEventListener("keydown", handler);
+      if (
+        !!params.alt != e.altKey ||
+        !!params.shift != e.shiftKey ||
+        !!params.control != (e.ctrlKey || e.metaKey) ||
+        params.code != e.code
+      ) {
+        return;
+      }
+      e.preventDefault();
+      params.callback ? params.callback() : node.click();
     };
+    window.addEventListener("keydown", handler);
+  };
   setHandler();
   return {
     update: setHandler,
     destroy: removeHandler,
   };
-};
+}
