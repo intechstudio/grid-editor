@@ -148,6 +148,7 @@
         $appSettings.persistent.actionHelperText}
 
       <div
+        data-testid="action-block"
         animate:flip={{ duration: 300, easing: eases.backOut }}
         in:fade|global={{ delay: 0 }}
       >
