@@ -98,7 +98,7 @@
 <container class="flex w-full h-full">
   <div
     bind:this={canvasElement}
-    class="relative flex border border-black rounded-full w-full aspect-[1]"
+    class="relative flex border border-black rounded-full w-hull aspect-square"
   >
     <div class="absolute bg-hue w-full h-full rounded-full" />
     <div class="absolute bg-saturation w-full h-full rounded-full" />

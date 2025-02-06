@@ -94,6 +94,70 @@ export namespace Grid {
     }
   }
 
+  export class RGBA {
+    public r: number;
+    public g: number;
+    public b: number;
+    public a: number;
+
+    constructor(r: number, g: number, b: number, a: number) {
+      this.r = r;
+      this.g = g;
+      this.b = b;
+      this.a = a;
+    }
+
+    toCSS() {
+      return `rgba(${this.r ?? 0}, ${this.g ?? 0}, ${this.b ?? 0}, ${
+        this.a ?? 0
+      })`;
+    }
+
+    toHSLA(): HSLA {
+      const hsl = convert.rgb.hsl(this.r, this.g, this.b);
+      return new HSLA(hsl[0], hsl[1], hsl[2], this.a);
+    }
+
+    reduceToRGB(): RGB {
+      return new RGB(this.r, this.g, this.b);
+    }
+
+    reduceToHSL(): HSL {
+      return this.reduceToRGB().toHSL();
+    }
+  }
+
+  export class HSLA {
+    public h: number;
+    public s: number;
+    public l: number;
+    public a: number;
+
+    constructor(h: number, s: number, l: number, a: number) {
+      this.h = h;
+      this.s = s;
+      this.l = l;
+      this.a = a;
+    }
+
+    toRGBA(): RGBA {
+      const rgb = convert.hsl.rgb(this.h, this.s, this.l);
+      return new RGBA(rgb[0], rgb[1], rgb[2], this.a);
+    }
+
+    toCSS() {
+      return `hsla(${this.h}deg, ${this.s}%, ${this.l}%, ${this.a})`;
+    }
+
+    reduceToRGB(): RGB {
+      return this.reduceToHSL().toRGB();
+    }
+
+    reduceToHSL(): HSL {
+      return new HSL(this.h, this.s, this.l);
+    }
+  }
+
   export enum HSLParam {
     HUE,
     SATURATION,
