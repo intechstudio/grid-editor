@@ -153,7 +153,7 @@
   }
 </script>
 
-<div class="pointer-events-none" style={$$props.style}>
+<button class="module activator-button">
   <svelte:component
     this={component}
     {device}
@@ -191,6 +191,13 @@
         .findPage($user_input.pagenumber)
         .findElement(elementNumber)}
       <button
+        on:focus={selectElement(elementNumber)}
+        on:keydown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+            console.log("Copy element", elementNumber);
+            e.preventDefault();
+          }
+        }}
         use:contextTarget={{
           items: [
             {
@@ -220,11 +227,8 @@
             },
           ],
         }}
-        class="w-full h-full absolute"
-        style="width: calc(100% - var(--element-margin) * 2); 
-          height: calc(100% - var(--element-margin) * 2); 
-          margin: var(--element-margin); "
-        on:mouseup={() => {
+        class="w-full h-full absolute element activator-button"
+        on:click={() => {
           handleElementClicked({ detail: { elementNumber: elementNumber } });
         }}
       >
@@ -314,9 +318,27 @@
       {/if}
     </svelte:fragment>
   </svelte:component>
-</div>
+</button>
 
 <style global>
+  .module.activator-button {
+    /*border: 1px solid red;*/
+  }
+
+  .element.activator-button {
+    /*border: 1px solid green;   */
+    width: calc(100% - var(--element-margin) * 2);
+    height: calc(100% - var(--element-margin) * 2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .activator-button:focus {
+    outline: 2px dashed blue; /* Add a blue outline */
+  }
+
   :root {
     --element-margin: 5px;
     --grid-rounding: 5px;
@@ -336,6 +358,7 @@
   }
 
   .normal-cell-underlay-container {
+    /*border: 1px solid red;*/
     position: absolute;
     width: 100%;
     height: 100%;

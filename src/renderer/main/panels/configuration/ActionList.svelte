@@ -100,7 +100,10 @@
   }
 </script>
 
-<container class="flex flex-col h-full w-full overflow-hidden gap-2">
+<container
+  tabindex="-1"
+  class="flex flex-col h-full w-full overflow-hidden gap-2"
+>
   <div class="flex flex-row gap-2 justify-between items-center flex-none">
     <div class="flex flex-col">
       <span class="text-white">{$event?.getName() ?? "No Device"}</span>
