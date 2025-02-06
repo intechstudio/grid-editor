@@ -24,11 +24,6 @@
   let page: GridPage;
 
   let container: HTMLElement;
-  let mounted = false;
-
-  onMount(() => {
-    mounted = true;
-  });
 
   onDestroy(() => {
     appSettings.update((store) => {
@@ -87,8 +82,8 @@
   }
 </script>
 
-{#if mounted}
-  <container bind:this={container} class="flex w-full h-full bg-primary">
+<container bind:this={container} class="flex w-full h-full bg-primary">
+  {#if container}
     <div
       bind:clientWidth={containerWidth}
       class="w-full h-full flex flex-col bg-primary"
@@ -122,5 +117,5 @@
         </div>
       </configs>
     </div>
-  </container>
-{/if}
+  {/if}
+</container>
