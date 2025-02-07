@@ -67,9 +67,14 @@
     component = components[index].component;
   });
 
-  function handleElementClicked(e) {
-    const { elementNumber } = e.detail;
-    selectElement(elementNumber);
+
+  function selectModule() {
+    console.log("select module", device?.dx, device?.dy, $user_input.dx, $user_input.dy)
+    if (device?.dx == $user_input.dx && device?.dy == $user_input.dy){
+      return;
+    }
+    
+    selectElement(0);
   }
 
   function selectElement(element) {
@@ -96,6 +101,22 @@
 
   function handleClearElement(element) {
     clearElement(element);
+  }
+
+  function handleOverwriteModule(device) {
+    console.warn("Overwrite module NOT IMPLEMENTED", device);
+  }
+
+  function handleDiscardModule(device) {
+    console.warn("Discard module NOT IMPLEMENTED", device);
+  }
+
+  function handleCopyModule(device) {
+    console.warn("Copy module NOT IMPLEMENTED", device);
+  }
+
+  function handleClearModule(device) {
+    console.warn("Clear module NOT IMPLEMENTED", device);
   }
 
   const modifier =
@@ -155,15 +176,34 @@
 
 <button
   class="module activator-button"
+  on:focus={() => {selectModule()}}
+  on:click={() => {selectModule()}}
   on:keydown={(e) => {
-    console.log(
-      "Keydown on module",
-      e.key,
-      e.ctrlKey,
-      e.metaKey,
-      e.shiftKey,
-      e.altKey
-    );
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+      console.log("Ctrl + C = Copy module", device.dx, device.dy);
+      handleCopyModule(device);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Overwrite module", device.dx, device.dy);
+      handleOverwriteModule(device);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (
+      (e.ctrlKey || e.metaKey) &&
+      e.shiftKey &&
+      e.key.toLowerCase() === "d"
+    ) {
+      console.log("Ctrl + Shift + D = Discard module", device.dx, device.dy);
+      handleDiscardModule(device);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
+      console.log("Shift + Delete = Clear module", device.dx, device.dy);
+      handleClearModule(device);
+      e.preventDefault();
+      e.stopPropagation();
+    }
   }}
 >
   <svelte:component
@@ -261,8 +301,10 @@
           ],
         }}
         class="w-full h-full absolute element activator-button"
-        on:click={() => {
-          handleElementClicked({ detail: { elementNumber: elementNumber } });
+        on:click={(e) => {
+          selectElement(elementNumber);
+          e.preventDefault();
+          e.stopPropagation();
         }}
       >
         <ActiveChanges
