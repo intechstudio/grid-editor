@@ -34,7 +34,7 @@ test.describe("Issues", () => {
     await configPage.addCodeBlock();
     await configPage.selectAllActions();
     await page
-      .locator("anim-block")
+      .getByTestId("action-block")
       .filter({ hasText: 'Code preview: print("hello")' })
       .getByRole("button")
       .nth(2)
@@ -82,6 +82,13 @@ test.describe("Issues", () => {
 
     const actualValue = await configPage.getTextFromName();
     await expect(actualValue).toBe("testwrite");
+  });
+
+  test("Nested action block should not prevent opening other actions", async () => {
+    await configPage.addActionBlockToTop("condition", "If");
+    await configPage.clickActionBlock(3);
+    const element = configPage.blocks["midi"]["MIDI"]["elements"]["Channel"];
+    await expect(element).toBeVisible();
   });
 });
 
