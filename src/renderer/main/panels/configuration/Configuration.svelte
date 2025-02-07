@@ -18,6 +18,21 @@
   import { onDestroy, onMount } from "svelte";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
+  import { selected_actions } from "./../../../runtime/user-input.store";
+
+  import { get } from "svelte/store";
+  import {
+    mergeActionsToCode,
+    copyActions,
+    removeActions,
+    cutActions,
+    discardElement,
+    overwriteElement,
+    copyElement,
+    clearElement,
+    pasteActions,
+  } from "../../../runtime/operations";
+
   let runtime: GridRuntime;
   let element: GridElement;
   let event: GridEvent;
@@ -80,9 +95,115 @@
       });
     }
   }
+
+  function handleOverwriteElement() {
+    overwriteElement(element);
+  }
+
+  function handleCopyElement() {
+    copyElement(element);
+  }
+
+  function handleCopy() {
+    copyActions(...get(selected_actions));
+  }
+
+  function handleClearElement() {
+    clearElement(element);
+  }
+
+  function handleDiscardElement() {
+    discardElement(element);
+  }
+
+  function handleSelectAll() {
+    const selected = get(selected_actions);
+    if (event.config.every((e) => selected.includes(e))) {
+      selected_actions.set([]);
+    } else {
+      selected_actions.set(event.config);
+    }
+  }
+
+  function handleConvertToCodeBlock() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    mergeActionsToCode(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handleRemove() {
+    const selected = get(selected_actions);
+
+    if (selected.length === 0) {
+      return;
+    }
+
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    removeActions(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handleCut() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    cutActions(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handlePaste(e: CustomEvent) {
+    const { index } = e?.detail ?? { index: undefined };
+    pasteActions(event, index);
+  }
 </script>
 
-<container bind:this={container} class="flex w-full h-full bg-primary">
+<button
+  bind:this={container}
+  class="flex w-full h-full configpanel activator-button"
+  on:keydown={(e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+      console.log("Ctrl + C = Copy selected actions");
+      handleCopy();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") {
+      console.log("Ctrl + X = Cut selected actions");
+      handleCut();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Paste actions");
+      handlePaste();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (!e.ctrlKey && !e.metaKey && e.key.toLowerCase() === "delete") {
+      console.log("Delete = Delete actions");
+      handleRemove();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (
+      (e.ctrlKey || e.metaKey) &&
+      e.shiftKey &&
+      e.key.toLowerCase() === "m"
+    ) {
+      console.log("Ctrl + Shift + M = Merge actions as code");
+      handleConvertToCodeBlock();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+      console.log("Ctrl + A = Select all");
+      handleSelectAll();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }}
+>
   {#if container}
     <div
       bind:clientWidth={containerWidth}
@@ -100,9 +221,7 @@
           <EventPanel {element} />
         {/if}
         <Toolbar {event} {element} targetPanel={container} />
-        <div
-          class="flex flex-row h-full w-full max-h-full gap-2 overflow-hidden"
-        >
+        <div class="flex flex-row h-full w-full max-h-full gap-2">
           {#if $appSettings.isMultiView}
             {#each $element?.events ?? [] as event, i}
               <ActionList {event} targetPanel={container} />
@@ -118,4 +237,10 @@
       </configs>
     </div>
   {/if}
-</container>
+</button>
+
+<style global>
+  .configpanel.activator-button:focus-within {
+    outline: 2px dashed gray; /* Add a blue outline */
+  }
+</style>

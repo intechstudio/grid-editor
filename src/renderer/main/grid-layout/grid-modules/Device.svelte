@@ -67,6 +67,17 @@
     component = components[index].component;
   });
 
+  function visualDebugEffect(dom_element, color) {
+    dom_element.style.backgroundColor = color;
+    // Change the background color to red
+    dom_element.style.backgroundColor = color;
+
+    // After 500ms, change it back to the original color
+    setTimeout(() => {
+      dom_element.style.backgroundColor = "";
+    }, 200);
+  }
+
   function selectModule() {
     console.log(
       "select module",
@@ -191,11 +202,13 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
       console.log("Ctrl + C = Copy module", device.dx, device.dy);
       handleCopyModule(device);
+      visualDebugEffect(e.target, "gray");
       e.preventDefault();
       e.stopPropagation();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
       console.log("Ctrl + V = Overwrite module", device.dx, device.dy);
       handleOverwriteModule(device);
+      visualDebugEffect(e.target, "gray");
       e.preventDefault();
       e.stopPropagation();
     } else if (
@@ -205,11 +218,13 @@
     ) {
       console.log("Ctrl + Shift + D = Discard module", device.dx, device.dy);
       handleDiscardModule(device);
+      visualDebugEffect(e.target, "gray");
       e.preventDefault();
       e.stopPropagation();
     } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
       console.log("Shift + Delete = Clear module", device.dx, device.dy);
       handleClearModule(device);
+      visualDebugEffect(e.target, "gray");
       e.preventDefault();
       e.stopPropagation();
     }
@@ -257,11 +272,13 @@
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
             console.log("Ctrl + C = Copy element", elementNumber);
             handleCopyElement(element);
+            visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
           } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
             console.log("Ctrl + V = Overwrite element", elementNumber);
             handleOverwriteElement(element);
+            visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
           } else if (
@@ -271,11 +288,13 @@
           ) {
             console.log("Ctrl + Shift + D = Discard element", elementNumber);
             handleDiscardElement(element);
+            visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
           } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
             console.log("Shift + Delete = Clear element", elementNumber);
             handleClearElement(element);
+            visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
           }
@@ -409,6 +428,10 @@
     /*border: 1px solid red;*/
   }
 
+  .module.activator-button:focus-within {
+    outline: 2px dashed gray; /* Add a blue outline */
+  }
+
   .element.activator-button {
     /*border: 1px solid green;   */
     width: calc(100% - var(--element-margin) * 2);
@@ -420,7 +443,7 @@
   }
 
   .activator-button:focus {
-    outline: 2px dashed blue; /* Add a blue outline */
+    outline: 2px dashed blue !important; /* Add a blue outline */
   }
 
   :root {

@@ -15,10 +15,6 @@
   import { selected_actions } from "../../../runtime/user-input.store";
   import { get } from "svelte/store";
   import { grid } from "@intechstudio/grid-protocol";
-  import {
-    shortcut,
-    ShortcutParameter,
-  } from "./../../_actions/shortcut.action";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
   import { onMount } from "svelte";
@@ -100,9 +96,21 @@
   }
 </script>
 
-<container
-  tabindex="-1"
-  class="flex flex-col h-full w-full overflow-hidden gap-2"
+<button
+  on:keydown={(e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+      console.log("Ctrl + A = Select all actions");
+      handleSelectAll();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Paste actions");
+      handlePaste();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }}
+  class="flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
 >
   <div class="flex flex-row gap-2 justify-between items-center flex-none">
     <div class="flex flex-col">
@@ -114,15 +122,7 @@
         </span>
       </div>
     </div>
-    <button
-      class="w-fit h-fit mr-[16px]"
-      use:shortcut={{
-        control: true,
-        code: "KeyA",
-        callback: handleSelectAll,
-        targetPanel: targetPanel,
-      }}
-    >
+    <button class="w-fit h-fit mr-[16px]">
       <Options
         selected={$event?.config.every((e) => $selected_actions.includes(e))}
         halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
@@ -199,9 +199,17 @@
       on:new-config={handleNewConfig}
     />
   {/if}
-</container>
+</button>
 
 <style global>
+  .actionlist.activator-button {
+    /*border: 1px solid red;*/
+  }
+
+  .actionlist.activator-button:focus-within {
+    outline: 2px dashed gray; /* Add a blue outline */
+  }
+
   ::-webkit-scrollbar {
     height: 6px;
     width: 6px;
