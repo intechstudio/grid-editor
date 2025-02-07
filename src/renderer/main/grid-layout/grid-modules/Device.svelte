@@ -67,13 +67,18 @@
     component = components[index].component;
   });
 
-
   function selectModule() {
-    console.log("select module", device?.dx, device?.dy, $user_input.dx, $user_input.dy)
-    if (device?.dx == $user_input.dx && device?.dy == $user_input.dy){
+    console.log(
+      "select module",
+      device?.dx,
+      device?.dy,
+      $user_input.dx,
+      $user_input.dy
+    );
+    if (device?.dx == $user_input.dx && device?.dy == $user_input.dy) {
       return;
     }
-    
+
     selectElement(0);
   }
 
@@ -176,8 +181,12 @@
 
 <button
   class="module activator-button"
-  on:focus={() => {selectModule()}}
-  on:click={() => {selectModule()}}
+  on:focus={() => {
+    selectModule();
+  }}
+  on:click={() => {
+    selectModule();
+  }}
   on:keydown={(e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
       console.log("Ctrl + C = Copy module", device.dx, device.dy);
