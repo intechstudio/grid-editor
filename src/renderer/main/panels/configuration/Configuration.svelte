@@ -65,7 +65,8 @@
         store.isMultiView =
           document.body.clientWidth * 0.4 < containerWidth &&
           containerWidth > 550 &&
-          typeof element !== "undefined";
+          typeof element !== "undefined" &&
+          store.persistent.multiViewEnabled;
         return store;
       });
     }

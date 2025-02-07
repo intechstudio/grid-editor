@@ -50,7 +50,7 @@ export class ConfigPage {
 
     // Code Block Elements
     this.addBlocktoLastSandwichButton = page
-      .locator("anim-block")
+      .getByTestId("action-block")
       .filter({ hasText: "End" })
       .locator("action-placeholder div")
       .first();

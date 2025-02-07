@@ -34,7 +34,7 @@ test.describe("Issues", () => {
     await configPage.addCodeBlock();
     await configPage.selectAllActions();
     await page
-      .locator("anim-block")
+      .getByTestId("action-block")
       .filter({ hasText: 'Code preview: print("hello")' })
       .getByRole("button")
       .nth(2)
