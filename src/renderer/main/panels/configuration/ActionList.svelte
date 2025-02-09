@@ -95,7 +95,9 @@
   }
 </script>
 
-<button
+<div
+  role="tabpanel"
+  tabindex="0"
   on:keydown={(e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
       console.log("Ctrl + A = Select all actions");
@@ -201,7 +203,7 @@
       on:new-config={handleNewConfig}
     />
   {/if}
-</button>
+</div>
 
 <style global>
   ::-webkit-scrollbar {
