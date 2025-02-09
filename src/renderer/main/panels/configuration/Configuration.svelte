@@ -163,7 +163,7 @@
   }
 </script>
 
-<button
+<div role="tabpanel" tabindex="0"
   bind:this={container}
   class="flex w-full h-full configpanel activator-button"
   on:keydown={(e) => {
@@ -235,4 +235,4 @@
       </configs>
     </div>
   {/if}
-</button>
+  </div>
