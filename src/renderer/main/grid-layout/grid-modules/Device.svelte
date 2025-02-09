@@ -424,12 +424,36 @@
 </button>
 
 <style global>
+  .activator-button {
+    text-align: left;
+  }
+
+  .configpanel.activator-button {
+    border: 1px solid rgba(0, 0, 0, 0);
+  }
+
+  .configpanel.activator-button:focus-within {
+    border-color: gray;
+  }
+
+  .actionlist.activator-button {
+    /*border: 1px solid red;*/
+  }
+
+  .actionlist.activator-button {
+    border: 1px solid rgba(0, 0, 0, 0);
+  }
+
+  .actionlist.activator-button:focus-within {
+    border-color: gray;
+  }
+
   .module.activator-button {
     /*border: 1px solid red;*/
   }
 
   .module.activator-button:focus-within {
-    outline: 2px dashed gray; /* Add a blue outline */
+    /* outline: 2px dashed gray; Add a blue outline */
   }
 
   .element.activator-button {
@@ -440,10 +464,12 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    outline: 1px solid rgba(0, 0, 0, 0);
   }
 
   .activator-button:focus {
-    outline: 2px dashed blue !important; /* Add a blue outline */
+    border-color: rgb(68, 68, 209) !important;
+    outline-color: rgb(68, 68, 209) !important;
   }
 
   :root {

@@ -30,8 +30,7 @@
     addActions(event, index, ...configs);
   }
 
-  function handlePaste(e: CustomEvent) {
-    const { index } = e?.detail ?? { index: undefined };
+  function handlePaste(index: number | undefined) {
     pasteActions(event, index);
   }
 
@@ -110,9 +109,11 @@
       e.stopPropagation();
     }
   }}
-  class="flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+  class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
 >
-  <div class="flex flex-row gap-2 justify-between items-center flex-none">
+  <div
+    class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+  >
     <div class="flex flex-col">
       <span class="text-white">{$event?.getName() ?? "No Device"}</span>
       <div class="flex flex-row gap-2">
@@ -122,8 +123,9 @@
         </span>
       </div>
     </div>
-    <button class="w-fit h-fit mr-[16px]">
+    <button class="w-fit h-fit">
       <Options
+        testid="select_all"
         selected={$event?.config.every((e) => $selected_actions.includes(e))}
         halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
         disabled={$event?.config.length === 0}
@@ -136,7 +138,7 @@
     bind:this={configList}
     on:mousemove={handleMouseMove}
     on:mouseleave={() => clearInterval(autoScroll)}
-    class="flex-1 overflow-y-scroll justify-start px-3"
+    class="overflow-y-scroll justify-start w-full"
   >
     {#if $event?.config.length === 0 && $draggedActions.length === 0}
       <ActionHelper
@@ -202,14 +204,6 @@
 </button>
 
 <style global>
-  .actionlist.activator-button {
-    /*border: 1px solid red;*/
-  }
-
-  .actionlist.activator-button:focus-within {
-    outline: 2px dashed gray; /* Add a blue outline */
-  }
-
   ::-webkit-scrollbar {
     height: 6px;
     width: 6px;

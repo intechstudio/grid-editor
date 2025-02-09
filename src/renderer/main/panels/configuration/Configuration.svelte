@@ -213,15 +213,13 @@
         delay: 0,
       }}
     >
-      <configs
-        class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
-      >
+      <configs class="w-full h-full flex flex-col overflow-hidden text-left">
         <ElementSelectionPanel {page} />
         {#if !$appSettings.isMultiView}
           <EventPanel {element} />
         {/if}
         <Toolbar {event} {element} targetPanel={container} />
-        <div class="flex flex-row h-full w-full max-h-full gap-2">
+        <div class="flex flex-row h-full w-full max-h-full">
           {#if $appSettings.isMultiView}
             {#each $element?.events ?? [] as event, i}
               <ActionList {event} targetPanel={container} />
@@ -238,9 +236,3 @@
     </div>
   {/if}
 </button>
-
-<style global>
-  .configpanel.activator-button:focus-within {
-    outline: 2px dashed gray; /* Add a blue outline */
-  }
-</style>
