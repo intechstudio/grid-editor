@@ -47,6 +47,9 @@
 
   onMount(() => {
     window.addEventListener("resize", handleResize);
+    appSettings.subscribe((store) => {
+      handleGridLayoutShift(store.gridLayoutShift);
+    });
   });
 
   onDestroy(() => {
@@ -60,8 +63,6 @@
 
     handleResize();
   }
-
-  $: handleGridLayoutShift($appSettings.gridLayoutShift);
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
