@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ModuleType } from "@intechstudio/grid-protocol";
 
-  import Button from "../elements/Button.svelte";
+  import Btn from "../elements/Btn.svelte";
   import Encoder from "../elements/Encoder.svelte";
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
@@ -109,7 +109,7 @@
           <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
             {#if moduleType === ModuleType.BU16}
-              <Button {elementNumber} size={2.1} />
+              <Btn {elementNumber} size={2.1} />
             {:else if moduleType === ModuleType.PO16}
               <Potentiometer
                 {id}

@@ -67,7 +67,7 @@
   }
 </script>
 
-<div class="pb-2 flex flex-col justify-center items-center relative">
+<div class="m-4 pb-2 flex flex-col justify-center items-center relative">
   <MeltRadio
     bind:target={selected}
     style="button"

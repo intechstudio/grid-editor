@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ModuleType, ElementType } from "@intechstudio/grid-protocol";
 
-  import Button from "../elements/Button.svelte";
+  import Btn from "../elements/Btn.svelte";
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
   import LcdAndMenuButtons from "../elements/LcdAndMenuButtons.svelte";
@@ -203,7 +203,7 @@
           <div class="normal-cell-underlay-container">
             <slot name="cell-underlay" {elementNumber} />
           </div>
-          <button
+          <div
             class="normal-cell-ui-container"
             style="border-radius: 50%; padding: 6px;"
           >
@@ -232,7 +232,7 @@
               position={elementposition_array[elementNumber][1]}
               size={2.1}
             />
-          </button>
+          </div>
           <div class="normal-cell-overlay-container">
             <slot name="cell-overlay" {elementNumber} />
           </div>
@@ -245,10 +245,10 @@
           <div class="normal-cell-underlay-container">
             <slot name="cell-underlay" {elementNumber} />
           </div>
-          <button class="normal-cell-ui-container">
+          <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Button {elementNumber} size={2.1} />
-          </button>
+            <Btn {elementNumber} size={2.1} />
+          </div>
           <div class="normal-cell-overlay-container">
             <slot name="cell-overlay" {elementNumber} />
           </div>

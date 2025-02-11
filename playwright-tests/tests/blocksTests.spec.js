@@ -236,3 +236,37 @@ test.describe("Element Mode MAX value", () => {
   });
   */
 });
+
+test.describe("Input field keyboard shortcuts", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("Nested Actions field", async ({ page }) => {
+    const category = "condition";
+    const blockName = "If";
+    const field = "input";
+    const expectedValue = "TestTest";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await page.keyboard.type("Test");
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.press("ControlOrMeta+c");
+    await page.keyboard.press("ControlOrMeta+v");
+    await page.keyboard.press("ControlOrMeta+v");
+    // await expect(
+    //   configPage.getActionBlockFieldValue(category, blockName, field)
+    // ).toBe(expectedValue); not textbox, can't fill, solution?
+  });
+  test("Variable name filed", async () => {
+    await configPage.openAndAddActionBlock("variables", "Lookup");
+  });
+  test("Variable value field", async () => {
+    await configPage.openAndAddActionBlock("variables", "Lookup");
+  });
+});
