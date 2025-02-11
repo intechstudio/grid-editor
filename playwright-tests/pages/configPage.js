@@ -225,21 +225,6 @@ export class ConfigPage {
     await this.codeblockInput.type(code);
   }
 
-  async copyBlockField(category, blockName, field) {
-    await this.blocks[category][blockName]["elements"][field].press(
-      "ControlOrMeta+a"
-    );
-    await this.blocks[category][blockName]["elements"][field].press(
-      "ControlOrMeta+c"
-    );
-  }
-
-  async pasteBlockField(category, blockName, field) {
-    await this.blocks[category][blockName]["elements"][field].press(
-      "ControlOrMeta+v"
-    );
-  }
-
   async commitCode() {
     await this.commitCodeButton.click();
   }

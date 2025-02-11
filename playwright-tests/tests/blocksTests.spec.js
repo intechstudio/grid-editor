@@ -247,19 +247,26 @@ test.describe("Input field keyboard shortcuts", () => {
     await connectModulePage.addModule("BU16");
     await configPage.removeAllActions();
   });
-  test("Nested Actions field", async () => {
-    const category = "Function";
-    const blockName = "Function";
+  test("Nested Actions field", async ({ page }) => {
+    const category = "condition";
+    const blockName = "If";
     const field = "input";
+    const expectedValue = "TestTest";
     await configPage.openAndAddActionBlock(category, blockName);
-    await configPage.copyBlockField(category, blockName, field);
-    await configPage.pasteBlockField(category, blockName, field);
-    await configPage.pasteBlockField(category, blockName, field);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await page.keyboard.type("Test");
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.press("ControlOrMeta+c");
+    await page.keyboard.press("ControlOrMeta+v");
+    await page.keyboard.press("ControlOrMeta+v");
+    // await expect(
+    //   configPage.getActionBlockFieldValue(category, blockName, field)
+    // ).toBe(expectedValue); not textbox, can't fill, solution?
   });
   test("Variable name filed", async () => {
-    await configPage.openAndAddActionBlock("Variables", "Lookup");
+    await configPage.openAndAddActionBlock("variables", "Lookup");
   });
   test("Variable value field", async () => {
-    await configPage.openAndAddActionBlock("Variables", "Lookup");
+    await configPage.openAndAddActionBlock("variables", "Lookup");
   });
 });
