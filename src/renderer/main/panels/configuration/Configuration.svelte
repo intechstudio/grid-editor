@@ -171,6 +171,11 @@
   bind:this={container}
   class="flex w-full h-full configpanel activator-button"
   on:keydown={(e) => {
+    //Ignore if origin node is input
+    if (e.srcElement.nodeName == "INPUT") {
+      return;
+    }
+
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
       console.log("Ctrl + C = Copy selected actions");
       handleCopy();

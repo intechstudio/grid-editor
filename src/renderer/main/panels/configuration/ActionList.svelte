@@ -99,6 +99,11 @@
   role="tabpanel"
   tabindex="0"
   on:keydown={(e) => {
+    //Ignore if origin node is input
+    if (e.srcElement.nodeName == "INPUT") {
+      return;
+    }
+
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
       console.log("Ctrl + A = Select all actions");
       handleSelectAll();
