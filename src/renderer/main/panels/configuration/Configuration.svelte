@@ -150,6 +150,8 @@
 
   function handleCut() {
     const selected = get(selected_actions);
+    if (selected.length === 0) return;
+
     if (!selected.every((e) => e.parent === selected[0].parent)) {
       throw "Clipboard error: Mismatched clipboard";
     }
