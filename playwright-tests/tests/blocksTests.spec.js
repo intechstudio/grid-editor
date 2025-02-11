@@ -236,3 +236,30 @@ test.describe("Element Mode MAX value", () => {
   });
   */
 });
+
+test.describe("Input field keyboard shortcuts", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("Nested Actions field", async () => {
+    const category = "Function";
+    const blockName = "Function";
+    const field = "input";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.copyBlockField(category, blockName, field);
+    await configPage.pasteBlockField(category, blockName, field);
+    await configPage.pasteBlockField(category, blockName, field);
+  });
+  test("Variable name filed", async () => {
+    await configPage.openAndAddActionBlock("Variables", "Lookup");
+  });
+  test("Variable value field", async () => {
+    await configPage.openAndAddActionBlock("Variables", "Lookup");
+  });
+});
