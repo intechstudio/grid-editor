@@ -100,7 +100,10 @@
   tabindex="0"
   on:keydown={(e) => {
     //Ignore if origin node is input
-    if (e.srcElement.nodeName == "INPUT") {
+    if (
+      e.srcElement.nodeName == "INPUT" ||
+      e.srcElement.nodeName == "TEXTAREA"
+    ) {
       return;
     }
 
