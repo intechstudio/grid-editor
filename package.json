@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20250122.1457",
-    "@intechstudio/grid-uikit": "0.0.60",
+    "@intechstudio/grid-uikit": "1.20250124.1648",
     "@intechstudio/profile-cloud-webcomponent": "^1.20241206.1604",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
