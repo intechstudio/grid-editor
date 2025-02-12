@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from "svelte";
+  import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { Grid } from "../../lib/_utils";
   import RandomColorGenerator from "./RandomColorGenerator.svelte";
 
@@ -10,10 +10,25 @@
 
   let cursorElement: HTMLElement;
   let canvasElement: HTMLElement;
+  let resizeObserver: ResizeObserver;
   let isDrag = false;
 
   onMount(() => {
     mounted = true;
+
+    resizeObserver = new ResizeObserver(() => {
+      if (canvasElement) {
+        setCursorPosition(color);
+      }
+    });
+
+    resizeObserver.observe(canvasElement);
+  });
+
+  onDestroy(() => {
+    if (resizeObserver) {
+      resizeObserver.disconnect(); // Properly disconnect the observer
+    }
   });
 
   type Point = { x: number; y: number };
@@ -44,16 +59,13 @@
   function setCursorPosition(color: Grid.HSL) {
     const rect = canvasElement.getBoundingClientRect();
 
-    // Calculate center of the canvas
     const center = { x: rect.width / 2, y: rect.height / 2 };
 
-    // Convert color to polar coordinates (distance = saturation, angle = hue)
     const radius =
       (color.s / Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION)) *
       (rect.width / 2);
     const p = distanceToPoint(radius, color.h);
 
-    // Update cursor position (adjust to the canvas coordinate system)
     cursorElement.style.left = `${
       p.x + center.x - cursorElement.clientWidth / 2
     }px`;
@@ -79,10 +91,13 @@
 
     // Update color
     color = new Grid.HSL(
-      angle,
-      Math.min(distance * Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION), 100),
+      Math.floor(angle),
+      Math.floor(
+        Math.min(distance * Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION), 100)
+      ),
       50
     );
+    dispatch("input", { color: color });
   }
 </script>
 
@@ -95,27 +110,25 @@
   }}
 />
 
-<container class="flex w-full h-full">
+<div
+  bind:this={canvasElement}
+  class="relative flex border border-black rounded-full w-full aspect-square"
+>
+  <div class="absolute bg-hue w-full h-full rounded-full" />
+  <div class="absolute bg-saturation w-full h-full rounded-full" />
   <div
-    bind:this={canvasElement}
-    class="relative flex border border-black rounded-full w-hull aspect-square"
-  >
-    <div class="absolute bg-hue w-full h-full rounded-full" />
-    <div class="absolute bg-saturation w-full h-full rounded-full" />
-    <div
-      bind:this={cursorElement}
-      class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
-    />
-    <button
-      class="absolute w-full h-full cursor-pointer"
-      on:mousedown={(e) => {
-        isDrag = true;
-        calculateColor(e);
-      }}
-      on:mousemove={calculateColor}
-    />
-  </div>
-</container>
+    bind:this={cursorElement}
+    class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
+  />
+  <button
+    class="absolute w-full h-full cursor-pointer"
+    on:mousedown={(e) => {
+      isDrag = true;
+      calculateColor(e);
+    }}
+    on:mousemove={calculateColor}
+  />
+</div>
 
 <style>
   .bg-hue {

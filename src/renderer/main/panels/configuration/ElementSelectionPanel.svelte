@@ -62,9 +62,7 @@
         };
       } else {
         return {
-          title: `Element ${
-            e.elementIndex < 255 ? e.elementIndex : elements.length - 1
-          } (${e.type[0].toUpperCase() + e.type.slice(1).toLowerCase()})`,
+          title: e.getHumanName(),
           value: e.elementIndex,
         };
       }

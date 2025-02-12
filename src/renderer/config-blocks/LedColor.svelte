@@ -189,7 +189,6 @@
     scriptSegments[4] = color.b;
 
     sendData();
-    dispatch("sync");
   }
 
   enum ColorPickerModel {
@@ -238,7 +237,8 @@
     <svelte:component
       this={colorPickerComponent.get(selected)}
       {color}
-      on:change={updateColor}
+      on:input={updateColor}
+      on:change={() => dispatch("sync")}
     />
     <RandomColorGenerator {color} on:generate={updateColor} />
   </div>

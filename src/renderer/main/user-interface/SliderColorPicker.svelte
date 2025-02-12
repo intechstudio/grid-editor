@@ -148,6 +148,7 @@
         dragParam,
         Math.floor(Grid.HSL.getMaxValue(dragParam) * value)
       );
+      dispatch("input", { color: color });
     }
   }
 </script>
@@ -163,7 +164,7 @@
     dispatch("change", { color: color });
   }}
 />
-<container bind:this={container}>
+<container bind:this={container} class="w-full">
   <div class="flex flex-row gap-2 items-center">
     <div class="flex flex-col gap-2 flex-grow">
       {#each componentData as { label, param, scaleElement, cursorElement }}

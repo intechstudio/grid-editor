@@ -9,10 +9,67 @@ export namespace Grid {
     return value[0].toUpperCase() + value.slice(1, value.length);
   }
 
-  export function isParenthesisClosed(value: string) {
+  export const Brackets = [
+    { start: "(", end: ")" },
+    { start: "[", end: "]" },
+    { start: "{", end: "}" },
+  ];
+
+  export function parseBracketValues(value: string): string[] {
+    if (value.length < 2) {
+      throw "Value does not have valid starting and ending brackets";
+    }
+
+    const startBracket = value[0];
+    const endBracket = value[value.length - 1];
+
+    // Find the matching bracket pair
+    const bracketPair = Brackets.find(
+      (b) => b.start === startBracket && b.end === endBracket
+    );
+
+    if (!bracketPair) {
+      throw "Value does not have valid starting and ending brackets";
+    }
+
+    const result: string[] = [];
+    let part = "";
+    const stack: string[] = [];
+
+    for (let i = 1; i < value.length - 1; ++i) {
+      const char = value[i];
+
+      // Check if character is a start or end bracket
+      if (Brackets.some((b) => b.start === char)) {
+        stack.push(char);
+      } else if (
+        Brackets.some((b) => b.end === char) &&
+        stack.length > 0 &&
+        Brackets.find((b) => b.start === stack[stack.length - 1])?.end === char
+      ) {
+        stack.pop();
+      }
+
+      // If a comma is found and no unclosed brackets, finalize the current part
+      if (char === "," && stack.length === 0) {
+        result.push(part.trim());
+        part = "";
+      } else {
+        part += char;
+      }
+    }
+
+    // Push the last part
+    result.push(part.trim());
+
+    return result;
+  }
+
+  export function isBracketClosed(value: string) {
     const pairs = [
       { start: "(", end: ")" },
       { start: "[", end: "]" },
+      { start: "{", end: "}" },
     ];
     const stacks = new Map();
 
@@ -80,12 +137,16 @@ export namespace Grid {
       return `#${convert.rgb.hex(this.r, this.g, this.b)}`;
     }
 
-    toHSL(): HSL {
+    toHSL() {
       const hsl = convert.rgb.hsl(this.r, this.g, this.b);
       return new HSL(hsl[0], hsl[1], hsl[2]);
     }
 
-    static getRandom(): RGB {
+    toRGBA() {
+      return new RGBA(this.r, this.g, this.b, 1);
+    }
+
+    static getRandom() {
       return new RGB(
         Int.getRandom(0, 255),
         Int.getRandom(0, 255),
@@ -113,16 +174,16 @@ export namespace Grid {
       })`;
     }
 
-    toHSLA(): HSLA {
+    toHSLA() {
       const hsl = convert.rgb.hsl(this.r, this.g, this.b);
       return new HSLA(hsl[0], hsl[1], hsl[2], this.a);
     }
 
-    reduceToRGB(): RGB {
+    reduceToRGB() {
       return new RGB(this.r, this.g, this.b);
     }
 
-    reduceToHSL(): HSL {
+    reduceToHSL() {
       return this.reduceToRGB().toHSL();
     }
   }
@@ -140,7 +201,7 @@ export namespace Grid {
       this.a = a;
     }
 
-    toRGBA(): RGBA {
+    toRGBA() {
       const rgb = convert.hsl.rgb(this.h, this.s, this.l);
       return new RGBA(rgb[0], rgb[1], rgb[2], this.a);
     }
@@ -149,11 +210,11 @@ export namespace Grid {
       return `hsla(${this.h}deg, ${this.s}%, ${this.l}%, ${this.a})`;
     }
 
-    reduceToRGB(): RGB {
+    reduceToRGB() {
       return this.reduceToHSL().toRGB();
     }
 
-    reduceToHSL(): HSL {
+    reduceToHSL() {
       return new HSL(this.h, this.s, this.l);
     }
   }
@@ -223,6 +284,14 @@ export namespace Grid {
 
     toCSS() {
       return `hsl(${this.h}deg, ${this.s}%, ${this.l}%)`;
+    }
+
+    toHSLA() {
+      return new HSLA(this.h, this.s, this.l, 1);
+    }
+
+    toRGBA() {
+      return this.toRGB().toRGBA();
     }
   }
 

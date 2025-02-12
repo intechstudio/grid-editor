@@ -351,7 +351,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
 
-    if (!Grid.isParenthesisClosed(data.script)) {
+    if (!Grid.isBracketClosed(data.script)) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.UNCLOSED_PARENTHESIS,
@@ -974,6 +974,15 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
+  }
+
+  public getHumanName() {
+    const page = this.parent as GridPage;
+    return `Element ${
+      this.elementIndex < 255
+        ? this.elementIndex
+        : page.control_elements.length - 1
+    } (${this.type[0].toUpperCase() + this.type.slice(1).toLowerCase()})`;
   }
 
   public getInfo(): ElementInfo {

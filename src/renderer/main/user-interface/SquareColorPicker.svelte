@@ -78,6 +78,7 @@
       (1 - saturation) * Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION),
       50
     );
+    dispatch("input", { color: color });
   }
 
   function handleMouseUp() {
@@ -97,22 +98,20 @@
   on:mousemove={calculateColor}
 />
 
-<container>
-  <div class="flex flex-row gap-2 justify-center items-center">
-    <div class="relative flex flex-grow h-20">
-      <canvas
-        data-testid="rgb-color-picker-canvas"
-        bind:this={canvasElement}
-        class="w-full h-full relative border border-black"
-        on:mousedown={(e) => {
-          isDrag = true;
-          calculateColor(e);
-        }}
-      />
-      <div
-        bind:this={cursorElement}
-        class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
-      />
-    </div>
+<div class="flex flex-grow flex-row gap-2 justify-center items-center">
+  <div class="relative flex flex-grow h-20">
+    <canvas
+      data-testid="rgb-color-picker-canvas"
+      bind:this={canvasElement}
+      class="w-full h-full relative border border-black"
+      on:mousedown={(e) => {
+        isDrag = true;
+        calculateColor(e);
+      }}
+    />
+    <div
+      bind:this={cursorElement}
+      class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
+    />
   </div>
-</container>
+</div>
