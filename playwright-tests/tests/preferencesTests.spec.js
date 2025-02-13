@@ -27,3 +27,22 @@ test("should open MIDI Monitor when clicked", async ({ page }) => {
   await navbarPage.clickNavItem("midiMonitor");
   await expect(page.getByText("MIDI Monitor")).toBeVisible();
 });
+
+test("Module Zoom works", async ({ page }) => {
+  await navbarPage.clickNavItem("preferences");
+  await connectModulePage.openVirtualModules();
+  await connectModulePage.addModule("BU16");
+  const slider = page.getByRole("slider").first();
+  const sliderBox = await slider.boundingBox();
+  await page.mouse.move(
+    sliderBox.x + sliderBox.width / 2,
+    sliderBox.y + sliderBox.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(sliderBox.x + 1000, sliderBox.y + sliderBox.height / 2);
+  await page.mouse.up();
+  const element = await page.locator(
+    "#container > layout-container > div.relative.s-qohgMz_r9xxG > div > div"
+  ); // need to know the selector, where to have the CSS
+  await expect(await element).toHaveCSS("transform", "scale(2.6)");
+});
