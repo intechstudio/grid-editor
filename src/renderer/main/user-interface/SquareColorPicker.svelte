@@ -1,7 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { Grid } from "../../lib/_utils";
-  import RandomColorGenerator from "./RandomColorGenerator.svelte";
 
   let mounted = false;
   const dispatch = createEventDispatcher();
@@ -9,14 +8,28 @@
   export let color: Grid.HSL;
 
   let canvasElement: HTMLCanvasElement, cursorElement: HTMLElement;
+  let resizeObserver: ResizeObserver;
   let isDrag = false;
 
   onMount(() => {
     initColorPicker();
+
+    resizeObserver = new ResizeObserver(() => {
+      if (canvasElement) {
+        setCursorPosition(color);
+      }
+    });
+
+    resizeObserver.observe(canvasElement);
+
     mounted = true;
   });
 
   $: if (mounted) {
+    setCursorPosition(color);
+  }
+
+  function setCursorPosition(color: Grid.HSL) {
     const rect = canvasElement.getBoundingClientRect();
 
     const offsetX =
@@ -98,20 +111,18 @@
   on:mousemove={calculateColor}
 />
 
-<div class="flex flex-grow flex-row gap-2 justify-center items-center">
-  <div class="relative flex flex-grow h-20">
-    <canvas
-      data-testid="rgb-color-picker-canvas"
-      bind:this={canvasElement}
-      class="w-full h-full relative border border-black"
-      on:mousedown={(e) => {
-        isDrag = true;
-        calculateColor(e);
-      }}
-    />
-    <div
-      bind:this={cursorElement}
-      class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
-    />
-  </div>
+<div class="relative flex w-full h-full">
+  <canvas
+    data-testid="rgb-color-picker-canvas"
+    bind:this={canvasElement}
+    class="w-full h-full relative border border-black"
+    on:mousedown={(e) => {
+      isDrag = true;
+      calculateColor(e);
+    }}
+  />
+  <div
+    bind:this={cursorElement}
+    class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
+  />
 </div>

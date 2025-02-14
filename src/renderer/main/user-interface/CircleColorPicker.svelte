@@ -112,7 +112,7 @@
 
 <div
   bind:this={canvasElement}
-  class="relative flex border border-black rounded-full w-full aspect-square"
+  class="relative flex border border-black rounded-full h-full aspect-square"
 >
   <div class="absolute bg-hue w-full h-full rounded-full" />
   <div class="absolute bg-saturation w-full h-full rounded-full" />

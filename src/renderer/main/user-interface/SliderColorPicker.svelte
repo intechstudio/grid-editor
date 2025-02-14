@@ -164,35 +164,34 @@
     dispatch("change", { color: color });
   }}
 />
-<container bind:this={container} class="w-full">
-  <div class="flex flex-row gap-2 items-center">
-    <div class="flex flex-col gap-2 flex-grow">
-      {#each componentData as { label, param, scaleElement, cursorElement }}
-        <div class="flex flex-row gap-2 items-center">
-          <span class="text-white text-sm">{label}:</span>
-          <div class="relative flex flex-grow h-5">
-            <canvas
-              bind:this={scaleElement}
-              class="w-full h-5 relative border border-black"
-              on:mousedown={(e) => {
-                if (!(e.buttons & 1)) return;
-                dragParam = param;
-                handleCalculateColor(e);
-                document.addEventListener("mousemove", handleCalculateColor);
-              }}
-            />
-            <div
-              bind:this={cursorElement}
-              class="absolute w-2 h-full border border-white pointer-events-none"
-              style="background-color: {color.toCSS()};border-color: {new Grid.HSL(
-                color.h,
-                0,
-                100 - color.l
-              ).toCSS()};"
-            />
-          </div>
-        </div>
-      {/each}
+<container
+  bind:this={container}
+  class="flex w-full flex-col gap-2 items-center"
+>
+  {#each componentData as { label, param, scaleElement, cursorElement }}
+    <div class="flex flex-row gap-2 items-center w-full">
+      <span class="text-white text-sm">{label}:</span>
+      <div class="relative flex flex-grow h-5">
+        <canvas
+          bind:this={scaleElement}
+          class="w-full h-5 relative border border-black"
+          on:mousedown={(e) => {
+            if (!(e.buttons & 1)) return;
+            dragParam = param;
+            handleCalculateColor(e);
+            document.addEventListener("mousemove", handleCalculateColor);
+          }}
+        />
+        <div
+          bind:this={cursorElement}
+          class="absolute w-2 h-full border border-white pointer-events-none"
+          style="background-color: {color.toCSS()};border-color: {new Grid.HSL(
+            color.h,
+            0,
+            100 - color.l
+          ).toCSS()};"
+        />
+      </div>
     </div>
-  </div>
+  {/each}
 </container>

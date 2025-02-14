@@ -16,7 +16,7 @@ import { Script } from "./_script_parsers";
 import { ElementType } from "@intechstudio/grid-protocol";
 import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 
-export namespace EasyColor {
+export namespace SimpleColor {
   export class ColorData {
     constructor(
       public r: string,
@@ -100,16 +100,22 @@ export namespace EasyColor {
       });
     }
 
-    public addLayer(color: Grid.RGBA) {
+    public addLayer(color: ColorData) {
       this.update((s) => {
-        s.colors.push(
-          new ColorData(
-            String(color.r),
-            String(color.g),
-            String(color.b),
-            String(color.a)
-          )
-        );
+        switch (s.colors.length) {
+          case 1:
+            s.colors = [color, s.colors[0]];
+            s.selectedLayer += 1;
+            break;
+          case 2:
+            s.colors = [s.colors[0], color, s.colors[1]];
+            if (s.selectedLayer === 1) {
+              s.selectedLayer += 1;
+            }
+            break;
+          default:
+            return s;
+        }
         return s;
       });
     }
