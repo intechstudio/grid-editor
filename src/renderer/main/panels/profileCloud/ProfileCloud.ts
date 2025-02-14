@@ -1,6 +1,14 @@
 import { get, writable, Writable } from "svelte/store";
-import { loadPreset, loadProfile } from "../../../runtime/operations";
-import { GridPresetData, GridProfileData } from "../../../runtime/runtime";
+import {
+  loadPreset,
+  loadProfile,
+  loadSnippet,
+} from "../../../runtime/operations";
+import {
+  GridPresetData,
+  GridProfileData,
+  GridSnippetData,
+} from "../../../runtime/runtime";
 import {
   moduleOverlay,
   ModuleOverlayType,
@@ -58,8 +66,19 @@ export class ProfileCloudEvent {
               loadPreset(preset, element);
               break;
             }
+            case "snippet": {
+              const event = active
+                .findModule(target.module.dx, target.module.dy)
+                .findPage(target.page)
+                .findElement(target.element.index)
+                .findEvent(target.event.value);
+
+              const snippet = GridSnippetData.createFromCloudData(config);
+              loadSnippet(snippet, event, target.index);
+
+              break;
+            }
           }
-          break;
         }
       }
     }

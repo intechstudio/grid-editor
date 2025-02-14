@@ -17,6 +17,7 @@ import {
   GridProfileData,
   GridModule,
   GridPresetData,
+  GridSnippetData,
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
@@ -416,6 +417,32 @@ export async function loadPreset(
     .finally(() => {
       Analytics.track({
         event: "Preset Load Success",
+        payload: {},
+        mandatory: false,
+      });
+    });
+}
+
+export async function loadSnippet(
+  snippet: GridSnippetData,
+  target: GridEvent,
+  index: number
+) {
+  Analytics.track({
+    event: "Snippet Load Start",
+    payload: {},
+    mandatory: false,
+  });
+
+  target
+    .loadSnippet(snippet, index)
+    .catch((e) => {
+      handleError(e);
+      return Promise.reject(e);
+    })
+    .finally(() => {
+      Analytics.track({
+        event: "Snippet Load Success",
         payload: {},
         mandatory: false,
       });
