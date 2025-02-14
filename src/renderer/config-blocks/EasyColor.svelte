@@ -37,24 +37,18 @@
     MoltenPushButton,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { ElementType } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Validator } from "./_validators";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import {
-    ActionData,
-    GridAction,
-    GridElement,
-    GridEvent,
-    GridPage,
-  } from "./../runtime/runtime";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
   import { Grid } from "../lib/_utils";
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
   import VerticalSlider from "../main/user-interface/VerticalSlider.svelte";
   import { get } from "svelte/store";
+  import { EasyColor } from "./EasyColor";
 
   const dispatch = createEventDispatcher();
   const checkboard =
@@ -65,111 +59,26 @@
 
   const event = config.parent as GridEvent;
 
-  const transparent = new Grid.RGBA(0, 0, 0, 0);
-
-  type ComboBoxData = { value: string; suggestions: any[] };
-
-  class EasyColorData {
-    static layerIndex: number = 0;
-
-    constructor(
-      public colors: Grid.RGBA[],
-      public layer: ComboBoxData,
-      public element: ComboBoxData
-    ) {}
-
-    get selectedLayer() {
-      return this.colors[EasyColorData.layerIndex];
-    }
-
-    set selectedLayer(value: Grid.RGBA) {
-      this.colors[EasyColorData.layerIndex] = value;
-    }
-  }
-
-  let data: EasyColorData = parseConfig(get(config));
-
-  function parseColors(script: string) {
-    const _script = script.split(":")[1];
-    const _segments = Script.toSegments({
-      short: `led_color`,
-      script: _script,
-    });
-
-    const _colors = Grid.parseBracketValues(_segments[1]).map((e) => {
-      const values = Grid.parseBracketValues(e).map((e) => Number(e));
-      const rgb = new Grid.RGBA(values[0], values[1], values[2], values[3]);
-      return rgb.toHSLA();
-    });
-
-    return _colors.map((e) => e.toRGBA());
-  }
+  const data = new EasyColor.ViewModel(config);
 
   onMount(() => {
-    config.subscribe((store) => {
-      data = parseConfig(store);
+    config.subscribe(() => {
+      const selected = get(data).selectedLayer;
+      data.update((s) => {
+        s = new EasyColor.ParsedData(config);
+        s.selectedLayer = selected;
+        return s;
+      });
     });
   });
 
-  function getLayerSuggestions(element: GridElement) {
-    switch (element.type) {
-      case ElementType.BUTTON:
-        return [
-          { value: "1", info: "Button layer" },
-          { value: "2", info: "Unused layer" },
-        ];
-      case ElementType.ENCODER:
-        return [
-          { value: "1", info: "Button layer" },
-          { value: "2", info: "Rotation layer" },
-        ];
-      case ElementType.FADER:
-        return [
-          { value: "1", info: "Fader layer" },
-          { value: "2", info: "Unused layer" },
-        ];
-      case ElementType.POTMETER:
-        return [
-          { value: "1", info: "Potmeter layer" },
-          { value: "2", info: "Unused layer" },
-        ];
-    }
-  }
-
-  function parseConfig(config: ActionData): EasyColorData {
-    const element = event.parent as GridElement;
-    const page = element.parent as GridPage;
-    const elementSuggestions = [
-      { info: "Self (Default)", value: "self" },
-      ...page.control_elements.map((e) =>
-        Object({ info: e.getHumanName(), value: `element[${e.elementIndex}]` })
-      ),
-    ];
-
-    const target = config.script.split(":")[0];
-    const segments = Script.toSegments({
-      short: `${target}:led_color`,
-      script: config.script,
-    });
-    const layer = segments[0];
-    const colors = parseColors(config.script);
-    return new EasyColorData(
-      colors,
-      {
-        value: String(layer),
-        suggestions: getLayerSuggestions(element),
-      },
-      { value: target, suggestions: elementSuggestions }
-    );
-  }
-
   function sendData() {
     const script = Script.toScript({
-      short: `${data.element.value}:led_color`,
+      short: `${get(data).element.value}:led_color`,
       array: [
-        data.layer.value,
-        `{${data.colors
-          .map((e) => `{${[e.r, e.g, e.b, e.a].join(",")}}`)
+        get(data).layer.value,
+        `{${get(data)
+          .colors.map((e) => `{${[e.r, e.g, e.b, e.a].join(",")}}`)
           .join(",")}}`,
       ],
     });
@@ -178,23 +87,15 @@
   }
 
   function handleAddLayer() {
-    const color = new Grid.HSLA(
-      Grid.Int.getRandom(0, 360),
-      100,
-      50,
-      1
-    ).toRGBA();
-    data.colors = [...data.colors, color];
+    data.addLayer(
+      new Grid.HSLA(Grid.Int.getRandom(0, 360), 100, 50, 1).toRGBA()
+    );
     sendData();
     dispatch("sync");
   }
 
-  function handleRemoveLayer() {
-    data.colors = data.colors.filter((e, i) => i !== EasyColorData.layerIndex);
-    EasyColorData.layerIndex = Math.min(
-      data.colors.length - 1,
-      EasyColorData.layerIndex
-    );
+  function handleRemoveLayer(index: number) {
+    data.removeLayer(index);
     sendData();
     dispatch("sync");
   }
@@ -225,13 +126,13 @@
     <div class="flex flex-row gap-1">
       <MoltenPushButton
         text="-"
-        click={handleRemoveLayer}
-        disabled={data.colors.length === 1}
+        click={() => handleRemoveLayer($data.selectedLayer)}
+        disabled={$data.colors.length === 1}
       />
       <MoltenPushButton
         text="+"
         click={handleAddLayer}
-        disabled={data.colors.length === 3}
+        disabled={$data.colors.length === 3}
       />
     </div>
   </div>
@@ -239,11 +140,11 @@
   <div class="flex flex-row w-full gap-2">
     <MeltCombo
       title={"Layer"}
-      bind:value={data.layer.value}
+      bind:value={$data.layer.value}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      suggestions={data.layer.suggestions}
+      suggestions={$data.layer.suggestions}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
@@ -258,11 +159,11 @@
 
     <MeltCombo
       title={"Element"}
-      bind:value={data.element.value}
+      bind:value={$data.element.value}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      suggestions={data.element.suggestions}
+      suggestions={$data.element.suggestions}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
@@ -287,23 +188,23 @@
       <div class="absolute w-full h-full grid grid-cols-1">
         <div
           class="flex flex-grow h-full rounded-full"
-          style="background-image: linear-gradient(to right, {(data.colors
+          style="background-image: linear-gradient(to right, {($data.colors
             .length === 1
-            ? [transparent, ...data.colors]
-            : data.colors
+            ? [new EasyColor.ColorData('0', '0', '0', '0'), ...$data.colors]
+            : $data.colors
           )
-            .map((e) => e.toCSS())
+            .map((e) => e.toRGBA().toCSS())
             .join(',')});"
         />
       </div>
 
-      {#each data.colors as color, i}
+      {#each $data.colors as color, i}
         {@const isFirst = i === 0}
-        {@const isLast = i === data.colors.length - 1}
-        {@const totalSteps = data.colors.length - 1}
+        {@const isLast = i === $data.colors.length - 1}
+        {@const totalSteps = $data.colors.length - 1}
         {@const stepSize = 100 / totalSteps}
         {@const position =
-          isFirst && data.colors.length > 1
+          isFirst && $data.colors.length > 1
             ? "12px"
             : isLast
             ? "calc(100% - 12px)"
@@ -312,7 +213,10 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           on:click={() => {
-            EasyColorData.layerIndex = i;
+            data.update((s) => {
+              s.selectedLayer = i;
+              return s;
+            });
           }}
           class="aspect-square rounded-full bg-primary"
           style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
@@ -325,10 +229,10 @@
           />
           <div
             class="absolute flex w-full h-full rounded-full {i ===
-            EasyColorData.layerIndex
+            $data.selectedLayer
               ? 'border border-white/75'
               : 'border border-black'}  cursor-pointer hover:scale-110"
-            style="background-color: {color.toCSS()};"
+            style="background-color: {color.toRGBA().toCSS()};"
           />
         </div>
       {/each}
@@ -351,10 +255,19 @@
     <div class="flex w-full">
       <svelte:component
         this={colorPickerComponent.get(selected)}
-        color={data.selectedLayer.reduceToHSL()}
+        color={$data.colors[$data.selectedLayer].toRGBA().reduceToHSL()}
         on:input={(e) => {
           const { color } = e.detail;
-          data.selectedLayer = color.toRGBA();
+          data.update((s) => {
+            const rgba = color.toRGBA();
+            $data.colors[$data.selectedLayer] = new EasyColor.ColorData(
+              String(rgba.r),
+              String(rgba.g),
+              String(rgba.b),
+              String(rgba.a)
+            );
+            return s;
+          });
           sendData();
         }}
         on:change={() => dispatch("sync")}
@@ -362,9 +275,11 @@
     </div>
 
     <VerticalSlider
-      bind:value={data.selectedLayer.a}
+      value={Number($data.colors[$data.selectedLayer].a)}
       max={1}
       on:input={(e) => {
+        const { value } = e.detail;
+        $data.colors[$data.selectedLayer].a = String(value);
         sendData();
       }}
       on:change={() => dispatch("sync")}
@@ -374,10 +289,10 @@
   </div>
 
   <div class="grid grid-cols-4 w-full gap-2">
-    {#each ["r", "g", "b", "a"] as channel, i}
+    {#each ["r", "g", "b", "a"] as channel}
       <MeltCombo
         title={" "}
-        value={String(data.selectedLayer[channel])}
+        value={String($data.colors[$data.selectedLayer][channel])}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
         }}
@@ -390,8 +305,11 @@
           dispatch("validator", data);
         }}
         on:input={(e) => {
-          const { value } = e.detail;
-          data.selectedLayer[channel] = Number(value);
+          const value = e.detail;
+          data.update((s) => {
+            $data.colors[$data.selectedLayer][channel] = value;
+            return s;
+          });
           sendData();
         }}
         on:change={() => dispatch("sync")}

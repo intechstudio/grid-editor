@@ -9,32 +9,33 @@
   let scaleElement: HTMLElement;
   let cursorElement: HTMLElement;
   let isDrag = false;
-  let normalized = 0;
   let mounted = false;
 
   onMount(() => {
     mounted = true;
-    normalized = value / max;
   });
 
-  $: if (mounted) {
-    handleNormalizedChange(normalized);
+  $: {
+    if (mounted) {
+      handleValueChange(value);
+    }
   }
 
   function handleDragCursor(e: MouseEvent) {
     const rect = scaleElement.getBoundingClientRect();
-    normalized =
+    const normalized =
       1 - Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    value = Math.round(max * normalized * 100) / 100;
   }
 
-  function handleNormalizedChange(num: number) {
+  function handleValueChange(value: number) {
     const rect = scaleElement.getBoundingClientRect();
-    const position = rect.height - rect.height * num;
+    const position = rect.height - (rect.height * value) / max;
     const maxPosition =
       rect.height - cursorElement.getBoundingClientRect().height;
     cursorElement.style.top = `${Math.min(position, maxPosition)}px`;
 
-    value = Math.round(max * normalized * 100) / 100;
     dispatch("input", { value: value });
   }
 </script>
