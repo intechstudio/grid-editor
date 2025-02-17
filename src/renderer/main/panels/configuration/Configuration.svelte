@@ -232,7 +232,7 @@
           <EventPanel {element} />
         {/if}
         <Toolbar {event} {element} targetPanel={container} />
-        <div class="flex flex-row h-full w-full max-h-full">
+        <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
             {#each $element?.events ?? [] as event, i}
               <ActionList {event} targetPanel={container} />
