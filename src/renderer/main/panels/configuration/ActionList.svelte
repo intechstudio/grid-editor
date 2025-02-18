@@ -18,6 +18,7 @@
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
   import { onMount } from "svelte";
+  import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
 
   export let event: GridEvent;
   export let targetPanel: HTMLElement;
@@ -150,7 +151,7 @@
     on:mouseleave={() => clearInterval(autoScroll)}
     class="overflow-y-scroll justify-start w-full"
   >
-    {#if $event?.config.length === 0 && $draggedActions.length === 0}
+    {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
       <ActionHelper
         target={{ event: event, index: 0 }}
         text={"There are no actions configured on this event."}
@@ -193,7 +194,7 @@
           </div>
         </div>
 
-        {#if showHelper && $draggedActions.length === 0}
+        {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
           <ActionHelper
             target={{ event: event, index: index + 1 }}
             text={action.information.helperText}
