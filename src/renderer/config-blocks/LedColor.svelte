@@ -233,7 +233,7 @@
   <div class="text-white">
     <MeltSelect bind:target={selected} {options} disabled={false} />
   </div>
-  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+  <div class="grid grid-cols-[1fr_auto] gap-2 items-center h-24">
     <svelte:component
       this={colorPickerComponent.get(selected)}
       {color}

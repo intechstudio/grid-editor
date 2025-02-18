@@ -42,7 +42,6 @@
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { GridAction, GridEvent } from "./../runtime/runtime";
-  import { Grid } from "../lib/_utils";
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
@@ -61,14 +60,7 @@
 
   const data = new SimpleColor.ViewModel(config);
 
-  $: if (config) {
-    const selected = get(data).selectedLayer;
-    data.update((s) => {
-      s = new SimpleColor.ParsedData(config);
-      s.selectedLayer = selected;
-      return s;
-    });
-  }
+  $: data.updateData(new SimpleColor.ParsedData(config));
 
   function sendData() {
     const script = Script.toScript({
@@ -91,8 +83,9 @@
     dispatch("sync");
   }
 
-  function handleRemoveLayer(index: number) {
-    data.removeLayer(index);
+  function handleRemoveLayer() {
+    const selected = get(data).selectedIndex;
+    data.removeLayer(selected);
     sendData();
     dispatch("sync");
   }
@@ -118,12 +111,12 @@
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-  <div class="flex flex-row w-full justify-between">
+  <div class="flex flex-row w-full justify-between items-center">
     <span class="text-white text-sm">Color</span>
     <div class="flex flex-row gap-1">
       <MoltenPushButton
         text="-"
-        click={() => handleRemoveLayer($data.selectedLayer)}
+        click={() => handleRemoveLayer()}
         disabled={$data.colors.length === 1}
       />
       <MoltenPushButton
@@ -190,7 +183,7 @@
             ? [new SimpleColor.ColorData('0', '0', '0', '0'), ...$data.colors]
             : $data.colors
           )
-            .map((e) => e.toRGBA().toCSS())
+            .map((e) => `rgba(${e.r},${e.g},${e.b},${e.a})`)
             .join(',')});"
         />
       </div>
@@ -210,10 +203,7 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           on:click={() => {
-            data.update((s) => {
-              s.selectedLayer = i;
-              return s;
-            });
+            data.selectLayer(i);
           }}
           class="aspect-square rounded-full bg-primary"
           style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
@@ -225,11 +215,12 @@
       background-repeat: repeat;"
           />
           <div
-            class="absolute flex w-full h-full rounded-full {i ===
-            $data.selectedLayer
-              ? 'border border-white/75'
-              : 'border border-black'}  cursor-pointer hover:scale-110"
-            style="background-color: {color.toRGBA().toCSS()};"
+            class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
+            style="background-color: rgba({color.r}, {color.g},{color.b},{color.a});"
+          />
+          <div
+            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
+            class:hidden={i !== $data.selectedIndex}
           />
         </div>
       {/each}
@@ -252,19 +243,10 @@
     <div class="flex h-32 w-full items-center justify-center">
       <svelte:component
         this={colorPickerComponent.get(selected)}
-        color={$data.colors[$data.selectedLayer].toRGBA().reduceToHSL()}
+        color={$data.getSelectedColor().toHSL()}
         on:input={(e) => {
           const { color } = e.detail;
-          data.update((s) => {
-            const rgba = color.toRGBA();
-            $data.colors[$data.selectedLayer] = new SimpleColor.ColorData(
-              String(rgba.r),
-              String(rgba.g),
-              String(rgba.b),
-              String(rgba.a)
-            );
-            return s;
-          });
+          data.updateSelectedLayer(color);
           sendData();
         }}
         on:change={() => dispatch("sync")}
@@ -272,11 +254,12 @@
     </div>
 
     <VerticalSlider
-      value={Number($data.colors[$data.selectedLayer].a)}
+      value={Number($data.getSelectedColor().a)}
       max={1}
       on:input={(e) => {
         const { value } = e.detail;
-        $data.colors[$data.selectedLayer].a = String(value);
+        const color = get(data).getSelectedColor();
+        get(data).getSelectedColor().a = String(value);
         sendData();
       }}
       on:change={() => dispatch("sync")}
@@ -289,7 +272,7 @@
     {#each ["r", "g", "b", "a"] as channel}
       <MeltCombo
         title={" "}
-        value={String($data.colors[$data.selectedLayer][channel])}
+        value={String($data.getSelectedColor()[channel])}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
         }}
@@ -302,11 +285,10 @@
           dispatch("validator", data);
         }}
         on:input={(e) => {
-          const value = e.detail;
-          data.update((s) => {
-            $data.colors[$data.selectedLayer][channel] = value;
-            return s;
-          });
+          const value = Number(e.detail);
+          const color = get(data).getSelectedColor().toHSL();
+          color[channel] = value;
+          data.updateSelectedLayer(color);
           sendData();
         }}
         on:change={() => dispatch("sync")}

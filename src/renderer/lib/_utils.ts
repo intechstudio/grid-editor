@@ -226,15 +226,7 @@ export namespace Grid {
   }
 
   export class HSL {
-    public h: number;
-    public s: number;
-    public l: number;
-
-    constructor(h: number, s: number, l: number) {
-      this.h = h;
-      this.s = s;
-      this.l = l;
-    }
+    constructor(public h: number, public s: number, public l: number) {}
 
     getParam(param: HSLParam) {
       switch (param) {

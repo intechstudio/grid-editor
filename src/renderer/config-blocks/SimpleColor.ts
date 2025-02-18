@@ -4,6 +4,7 @@ import {
   Subscriber,
   Unsubscriber,
   Updater,
+  Readable,
 } from "svelte/store";
 import { Grid } from "../lib/_utils";
 import {
@@ -24,26 +25,33 @@ export namespace SimpleColor {
       public b: string,
       public a: string
     ) {}
-    public toRGBA() {
+
+    static fromHSL(color: Grid.HSL) {
+      const rgb = color.toRGB();
+      return new SimpleColor.ColorData(
+        String(rgb.r),
+        String(rgb.g),
+        String(rgb.b),
+        "1"
+      );
+    }
+    public toHSL() {
       return new Grid.RGBA(
         Number(this.r),
         Number(this.g),
         Number(this.b),
         Number(this.a)
-      );
+      ).reduceToHSL();
     }
   }
 
   export class ParsedData {
     public colors: ColorData[];
-    public layer: { value: string; suggestions: MeltComboSuggestion[] };
-    public element: { value: string; suggestions: MeltComboSuggestion[] };
-    public selectedLayer: number;
+    public layer: number;
+    public element: string;
 
     constructor(action: GridAction) {
       const event = action.parent as GridEvent;
-      const element = event.parent as GridElement;
-      const page = element.parent as GridPage;
 
       const segments = Script.toSegments({
         short: `led_color`,
@@ -54,70 +62,8 @@ export namespace SimpleColor {
         return new ColorData(values[0], values[1], values[2], values[3]);
       });
 
-      (this.layer = {
-        value: String(segments[0]),
-        suggestions: getLayerSuggestions(element),
-      }),
-        (this.element = {
-          value: action.script.split(":")[0],
-          suggestions: getElementSuggestions(page),
-        });
-      this.selectedLayer = this.colors.length - 1;
-    }
-  }
-
-  export class ViewModel implements Writable<ParsedData> {
-    protected _internal: Writable<ParsedData> = writable();
-
-    constructor(action: GridAction) {
-      this.set(new ParsedData(action));
-    }
-
-    public subscribe(
-      run: Subscriber<ParsedData>,
-      invalidate?: (value?: ParsedData) => void
-    ): Unsubscriber {
-      return this._internal.subscribe(run, invalidate);
-    }
-
-    public set(value: ParsedData) {
-      this._internal.set(value);
-    }
-
-    public update(updater: Updater<ParsedData>) {
-      this._internal.update(updater);
-    }
-
-    public removeLayer(index: number) {
-      this.update((s) => {
-        if (typeof s.colors[index] === "undefined") {
-          throw "Layer can not be removed: Unknown layer.";
-        }
-
-        s.colors = [...s.colors.slice(0, index), ...s.colors.slice(index + 1)];
-        s.selectedLayer = Math.min(s.colors.length - 1, index);
-        return s;
-      });
-    }
-
-    public addLayer(color: ColorData) {
-      this.update((s) => {
-        switch (s.colors.length) {
-          case 1:
-            s.colors = [color, s.colors[0]];
-            s.selectedLayer += 1;
-            break;
-          case 2:
-            s.colors = [s.colors[0], color, s.colors[1]];
-            if (s.selectedLayer === 1) {
-              s.selectedLayer += 1;
-            }
-            break;
-          default:
-            return s;
-        }
-        return s;
-      });
+      this.layer = Number(segments[0]);
+      this.element = action.script.split(":")[0];
     }
   }
 
@@ -155,6 +101,116 @@ export namespace SimpleColor {
           { value: "1", info: "Potmeter layer" },
           { value: "2", info: "Unused layer" },
         ];
+    }
+  }
+
+  class ViewModelData {
+    constructor(
+      public colors: ColorData[],
+      public layer: { value: string; suggestions: MeltComboSuggestion[] },
+      public element: { value: string; suggestions: MeltComboSuggestion[] },
+      public selectedIndex: number
+    ) {}
+
+    public getSelectedColor() {
+      return this.colors[this.selectedIndex];
+    }
+  }
+
+  export class ViewModel implements Readable<ViewModelData> {
+    protected _internal: Writable<ViewModelData> = writable();
+
+    constructor(action: GridAction) {
+      const parsed = new ParsedData(action);
+      const event = action.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+
+      this.set(
+        new ViewModelData(
+          parsed.colors,
+          {
+            value: String(parsed.element),
+            suggestions: getLayerSuggestions(element),
+          },
+          {
+            value: parsed.element,
+            suggestions: getElementSuggestions(page),
+          },
+          parsed.colors.length - 1
+        )
+      );
+    }
+
+    public subscribe(
+      run: Subscriber<ViewModelData>,
+      invalidate?: (value?: ViewModelData) => void
+    ): Unsubscriber {
+      return this._internal.subscribe(run, invalidate);
+    }
+
+    private set(value: ViewModelData) {
+      this._internal.set(value);
+    }
+
+    private update(updater: Updater<ViewModelData>) {
+      this._internal.update(updater);
+    }
+
+    public updateData(data: ParsedData) {
+      this.update((s) => {
+        s.colors = data.colors;
+        s.layer.value = String(data.layer);
+        s.element.value = data.element;
+        return s;
+      });
+    }
+
+    public removeLayer(index: number) {
+      this.update((s) => {
+        if (typeof s.colors[index] === "undefined") {
+          throw "Layer can not be removed: Unknown layer.";
+        }
+
+        s.colors = [...s.colors.slice(0, index), ...s.colors.slice(index + 1)];
+        s.selectedIndex = Math.min(s.colors.length - 1, index);
+        return s;
+      });
+    }
+
+    public addLayer(color: ColorData) {
+      this.update((s) => {
+        switch (s.colors.length) {
+          case 1:
+            s.colors = [color, s.colors[0]];
+            s.selectedIndex = 0;
+            break;
+          case 2:
+            s.colors = [s.colors[0], color, s.colors[1]];
+            s.selectedIndex = 1;
+            break;
+          default:
+            return s;
+        }
+        return s;
+      });
+    }
+
+    public selectLayer(index: number) {
+      this.update((s) => {
+        s.selectedIndex = index;
+        return s;
+      });
+    }
+
+    public updateSelectedLayer(color: Grid.HSL) {
+      this.update((s) => {
+        const rgb = color.toRGB();
+        s.colors[s.selectedIndex].r = String(rgb.r);
+        s.colors[s.selectedIndex].g = String(rgb.g);
+        s.colors[s.selectedIndex].b = String(rgb.b);
+        return s;
+      });
     }
   }
 }

@@ -61,9 +61,7 @@
 
     const center = { x: rect.width / 2, y: rect.height / 2 };
 
-    const radius =
-      (color.s / Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION)) *
-      (rect.width / 2);
+    const radius = (1 - (color.l - 50) / 50) * (rect.width / 2);
     const p = distanceToPoint(radius, color.h);
 
     cursorElement.style.left = `${
@@ -85,18 +83,15 @@
 
     // Normalize distance between 0 and 1
     const distance =
+      1 -
       pointToDistance(cursor) /
-      (canvasElement.getBoundingClientRect().width / 2);
+        (canvasElement.getBoundingClientRect().width / 2);
     const angle = pointToAngle(cursor);
+    const hue = Math.floor(angle);
+    const brightness = Math.floor(distance * 50 + 50);
 
     // Update color
-    color = new Grid.HSL(
-      Math.floor(angle),
-      Math.floor(
-        Math.min(distance * Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION), 100)
-      ),
-      50
-    );
+    color = new Grid.HSL(hue, 100, brightness);
     dispatch("input", { color: color });
   }
 </script>
@@ -110,41 +105,37 @@
   }}
 />
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   bind:this={canvasElement}
-  class="relative flex border border-black rounded-full h-full aspect-square"
+  on:mousedown={(e) => {
+    isDrag = true;
+    calculateColor(e);
+  }}
+  on:mousemove={calculateColor}
+  class="relative flex border border-black rounded-full h-full aspect-square bg-hue"
 >
-  <div class="absolute bg-hue w-full h-full rounded-full" />
-  <div class="absolute bg-saturation w-full h-full rounded-full" />
   <div
     bind:this={cursorElement}
     class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
-  />
-  <button
-    class="absolute w-full h-full cursor-pointer"
-    on:mousedown={(e) => {
-      isDrag = true;
-      calculateColor(e);
-    }}
-    on:mousemove={calculateColor}
   />
 </div>
 
 <style>
   .bg-hue {
+    border-radius: 50%;
     background: conic-gradient(
-      yellow,
-      orange,
-      red,
-      magenta,
-      blue,
-      cyan,
-      green,
-      yellow
-    );
-  }
-
-  .bg-saturation {
-    background: radial-gradient(circle at center, white 0, transparent 50%);
+        from 90deg,
+        red,
+        magenta,
+        blue,
+        cyan,
+        lime,
+        yellow,
+        red
+      ),
+      radial-gradient(circle at center, white 0, transparent 75%);
+    background-size: 100% 100%;
+    background-blend-mode: overlay;
   }
 </style>
