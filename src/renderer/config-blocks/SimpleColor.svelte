@@ -45,7 +45,7 @@
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
-  import VerticalSlider from "../main/user-interface/VerticalSlider.svelte";
+  import ColorSlider from "../main/user-interface/ColorSlider.svelte";
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
 
@@ -246,16 +246,22 @@
         color={$data.getSelectedColor().toHSL()}
         on:input={(e) => {
           const { color } = e.detail;
-          data.updateSelectedLayer(color);
+          const current = get(data).getSelectedColor();
+          const rgb = color.toRGBA();
+          current.r = rgb.r;
+          current.g = rgb.g;
+          current.b = rgb.b;
+          data.updateSelectedLayer(current);
           sendData();
         }}
         on:change={() => dispatch("sync")}
       />
     </div>
 
-    <VerticalSlider
+    <ColorSlider
       value={Number($data.getSelectedColor().a)}
       max={1}
+      direction="vertical"
       on:input={(e) => {
         const { value } = e.detail;
         const color = get(data).getSelectedColor();
@@ -265,14 +271,14 @@
       on:change={() => dispatch("sync")}
     >
       <div class="w-full h-full bg-alpha" />
-    </VerticalSlider>
+    </ColorSlider>
   </div>
 
   <div class="grid grid-cols-4 w-full gap-2">
     {#each ["r", "g", "b", "a"] as channel}
       <MeltCombo
         title={" "}
-        value={String($data.getSelectedColor()[channel])}
+        value={$data.getSelectedColor()[channel]}
         validator={(e) => {
           return new Validator(e).NotEmpty().Result();
         }}
@@ -285,9 +291,8 @@
           dispatch("validator", data);
         }}
         on:input={(e) => {
-          const value = Number(e.detail);
-          const color = get(data).getSelectedColor().toHSL();
-          color[channel] = value;
+          const color = get(data).getSelectedColor();
+          color[channel] = e.detail;
           data.updateSelectedLayer(color);
           sendData();
         }}

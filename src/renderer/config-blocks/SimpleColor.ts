@@ -203,12 +203,9 @@ export namespace SimpleColor {
       });
     }
 
-    public updateSelectedLayer(color: Grid.HSL) {
+    public updateSelectedLayer(color: ColorData) {
       this.update((s) => {
-        const rgb = color.toRGB();
-        s.colors[s.selectedIndex].r = String(rgb.r);
-        s.colors[s.selectedIndex].g = String(rgb.g);
-        s.colors[s.selectedIndex].b = String(rgb.b);
+        s.colors[s.selectedIndex] = color;
         return s;
       });
     }
