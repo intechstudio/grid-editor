@@ -1,5 +1,4 @@
 <script lang="ts">
-  import MultiEventView from "./../configuration/MultiEventView.svelte";
   import { modal } from "./../../modals/modal.store";
   import { get } from "svelte/store";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -318,12 +317,15 @@
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
-      <BlockTitle>Multi Event view</BlockTitle>
-      <MoltenButton
-        title={"Open"}
-        click={() => {
-          modal.show({ component: MultiEventView });
-        }}
+      <BlockTitle>Multi Event View</BlockTitle>
+      <BlockBody
+        >This feature allows editing all events of a Grid control element. Once
+        enabled, resize the configuration panel to create enough space, and all
+        events will be displayed side by side for editing.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.multiViewEnabled}
+        title={"Enabled"}
       />
     </Block>
     <Block>

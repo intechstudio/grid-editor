@@ -64,7 +64,7 @@ test.describe("Action Block Operations", () => {
     await configPage.addCommentBlock();
     await configPage.selectAllActions();
     await configPage.mergeAction();
-    await configPage.openFirstActionBlock();
+    await configPage.clickActionBlock(0);
     await expect(
       page.getByText(`--[[${expectedComment}]]--[[This Is A Comment]]`)
     ).toBeVisible();

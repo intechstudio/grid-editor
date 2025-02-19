@@ -1,8 +1,4 @@
 <script lang="ts">
-  import {
-    shortcut as shortcutAction,
-    ShortcutParameter,
-  } from "./../_actions/shortcut.action";
   import { appSettings } from "./../../runtime/app-helper.store.js";
   import { createEventDispatcher } from "svelte";
   import { SvgIcon } from "@intechstudio/grid-uikit";
@@ -13,7 +9,6 @@
   export let iconPath: string = "";
   export let disabled: boolean = false;
   export let color: string = "#FFF";
-  export let shortcut: ShortcutParameter | undefined = undefined;
 
   let buttonElement: HTMLElement;
 
@@ -41,7 +36,6 @@
 
 <button
   bind:this={buttonElement}
-  use:shortcutAction={shortcut}
   class:selected
   on:click={handleClick}
   on:mouseenter={handleMouseEnter}

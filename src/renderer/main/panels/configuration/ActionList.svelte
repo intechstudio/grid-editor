@@ -15,11 +15,12 @@
   import { selected_actions } from "../../../runtime/user-input.store";
   import { get } from "svelte/store";
   import { grid } from "@intechstudio/grid-protocol";
-  import { shortcut } from "./../../_actions/shortcut.action";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
+  import { onMount } from "svelte";
 
   export let event: GridEvent;
+  export let targetPanel: HTMLElement;
 
   let autoScroll;
   let configList: HTMLElement;
@@ -29,30 +30,32 @@
     addActions(event, index, ...configs);
   }
 
-  function handlePaste(e: CustomEvent) {
-    const { index } = e?.detail ?? { index: undefined };
+  function handlePaste(index: number | undefined) {
     pasteActions(event, index);
   }
 
   function handleMouseMove(e: MouseEvent) {
     const dragged = get(draggedActions);
-    if (typeof dragged !== "undefined") {
-      const mouseY = e.clientY - configList.getBoundingClientRect().top;
-      const configListHeight = configList.offsetHeight;
-      const treshold = 60;
-      const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold =
-        configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(autoScroll);
-      if (lowerThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop += 5;
-        }, 10);
-      } else if (upperThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop -= 5;
-        }, 10);
-      }
+
+    if (typeof dragged === "undefined" || dragged.length === 0) {
+      return;
+    }
+
+    const mouseY = e.clientY - configList.getBoundingClientRect().top;
+    const configListHeight = configList.offsetHeight;
+    const treshold = 60;
+    const lowerThreshold = configListHeight - mouseY <= treshold;
+    const upperThreshold =
+      configListHeight - mouseY > configListHeight - treshold;
+    clearInterval(autoScroll);
+    if (lowerThreshold) {
+      autoScroll = setInterval(() => {
+        configList.scrollTop += 5;
+      }, 10);
+    } else if (upperThreshold) {
+      autoScroll = setInterval(() => {
+        configList.scrollTop -= 5;
+      }, 10);
     }
   }
 
@@ -95,8 +98,35 @@
   }
 </script>
 
-<div class="flex flex-col h-full w-full overflow-hidden gap-2">
-  <div class="flex flex-row gap-2 justify-between items-center flex-none">
+<div
+  role="tabpanel"
+  tabindex="0"
+  on:keydown={(e) => {
+    //Ignore if origin node is input
+    if (
+      e.srcElement.nodeName == "INPUT" ||
+      e.srcElement.nodeName == "TEXTAREA"
+    ) {
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+      console.log("Ctrl + A = Select all actions");
+      handleSelectAll();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Paste actions");
+      handlePaste();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }}
+  class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+>
+  <div
+    class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+  >
     <div class="flex flex-col">
       <span class="text-white">{$event?.getName() ?? "No Device"}</span>
       <div class="flex flex-row gap-2">
@@ -106,15 +136,9 @@
         </span>
       </div>
     </div>
-    <button
-      class="w-fit h-fit mr-[16px]"
-      use:shortcut={{
-        control: true,
-        code: "KeyA",
-        callback: handleSelectAll,
-      }}
-    >
+    <button class="w-fit h-fit">
       <Options
+        testid="select_all"
         selected={$event?.config.every((e) => $selected_actions.includes(e))}
         halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
         disabled={$event?.config.length === 0}
@@ -127,7 +151,7 @@
     bind:this={configList}
     on:mousemove={handleMouseMove}
     on:mouseleave={() => clearInterval(autoScroll)}
-    class="flex-1 overflow-y-scroll justify-start px-3"
+    class="overflow-y-scroll justify-start w-full h-full"
   >
     {#if $event?.config.length === 0 && $draggedActions.length === 0}
       <ActionHelper
@@ -147,7 +171,8 @@
         $event.config[index + 1]?.indentation === action.indentation &&
         $appSettings.persistent.actionHelperText}
 
-      <anim-block
+      <div
+        data-testid="action-block"
         animate:flip={{ duration: 300, easing: eases.backOut }}
         in:fade|global={{ delay: 0 }}
       >
@@ -179,7 +204,7 @@
         {:else}
           <SeparatorLine target={{ event: event, index: index + 1 }} />
         {/if}
-      </anim-block>
+      </div>
     {/each}
   </ul>
 
