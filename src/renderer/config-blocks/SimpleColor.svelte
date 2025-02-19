@@ -183,7 +183,11 @@
             ? [new SimpleColor.ColorData('0', '0', '0', '0'), ...$data.colors]
             : $data.colors
           )
-            .map((e) => `rgba(${e.r},${e.g},${e.b},${e.a})`)
+            .map((e) =>
+              [e.r, e.g, e.b, e.a].some((e) => Number.isNaN(Number(e)))
+                ? '#FFF'
+                : `rgba(${e.r},${e.g},${e.b},${e.a})`
+            )
             .join(',')});"
         />
       </div>
@@ -216,7 +220,14 @@
           />
           <div
             class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
-            style="background-color: rgba({color.r}, {color.g},{color.b},{color.a});"
+            style="background-color:  {[
+              color.r,
+              color.g,
+              color.b,
+              color.a,
+            ].some((e) => Number.isNaN(Number(e)))
+              ? '#FFF'
+              : `rgba(${color.r}, ${color.g},${color.b},${color.a})`};"
           />
           <div
             class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
