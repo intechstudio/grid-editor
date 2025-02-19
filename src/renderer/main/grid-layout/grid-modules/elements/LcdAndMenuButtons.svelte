@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "./Button.svelte";
+  import Btn from "./Btn.svelte";
 
   export let elementNumberList;
   export let elementposition_array;
@@ -39,9 +39,9 @@
             <slot name="cell-underlay-3" />
           {/if}
         </div>
-        <button class="normal-cell-ui-container opacity-70">
-          <Button {elementNumber} size={1.0} />
-        </button>
+        <div class="normal-cell-ui-container opacity-70">
+          <Btn {elementNumber} size={1.0} />
+        </div>
         <div class="normal-cell-overlay-container">
           {#if elementNumber == Math.min(...elementNumberList)}
             <slot name="cell-overlay-0" />

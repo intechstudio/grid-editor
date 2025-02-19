@@ -7,6 +7,7 @@
   export let selected = false;
   export let halfSelected = false;
   export let disabled = false;
+  export let testid;
 
   function handleClick(e) {
     if (disabled) {
@@ -20,6 +21,7 @@
 </script>
 
 <button
+  data-testid={testid}
   on:click={handleClick}
   class="{disabled
     ? 'border-error'

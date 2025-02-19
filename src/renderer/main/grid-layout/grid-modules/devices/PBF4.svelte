@@ -2,7 +2,7 @@
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
   import Fader from "../elements/Fader.svelte";
-  import Button from "../elements/Button.svelte";
+  import Btn from "../elements/Btn.svelte";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
 
   export let id = "PBF4";
@@ -152,7 +152,7 @@
           <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
-            <Button {elementNumber} size={2.1} />
+            <Btn {elementNumber} size={2.1} />
           </div>
           <div class="normal-cell-overlay-container">
             <slot

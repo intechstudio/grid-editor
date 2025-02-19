@@ -34,7 +34,7 @@ test.describe("Issues", () => {
     await configPage.addCodeBlock();
     await configPage.selectAllActions();
     await page
-      .locator("anim-block")
+      .getByTestId("action-block")
       .filter({ hasText: 'Code preview: print("hello")' })
       .getByRole("button")
       .nth(2)
@@ -82,6 +82,13 @@ test.describe("Issues", () => {
 
     const actualValue = await configPage.getTextFromName();
     await expect(actualValue).toBe("testwrite");
+  });
+
+  test("Nested action block should not prevent opening other actions", async () => {
+    await configPage.addActionBlockToTop("condition", "If");
+    await configPage.clickActionBlock(3);
+    const element = configPage.blocks["midi"]["MIDI"]["elements"]["Channel"];
+    await expect(element).toBeVisible();
   });
 });
 
@@ -228,4 +235,38 @@ test.describe("Element Mode MAX value", () => {
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
   */
+});
+
+test.describe("Input field keyboard shortcuts", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("Nested Actions field", async ({ page }) => {
+    const category = "condition";
+    const blockName = "If";
+    const field = "input";
+    const expectedValue = "TestTest";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await page.keyboard.type("Test");
+    await page.keyboard.press("ControlOrMeta+a");
+    await page.keyboard.press("ControlOrMeta+c");
+    await page.keyboard.press("ControlOrMeta+v");
+    await page.keyboard.press("ControlOrMeta+v");
+    // await expect(
+    //   configPage.getActionBlockFieldValue(category, blockName, field)
+    // ).toBe(expectedValue); not textbox, can't fill, solution?
+  });
+  test("Variable name filed", async () => {
+    await configPage.openAndAddActionBlock("variables", "Lookup");
+  });
+  test("Variable value field", async () => {
+    await configPage.openAndAddActionBlock("variables", "Lookup");
+  });
 });
