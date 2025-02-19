@@ -1,16 +1,12 @@
 import { get, writable, type Writable } from "svelte/store";
 import { GridAction, GridEvent } from "../../runtime/runtime";
-import {
-  dropActions,
-  removeActions,
-  syncWithGrid,
-} from "../../runtime/operations";
+import { dropActions } from "../../runtime/operations";
 
 export const draggedActions: Writable<GridAction[]> = writable([]);
 export type DropTarget = { event: GridEvent; index: number };
 export const dropEventTarget: Writable<DropTarget> = writable();
 
-function getDraggedActions(action: GridAction): GridAction[] {
+function getTargetActions(action: GridAction): GridAction[] {
   const actions: GridAction[] = [];
   const event = action.parent as GridEvent;
   let index = event.config.findIndex((e) => e.id === action.id);
@@ -36,11 +32,10 @@ function getDraggedActions(action: GridAction): GridAction[] {
   return actions;
 }
 
-function getDraggedBlocks(actions: GridAction[]): HTMLElement[] {
+function getTargetBlocks(actions: GridAction[]): HTMLElement[] {
   const dragged = actions
     .map((action) => document.querySelector(`[drag-id="${action.id}"]`))
     .filter((el): el is HTMLElement => el !== null);
-
   return dragged as HTMLElement[];
 }
 
@@ -72,7 +67,7 @@ export function draggable(node: HTMLElement, params: DragParameters) {
   let threshold = params.treshold ?? 15;
   let initPos: { x: number; y: number };
   let isDragged = false;
-  let dragged: HTMLElement[] = [];
+  let targetBlocks: HTMLElement[] = [];
   let movable = params.movable ?? true;
   node.setAttribute("drag-id", params.action.id);
 
@@ -80,14 +75,10 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
   function handleDragStart(x: number, y: number) {
     isDragged = true;
-    initPos = { x, y };
-    //for (const block of dragged) {
-    //  block.style.opacity = `0.5`;
-    //}
-    const actions = getDraggedActions(params.action);
+    const actions = getTargetActions(params.action);
     draggedActions.set(actions);
-    dragged = getDraggedBlocks(actions);
-    cursor = createDragCursor(dragged);
+    initPos = { x, y };
+    cursor = createDragCursor(targetBlocks);
     document.body.append(cursor);
   }
 
@@ -101,19 +92,14 @@ export function draggable(node: HTMLElement, params: DragParameters) {
       );
     }
 
-    //for (const block of dragged) {
-    //  block.style.opacity = `1.0`;
-    //}
-
     isDragged = false;
-    dragged = [];
     draggedActions.set([]);
     cursor.remove();
   }
 
   function handleMouseDown(e: MouseEvent) {
     const target = e.target as HTMLElement;
-    if (e.target !== e.currentTarget) {
+    if (target !== e.currentTarget) {
       return;
     }
 
@@ -121,13 +107,27 @@ export function draggable(node: HTMLElement, params: DragParameters) {
       return;
     }
 
-    handleDragStart(e.clientX, e.clientY);
+    const actions = getTargetActions(params.action);
+    targetBlocks = getTargetBlocks(actions);
+
+    for (const block of targetBlocks) {
+      block.style.opacity = `0.5`;
+    }
+
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   }
 
   function handleMouseUp(e: MouseEvent) {
-    handleDragEnd(e);
+    if (isDragged) {
+      handleDragEnd(e);
+    }
+
+    for (const block of targetBlocks) {
+      block.style.opacity = `1.0`;
+    }
+    targetBlocks = [];
+
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   }
@@ -138,12 +138,14 @@ export function draggable(node: HTMLElement, params: DragParameters) {
       cursor.style.top = `${e.clientY}px`;
       cursor.style.opacity = `1`;
 
-      //const distance = Math.abs(e.clientY - initPos.y);
-      //const normalized = Math.min(distance, threshold) / threshold;
-      //for (const block of dragged) {
-      //  block.style.opacity = `${0.5 - normalized * 0.3}`;
-      //}
-      //cursor.style.opacity = `${normalized === 1 ? "0.8" : "0"}`;
+      const distance = Math.abs(e.clientY - initPos.y);
+      const normalized = Math.min(distance, threshold) / threshold;
+      for (const block of targetBlocks) {
+        block.style.opacity = `${0.5 - normalized * 0.3}`;
+      }
+      cursor.style.opacity = `${normalized === 1 ? "0.8" : "0"}`;
+    } else {
+      handleDragStart(e.clientX, e.clientY);
     }
   }
 }

@@ -67,9 +67,30 @@
     component = components[index].component;
   });
 
-  function handleElementClicked(e) {
-    const { elementNumber } = e.detail;
-    selectElement(elementNumber);
+  function visualDebugEffect(dom_element, color) {
+    dom_element.style.backgroundColor = color;
+    // Change the background color to red
+    dom_element.style.backgroundColor = color;
+
+    // After 500ms, change it back to the original color
+    setTimeout(() => {
+      dom_element.style.backgroundColor = "";
+    }, 200);
+  }
+
+  function selectModule() {
+    console.log(
+      "select module",
+      device?.dx,
+      device?.dy,
+      $user_input.dx,
+      $user_input.dy
+    );
+    if (device?.dx == $user_input.dx && device?.dy == $user_input.dy) {
+      return;
+    }
+
+    selectElement(0);
   }
 
   function selectElement(element) {
@@ -96,6 +117,22 @@
 
   function handleClearElement(element) {
     clearElement(element);
+  }
+
+  function handleOverwriteModule(device) {
+    console.warn("Overwrite module NOT IMPLEMENTED", device);
+  }
+
+  function handleDiscardModule(device) {
+    console.warn("Discard module NOT IMPLEMENTED", device);
+  }
+
+  function handleCopyModule(device) {
+    console.warn("Copy module NOT IMPLEMENTED", device);
+  }
+
+  function handleClearModule(device) {
+    console.warn("Clear module NOT IMPLEMENTED", device);
   }
 
   const modifier =
@@ -153,7 +190,46 @@
   }
 </script>
 
-<div class="pointer-events-none" style={$$props.style}>
+<button
+  class="module activator-button"
+  on:focus={() => {
+    selectModule();
+  }}
+  on:click={() => {
+    selectModule();
+  }}
+  on:keydown={(e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+      console.log("Ctrl + C = Copy module", device.dx, device.dy);
+      handleCopyModule(device);
+      visualDebugEffect(e.target, "gray");
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Overwrite module", device.dx, device.dy);
+      handleOverwriteModule(device);
+      visualDebugEffect(e.target, "gray");
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (
+      (e.ctrlKey || e.metaKey) &&
+      e.shiftKey &&
+      e.key.toLowerCase() === "d"
+    ) {
+      console.log("Ctrl + Shift + D = Discard module", device.dx, device.dy);
+      handleDiscardModule(device);
+      visualDebugEffect(e.target, "gray");
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
+      console.log("Shift + Delete = Clear module", device.dx, device.dy);
+      handleClearModule(device);
+      visualDebugEffect(e.target, "gray");
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }}
+>
   <svelte:component
     this={component}
     {device}
@@ -191,6 +267,38 @@
         .findPage($user_input.pagenumber)
         .findElement(elementNumber)}
       <button
+        on:focus={selectElement(elementNumber)}
+        on:keydown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+            console.log("Ctrl + C = Copy element", elementNumber);
+            handleCopyElement(element);
+            visualDebugEffect(e.target, "green");
+            e.preventDefault();
+            e.stopPropagation();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+            console.log("Ctrl + V = Overwrite element", elementNumber);
+            handleOverwriteElement(element);
+            visualDebugEffect(e.target, "green");
+            e.preventDefault();
+            e.stopPropagation();
+          } else if (
+            (e.ctrlKey || e.metaKey) &&
+            e.shiftKey &&
+            e.key.toLowerCase() === "d"
+          ) {
+            console.log("Ctrl + Shift + D = Discard element", elementNumber);
+            handleDiscardElement(element);
+            visualDebugEffect(e.target, "green");
+            e.preventDefault();
+            e.stopPropagation();
+          } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
+            console.log("Shift + Delete = Clear element", elementNumber);
+            handleClearElement(element);
+            visualDebugEffect(e.target, "green");
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
         use:contextTarget={{
           items: [
             {
@@ -220,12 +328,11 @@
             },
           ],
         }}
-        class="w-full h-full absolute"
-        style="width: calc(100% - var(--element-margin) * 2); 
-          height: calc(100% - var(--element-margin) * 2); 
-          margin: var(--element-margin); "
-        on:mouseup={() => {
-          handleElementClicked({ detail: { elementNumber: elementNumber } });
+        class="w-full h-full absolute element activator-button"
+        on:click={(e) => {
+          selectElement(elementNumber);
+          e.preventDefault();
+          e.stopPropagation();
         }}
       >
         <ActiveChanges
@@ -314,9 +421,57 @@
       {/if}
     </svelte:fragment>
   </svelte:component>
-</div>
+</button>
 
 <style global>
+  .activator-button {
+    text-align: left;
+  }
+
+  .configpanel.activator-button {
+    border: 1px solid rgba(0, 0, 0, 0);
+  }
+
+  .configpanel.activator-button:focus-within {
+    border-color: gray;
+  }
+
+  .actionlist.activator-button {
+    /*border: 1px solid red;*/
+  }
+
+  .actionlist.activator-button {
+    border: 1px solid rgba(0, 0, 0, 0);
+  }
+
+  .actionlist.activator-button:focus-within {
+    border-color: gray;
+  }
+
+  .module.activator-button {
+    /*border: 1px solid red;*/
+  }
+
+  .module.activator-button:focus-within {
+    /* outline: 2px dashed gray; Add a blue outline */
+  }
+
+  .element.activator-button {
+    /*border: 1px solid green;   */
+    width: calc(100% - var(--element-margin) * 2);
+    height: calc(100% - var(--element-margin) * 2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    outline: 1px solid rgba(0, 0, 0, 0);
+  }
+
+  .activator-button:focus {
+    border-color: rgb(68, 68, 209) !important;
+    outline-color: rgb(68, 68, 209) !important;
+  }
+
   :root {
     --element-margin: 5px;
     --grid-rounding: 5px;
@@ -336,6 +491,7 @@
   }
 
   .normal-cell-underlay-container {
+    /*border: 1px solid red;*/
     position: absolute;
     width: 100%;
     height: 100%;
