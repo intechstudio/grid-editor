@@ -1804,7 +1804,9 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
-    const moduleType = grid.module_type_from_hwcfg(Number(heartbeat_class_param.HWCFG));
+    const moduleType = grid.module_type_from_hwcfg(
+      Number(heartbeat_class_param.HWCFG)
+    );
 
     // generic check, code below if works only if all parameters are provided
     if (
