@@ -353,6 +353,16 @@ function initialize_autocomplete() {
           }
         }
 
+        if (key.startsWith("GRID_LUA_FNC_L") && key.endsWith("_human")) {
+          if (elementtype === "lcd" || elementtype === undefined) {
+            proposalItem.label = "self:" + value;
+            proposalItem.insertText = "self:" + value + "()";
+          } else if (elementtype === "system") {
+            proposalItem.label = "element[0]:" + value;
+            proposalItem.insertText = "element[0]:" + value + "()";
+          }
+        }
+
         proposalList.push(proposalItem);
       });
 
