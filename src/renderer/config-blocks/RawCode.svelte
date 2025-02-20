@@ -53,6 +53,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     compBlock = getCompatiblityBlock(config.script);
   }
 

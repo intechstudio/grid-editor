@@ -353,18 +353,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
 
-    if (parent.getAvailableChars() - diff >= 0) {
-      this.script = data.script;
-      this.short = data.short;
-      this.name = data.name;
-
-      return Promise.resolve({
-        value: true,
-        text: "OK",
-        type: GridOperationType.UPDATE_ACTION,
-        info: (this.parent as GridEvent)?.getInfo(),
-      });
-    } else {
+    if (parent.getAvailableChars() - diff < 0) {
       this.notify(); //TODO: Refactor this out
       this.notifyParent(); //TODO: Refactor this out
       return Promise.reject({
@@ -374,6 +363,28 @@ export class GridAction extends RuntimeNode<ActionData> {
         info: (this.parent as GridEvent)?.getInfo(),
       });
     }
+
+    this.script = data.script;
+    this.short = data.short;
+    this.name = data.name;
+
+    if (!this.checkSyntax()) {
+      return Promise.reject({
+        value: false,
+        text: Runtime.ErrorText.SYNTAX_ERROR,
+        type: GridOperationType.UPDATE_ACTION,
+        info: (this.parent as GridEvent)?.getInfo(),
+      });
+    } else {
+      this.synced = data.script;
+    }
+
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.UPDATE_ACTION,
+      info: (this.parent as GridEvent)?.getInfo(),
+    });
   }
 
   // Getters
@@ -704,19 +715,6 @@ export class GridEvent extends RuntimeNode<EventData> {
     const runtime = module.parent as GridRuntime;
 
     try {
-      let syntaxError = false;
-      for (const action of this.config) {
-        if (!action.checkSyntax()) {
-          syntaxError = true;
-        } else {
-          action.synced = action.script;
-        }
-      }
-
-      if (syntaxError) {
-        throw "Syntax error";
-      }
-
       const script = this.toLua();
       const simulate = module.architecture === Architecture.VIRTUAL;
       const instruction = new GridInstruction.SendConfig(

@@ -47,7 +47,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
-  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { GridEvent } from "./../runtime/runtime";
@@ -59,6 +58,7 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
+  import { Script } from "./_script_parsers.js";
 
   let event = config.parent as GridEvent;
 
@@ -82,35 +82,24 @@
 
   let scriptSegments = [];
 
-  let midiLSB = ""; // local script part
-  let midiMSB = "";
-
-  const whatsInParenthesis = /\(([^)]+)\)/;
-
-  // config.script cannot be undefined
-
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
-    const arr = config.script.split(" gms");
-
-    let lsb = whatsInParenthesis.exec(arr[0]);
-
-    if (lsb !== null) {
-      if (lsb.length > 0) {
-        midiLSB = lsb[1];
-      }
+    if (!config.checkSyntax()) {
+      return;
     }
 
-    let msb = whatsInParenthesis.exec(arr[1]);
+    const matches = [];
+    const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
-    if (msb !== null) {
-      if (msb.length > 0) {
-        midiMSB = msb[1];
-      }
+    let match;
+    while ((match = regex.exec(config.script)) !== null) {
+      matches.push(
+        Script.toSegments({ short: "gms", script: `gms(${match[1].trim()})` })
+      );
     }
 
-    let param_array = midiLSB.split(",").map((c) => c.trim());
+    let param_array = matches[0];
 
     let value = param_array[3].split("//").slice(0, -1).join("//");
 

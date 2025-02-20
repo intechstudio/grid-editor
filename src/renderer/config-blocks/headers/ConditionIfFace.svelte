@@ -14,6 +14,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     scriptSegment = GridScript.humanize(config.script.slice(3, -5));
   }
 

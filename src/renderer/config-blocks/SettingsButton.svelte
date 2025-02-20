@@ -47,6 +47,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     const arr = config.script.split("self:").slice(1);
     const parts = {
       bmo: null,

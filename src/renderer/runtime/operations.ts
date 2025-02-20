@@ -212,7 +212,7 @@ export async function updateAction(
   data: ActionData,
   sync: boolean
 ) {
-  target
+  return target
     .updateData(data)
     .catch(handleError)
     .finally(() => {

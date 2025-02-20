@@ -89,6 +89,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     scriptSegments = Script.toSegments({
       short: "glpfs",
       script: config.script,

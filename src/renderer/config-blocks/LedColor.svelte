@@ -85,6 +85,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config: ActionData) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     const _segments = Script.toSegments({
       short: config.short,
       script: config.script,

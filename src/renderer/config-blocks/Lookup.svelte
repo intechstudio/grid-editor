@@ -56,6 +56,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     lookupTable = createLookupTable(config.script);
   }
 

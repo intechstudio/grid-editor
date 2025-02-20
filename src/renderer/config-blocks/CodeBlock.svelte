@@ -103,6 +103,10 @@
   });
 
   function handleConfigChange(config: ActionData) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     codePreview.innerHTML = GridScript.expandScript(config.script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",

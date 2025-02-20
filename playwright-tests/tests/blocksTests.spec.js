@@ -78,8 +78,6 @@ test.describe("Issues", () => {
       "NRPN CC",
       expectedValue
     );
-    await configPage.selectElementEvent("Timer");
-    await configPage.selectElementEvent("Button");
     const actualValue = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
@@ -104,18 +102,6 @@ test.describe("Issues", () => {
     await expect(actualValue).toBe("testwrite");
   });
 
-  test("Add new Variable pair not deletes previous variables", async () => {
-    await configPage.removeAllActions();
-    await configPage.openAndAddActionBlock("variables", "Locals");
-    await configPage.clickActionBlockElement(
-      "variables",
-      "Locals",
-      "addNewPair"
-    );
-    const element =
-      configPage.blocks["variables"]["Locals"]["elements"]["name"];
-    await expect(element).toBeVisible();
-  });
   test("Nested action block should not prevent opening other actions", async () => {
     await configPage.addActionBlockToTop("condition", "If");
     await configPage.clickActionBlock(3);

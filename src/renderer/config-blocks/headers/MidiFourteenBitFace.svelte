@@ -15,6 +15,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     const arr = config.script.split(" gms");
 
     let lsb = whatsInParenthesis.exec(arr[0]);

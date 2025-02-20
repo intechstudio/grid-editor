@@ -14,11 +14,14 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     scriptSegment = GridScript.humanize(config.script.slice(7, -5));
   }
 
   function sendData(e) {
-<<<<<<< Updated upstream
     if (parenthesis(e)) {
       const script = GridScript.shortify(e);
 
@@ -27,14 +30,6 @@
         script: `elseif ${script} then`,
       });
     }
-=======
-    const script = GridScript.shortify(e);
-
-    dispatch("update-action", {
-      short: "ei",
-      script: `elseif ${script} then`,
-    });
->>>>>>> Stashed changes
   }
 </script>
 

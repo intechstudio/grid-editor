@@ -43,6 +43,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     scriptValue = config.script.split("--[[")[1].split("]]")[0];
   }
 

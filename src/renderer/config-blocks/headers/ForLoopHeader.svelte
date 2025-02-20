@@ -55,6 +55,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     const script = config.script;
     let segments = Script.toSegments({ script });
 

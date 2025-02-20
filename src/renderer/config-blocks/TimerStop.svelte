@@ -51,6 +51,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     let param1 = whatsInParenthesis.exec(config.script);
     if (param1 !== null) {
       if (param1.length > 0) {

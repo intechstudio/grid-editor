@@ -44,6 +44,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config: ActionData) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     // this works differently from normal _utils...
     scriptSegments = localsToConfig(config.script);
     updateErrorText();

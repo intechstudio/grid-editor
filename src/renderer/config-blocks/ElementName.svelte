@@ -43,6 +43,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     const matches = config.script.match(/self:gen\("([^"]*)"\)/);
     scriptValue = matches[1];
   }

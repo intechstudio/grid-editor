@@ -57,6 +57,7 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
+  import { Script } from "./_script_parsers.js";
 
   const dispatch = createEventDispatcher();
   let event = config.parent as GridEvent;
@@ -87,26 +88,29 @@
   let hiResCheckboxValue = false;
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     // Extract all contents
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
     let match;
-
     while ((match = regex.exec(config.script)) !== null) {
-      matches.push(match[1].trim()); // trim to remove any extra spaces
+      matches.push(`gms(${match[1].trim()})`); // trim to remove any extra spaces
     }
 
     let midiLSB = [];
     let midiMSB = [];
 
     for (let i = 0; i < matches.length; ++i) {
-      let part = matches[i];
-
+      let part = Script.toSegments({ short: "gms", script: matches[i] });
+      console.log(part);
       if (i % 2 === 0) {
-        midiMSB.push(part.split(",")[3]);
+        midiMSB.push(part[3]);
       } else {
-        midiLSB.push(part.split(",")[3]);
+        midiLSB.push(part[3]);
       }
     }
 
@@ -115,7 +119,7 @@
       value = value.slice(1, -1);
     }
 
-    channel = matches[0].split(",")[0];
+    channel = Script.toSegments({ short: "gms", script: matches[0] })[0];
     msb = midiMSB[0];
     lsb = midiLSB[0];
     nrpnCC = calculateNRPNCC(midiMSB[0], midiLSB[0]);

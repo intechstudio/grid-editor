@@ -118,6 +118,10 @@
   }
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     let array = [];
     let _keys = [];
     try {

@@ -60,6 +60,10 @@
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
+    if (!config.checkSyntax()) {
+      return;
+    }
+
     scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,
