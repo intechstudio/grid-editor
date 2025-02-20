@@ -4,7 +4,12 @@
     ActionData,
     GridEvent,
   } from "./../../../../runtime/runtime";
-  import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
+  import {
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+    type SvelteComponent,
+  } from "svelte";
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
@@ -46,6 +51,14 @@
     component = result.component;
   });
 
+  onDestroy(() => {
+    updateAction(
+      action,
+      new ActionData(action.short, action.synced, action.name),
+      false
+    );
+  });
+
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;
     const oldAction = action;
@@ -61,7 +74,8 @@
 
   function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
-    updateAction(action, new ActionData(short, script, name), false);
+    const data = new ActionData(short, script, name);
+    updateAction(action, data, false);
   }
 
   function handleSendActionToGrid() {

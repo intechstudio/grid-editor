@@ -188,20 +188,23 @@ export async function clearElement(target: GridElement) {
 }
 
 export async function syncWithGrid(target: GridAction) {
-  target.sendToGrid().finally(() => {
-    const event = target.parent as GridEvent;
-    const element = event.parent as GridElement;
-    Analytics.track({
-      event: "Config Action",
-      payload: {
-        click: "Update",
-        elementType: element.type,
-        eventType: event.type,
-        short: target.short,
-      },
-      mandatory: false,
+  target
+    .sendToGrid()
+    .catch(handleError)
+    .finally(() => {
+      const event = target.parent as GridEvent;
+      const element = event.parent as GridElement;
+      Analytics.track({
+        event: "Config Action",
+        payload: {
+          click: "Update",
+          elementType: element.type,
+          eventType: event.type,
+          short: target.short,
+        },
+        mandatory: false,
+      });
     });
-  });
 }
 
 export async function updateAction(

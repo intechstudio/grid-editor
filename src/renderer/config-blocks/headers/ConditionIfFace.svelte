@@ -1,7 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis } from "../_validators";
 
   export let config;
   export let index;

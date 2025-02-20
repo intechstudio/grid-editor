@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { parenthesis } from "../_validators";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   export let config;
@@ -19,6 +18,7 @@
   }
 
   function sendData(e) {
+<<<<<<< Updated upstream
     if (parenthesis(e)) {
       const script = GridScript.shortify(e);
 
@@ -27,6 +27,13 @@
         script: `function ${script}`,
       });
     }
+=======
+    const script = GridScript.shortify(e);
+    dispatch("update-action", {
+      short: `fst`,
+      script: `function ${script}`,
+    });
+>>>>>>> Stashed changes
   }
 </script>
 

@@ -1,7 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis } from "../_validators";
 
   export let config;
   export let index;
@@ -19,6 +18,7 @@
   }
 
   function sendData(e) {
+<<<<<<< Updated upstream
     if (parenthesis(e)) {
       const script = GridScript.shortify(e);
 
@@ -27,6 +27,14 @@
         script: `elseif ${script} then`,
       });
     }
+=======
+    const script = GridScript.shortify(e);
+
+    dispatch("update-action", {
+      short: "ei",
+      script: `elseif ${script} then`,
+    });
+>>>>>>> Stashed changes
   }
 </script>
 
