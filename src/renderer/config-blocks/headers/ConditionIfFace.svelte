@@ -20,12 +20,12 @@
 
   function sendData(e) {
     if (parenthesis(e)) {
-    const script = GridScript.shortify(e);
+      const script = GridScript.shortify(e);
 
-    dispatch("update-action", {
-      short: `if`,
-      script: `if ${script} then`,
-    });
+      dispatch("update-action", {
+        short: `if`,
+        script: `if ${script} then`,
+      });
     }
   }
 </script>
