@@ -58,7 +58,7 @@
       { type: "TEK2", component: VSNX },
       { type: "TEK1", component: VSNX },
       { type: "VSN0", component: VSNX },
-      { type: "VSN1", component: VSNX },
+      { type: "VSN1L", component: VSNX },
       { type: "VSN1R", component: VSNX },
       { type: "VSN2", component: VSNX },
     ];

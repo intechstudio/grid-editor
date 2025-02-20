@@ -37,23 +37,26 @@
 
   function handleMouseMove(e: MouseEvent) {
     const dragged = get(draggedActions);
-    if (typeof dragged !== "undefined") {
-      const mouseY = e.clientY - configList.getBoundingClientRect().top;
-      const configListHeight = configList.offsetHeight;
-      const treshold = 60;
-      const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold =
-        configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(autoScroll);
-      if (lowerThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop += 5;
-        }, 10);
-      } else if (upperThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop -= 5;
-        }, 10);
-      }
+
+    if (typeof dragged === "undefined" || dragged.length === 0) {
+      return;
+    }
+
+    const mouseY = e.clientY - configList.getBoundingClientRect().top;
+    const configListHeight = configList.offsetHeight;
+    const treshold = 60;
+    const lowerThreshold = configListHeight - mouseY <= treshold;
+    const upperThreshold =
+      configListHeight - mouseY > configListHeight - treshold;
+    clearInterval(autoScroll);
+    if (lowerThreshold) {
+      autoScroll = setInterval(() => {
+        configList.scrollTop += 5;
+      }, 10);
+    } else if (upperThreshold) {
+      autoScroll = setInterval(() => {
+        configList.scrollTop -= 5;
+      }, 10);
     }
   }
 
@@ -149,7 +152,7 @@
     bind:this={configList}
     on:mousemove={handleMouseMove}
     on:mouseleave={() => clearInterval(autoScroll)}
-    class="overflow-y-scroll justify-start w-full"
+    class="overflow-y-scroll justify-start w-full h-full"
   >
     {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
       <ActionHelper

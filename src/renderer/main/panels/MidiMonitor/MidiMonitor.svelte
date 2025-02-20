@@ -299,7 +299,7 @@
         <div class="border-gray-700 border rounded flex flex-col">
           <span class="text-white bg-secondary px-1 truncate">Channel</span>
           <span class="px-2 text-white text-center truncate"
-            >{last ? last.data.channel : "---"}</span
+            >{last ? last.data.channel + 1 : "---"}</span
           >
         </div>
         <div class="border-gray-700 border rounded flex flex-col">
@@ -382,7 +382,7 @@
                 >
                   <div>[{message.device.x}, {message.device.y}]</div>
                   {#if isMIDI(message)}
-                    <div>{message.data.channel}</div>
+                    <div>{message.data.channel + 1}</div>
                     <div>{message.data.command.value}</div>
                     <div>{message.data.params.p1.value}</div>
                     <div>{message.data.params.p2.value}</div>
@@ -428,7 +428,7 @@
                       <SvgIcon fill="#FFF" iconPath="arrow_right" />
                     {/if}
                   </div>
-                  <span class="truncate">Ch: {midi.data.channel}</span>
+                  <span class="truncate">Ch: {midi.data.channel + 1}</span>
                   <span class="truncate">{midi.data.command.short}</span>
                   <span class="truncate">{midi.data.params.p1.short}:</span>
                   <span class="truncate"

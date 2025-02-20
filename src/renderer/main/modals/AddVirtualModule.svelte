@@ -28,8 +28,8 @@
       unrelease: true,
     },
     {
-      id: ModuleType.VSN1,
-      type: ModuleType.VSN1,
+      id: ModuleType.VSN1L,
+      type: ModuleType.VSN1L,
       component: VSNX,
       unrelease: true,
     },
