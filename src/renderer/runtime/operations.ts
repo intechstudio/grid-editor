@@ -18,6 +18,7 @@ import {
   GridModule,
   GridPresetData,
   GridSnippetData,
+  SnippetLoadResult,
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
@@ -37,6 +38,16 @@ function handleError(e: GridOperationResult) {
         mode: 0,
         classname: "luanotok",
         message: `${error.info.module.type}: ${e.text}`,
+      });
+      break;
+    }
+    case GridOperationType.LOAD_SNIPPET: {
+      const error = e as SnippetLoadResult;
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "operationerror",
+        message: e.text,
       });
       break;
     }
@@ -346,10 +357,7 @@ export async function replaceAction(
     });
 }
 
-export async function loadProfile(
-  profile: GridProfileData,
-  target: GridPage
-): Promise<void> {
+export async function loadProfile(profile: GridProfileData, target: GridPage) {
   Analytics.track({
     event: "Pro file Load Start",
     payload: {},
@@ -434,11 +442,10 @@ export async function loadSnippet(
     mandatory: false,
   });
 
-  target
+  return target
     .loadSnippet(snippet, index)
     .catch((e) => {
       handleError(e);
-      return Promise.reject(e);
     })
     .finally(() => {
       Analytics.track({

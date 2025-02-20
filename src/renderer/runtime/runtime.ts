@@ -518,9 +518,8 @@ export class GridEvent extends RuntimeNode<EventData> {
     index: number
   ): Promise<SnippetLoadResult> {
     try {
-      console.log(snippet.actions.map((e) => get(e)));
-      this.insert(index, ...snippet.actions);
-      this.sendToGrid();
+      await this.insert(index, ...snippet.actions);
+      await this.sendToGrid();
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -529,7 +528,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: "e",
+        text: e.text,
         type: GridOperationType.LOAD_SNIPPET,
       });
     }
@@ -758,7 +757,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: e,
+        text: e.text,
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     }
@@ -1045,7 +1044,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: e,
+        text: e.text,
         type: GridOperationType.DISCARD_ELEMENT,
       });
     }
@@ -1111,7 +1110,7 @@ export class GridElement extends RuntimeNode<ElementData> {
   public async loadPreset(preset: GridPresetData): Promise<PresetLoadResult> {
     try {
       await this.overwrite(preset.element.data);
-      this.sendToGrid();
+      await this.sendToGrid();
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -1120,7 +1119,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: "e",
+        text: e.text,
         type: GridOperationType.LOAD_PRESET,
       });
     }
