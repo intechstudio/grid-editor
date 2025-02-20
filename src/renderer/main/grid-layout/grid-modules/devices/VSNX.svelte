@@ -106,7 +106,7 @@
       { type: ElementType.SYSTEM, index: 10 },
       ...common_elements,
     ];
-  } else if (moduleType === ModuleType.VSN1) {
+  } else if (moduleType === ModuleType.VSN1L) {
     elementArray = [
       { type: ElementType.LCD, index: 13 },
       { type: ElementType.ENDLESS, index: 8 },
