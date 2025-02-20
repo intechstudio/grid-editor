@@ -6,7 +6,6 @@
   const dispatch = createEventDispatcher();
 
   export let color: Grid.HSL;
-
   enum Channel {
     HUE = "h",
     SATURATION = "s",

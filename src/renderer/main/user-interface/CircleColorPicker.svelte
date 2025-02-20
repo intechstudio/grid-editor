@@ -1,34 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { Grid } from "../../lib/_utils";
-  import RandomColorGenerator from "./RandomColorGenerator.svelte";
 
-  let mounted = false;
   const dispatch = createEventDispatcher();
 
   export let color: Grid.HSL;
 
   let cursorElement: HTMLElement;
   let canvasElement: HTMLElement;
-  let resizeObserver: ResizeObserver;
   let isDrag = false;
 
   onMount(() => {
-    mounted = true;
-
-    resizeObserver = new ResizeObserver(() => {
-      if (canvasElement) {
-        setCursorPosition(color);
-      }
-    });
-
-    resizeObserver.observe(canvasElement);
-  });
-
-  onDestroy(() => {
-    if (resizeObserver) {
-      resizeObserver.disconnect(); // Properly disconnect the observer
-    }
+    setCursorPosition(color);
   });
 
   type Point = { x: number; y: number };
@@ -50,26 +33,22 @@
     };
   }
 
-  $: {
-    if (mounted) {
-      setCursorPosition(color);
-    }
-  }
+  $: setCursorPosition(color);
 
   function setCursorPosition(color: Grid.HSL) {
-    const rect = canvasElement.getBoundingClientRect();
+    const rect = canvasElement?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
 
     const center = { x: rect.width / 2, y: rect.height / 2 };
 
-    const radius = (1 - (color.l - 50) / 50) * (rect.width / 2);
-    const p = distanceToPoint(radius, color.h);
+    const normDist = 1 - Math.max(color.l - 50, 0) / 50;
+    const distance = normDist * center.x;
+    const p = distanceToPoint(distance, color.h);
 
-    cursorElement.style.left = `${
-      p.x + center.x - cursorElement.clientWidth / 2
-    }px`;
-    cursorElement.style.top = `${
-      p.y + center.y - cursorElement.clientHeight / 2
-    }px`;
+    cursorElement.style.left = `${((p.x + center.x) / rect.width) * 100}%`;
+    cursorElement.style.top = `${((p.y + center.y) / rect.height) * 100}%`;
   }
 
   function calculateColor(e: MouseEvent) {
@@ -92,7 +71,7 @@
 
     // Update color
     color = new Grid.HSL(hue, 100, brightness);
-    dispatch("input", { color: color });
+    dispatch("input", { color });
   }
 </script>
 
@@ -100,7 +79,7 @@
   on:mouseup={(e) => {
     if (isDrag) {
       isDrag = false;
-      dispatch("change", { color: color });
+      dispatch("change", { color });
     }
   }}
 />

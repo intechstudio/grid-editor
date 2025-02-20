@@ -255,7 +255,7 @@
       <svelte:component
         this={colorPickerComponent.get(selected)}
         color={$data.getSelectedColor().toHSL()}
-        on:input={(e) => {
+        on:change={(e) => {
           const { color } = e.detail;
           const current = get(data).getSelectedColor();
           const rgb = color.toRGBA();
@@ -264,8 +264,8 @@
           current.b = rgb.b;
           data.updateSelectedLayer(current);
           sendData();
+          dispatch("sync");
         }}
-        on:change={() => dispatch("sync")}
       />
     </div>
 
@@ -273,13 +273,12 @@
       value={Number($data.getSelectedColor().a)}
       max={1}
       direction="vertical"
-      on:input={(e) => {
+      on:change={(e) => {
         const { value } = e.detail;
-        const color = get(data).getSelectedColor();
         get(data).getSelectedColor().a = String(value);
         sendData();
+        dispatch("sync");
       }}
-      on:change={() => dispatch("sync")}
     >
       <div class="w-full h-full bg-alpha" />
     </ColorSlider>

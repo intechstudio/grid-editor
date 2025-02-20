@@ -15,11 +15,17 @@
     setCursorPosition(color);
   });
 
+  $: setCursorPosition(color);
+
   function setCursorPosition(color: Grid.HSL) {
-    const rect = canvasElement.getBoundingClientRect();
+    const rect = canvasElement?.getBoundingClientRect();
+
+    if (!rect) {
+      return;
+    }
 
     const offsetX = (rect.width * color.h) / 360;
-    const offsetY = (rect.height * (color.l - 50)) / 50;
+    const offsetY = (rect.height * Math.max(color.l - 50, 0)) / 50;
 
     cursorElement.style.left =
       (Math.min(
@@ -51,11 +57,11 @@
     );
     color = new Grid.HSL(hue, 100, brightness);
     setCursorPosition(color);
-    dispatch("input", { color: color });
+    dispatch("input", { color });
   }
 
   function handleMouseUp() {
-    dispatch("change", { color: color });
+    dispatch("change", { color });
   }
 </script>
 
