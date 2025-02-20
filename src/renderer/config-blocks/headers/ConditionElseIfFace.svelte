@@ -20,12 +20,12 @@
 
   function sendData(e) {
     if (parenthesis(e)) {
-      const script = GridScript.shortify(e);
+    const script = GridScript.shortify(e);
 
-      dispatch("update-action", {
-        short: "ei",
-        script: `elseif ${script} then`,
-      });
+    dispatch("update-action", {
+      short: "ei",
+      script: `elseif ${script} then`,
+    });
     }
   }
 </script>
@@ -45,8 +45,8 @@
           sendData(e.detail.script);
         }}
         on:change={() => dispatch("sync")}
-        action={config}
         value={scriptSegment}
+        availableCharacters={$config.parent.getAvailableChars()}
       />
     </div>
   </div>

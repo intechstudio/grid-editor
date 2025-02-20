@@ -110,9 +110,9 @@
       {#key displayValue}
         <LineEditor
           on:input={handleDisplayValueChange}
-          action={config}
           bind:value={displayValue}
           on:change={() => dispatch("sync")}
+          availableCharacters={$config.parent.getAvailableChars()}
         />
       {/key}
     </div>
