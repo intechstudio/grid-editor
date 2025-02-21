@@ -12,6 +12,7 @@
 
   import { logger } from "../../../runtime/runtime.store";
   import {
+    selected_actions,
     user_input,
     UserInputValue,
   } from "./../../../runtime/user-input.store";
@@ -26,6 +27,7 @@
   import "@intechstudio/profile-cloud-webcomponent";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
+  import { Grid } from "../../../lib/_utils";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -210,6 +212,7 @@
             }),
           };
         });
+        config.name = `New ${config.type} config`;
         break;
       }
       case "preset": {
@@ -230,11 +233,34 @@
             };
           }),
         };
+        config.name = `New ${config.type} config`;
+        break;
+      }
+
+      case "snippet": {
+        const selected = get(selected_actions);
+        if (selected.length === 0) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profileclouderror",
+            message: ProfileCloud.ErrorText.EMPTY_SNIPPET,
+          });
+          return Promise.reject(ProfileCloud.ErrorText.EMPTY_SNIPPET);
+        }
+
+        const script =
+          Grid.Protocol.scriptStart +
+          selected.map((e) => e.toLua()).join("") +
+          Grid.Protocol.scriptEnd;
+
+        config.type = "snippet";
+        config.configs = script;
+        config.name = `New Snippet`;
         break;
       }
     }
 
-    config.name = `New ${config.type} config`;
     return Promise.resolve(config);
   }
 
