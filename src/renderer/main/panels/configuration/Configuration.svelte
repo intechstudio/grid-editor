@@ -172,11 +172,13 @@
   class="flex w-full h-full configpanel activator-button"
   on:keydown={(e) => {
     //Ignore if origin node is input
-    console.log({ e });
     if (
-      e.srcElement.nodeName == "INPUT" ||
-      e.srcElement.nodeName == "TEXTAREA"
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
     ) {
+      e.stopPropagation();
       return;
     }
 
