@@ -8,45 +8,95 @@ import {
 import { ElementData } from "../../../../runtime/runtime";
 import { runtime_manager } from "../../../../runtime/runtime-manager.store";
 
-export const isCutActionsEnabled = derived(
-  selected_actions,
-  ($selected_actions) => {
-    return (
-      $selected_actions.length > 0 &&
-      $selected_actions.every((e) => e.checkSyntax())
-    );
-  }
-);
-
-export const isCopyElementEnabled = derived(
-  [selected_actions, runtime_manager],
-  ([$selected_actions, $runtime_manager]) => {
-    const active = $runtime_manager.active.runtime;
-    return (
-      $selected_actions.length === 0 &&
-      active.modules.length > 0 &&
-      active.checkSyntax()
-    );
-  }
-);
-
 export const isCopyActionsEnabled = derived(
   selected_actions,
-  ($selected_actions) => {
-    return (
-      $selected_actions.length > 0 &&
-      $selected_actions.every((e) => e.checkSyntax())
+  ($selected_actions, set) => {
+    // Create a derived store that reacts to each inner store
+    const unsubscribers = $selected_actions.map((store) =>
+      store.subscribe(() => {
+        set(
+          $selected_actions.length > 0 &&
+            $selected_actions.every((e) => e.checkSyntax())
+        );
+      })
     );
+
+    // Initial computation
+    set(
+      $selected_actions.length > 0 &&
+        $selected_actions.every((e) => e.checkSyntax())
+    );
+
+    // Cleanup function
+    return () => unsubscribers.forEach((unsub) => unsub());
+  }
+);
+export const isCutActionsEnabled = derived(
+  selected_actions,
+  ($selected_actions, set) => {
+    const unsubscribers = $selected_actions.map((store) =>
+      store.subscribe(() => {
+        set(
+          $selected_actions.length > 0 &&
+            $selected_actions.every((e) => e.checkSyntax())
+        );
+      })
+    );
+
+    // Initial computation
+    set(
+      $selected_actions.length > 0 &&
+        $selected_actions.every((e) => e.checkSyntax())
+    );
+
+    // Cleanup function
+    return () => unsubscribers.forEach((unsub) => unsub());
   }
 );
 
 export const isMergeActionsEnabled = derived(
   selected_actions,
-  ($selected_actions) => {
-    return (
-      $selected_actions.length > 0 &&
-      $selected_actions.every((e) => e.checkSyntax())
+  ($selected_actions, set) => {
+    const unsubscribers = $selected_actions.map((store) =>
+      store.subscribe(() => {
+        set(
+          $selected_actions.length > 0 &&
+            $selected_actions.every((e) => e.checkSyntax())
+        );
+      })
     );
+
+    // Initial computation
+    set(
+      $selected_actions.length > 0 &&
+        $selected_actions.every((e) => e.checkSyntax())
+    );
+
+    // Cleanup function
+    return () => unsubscribers.forEach((unsub) => unsub());
+  }
+);
+
+export const isCopyElementEnabled = derived(
+  [selected_actions, runtime_manager],
+  ([$selected_actions, $runtime_manager], set) => {
+    const active = $runtime_manager.active.runtime;
+
+    const update = () => {
+      set(
+        $selected_actions.length === 0 &&
+          active.modules.length > 0 &&
+          active.checkSyntax()
+      );
+    };
+
+    const activeUnsub = active.subscribe ? active.subscribe(update) : null;
+
+    update(); // Initial computation
+
+    return () => {
+      if (activeUnsub) activeUnsub();
+    };
   }
 );
 

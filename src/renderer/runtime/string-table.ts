@@ -2,7 +2,7 @@ export namespace Runtime {
   export enum ErrorText {
     LENGTH_ERROR = `Modifications can not be synced with grid, 
         maximum character limit reached. Shorten your code or delete action blocks.`,
-    SYNTAX_ERROR = `Action(s) with syntax error(s) can not be merged!`,
+    SYNTAX_ERROR = `Action blocks with syntax error(s) are not synced.`,
     UNCLOSED_PARENTHESIS = `Action(s) with unclosed parenthesis will not be synced with grid!`,
     PAGE_CHANGE_DISABLED = `Page change is disabled! Store or discard your unsaved change(s)!`,
   }

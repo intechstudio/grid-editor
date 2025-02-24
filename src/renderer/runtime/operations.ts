@@ -40,15 +40,6 @@ function handleError(e: GridOperationResult) {
       break;
     }
   }
-
-  /*
-  logger.set({
-    type: "fail",
-    mode: 0,
-    classname: "luanotok",
-    message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
-  });
-  */
 }
 
 //Clipboard handlers
