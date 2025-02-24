@@ -27,7 +27,7 @@
       </g>
     </svg>
     `,
-    selectable: false,
+    selectable: true,
     movable: false,
     hideIcon: true,
     type: "single",
