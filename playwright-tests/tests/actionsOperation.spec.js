@@ -272,3 +272,30 @@ test.describe("Character limit", () => {
     await expect(configPage.characterCount).toContainText("23");
   });
 });
+
+test.describe("Syntax error", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("EN16");
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI");
+  });
+  test("block the operations while selected", async () => {
+    await configPage.selectAllActions();
+    await configPage.writeActionBlockField("midi", "MIDI", "Command", ",");
+    await configPage.copyAction();
+
+    await expect(await modulePage.actionCopiedToast).toBeHidden();
+  });
+  test("correction enable the operations while selected", async () => {
+    await configPage.selectAllActions();
+    await configPage.writeActionBlockField("midi", "MIDI", "Command", ",");
+    await configPage.writeActionBlockField("midi", "MIDI", "Command", "2");
+    await configPage.copyAction();
+    await expect(await modulePage.actionCopiedToast).toBeVisible();
+  });
+});
