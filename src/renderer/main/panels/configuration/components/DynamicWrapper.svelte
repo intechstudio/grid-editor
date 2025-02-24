@@ -54,6 +54,7 @@
       undefined,
       new ActionData(short, GridAction.getInformation(short).defaultLua)
     );
+    console.log({ short, script, name, oldAction, newAction, parent });
     replaceAction(parent, oldAction, newAction);
     toggled = true;
     lastOpenedActionblocksInsert(newAction.short);
