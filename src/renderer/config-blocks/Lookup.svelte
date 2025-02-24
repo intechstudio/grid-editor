@@ -39,27 +39,39 @@
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
+
+  const validators = [
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+  ];
 
   let event = config.parent as GridEvent;
 
   let lookupTable = {};
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     lookupTable = createLookupTable(config.script);
   }
 
@@ -92,6 +104,7 @@
     dispatch("update-action", {
       short: config.short,
       script: `${lookupTable.destination}=${script}`,
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -130,23 +143,18 @@
   }
 </script>
 
-<config-lookup
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<config-lookup class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Source"}
     {suggestions}
     placeholder={"Incoming value to match"}
     bind:value={lookupTable.source}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
+    validator={validators[0].func}
     on:input={(e) => {
+      const { value, validationError } = e.detail;
+      validators[0].value = !validationError;
+      dispatch("validation", { value: validationError });
       sendData();
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
     }}
     on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
@@ -221,16 +229,12 @@
     {suggestions}
     bind:value={lookupTable.destination}
     on:input={(e) => {
-      //lookupTable.destination = e.detail;
+      const { value, validationError } = e.detail;
+      validators[1].value = !validationError;
+      dispatch("validation", { value: validationError });
       sendData();
     }}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
+    validator={validators[1].func}
     on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}

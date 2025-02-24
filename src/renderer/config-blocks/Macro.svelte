@@ -63,6 +63,7 @@
     GridAction,
     GridElement,
     GridEvent,
+    GridModule,
     GridPage,
     GridRuntime,
   } from "../runtime/runtime";
@@ -76,7 +77,6 @@
   let layout = layouts[0];
 
   export let config: GridAction;
-  export let index;
 
   let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
@@ -97,7 +97,9 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function change_layout() {
     layout = layouts.find((e) => {
@@ -118,10 +120,6 @@
   }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     let array = [];
     let _keys = [];
     try {
@@ -175,7 +173,11 @@
     let script = `gks(${defaultDelay}${
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
-    dispatch("update-action", { short: "gks", script: script });
+    dispatch("update-action", {
+      short: "gks",
+      script: script,
+      validationError: false,
+    });
     dispatch("sync");
   }
 

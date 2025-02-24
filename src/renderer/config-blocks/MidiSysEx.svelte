@@ -43,16 +43,16 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
 
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -62,13 +62,11 @@
 
   let value;
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     let textdata = whatsInParenthesis.exec(config.script);
 
     if (textdata !== null) {
@@ -83,6 +81,7 @@
     dispatch("update-action", {
       short: config.short,
       script: "gmss(" + value + ")",
+      validationError: false,
     });
     dispatch("sync");
   }

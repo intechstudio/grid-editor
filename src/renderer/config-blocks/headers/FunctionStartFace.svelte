@@ -1,31 +1,32 @@
-<script>
-  import { createEventDispatcher, onDestroy } from "svelte";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-
-  export let config;
-  export let index;
-
+  import { parenthesis } from "../validators";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
+  import { GridAction } from "../../runtime/runtime";
+
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
   let scriptSegment = ""; // local script part
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegment = GridScript.humanize(config.script.slice(9));
   }
 
   function sendData(e) {
-    if (parenthesis(e)) {
-      const script = GridScript.shortify(e);
+    const script = GridScript.shortify(e);
 
-      dispatch("update-action", {
-        short: `fst`,
-        script: `function ${script}`,
-      });
-    }
+    dispatch("update-action", {
+      short: `fst`,
+      script: `function ${script}`,
+      validationError: false,
+    });
   }
 </script>
 
@@ -39,7 +40,8 @@
     <div class="bg-secondary mr-1 rounded flex items-center flex-grow h-full">
       <LineEditor
         on:input={(e) => {
-          sendData(e.detail.script);
+          const { value } = e.detail;
+          sendData(value.script);
         }}
         on:change={() => dispatch("sync")}
         action={config}

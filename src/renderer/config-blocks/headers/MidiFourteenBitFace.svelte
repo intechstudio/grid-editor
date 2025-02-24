@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import { GridAction } from "../../runtime/runtime";
 
   const dispatch = createEventDispatcher();
 
-  export let config = undefined;
+  export let config: GridAction;
 
   let scriptSegments = ["", "", ""];
   let labels = ["CH:", "CC:", "VAL:"];
@@ -12,13 +13,11 @@
   let midiLSB = ""; // local script part
   let midiMSB = "";
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     const arr = config.script.split(" gms");
 
     let lsb = whatsInParenthesis.exec(arr[0]);

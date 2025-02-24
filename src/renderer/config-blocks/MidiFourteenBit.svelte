@@ -49,16 +49,13 @@
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridEvent } from "./../runtime/runtime";
-
-  import { Validator } from "./_validators";
-
-  export let config;
-  export let index;
-
+  import { GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { Script } from "./_script_parsers.js";
+  import { Validator } from "./validators";
+
+  export let config: GridAction;
 
   let event = config.parent as GridEvent;
 
@@ -66,29 +63,39 @@
 
   const parameterNames = ["Channel", "CC number", "Controller Value"];
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
   let scriptSegments = [];
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
@@ -120,7 +127,11 @@
     scriptSegments[index] = e;
 
     let script = `gms(${scriptSegments[0]},176,${scriptSegments[1]},${scriptSegments[2]}//128) gms(${scriptSegments[0]},176,${scriptSegments[1]}+32,${scriptSegments[2]}%128)`;
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   const channels = (length) => {
@@ -173,13 +184,9 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
   }
-
-  let suggestionElement = undefined;
 </script>
 
-<action-midi
-  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
->
+<action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />
@@ -199,13 +206,11 @@
         title={parameterNames[i]}
         bind:value={script}
         suggestions={suggestions[i]}
-        validator={validators[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i].func}
         on:input={(e) => {
-          sendData(e.detail, i);
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

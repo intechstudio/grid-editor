@@ -228,6 +228,7 @@ export class ActionData extends NodeData {
   public script: string;
   public name?: string;
   public synced: string;
+  public invalid: boolean;
 
   constructor(short: string, script: string, name?: string) {
     super();
@@ -235,6 +236,7 @@ export class ActionData extends NodeData {
     this.script = script;
     this.name = name;
     this.synced = script;
+    this.invalid = false;
   }
 
   public toLua() {
@@ -367,8 +369,9 @@ export class GridAction extends RuntimeNode<ActionData> {
     this.script = data.script;
     this.short = data.short;
     this.name = data.name;
+    this.invalid = data.invalid;
 
-    if (!this.checkSyntax()) {
+    if (this.invalid) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.SYNTAX_ERROR,
@@ -388,6 +391,10 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   // Getters
+  public get invalid() {
+    return this.data.invalid;
+  }
+
   public get synced() {
     return this.data.synced;
   }
@@ -413,6 +420,10 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   // Setters
+  public set invalid(value: boolean) {
+    this.setField("invalid", value);
+  }
+
   public set synced(value: string) {
     this.setField("synced", value);
   }

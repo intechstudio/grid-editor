@@ -23,34 +23,53 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
   import {
     MeltCheckbox,
     Block,
     BlockBody,
     MeltCombo,
   } from "@intechstudio/grid-uikit";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
+
+  const validators = [
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+  ];
 
   const whatsInParenthesis = /\(([^)]+)\)/;
   let bmo = "";
   let bmi = "0";
   let bma = "127";
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     const arr = config.script.split("self:").slice(1);
     const parts = {
       bmo: null,
@@ -95,6 +114,7 @@
       script:
         `self:bmo(${p1})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -133,12 +153,10 @@
     title={"Button Mode"}
     bind:value={bmo}
     suggestions={suggestions[0]}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
+    validator={validators[0].func}
+    on:input={(e) => {
+      const { value, validationError } = e.detail;
+      validators[0].value = !validationError;
     }}
     on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
@@ -152,14 +170,10 @@
         title={"Min"}
         disabled={!minMaxEnabled}
         bind:value={bmi}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        validator={validators[1].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[1].value = !validationError;
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -170,14 +184,10 @@
         title={"Max"}
         disabled={!minMaxEnabled}
         bind:value={bma}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        validator={validators[2].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[2].value = !validationError;
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}

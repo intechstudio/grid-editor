@@ -27,49 +27,53 @@
   };
 </script>
 
-<script>
-  import { createEventDispatcher, onDestroy } from "svelte";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
   let scriptValue = ""; // local script part
 
-  $: handleConfigChange($config);
+  const validator = {
+    value: true,
+    func: (e: string) => {
+      return new Validator(e).isLuaValue().Result();
+    },
+  };
+
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     scriptValue = config.script.split("--[[")[1].split("]]")[0];
   }
 
   function sendData(e) {
-    dispatch("update-action", { short: "c", script: `--[[${e}]]` });
+    dispatch("update-action", {
+      short: "c",
+      script: `--[[${e}]]`,
+      validationError: validator.value === false,
+    });
   }
-
-  const validator = (e) => {
-    return new Validator(e).Result();
-  };
 </script>
 
 <element-name class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Comment"}
     bind:value={scriptValue}
-    {validator}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
+    validator={validator.func}
     on:input={(e) => {
-      sendData(e.detail);
+      const { value, validationError } = e.detail;
+      validator.value = !validationError;
+      dispatch("validation", { value: validationError });
+      sendData(value);
     }}
     on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}

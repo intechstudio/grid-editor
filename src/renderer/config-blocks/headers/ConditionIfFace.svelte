@@ -1,35 +1,31 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-
-  export let config;
-  export let index;
-
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
+  import { GridAction } from "../../runtime/runtime";
+
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
   let scriptSegment = ""; // local script part
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     scriptSegment = GridScript.humanize(config.script.slice(3, -5));
   }
 
   function sendData(e) {
-    if (parenthesis(e)) {
-      const script = GridScript.shortify(e);
+    const script = GridScript.shortify(e);
 
-      dispatch("update-action", {
-        short: `if`,
-        script: `if ${script} then`,
-      });
-    }
+    dispatch("update-action", {
+      short: `if`,
+      script: `if ${script} then`,
+      validationError: false,
+    });
   }
 </script>
 
@@ -45,7 +41,8 @@
     >
       <LineEditor
         on:input={(e) => {
-          sendData(e.detail.script);
+          const { value } = e.detail;
+          sendData(value.script);
         }}
         on:change={() => dispatch("sync")}
         action={config}

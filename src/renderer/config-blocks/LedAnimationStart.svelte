@@ -48,51 +48,63 @@
 </script>
 
 <script lang="ts">
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
-  import { Validator } from "./_validators";
-  import { GridEvent } from "./../runtime/runtime";
+  import { Validator } from "./validators";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   let event = config.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     scriptSegments = Script.toSegments({
       short: "glpfs",
       script: config.script,
@@ -108,7 +120,11 @@
       short: "glpfs",
       array: scriptSegments,
     });
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   const _suggestions = [
@@ -160,14 +176,9 @@
   onMount(() => {
     suggestions = _suggestions;
   });
-
-  let suggestionElement1 = undefined;
-  let suggestionElement2 = undefined;
 </script>
 
-<config-led-phase
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<config-led-phase class="flex flex-col w-full p-2 pointer-events-auto">
   <div class="w-full flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1 font-bold">
       Start a periodic animation on the LED
@@ -180,13 +191,11 @@
         title={parameterNames[i]}
         bind:value={script}
         suggestions={suggestions[i]}
-        validator={validators[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i].func}
         on:input={(e) => {
-          sendData(e.detail, i);
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -201,13 +210,11 @@
         title={parameterNames[i + 2]}
         bind:value={script}
         suggestions={suggestions[i + 2]}
-        validator={validators[i + 2]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i + 2].func}
         on:input={(e) => {
-          sendData(e.detail, i + 2);
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
+          sendData(value, i + 2);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

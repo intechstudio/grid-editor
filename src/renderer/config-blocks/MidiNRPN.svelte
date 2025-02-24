@@ -48,32 +48,41 @@
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridEvent } from "./../runtime/runtime";
-
-  import { Validator } from "./_validators.js";
-
-  export let config;
-  export let index;
-
+  import { GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { Script } from "./_script_parsers.js";
+  import { Validator } from "./validators";
+
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
   let event = config.parent as GridEvent;
 
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
@@ -84,14 +93,12 @@
   let value: string;
   let hiRes: boolean;
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
   let hiResCheckboxValue = false;
 
   function handleConfigChange(config) {
-    if (!config.checkSyntax()) {
-      return;
-    }
-
     // Extract all contents
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
@@ -138,6 +145,7 @@
     dispatch("update-action", {
       short: config.short,
       script: script.join(" "),
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -215,9 +223,7 @@
   }
 </script>
 
-<action-midi
-  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
->
+<action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />
@@ -235,12 +241,10 @@
     title={"Channel"}
     bind:value={channel}
     suggestions={suggestions[0]}
-    validator={validators[0]}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
-    on:input={() => {
+    validator={validators[0].func}
+    on:input={(e) => {
+      const { value, validationError } = e.detail;
+      validators[0].value = !validationError;
       sendData();
     }}
     on:change={() => dispatch("sync")}
@@ -254,12 +258,10 @@
         title={"MSB"}
         bind:value={msb}
         suggestions={suggestions[1]}
-        validator={validators[1]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-        on:input={() => {
+        validator={validators[1].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[1].value = !validationError;
           nrpnCC = calculateNRPNCC(msb, lsb);
           sendData();
         }}
@@ -272,12 +274,10 @@
         title={"LSB"}
         bind:value={lsb}
         suggestions={suggestions[2]}
-        validator={validators[2]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-        on:input={() => {
+        validator={validators[2].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[2].value = !validationError;
           nrpnCC = calculateNRPNCC(msb, lsb);
           sendData();
         }}
@@ -315,14 +315,13 @@
       title={"NRPN CC"}
       bind:value={nrpnCC}
       suggestions={suggestions[1]}
-      validator={validators[1]}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
+      validator={validators[3].func}
       on:input={(e) => {
-        msb = `(${e.detail})//128`;
-        lsb = `(${e.detail})%128`;
+        const { value, validationError } = e.detail;
+        validators[3].value = !validationError;
+        dispatch("validation", { value: validationError });
+        msb = `(${value})//128`;
+        lsb = `(${value})%128`;
         sendData();
       }}
       on:change={() => dispatch("sync")}
@@ -336,12 +335,10 @@
       title={"Value"}
       bind:value
       suggestions={suggestions[3]}
-      validator={validators[3]}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-      on:input={() => {
+      validator={validators[4].func}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        validators[4].value = !validationError;
         sendData();
       }}
       on:change={() => dispatch("sync")}
