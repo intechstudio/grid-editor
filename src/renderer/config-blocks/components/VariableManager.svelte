@@ -105,26 +105,32 @@
   function buildScript(segments: ScriptSegment[]) {
     const variables = segments.map((segment) => segment.name).join(",");
     const values = segments.map((segment) => segment.value).join(",");
-    return `${variables}=${values}`;
+    return postProcessor(`${variables}=${values}`);
   }
 
-  function sendData() {
-    const built = buildScript(segments);
-    const script = postProcessor(built);
-    dispatch("script", {
-      script: GridScript.shortify(script),
+  function handleInput() {
+    const script = buildScript(segments);
+    dispatch("input", {
+      value: GridScript.shortify(script),
     });
+  }
+
+  function handleChange() {
+    const script = buildScript(segments);
+    dispatch("change", { value: script });
   }
 
   function addVariable() {
     const obj = { name: "", value: "" };
     segments.push(obj);
-    sendData();
+    handleInput();
+    handleChange();
   }
 
   function removeVariable(index: number) {
     segments = segments.filter((e, i) => i !== index);
-    sendData();
+    handleInput();
+    handleChange();
   }
 </script>
 
@@ -144,12 +150,8 @@
                 const data = e.detail;
                 dispatch("validator", data);
               }}
-              on:input={(e) => {
-                sendData();
-              }}
-              on:change={() => {
-                dispatch("sync");
-              }}
+              on:input={handleInput}
+              on:change={handleChange}
             />
           </div>
 
@@ -160,9 +162,9 @@
             <LineEditor
               on:input={(e) => {
                 segment.value = e.detail.script ?? "";
-                sendData();
+                handleInput();
               }}
-              on:change={() => dispatch("sync")}
+              on:change={handleChange}
               value={segment.value}
               {availableCharacters}
             />

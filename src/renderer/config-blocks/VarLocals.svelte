@@ -35,10 +35,10 @@
   let event = config.parent as GridEvent;
 
   function handleUpdateAction(e: any) {
-    const { script } = e.detail;
+    const { value } = e.detail;
     dispatch("update-action", {
       short: config.information.short,
-      script: script,
+      script: value,
     });
   }
 
@@ -61,7 +61,8 @@
       {preProcessor}
       {postProcessor}
       availableCharacters={$event.getAvailableChars()}
-      on:script={handleUpdateAction}
+      on:input={handleUpdateAction}
+      on:change={() => dispatch("sync")}
     />
 
     <SendFeedback feedback_context={`Locals`} class="text-sm text-gray-500" />
