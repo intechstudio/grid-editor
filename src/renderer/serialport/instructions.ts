@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { appSettings } from "../runtime/app-helper.store.js";
+import { appSettings } from "../runtime/app-helper.store";
 
 import { grid } from "@intechstudio/grid-protocol";
 

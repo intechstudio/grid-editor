@@ -23,6 +23,8 @@
     MoltenInput,
     SvgIcon,
   } from "@intechstudio/grid-uikit";
+  import { get } from "svelte/store";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -205,6 +207,11 @@
       comp = comp.filter(
         (e) => !["bprel", "bpre", "bpr"].includes(e.information.short)
       );
+    }
+
+    //Filter out dev blocks
+    if (!get(appSettings).persistent.allowDevBlocks) {
+      comp = comp.filter((e) => !e.information.devOnly);
     }
 
     //Group components by category

@@ -26,6 +26,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    devOnly: true,
   };
 </script>
 
@@ -48,6 +49,7 @@
   import ColorSlider from "../main/user-interface/ColorSlider.svelte";
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
+  import { appSettings } from "../runtime/app-helper.store";
 
   const dispatch = createEventDispatcher();
   const checkboard =
@@ -113,7 +115,15 @@
     { title: "Classic", value: ColorPickerModel.Square },
     { title: "HSL", value: ColorPickerModel.Slider },
   ];
-  let selected = ColorPickerModel.Circle;
+
+  let selected = $appSettings.persistent.colorPicker;
+
+  $: if (selected !== $appSettings.persistent.colorPicker) {
+    appSettings.update((s) => {
+      s.persistent.colorPicker = selected;
+      return s;
+    });
+  }
 
   function handleColorInput(e: any) {
     const { color } = e.detail;
@@ -268,8 +278,10 @@
       <svelte:component
         this={colorPickerComponent.get(selected)}
         color={$data.getSelectedColor().toRGBA()?.reduceToHSL()}
-        on:change={() => dispatch("sync")}
-        on:input={handleColorInput}
+        on:change={(e) => {
+          handleColorInput(e);
+          dispatch("sync");
+        }}
       />
     </div>
 

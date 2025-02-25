@@ -40,19 +40,26 @@
       return;
     }
 
-    const rect = canvasElement?.getBoundingClientRect();
-    if (!rect) {
+    const canvasRect = canvasElement?.getBoundingClientRect();
+    const cursorRect = cursorElement?.getBoundingClientRect();
+    if (!canvasRect || !cursorRect) {
       return;
     }
 
-    const center = { x: rect.width / 2, y: rect.height / 2 };
+    const center = { x: canvasRect.width / 2, y: canvasRect.height / 2 };
 
-    const normDist = 1 - Math.max(color.l - 50, 0) / 50;
+    const normDist = 1 - (color.l - 50) / 50;
     const distance = normDist * center.x;
     const p = distanceToPoint(distance, color.h);
 
-    cursorElement.style.left = `${((p.x + center.x) / rect.width) * 100}%`;
-    cursorElement.style.top = `${((p.y + center.y) / rect.height) * 100}%`;
+    cursorElement.style.display =
+      normDist < 0 || normDist > 1 || color.s < 100 ? "none" : "flex";
+    cursorElement.style.left = `${
+      ((p.x + center.x - cursorRect.width / 2) / canvasRect.width) * 100
+    }%`;
+    cursorElement.style.top = `${
+      ((p.y + center.y - cursorRect.height / 2) / canvasRect.height) * 100
+    }%`;
   }
 
   function calculateColor(e: MouseEvent) {
@@ -100,7 +107,7 @@
 >
   <div
     bind:this={cursorElement}
-    class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
+    class="absolute w-2 h-2 rounded-full border border-black bg-white pointer-events-none"
     class:hidden={!color}
   />
 </div>

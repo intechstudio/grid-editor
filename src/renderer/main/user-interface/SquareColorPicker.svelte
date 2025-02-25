@@ -29,8 +29,10 @@
     }
 
     const offsetX = (rect.width * color.h) / 360;
-    const offsetY = (rect.height * Math.max(color.l - 50, 0)) / 50;
+    const offsetY = (rect.height * (color.l - 50)) / 50;
 
+    cursorElement.style.display =
+      offsetY < 0 || offsetY > rect.height || color.s < 100 ? "none" : "flex";
     cursorElement.style.left =
       (Math.min(
         offsetX,
@@ -93,7 +95,7 @@
 >
   <div
     bind:this={cursorElement}
-    class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
+    class="absolute w-2 h-2 rounded-full border border-black bg-white pointer-events-none"
     class:hidden={typeof color === "undefined"}
   />
 </div>

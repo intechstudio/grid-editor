@@ -4,7 +4,7 @@
   import { modal } from "./../modals/modal.store";
   import { watchResize } from "svelte-watch-resize";
   import { get, writable } from "svelte/store";
-  import { appSettings } from "../../runtime/app-helper.store.js";
+  import { appSettings } from "../../runtime/app-helper.store";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
   import { derived } from "svelte/store";
