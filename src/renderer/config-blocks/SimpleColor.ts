@@ -26,22 +26,27 @@ export namespace SimpleColor {
       public a: string
     ) {}
 
-    static fromHSL(color: Grid.HSL) {
-      const rgb = color.toRGB();
-      return new SimpleColor.ColorData(
-        String(rgb.r),
-        String(rgb.g),
-        String(rgb.b),
-        "1"
-      );
+    public toCSS(): string {
+      const channels = [this.r, this.g, this.b, this.a];
+      if (channels.some((e) => isNaN(Number(e)) || e.trim() === "")) {
+        return "rgba(255,255,255,1)";
+      } else {
+        return `rgba(${channels.join(",")})`;
+      }
     }
-    public toHSL() {
-      return new Grid.RGBA(
-        Number(this.r),
-        Number(this.g),
-        Number(this.b),
-        Number(this.a)
-      ).reduceToHSL();
+
+    public toRGBA(): Grid.RGBA | undefined {
+      const channels = [this.r, this.g, this.b, this.a];
+      if (channels.some((e) => isNaN(Number(e)) || e.trim() === "")) {
+        return undefined;
+      } else {
+        return new Grid.RGBA(
+          Number(this.r),
+          Number(this.g),
+          Number(this.b),
+          Number(this.a)
+        );
+      }
     }
   }
 

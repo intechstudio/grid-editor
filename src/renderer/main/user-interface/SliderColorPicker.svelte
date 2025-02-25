@@ -5,7 +5,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let color: Grid.HSL;
+  export let color: Grid.HSL | undefined;
   enum Channel {
     HUE = "h",
     SATURATION = "s",
@@ -33,7 +33,11 @@
     dispatch("change", { color });
   }
 
-  function getGradient(color: Grid.HSL, channel: Channel) {
+  function getGradient(color: Grid.HSL | undefined, channel: Channel) {
+    if (typeof color === "undefined") {
+      return "background-color: white;";
+    }
+
     const stops = {
       h: [0, 60, 120, 180, 240, 360].map((h) =>
         new Grid.HSL(h, color.s, color.l).toHEX()
@@ -51,7 +55,7 @@
   {#each sliders as { label, key, max }}
     <span class="text-white text-sm">{label}:</span>
     <ColorSlider
-      value={color[key]}
+      value={color ? color[key] : undefined}
       {max}
       direction="horizontal"
       on:input={(e) => handleInput(key, e.detail.value)}

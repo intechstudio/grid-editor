@@ -4,7 +4,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let color: Grid.HSL;
+  export let color: Grid.HSL | undefined;
 
   let canvasElement: HTMLElement;
   let cursorElement: HTMLElement;
@@ -18,6 +18,10 @@
   $: setCursorPosition(color);
 
   function setCursorPosition(color: Grid.HSL) {
+    if (typeof color === "undefined") {
+      return;
+    }
+
     const rect = canvasElement?.getBoundingClientRect();
 
     if (!rect) {
@@ -90,6 +94,7 @@
   <div
     bind:this={cursorElement}
     class="absolute w-2 h-2 rounded-full border border-black pointer-events-none"
+    class:hidden={typeof color === "undefined"}
   />
 </div>
 

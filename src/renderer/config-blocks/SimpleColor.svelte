@@ -57,7 +57,6 @@
   export let index;
 
   const event = config.parent as GridEvent;
-
   const data = new SimpleColor.ViewModel(config);
 
   $: data.updateData(new SimpleColor.ParsedData(config));
@@ -90,6 +89,13 @@
     dispatch("sync");
   }
 
+  enum ColorChanel {
+    RED = "r",
+    GREEN = "g",
+    BLUE = "b",
+    ALPHA = "a",
+  }
+
   enum ColorPickerModel {
     Square,
     Slider,
@@ -108,6 +114,24 @@
     { title: "HSL", value: ColorPickerModel.Slider },
   ];
   let selected = ColorPickerModel.Circle;
+
+  function handleColorInput(e: any) {
+    const { color } = e.detail;
+    const current = get(data).getSelectedColor();
+    const rgb = color.toRGBA();
+    current.r = String(rgb.r);
+    current.g = String(rgb.g);
+    current.b = String(rgb.b);
+    data.updateSelectedLayer(current);
+    sendData();
+  }
+
+  function handleRGBAChannelInput(channel: ColorChanel, value: string) {
+    const color = get(data).getSelectedColor();
+    color[channel] = value;
+    data.updateSelectedLayer(color);
+    sendData();
+  }
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
@@ -183,11 +207,7 @@
             ? [new SimpleColor.ColorData('0', '0', '0', '0'), ...$data.colors]
             : $data.colors
           )
-            .map((e) =>
-              [e.r, e.g, e.b, e.a].some((e) => Number.isNaN(Number(e)))
-                ? '#FFF'
-                : `rgba(${e.r},${e.g},${e.b},${e.a})`
-            )
+            .map((e) => e.toCSS())
             .join(',')});"
         />
       </div>
@@ -220,14 +240,7 @@
           />
           <div
             class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
-            style="background-color:  {[
-              color.r,
-              color.g,
-              color.b,
-              color.a,
-            ].some((e) => Number.isNaN(Number(e)))
-              ? '#FFF'
-              : `rgba(${color.r}, ${color.g},${color.b},${color.a})`};"
+            style="background-color:  {color.toCSS()};"
           />
           <div
             class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
@@ -254,23 +267,14 @@
     <div class="flex h-32 w-full items-center justify-center">
       <svelte:component
         this={colorPickerComponent.get(selected)}
-        color={$data.getSelectedColor().toHSL()}
-        on:change={(e) => {
-          const { color } = e.detail;
-          const current = get(data).getSelectedColor();
-          const rgb = color.toRGBA();
-          current.r = rgb.r;
-          current.g = rgb.g;
-          current.b = rgb.b;
-          data.updateSelectedLayer(current);
-          sendData();
-          dispatch("sync");
-        }}
+        color={$data.getSelectedColor().toRGBA()?.reduceToHSL()}
+        on:change={() => dispatch("sync")}
+        on:input={handleColorInput}
       />
     </div>
 
     <ColorSlider
-      value={Number($data.getSelectedColor().a)}
+      value={$data.getSelectedColor().toRGBA()?.a}
       max={1}
       direction="vertical"
       on:change={(e) => {
@@ -285,7 +289,7 @@
   </div>
 
   <div class="grid grid-cols-4 w-full gap-2">
-    {#each ["r", "g", "b", "a"] as channel}
+    {#each [ColorChanel.RED, ColorChanel.GREEN, ColorChanel.BLUE, ColorChanel.ALPHA] as channel}
       <MeltCombo
         title={" "}
         value={$data.getSelectedColor()[channel]}
@@ -300,12 +304,7 @@
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:input={(e) => {
-          const color = get(data).getSelectedColor();
-          color[channel] = e.detail;
-          data.updateSelectedLayer(color);
-          sendData();
-        }}
+        on:input={(e) => handleRGBAChannelInput(channel, e.detail)}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}

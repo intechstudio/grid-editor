@@ -3,7 +3,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let value: number = 0;
+  export let value: number | undefined;
   export let max: number = 100;
   export let direction: "horizontal" | "vertical";
 
@@ -12,6 +12,7 @@
   let isDrag = false;
 
   onMount(() => {
+    console.log(typeof value, value);
     setCursorPosition(value);
   });
 
@@ -40,7 +41,11 @@
     dispatch("input", { value: value });
   }
 
-  function setCursorPosition(value: number) {
+  function setCursorPosition(value: number | undefined) {
+    if (typeof value === "undefined") {
+      return;
+    }
+
     const rect = scaleElement?.getBoundingClientRect();
 
     if (!rect) {
@@ -99,5 +104,6 @@
     'vertical'
       ? 'h-2 w-full'
       : 'w-2 h-full'}"
+    class:hidden={typeof value === "undefined"}
   />
 </div>
