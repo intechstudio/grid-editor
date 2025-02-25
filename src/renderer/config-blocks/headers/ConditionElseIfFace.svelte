@@ -41,8 +41,8 @@
     >
       <LineEditor
         on:input={(e) => {
-          const { value } = e.detail;
-          sendData(value.script);
+          const { script } = e.detail;
+          sendData(script);
         }}
         on:change={() => dispatch("sync")}
         action={config}

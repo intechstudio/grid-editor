@@ -17,6 +17,7 @@
 
   function handleConfigChange(config) {
     scriptSegment = GridScript.humanize(config.script.slice(9));
+    console.log(scriptSegment);
   }
 
   function sendData(e) {
@@ -40,8 +41,8 @@
     <div class="bg-secondary mr-1 rounded flex items-center flex-grow h-full">
       <LineEditor
         on:input={(e) => {
-          const { value } = e.detail;
-          sendData(value.script);
+          const { script } = e.detail;
+          sendData(script);
         }}
         on:change={() => dispatch("sync")}
         action={config}

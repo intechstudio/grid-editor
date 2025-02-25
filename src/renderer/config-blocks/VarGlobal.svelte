@@ -153,12 +153,12 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      {#each scriptSegments as script, i}
+      {#each scriptSegments as segment, i}
         <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
           <div data-testid="variable-name">
             <MeltCombo
               title={" "}
-              bind:value={script.variable}
+              bind:value={segment.variable}
               validator={validators[i].func}
               on:input={(e) => {
                 const { value, validationError } = e.detail;
@@ -178,12 +178,13 @@
           >
             <LineEditor
               on:input={(e) => {
-                script.value = e.detail.script ?? "";
+                const { script } = e.detail;
+                segment.value = script ?? "";
                 sendData();
               }}
               on:change={() => dispatch("sync")}
               action={config}
-              value={script.value}
+              value={segment.value}
             />
           </div>
 

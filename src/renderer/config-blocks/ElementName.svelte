@@ -41,7 +41,7 @@
   const validator = {
     value: true,
     func: (e: string) => {
-      return new Validator(e).isLuaValue().Result();
+      return new Validator(e).NotEmpty().Result();
     },
   };
 

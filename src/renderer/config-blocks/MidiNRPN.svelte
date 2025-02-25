@@ -84,6 +84,12 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
   ];
 
   let channel: string;
@@ -113,7 +119,6 @@
 
     for (let i = 0; i < matches.length; ++i) {
       let part = Script.toSegments({ short: "gms", script: matches[i] });
-      console.log(part);
       if (i % 2 === 0) {
         midiMSB.push(part[3]);
       } else {
