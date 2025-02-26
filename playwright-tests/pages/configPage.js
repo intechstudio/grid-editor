@@ -105,6 +105,13 @@ export class ConfigPage {
   async getActionBlockField(category, blockName, field) {
     return this.blocks[category][blockName]["elements"][field];
   }
+  
+  async getActionBlockMonacoFieldTextContetnt(category, blockName, field) {
+    return await this.blocks[category][blockName]["elements"][
+      
+      field
+    ].textContent();
+  }
 
   async getActionBlock(category, blockName) {
     return await this.blocks[category][blockName]["block"];

@@ -84,6 +84,18 @@ export class GridPresetData {
   }
 }
 
+export class GridSnippetData {
+  public actions: GridAction[];
+
+  constructor(array: RawEventData) {
+    this.actions = GridAction.parse(array);
+  }
+
+  static createFromCloudData(cloudPreset: any) {
+    return new GridSnippetData(cloudPreset.configs);
+  }
+}
+
 export enum GridOperationType {
   PASTE_ACTION,
   CUT_ACTION,
@@ -96,6 +108,7 @@ export enum GridOperationType {
   SEND_EVENT_TO_GRID,
   LOAD_PRESET,
   LOAD_PROFILE,
+  LOAD_SNIPPET,
   OVERWRITE_EVENT,
   INSERT_ACTIONS,
   REPLACE_ACTION,
@@ -126,6 +139,7 @@ export interface ResetElementResult extends GridOperationResult {}
 export interface SendToGridResult extends GridOperationResult {}
 export interface PresetLoadResult extends GridOperationResult {}
 export interface ProfileLoadResult extends GridOperationResult {}
+export interface SnippetLoadResult extends GridOperationResult {}
 export interface OverwriteEventResult extends GridOperationResult {}
 export interface InsertActionsResult extends GridOperationResult {
   info: EventInfo;
@@ -442,7 +456,7 @@ export class GridAction extends RuntimeNode<ActionData> {
 }
 
 export type EventInfo = {
-  event: { name: string };
+  event: { name: string; value: number };
   element: { type: string; index: number };
   page: number;
   module: { type: string; dx: number; dy: number };
@@ -510,7 +524,7 @@ export class EventData extends NodeData {
     const page = element?.parent as GridPage;
     const module = page?.parent as GridModule;
     return {
-      event: { name: NumberToEventType(this.type) },
+      event: { name: NumberToEventType(this.type), value: this.type },
       element: { type: element?.type, index: element?.elementIndex },
       page: page?.pageNumber,
       module: { type: module?.type, dx: module?.dx, dy: module?.dy },
@@ -521,6 +535,27 @@ export class EventData extends NodeData {
 export class GridEvent extends RuntimeNode<EventData> {
   constructor(parent: GridElement, data?: EventData) {
     super(parent, data);
+  }
+
+  public async loadSnippet(
+    snippet: GridSnippetData,
+    index: number
+  ): Promise<SnippetLoadResult> {
+    try {
+      await this.insert(index, ...snippet.actions);
+      await this.sendToGrid();
+      return Promise.resolve({
+        value: true,
+        text: "OK",
+        type: GridOperationType.LOAD_SNIPPET,
+      });
+    } catch (e) {
+      return Promise.reject({
+        value: false,
+        text: e.text,
+        type: GridOperationType.LOAD_SNIPPET,
+      });
+    }
   }
 
   public destroy() {
@@ -746,7 +781,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: e,
+        text: e.text,
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     }
@@ -1042,7 +1077,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: e,
+        text: e.text,
         type: GridOperationType.DISCARD_ELEMENT,
       });
     }
@@ -1108,7 +1143,7 @@ export class GridElement extends RuntimeNode<ElementData> {
   public async loadPreset(preset: GridPresetData): Promise<PresetLoadResult> {
     try {
       await this.overwrite(preset.element.data);
-      this.sendToGrid();
+      await this.sendToGrid();
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -1117,7 +1152,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     } catch (e) {
       return Promise.reject({
         value: false,
-        text: "e",
+        text: e.text,
         type: GridOperationType.LOAD_PRESET,
       });
     }
