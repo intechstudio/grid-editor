@@ -98,6 +98,12 @@ export class ConfigPage {
     ].inputValue();
   }
 
+  async getActionBlockMonacoFieldTextContetnt(category, blockName, field) {
+    return await this.blocks[category][blockName]["elements"][
+      field
+    ].textContent();
+  }
+
   async getActionBlock(category, blockName) {
     return await this.blocks[category][blockName]["block"];
   }
