@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import { GridAction } from "../../runtime/runtime";
 
   const dispatch = createEventDispatcher();
 
-  export let config = undefined;
+  export let config: GridAction;
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 

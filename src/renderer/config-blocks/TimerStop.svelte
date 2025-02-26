@@ -34,21 +34,30 @@
 <script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
-  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { Validator } from "./_validators";
-  import { GridEvent } from "./../runtime/runtime";
+  import { Validator } from "./validators";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  export let config;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
+
+  const validator = {
+    value: true,
+    func: (e: string) => {
+      return new Validator(e).isLuaValue().Result();
+    },
+  };
+
   let event = config.parent as GridEvent;
 
   const whatsInParenthesis = /gtp\(([^"]*)\)/;
   let scriptValue = "";
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     let param1 = whatsInParenthesis.exec(config.script);
@@ -64,7 +73,11 @@
   }
 
   function sendData(e) {
-    dispatch("update-action", { short: "gtp", script: `gtp(${e})` });
+    dispatch("update-action", {
+      short: "gtp",
+      script: `gtp(${e})`,
+      validationError: validator.value === false,
+    });
   }
 
   let suggestions = [];
@@ -90,17 +103,14 @@
     title={"Element Number"}
     bind:value={scriptValue}
     suggestions={suggestions[0]}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
     on:input={(e) => {
-      scriptValue = e.detail;
+      const { value, validationError } = e.detail;
+      validator.value = !validationError;
+      dispatch("validation", { value: validationError });
+      scriptValue = value;
     }}
     on:change={() => dispatch("sync")}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
+    validator={validator.func}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />

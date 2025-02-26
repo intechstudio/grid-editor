@@ -261,8 +261,6 @@ function initialize_theme() {
 function initialize_autocomplete() {
   (function init_autocomplete() {
     function createProposals(range) {
-      const elementtype = get(monaco_elementtype);
-
       let proposalList = [];
 
       for (const element of language.functions) {
@@ -309,6 +307,7 @@ function initialize_autocomplete() {
         proposalList.push(proposalItem);
       }
 
+      const elementtype = get(monaco_elementtype);
       grid.lua_function_to_human_map().forEach((value, key) => {
         let proposalItem = {
           label: "",

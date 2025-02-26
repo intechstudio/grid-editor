@@ -1,14 +1,17 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
+  import { GridAction } from "../../runtime/runtime.js";
 
   const dispatch = createEventDispatcher();
 
-  export let config = undefined;
+  export let config: GridAction;
 
   let scriptSegments = [];
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({

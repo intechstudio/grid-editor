@@ -25,7 +25,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis, Validator } from "./_validators.js";
+  import { parenthesis, Validator } from "./validators";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import LineEditor from "../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
@@ -36,16 +36,27 @@
 
   const dispatch = createEventDispatcher();
 
+  let validators = [];
+
   type ScriptSegment = Grid.VariableBlock.ScriptSegment;
 
   let scriptSegments: ScriptSegment[];
   let errorText = "";
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config: ActionData) {
     // this works differently from normal _utils...
     scriptSegments = localsToConfig(config.script);
+
+    validators = scriptSegments.map((e) =>
+      Object({
+        value: true,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
+      })
+    );
     updateErrorText();
   }
 
@@ -55,11 +66,16 @@
 
   function addLocalVariable() {
     scriptSegments.push({ variable: "", value: "" });
+    validators.push({
+      value: true,
+      func: (e) => new Validator(e).isLuaVariable().Result(),
+    });
     sendData();
   }
 
   function removeLocalVariable(i: number) {
     scriptSegments.splice(i, 1);
+    validators.splice(i, 1);
     sendData();
   }
 
@@ -76,6 +92,7 @@
     dispatch("update-action", {
       short: "l",
       script: GridScript.shortify(script),
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -138,20 +155,17 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      {#each scriptSegments as script, i}
+      {#each scriptSegments as segment, i}
         <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
           <div data-testid="variable-name">
             <MeltCombo
               title={" "}
-              bind:value={script.variable}
-              validator={(e) => {
-                return new Validator(e).NotEmpty().Result();
-              }}
-              on:validator={(e) => {
-                const data = e.detail;
-                dispatch("validator", data);
-              }}
+              bind:value={segment.variable}
+              validator={validators[i].func}
               on:input={(e) => {
+                const { value, validationError } = e.detail;
+                validators[i].value = !validationError;
+                dispatch("validation", { value: validationError });
                 sendData();
               }}
               on:change={() => {
@@ -166,12 +180,13 @@
           >
             <LineEditor
               on:input={(e) => {
-                script.value = e.detail.script ?? "";
+                const { script } = e.detail;
+                segment.value = script ?? "";
                 sendData();
               }}
               on:change={() => dispatch("sync")}
               action={config}
-              value={script.value}
+              value={segment.value}
             />
           </div>
 

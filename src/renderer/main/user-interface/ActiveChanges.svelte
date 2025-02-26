@@ -2,7 +2,10 @@
   import { tooltip } from "./../_actions/tooltip";
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
-  import { user_input } from "./../../runtime/user-input.store";
+  import {
+    selected_actions,
+    user_input,
+  } from "./../../runtime/user-input.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
@@ -188,7 +191,7 @@
     >
       <MoltenPushButton
         click={handleStore}
-        disabled={!isChanges}
+        disabled={!isChanges || !$runtime.isValid()}
         text="Store"
         style="accept"
       />

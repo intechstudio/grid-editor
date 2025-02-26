@@ -38,6 +38,6 @@
   const dispatch = createEventDispatcher();
 </script>
 
-<function-end-block class="{$$props.class} text-white pointer-events-auto">
+<function-end-block class="text-white pointer-events-auto">
   {information.displayName}
 </function-end-block>
