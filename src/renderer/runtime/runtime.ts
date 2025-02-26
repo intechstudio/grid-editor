@@ -245,10 +245,10 @@ export class ActionData extends NodeData {
     }]] ${this.script}`;
   }
 
-  public checkSyntax() {
+  public isValid() {
     const code =
       this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
-    return GridScript.checkSyntax(code);
+    return GridScript.checkSyntax(code) && !this.invalid;
   }
 
   public get information() {
@@ -342,8 +342,8 @@ export class GridAction extends RuntimeNode<ActionData> {
     return this.data.toLua();
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public sendToGrid(): Promise<SendToGridResult> {
@@ -371,7 +371,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     this.name = data.name;
     this.invalid = data.invalid;
 
-    if (this.invalid) {
+    if (!this.isValid()) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.SYNTAX_ERROR,
@@ -492,9 +492,9 @@ export class EventData extends NodeData {
     return this.stored === this.toLua();
   }
 
-  public checkSyntax() {
+  public isValid() {
     for (const action of this.config) {
-      if (!action.checkSyntax()) {
+      if (!action.isValid()) {
         return false;
       }
     }
@@ -752,8 +752,8 @@ export class GridEvent extends RuntimeNode<EventData> {
     }
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public isLoaded() {
@@ -819,7 +819,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       )
     );
 
-    if (!codeBlock.checkSyntax()) {
+    if (!codeBlock.isValid()) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.SYNTAX_ERROR,
@@ -975,9 +975,9 @@ export class ElementData extends NodeData {
     this.name = name;
   }
 
-  public checkSyntax() {
+  public isValid() {
     for (const event of this.events) {
-      if (!event.checkSyntax()) {
+      if (!event.isValid()) {
         return false;
       }
     }
@@ -1167,8 +1167,8 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public async load(): Promise<void> {
@@ -1226,9 +1226,9 @@ export class PageData extends NodeData {
     this.pageNumber = index;
   }
 
-  public checkSyntax() {
+  public isValid() {
     for (const element of this.control_elements) {
-      if (!element.checkSyntax()) {
+      if (!element.isValid()) {
         return false;
       }
     }
@@ -1258,8 +1258,8 @@ export class GridPage extends RuntimeNode<PageData> {
     }
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public getInfo(): PageInfo {
@@ -1411,9 +1411,9 @@ export class ModuleData extends NodeData {
     this.pages = [];
   }
 
-  public checkSyntax() {
+  public isValid() {
     for (const page of this.pages) {
-      if (!page.checkSyntax()) {
+      if (!page.isValid()) {
         return false;
       }
     }
@@ -1438,8 +1438,8 @@ export class GridModule extends RuntimeNode<ModuleData> {
     ];
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public getInfo(): ModuleInfo {
@@ -1564,9 +1564,9 @@ export class RuntimeData extends NodeData {
     this.modules = [];
   }
 
-  public checkSyntax() {
+  public isValid() {
     for (const module of this.modules) {
-      if (!module.checkSyntax()) {
+      if (!module.isValid()) {
         return false;
       }
     }
@@ -1591,8 +1591,8 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.aliveModules = writable([]);
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   get modules() {

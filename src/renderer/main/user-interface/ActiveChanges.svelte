@@ -191,7 +191,7 @@
     >
       <MoltenPushButton
         click={handleStore}
-        disabled={!isChanges || !$runtime.checkSyntax()}
+        disabled={!isChanges || !$runtime.isValid()}
         text="Store"
         style="accept"
       />

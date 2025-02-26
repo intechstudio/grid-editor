@@ -16,7 +16,7 @@ export const isCopyActionsEnabled = derived(
       store.subscribe(() => {
         set(
           $selected_actions.length > 0 &&
-            $selected_actions.every((e) => e.checkSyntax())
+            $selected_actions.every((e) => e.isValid())
         );
       })
     );
@@ -24,7 +24,7 @@ export const isCopyActionsEnabled = derived(
     // Initial computation
     set(
       $selected_actions.length > 0 &&
-        $selected_actions.every((e) => e.checkSyntax())
+        $selected_actions.every((e) => e.isValid())
     );
 
     // Cleanup function
@@ -38,7 +38,7 @@ export const isCutActionsEnabled = derived(
       store.subscribe(() => {
         set(
           $selected_actions.length > 0 &&
-            $selected_actions.every((e) => e.checkSyntax())
+            $selected_actions.every((e) => e.isValid())
         );
       })
     );
@@ -46,7 +46,7 @@ export const isCutActionsEnabled = derived(
     // Initial computation
     set(
       $selected_actions.length > 0 &&
-        $selected_actions.every((e) => e.checkSyntax())
+        $selected_actions.every((e) => e.isValid())
     );
 
     // Cleanup function
@@ -61,7 +61,7 @@ export const isMergeActionsEnabled = derived(
       store.subscribe(() => {
         set(
           $selected_actions.length > 0 &&
-            $selected_actions.every((e) => e.checkSyntax())
+            $selected_actions.every((e) => e.isValid())
         );
       })
     );
@@ -69,7 +69,7 @@ export const isMergeActionsEnabled = derived(
     // Initial computation
     set(
       $selected_actions.length > 0 &&
-        $selected_actions.every((e) => e.checkSyntax())
+        $selected_actions.every((e) => e.isValid())
     );
 
     // Cleanup function
@@ -86,7 +86,7 @@ export const isCopyElementEnabled = derived(
       set(
         $selected_actions.length === 0 &&
           active.modules.length > 0 &&
-          active.checkSyntax()
+          active.isValid()
       );
     };
 

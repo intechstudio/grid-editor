@@ -75,7 +75,7 @@
     const { short, script, name, validationError } = e.detail;
     const data = new ActionData(short, script, name);
     //TODO: Propose better solution
-    data.invalid = validationError || !data.checkSyntax();
+    data.invalid = validationError;
     updateAction(action, data, false);
   }
 
