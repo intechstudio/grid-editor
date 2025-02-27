@@ -37,30 +37,41 @@
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { Validator } from "./_validators";
-  import { GridEvent } from "./../runtime/runtime";
+  import { Validator } from "./validators";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  export let config;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
   let event = config.parent as GridEvent;
 
   const parameterNames = ["Element Number", "Time"];
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
   let scriptSegments = [];
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -75,7 +86,11 @@
       short: config.short,
       array: scriptSegments,
     });
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   let suggestions = [];
@@ -96,22 +111,18 @@
   }
 </script>
 
-<timer-start
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<timer-start class="flex flex-col w-full p-2 pointer-events-auto">
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
       <MeltCombo
         title={parameterNames[i]}
         bind:value={script}
         suggestions={suggestions[i]}
-        validator={validators[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i].func}
         on:input={(e) => {
-          sendData(e.detail, i);
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

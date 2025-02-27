@@ -27,20 +27,29 @@
   };
 </script>
 
-<script>
-  import { createEventDispatcher, onDestroy } from "svelte";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
+  const validator = {
+    value: true,
+    func: (e: string) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+  };
+
   let scriptValue = ""; // local script part
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     const matches = config.script.match(/self:gen\("([^"]*)"\)/);
@@ -52,27 +61,23 @@
   }
 
   function sendData(e) {
-    dispatch("update-action", { short: "sn", script: `self:gen("${e}")` });
+    dispatch("update-action", {
+      short: "sn",
+      script: `self:gen("${e}")`,
+      validationError: validator.value === false,
+    });
   }
-
-  const validator = (e) => {
-    return new Validator(e).Result();
-  };
 </script>
 
-<element-name
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<element-name class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Element Name"}
     bind:value={scriptValue}
-    {validator}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
     on:input={(e) => {
-      sendData(e.detail);
+      const { value, validationError } = e.detail;
+      validator.value = !validationError;
+      dispatch("validation", { value: validationError });
+      sendData(value);
     }}
     on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}

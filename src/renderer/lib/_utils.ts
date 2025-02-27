@@ -1,6 +1,6 @@
 import convert from "color-convert";
 import { checkVariableName } from "../validators/local_validator.mjs";
-import { parenthesis } from "../config-blocks/_validators";
+import { parenthesis } from "../config-blocks/validators";
 import { find_forbidden_identifiers } from "../runtime/monaco-helper";
 import { grid } from "@intechstudio/grid-protocol";
 

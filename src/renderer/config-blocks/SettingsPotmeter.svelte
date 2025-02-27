@@ -23,21 +23,42 @@
   };
 </script>
 
-<script>
-  import { createEventDispatcher, onDestroy } from "svelte";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
   import {
     MeltCheckbox,
     Block,
     BlockBody,
     MeltCombo,
   } from "@intechstudio/grid-uikit";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
+
+  const validators = [
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+  ];
 
   let pmo = ""; // local script part
 
@@ -46,7 +67,9 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
@@ -95,6 +118,7 @@
       script:
         `self:pmo(${p1})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -133,12 +157,10 @@
     title={"Bit depth"}
     bind:value={pmo}
     suggestions={suggestions[0]}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
+    validator={validators[0].func}
+    on:input={(e) => {
+      const { value, validationError } = e.detail;
+      validators[0].value = !validationError;
     }}
     on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
@@ -153,14 +175,10 @@
         title={"Min"}
         disabled={!minMaxEnabled}
         bind:value={pmi}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        validator={validators[1].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[1].value = !validationError;
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -172,12 +190,10 @@
         disabled={!minMaxEnabled}
         bind:value={pma}
         suggestions={suggestions[1]}
-        validator={(e) => {
-          return new Validator(e).NotEmpty().Result();
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        validator={validators[2].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[2].value = !validationError;
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}

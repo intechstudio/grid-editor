@@ -63,6 +63,7 @@
   const dispatch = createEventDispatcher();
 
   export let config: GridAction;
+
   export let index: number;
 
   let codePreview: HTMLElement;
@@ -110,7 +111,7 @@
     });
   }
 
-  $: if (codePreview) {
+  $: if (codePreview && !$config.invalid) {
     handleConfigChange($config);
   }
 
@@ -126,9 +127,7 @@
   }
 </script>
 
-<code-block
-  class="{$$props.class} w-full flex flex-col p-4 pb-2 pointer-events-auto"
->
+<code-block class="w-full flex flex-col p-4 pb-2 pointer-events-auto">
   <div class="w-full flex flex-col">
     <div class="text-gray-500 text-sm font-bold">Code preview:</div>
 

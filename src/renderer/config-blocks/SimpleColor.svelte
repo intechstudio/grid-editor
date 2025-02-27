@@ -39,7 +39,7 @@
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { GridAction, GridEvent } from "./../runtime/runtime";

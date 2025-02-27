@@ -1,47 +1,50 @@
-<script>
+<script lang="ts">
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
   import Toggle from "../../main/user-interface/Toggle.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "../_validators";
+  import { Validator } from "../validators";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
+  import { GridAction } from "../../runtime/runtime";
 
-  export let index;
-
-  export let config = undefined;
+  export let config: GridAction;
 
   let data = [
     {
       value: "i",
       label: "Variable",
-      validator: (e) => {
-        return new Validator(e).NotEmpty().Result();
+      validator: {
+        value: true,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
       },
       suggestions: [],
     },
     {
       value: "1",
       label: "Initial value",
-      validator: (e) => {
-        return new Validator(e).NotEmpty().Result();
+      validator: {
+        value: true,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
       },
       suggestions: [],
     },
     {
       value: "10",
       label: "End value",
-      validator: (e) => {
-        return new Validator(e).NotEmpty().Result();
+      validator: {
+        value: true,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
       },
       suggestions: [],
     },
     {
       value: "1",
       label: "Increment",
-      validator: (e) => {
-        return new Validator(e).NotEmpty().Result();
+      validator: {
+        value: true,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
       },
       suggestions: [],
     },
@@ -52,7 +55,9 @@
   let displayValue = "?";
   let toggleValue = false;
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     const script = config.script;
@@ -80,6 +85,7 @@
     dispatch("update-action", {
       short: config.short,
       script: `for i=1,${script},1 do`,
+      validationError: data.some((e) => e.validator.value === false),
     });
   }
 
@@ -90,6 +96,7 @@
     dispatch("update-action", {
       short: config.short,
       script: `for ${segments.join(",")} do`,
+      validationError: data.some((e) => e.validator.value === false),
     });
   }
 </script>
@@ -133,10 +140,10 @@
                   title={obj.label}
                   bind:value={obj.value}
                   suggestions={obj.suggestions}
-                  validator={obj.validator}
-                  on:validator={(e) => {
-                    const data = e.detail;
-                    dispatch("validator", data);
+                  validator={obj.validator.func}
+                  on:input={(e) => {
+                    const { value, validationError } = e.detail;
+                    obj.validator.value = !validationError;
                   }}
                   on:change={(e) => handleInputFieldChange(e, i)}
                   on:change={() => dispatch("sync")}

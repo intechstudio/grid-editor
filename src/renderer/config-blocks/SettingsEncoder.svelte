@@ -23,7 +23,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import {
     MeltCheckbox,
@@ -32,12 +32,45 @@
     MeltCombo,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
+
+  const validators = [
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+  ];
 
   let emo = ""; // local script part
   let ev0 = "";
@@ -48,7 +81,9 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
@@ -102,6 +137,7 @@
       script:
         `self:emo(${p1}) self:ev0(${p2})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -139,20 +175,16 @@
   }
 </script>
 
-<encoder-settings
-  class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
->
+<encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     <MeltCombo
       title={"Encoder Mode"}
       bind:value={emo}
       suggestions={suggestions[0]}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
+      validator={validators[0].func}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        validators[0].value = !validationError;
       }}
       on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
@@ -163,12 +195,10 @@
       title={"Encoder Velocity"}
       bind:value={ev0}
       suggestions={suggestions[1]}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
+      validator={validators[1].func}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        validators[1].value = !validationError;
       }}
       on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
@@ -184,14 +214,10 @@
         title={"Min"}
         disabled={!minMaxEnabled}
         bind:value={emi}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        validator={validators[2].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[2].value = !validationError;
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -202,14 +228,10 @@
         title={"Max"}
         disabled={!minMaxEnabled}
         bind:value={ema}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        validator={validators[3].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[3].value = !validationError;
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -225,14 +247,10 @@
       title={"Sensitivity"}
       disabled={!sensitivityEnabled}
       bind:value={ese}
-      validator={(e) => {
-        return minMaxEnabled
-          ? new Validator(e).NotEmpty().Result()
-          : new Validator(e).Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
+      validator={validators[4].func}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        validators[4].value = !validationError;
       }}
       on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
