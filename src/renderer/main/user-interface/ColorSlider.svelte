@@ -12,7 +12,6 @@
   let isDrag = false;
 
   onMount(() => {
-    console.log(typeof value, value);
     setCursorPosition(value);
   });
 

@@ -61,7 +61,52 @@
   const event = config.parent as GridEvent;
   const data = new SimpleColor.ViewModel(config);
 
-  $: data.updateData(new SimpleColor.ParsedData(config));
+  const validators = [
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
+    },
+  ];
+
+  $: if (!$config.invalid) {
+    handleConfigChange(config);
+  }
+
+  function handleConfigChange(config) {
+    data.updateData(new SimpleColor.ParsedData(config));
+  }
 
   function sendData() {
     const script = Script.toScript({
@@ -74,7 +119,11 @@
       ],
     });
 
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   function handleAddLayer() {
@@ -165,15 +214,11 @@
     <MeltCombo
       title={"Element"}
       bind:value={$data.element.value}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
+      validator={validators[0].func}
       suggestions={$data.element.suggestions}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
       on:input={(e) => {
+        const { value, validationError } = e.detail;
+        validators[0].value = !validationError;
         sendData();
       }}
       on:change={() => dispatch("sync")}
@@ -184,15 +229,11 @@
     <MeltCombo
       title={"Layer"}
       bind:value={$data.layer.value}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
+      validator={validators[1].func}
       suggestions={$data.layer.suggestions}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
       on:input={(e) => {
+        const { value, validationError } = e.detail;
+        validators[1].value = !validationError;
         sendData();
       }}
       on:change={() => dispatch("sync")}
@@ -301,22 +342,20 @@
   </div>
 
   <div class="grid grid-cols-4 w-full gap-2">
-    {#each [ColorChanel.RED, ColorChanel.GREEN, ColorChanel.BLUE, ColorChanel.ALPHA] as channel}
+    {#each [ColorChanel.RED, ColorChanel.GREEN, ColorChanel.BLUE, ColorChanel.ALPHA] as channel, i}
       <MeltCombo
         title={" "}
         value={$data.getSelectedColor()[channel]}
-        validator={(e) => {
-          return new Validator(e).NotEmpty().Result();
-        }}
+        validator={validators[i + 2].func}
         suggestions={LocalDefinitions.getFrom({
           configs: $event.config,
           index: index,
         })}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[i + 2].value = !validationError;
+          handleRGBAChannelInput(channel, value);
         }}
-        on:input={(e) => handleRGBAChannelInput(channel, e.detail)}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
