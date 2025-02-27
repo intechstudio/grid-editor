@@ -8,13 +8,14 @@
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
-  import { onDestroy, onMount } from "svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";
   import { GridRuntime } from "../runtime/runtime";
 
   let logLength = 0;
   let trackerVisible = true;
+  let stickyContainer: HTMLElement;
+  let container: HTMLElement;
 
   $: {
     trackerVisible = logLength === 0;
@@ -32,10 +33,11 @@
   $: runtime = $runtime_manager.active.runtime;
 
   function handleResize() {
-    const stickyContainer = document.getElementById("sticky-container");
-    const container = document.getElementById("container");
-    const contRect = container.getBoundingClientRect();
-    const stickyRect = stickyContainer.getBoundingClientRect();
+    const contRect = container?.getBoundingClientRect();
+    const stickyRect = stickyContainer?.getBoundingClientRect();
+
+    if (!contRect || !stickyRect) return;
+
     const threshold = -15;
 
     showFixedStickyContainer =
@@ -45,13 +47,7 @@
       stickyRect.right >= contRect.right + threshold;
   }
 
-  onMount(() => {
-    window.addEventListener("resize", handleResize);
-  });
-
-  onDestroy(() => {
-    window.removeEventListener("resize", handleResize);
-  });
+  $: handleGridLayoutShift($appSettings.gridLayoutShift);
 
   function handleGridLayoutShift(vector) {
     if (vector.x === 0 && vector.y === 0) {
@@ -60,8 +56,6 @@
 
     handleResize();
   }
-
-  $: handleGridLayoutShift($appSettings.gridLayoutShift);
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
@@ -88,8 +82,10 @@
     */
 </script>
 
+<svelte:window on:resize={handleResize} />
+
 <div
-  id="container"
+  bind:this={container}
   class="relative flex flex-col w-full h-full overflow-hidden justify-center"
 >
   <ControlSurface />
@@ -117,7 +113,7 @@
       .x}px), calc(-50% + {$appSettings.gridLayoutShift.y}px));"
   >
     <div
-      id="sticky-container"
+      bind:this={stickyContainer}
       class="absolute top-full left-1/2 -translate-x-1/2"
       class:invisible={showFixedStickyContainer ||
         $runtime.modules.length === 0}

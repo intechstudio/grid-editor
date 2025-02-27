@@ -46,7 +46,7 @@
 
   $: {
     configScriptLength = $event?.toLua().length ?? 0;
-    syntaxError = $event?.checkSyntax() === false;
+    syntaxError = $event?.isValid() === false;
   }
 
   $: if (typeof $incoming_messages !== "undefined") {

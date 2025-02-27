@@ -9,7 +9,6 @@
   const dispatch = createEventDispatcher();
 
   export let config: GridAction;
-  export let index;
 
   function handleClick(e) {
     dispatch("toggle");
@@ -20,6 +19,7 @@
       short: config.short,
       script: config.script,
       name: value,
+      validationError: false,
     });
   }
 

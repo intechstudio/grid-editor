@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { Validator } from "../_validators.js";
+  import { Validator } from "../validators";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
 
@@ -13,6 +13,8 @@
   export let preProcessor: (script: string) => string;
   export let postProcessor: (script: string) => string;
 
+  let validators = [];
+
   let segments: ScriptSegment[] = [];
 
   $: handleScriptChange(script);
@@ -23,6 +25,13 @@
     for (const segment of segments) {
       segment.value = GridScript.humanize(segment.value);
     }
+
+    validators = segments.map((e) =>
+      Object({
+        value: true,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
+      })
+    );
   }
 
   function isParenthesisClosed(value: string) {
@@ -112,6 +121,7 @@
     const script = buildScript(segments);
     dispatch("input", {
       value: GridScript.shortify(script),
+      validationError: validators.some((e) => e.value === false),
     });
   }
 
@@ -123,12 +133,17 @@
   function addVariable() {
     const obj = { name: "", value: "" };
     segments.push(obj);
+    validators.push({
+      value: false,
+      func: (e) => new Validator(e).isLuaVariable().Result(),
+    });
     handleInput();
     handleChange();
   }
 
   function removeVariable(index: number) {
     segments = segments.filter((e, i) => i !== index);
+    validators = segments.filter((e, i) => i !== index);
     handleInput();
     handleChange();
   }
@@ -143,14 +158,12 @@
             <MeltCombo
               title=" "
               bind:value={segment.name}
-              validator={(e) => {
-                return new Validator(e).NotEmpty().Result();
+              validator={validators[i].func}
+              on:input={(e) => {
+                const { value, validationError } = e.detail;
+                validators[i].value = !validationError;
+                handleInput();
               }}
-              on:validator={(e) => {
-                const data = e.detail;
-                dispatch("validator", data);
-              }}
-              on:input={handleInput}
               on:change={handleChange}
             />
           </div>
@@ -162,7 +175,7 @@
             <LineEditor
               on:input={(e) => {
                 segment.value = e.detail.script ?? "";
-                handleInput();
+                handleInput(false);
               }}
               on:change={handleChange}
               value={segment.value}

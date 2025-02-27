@@ -85,6 +85,10 @@ export class ModulePage {
       name: "✔️ Events are copied! (Click",
     });
 
+    this.actionCopiedToast = page.getByRole("button", {
+      name: "Actions have been copied",
+    });
+
     this.characterLimitPasteToast = page.getByText("Modifications can not");
     this.characterLimitAddToast = page.getByText("Modifications can not");
     this.storeButton = page.getByRole("button", { name: "Store" });

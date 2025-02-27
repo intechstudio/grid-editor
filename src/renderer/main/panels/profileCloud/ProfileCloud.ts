@@ -1,6 +1,14 @@
 import { get, writable, Writable } from "svelte/store";
-import { loadPreset, loadProfile } from "../../../runtime/operations";
-import { GridPresetData, GridProfileData } from "../../../runtime/runtime";
+import {
+  loadPreset,
+  loadProfile,
+  loadSnippet,
+} from "../../../runtime/operations";
+import {
+  GridPresetData,
+  GridProfileData,
+  GridSnippetData,
+} from "../../../runtime/runtime";
 import {
   moduleOverlay,
   ModuleOverlayType,
@@ -30,39 +38,52 @@ export class ProfileCloudEvent {
     const active = get(runtime_manager).active.runtime;
     const { drag, config, target } = event.data;
 
-    switch (drag) {
-      case "start": {
-        profileCloudConfigDrag.set(config);
-        break;
-      }
-      case "end": {
-        profileCloudConfigDrag.set(undefined);
-        if (target) {
-          switch (config.configType) {
-            case "profile": {
-              const page = active
-                .findModule(target.dx, target.dy)
-                .findPage(target.page);
-
-              const profile = GridProfileData.createFromCloudData(config);
-              loadProfile(profile, page);
-              break;
-            }
-            case "preset": {
-              const element = active
-                .findModule(target.dx, target.dy)
-                .findPage(target.page)
-                .findElement(target.element);
-
-              const preset = GridPresetData.createFromCloudData(config);
-              loadPreset(preset, element);
-              break;
-            }
-          }
+    try {
+      switch (drag) {
+        case "start": {
+          profileCloudConfigDrag.set(config);
           break;
         }
+        case "end": {
+          profileCloudConfigDrag.set(undefined);
+          if (target) {
+            switch (config.configType) {
+              case "profile": {
+                const page = active
+                  .findModule(target.dx, target.dy)
+                  .findPage(target.page);
+
+                const profile = GridProfileData.createFromCloudData(config);
+                loadProfile(profile, page);
+                break;
+              }
+              case "preset": {
+                const element = active
+                  .findModule(target.dx, target.dy)
+                  .findPage(target.page)
+                  .findElement(target.element);
+
+                const preset = GridPresetData.createFromCloudData(config);
+                loadPreset(preset, element);
+                break;
+              }
+              case "snippet": {
+                const event = active
+                  .findModule(target.module.dx, target.module.dy)
+                  .findPage(target.page)
+                  .findElement(target.element.index)
+                  .findEvent(target.event.value);
+
+                const snippet = GridSnippetData.createFromCloudData(config);
+                loadSnippet(snippet, event, target.index).catch();
+
+                break;
+              }
+            }
+          }
+        }
       }
-    }
+    } catch (e) {}
   }
 
   static async handleShowOverlay(event: any) {

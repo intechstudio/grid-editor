@@ -6,7 +6,7 @@
 
   export const information: ActionBlockInformation = {
     short: "l",
-    name: "VarLocal",
+    name: "VarLocals",
     rendering: "standard",
     category: "variables",
     displayName: "Locals",
@@ -26,19 +26,28 @@
   import { createEventDispatcher } from "svelte";
   import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-
-  const dispatch = createEventDispatcher();
 
   export let config: GridAction;
 
+  const dispatch = createEventDispatcher();
+
   let event = config.parent as GridEvent;
+  let script: string;
+
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
+
+  function handleConfigChange(config) {
+    script = config.script;
+  }
 
   function handleUpdateAction(e: any) {
-    const { value } = e.detail;
+    const { value, validationError } = e.detail;
     dispatch("update-action", {
       short: config.information.short,
       script: value,
+      validationError: validationError,
     });
   }
 
@@ -46,7 +55,6 @@
     // Matches "local " only at the start of the string
     return script.replace(/^local\s+/, "");
   }
-
   function postProcessor(script: string): string {
     return `local ${script}`;
   }
@@ -57,14 +65,12 @@
     <span class="text-white text-sm">Local Variables:</span>
 
     <VariableManager
-      script={config.script}
+      {script}
       {preProcessor}
       {postProcessor}
       availableCharacters={$event.getAvailableChars()}
       on:input={handleUpdateAction}
       on:change={() => dispatch("sync")}
     />
-
-    <SendFeedback feedback_context={`Locals`} class="text-sm text-gray-500" />
   </div>
 </container>

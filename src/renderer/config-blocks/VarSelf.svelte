@@ -26,19 +26,28 @@
   import { createEventDispatcher } from "svelte";
   import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-
-  const dispatch = createEventDispatcher();
 
   export let config: GridAction;
 
+  const dispatch = createEventDispatcher();
+
   let event = config.parent as GridEvent;
+  let script: string;
+
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
+
+  function handleConfigChange(config) {
+    script = config.script;
+  }
 
   function handleUpdateAction(e: any) {
-    const { value } = e.detail;
+    const { value, variableError } = e.detail;
     dispatch("update-action", {
       short: config.information.short,
       script: value,
+      variableError: variableError,
     });
   }
 
@@ -48,7 +57,6 @@
     const rightSide = split.slice(1, split.length).join("");
     return `${leftSide}=${rightSide}`;
   }
-
   function postProcessor(script: string): string {
     const split = script.split("=");
     const leftSide = split[0].split(",").map((e) => `self.${e.trim()}`);
@@ -62,14 +70,12 @@
     <span class="text-white text-sm">Self Variables:</span>
 
     <VariableManager
-      script={config.script}
+      {script}
       {preProcessor}
       {postProcessor}
       availableCharacters={$event.getAvailableChars()}
       on:input={handleUpdateAction}
       on:change={() => dispatch("sync")}
     />
-
-    <SendFeedback feedback_context={`Selfs`} class="text-sm text-gray-500" />
   </div>
 </container>

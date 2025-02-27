@@ -74,6 +74,31 @@ test.describe("Action Block Operations", () => {
     await configPage.removeAllActions();
     await expect(await configPage.noActionAddActionButton).toBeVisible();
   });
+
+  test("Copy and Paste 14bit MIDI-block with Math Library", async ({
+    page,
+  }) => {
+    const expectedValue = "math.random(1,33)";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI 14");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI 14",
+      "Controller Value",
+      expectedValue
+    );
+    await configPage.selectAllActions();
+    await configPage.copyAction();
+    await configPage.removeAction();
+    await configPage.pasteAction();
+
+    const recieved = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI 14",
+      "Controller Value"
+    );
+    await expect(recieved).toBe(expectedValue);
+  });
 });
 
 test.describe("Element Operations", () => {
@@ -245,5 +270,32 @@ test.describe("Character limit", () => {
     await configPage.addAndEditCodeBlock(text);
     await configPage.commitCode();
     await expect(configPage.characterCount).toContainText("23");
+  });
+});
+
+test.describe("Syntax error", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("EN16");
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI");
+  });
+  test("block the operations while selected", async () => {
+    await configPage.selectAllActions();
+    await configPage.writeActionBlockField("midi", "MIDI", "Command", ",");
+    await configPage.copyAction();
+
+    await expect(await modulePage.actionCopiedToast).toBeHidden();
+  });
+  test("correction enable the operations while selected", async () => {
+    await configPage.selectAllActions();
+    await configPage.writeActionBlockField("midi", "MIDI", "Command", ",");
+    await configPage.writeActionBlockField("midi", "MIDI", "Command", "2");
+    await configPage.copyAction();
+    await expect(await modulePage.actionCopiedToast).toBeVisible();
   });
 });
