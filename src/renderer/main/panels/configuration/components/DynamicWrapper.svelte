@@ -4,7 +4,12 @@
     ActionData,
     GridEvent,
   } from "./../../../../runtime/runtime";
-  import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
+  import {
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+    type SvelteComponent,
+  } from "svelte";
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
@@ -26,7 +31,6 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
-  let validationError = false;
   let ctrlIsDown = false;
   let toggled = false;
 
@@ -46,6 +50,14 @@
     component = result.component;
   });
 
+  onDestroy(() => {
+    updateAction(
+      action,
+      new ActionData(action.short, action.synced, action.name),
+      false
+    );
+  });
+
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;
     const oldAction = action;
@@ -61,17 +73,17 @@
   }
 
   function handleUpdateAction(e) {
-    const { short, script, name } = e.detail;
-    updateAction(action, new ActionData(short, script, name), false);
+    const { short, script, name, validationError } = e.detail;
+    const data = new ActionData(short, script, name);
+    //TODO: Propose better solution
+    data.invalid = validationError;
+    updateAction(action, data, false);
   }
 
   function handleSendActionToGrid() {
-    syncWithGrid(action);
-  }
-
-  function handleValidator(e) {
-    const data = e.detail;
-    validationError = data.isError;
+    if (!action.invalid) {
+      syncWithGrid(action);
+    }
   }
 
   function handleToggle(e) {
@@ -124,7 +136,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {$action.invalid
       ? 'border-error'
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
@@ -161,10 +173,8 @@
             <div class="bg-black/15 h-full w-full">
               <svelte:component
                 this={component}
-                {index}
                 config={action}
                 on:replace={handleReplace}
-                on:validator={handleValidator}
                 on:update-action={handleUpdateAction}
                 on:sync={handleSendActionToGrid}
                 on:toggle={handleToggle}
@@ -177,7 +187,6 @@
             <svelte:component
               this={header}
               config={action}
-              {index}
               on:toggle={handleToggle}
               on:update-action={handleUpdateAction}
               on:sync={handleSendActionToGrid}

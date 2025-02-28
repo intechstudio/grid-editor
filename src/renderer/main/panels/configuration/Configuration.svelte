@@ -172,7 +172,6 @@
   class="flex w-full h-full configpanel activator-button"
   on:keydown={(e) => {
     //Ignore if origin node is input
-    console.log({ e });
     if (
       e.srcElement.nodeName == "INPUT" ||
       e.srcElement.nodeName == "TEXTAREA"

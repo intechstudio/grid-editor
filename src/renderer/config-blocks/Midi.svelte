@@ -50,16 +50,14 @@
   import { midiCC } from "./_midi.js";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridEvent } from "./../runtime/runtime";
-
-  import { Validator } from "./_validators";
-
-  export let config;
-  export let index;
-
+  import { GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
+  import { Validator } from "./validators";
+  import { valid } from "semver";
+
+  export let config: GridAction;
 
   let event = config.parent as GridEvent;
 
@@ -67,23 +65,37 @@
 
   const parameterNames = ["Channel", "Command", "Parameter 1", "Parameter 2"];
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
   let scriptSegments = [];
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -92,12 +104,16 @@
     });
   }
 
-  function sendData(e, index) {
+  function sendData() {
     const script = Script.toScript({
       short: config.short,
       array: scriptSegments,
     }); // important to set the function name
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   const channels = (length) => {
@@ -186,13 +202,9 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
   }
-
-  let suggestionElement = undefined;
 </script>
 
-<action-midi
-  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
->
+<action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />
@@ -212,13 +224,11 @@
         title={parameterNames[i]}
         bind:value={script}
         suggestions={suggestions[i]}
-        validator={validators[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i].func}
         on:input={(e) => {
-          sendData(e.detail, i);
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

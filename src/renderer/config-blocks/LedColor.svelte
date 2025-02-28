@@ -36,7 +36,7 @@
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { ElementType } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import {
@@ -50,27 +50,41 @@
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
 
   export let config: GridAction;
-  export let index;
 
   let event = config.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Red", "Green", "Blue"];
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
@@ -82,7 +96,9 @@
   const defaultColor = new Grid.RGB(255, 255, 255).toHSL();
   let color: Grid.HSL = defaultColor;
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config: ActionData) {
     const _segments = Script.toSegments({
@@ -119,7 +135,11 @@
       array: [...scriptSegments, beautyMode],
     });
 
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   const _suggestions = [
@@ -216,13 +236,11 @@
       <MeltCombo
         title={parameterNames[i]}
         bind:value={script}
-        validator={validators[i]}
+        validator={validators[i].func}
         suggestions={suggestions[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
         on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
           sendData();
         }}
         on:change={() => dispatch("sync")}
@@ -246,13 +264,11 @@
       <MeltCombo
         title={parameterNames[i]}
         bind:value={scriptSegments[i]}
-        validator={validators[i]}
+        validator={validators[i].func}
         suggestions={suggestions[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
         on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[i].value = !validationError;
           sendData();
         }}
         on:change={() => dispatch("sync")}

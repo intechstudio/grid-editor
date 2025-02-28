@@ -36,7 +36,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
@@ -45,14 +45,16 @@
   import { MoltenButton } from "@intechstudio/grid-uikit";
   import { getComponentInformation } from "../../renderer/lib/_configs";
   import { mergeActionsToCode } from "../runtime/operations";
+  import { GridAction } from "../runtime/runtime";
 
   const dispatch = createEventDispatcher();
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   let compBlock = undefined;
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     compBlock = getCompatiblityBlock(config.script);

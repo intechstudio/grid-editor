@@ -3,10 +3,12 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import { PAGE_PATH, mockNavigatorSerial, getRandomInt } from "../utility";
 import { ConfigPage } from "../pages/configPage";
+import KeyboardActions from "../keyboardActions";
 
 let connectModulePage;
 let modulePage;
 let configPage;
+let keyboardActions;
 
 test.beforeEach(async ({ page }) => {
   await mockNavigatorSerial(page);
@@ -60,6 +62,24 @@ test.describe("Issues", () => {
     );
     await configPage.selectElementEvent("Timer");
     await configPage.selectElementEvent("Button");
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC"
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
+
+  test("Coma character in MIDI NRPN ", async ({ page }) => {
+    const expectedValue = ",";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      expectedValue
+    );
     const actualValue = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
@@ -242,31 +262,50 @@ test.describe("Input field keyboard shortcuts", () => {
     connectModulePage = new ConnectModulePage(page);
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.removeAllActions();
   });
-  test("Nested Actions field", async ({ page }) => {
+  test("Monaco Field", async ({ page }) => {
     const category = "condition";
     const blockName = "If";
     const field = "input";
     const expectedValue = "TestTest";
     await configPage.openAndAddActionBlock(category, blockName);
     await configPage.clickActionBlockElement(category, blockName, field);
-    await page.keyboard.type("Test");
-    await page.keyboard.press("ControlOrMeta+a");
-    await page.keyboard.press("ControlOrMeta+c");
-    await page.keyboard.press("ControlOrMeta+v");
-    await page.keyboard.press("ControlOrMeta+v");
-    // await expect(
-    //   configPage.getActionBlockFieldValue(category, blockName, field)
-    // ).toBe(expectedValue); not textbox, can't fill, solution?
+    await keyboardActions.selectAll();
+    await keyboardActions.type("Test");
+    await keyboardActions.selectAll();
+    await keyboardActions.copy();
+    await keyboardActions.paste();
+    await keyboardActions.paste();
+    const actualValue = await configPage.getActionBlockMonacoFieldTextContetnt(
+      category,
+      blockName,
+      field
+    );
+    await expect(actualValue).toBe(expectedValue);
   });
-  test("Variable name filed", async () => {
-    await configPage.openAndAddActionBlock("variables", "Lookup");
-  });
-  test("Variable value field", async () => {
-    await configPage.openAndAddActionBlock("variables", "Lookup");
+  test("Text Field", async () => {
+    const category = "midi";
+    const blockName = "MIDI";
+    const field = "Channel";
+    const expectedValue = "TestTest";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await keyboardActions.selectAll();
+    await keyboardActions.type("Test");
+    await keyboardActions.selectAll();
+    await keyboardActions.copy();
+    await keyboardActions.paste();
+    await keyboardActions.paste();
+    const actualValue = await configPage.getActionBlockFieldValue(
+      category,
+      blockName,
+      field
+    );
+    await expect(actualValue).toBe(expectedValue);
   });
 });

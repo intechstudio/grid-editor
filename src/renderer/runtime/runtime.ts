@@ -241,12 +241,16 @@ export class ActionData extends NodeData {
   public short: string;
   public script: string;
   public name?: string;
+  public synced: string;
+  public invalid: boolean;
 
   constructor(short: string, script: string, name?: string) {
     super();
     this.short = short;
     this.script = script;
     this.name = name;
+    this.synced = script;
+    this.invalid = false;
   }
 
   public toLua() {
@@ -255,10 +259,10 @@ export class ActionData extends NodeData {
     }]] ${this.script}`;
   }
 
-  public checkSyntax() {
+  public isValid() {
     const code =
       this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
-    return GridScript.checkSyntax(code);
+    return GridScript.checkSyntax(code) && !this.invalid;
   }
 
   public get information() {
@@ -352,8 +356,8 @@ export class GridAction extends RuntimeNode<ActionData> {
     return this.data.toLua();
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public sendToGrid(): Promise<SendToGridResult> {
@@ -365,26 +369,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
 
-    if (!Grid.isParenthesisClosed(data.script)) {
-      return Promise.reject({
-        value: false,
-        text: Runtime.ErrorText.UNCLOSED_PARENTHESIS,
-        type: GridOperationType.UPDATE_ACTION,
-        info: (this.parent as GridEvent)?.getInfo(),
-      });
-    }
-
-    if (parent.getAvailableChars() - diff >= 0) {
-      this.script = data.script;
-      this.short = data.short;
-      this.name = data.name;
-      return Promise.resolve({
-        value: true,
-        text: "OK",
-        type: GridOperationType.UPDATE_ACTION,
-        info: (this.parent as GridEvent)?.getInfo(),
-      });
-    } else {
+    if (parent.getAvailableChars() - diff < 0) {
       this.notify(); //TODO: Refactor this out
       this.notifyParent(); //TODO: Refactor this out
       return Promise.reject({
@@ -394,9 +379,40 @@ export class GridAction extends RuntimeNode<ActionData> {
         info: (this.parent as GridEvent)?.getInfo(),
       });
     }
+
+    this.script = data.script;
+    this.short = data.short;
+    this.name = data.name;
+    this.invalid = data.invalid;
+
+    if (!this.isValid()) {
+      return Promise.reject({
+        value: false,
+        text: Runtime.ErrorText.SYNTAX_ERROR,
+        type: GridOperationType.UPDATE_ACTION,
+        info: (this.parent as GridEvent)?.getInfo(),
+      });
+    } else {
+      this.synced = data.script;
+    }
+
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: GridOperationType.UPDATE_ACTION,
+      info: (this.parent as GridEvent)?.getInfo(),
+    });
   }
 
   // Getters
+  public get invalid() {
+    return this.data.invalid;
+  }
+
+  public get synced() {
+    return this.data.synced;
+  }
+
   public get indentation() {
     return this.data.indentation;
   }
@@ -418,6 +434,14 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   // Setters
+  public set invalid(value: boolean) {
+    this.setField("invalid", value);
+  }
+
+  public set synced(value: string) {
+    this.setField("synced", value);
+  }
+
   private set script(value: string) {
     this.setField("script", value);
   }
@@ -482,9 +506,9 @@ export class EventData extends NodeData {
     return this.stored === this.toLua();
   }
 
-  public checkSyntax() {
+  public isValid() {
     for (const action of this.config) {
-      if (!action.checkSyntax()) {
+      if (!action.isValid()) {
         return false;
       }
     }
@@ -763,8 +787,8 @@ export class GridEvent extends RuntimeNode<EventData> {
     }
   }
 
-  public checkSyntax() {
-    return this.data.checkSyntax();
+  public isValid() {
+    return this.data.isValid();
   }
 
   public isLoaded() {
@@ -830,7 +854,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       )
     );
 
-    if (!codeBlock.checkSyntax()) {
+    if (!codeBlock.isValid()) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.SYNTAX_ERROR,
@@ -984,6 +1008,15 @@ export class ElementData extends NodeData {
     this.elementIndex = elementIndex;
     this.type = type;
     this.name = name;
+  }
+
+  public isValid() {
+    for (const event of this.events) {
+      if (!event.isValid()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public hasChanges() {
@@ -1169,6 +1202,10 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
+  public isValid() {
+    return this.data.isValid();
+  }
+
   public async load(): Promise<void> {
     try {
       for (const event of this.events) {
@@ -1215,9 +1252,23 @@ export class GridElement extends RuntimeNode<ElementData> {
   }
 }
 
-export interface PageData extends NodeData {
+export class PageData extends NodeData {
   pageNumber: number;
-  control_elements?: Array<GridElement>;
+  control_elements: Array<GridElement> = [];
+
+  constructor(index: number) {
+    super();
+    this.pageNumber = index;
+  }
+
+  public isValid() {
+    for (const element of this.control_elements) {
+      if (!element.isValid()) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 export type PageInfo = {
@@ -1240,6 +1291,10 @@ export class GridPage extends RuntimeNode<PageData> {
         new GridElement(this, new ElementData(Number(index), element))
       );
     }
+  }
+
+  public isValid() {
+    return this.data.isValid();
   }
 
   public getInfo(): PageInfo {
@@ -1355,7 +1410,7 @@ type DirectionMap = {
   top: Direction;
 };
 
-export interface ModuleData extends NodeData {
+export class ModuleData extends NodeData {
   architecture: Architecture;
   dx: number;
   dy: number;
@@ -1365,7 +1420,40 @@ export interface ModuleData extends NodeData {
   portstate: any;
   rot: number;
   type: ModuleType;
-  pages?: Array<GridPage>;
+  pages: Array<GridPage>;
+
+  constructor(
+    architecture: Architecture,
+    portstate: any,
+    dx: number,
+    dy: number,
+    rot: number,
+    fwVersion: FirmwareVersion,
+    type: ModuleType,
+    fwMismatch: boolean,
+    map: DirectionMap
+  ) {
+    super();
+    this.architecture = architecture;
+    this.portstate = portstate;
+    this.dx = dx;
+    this.dy = dy;
+    this.rot = rot;
+    this.fwVersion = fwVersion;
+    this.type = type;
+    this.fwMismatch = fwMismatch;
+    this.map = map;
+    this.pages = [];
+  }
+
+  public isValid() {
+    for (const page of this.pages) {
+      if (!page.isValid()) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 export type ModuleInfo = {
@@ -1378,11 +1466,15 @@ export class GridModule extends RuntimeNode<ModuleData> {
   constructor(parent: GridRuntime, data?: ModuleData) {
     super(parent, data);
     this.pages = [
-      new GridPage(this, this.type, { pageNumber: 0 }),
-      new GridPage(this, this.type, { pageNumber: 1 }),
-      new GridPage(this, this.type, { pageNumber: 2 }),
-      new GridPage(this, this.type, { pageNumber: 3 }),
+      new GridPage(this, this.type, new PageData(0)),
+      new GridPage(this, this.type, new PageData(1)),
+      new GridPage(this, this.type, new PageData(2)),
+      new GridPage(this, this.type, new PageData(3)),
     ];
+  }
+
+  public isValid() {
+    return this.data.isValid();
   }
 
   public getInfo(): ModuleInfo {
@@ -1499,8 +1591,22 @@ export class GridModule extends RuntimeNode<ModuleData> {
   }
 }
 
-export interface RuntimeData extends NodeData {
-  modules: Array<GridModule>;
+export class RuntimeData extends NodeData {
+  public modules: Array<GridModule>;
+
+  constructor() {
+    super();
+    this.modules = [];
+  }
+
+  public isValid() {
+    for (const module of this.modules) {
+      if (!module.isValid()) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 export class GridRuntime extends RuntimeNode<RuntimeData> {
@@ -1514,10 +1620,14 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     connection: GridConnection = undefined,
     virtual: boolean = false
   ) {
-    super(undefined, { modules: [] });
+    super(undefined, new RuntimeData());
     this.connection = connection;
     this.virtual = virtual;
     this.aliveModules = writable([]);
+  }
+
+  public isValid() {
+    return this.data.isValid();
   }
 
   get modules() {
@@ -1859,29 +1969,32 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       throw "Error creating new module.";
     }
 
-    return new GridModule(this, {
-      // implement the module id rep / req
-      architecture: virtual
-        ? Architecture.VIRTUAL
-        : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
-      portstate: heartbeat_class_param.PORTSTATE,
-      dx: header_param.SX,
-      dy: header_param.SY,
-      rot: header_param.ROT,
-      fwVersion: {
-        major: heartbeat_class_param.VMAJOR,
-        minor: heartbeat_class_param.VMINOR,
-        patch: heartbeat_class_param.VPATCH,
-      },
-      type: ModuleType[moduleType as keyof typeof ModuleType],
-      fwMismatch: false,
-      map: {
-        top: { dx: header_param.SX, dy: header_param.SY + 1 },
-        right: { dx: header_param.SX + 1, dy: header_param.SY },
-        bot: { dx: header_param.SX, dy: header_param.SY - 1 },
-        left: { dx: header_param.SX - 1, dy: header_param.SY },
-      },
-    });
+    return new GridModule(
+      this,
+      new ModuleData(
+        // implement the module id rep / req
+        virtual
+          ? Architecture.VIRTUAL
+          : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
+        heartbeat_class_param.PORTSTATE,
+        header_param.SX,
+        header_param.SY,
+        header_param.ROT,
+        {
+          major: heartbeat_class_param.VMAJOR,
+          minor: heartbeat_class_param.VMINOR,
+          patch: heartbeat_class_param.VPATCH,
+        },
+        ModuleType[moduleType as keyof typeof ModuleType],
+        false,
+        {
+          top: { dx: header_param.SX, dy: header_param.SY + 1 },
+          right: { dx: header_param.SX + 1, dy: header_param.SY },
+          bot: { dx: header_param.SX, dy: header_param.SY - 1 },
+          left: { dx: header_param.SX - 1, dy: header_param.SY },
+        }
+      )
+    );
   }
 
   public isAlive(device: GridModule) {

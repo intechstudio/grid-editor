@@ -52,15 +52,6 @@ function handleError(e: GridOperationResult) {
       break;
     }
   }
-
-  /*
-  logger.set({
-    type: "fail",
-    mode: 0,
-    classname: "luanotok",
-    message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
-  });
-  */
 }
 
 //Clipboard handlers
@@ -200,20 +191,23 @@ export async function clearElement(target: GridElement) {
 }
 
 export async function syncWithGrid(target: GridAction) {
-  target.sendToGrid().finally(() => {
-    const event = target.parent as GridEvent;
-    const element = event.parent as GridElement;
-    Analytics.track({
-      event: "Config Action",
-      payload: {
-        click: "Update",
-        elementType: element.type,
-        eventType: event.type,
-        short: target.short,
-      },
-      mandatory: false,
+  target
+    .sendToGrid()
+    .catch(handleError)
+    .finally(() => {
+      const event = target.parent as GridEvent;
+      const element = event.parent as GridElement;
+      Analytics.track({
+        event: "Config Action",
+        payload: {
+          click: "Update",
+          elementType: element.type,
+          eventType: event.type,
+          short: target.short,
+        },
+        mandatory: false,
+      });
     });
-  });
 }
 
 export async function updateAction(
@@ -221,7 +215,7 @@ export async function updateAction(
   data: ActionData,
   sync: boolean
 ) {
-  target
+  return target
     .updateData(data)
     .catch(handleError)
     .finally(() => {
