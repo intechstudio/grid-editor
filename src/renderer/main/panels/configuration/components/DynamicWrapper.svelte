@@ -182,7 +182,7 @@
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
-          <div class="h-10 w-full">
+          <div class="min-h-10 w-full flex">
             <svelte:component
               this={header}
               config={action}
