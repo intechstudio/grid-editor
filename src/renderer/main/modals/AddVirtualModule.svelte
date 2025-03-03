@@ -93,8 +93,8 @@
 </script>
 
 <MoltenModal width={500}>
-  <div slot="content">
-    <div class="flex flex-col">
+  <div slot="content" class="grid grid-rows-[auto_1fr_auto] max-h-[80vh]">
+    <div>
       <div class="flex w-full text-4xl opacity-90 pb-2">Add Virtual Module</div>
       <p>
         In virtual mode you can check out the features of Grid Editor. Add your
@@ -104,60 +104,61 @@
         Browse profiles and presets in the Profile Cloud, or download them to
         your virtual module!
       </p>
-      <div
-        class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full mt-4"
-      >
-        {#each devices as device, index}
-          {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
-            <div class="flex w-full h-full items-center justify-center">
-              <div class="flex flex-col">
-                <span class="text-white text-opacity-75 font-mono"
-                  >{device.id}</span
-                >
-                <button
-                  data-testid={device.id}
-                  class="border"
-                  class:border-transparent={index !== selectedModule}
-                  class:hover:border-emerald-600={index !== selectedModule}
-                  class:border-emerald-300={index === selectedModule}
-                  on:click={() => handleModuleClicked(index)}
-                  on:dblclick={() => handleModuleDoubleClicked(index)}
+    </div>
+    <div
+      class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full mt-4
+          overflow-auto max-h-[50vh]"
+    >
+      {#each devices as device, index}
+        {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
+          <div class="flex w-full h-full items-center justify-center">
+            <div class="flex flex-col">
+              <span class="text-white text-opacity-75 font-mono"
+                >{device.id}</span
+              >
+              <button
+                data-testid={device.id}
+                class="border"
+                class:border-transparent={index !== selectedModule}
+                class:hover:border-emerald-600={index !== selectedModule}
+                class:border-emerald-300={index === selectedModule}
+                on:click={() => handleModuleClicked(index)}
+                on:dblclick={() => handleModuleDoubleClicked(index)}
+              >
+                <div
+                  style="
+                      transform-origin: top left;
+                      width: calc(113px);
+                      height: calc(113px);
+                      transform: scale(0.5); 
+                    "
                 >
                   <div
-                    style="
-                transform-origin: top left;
-                width: calc(113px);
-                height: calc(113px);
-                transform: scale(0.5); 
-              "
+                    class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
                   >
-                    <div
-                      class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
-                    >
-                      <svelte:component
-                        this={device.component}
-                        {device}
-                        moduleWidth={225}
-                      />
-                    </div>
+                    <svelte:component
+                      this={device.component}
+                      {device}
+                      moduleWidth={225}
+                    />
                   </div>
-                </button>
-              </div>
+                </div>
+              </button>
             </div>
-          {/if}
-        {/each}
-      </div>
-      <div class="flex flex-row gap-2 pt-4 ml-auto">
-        <MoltenPushButton
-          text="Add Module"
-          click={handleAddClicked}
-          style={"accept"}
-          disabled={selectedModule === -1}
-        />
-        {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
-          <MoltenPushButton text="Cancel" click={handleCancelClicked} />
+          </div>
         {/if}
-      </div>
+      {/each}
+    </div>
+    <div class="flex flex-row gap-2 pt-4 ml-auto">
+      <MoltenPushButton
+        text="Add Module"
+        click={handleAddClicked}
+        style={"accept"}
+        disabled={selectedModule === -1}
+      />
+      {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
+        <MoltenPushButton text="Cancel" click={handleCancelClicked} />
+      {/if}
     </div>
   </div>
 </MoltenModal>
