@@ -36,4 +36,5 @@
     style={styleMap[$modal?.options.snap]?.style}
   >
     <slot name="content" />
-
+  </div>
+</div>
