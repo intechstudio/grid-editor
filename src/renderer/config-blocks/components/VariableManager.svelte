@@ -119,9 +119,16 @@
 
   function handleInput() {
     const script = buildScript(segments);
+    let parsingError = false;
+    try {
+      parseVariableAssignments(script);
+    } catch (e) {
+      parsingError = true;
+    }
     dispatch("input", {
       value: GridScript.shortify(script),
-      validationError: validators.some((e) => e.value === false),
+      validationError:
+        validators.some((e) => e.value === false) || parsingError,
     });
   }
 
@@ -175,7 +182,7 @@
             <LineEditor
               on:input={(e) => {
                 segment.value = e.detail.script ?? "";
-                handleInput(false);
+                handleInput();
               }}
               on:change={handleChange}
               value={segment.value}
