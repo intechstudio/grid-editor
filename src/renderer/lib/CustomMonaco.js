@@ -305,53 +305,38 @@ function initialize_autocomplete() {
 
         const key = item[0];
         const value = item[1];
-        if (key.startsWith("GRID_LUA_FNC_EP")) {
-          if (elementtype === "endless" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
+        const elementTypeMapping = {
+          GRID_LUA_FNC_EP: "endless",
+          GRID_LUA_FNC_E: "encoder",
+          GRID_LUA_FNC_B: "button",
+          GRID_LUA_FNC_P: "potmeter",
+          GRID_LUA_FNC_L: "lcd",
+        };
+
+        const keyPrefix = Object.keys(elementTypeMapping).find((prefix) =>
+          key.startsWith(prefix)
+        );
+
+        if (
+          keyPrefix &&
+          (elementtype === elementTypeMapping[keyPrefix] ||
+            elementtype === undefined)
+        ) {
+          proposalItem.label = `self:${value}`;
+          proposalItem.insertText = `self:${value}()`;
+        } else if (elementtype === "system" || !elementtype) {
+          if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
+            proposalItem.label = `element[0]:${value}`;
+            proposalItem.insertText = `element[0]:${value}()`;
           }
-        } else if (key.startsWith("GRID_LUA_FNC_E")) {
-          if (elementtype === "encoder" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
-          }
-        } else if (key.startsWith("GRID_LUA_FNC_B")) {
-          if (elementtype === "button" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          }
-        } else if (key.startsWith("GRID_LUA_FNC_P")) {
-          if (elementtype === "potmeter" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
-          }
-        } else if (key.startsWith("GRID_LUA_FNC_L")) {
-          if (elementtype === "lcd" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
-          }
-        } else {
-          proposalItem.label = value;
-          proposalItem.insertText = value;
         }
+
+        proposalList.push(proposalItem);
 
         const helperText = grid.get_lua_function_helper(key);
         if (typeof helperText !== "undefined") {
           hoverTips[value] = helperText;
         }
-        proposalList.push(proposalItem);
       }
 
       for (const element of language.functions) {
