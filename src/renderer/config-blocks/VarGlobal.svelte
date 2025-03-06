@@ -43,11 +43,11 @@
   }
 
   function handleUpdateAction(e: any) {
-    const { value, variableError } = e.detail;
+    const { value, validationError } = e.detail;
     dispatch("update-action", {
       short: config.information.short,
       script: value,
-      variableError: variableError,
+      validationError: validationError,
     });
   }
 </script>

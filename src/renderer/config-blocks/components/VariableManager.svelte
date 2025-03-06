@@ -20,8 +20,7 @@
   $: handleScriptChange(script);
 
   function handleScriptChange(script: string) {
-    const processed = preProcessor(script);
-    segments = parseVariableAssignments(processed);
+    segments = parseVariableAssignments(script);
     for (const segment of segments) {
       segment.value = GridScript.humanize(segment.value);
     }
@@ -93,9 +92,10 @@
   function parseVariableAssignments(
     statement: string
   ): ScriptSegment[] | undefined {
+    const processed = preProcessor(statement);
     const assignments: ScriptSegment[] = [];
-    const variableNames = splitParts(statement.split("=")[0]);
-    const variableValues = splitParts(statement.split("=")[1]);
+    const variableNames = splitParts(processed.split("=")[0]);
+    const variableValues = splitParts(processed.split("=")[1]);
 
     if (variableNames.length !== variableValues.length) {
       throw new Error("Error parsing variables: mismatched names and values!");
@@ -125,6 +125,7 @@
     } catch (e) {
       parsingError = true;
     }
+
     dispatch("input", {
       value: GridScript.shortify(script),
       validationError:
