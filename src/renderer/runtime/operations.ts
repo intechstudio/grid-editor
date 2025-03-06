@@ -462,6 +462,7 @@ export function dropActions(
   const targetMinIndex = Math.min(...targetIndexes);
   const targetMaxIndex = Math.max(...targetIndexes);
 
+  console.log(targetActions, targetIndexes);
   if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
     return Promise.reject("Invalid drop zone!");
   }
