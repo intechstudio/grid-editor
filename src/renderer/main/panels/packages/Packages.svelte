@@ -245,6 +245,16 @@
           text="+"
         />
       </div>
+      <div class="mx-2">
+        <MoltenPushButton
+          click={() => {
+            window.packageManagerPort?.postMessage({
+              type: "search-updates",
+            });
+          }}
+          text="Search Updates"
+        />
+      </div>
     </div>
 
     {#if !$appSettings.packageManagerRunning}

@@ -48,13 +48,13 @@ process.parentPort.on("message", async (e) => {
         localPackages = new Map(Object.entries(e.data.localPackages));
 
         startPackageDirectoryWatcher(packageFolder);
-        updateGithubPackages();
+        //updateGithubPackages();
         if (e.data.updatePackageOnStartName) {
           await downloadPackage(e.data.updatePackageOnStartName);
         }
         break;
       }
-      case "refresh-packages": {
+      case "search-updates": {
         updateGithubPackages();
         break;
       }
