@@ -22,6 +22,7 @@ import {
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
+import { Runtime } from "./string-table";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -450,11 +451,11 @@ export async function loadSnippet(
     });
 }
 
-export function dropActions(
+export async function dropActions(
   target: GridEvent,
   index: number,
   actions: GridAction[]
-): Promise<void> {
+): Promise<InsertActionsResult> {
   let targetActions = actions.filter((e) => e.parent === target);
   let targetIndexes = targetActions.map((action) =>
     target.config.findIndex((e) => e.id === action.id)
@@ -463,7 +464,27 @@ export function dropActions(
   const targetMaxIndex = Math.max(...targetIndexes);
 
   if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
-    return Promise.reject("Invalid drop zone!");
+    const error = {
+      value: false,
+      text: `Add failed! Invalid index: ${index}.`,
+      type: GridOperationType.INSERT_ACTIONS,
+      info: target.getInfo(),
+    };
+    handleError(error);
+    return Promise.reject(error);
+  }
+
+  const remaining =
+    target.getAvailableChars() - actions.map((e) => e.toLua()).join("").length;
+  if (remaining < 0) {
+    const error = {
+      value: false,
+      text: Runtime.ErrorText.LENGTH_ERROR,
+      type: GridOperationType.INSERT_ACTIONS,
+      info: target.getInfo(),
+    };
+    handleError(error);
+    return Promise.reject(error);
   }
 
   for (const action of actions) {
@@ -476,6 +497,7 @@ export function dropActions(
     index = movingDown ? index - targetIndexes.length : index;
   }
 
-  target.insert(index, ...actions);
-  return Promise.resolve();
+  target.insert(index, ...actions).catch((e) => {
+    handleError(e);
+  });
 }
