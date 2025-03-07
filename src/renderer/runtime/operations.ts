@@ -230,13 +230,16 @@ export async function updateAction(
 
 export async function mergeActionsToCode(
   target: GridEvent,
+  selectMergedAction: boolean,
   ...actions: GridAction[]
 ) {
   target
     .merge(...actions)
     .then((result) => {
       target.sendToGrid();
-      selected_actions.set([result.merged]);
+      if (selectMergedAction) {
+        selected_actions.set([result.merged]);
+      }
     })
     .catch(handleError)
     .finally(() => {});

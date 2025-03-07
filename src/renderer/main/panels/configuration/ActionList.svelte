@@ -18,6 +18,7 @@
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
   import { onMount } from "svelte";
+  import { latestComponentVersionKeys } from "../../../lib/_configs";
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
 
   export let event: GridEvent;
@@ -178,14 +179,16 @@
         in:fade|global={{ delay: 0 }}
       >
         <div class="flex flex-row gap-2">
-          <DynamicWrapper
-            {index}
-            {action}
-            selected={typeof $selected_actions.find(
-              (e) => e.id === action.id
-            ) !== "undefined"}
-            on:select={(e) => handleSelectionChange(action, e.detail.value)}
-          />
+          {#key $latestComponentVersionKeys.get(action.short)}
+            <DynamicWrapper
+              {index}
+              {action}
+              selected={typeof $selected_actions.find(
+                (e) => e.id === action.id
+              ) !== "undefined"}
+              on:select={(e) => handleSelectionChange(action, e.detail.value)}
+            />
+          {/key}
           <div class="flex items-center">
             <Option
               selected={typeof $selected_actions.find(

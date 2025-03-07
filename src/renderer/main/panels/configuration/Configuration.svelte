@@ -131,7 +131,7 @@
       throw "Clipboard error: Mismatched clipboard";
     }
 
-    mergeActionsToCode(selected[0].parent as GridEvent, ...selected);
+    mergeActionsToCode(selected[0].parent as GridEvent, true, ...selected);
   }
 
   function handleRemove() {
