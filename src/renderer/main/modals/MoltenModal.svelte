@@ -32,7 +32,7 @@
 >
   <div
     class="z-50 text-white shadow-md p-6
-      bg-primary rounded {styleMap[$modal?.options.snap]?.class}"
+      bg-primary rounded max-h-screen {styleMap[$modal?.options.snap]?.class}"
     style={styleMap[$modal?.options.snap]?.style}
   >
     <slot name="content" />
