@@ -26,7 +26,7 @@
       label: "Initial value",
       validator: {
         value: true,
-        func: (e) => new Validator(e).isLuaVariable().Result(),
+        func: (e) => new Validator(e).isLuaValue().Result(),
       },
       suggestions: [],
     },
@@ -35,7 +35,7 @@
       label: "End value",
       validator: {
         value: true,
-        func: (e) => new Validator(e).isLuaVariable().Result(),
+        func: (e) => new Validator(e).isLuaValue().Result(),
       },
       suggestions: [],
     },
@@ -44,7 +44,7 @@
       label: "Increment",
       validator: {
         value: true,
-        func: (e) => new Validator(e).isLuaVariable().Result(),
+        func: (e) => new Validator(e).isLuaValue().Result(),
       },
       suggestions: [],
     },
@@ -90,7 +90,8 @@
   }
 
   function handleInputFieldChange(e, i) {
-    data[i].value = e.detail;
+    const { value } = e.detail;
+    data[i].value = value;
     const shortData = data.map((e) => e.value);
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
     dispatch("update-action", {
@@ -104,8 +105,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
-  class="px-2 w-full h-full rounded-tr-xl justify-center flex flex-col"
-  class:p-2={toggleValue}
+  class="px-2 w-full rounded-tr-xl justify-center flex flex-col"
   style="background-color:{config.information.color}"
 >
   <div class="flex flex-row flex-grow items-center gap-2 text-white py-1">

@@ -67,9 +67,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="justify-between gap-2 w-full h-full px-2 py-1 flex-row text-white flex items-center bg-secondary {false
-    ? 'group-hover/bg-color:bg-select-saturate-10'
-    : ''}"
+  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary"
   on:click={handleClick}
 >
   {#if isEdit}
