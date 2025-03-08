@@ -260,9 +260,10 @@ function initialize_theme() {
 
 function initialize_autocomplete() {
   (function init_autocomplete() {
-    function createProposals(range) {
+    function createProposals(range, model, position, prefix) {
       let proposalList = [];
 
+      // Handle other general cases (mathfunctions, keywords, etc.)
       for (const element of language.mathfunctions) {
         let proposalItem = {
           label: "",
@@ -313,6 +314,9 @@ function initialize_autocomplete() {
           GRID_LUA_FNC_L: "lcd",
         };
 
+        const lineContent = model.getLineContent(range.startLineNumber);
+        const isInsideSelfOrElement =
+          lineContent.includes("self:") || lineContent.includes("element[");
         const keyPrefix = Object.keys(elementTypeMapping).find((prefix) =>
           key.startsWith(prefix)
         );
@@ -322,15 +326,16 @@ function initialize_autocomplete() {
           (elementtype === elementTypeMapping[keyPrefix] ||
             elementtype === undefined)
         ) {
-          proposalItem.label = `self:${value}`;
-          proposalItem.insertText = `self:${value}()`;
+          proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
+          proposalItem.insertText = `${proposalItem.label}()`;
         } else if (elementtype === "system" || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
-            proposalItem.label = `element[0]:${value}`;
-            proposalItem.insertText = `element[0]:${value}()`;
+            proposalItem.label = isInsideSelfOrElement
+              ? value
+              : `element[0]:${value}`;
+            proposalItem.insertText = `${proposalItem.label}()`;
           }
         }
-
         proposalList.push(proposalItem);
 
         const helperText = grid.get_lua_function_helper(key);
@@ -354,8 +359,6 @@ function initialize_autocomplete() {
         proposalList.push(proposalItem);
       }
 
-      // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
-      // here you could do a server side lookup
       return proposalList;
     }
 
@@ -363,23 +366,38 @@ function initialize_autocomplete() {
       "intech_lua",
       {
         provideCompletionItems: function (model, position) {
-          // find out if we are completing a property in the 'dependencies' object.
-          var textUntilPosition = model.getValueInRange({
-            startLineNumber: 1,
-            startColumn: 1,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column,
-          });
-
           var word = model.getWordUntilPosition(position);
+          var lineContent = model.getLineContent(position.lineNumber);
           var range = {
             startLineNumber: position.lineNumber,
             endLineNumber: position.lineNumber,
             startColumn: word.startColumn,
             endColumn: word.endColumn,
           };
+
+          // Check for 'self:' or 'element[x]:'
+          const selfIndex = lineContent.lastIndexOf(
+            "self:",
+            position.column - 1
+          );
+          const elementIndex = lineContent.lastIndexOf(
+            "element[",
+            position.column - 1
+          );
+
+          // If 'self:' or 'element[x]:' is found, adjust the prefix
+          let prefix = "";
+          if (selfIndex !== -1 && selfIndex + 5 <= word.startColumn) {
+            prefix = "self:";
+          } else if (
+            elementIndex !== -1 &&
+            elementIndex + 8 <= word.startColumn
+          ) {
+            prefix = lineContent.slice(elementIndex, position.column); // 'element[x]:'
+          }
+
           return {
-            suggestions: createProposals(range),
+            suggestions: createProposals(range, model, position, prefix),
           };
         },
       }
