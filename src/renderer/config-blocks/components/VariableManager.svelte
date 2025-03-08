@@ -20,10 +20,16 @@
   $: handleScriptChange(script);
 
   function handleScriptChange(script: string) {
-    segments = parseVariableAssignments(script);
-    for (const segment of segments) {
+    const incoming = parseVariableAssignments(script);
+    for (const segment of incoming) {
       segment.value = GridScript.humanize(segment.value);
     }
+
+    if (JSON.stringify(incoming) === JSON.stringify(segments)) {
+      return;
+    }
+
+    segments = incoming;
 
     validators = segments.map((e) =>
       Object({
@@ -151,7 +157,7 @@
 
   function removeVariable(index: number) {
     segments = segments.filter((e, i) => i !== index);
-    validators = segments.filter((e, i) => i !== index);
+    validators = validators.filter((e, i) => i !== index);
     handleInput();
     handleChange();
   }
@@ -159,62 +165,60 @@
 
 <container>
   <div class="flex flex-col gap-2">
-    {#key segments.length}
-      {#each segments as segment, i}
-        <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
-          <div data-testid="variable-name">
-            <MeltCombo
-              title=" "
-              bind:value={segment.name}
-              validator={validators[i].func}
-              on:input={(e) => {
-                const { value, validationError } = e.detail;
-                validators[i].value = !validationError;
-                handleInput();
-              }}
-              on:change={handleChange}
-            />
-          </div>
-
-          <div
-            data-testid="variable-value"
-            class="border border-black flex items-center flex-grow h-full"
-          >
-            <LineEditor
-              on:input={(e) => {
-                segment.value = e.detail.script ?? "";
-                handleInput();
-              }}
-              on:change={handleChange}
-              value={segment.value}
-              {availableCharacters}
-            />
-          </div>
-
-          <button
-            class:invisible={i === 0}
-            on:click={() => {
-              removeVariable(i);
+    {#each segments as segment, i (segment)}
+      <div class="grid grid-cols-[25%_1fr_auto] gap-2 items-center">
+        <div data-testid="variable-name">
+          <MeltCombo
+            title=" "
+            bind:value={segment.name}
+            validator={validators[i].func}
+            on:input={(e) => {
+              const { value, validationError } = e.detail;
+              validators[i].value = !validationError;
+              handleInput();
             }}
-            class="flex group cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
-              viewBox="0 0 29 29"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-              />
-              <path
-                d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-              />
-            </svg>
-          </button>
+            on:change={handleChange}
+          />
         </div>
-      {/each}
-    {/key}
+
+        <div
+          data-testid="variable-value"
+          class="border border-black flex items-center flex-grow h-full"
+        >
+          <LineEditor
+            on:input={(e) => {
+              segment.value = e.detail.script ?? "";
+              handleInput();
+            }}
+            on:change={handleChange}
+            value={segment.value}
+            {availableCharacters}
+          />
+        </div>
+
+        <button
+          class:invisible={i === 0}
+          on:click={() => {
+            removeVariable(i);
+          }}
+          class="flex group cursor-pointer"
+        >
+          <svg
+            class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"
+            viewBox="0 0 29 29"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
+            />
+            <path
+              d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
+            />
+          </svg>
+        </button>
+      </div>
+    {/each}
     <div data-testid="add-variable" class="self-center">
       <MoltenPushButton click={addVariable} text={`Add New Variable`} />
     </div>
