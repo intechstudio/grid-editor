@@ -1,6 +1,7 @@
 import { get, writable, type Writable } from "svelte/store";
 import { GridAction, GridEvent } from "../../runtime/runtime";
 import { dropActions } from "../../runtime/operations";
+import { selected_actions } from "../../runtime/user-input.store";
 
 export const draggedActions: Writable<GridAction[]> = writable([]);
 export type DropTarget = { event: GridEvent; index: number };
@@ -76,6 +77,7 @@ export function draggable(node: HTMLElement, params: DragParameters) {
   function handleDragStart(x: number, y: number) {
     isDragged = true;
     const actions = getTargetActions(params.action);
+    selected_actions.set([]);
     draggedActions.set(actions);
     initPos = { x, y };
     cursor = createDragCursor(targetBlocks);

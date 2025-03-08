@@ -1,5 +1,11 @@
-export let config_components = [];
-export let package_infos = [];
+import { writable } from "svelte/store";
+
+const componentKeyMap = new Map();
+export const latestComponentVersionKeys = writable(componentKeyMap);
+let setVersionKeysTimeout;
+
+let config_components = [];
+let package_infos = [];
 
 let packageComponent;
 
@@ -47,10 +53,27 @@ export function getAllComponents() {
 export function addPackageAction(info) {
   removePackageAction(info.packageId, info.actionId);
   package_infos.push(info);
+  componentKeyMap.set(info.short, new Date().getTime());
+  clearTimeout(setVersionKeysTimeout);
+  setVersionKeysTimeout = setTimeout(
+    () => latestComponentVersionKeys.set(new Map(componentKeyMap)),
+    20
+  );
 }
 
 export function removePackageAction(packageId, actionId) {
-  package_infos = package_infos.filter(
-    (e) => e.packageId !== packageId || e.actionId !== actionId
+  let info = package_infos.find(
+    (e) => e.packageId === packageId && e.actionId === actionId
   );
+  if (info) {
+    package_infos = package_infos.filter(
+      (e) => e.packageId !== packageId || e.actionId !== actionId
+    );
+    componentKeyMap.set(info.short, new Date().getTime());
+    clearTimeout(setVersionKeysTimeout);
+    setVersionKeysTimeout = setTimeout(
+      () => latestComponentVersionKeys.set(new Map(componentKeyMap)),
+      20
+    );
+  }
 }

@@ -62,7 +62,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="h-full bg-secondary text-white flex items-center flex-row w-full px-2 {false
+  class="bg-secondary text-white flex items-center flex-row w-full px-2 {false
     ? 'group-hover/bg-color:bg-select-saturate-10'
     : ''}"
   on:click={handleClick}

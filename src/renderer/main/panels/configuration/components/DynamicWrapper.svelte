@@ -66,6 +66,7 @@
       undefined,
       new ActionData(short, GridAction.getInformation(short).defaultLua)
     );
+    console.log({ short, script, name, oldAction, newAction, parent });
     replaceAction(parent, oldAction, newAction);
     toggled = true;
     lastOpenedActionblocksInsert(newAction.short);
@@ -183,7 +184,7 @@
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
-          <div class="h-10 w-full">
+          <div class="min-h-10 w-full flex">
             <svelte:component
               this={header}
               config={action}

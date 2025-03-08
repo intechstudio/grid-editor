@@ -103,36 +103,36 @@
     elementArray = [
       { type: ElementType.ENDLESS, index: 8 },
       { type: ElementType.ENDLESS, index: 9 },
-      { type: ElementType.SYSTEM, index: 10 },
       ...common_elements,
+      { type: ElementType.SYSTEM, index: 10 },
     ];
   } else if (moduleType === ModuleType.VSN1L) {
     elementArray = [
       { type: ElementType.LCD, index: 13 },
       { type: ElementType.ENDLESS, index: 8 },
-      { type: ElementType.SYSTEM, index: 14 },
       ...common_elements,
+      { type: ElementType.SYSTEM, index: 14 },
     ];
   } else if (moduleType === ModuleType.TEK1) {
     elementArray = [
       { type: ElementType.LCD, index: 13 },
       { type: ElementType.ENDLESS, index: 8 },
-      { type: ElementType.SYSTEM, index: 14 },
       ...common_elements,
+      { type: ElementType.SYSTEM, index: 14 },
     ];
   } else if (moduleType === ModuleType.VSN1R) {
     elementArray = [
       { type: ElementType.ENDLESS, index: 8 },
       { type: ElementType.LCD, index: 13 },
-      { type: ElementType.SYSTEM, index: 14 },
       ...common_elements,
+      { type: ElementType.SYSTEM, index: 14 },
     ];
   } else if (moduleType === ModuleType.VSN2) {
     elementArray = [
       { type: ElementType.LCD, index: 12 },
       { type: ElementType.LCD, index: 17 },
-      { type: ElementType.SYSTEM, index: 18 },
       ...common_elements,
+      { type: ElementType.SYSTEM, index: 18 },
     ];
   }
 </script>
@@ -243,14 +243,24 @@
         {@const elementNumber = elementDescriptor.index}
         <cell class="w-full h-full flex items-center justify-center relative">
           <div class="normal-cell-underlay-container">
-            <slot name="cell-underlay" {elementNumber} />
+            <slot
+              name="cell-underlay"
+              {elementNumber}
+              isLeftCut={elementNumber == 6}
+              isRightCut={elementNumber == 5}
+            />
           </div>
           <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
             <Btn {elementNumber} size={2.1} />
           </div>
           <div class="normal-cell-overlay-container">
-            <slot name="cell-overlay" {elementNumber} />
+            <slot
+              name="cell-overlay"
+              {elementNumber}
+              isLeftCut={elementNumber == 6}
+              isRightCut={elementNumber == 5}
+            />
           </div>
         </cell>
       {/if}
