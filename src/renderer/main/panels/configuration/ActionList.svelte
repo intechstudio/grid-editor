@@ -201,16 +201,15 @@
                 on:select={(e) => handleSelectionChange(action, e.detail.value)}
               />
             </div>
-
-            {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
-              <ActionHelper
-                target={{ event: event, index: index + 1 }}
-                text={action.information.helperText}
-              />
-            {:else}
-              <SeparatorLine target={{ event: event, index: index + 1 }} />
-            {/if}
           </div>
+          {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+            <ActionHelper
+              target={{ event: event, index: index + 1 }}
+              text={action.information.helperText}
+            />
+          {:else}
+            <SeparatorLine target={{ event: event, index: index + 1 }} />
+          {/if}
         </div>
       {/each}
     </ul>
