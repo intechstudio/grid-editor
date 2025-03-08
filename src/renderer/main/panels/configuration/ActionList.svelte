@@ -99,7 +99,7 @@
   }
 </script>
 
-{#key $event.id}
+{#key $event?.id}
   <div
     role="tabpanel"
     tabindex="0"
