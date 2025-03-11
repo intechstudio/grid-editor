@@ -175,6 +175,7 @@
               { value: "1", info: "Button layer" },
               { value: "2", info: "Unused layer" },
             ];
+          case ElementType.ENDLESS:
           case ElementType.ENCODER:
             return [
               { value: "1", info: "Button layer" },
@@ -185,13 +186,19 @@
               { value: "1", info: "Fader layer" },
               { value: "2", info: "Unused layer" },
             ];
+
           case ElementType.POTMETER:
             return [
               { value: "1", info: "Potmeter layer" },
               { value: "2", info: "Unused layer" },
             ];
-          default:
+          default: {
+            const defaultLayerSuggestion = [
+              { value: "1", info: "Layer 1" },
+              { value: "2", info: "Layer 2" },
+            ];
             return defaultLayerSuggestion;
+          }
         }
       } else {
         return [...localDefinitions, ...s];
