@@ -336,6 +336,7 @@ function initialize_autocomplete() {
             proposalItem.insertText = `${proposalItem.label}()`;
           }
         }
+
         proposalList.push(proposalItem);
 
         const helperText = grid.get_lua_function_helper(key);
@@ -406,6 +407,11 @@ function initialize_autocomplete() {
 }
 
 function initialize_highlight() {
+  grid.lua_function_to_human_map().forEach((value, key) => {
+    //AUTOCOMPLETE FUNCTIONS
+    language.functions.push(value);
+  });
+
   grid.lua_function_forbiddens().forEach((value) => {
     //FORBIDDEN IDENTIFIERS
     language.forbiddens.push(value);
