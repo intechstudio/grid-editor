@@ -4,6 +4,7 @@
   import { Validator } from "../validators";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { Grid } from "../../lib/_utils";
 
   const dispatch = createEventDispatcher();
   type ScriptSegment = { name: string; value: string };
@@ -20,16 +21,11 @@
   $: handleScriptChange(script);
 
   function handleScriptChange(script: string) {
-    const incoming = parseVariableAssignments(script);
-    for (const segment of incoming) {
-      segment.value = GridScript.humanize(segment.value);
-    }
-
-    if (JSON.stringify(incoming) === JSON.stringify(segments)) {
+    if (script === buildScript(segments)) {
       return;
     }
 
-    segments = incoming;
+    segments = parseVariableAssignments(script);
 
     validators = segments.map((e) =>
       Object({
@@ -114,13 +110,18 @@
       });
     }
 
+    assignments.forEach((e) => {
+      e.value = GridScript.humanize(e.value);
+    });
+
     return assignments;
   }
 
   function buildScript(segments: ScriptSegment[]) {
     const variables = segments.map((segment) => segment.name).join(",");
     const values = segments.map((segment) => segment.value).join(",");
-    return postProcessor(`${variables}=${values}`);
+    const processed = postProcessor(`${variables}=${values}`);
+    return GridScript.shortify(processed);
   }
 
   function handleInput() {
@@ -133,7 +134,7 @@
     }
 
     dispatch("input", {
-      value: GridScript.shortify(script),
+      value: script,
       validationError:
         validators.some((e) => e.value === false) || parsingError,
     });
