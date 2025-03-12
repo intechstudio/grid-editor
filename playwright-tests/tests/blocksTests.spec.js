@@ -309,3 +309,30 @@ test.describe("Input field keyboard shortcuts", () => {
     await expect(actualValue).toBe(expectedValue);
   });
 });
+
+test.describe("Monaco Sugestion", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("correct suggestion is visible once", async ({ page }) => {
+    const code = "button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("self:button_max");
+    await expect(buttonMax).toHaveCount(1);
+    await expect(buttonMax.first()).toBeVisible();
+  });
+  test("correct suggestion is visible after element[x]", async ({ page }) => {
+    const code = "element[2]:button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("button_max");
+    await expect(buttonMax).toHaveCount(1);
+    await expect(buttonMax.first()).toBeVisible();
+  });
+});
