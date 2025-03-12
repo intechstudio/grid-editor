@@ -18,53 +18,29 @@ import { ElementType } from "@intechstudio/grid-protocol";
 import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
-  export class ColorData {
-    constructor(
-      public r: string,
-      public g: string,
-      public b: string,
-      public a: string
-    ) {}
-
-    public toCSS(): string {
-      const channels = [this.r, this.g, this.b, this.a];
-      if (channels.some((e) => isNaN(Number(e)) || e.trim() === "")) {
-        return "rgba(255,255,255,1)";
-      } else {
-        return `rgba(${channels.join(",")})`;
-      }
-    }
-
-    public toRGBA(): Grid.RGBA | undefined {
-      const channels = [this.r, this.g, this.b, this.a];
-      if (channels.some((e) => isNaN(Number(e)) || e.trim() === "")) {
-        return undefined;
-      } else {
-        return new Grid.RGBA(
-          Number(this.r),
-          Number(this.g),
-          Number(this.b),
-          Number(this.a)
-        );
-      }
-    }
-  }
-
   export class ParsedData {
-    public colors: ColorData[];
+    public colors: Array<{
+      red: string;
+      green: string;
+      blue: string;
+      alpha: string;
+    }>;
     public layer: number;
     public element: string;
 
     constructor(action: GridAction) {
-      const event = action.parent as GridEvent;
-
       const segments = Script.toSegments({
         short: `led_color`,
         script: action.script.split(":")[1],
       });
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
         const values = Grid.parseBracketValues(e);
-        return new ColorData(values[0], values[1], values[2], values[3]);
+        return {
+          red: values[0],
+          green: values[1],
+          blue: values[2],
+          alpha: values[3],
+        };
       });
 
       this.layer = Number(segments[0]);
@@ -111,7 +87,12 @@ export namespace SimpleColor {
 
   class ViewModelData {
     constructor(
-      public colors: ColorData[],
+      public colors: Array<{
+        red: string;
+        green: string;
+        blue: string;
+        alpha: string;
+      }>,
       public layer: { value: string; suggestions: MeltComboSuggestion[] },
       public element: { value: string; suggestions: MeltComboSuggestion[] },
       public selectedIndex: number
@@ -133,7 +114,7 @@ export namespace SimpleColor {
 
       this.set(
         new ViewModelData(
-          parsed.colors,
+          (parsed.colors = parsed.colors),
           {
             value: String(parsed.element),
             suggestions: getLayerSuggestions(element),
@@ -183,7 +164,12 @@ export namespace SimpleColor {
       });
     }
 
-    public addLayer(color: ColorData) {
+    public addLayer(color: {
+      red: string;
+      green: string;
+      blue: string;
+      alpha: string;
+    }) {
       this.update((s) => {
         switch (s.colors.length) {
           case 1:
@@ -208,7 +194,12 @@ export namespace SimpleColor {
       });
     }
 
-    public updateSelectedLayer(color: ColorData) {
+    public updateSelectedLayer(color: {
+      red: string;
+      green: string;
+      blue: string;
+      alpha: string;
+    }) {
       this.update((s) => {
         s.colors[s.selectedIndex] = color;
         return s;

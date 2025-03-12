@@ -50,6 +50,7 @@
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
+  import { Grid } from "../lib/_utils.js";
 
   const dispatch = createEventDispatcher();
   const checkboard =
@@ -105,19 +106,29 @@
   }
 
   function handleConfigChange(config) {
+    const current = buildScript();
+    if (config.script === current) {
+      return;
+    }
+    console.log("yay");
     data.updateData(new SimpleColor.ParsedData(config));
   }
 
-  function sendData() {
+  function buildScript() {
     const script = Script.toScript({
       short: `${get(data).element.value}:led_color`,
       array: [
         get(data).layer.value,
         `{${get(data)
-          .colors.map((e) => `{${[e.r, e.g, e.b, e.a].join(",")}}`)
+          .colors.map((e) => `{${[e.red, e.green, e.blue, e.alpha].join(",")}}`)
           .join(",")}}`,
       ],
     });
+    return script;
+  }
+
+  function sendData() {
+    const script = buildScript();
 
     dispatch("update-action", {
       short: config.short,
@@ -141,10 +152,10 @@
   }
 
   enum ColorChanel {
-    RED = "r",
-    GREEN = "g",
-    BLUE = "b",
-    ALPHA = "a",
+    RED = "red",
+    GREEN = "green",
+    BLUE = "blue",
+    ALPHA = "alpha",
   }
 
   enum ColorPickerModel {
@@ -176,12 +187,14 @@
 
   function handleColorInput(e: any) {
     const { color } = e.detail;
+    const { r, g, b } = color.toRGB();
     const current = get(data).getSelectedColor();
-    const rgb = color.toRGBA();
-    current.r = String(rgb.r);
-    current.g = String(rgb.g);
-    current.b = String(rgb.b);
-    data.updateSelectedLayer(current);
+    data.updateSelectedLayer({
+      red: String(r),
+      green: String(g),
+      blue: String(b),
+      alpha: current.alpha,
+    });
     sendData();
   }
 
@@ -253,13 +266,19 @@
       <div class="absolute w-full h-full grid grid-cols-1">
         <div
           class="flex flex-grow h-full rounded-full"
-          style="background-image: linear-gradient(to right, {($data.colors
-            .length === 1
-            ? [new SimpleColor.ColorData('0', '0', '0', '0'), ...$data.colors]
-            : $data.colors
-          )
-            .map((e) => e.toCSS())
-            .join(',')});"
+          style="background-image: linear-gradient(to right, {[
+            ...($data.colors.length === 1
+              ? [{ red: 0, green: 0, blue: 0, alpha: 0 }]
+              : []),
+            ...$data.colors,
+          ]
+            .map((e) =>
+              Object.values(e).some(isNaN)
+                ? 'white'
+                : `rgba(${Object.values(e).join(',')})`
+            )
+            .join(',')}
+);"
         />
       </div>
 
@@ -291,7 +310,12 @@
           />
           <div
             class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
-            style="background-color:  {color.toCSS()};"
+            style="background-color: {(() => {
+              const rgba = Object.values(color).map(Number);
+              return rgba.some(Number.isNaN)
+                ? 'white'
+                : `rgba(${rgba.join(',')})`;
+            })()};"
           />
           <div
             class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
@@ -318,22 +342,35 @@
     <div class="flex h-32 w-full items-center justify-center">
       <svelte:component
         this={colorPickerComponent.get(selected)}
-        color={$data.getSelectedColor().toRGBA()?.reduceToHSL()}
-        on:change={(e) => {
+        color={(() => {
+          const [r, g, b, a] = Object.values($data.getSelectedColor()).map(
+            Number
+          );
+          return [r, g, b, a].some(isNaN)
+            ? undefined
+            : new Grid.RGBA(r, g, b, a).reduceToHSL();
+        })()}
+        on:input={(e) => {
           handleColorInput(e);
+        }}
+        on:change={(e) => {
           dispatch("sync");
         }}
       />
     </div>
 
     <ColorSlider
-      value={$data.getSelectedColor().toRGBA()?.a}
+      value={$data.getSelectedColor().alpha}
       max={1}
       direction="vertical"
-      on:change={(e) => {
+      on:input={(e) => {
         const { value } = e.detail;
-        get(data).getSelectedColor().a = String(value);
+        const current = get(data).getSelectedColor();
+        current.alpha = value;
+        data.updateSelectedLayer(current);
         sendData();
+      }}
+      on:change={(e) => {
         dispatch("sync");
       }}
     >

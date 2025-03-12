@@ -76,7 +76,6 @@
     const data = new ActionData(short, script, name);
     //TODO: Propose better solution
     data.invalid = validationError;
-    console.log(data.invalid, validationError);
     updateAction(action, data, false);
   }
 

@@ -3,9 +3,10 @@
 
   const dispatch = createEventDispatcher();
 
-  export let value: number | undefined;
+  export let value: any;
   export let max: number = 100;
   export let direction: "horizontal" | "vertical";
+  export let round = false;
 
   let scaleElement: HTMLElement;
   let cursorElement: HTMLElement;
@@ -14,8 +15,6 @@
   onMount(() => {
     setCursorPosition(value);
   });
-
-  $: setCursorPosition(value);
 
   function handleCursorDrag(e: MouseEvent) {
     const rect = scaleElement.getBoundingClientRect();
@@ -35,13 +34,14 @@
       }
     }
 
-    value = Math.round(max * normalized * 100) / 100;
+    value =
+      Math.round(max * normalized * (round ? 1 : 100)) / (round ? 1 : 100);
     setCursorPosition(value);
     dispatch("input", { value: value });
   }
 
   function setCursorPosition(value: number | undefined) {
-    if (typeof value === "undefined") {
+    if (Number.isNaN(value)) {
       return;
     }
 
@@ -103,6 +103,6 @@
     'vertical'
       ? 'h-2 w-full'
       : 'w-2 h-full'}"
-    class:hidden={typeof value === "undefined"}
+    class:hidden={typeof value === "undefined" || isNaN(+value)}
   />
 </div>

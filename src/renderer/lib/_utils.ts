@@ -119,15 +119,7 @@ export namespace Grid {
   }
 
   export class RGB {
-    public r: number;
-    public g: number;
-    public b: number;
-
-    constructor(r: number, g: number, b: number) {
-      this.r = r;
-      this.g = g;
-      this.b = b;
-    }
+    constructor(public r: number, public g: number, public b: number) {}
 
     toCSS() {
       return `rgb(${this.r ?? 0}, ${this.g ?? 0}, ${this.b ?? 0})`;
@@ -156,16 +148,13 @@ export namespace Grid {
   }
 
   export class RGBA {
-    public r: number;
-    public g: number;
-    public b: number;
-    public a: number;
-
-    constructor(r: number, g: number, b: number, a: number) {
-      this.r = r;
-      this.g = g;
-      this.b = b;
-      this.a = a;
+    constructor(
+      public r: number,
+      public g: number,
+      public b: number,
+      public a: number
+    ) {
+      return undefined;
     }
 
     toCSS() {
@@ -189,17 +178,12 @@ export namespace Grid {
   }
 
   export class HSLA {
-    public h: number;
-    public s: number;
-    public l: number;
-    public a: number;
-
-    constructor(h: number, s: number, l: number, a: number) {
-      this.h = h;
-      this.s = s;
-      this.l = l;
-      this.a = a;
-    }
+    constructor(
+      public h: number,
+      public s: number,
+      public l: number,
+      public a: number
+    ) {}
 
     toRGBA() {
       const rgb = convert.hsl.rgb(this.h, this.s, this.l);
