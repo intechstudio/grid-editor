@@ -2,6 +2,7 @@
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
+  import { ModuleType } from "@intechstudio/grid-protocol";
   import {
     GridModule,
     GridPage,
@@ -42,6 +43,15 @@
         state = LoadState.READY;
       });
   }
+
+  $: compatible = (() => {
+    let vsn1Modules = [ModuleType.VSN1L, ModuleType.VSN1R];
+    if (vsn1Modules.includes(device?.type)) {
+      return vsn1Modules.includes($selectedConfigStore?.type);
+    } else {
+      return device?.type === $selectedConfigStore?.type;
+    }
+  })();
 </script>
 
 <container>
@@ -52,7 +62,7 @@
       style="transform: rotate({-$appSettings.persistent.moduleRotation +
         90 * device?.rot}deg); border-radius: var(--grid-rounding);"
     >
-      {#if device?.type === $selectedConfigStore?.type}
+      {#if compatible}
         <div class="w-fit relative">
           {#key state || $selectedConfigStore}
             <button

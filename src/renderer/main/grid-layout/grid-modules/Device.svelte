@@ -46,6 +46,8 @@
 
   export let device: GridModule = undefined;
   export let width = 225;
+  export let scale: number = 1.0;
+
   let component = undefined;
 
   onMount(() => {
@@ -192,6 +194,7 @@
 
 <button
   class="module activator-button"
+  style="transform-origin: top left; transform: scale({scale})"
   on:focus={() => {
     selectModule();
   }}

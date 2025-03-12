@@ -2,7 +2,7 @@
   "name": "grid-editor",
   "productName": "Grid Editor",
   "description": "Powerful Editor software for Intech Studio products.",
-  "version": "1.5.2",
+  "version": "1.5.4",
   "engines": {
     "node": ">=18.16.1"
   },
@@ -40,7 +40,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@intechstudio/grid-protocol": "1.20250219.2247",
+    "@intechstudio/grid-protocol": "1.20250311.811",
     "@intechstudio/grid-uikit": "1.20250224.1623",
     "@intechstudio/profile-cloud-webcomponent": "^1.20241206.1604",
     "adm-zip": "^0.5.10",

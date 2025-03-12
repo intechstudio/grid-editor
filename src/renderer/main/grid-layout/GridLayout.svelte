@@ -259,11 +259,7 @@
                   </div>
                 {/if}
               {/if}
-              <Device
-                {device}
-                width={deviceWidth}
-                style="transform-origin: top left; transform: scale({$scalingPercent})"
-              />
+              <Device {device} width={deviceWidth} scale={$scalingPercent} />
             </div>
           {/each}
         </div>
