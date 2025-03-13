@@ -262,6 +262,7 @@ function initialize_autocomplete() {
   (function init_autocomplete() {
     function createProposals(range, model, position, prefix) {
       let proposalList = [];
+      language.functions = ["print"];
 
       // Handle other general cases (mathfunctions, keywords, etc.)
       for (const element of language.mathfunctions) {
@@ -283,6 +284,21 @@ function initialize_autocomplete() {
         let proposalItem = {
           label: "",
           kind: monaco_languages.CompletionItemKind.Keyword,
+          documentation: "Documentation",
+          insertText: "",
+          range: range,
+        };
+
+        proposalItem.label = element;
+        proposalItem.insertText = element;
+
+        proposalList.push(proposalItem);
+      }
+
+      for (const element of language.functions) {
+        let proposalItem = {
+          label: "",
+          kind: monaco_languages.CompletionItemKind.Function,
           documentation: "Documentation",
           insertText: "",
           range: range,
@@ -328,36 +344,23 @@ function initialize_autocomplete() {
         ) {
           proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
           proposalItem.insertText = `${proposalItem.label}()`;
+          language.functions.push(value);
+          proposalList.push(proposalItem);
         } else if (elementtype === "system" || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
             proposalItem.label = isInsideSelfOrElement
               ? value
               : `element[0]:${value}`;
             proposalItem.insertText = `${proposalItem.label}()`;
+            language.functions.push(value);
+            proposalList.push(proposalItem);
           }
         }
-
-        proposalList.push(proposalItem);
 
         const helperText = grid.get_lua_function_helper(key);
         if (typeof helperText !== "undefined") {
           hoverTips[value] = helperText;
         }
-      }
-
-      for (const element of language.functions) {
-        let proposalItem = {
-          label: "",
-          kind: monaco_languages.CompletionItemKind.Function,
-          documentation: "Documentation",
-          insertText: "",
-          range: range,
-        };
-
-        proposalItem.label = element;
-        proposalItem.insertText = element;
-
-        proposalList.push(proposalItem);
       }
 
       return proposalList;
@@ -407,11 +410,6 @@ function initialize_autocomplete() {
 }
 
 function initialize_highlight() {
-  grid.lua_function_to_human_map().forEach((value, key) => {
-    //AUTOCOMPLETE FUNCTIONS
-    language.functions.push(value);
-  });
-
   grid.lua_function_forbiddens().forEach((value) => {
     //FORBIDDEN IDENTIFIERS
     language.forbiddens.push(value);
@@ -443,11 +441,11 @@ function initialize_grammar() {
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
 
+initialize_autocomplete();
 initialize_theme();
 initialize_language();
 initialize_grammar();
 initialize_hover();
-initialize_autocomplete();
 initialize_highlight();
 
 export { monaco_editor, monaco_languages };
