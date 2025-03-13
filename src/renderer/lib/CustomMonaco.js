@@ -295,21 +295,6 @@ function initialize_autocomplete() {
         proposalList.push(proposalItem);
       }
 
-      for (const element of language.functions) {
-        let proposalItem = {
-          label: "",
-          kind: monaco_languages.CompletionItemKind.Function,
-          documentation: "Documentation",
-          insertText: "",
-          range: range,
-        };
-
-        proposalItem.label = element;
-        proposalItem.insertText = element;
-
-        proposalList.push(proposalItem);
-      }
-
       const elementtype = get(monaco_elementtype);
       for (const item of grid.lua_function_to_human_map()) {
         let proposalItem = {
@@ -344,23 +329,39 @@ function initialize_autocomplete() {
         ) {
           proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
           proposalItem.insertText = `${proposalItem.label}()`;
-          language.functions.push(value);
-          proposalList.push(proposalItem);
         } else if (elementtype === "system" || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
             proposalItem.label = isInsideSelfOrElement
               ? value
               : `element[0]:${value}`;
             proposalItem.insertText = `${proposalItem.label}()`;
-            language.functions.push(value);
-            proposalList.push(proposalItem);
           }
         }
+
+        proposalList.push(proposalItem);
 
         const helperText = grid.get_lua_function_helper(key);
         if (typeof helperText !== "undefined") {
           hoverTips[value] = helperText;
         }
+      }
+
+      for (const element of language.functions) {
+        if (proposalList.find((e) => e.label === element)) {
+          continue;
+        }
+
+        let proposalItem = {
+          label: "",
+          kind: monaco_languages.CompletionItemKind.Function,
+          documentation: "Documentation",
+          insertText: "",
+          range: range,
+          label: element,
+          insertText: element + "()",
+        };
+
+        proposalList.push(proposalItem);
       }
 
       return proposalList;
@@ -410,6 +411,11 @@ function initialize_autocomplete() {
 }
 
 function initialize_highlight() {
+  grid.lua_function_to_human_map().forEach((value, key) => {
+    //AUTOCOMPLETE FUNCTIONS
+    language.functions.push(value);
+  });
+
   grid.lua_function_forbiddens().forEach((value) => {
     //FORBIDDEN IDENTIFIERS
     language.forbiddens.push(value);
@@ -437,6 +443,7 @@ function initialize_hover() {
 }
 
 function initialize_grammar() {
+  console.log(language);
   monaco_languages.setMonarchTokensProvider("intech_lua", language);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
