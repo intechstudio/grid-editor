@@ -16,8 +16,15 @@
     setCursorPosition(value);
   });
 
+  //$: setCursorPosition(value);
+
   function handleCursorDrag(e: MouseEvent) {
-    const rect = scaleElement.getBoundingClientRect();
+    const rect = scaleElement?.getBoundingClientRect();
+
+    if (!rect) {
+      return;
+    }
+
     let normalized: number;
     switch (direction) {
       case "vertical": {
@@ -75,6 +82,7 @@
     if (!isDrag) {
       return;
     }
+
     isDrag = false;
     document.removeEventListener("mousemove", handleCursorDrag);
     dispatch("change", { value: value });

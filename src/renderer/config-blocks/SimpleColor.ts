@@ -101,6 +101,10 @@ export namespace SimpleColor {
     public getSelectedColor() {
       return this.colors[this.selectedIndex];
     }
+
+    public getSelectedIndex() {
+      return this.selectedIndex;
+    }
   }
 
   export class ViewModel implements Readable<ViewModelData> {
@@ -173,11 +177,11 @@ export namespace SimpleColor {
       this.update((s) => {
         switch (s.colors.length) {
           case 1:
-            s.colors = [color, s.colors[0]];
+            s.colors = [structuredClone(color), s.colors[0]];
             s.selectedIndex = 0;
             break;
           case 2:
-            s.colors = [s.colors[0], color, s.colors[1]];
+            s.colors = [s.colors[0], structuredClone(color), s.colors[1]];
             s.selectedIndex = 1;
             break;
           default:

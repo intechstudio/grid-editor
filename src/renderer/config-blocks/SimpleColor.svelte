@@ -206,205 +206,207 @@
   }
 </script>
 
-<config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-  <div class="flex flex-row w-full justify-between items-center">
-    <span class="text-white text-sm">Color</span>
-    <div class="flex flex-row gap-1">
-      <MoltenPushButton
-        text="-"
-        click={() => handleRemoveLayer()}
-        disabled={$data.colors.length === 1}
-      />
-      <MoltenPushButton
-        text="+"
-        click={handleAddLayer}
-        disabled={$data.colors.length === 3}
-      />
-    </div>
-  </div>
-
-  <div class="flex flex-row w-full gap-2">
-    <MeltCombo
-      title={"Element"}
-      bind:value={$data.element.value}
-      validator={validators[0].func}
-      suggestions={$data.element.suggestions}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        validators[0].value = !validationError;
-        sendData();
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
-
-    <MeltCombo
-      title={"Layer"}
-      bind:value={$data.layer.value}
-      validator={validators[1].func}
-      suggestions={$data.layer.suggestions}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        validators[1].value = !validationError;
-        sendData();
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
-  </div>
-
-  <div class="flex w-full h-[20px] border border-black rounded-full">
-    <div class="relative flex w-full h-full">
-      <div
-        class="absolute inset-0 opacity-20 rounded-full"
-        style="background-image: url('{checkboard}');
-      background-size: 7px 7px;
-      background-repeat: repeat;"
-      />
-      <div class="absolute w-full h-full grid grid-cols-1">
-        <div
-          class="flex flex-grow h-full rounded-full"
-          style="background-image: linear-gradient(to right, {[
-            ...($data.colors.length === 1
-              ? [{ red: 0, green: 0, blue: 0, alpha: 0 }]
-              : []),
-            ...$data.colors,
-          ]
-            .map((e) =>
-              Object.values(e).some(isNaN)
-                ? 'white'
-                : `rgba(${Object.values(e).join(',')})`
-            )
-            .join(',')}
-);"
+{#key $data.getSelectedIndex()}
+  <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
+    <div class="flex flex-row w-full justify-between items-center">
+      <span class="text-white text-sm">Color</span>
+      <div class="flex flex-row gap-1">
+        <MoltenPushButton
+          text="-"
+          click={() => handleRemoveLayer()}
+          disabled={$data.colors.length === 1}
+        />
+        <MoltenPushButton
+          text="+"
+          click={handleAddLayer}
+          disabled={$data.colors.length === 3}
         />
       </div>
-
-      {#each $data.colors as color, i}
-        {@const isFirst = i === 0}
-        {@const isLast = i === $data.colors.length - 1}
-        {@const totalSteps = $data.colors.length - 1}
-        {@const stepSize = 100 / totalSteps}
-        {@const position =
-          isFirst && $data.colors.length > 1
-            ? "12px"
-            : isLast
-            ? "calc(100% - 12px)"
-            : `${stepSize * i}%`}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div
-          on:click={() => {
-            data.selectLayer(i);
-          }}
-          class="aspect-square rounded-full bg-primary"
-          style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
-        >
-          <div
-            class="absolute flex w-full h-full opacity-20 rounded-full"
-            style="background-image: url('{checkboard}');
-      background-size: 7px 7px;
-      background-repeat: repeat;"
-          />
-          <div
-            class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
-            style="background-color: {(() => {
-              const rgba = Object.values(color).map(Number);
-              return rgba.some(Number.isNaN)
-                ? 'white'
-                : `rgba(${rgba.join(',')})`;
-            })()};"
-          />
-          <div
-            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
-            class:hidden={i !== $data.selectedIndex}
-          />
-        </div>
-      {/each}
-    </div>
-  </div>
-
-  <div
-    class="grid grid-cols-[2fr_1fr] w-full gap-2 text-white place-items-center"
-  >
-    <div class="flex w-full">
-      <MeltSelect
-        bind:target={selected}
-        {options}
-        disabled={false}
-        size={"full"}
-      />
     </div>
 
-    <span class="text-white">Intensity</span>
-    <div class="flex h-32 w-full items-center justify-center">
-      <svelte:component
-        this={colorPickerComponent.get(selected)}
-        color={(() => {
-          const [r, g, b, a] = Object.values($data.getSelectedColor()).map(
-            Number
-          );
-          return [r, g, b, a].some(isNaN)
-            ? undefined
-            : new Grid.RGBA(r, g, b, a).reduceToHSL();
-        })()}
-        on:input={(e) => {
-          handleColorInput(e);
-        }}
-        on:change={(e) => {
-          dispatch("sync");
-        }}
-      />
-    </div>
-
-    <ColorSlider
-      value={$data.getSelectedColor().alpha}
-      max={1}
-      direction="vertical"
-      on:input={(e) => {
-        const { value } = e.detail;
-        const current = get(data).getSelectedColor();
-        current.alpha = value;
-        data.updateSelectedLayer(current);
-        sendData();
-      }}
-      on:change={(e) => {
-        dispatch("sync");
-      }}
-    >
-      <div class="w-full h-full bg-alpha" />
-    </ColorSlider>
-  </div>
-
-  <div class="grid grid-cols-4 w-full gap-2">
-    {#each [ColorChanel.RED, ColorChanel.GREEN, ColorChanel.BLUE, ColorChanel.ALPHA] as channel, i}
+    <div class="flex flex-row w-full gap-2">
       <MeltCombo
-        title={" "}
-        value={$data.getSelectedColor()[channel]}
-        validator={validators[i + 2].func}
-        suggestions={LocalDefinitions.getFrom({
-          configs: $event.config,
-          index: index,
-        })}
+        title={"Element"}
+        bind:value={$data.element.value}
+        validator={validators[0].func}
+        suggestions={$data.element.suggestions}
         on:input={(e) => {
           const { value, validationError } = e.detail;
-          validators[i + 2].value = !validationError;
-          handleRGBAChannelInput(channel, value);
+          validators[0].value = !validationError;
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-    {/each}
-  </div>
 
-  <SendFeedback
-    feedback_context="LedColor"
-    class="mt-2 text-sm text-gray-500"
-  />
-</config-led-color>
+      <MeltCombo
+        title={"Layer"}
+        bind:value={$data.layer.value}
+        validator={validators[1].func}
+        suggestions={$data.layer.suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          validators[1].value = !validationError;
+          sendData();
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    </div>
+
+    <div class="flex w-full h-[20px] border border-black rounded-full">
+      <div class="relative flex w-full h-full">
+        <div
+          class="absolute inset-0 opacity-20 rounded-full"
+          style="background-image: url('{checkboard}');
+      background-size: 7px 7px;
+      background-repeat: repeat;"
+        />
+        <div class="absolute w-full h-full grid grid-cols-1">
+          <div
+            class="flex flex-grow h-full rounded-full"
+            style="background-image: linear-gradient(to right, {[
+              ...($data.colors.length === 1
+                ? [{ red: 0, green: 0, blue: 0, alpha: 0 }]
+                : []),
+              ...$data.colors,
+            ]
+              .map((e) =>
+                Object.values(e).some(isNaN)
+                  ? 'white'
+                  : `rgba(${Object.values(e).join(',')})`
+              )
+              .join(',')}
+);"
+          />
+        </div>
+
+        {#each $data.colors as color, i}
+          {@const isFirst = i === 0}
+          {@const isLast = i === $data.colors.length - 1}
+          {@const totalSteps = $data.colors.length - 1}
+          {@const stepSize = 100 / totalSteps}
+          {@const position =
+            isFirst && $data.colors.length > 1
+              ? "12px"
+              : isLast
+              ? "calc(100% - 12px)"
+              : `${stepSize * i}%`}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <div
+            on:click={() => {
+              data.selectLayer(i);
+            }}
+            class="aspect-square rounded-full bg-primary"
+            style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
+          >
+            <div
+              class="absolute flex w-full h-full opacity-20 rounded-full"
+              style="background-image: url('{checkboard}');
+      background-size: 7px 7px;
+      background-repeat: repeat;"
+            />
+            <div
+              class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
+              style="background-color: {(() => {
+                const rgba = Object.values(color).map(Number);
+                return rgba.some(Number.isNaN)
+                  ? 'white'
+                  : `rgba(${rgba.join(',')})`;
+              })()};"
+            />
+            <div
+              class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
+              class:hidden={i !== $data.selectedIndex}
+            />
+          </div>
+        {/each}
+      </div>
+    </div>
+
+    <div
+      class="grid grid-cols-[2fr_1fr] w-full gap-2 text-white place-items-center"
+    >
+      <div class="flex w-full">
+        <MeltSelect
+          bind:target={selected}
+          {options}
+          disabled={false}
+          size={"full"}
+        />
+      </div>
+
+      <span class="text-white">Intensity</span>
+      <div class="flex h-32 w-full items-center justify-center">
+        <svelte:component
+          this={colorPickerComponent.get(selected)}
+          color={(() => {
+            const [r, g, b, a] = Object.values($data.getSelectedColor()).map(
+              Number
+            );
+            return [r, g, b, a].some(isNaN)
+              ? undefined
+              : new Grid.RGBA(r, g, b, a).reduceToHSL();
+          })()}
+          on:input={(e) => {
+            handleColorInput(e);
+          }}
+          on:change={(e) => {
+            dispatch("sync");
+          }}
+        />
+      </div>
+
+      <ColorSlider
+        value={$data.getSelectedColor().alpha}
+        max={1}
+        direction="vertical"
+        on:input={(e) => {
+          const { value } = e.detail;
+          const current = get(data).getSelectedColor();
+          current.alpha = value;
+          data.updateSelectedLayer(current);
+          sendData();
+        }}
+        on:change={(e) => {
+          dispatch("sync");
+        }}
+      >
+        <div class="w-full h-full bg-alpha" />
+      </ColorSlider>
+    </div>
+
+    <div class="grid grid-cols-4 w-full gap-2">
+      {#each [ColorChanel.RED, ColorChanel.GREEN, ColorChanel.BLUE, ColorChanel.ALPHA] as channel, i}
+        <MeltCombo
+          title={" "}
+          value={$data.getSelectedColor()[channel]}
+          validator={validators[i + 2].func}
+          suggestions={LocalDefinitions.getFrom({
+            configs: $event.config,
+            index: index,
+          })}
+          on:input={(e) => {
+            const { value, validationError } = e.detail;
+            validators[i + 2].value = !validationError;
+            handleRGBAChannelInput(channel, value);
+          }}
+          on:change={() => dispatch("sync")}
+          postProcessor={GridScript.shortify}
+          preProcessor={GridScript.humanize}
+        />
+      {/each}
+    </div>
+
+    <SendFeedback
+      feedback_context="LedColor"
+      class="mt-2 text-sm text-gray-500"
+    />
+  </config-led-color>
+{/key}
 
 <style>
   .bg-alpha {
