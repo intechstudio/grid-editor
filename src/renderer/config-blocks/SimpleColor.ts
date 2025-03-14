@@ -134,7 +134,7 @@ export namespace SimpleColor {
     alpha: MeltComboData;
   };
 
-  export class ViewModel implements Writable<ViewModelData> {
+  export class ViewModel implements Readable<ViewModelData> {
     protected _internal: Writable<ViewModelData> = writable();
     protected unsubscribers: Unsubscriber[] = [];
 
@@ -149,8 +149,8 @@ export namespace SimpleColor {
       return this._internal.subscribe(run, invalidate);
     }
 
-    //Using Symbol.dispose (ES2024) for automatic subscription cleanup
-    [Symbol.dispose]() {
+    //Must be called at the end of lifecycle
+    public destroy() {
       this.unsubscribers.forEach((unsubsribe) => unsubsribe());
     }
 

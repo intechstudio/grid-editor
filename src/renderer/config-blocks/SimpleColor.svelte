@@ -31,7 +31,7 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import {
     MeltCombo,
     MeltSelect,
@@ -39,9 +39,8 @@
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-  import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
-  import { GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction } from "./../runtime/runtime";
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
@@ -49,7 +48,6 @@
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
-  import { Grid } from "../lib/_utils";
 
   const dispatch = createEventDispatcher();
   const checkboard =
@@ -58,6 +56,10 @@
   export let config: GridAction;
 
   const data = new SimpleColor.ViewModel(config);
+
+  onDestroy(() => {
+    data.destroy();
+  });
 
   $: if (!$config.invalid) {
     handleConfigChange(config);

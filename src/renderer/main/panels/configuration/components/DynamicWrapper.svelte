@@ -51,6 +51,12 @@
   });
 
   onDestroy(() => {
+    //Destroyed by removal: nothing to do
+    if (typeof action.parent === "undefined") {
+      return;
+    }
+
+    //Destroyed by getting out of scope: Revert to synced state
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
