@@ -3,20 +3,25 @@
 
   const dispatch = createEventDispatcher();
 
-  export let value: any;
   export let max: number = 100;
   export let direction: "horizontal" | "vertical";
   export let round = false;
+  export let value: any;
 
   let scaleElement: HTMLElement;
   let cursorElement: HTMLElement;
   let isDrag = false;
 
   onMount(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      setCursorPosition(value);
+    });
+
     setCursorPosition(value);
+    resizeObserver.observe(scaleElement);
   });
 
-  //$: setCursorPosition(value);
+  $: setCursorPosition(value);
 
   function handleCursorDrag(e: MouseEvent) {
     const rect = scaleElement?.getBoundingClientRect();
@@ -48,29 +53,32 @@
   }
 
   function setCursorPosition(value: number | undefined) {
-    if (Number.isNaN(value)) {
+    if (value == null || Number.isNaN(value)) {
       return;
     }
 
-    const rect = scaleElement?.getBoundingClientRect();
+    const scaleRect = scaleElement?.getBoundingClientRect();
+    const cursorRect = cursorElement?.getBoundingClientRect();
 
-    if (!rect) {
+    if (!scaleRect || !cursorRect) {
       return;
     }
+
+    const normValue = Math.max(0, Math.min(value / max, 1));
 
     switch (direction) {
       case "vertical": {
-        const position = rect.height - (rect.height * value) / max;
+        const position = (1 - normValue) * 100;
         const maxPosition =
-          rect.height - cursorElement.getBoundingClientRect().height;
-        cursorElement.style.top = `${Math.min(position, maxPosition)}px`;
+          ((scaleRect.height - cursorRect.height) / scaleRect.height) * 100;
+        cursorElement.style.top = `${Math.min(position, maxPosition)}%`;
         break;
       }
       case "horizontal": {
-        const position = (rect.width * value) / max;
+        const position = normValue * 100;
         const maxPosition =
-          rect.width - cursorElement.getBoundingClientRect().width;
-        cursorElement.style.left = `${Math.min(position, maxPosition)}px`;
+          ((scaleRect.width - cursorRect.width) / scaleRect.width) * 100;
+        cursorElement.style.left = `${Math.min(position, maxPosition)}%`;
         break;
       }
     }
@@ -102,7 +110,9 @@
       handleCursorDrag(e);
     }}
   />
-  <div class="absolute w-full h-full border border-black pointer-events-none">
+  <div
+    class="absolute w-full h-full border border-black pointer-events-none bg-white"
+  >
     <slot />
   </div>
   <div
@@ -111,6 +121,6 @@
     'vertical'
       ? 'h-2 w-full'
       : 'w-2 h-full'}"
-    class:hidden={typeof value === "undefined" || isNaN(+value)}
+    class:invisible={typeof value === "undefined" || isNaN(+value)}
   />
 </div>

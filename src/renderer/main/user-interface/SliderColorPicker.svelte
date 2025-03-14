@@ -5,35 +5,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let color: Grid.HSL;
-
-  let value: Grid.HSL;
-
-  $: handleColorChange(color);
-
-  function handleColorChange(color: Grid.HSL) {
-    if (typeof color === "undefined") {
-      return;
-    }
-
-    if (typeof value === "undefined") {
-      value = color;
-      return;
-    }
-
-    const incoming = color.toRGB();
-    const current = value.toRGB();
-
-    if (
-      incoming.r === current.r &&
-      incoming.g === current.g &&
-      incoming.b === current.b
-    ) {
-      return;
-    }
-
-    value = color;
-  }
+  export let color: Grid.HSL | undefined;
 
   enum Channel {
     HUE = "h",
@@ -54,12 +26,16 @@
   ];
 
   function handleInput(channel: Channel, inputValue: number) {
-    value[channel] = inputValue;
-    dispatch("input", { color: value });
+    if (typeof color === "undefined") {
+      color = new Grid.HSL(Grid.Int.getRandom(0, 360), 100, 50);
+    }
+
+    color[channel] = inputValue;
+    dispatch("input", { color: color });
   }
 
   function handleChange() {
-    dispatch("change", { color: value });
+    dispatch("change", { color: color });
   }
 
   function getGradient(color: Grid.HSL | undefined, channel: Channel) {
@@ -84,14 +60,14 @@
   {#each sliders as { label, key, max }}
     <span class="text-white text-sm">{label}:</span>
     <ColorSlider
-      value={value && color ? value[key] : undefined}
+      value={color ? color[key] : undefined}
       {max}
       direction="horizontal"
       round={true}
       on:input={(e) => handleInput(key, e.detail.value)}
       on:change={handleChange}
     >
-      <div class="w-full h-full" style={getGradient(value, key)} />
+      <div class="w-full h-full" style={getGradient(color, key)} />
     </ColorSlider>
   {/each}
 </div>

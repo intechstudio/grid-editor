@@ -41,7 +41,6 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
-  import { LocalDefinitions } from "../runtime/runtime.store";
   import { GridAction, GridEvent } from "./../runtime/runtime";
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
@@ -50,85 +49,51 @@
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
-  import { Grid } from "../lib/_utils.js";
+  import { Grid } from "../lib/_utils";
 
   const dispatch = createEventDispatcher();
   const checkboard =
     'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="50" height="50" fill="white" /><rect x="50" y="50" width="50" height="50" fill="white" /><rect x="50" width="50" height="50" fill="transparent" /><rect y="50" width="50" height="50" fill="transparent" /></svg>';
 
   export let config: GridAction;
-  export let index;
 
-  const event = config.parent as GridEvent;
   const data = new SimpleColor.ViewModel(config);
-
-  const validators = [
-    {
-      value: true,
-      func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
-      },
-    },
-    {
-      value: true,
-      func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
-      },
-    },
-    {
-      value: true,
-      func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
-      },
-    },
-    {
-      value: true,
-      func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
-      },
-    },
-    {
-      value: true,
-      func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
-      },
-    },
-    {
-      value: true,
-      func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
-      },
-    },
-  ];
 
   $: if (!$config.invalid) {
     handleConfigChange(config);
   }
 
-  function handleConfigChange(config) {
-    const current = buildScript();
-    if (config.script === current) {
+  function handleConfigChange(action: GridAction) {
+    if (config.script === buildScript($data)) {
       return;
     }
-    console.log("yay");
-    data.updateData(new SimpleColor.ParsedData(config));
+
+    data.updateData(action);
   }
 
-  function buildScript() {
-    const script = Script.toScript({
-      short: `${get(data).element.value}:led_color`,
+  function buildScript(data: SimpleColor.ViewModelData) {
+    return Script.toScript({
+      short: `${data.element.value}:led_color`,
       array: [
-        get(data).layer.value,
-        `{${get(data)
-          .colors.map((e) => `{${[e.red, e.green, e.blue, e.alpha].join(",")}}`)
+        data.layer.value,
+        `{${data.previewColors
+          .map((e) => `{${[e.red, e.green, e.blue, e.alpha].join(",")}}`)
           .join(",")}}`,
       ],
     });
-    return script;
   }
 
-  function sendData() {
-    const script = buildScript();
+  function sendData(data: SimpleColor.ViewModelData) {
+    const script = buildScript(data);
+
+    const validators = [
+      data.layer.validator,
+      data.element.validator,
+      data.red.validator,
+      data.green.validator,
+      data.blue.validator,
+      data.alpha.validator,
+    ];
 
     dispatch("update-action", {
       short: config.short,
@@ -138,24 +103,17 @@
   }
 
   function handleAddLayer() {
-    const last = get(data).colors.at(-1);
+    const last = get(data).previewColors.at(-1);
     data.addLayer(last);
-    sendData();
+
     dispatch("sync");
   }
 
   function handleRemoveLayer() {
     const selected = get(data).selectedIndex;
     data.removeLayer(selected);
-    sendData();
-    dispatch("sync");
-  }
 
-  enum ColorChanel {
-    RED = "red",
-    GREEN = "green",
-    BLUE = "blue",
-    ALPHA = "alpha",
+    dispatch("sync");
   }
 
   enum ColorPickerModel {
@@ -185,228 +143,197 @@
     });
   }
 
-  function handleColorInput(e: any) {
-    const { color } = e.detail;
-    const { r, g, b } = color.toRGB();
-    const current = get(data).getSelectedColor();
-    data.updateSelectedLayer({
-      red: String(r),
-      green: String(g),
-      blue: String(b),
-      alpha: current.alpha,
-    });
-    sendData();
-  }
-
-  function handleRGBAChannelInput(channel: ColorChanel, value: string) {
-    const color = get(data).getSelectedColor();
-    color[channel] = value;
-    data.updateSelectedLayer(color);
-    sendData();
-  }
+  $: sendData($data);
 </script>
 
-{#key $data.getSelectedIndex()}
-  <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-    <div class="flex flex-row w-full justify-between items-center">
-      <span class="text-white text-sm">Color</span>
-      <div class="flex flex-row gap-1">
-        <MoltenPushButton
-          text="-"
-          click={() => handleRemoveLayer()}
-          disabled={$data.colors.length === 1}
-        />
-        <MoltenPushButton
-          text="+"
-          click={handleAddLayer}
-          disabled={$data.colors.length === 3}
-        />
-      </div>
-    </div>
-
-    <div class="flex flex-row w-full gap-2">
-      <MeltCombo
-        title={"Element"}
-        bind:value={$data.element.value}
-        validator={validators[0].func}
-        suggestions={$data.element.suggestions}
-        on:input={(e) => {
-          const { value, validationError } = e.detail;
-          validators[0].value = !validationError;
-          sendData();
-        }}
-        on:change={() => dispatch("sync")}
-        postProcessor={GridScript.shortify}
-        preProcessor={GridScript.humanize}
+<config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
+  <div class="flex flex-row w-full justify-between items-center">
+    <span class="text-white text-sm">Color</span>
+    <div class="flex flex-row gap-1">
+      <MoltenPushButton
+        text="-"
+        click={() => handleRemoveLayer()}
+        disabled={$data.previewColors.length === 1}
       />
-
-      <MeltCombo
-        title={"Layer"}
-        bind:value={$data.layer.value}
-        validator={validators[1].func}
-        suggestions={$data.layer.suggestions}
-        on:input={(e) => {
-          const { value, validationError } = e.detail;
-          validators[1].value = !validationError;
-          sendData();
-        }}
-        on:change={() => dispatch("sync")}
-        postProcessor={GridScript.shortify}
-        preProcessor={GridScript.humanize}
+      <MoltenPushButton
+        text="+"
+        click={handleAddLayer}
+        disabled={$data.previewColors.length === 3}
       />
     </div>
+  </div>
 
-    <div class="flex w-full h-[20px] border border-black rounded-full">
-      <div class="relative flex w-full h-full">
-        <div
-          class="absolute inset-0 opacity-20 rounded-full"
-          style="background-image: url('{checkboard}');
+  <div class="flex flex-row w-full gap-2">
+    <MeltCombo
+      title={"Element"}
+      bind:value={$data.element.value}
+      validator={$data.element.validator.func}
+      suggestions={$data.element.suggestions}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        get(data).element.validator.value = !validationError;
+      }}
+      on:change={() => dispatch("sync")}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
+
+    <MeltCombo
+      title={"Layer"}
+      bind:value={$data.layer.value}
+      validator={$data.layer.validator.func}
+      suggestions={$data.layer.suggestions}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        get(data).layer.validator.value = !validationError;
+      }}
+      on:change={() => dispatch("sync")}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
+  </div>
+
+  <div class="flex w-full h-[20px] border border-black rounded-full">
+    <div class="relative flex w-full h-full">
+      <div
+        class="absolute inset-0 opacity-20 rounded-full"
+        style="background-image: url('{checkboard}');
       background-size: 7px 7px;
       background-repeat: repeat;"
-        />
-        <div class="absolute w-full h-full grid grid-cols-1">
-          <div
-            class="flex flex-grow h-full rounded-full"
-            style="background-image: linear-gradient(to right, {[
-              ...($data.colors.length === 1
-                ? [{ red: 0, green: 0, blue: 0, alpha: 0 }]
-                : []),
-              ...$data.colors,
-            ]
-              .map((e) =>
-                Object.values(e).some(isNaN)
-                  ? 'white'
-                  : `rgba(${Object.values(e).join(',')})`
-              )
-              .join(',')}
+      />
+      <div class="absolute w-full h-full grid grid-cols-1">
+        <div
+          class="flex flex-grow h-full rounded-full"
+          style="background-image: linear-gradient(to right, {[
+            ...($data.previewColors.length === 1
+              ? [{ red: 0, green: 0, blue: 0, alpha: 0 }]
+              : []),
+            ...$data.previewColors,
+          ]
+            .map((e) =>
+              Object.values(e).some(isNaN)
+                ? 'white'
+                : `rgba(${Object.values(e).join(',')})`
+            )
+            .join(',')}
 );"
+        />
+      </div>
+
+      {#each $data.previewColors as color, i}
+        {@const isFirst = i === 0}
+        {@const isLast = i === $data.previewColors.length - 1}
+        {@const totalSteps = $data.previewColors.length - 1}
+        {@const stepSize = 100 / totalSteps}
+        {@const position =
+          isFirst && $data.previewColors.length > 1
+            ? "12px"
+            : isLast
+            ? "calc(100% - 12px)"
+            : `${stepSize * i}%`}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div
+          on:click={() => {
+            data.selectLayer(i);
+          }}
+          class="aspect-square rounded-full bg-primary"
+          style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
+        >
+          <div
+            class="absolute flex w-full h-full opacity-20 rounded-full"
+            style="background-image: url('{checkboard}');
+      background-size: 7px 7px;
+      background-repeat: repeat;"
+          />
+          <div
+            class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
+            style="background-color: {(() => {
+              const rgba = Object.values(color).map(Number);
+              return rgba.some(Number.isNaN)
+                ? 'white'
+                : `rgba(${rgba.join(',')})`;
+            })()};"
+          />
+          <div
+            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
+            class:hidden={i !== $data.selectedIndex}
           />
         </div>
+      {/each}
+    </div>
+  </div>
 
-        {#each $data.colors as color, i}
-          {@const isFirst = i === 0}
-          {@const isLast = i === $data.colors.length - 1}
-          {@const totalSteps = $data.colors.length - 1}
-          {@const stepSize = 100 / totalSteps}
-          {@const position =
-            isFirst && $data.colors.length > 1
-              ? "12px"
-              : isLast
-              ? "calc(100% - 12px)"
-              : `${stepSize * i}%`}
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <div
-            on:click={() => {
-              data.selectLayer(i);
-            }}
-            class="aspect-square rounded-full bg-primary"
-            style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
-          >
-            <div
-              class="absolute flex w-full h-full opacity-20 rounded-full"
-              style="background-image: url('{checkboard}');
-      background-size: 7px 7px;
-      background-repeat: repeat;"
-            />
-            <div
-              class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
-              style="background-color: {(() => {
-                const rgba = Object.values(color).map(Number);
-                return rgba.some(Number.isNaN)
-                  ? 'white'
-                  : `rgba(${rgba.join(',')})`;
-              })()};"
-            />
-            <div
-              class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
-              class:hidden={i !== $data.selectedIndex}
-            />
-          </div>
-        {/each}
-      </div>
+  <div
+    class="grid grid-cols-[2fr_1fr] w-full gap-2 text-white place-items-center"
+  >
+    <div class="flex w-full">
+      <MeltSelect
+        bind:target={selected}
+        {options}
+        disabled={false}
+        size={"full"}
+      />
     </div>
 
-    <div
-      class="grid grid-cols-[2fr_1fr] w-full gap-2 text-white place-items-center"
-    >
-      <div class="flex w-full">
-        <MeltSelect
-          bind:target={selected}
-          {options}
-          disabled={false}
-          size={"full"}
-        />
-      </div>
-
-      <span class="text-white">Intensity</span>
-      <div class="flex h-32 w-full items-center justify-center">
-        <svelte:component
-          this={colorPickerComponent.get(selected)}
-          color={(() => {
-            const [r, g, b, a] = Object.values($data.getSelectedColor()).map(
-              Number
-            );
-            return [r, g, b, a].some(isNaN)
-              ? undefined
-              : new Grid.RGBA(r, g, b, a).reduceToHSL();
-          })()}
-          on:input={(e) => {
-            handleColorInput(e);
-          }}
-          on:change={(e) => {
-            dispatch("sync");
-          }}
-        />
-      </div>
-
-      <ColorSlider
-        value={$data.getSelectedColor().alpha}
-        max={1}
-        direction="vertical"
+    <span class="text-white">Intensity</span>
+    <div class="flex h-32 w-full items-center justify-center">
+      <svelte:component
+        this={colorPickerComponent.get(selected)}
+        color={$data.pickerColor}
         on:input={(e) => {
-          const { value } = e.detail;
-          const current = get(data).getSelectedColor();
-          current.alpha = value;
-          data.updateSelectedLayer(current);
-          sendData();
+          const { color } = e.detail;
+          data.updatePickerColor(color);
         }}
         on:change={(e) => {
           dispatch("sync");
         }}
-      >
-        <div class="w-full h-full bg-alpha" />
-      </ColorSlider>
+      />
     </div>
 
-    <div class="grid grid-cols-4 w-full gap-2">
-      {#each [ColorChanel.RED, ColorChanel.GREEN, ColorChanel.BLUE, ColorChanel.ALPHA] as channel, i}
-        <MeltCombo
-          title={" "}
-          value={$data.getSelectedColor()[channel]}
-          validator={validators[i + 2].func}
-          suggestions={LocalDefinitions.getFrom({
-            configs: $event.config,
-            index: index,
-          })}
-          on:input={(e) => {
-            const { value, validationError } = e.detail;
-            validators[i + 2].value = !validationError;
-            handleRGBAChannelInput(channel, value);
-          }}
-          on:change={() => dispatch("sync")}
-          postProcessor={GridScript.shortify}
-          preProcessor={GridScript.humanize}
-        />
-      {/each}
-    </div>
+    <ColorSlider
+      value={$data.alphaSliderValue}
+      max={1}
+      direction="vertical"
+      on:input={(e) => {
+        const { value } = e.detail;
+        data.updateAlphaSliderValue(value);
+      }}
+      on:change={(e) => {
+        dispatch("sync");
+      }}
+    >
+      <div
+        class="w-full h-full {typeof $data.alphaSliderValue === 'undefined'
+          ? 'bg-white'
+          : 'bg-alpha'}"
+      />
+    </ColorSlider>
+  </div>
 
-    <SendFeedback
-      feedback_context="LedColor"
-      class="mt-2 text-sm text-gray-500"
-    />
-  </config-led-color>
-{/key}
+  <div class="grid grid-cols-4 w-full gap-2">
+    {#each Object.values(SimpleColor.Channel) as channel}
+      <MeltCombo
+        title={" "}
+        bind:value={$data[channel].value}
+        validator={$data[channel].validator.func}
+        suggestions={$data[channel].suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          data.updateRGBAChannelValue(value, validationError, channel);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    {/each}
+  </div>
+
+  <SendFeedback
+    feedback_context="LedColor"
+    class="mt-2 text-sm text-gray-500"
+  />
+</config-led-color>
 
 <style>
   .bg-alpha {
