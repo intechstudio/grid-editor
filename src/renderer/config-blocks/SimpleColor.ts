@@ -55,7 +55,7 @@ export namespace SimpleColor {
 
     constructor(action: GridAction) {
       const segments = Script.toSegments({
-        short: `led_color`,
+        short: `glc`,
         script: action.script.split(":")[1],
       });
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
