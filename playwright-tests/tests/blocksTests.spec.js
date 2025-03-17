@@ -49,16 +49,16 @@ test.describe("Issues", () => {
 
   // https://github.com/intechstudio/grid-editor/issues/1022
   test("Code block saving the stored changes", async ({ page }) => {
-    const text = "print('stored codeblock')";
+    const storedInput = "print('stored codeblock')";
     await configPage.removeAllActions();
-    await configPage.addAndEditCodeBlock(text);
+    await configPage.addAndEditCodeBlock(storedInput);
     await configPage.commitCode();
     await configPage.closeCode();
     await modulePage.storeConfig();
     await configPage.selectElementEvent("Setup");
     await configPage.selectElementEvent("Button");
 
-    const preText = page.locator("#cfg-0").getByText(text); // should find codeblock with hello
+    const preText = page.locator("#cfg-0").getByText(storedInput); // should find codeblock with the sored filed
     await expect(preText).toBeVisible();
   });
 
