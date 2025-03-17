@@ -1,8 +1,11 @@
 import { blocks } from "../data/actionBlockLocators";
+import KeyboardActions from "../keyboardActions";
 
 export class ConfigPage {
   constructor(page) {
     this.page = page;
+
+    this.keyboardActions = new KeyboardActions(page);
 
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
@@ -231,11 +234,8 @@ export class ConfigPage {
     await this.page.getByText("Synced with Grid!").click();
     await this.codeblockInput.click({ clickCount: 1 });
 
-    const isMac = process.platform === "darwin";
-    const selectAllShortcut = isMac ? "Meta+A" : "Control+A";
+    await this.keyboardActions.selectAll();
 
-    await this.codeblockInput.press(selectAllShortcut);
-    await this.page.waitForTimeout(400);
     await this.codeblockInput.type(code);
   }
 

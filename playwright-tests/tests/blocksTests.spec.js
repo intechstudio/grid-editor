@@ -45,9 +45,23 @@ test.describe("Issues", () => {
 
     const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
     await expect(preText).toBeVisible();
-
-    //TODO refactor, with contains(), it slow now
   });
+
+  // https://github.com/intechstudio/grid-editor/issues/1022
+  test("Code block saving the stored changes", async ({ page }) => {
+    const text = "print('stored codeblock')";
+    await configPage.removeAllActions();
+    await configPage.addAndEditCodeBlock(text);
+    await configPage.commitCode();
+    await configPage.closeCode();
+    await modulePage.storeConfig();
+    await configPage.selectElementEvent("Setup");
+    await configPage.selectElementEvent("Button");
+
+    const preText = page.locator("#cfg-0").getByText(text); // should find codeblock with hello
+    await expect(preText).toBeVisible();
+  });
+
   test("MIDI NRPN showes the converted value after switch element", async ({
     page,
   }) => {
