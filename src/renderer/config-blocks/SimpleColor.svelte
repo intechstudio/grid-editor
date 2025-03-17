@@ -74,7 +74,6 @@
   }
 
   function buildScript(data: SimpleColor.ViewModelData) {
-    console.log("data.element.value", data.element.value);
     return Script.toScript({
       short: `${data.element.value}:glc`,
       array: [
@@ -87,6 +86,7 @@
   }
 
   function sendData(data: SimpleColor.ViewModelData) {
+    
     const script = buildScript(data);
 
     const validators = [
