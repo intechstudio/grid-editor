@@ -86,7 +86,6 @@
   }
 
   function sendData(data: SimpleColor.ViewModelData) {
-    
     const script = buildScript(data);
 
     const validators = [
