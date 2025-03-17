@@ -15,6 +15,8 @@ export class ConfigPage {
 
     this.firstActionBlock = page.locator("#cfg-0");
 
+    this.actionBlock = page.getByTestId("action-block");
+
     // Element Actions
     this.elementButtons = {
       copy: page.getByTestId("copy_all"),

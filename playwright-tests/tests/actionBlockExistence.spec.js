@@ -9,6 +9,7 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import blocks from "../data/actionBlocks.json";
 import blockElements from "../data/actionBlockElements.json";
+import KeyboardActions from "../keyboardActions";
 
 let configPage;
 let connectModulePage;
@@ -16,6 +17,7 @@ let modulePage;
 let browser;
 let context;
 let page;
+let keyboardActions;
 
 async function setupModule(moduleName) {
   await connectModulePage.openVirtualModules();
@@ -50,6 +52,7 @@ test.beforeAll(async () => {
 
   configPage = new ConfigPage(page);
   modulePage = new ModulePage(page);
+  keyboardActions = new KeyboardActions(page);
   connectModulePage = new ConnectModulePage(page);
 
   await page.goto(PAGE_PATH);
@@ -76,6 +79,7 @@ test.describe("Block Existence", () => {
     });
   }
 });
+
 test.describe("Elements Existence", () => {
   for (const [category, blockData] of Object.entries(blockElements)) {
     test.describe(`${category} category`, () => {
@@ -92,6 +96,55 @@ test.describe("Elements Existence", () => {
                 configPage.blocks[category][blockName]["elements"][elementName];
               await expect(element).toBeVisible({ timeout: 5000 });
             });
+          }
+        });
+      }
+    });
+  }
+});
+
+test.describe("Interactable input field", () => {
+  for (const [category, blockList] of Object.entries(blocks)) {
+    test.describe(`${category} category`, () => {
+      for (const blockName of blockList) {
+        test(`${blockName} block`, async () => {
+          if (blockName == "Press/Release") {
+            await configPage.selectElementEvent("Button");
+          }
+          await configPage.removeAllActions();
+          await configPage.openAndAddActionBlock(category, blockName);
+          const actionBlock = configPage.actionBlock;
+
+          // Locate input fields that are not of type "checkbox"
+          const inputFields = actionBlock.locator(
+            "input:not([type='checkbox'])"
+          );
+          const fieldCount = await inputFields.count();
+          console.log(`Number of input fields: ${fieldCount}`);
+
+          // Click all checkboxes that are unchecked
+          const checkboxes = actionBlock.locator(
+            'button[data-state="unchecked"]'
+          );
+          const checkboxCount = await checkboxes.count();
+          console.log(`Checkbox ${checkboxCount} was unchecked`);
+
+          for (let i = 0; i < checkboxCount; i++) {
+            const checkbox = checkboxes.nth(0);
+            await checkbox.click();
+            console.log(`Checkbox ${i + 1} was unchecked, now checked.`);
+          }
+
+          // Loop through input fields and interact with them
+          for (let i = 0; i < fieldCount; i++) {
+            const inputField = inputFields.nth(i);
+
+            // Type in the input field and validate
+            await inputField.click();
+            await keyboardActions.selectAll();
+            await keyboardActions.type("123");
+            const value = await inputField.inputValue();
+            expect(value).toBe("123");
           }
         });
       }
