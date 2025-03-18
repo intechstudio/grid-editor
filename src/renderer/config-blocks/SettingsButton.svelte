@@ -133,7 +133,7 @@
     const stepValue = Math.floor(Math.abs(min - max) / (steps - 1));
     const res = Array.from(
       { length: steps },
-      (_, index) => min + index * stepValue
+      (_, index) => min + index * stepValue,
     );
     return res;
   }
@@ -142,7 +142,7 @@
   $: stepValues = calculateStepValues(
     Number(bmo) + 1,
     minMaxEnabled ? Number(bmi) : 0,
-    minMaxEnabled ? Number(bma) : 127
+    minMaxEnabled ? Number(bma) : 127,
   );
 
   $: sendData(bmo, bmi, bma);

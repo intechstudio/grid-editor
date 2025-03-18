@@ -107,7 +107,7 @@ export class MessageStream {
       .pages.forEach(
         (e) =>
           (e.control_elements.find((e) => e.elementIndex === element).name =
-            name.length > 0 ? name : undefined)
+            name.length > 0 ? name : undefined),
       );
   }
 
@@ -125,12 +125,12 @@ export class MessageStream {
       const num = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
-          String.fromCharCode(descr.raw[4 + i * 4 + 1])
+          String.fromCharCode(descr.raw[4 + i * 4 + 1]),
       );
       const val = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
-          String.fromCharCode(descr.raw[4 + i * 4 + 3])
+          String.fromCharCode(descr.raw[4 + i * 4 + 3]),
       );
       //console.log(num, val)
 
@@ -151,22 +151,22 @@ export class MessageStream {
       const num = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 1])
+          String.fromCharCode(descr.raw[8 + i * 8 + 1]),
       );
       const red = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 3])
+          String.fromCharCode(descr.raw[8 + i * 8 + 3]),
       );
       const gre = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 5])
+          String.fromCharCode(descr.raw[8 + i * 8 + 5]),
       );
       const blu = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 7])
+          String.fromCharCode(descr.raw[8 + i * 8 + 7]),
       );
 
       //console.log(num, red, gre, blu)

@@ -120,17 +120,20 @@
       Grid.parseRGB(
         scriptSegments[2],
         scriptSegments[3],
-        scriptSegments[4]
+        scriptSegments[4],
       )?.toHSL() ?? defaultColor;
   }
 
   function changeBeautify() {
     beautyMode = beautify ? 0 : 1;
-    sendData();
+    sendData(undefined, undefined);
     dispatch("sync");
   }
 
-  function sendData() {
+  function sendData(e, index) {
+    if (e !== undefined && index !== undefined) {
+      scriptSegments[index] = e;
+    }
     const script = Script.toScript({
       short: config.short,
       array: [...scriptSegments, beautyMode],
@@ -239,16 +242,16 @@
 
 <config-led-color class="flex flex-col gap-2 w-full p-2 pointer-events-auto">
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
-    {#each [scriptSegments[0], scriptSegments[1]] as script, i}
+    {#each [0, 1] as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        bind:value={script}
+        bind:value={scriptSegments[i]}
         validator={validators[i].func}
         suggestions={suggestions[i]}
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[i].value = !validationError;
-          sendData();
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -271,16 +274,16 @@
   </div>
 
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
-    {#each [2, 3, 4] as i}
+    {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
       <MeltCombo
-        title={parameterNames[i]}
-        bind:value={scriptSegments[i]}
-        validator={validators[i].func}
-        suggestions={suggestions[i]}
+        title={parameterNames[i + 2]}
+        bind:value={script}
+        suggestions={suggestions[i + 2]}
+        validator={validators[i + 2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[i].value = !validationError;
-          sendData();
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

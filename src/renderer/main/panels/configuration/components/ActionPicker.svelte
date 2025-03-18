@@ -200,12 +200,12 @@
             "eprlrei",
             "eprlre",
             "eprlr",
-          ].includes(e.information.short)
+          ].includes(e.information.short),
       );
     }
     if (eventString !== "button") {
       comp = comp.filter(
-        (e) => !["bprel", "bpre", "bpr"].includes(e.information.short)
+        (e) => !["bprel", "bpre", "bpr"].includes(e.information.short),
       );
     }
 
@@ -280,7 +280,7 @@
         index: Math.min(index, $event.config.length - 1),
       });
       const defaultLocal = localDefinitions.find(
-        (e) => e.value === localDefinition
+        (e) => e.value === localDefinition,
       )?.value;
 
       if (typeof defaultLocal !== "undefined") {
@@ -295,7 +295,7 @@
     defaultScript = replaceToLocalDefinition(
       defaultScript,
       "self:ind()",
-      "num"
+      "num",
     );
     defaultScript = replaceToLocalDefinition(defaultScript, "glr()", "red");
     defaultScript = replaceToLocalDefinition(defaultScript, "glg()", "gre");
@@ -303,7 +303,7 @@
     const configs = [
       new GridAction(
         undefined,
-        new ActionData(component.information.short, defaultScript)
+        new ActionData(component.information.short, defaultScript),
       ),
     ];
 
@@ -313,7 +313,7 @@
     if (typeof compositeLua !== "undefined") {
       for (const obj of compositeLua) {
         configs.push(
-          new GridAction(undefined, new ActionData(obj.short, obj.script))
+          new GridAction(undefined, new ActionData(obj.short, obj.script)),
         );
       }
     }
@@ -348,7 +348,7 @@
           }
           return true;
         }),
-      })
+      }),
     );
     filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
   }

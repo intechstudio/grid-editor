@@ -16,7 +16,7 @@
     value: number;
   };
   const defaultOptions: EventPanelOption[] = Array.from(Array(3).keys()).map(
-    (i) => ({ title: undefined, value: i } as EventPanelOption)
+    (i) => ({ title: undefined, value: i }) as EventPanelOption,
   );
 
   const defaultSelected = -1;
@@ -39,12 +39,12 @@
       Object({
         title: e.getName(),
         value: e.type,
-      })
+      }),
     );
 
     const closestEvent = Grid.getClosestEvent(
       options.map((e) => e.value),
-      ui.eventtype
+      ui.eventtype,
     );
     selected = closestEvent;
   }

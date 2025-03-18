@@ -22,7 +22,7 @@
 
     // Always droppable
     const crossDrop = $draggedActions.every(
-      (e) => (e.parent as GridEvent) !== target.event
+      (e) => (e.parent as GridEvent) !== target.event,
     );
     if (crossDrop) {
       disabled = false;
@@ -30,7 +30,7 @@
     }
 
     const targetIndexes = $draggedActions.map((action) =>
-      target.event.config.findIndex((e) => e.id === action.id)
+      target.event.config.findIndex((e) => e.id === action.id),
     );
 
     const [targetMinIndex, targetMaxIndex] = [
