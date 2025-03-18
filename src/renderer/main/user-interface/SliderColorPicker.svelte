@@ -77,7 +77,7 @@
         Grid.HSL.getMaxValue(data.param);
       data.cursorElement.style.left = `${Math.min(
         offsetX,
-        data.scaleElement.clientWidth - data.cursorElement.clientWidth
+        data.scaleElement.clientWidth - data.cursorElement.clientWidth,
       )}px`;
     }
 
@@ -99,7 +99,7 @@
     for (let n = 0; n < stopCount; ++n) {
       hGrad.addColorStop(
         n / (stopCount - 1), // to get smooth gradient between 0 and 1
-        new Grid.HSL((360 / stopCount) * n, color.s, color.l).toHEX()
+        new Grid.HSL((360 / stopCount) * n, color.s, color.l).toHEX(),
       );
     }
 
@@ -147,11 +147,11 @@
       const rect = scaleElement.getBoundingClientRect();
       let value = Math.max(
         0,
-        Math.min(1, (e.clientX - rect.left) / rect.width)
+        Math.min(1, (e.clientX - rect.left) / rect.width),
       );
       color = color.setParam(
         dragParam,
-        Math.floor(Grid.HSL.getMaxValue(dragParam) * value)
+        Math.floor(Grid.HSL.getMaxValue(dragParam) * value),
       );
     }
   }
@@ -191,7 +191,7 @@
               style="background-color: {color.toCSS()};border-color: {new Grid.HSL(
                 color.h,
                 0,
-                100 - color.l
+                100 - color.l,
               ).toCSS()};"
             />
           </div>

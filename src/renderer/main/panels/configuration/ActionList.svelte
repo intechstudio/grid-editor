@@ -170,52 +170,53 @@
         <SeparatorLine target={{ event: event, index: 0 }} />
       {/if}
 
-      {#each $event?.config ?? [] as action, index (action.id)}
-        {@const showHelper =
-          typeof action.information.helperText !== "undefined" &&
-          ["composite_part", "composite_open"].includes(
-            action.information.type
-          ) &&
-          $event.config[index + 1]?.indentation === action.indentation &&
-          $appSettings.persistent.actionHelperText}
+    {#each $event?.config ?? [] as action, index (action.id)}
+      {@const showHelper =
+        typeof action.information.helperText !== "undefined" &&
+        ["composite_part", "composite_open"].includes(
+          action.information.type,
+        ) &&
+        $event.config[index + 1]?.indentation === action.indentation &&
+        $appSettings.persistent.actionHelperText}
 
-        <div
-          data-testid="action-block"
-          animate:flip={{ duration: 300, easing: eases.backOut }}
-          in:fade|global={{ delay: 0 }}
-        >
-          <div class="flex flex-row gap-2">
-            {#key $latestComponentVersionKeys.get(action.short)}
-              <DynamicWrapper
-                {index}
-                {action}
-                selected={typeof $selected_actions.find(
-                  (e) => e.id === action.id
-                ) !== "undefined"}
-                on:select={(e) => handleSelectionChange(action, e.detail.value)}
-              />
-            {/key}
-            <div class="flex items-center">
-              <Option
-                selected={typeof $selected_actions.find(
-                  (e) => e.id === action.id
-                ) !== "undefined"}
-                disabled={!action.information.selectable}
-                on:select={(e) => handleSelectionChange(action, e.detail.value)}
-              />
-            </div>
-          </div>
-          {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
-            <ActionHelper
-              target={{ event: event, index: index + 1 }}
-              text={action.information.helperText}
+      <div
+        data-testid="action-block"
+        animate:flip={{ duration: 300, easing: eases.backOut }}
+        in:fade|global={{ delay: 0 }}
+      >
+        <div class="flex flex-row gap-2">
+          {#key $latestComponentVersionKeys.get(action.short)}
+            <DynamicWrapper
+              {index}
+              {action}
+              selected={typeof $selected_actions.find(
+                (e) => e.id === action.id,
+              ) !== "undefined"}
+              on:select={(e) => handleSelectionChange(action, e.detail.value)}
             />
-          {:else}
-            <SeparatorLine target={{ event: event, index: index + 1 }} />
-          {/if}
+          {/key}
+          <div class="flex items-center">
+            <Option
+              selected={typeof $selected_actions.find(
+                (e) => e.id === action.id,
+              ) !== "undefined"}
+              disabled={!action.information.selectable}
+              on:select={(e) => handleSelectionChange(action, e.detail.value)}
+            />
+          </div>
         </div>
-      {/each}
-    </ul>
+
+        {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+          <ActionHelper
+            target={{ event: event, index: index + 1 }}
+            text={action.information.helperText}
+          />
+        {:else}
+          <SeparatorLine target={{ event: event, index: index + 1 }} />
+        {/if}
+      </div>
+    {/each}
+  </ul>
 
     {#if event}
       <BottomPanel

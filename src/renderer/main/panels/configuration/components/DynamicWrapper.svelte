@@ -51,12 +51,20 @@
   });
 
   onDestroy(() => {
+    revertToSynced();
+  });
+
+  $: if (!toggled) {
+    revertToSynced();
+  }
+
+  function revertToSynced() {
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
-      false
+      false,
     );
-  });
+  }
 
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;
@@ -64,7 +72,7 @@
     const parent = oldAction.parent as GridEvent;
     const newAction = new GridAction(
       undefined,
-      new ActionData(short, GridAction.getInformation(short).defaultLua)
+      new ActionData(short, GridAction.getInformation(short).defaultLua),
     );
     console.log({ short, script, name, oldAction, newAction, parent });
     replaceAction(parent, oldAction, newAction);

@@ -28,7 +28,7 @@ function create_context_menu() {
 
 export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   node: HTMLElement,
-  options: ContextMenuOptions
+  options: ContextMenuOptions,
 ): any => {
   const handleMouseUp = (e: MouseEvent) => {
     if (e.button === 2) {

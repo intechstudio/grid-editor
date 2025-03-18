@@ -4,7 +4,7 @@ import type { Action } from "svelte/action";
 
 export const tooltip: Action<HTMLElement, any> = (
   node: HTMLElement,
-  options: any
+  options: any,
 ): any => {
   if (typeof options === "undefined") {
     return;

@@ -16,7 +16,7 @@ export async function init_config_block_library() {
 
   try {
     config_components = await Promise.all(
-      Object.values(importModules).map((importModule) => importModule())
+      Object.values(importModules).map((importModule) => importModule()),
     );
     packageComponent = await import("../config-blocks/package/Package.svelte");
     console.info("Config blocks imported!");
@@ -57,23 +57,23 @@ export function addPackageAction(info) {
   clearTimeout(setVersionKeysTimeout);
   setVersionKeysTimeout = setTimeout(
     () => latestComponentVersionKeys.set(new Map(componentKeyMap)),
-    20
+    20,
   );
 }
 
 export function removePackageAction(packageId, actionId) {
   let info = package_infos.find(
-    (e) => e.packageId === packageId && e.actionId === actionId
+    (e) => e.packageId === packageId && e.actionId === actionId,
   );
   if (info) {
     package_infos = package_infos.filter(
-      (e) => e.packageId !== packageId || e.actionId !== actionId
+      (e) => e.packageId !== packageId || e.actionId !== actionId,
     );
     componentKeyMap.set(info.short, new Date().getTime());
     clearTimeout(setVersionKeysTimeout);
     setVersionKeysTimeout = setTimeout(
       () => latestComponentVersionKeys.set(new Map(componentKeyMap)),
-      20
+      20,
     );
   }
 }

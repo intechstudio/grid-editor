@@ -27,11 +27,11 @@
 
     cursorElement.style.left = `${Math.min(
       offsetX,
-      canvasElement.clientWidth - cursorElement.clientWidth
+      canvasElement.clientWidth - cursorElement.clientWidth,
     )}px`;
     cursorElement.style.top = `${Math.min(
       offsetY,
-      canvasElement.clientHeight - cursorElement.clientHeight
+      canvasElement.clientHeight - cursorElement.clientHeight,
     )}px`;
   }
 
@@ -70,13 +70,13 @@
     const hue = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const saturation = Math.max(
       0,
-      Math.min(1, (e.clientY - rect.top) / rect.height)
+      Math.min(1, (e.clientY - rect.top) / rect.height),
     );
 
     color = new Grid.HSL(
       hue * Grid.HSL.getMaxValue(Grid.HSLParam.HUE),
       (1 - saturation) * Grid.HSL.getMaxValue(Grid.HSLParam.SATURATION),
-      50
+      50,
     );
   }
 
