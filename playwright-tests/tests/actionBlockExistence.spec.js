@@ -120,19 +120,16 @@ test.describe("Interactable input field", () => {
             "input:not([type='checkbox'])"
           );
           const fieldCount = await inputFields.count();
-          console.log(`Number of input fields: ${fieldCount}`);
 
           // Click all checkboxes that are unchecked
           const checkboxes = actionBlock.locator(
             'button[data-state="unchecked"]'
           );
           const checkboxCount = await checkboxes.count();
-          console.log(`Checkbox ${checkboxCount} was unchecked`);
 
           for (let i = 0; i < checkboxCount; i++) {
             const checkbox = checkboxes.nth(0);
             await checkbox.click();
-            console.log(`Checkbox ${i + 1} was unchecked, now checked.`);
           }
 
           // Loop through input fields and interact with them
