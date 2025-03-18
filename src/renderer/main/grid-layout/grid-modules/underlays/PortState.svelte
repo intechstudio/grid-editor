@@ -1,5 +1,5 @@
 <script>
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   export let device = undefined;
   export let visible = false;
 </script>

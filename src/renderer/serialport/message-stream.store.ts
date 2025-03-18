@@ -1,6 +1,6 @@
 // Top level imports
 import { writable, get } from "svelte/store";
-import { appSettings } from "../runtime/app-helper.store.js";
+import { appSettings } from "../runtime/app-helper.store";
 import { wss_send_message } from "../runtime/runtime.store";
 import {
   debug_monitor_store,
