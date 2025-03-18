@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { get } from "svelte/store";
   import {
     GridElement,
+    GridEvent,
     GridModule,
     GridPage,
   } from "../../../../runtime/runtime";
@@ -10,6 +12,7 @@
   } from "../../../../runtime/user-input.store";
 
   import { createEventDispatcher } from "svelte";
+  import { draggedActions } from "../../../_actions/move.action";
 
   export let element: GridElement;
   export let isLeftCut = false;
@@ -18,6 +21,7 @@
 
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
+  let elementChangeTimeout: NodeJS.Timeout = undefined;
 
   const dispatch = createEventDispatcher();
 
@@ -29,6 +33,37 @@
       module.dx == ui?.dx &&
       module.dy == ui?.dy &&
       ui?.elementnumber == element.elementIndex;
+  }
+
+  function handleMouseLeave() {
+    clearTimeout(elementChangeTimeout);
+  }
+
+  function handleMouseEnter(element: GridElement) {
+    const ui = get(user_input);
+
+    if (get(draggedActions).length === 0) {
+      return;
+    }
+
+    if (
+      ui.dx === module.dx &&
+      ui.dy === module.dy &&
+      ui.pagenumber === page.pageNumber &&
+      ui.elementnumber === element.elementIndex
+    ) {
+      return;
+    }
+
+    elementChangeTimeout = setTimeout(() => {
+      user_input.set({
+        dx: module.dx,
+        dy: module.dy,
+        pagenumber: page.pageNumber,
+        elementnumber: element.elementIndex,
+        eventtype: ui.eventtype,
+      });
+    }, 100);
   }
 </script>
 
@@ -46,6 +81,8 @@
     style="   {$element.elementIndex == 255
       ? 'border-top-left-radius: 9999px; border-top-right-radius: 9999px;'
       : 'border-radius: var(--grid-rounding);'}   "
+    on:mouseenter={() => handleMouseEnter(element)}
+    on:mouseleave={handleMouseLeave}
     on:click={() => {
       dispatch("click", {
         elementNumber: $element.elementIndex,
