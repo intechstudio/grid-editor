@@ -239,10 +239,10 @@
 
 <config-led-color class="flex flex-col gap-2 w-full p-2 pointer-events-auto">
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
-    {#each [scriptSegments[0], scriptSegments[1]] as script, i}
+    {#each [0, 1] as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        bind:value={script}
+        bind:value={scriptSegments[i]}
         validator={validators[i].func}
         suggestions={suggestions[i]}
         on:input={(e) => {
