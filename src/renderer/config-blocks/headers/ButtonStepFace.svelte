@@ -41,7 +41,7 @@
           const oldScript = config.script;
           if (newScript !== oldScript) {
             config.updateData(
-              new ActionData(config.short, newScript, config.name)
+              new ActionData(config.short, newScript, config.name),
             );
             config.sendToGrid();
           }

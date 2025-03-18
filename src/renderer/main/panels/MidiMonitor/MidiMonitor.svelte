@@ -31,7 +31,7 @@
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
-      ui.eventtype
+      ui.eventtype,
     );
   }
 
@@ -115,7 +115,7 @@
         ...$midi_monitor_store.map((e) => structuredClone(e)),
         ...$sysex_monitor_store.map((e) => structuredClone(e)),
       ].sort((a, b) => a.date - b.date);
-    }
+    },
   );
 
   //Human readable midi store
@@ -123,14 +123,14 @@
     [midi_monitor_store],
     ([$midi_monitor_store]) => {
       let result = replaceNRPNMessages(
-        $midi_monitor_store.map((e) => structuredClone(e))
+        $midi_monitor_store.map((e) => structuredClone(e)),
       );
       result = replaceHighResMidiMessages(result);
       result.forEach((e) => {
         e = assignP1ValueAlias(e);
       });
       return result;
-    }
+    },
   );
 
   $: {
@@ -250,7 +250,7 @@
   }
 
   const isMIDI = (
-    msg: MidiMonitorItem | SysExMonitorItem
+    msg: MidiMonitorItem | SysExMonitorItem,
   ): msg is MidiMonitorItem => msg.type === "MIDI";
 </script>
 
@@ -457,9 +457,9 @@
                   class={configScriptLength >= Grid.Protocol.maxScriptLength
                     ? "text-error"
                     : configScriptLength >=
-                      (Grid.Protocol.maxScriptLength / 3) * 2
-                    ? "text-yellow-400"
-                    : "text-white"}
+                        (Grid.Protocol.maxScriptLength / 3) * 2
+                      ? "text-yellow-400"
+                      : "text-white"}
                 >
                   {configScriptLength}
                 </div>
