@@ -117,9 +117,12 @@ test.describe("Interactable input field", () => {
 
           // Locate input fields that are not of type "checkbox"
           const inputFields = actionBlock.locator(
-            "input:not([type='checkbox'])"
+            "input[type='text']:not(.rename-input)"
           );
+
+          const monacoFields = actionBlock.locator("div#line-editor");
           const fieldCount = await inputFields.count();
+          const monacoCount = await monacoFields.count();
 
           // Click all checkboxes that are unchecked
           const checkboxes = actionBlock.locator(
@@ -132,16 +135,28 @@ test.describe("Interactable input field", () => {
             await checkbox.click();
           }
 
+          const expectedValue = "123";
+
           // Loop through input fields and interact with them
           for (let i = 0; i < fieldCount; i++) {
             const inputField = inputFields.nth(i);
 
             // Type in the input field and validate
-            await inputField.click();
-            await keyboardActions.selectAll();
-            await keyboardActions.type("123");
+            await inputField.fill(expectedValue);
             const value = await inputField.inputValue();
-            expect(value).toBe("123");
+            expect(value).toBe(expectedValue);
+          }
+          // Loop through monaco fields and interact with them
+          for (let i = 0; i < monacoCount; i++) {
+            const monacoField = monacoFields.nth(i);
+
+            // Type in the monaco field and validate
+
+            await monacoField.click();
+            await keyboardActions.selectAll();
+            await keyboardActions.type(expectedValue);
+            const value = await monacoField.innerText();
+            expect(value).toMatch("123");
           }
         });
       }
