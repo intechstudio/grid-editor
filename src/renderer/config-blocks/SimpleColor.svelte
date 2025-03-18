@@ -278,7 +278,7 @@
       />
     </div>
 
-    <span class="text-white">Intensity</span>
+    <span class="text-white">Alpha</span>
     <div class="flex h-32 w-full items-center justify-center">
       <svelte:component
         this={colorPickerComponent.get(selected)}
