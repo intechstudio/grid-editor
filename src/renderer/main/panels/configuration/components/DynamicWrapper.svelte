@@ -51,12 +51,20 @@
   });
 
   onDestroy(() => {
+    revertToSynced();
+  });
+
+  $: if (!toggled) {
+    revertToSynced();
+  }
+
+  function revertToSynced() {
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
       false
     );
-  });
+  }
 
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;

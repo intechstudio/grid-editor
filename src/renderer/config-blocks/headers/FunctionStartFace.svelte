@@ -45,8 +45,8 @@
           sendData(script);
         }}
         on:change={() => dispatch("sync")}
-        action={config}
         value={scriptSegment}
+        availableCharacters={$config.parent.getAvailableChars()}
       />
     </div>
   </div>
