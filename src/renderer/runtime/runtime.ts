@@ -369,6 +369,15 @@ export class GridAction extends RuntimeNode<ActionData> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
 
+    if (!Grid.isBracketClosed(data.script)) {
+      return Promise.reject({
+        value: false,
+        text: Runtime.ErrorText.UNCLOSED_PARENTHESIS,
+        type: GridOperationType.UPDATE_ACTION,
+        info: (this.parent as GridEvent)?.getInfo(),
+      });
+    }
+
     if (parent.getAvailableChars() - diff < 0) {
       this.notify(); //TODO: Refactor this out
       this.notifyParent(); //TODO: Refactor this out
@@ -1045,6 +1054,15 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
+  }
+
+  public getHumanName() {
+    const page = this.parent as GridPage;
+    return `Element ${
+      this.elementIndex < 255
+        ? this.elementIndex
+        : page.control_elements.length - 1
+    } (${this.type[0].toUpperCase() + this.type.slice(1).toLowerCase()})`;
   }
 
   public getInfo(): ElementInfo {
