@@ -31,7 +31,7 @@
   import { beforeUpdate, afterUpdate, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { clickOutside } from "../_actions/click-outside.action";
-  import { syncWithGrid } from "../../runtime/operations";
+  import { syncWithGrid, updateAction } from "../../runtime/operations";
 
   export let monaco_action: GridAction;
 
@@ -183,13 +183,19 @@
   });
 
   async function handleCommitClicked() {
-    $monaco_action.script = GridScript.compressScript(editor.getValue());
-    $monaco_action.name =
-      name !== $monaco_action?.information.displayName ? name : undefined;
-    commited.name = $monaco_action.name;
-    commited.script = $monaco_action.script;
-    commitEnabled = false;
-    syncWithGrid(monaco_action);
+    updateAction(
+      monaco_action,
+      new ActionData(
+        monaco_action.short,
+        GridScript.compressScript(editor.getValue()),
+        name !== $monaco_action?.information.displayName ? name : undefined
+      ),
+      true
+    ).then(() => {
+      commited.name = $monaco_action.name;
+      commited.script = $monaco_action.script;
+      commitEnabled = false;
+    });
   }
 
   onDestroy(() => {
