@@ -260,23 +260,11 @@ function initialize_theme() {
 
 function initialize_autocomplete() {
   (function init_autocomplete() {
-    function createProposals(range) {
+    function createProposals(range, model, position, prefix) {
       let proposalList = [];
+      language.functions = ["print"];
 
-      for (const element of language.functions) {
-        let proposalItem = {
-          label: "",
-          kind: monaco_languages.CompletionItemKind.Function,
-          documentation: "Documentation",
-          insertText: "",
-          range: range,
-        };
-
-        proposalItem.label = element;
-        proposalItem.insertText = element;
-
-        proposalList.push(proposalItem);
-      }
+      // Handle other general cases (mathfunctions, keywords, etc.)
       for (const element of language.mathfunctions) {
         let proposalItem = {
           label: "",
@@ -308,7 +296,7 @@ function initialize_autocomplete() {
       }
 
       const elementtype = get(monaco_elementtype);
-      grid.lua_function_to_human_map().forEach((value, key) => {
+      for (const item of grid.lua_function_to_human_map()) {
         let proposalItem = {
           label: "",
           kind: monaco_languages.CompletionItemKind.Function,
@@ -317,80 +305,104 @@ function initialize_autocomplete() {
           range: range,
         };
 
-        if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
-          if (elementtype === "endless" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
-          }
-        } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
-          if (elementtype === "encoder" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
-          }
-        }
+        const key = item[0];
+        const value = item[1];
+        const elementTypeMapping = {
+          GRID_LUA_FNC_EP: "endless",
+          GRID_LUA_FNC_E: "encoder",
+          GRID_LUA_FNC_B: "button",
+          GRID_LUA_FNC_P: "potmeter",
+          GRID_LUA_FNC_L: "lcd",
+        };
 
-        if (key.startsWith("GRID_LUA_FNC_B") && key.endsWith("_human")) {
-          if (elementtype === "button" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          }
-        }
+        const lineContent = model.getLineContent(range.startLineNumber);
+        const isInsideSelfOrElement =
+          lineContent.includes("self:") || lineContent.includes("element[");
+        const keyPrefix = Object.keys(elementTypeMapping).find((prefix) =>
+          key.startsWith(prefix)
+        );
 
-        if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
-          if (elementtype === "potmeter" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
-          }
-        }
-
-        if (key.startsWith("GRID_LUA_FNC_L") && key.endsWith("_human")) {
-          if (elementtype === "lcd" || elementtype === undefined) {
-            proposalItem.label = "self:" + value;
-            proposalItem.insertText = "self:" + value + "()";
-          } else if (elementtype === "system") {
-            proposalItem.label = "element[0]:" + value;
-            proposalItem.insertText = "element[0]:" + value + "()";
+        if (
+          keyPrefix &&
+          (elementtype === elementTypeMapping[keyPrefix] ||
+            elementtype === undefined)
+        ) {
+          proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
+          proposalItem.insertText = `${proposalItem.label}()`;
+        } else if (elementtype === "system" || !elementtype) {
+          if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
+            proposalItem.label = isInsideSelfOrElement
+              ? value
+              : `element[0]:${value}`;
+            proposalItem.insertText = `${proposalItem.label}()`;
           }
         }
 
         proposalList.push(proposalItem);
-      });
 
-      // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
-      // here you could do a server side lookup
-      return [...proposalList];
+        const helperText = grid.get_lua_function_helper(key);
+        if (typeof helperText !== "undefined") {
+          hoverTips[value] = helperText;
+        }
+      }
+
+      for (const element of language.functions) {
+        if (proposalList.find((e) => e.label === element)) {
+          continue;
+        }
+
+        let proposalItem = {
+          label: "",
+          kind: monaco_languages.CompletionItemKind.Function,
+          documentation: "Documentation",
+          insertText: "",
+          range: range,
+          label: element,
+          insertText: element + "()",
+        };
+
+        proposalList.push(proposalItem);
+      }
+
+      return proposalList;
     }
 
     let disposable = monaco_languages.registerCompletionItemProvider(
       "intech_lua",
       {
         provideCompletionItems: function (model, position) {
-          // find out if we are completing a property in the 'dependencies' object.
-          var textUntilPosition = model.getValueInRange({
-            startLineNumber: 1,
-            startColumn: 1,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column,
-          });
-
           var word = model.getWordUntilPosition(position);
+          var lineContent = model.getLineContent(position.lineNumber);
           var range = {
             startLineNumber: position.lineNumber,
             endLineNumber: position.lineNumber,
             startColumn: word.startColumn,
             endColumn: word.endColumn,
           };
+
+          // Check for 'self:' or 'element[x]:'
+          const selfIndex = lineContent.lastIndexOf(
+            "self:",
+            position.column - 1
+          );
+          const elementIndex = lineContent.lastIndexOf(
+            "element[",
+            position.column - 1
+          );
+
+          // If 'self:' or 'element[x]:' is found, adjust the prefix
+          let prefix = "";
+          if (selfIndex !== -1 && selfIndex + 5 <= word.startColumn) {
+            prefix = "self:";
+          } else if (
+            elementIndex !== -1 &&
+            elementIndex + 8 <= word.startColumn
+          ) {
+            prefix = lineContent.slice(elementIndex, position.column); // 'element[x]:'
+          }
+
           return {
-            suggestions: createProposals(range),
+            suggestions: createProposals(range, model, position, prefix),
           };
         },
       }
@@ -402,10 +414,6 @@ function initialize_highlight() {
   grid.lua_function_to_human_map().forEach((value, key) => {
     //AUTOCOMPLETE FUNCTIONS
     language.functions.push(value);
-    const helperText = grid.get_lua_function_helper(key);
-    if (typeof helperText !== "undefined") {
-      hoverTips[value] = helperText;
-    }
   });
 
   grid.lua_function_forbiddens().forEach((value) => {
@@ -435,15 +443,16 @@ function initialize_hover() {
 }
 
 function initialize_grammar() {
+  console.log(language);
   monaco_languages.setMonarchTokensProvider("intech_lua", language);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
 
+initialize_autocomplete();
 initialize_theme();
 initialize_language();
 initialize_grammar();
 initialize_hover();
-initialize_autocomplete();
 initialize_highlight();
 
 export { monaco_editor, monaco_languages };
