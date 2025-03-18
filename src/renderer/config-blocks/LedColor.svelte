@@ -119,7 +119,7 @@
       Grid.parseRGB(
         scriptSegments[2],
         scriptSegments[3],
-        scriptSegments[4]
+        scriptSegments[4],
       )?.toHSL() ?? defaultColor;
   }
 

@@ -86,7 +86,7 @@
       device?.dx,
       device?.dy,
       $user_input.dx,
-      $user_input.dy
+      $user_input.dy,
     );
     if (device?.dx == $user_input.dx && device?.dy == $user_input.dy) {
       return;

@@ -147,7 +147,7 @@
           testid="select_all"
           selected={$event?.config.every((e) => $selected_actions.includes(e))}
           halfSelected={$event?.config.some((e) =>
-            $selected_actions.includes(e)
+            $selected_actions.includes(e),
           )}
           disabled={$event?.config.length === 0}
           on:select={handleSelectAll}
@@ -174,7 +174,7 @@
         {@const showHelper =
           typeof action.information.helperText !== "undefined" &&
           ["composite_part", "composite_open"].includes(
-            action.information.type
+            action.information.type,
           ) &&
           $event.config[index + 1]?.indentation === action.indentation &&
           $appSettings.persistent.actionHelperText}
@@ -190,7 +190,7 @@
                 {index}
                 {action}
                 selected={typeof $selected_actions.find(
-                  (e) => e.id === action.id
+                  (e) => e.id === action.id,
                 ) !== "undefined"}
                 on:select={(e) => handleSelectionChange(action, e.detail.value)}
               />
@@ -198,7 +198,7 @@
             <div class="flex items-center">
               <Option
                 selected={typeof $selected_actions.find(
-                  (e) => e.id === action.id
+                  (e) => e.id === action.id,
                 ) !== "undefined"}
                 disabled={!action.information.selectable}
                 on:select={(e) => handleSelectionChange(action, e.detail.value)}

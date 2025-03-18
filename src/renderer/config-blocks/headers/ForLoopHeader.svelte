@@ -72,7 +72,7 @@
 
     const [start, end, inc] = segments.slice(1).map((e) => Number(e));
     const iterationCount = Math.floor(
-      (Math.abs(start - end) + 1) / Math.abs(inc)
+      (Math.abs(start - end) + 1) / Math.abs(inc),
     );
 
     displayValue = Number.isInteger(iterationCount)

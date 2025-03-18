@@ -32,7 +32,7 @@ export class MidiMessage {
     command: number,
     param1: number,
     param2: number,
-    direction: string
+    direction: string,
   ) {
     this.channel = channel;
     this.command = {
@@ -245,7 +245,7 @@ function createMidiMonitor(max_length) {
             cp.COMMAND,
             cp.PARAM1,
             cp.PARAM2,
-            descr.class_instr
+            descr.class_instr,
           ),
           device: new DeviceInfo(device.type, bc.SX, bc.SY),
         };
