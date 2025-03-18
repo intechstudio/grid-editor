@@ -107,14 +107,14 @@
   function handleAddLayer() {
     const last = get(data).previewColors.at(-1);
     data.addLayer(last);
-
+    sendData(get(data));
     dispatch("sync");
   }
 
   function handleRemoveLayer() {
     const selected = get(data).selectedIndex;
     data.removeLayer(selected);
-
+    sendData(get(data));
     dispatch("sync");
   }
 
@@ -144,8 +144,6 @@
       return s;
     });
   }
-
-  $: sendData($data);
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
@@ -173,7 +171,8 @@
       suggestions={$data.element.suggestions}
       on:input={(e) => {
         const { value, validationError } = e.detail;
-        get(data).element.validator.value = !validationError;
+        $data.element.validator.value = !validationError;
+        sendData($data);
       }}
       on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
@@ -187,7 +186,8 @@
       suggestions={$data.layer.suggestions}
       on:input={(e) => {
         const { value, validationError } = e.detail;
-        get(data).layer.validator.value = !validationError;
+        $data.layer.validator.value = !validationError;
+        sendData($data);
       }}
       on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
@@ -286,6 +286,7 @@
         on:input={(e) => {
           const { color } = e.detail;
           data.updatePickerColor(color);
+          sendData($data);
         }}
         on:change={(e) => {
           dispatch("sync");
@@ -300,6 +301,7 @@
       on:input={(e) => {
         const { value } = e.detail;
         data.updateAlphaSliderValue(value);
+        sendData($data);
       }}
       on:change={(e) => {
         dispatch("sync");
@@ -323,6 +325,7 @@
         on:input={(e) => {
           const { value, validationError } = e.detail;
           data.updateRGBAChannelValue(value, validationError, channel);
+          sendData($data);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
