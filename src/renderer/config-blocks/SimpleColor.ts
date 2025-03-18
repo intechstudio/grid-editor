@@ -80,7 +80,7 @@ export namespace SimpleColor {
         Object({
           info: e.getHumanName(),
           value: `element[${e.elementIndex}]`,
-        })
+        }),
       ),
     ];
   }
@@ -144,7 +144,7 @@ export namespace SimpleColor {
 
     public subscribe(
       run: Subscriber<ViewModelData>,
-      invalidate?: (value?: ViewModelData) => void
+      invalidate?: (value?: ViewModelData) => void,
     ): Unsubscriber {
       return this._internal.subscribe(run, invalidate);
     }
@@ -269,7 +269,7 @@ export namespace SimpleColor {
           : new Grid.RGB(
               parseInt(red),
               parseInt(green),
-              parseInt(blue)
+              parseInt(blue),
             ).toHSL();
 
         s.red.value = red;
@@ -317,7 +317,7 @@ export namespace SimpleColor {
     public updateRGBAChannelValue(
       value: string,
       validationError: boolean,
-      channel: Channel
+      channel: Channel,
     ) {
       this.update((s) => {
         s[channel].validator.value = !validationError;
@@ -347,7 +347,7 @@ export namespace SimpleColor {
           : new Grid.RGB(
               parseInt(red),
               parseInt(green),
-              parseInt(blue)
+              parseInt(blue),
             ).toHSL();
         return s;
       });

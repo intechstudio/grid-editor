@@ -36,7 +36,7 @@
     cursorElement.style.left =
       (Math.min(
         offsetX,
-        canvasElement.clientWidth - cursorElement.clientWidth
+        canvasElement.clientWidth - cursorElement.clientWidth,
       ) /
         canvasElement.clientWidth) *
         100 +
@@ -44,7 +44,7 @@
     cursorElement.style.top =
       (Math.min(
         offsetY,
-        canvasElement.clientHeight - cursorElement.clientHeight
+        canvasElement.clientHeight - cursorElement.clientHeight,
       ) /
         canvasElement.clientHeight) *
         100 +
@@ -56,10 +56,10 @@
 
     const rect = canvasElement.getBoundingClientRect();
     const hue = Math.floor(
-      Math.max(Math.min((e.clientX - rect.left) / rect.width, 1), 0) * 360
+      Math.max(Math.min((e.clientX - rect.left) / rect.width, 1), 0) * 360,
     );
     const brightness = Math.floor(
-      Math.max(Math.min((e.clientY - rect.top) / rect.height, 1), 0) * 50 + 50
+      Math.max(Math.min((e.clientY - rect.top) / rect.height, 1), 0) * 50 + 50,
     );
     color = new Grid.HSL(hue, 100, brightness);
     setCursorPosition(color);
@@ -102,16 +102,8 @@
 
 <style>
   .bg-hue {
-    background: linear-gradient(
-        to left,
-        red,
-        magenta,
-        blue,
-        cyan,
-        lime,
-        yellow,
-        red
-      ),
+    background:
+      linear-gradient(to left, red, magenta, blue, cyan, lime, yellow, red),
       linear-gradient(to top, white, transparent);
     background-size: 100% 100%;
     background-blend-mode: overlay;

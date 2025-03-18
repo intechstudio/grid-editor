@@ -40,7 +40,7 @@
       case "horizontal": {
         normalized = Math.max(
           0,
-          Math.min(1, (e.clientX - rect.left) / rect.width)
+          Math.min(1, (e.clientX - rect.left) / rect.width),
         );
         break;
       }

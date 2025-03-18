@@ -215,7 +215,7 @@
             .map((e) =>
               Object.values(e).some(isNaN)
                 ? 'white'
-                : `rgba(${Object.values(e).join(',')})`
+                : `rgba(${Object.values(e).join(',')})`,
             )
             .join(',')}
 );"
@@ -231,8 +231,8 @@
           isFirst && $data.previewColors.length > 1
             ? "12px"
             : isLast
-            ? "calc(100% - 12px)"
-            : `${stepSize * i}%`}
+              ? "calc(100% - 12px)"
+              : `${stepSize * i}%`}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div

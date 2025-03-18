@@ -45,13 +45,13 @@
 
     const stops = {
       h: [0, 60, 120, 180, 240, 360].map((h) =>
-        new Grid.HSL(h, color.s, color.l).toHEX()
+        new Grid.HSL(h, color.s, color.l).toHEX(),
       ),
       s: [0, 100].map((s) => new Grid.HSL(color.h, s, color.l).toHEX()),
       l: [0, 50, 100].map((l) => new Grid.HSL(color.h, color.s, l).toHEX()),
     };
     return `background: linear-gradient(to right, ${stops[channel].join(
-      ", "
+      ", ",
     )});`;
   }
 </script>

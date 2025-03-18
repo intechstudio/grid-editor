@@ -115,16 +115,8 @@
 <style>
   .bg-hue {
     border-radius: 50%;
-    background: conic-gradient(
-        from 90deg,
-        red,
-        magenta,
-        blue,
-        cyan,
-        lime,
-        yellow,
-        red
-      ),
+    background:
+      conic-gradient(from 90deg, red, magenta, blue, cyan, lime, yellow, red),
       radial-gradient(circle at center, white 0, transparent 75%);
     background-size: 100% 100%;
     background-blend-mode: overlay;

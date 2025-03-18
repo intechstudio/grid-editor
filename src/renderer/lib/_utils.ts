@@ -22,7 +22,7 @@ export namespace Grid {
 
     // Find the matching bracket pair
     const bracketPair = Brackets.find(
-      (b) => b.start === startBracket && b.end === endBracket
+      (b) => b.start === startBracket && b.end === endBracket,
     );
 
     if (!bracketPair) {
@@ -116,7 +116,11 @@ export namespace Grid {
   }
 
   export class RGB {
-    constructor(public r: number, public g: number, public b: number) {}
+    constructor(
+      public r: number,
+      public g: number,
+      public b: number,
+    ) {}
 
     toCSS() {
       return `rgb(${this.r ?? 0}, ${this.g ?? 0}, ${this.b ?? 0})`;
@@ -149,7 +153,7 @@ export namespace Grid {
       public r: number,
       public g: number,
       public b: number,
-      public a: number
+      public a: number,
     ) {
       return undefined;
     }
@@ -179,7 +183,7 @@ export namespace Grid {
       public h: number,
       public s: number,
       public l: number,
-      public a: number
+      public a: number,
     ) {}
 
     toRGBA() {
@@ -207,7 +211,11 @@ export namespace Grid {
   }
 
   export class HSL {
-    constructor(public h: number, public s: number, public l: number) {}
+    constructor(
+      public h: number,
+      public s: number,
+      public l: number,
+    ) {}
 
     getParam(param: HSLParam) {
       switch (param) {
