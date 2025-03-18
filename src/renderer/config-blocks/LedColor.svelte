@@ -48,6 +48,7 @@
   import { Grid } from "../lib/_utils.js";
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
+  import RandomColorGenerator from "../main/user-interface/RandomColorGenerator.svelte";
 
   export let config: GridAction;
 
@@ -219,10 +220,7 @@
     scriptSegments[3] = color.g;
     scriptSegments[4] = color.b;
 
-    sendData(color.r, 2);
-    sendData(color.g, 3);
-    sendData(color.b, 4);
-    dispatch("sync");
+    sendData();
   }
 
   enum ColorPickerModel {
@@ -265,11 +263,15 @@
   <div class="text-white">
     <MeltSelect bind:target={selected} {options} disabled={false} />
   </div>
-  <svelte:component
-    this={colorPickerComponent.get(selected)}
-    {color}
-    on:change={updateColor}
-  />
+  <div class="grid grid-cols-[1fr_auto] gap-2 items-center h-24">
+    <svelte:component
+      this={colorPickerComponent.get(selected)}
+      {color}
+      on:input={updateColor}
+      on:change={() => dispatch("sync")}
+    />
+    <RandomColorGenerator {color} on:generate={updateColor} />
+  </div>
 
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}

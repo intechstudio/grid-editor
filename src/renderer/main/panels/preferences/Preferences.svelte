@@ -364,6 +364,16 @@
     </Block>
 
     <Block>
+      <BlockTitle>Unreleased Action Blocks</BlockTitle>
+      <BlockBody>Enable/Disable adding unrelease action blocks.</BlockBody>
+
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.allowDevBlocks}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Websocket monitor</BlockTitle>
       <BlockBody>
         Enable/Disable the websocket monitor. This will show the websocket

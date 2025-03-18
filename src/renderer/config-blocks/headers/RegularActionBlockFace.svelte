@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { appSettings } from "./../../runtime/app-helper.store.js";
+  import { appSettings } from "./../../runtime/app-helper.store";
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { SvgIcon } from "@intechstudio/grid-uikit";

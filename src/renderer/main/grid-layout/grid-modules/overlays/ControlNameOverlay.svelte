@@ -4,7 +4,7 @@
     GridElement,
     GridPage,
   } from "./../../../../runtime/runtime";
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let visible = false;
   export let element: GridElement;
