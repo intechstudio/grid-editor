@@ -13,7 +13,7 @@ async function attemptSerialConnection() {
   if (serial.mainWindow !== undefined) {
     try {
       const timeoutPromise = new Promise((res) =>
-        setTimeout(() => res("Serial port connect request timed out!"), 1000),
+        setTimeout(() => res("Serial port connect request timed out!"), 1000)
       ).then((e) => {
         //If the timeout function returns first, do the error handling
         throw e;
@@ -23,7 +23,7 @@ async function attemptSerialConnection() {
       const portRequestPromise =
         serial.mainWindow.webContents.executeJavaScript(
           `if(navigator.tryConnectGrid){navigator.tryConnectGrid()}`,
-          true,
+          true
         );
 
       //Check which async function return first
@@ -38,7 +38,7 @@ export function restartSerialCheckInterval() {
   clearIntervalAsync(port_disovery_interval);
   port_disovery_interval = setIntervalAsync(
     attemptSerialConnection,
-    RECONNECT_INTERVAL,
+    RECONNECT_INTERVAL
   );
 }
 

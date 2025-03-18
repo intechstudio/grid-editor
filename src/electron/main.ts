@@ -28,7 +28,7 @@ log.info(
   "NAME: ",
   configuration.EDITOR_NAME,
   " VERSION: ",
-  configuration.EDITOR_VERSION,
+  configuration.EDITOR_VERSION
 );
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
@@ -177,7 +177,7 @@ if (!gotTheLock) {
         }
         handleDeeplinkReturnData(commandLine.toString());
       }
-    },
+    }
   );
 
   app.whenReady().then(() => {
@@ -201,8 +201,8 @@ if (!gotTheLock) {
           app.getPath("documents"),
           "grid-userdata",
           "packages",
-          packageName,
-        ),
+          packageName
+        )
       );
 
       // Override package path for local dev packages
@@ -266,7 +266,7 @@ function createWindow() {
       }
 
       c({ cancel: false, responseHeaders: d.responseHeaders });
-    },
+    }
   );
 
   serial.mainWindow = mainWindow;
@@ -297,10 +297,10 @@ function createWindow() {
     // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
     mainWindow.loadURL(
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
   }
 
@@ -335,7 +335,7 @@ function createWindow() {
       } else {
         callback(""); //Could not find any matching devices
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -356,7 +356,7 @@ function createWindow() {
       ) {
         return true;
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.setDevicePermissionHandler((details) => {
@@ -386,14 +386,14 @@ let stopPackageManagerTimeout = undefined;
 let restartPackageManagerOnShutdown = true;
 let packageEditorPort = undefined;
 function startPackageManager(
-  updatePackageOnStartName: string | undefined = undefined,
+  updatePackageOnStartName: string | undefined = undefined
 ) {
   const packageFolder = path.resolve(
-    path.join(app.getPath("documents"), "grid-userdata", "packages"),
+    path.join(app.getPath("documents"), "grid-userdata", "packages")
   );
   if (!packageManagerProcess) {
     packageManagerProcess = utilityProcess.fork(
-      path.resolve(path.join(__dirname, "./packageManager.js")),
+      path.resolve(path.join(__dirname, "./packageManager.js"))
     );
     packageManagerProcess.postMessage({
       type: "init",
@@ -422,7 +422,7 @@ function startPackageManager(
       ) {
         packageManagerProcess?.once("exit", () => {
           fs.rm(message.path, { recursive: true }, () =>
-            startPackageManager(message.packageName),
+            startPackageManager(message.packageName)
           );
         });
         packageManagerProcess!.kill();
@@ -535,7 +535,7 @@ function createPackageWindow(args) {
       type: "create-package-message-port",
       senderId: windowId,
     },
-    [messageChannel.port2],
+    [messageChannel.port2]
   );
   window.show();
 }
@@ -654,7 +654,7 @@ ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
   return await migrateToProfileCloud(
     arg.oldRootPath,
     arg.newRootPath,
-    arg.configDirectory,
+    arg.configDirectory
   );
 });
 
@@ -681,7 +681,7 @@ ipcMain.handle("firmwareDownload", async (event, arg) => {
     arg.targetFolder,
     arg.product,
     arg.arch,
-    arg.url,
+    arg.url
   );
 });
 

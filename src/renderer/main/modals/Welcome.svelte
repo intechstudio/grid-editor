@@ -34,7 +34,7 @@
 
   function handleOpenPolicyClicked(e) {
     window.electron.openInBrowser(
-      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL,
+      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
     );
   }
 
@@ -101,7 +101,7 @@
           <button
             on:click={(e) => {
               window.electron.openInBrowser(
-                configuration.DOCUMENTATION_REFERENCEMANUAL_URL,
+                configuration.DOCUMENTATION_REFERENCEMANUAL_URL
               );
             }}
             class="flex w-full text-blue-500 cursor-pointer"
@@ -111,7 +111,7 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                configuration.DOCUMENTATION_DISCORDSERVER_URL,
+                configuration.DOCUMENTATION_DISCORDSERVER_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
           >
@@ -124,7 +124,7 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                configuration.DOCUMENTATION_TROUBLESHOOTING_URL,
+                configuration.DOCUMENTATION_TROUBLESHOOTING_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
           >
@@ -133,7 +133,7 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                configuration.DOCUMENTATION_MAINTENANCE_URL,
+                configuration.DOCUMENTATION_MAINTENANCE_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
           >

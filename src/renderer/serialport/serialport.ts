@@ -25,12 +25,12 @@ interface WebSerialPort {
   addEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions,
+    options?: boolean | AddEventListenerOptions
   ): void;
   removeEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions,
+    options?: boolean | EventListenerOptions
   ): void;
   getInfo(): SerialPortInfo;
 }
@@ -78,7 +78,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
 
   public subscribe(
     run: Subscriber<GridConnection[]>,
-    invalidate?: (value?: GridConnection[]) => void,
+    invalidate?: (value?: GridConnection[]) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -235,7 +235,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
             messageStopIndex = i;
             let currentMessage = rxBuffer.slice(
               messageStartIndex,
-              messageStopIndex,
+              messageStopIndex
             );
             messageStartIndex = i + 1;
 
@@ -284,7 +284,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
         const { usbVendorId, usbProductId } = port.getInfo();
         return filter.some(
           (f) =>
-            f.usbVendorId === usbVendorId && f.usbProductId === usbProductId,
+            f.usbVendorId === usbVendorId && f.usbProductId === usbProductId
         );
       });
 

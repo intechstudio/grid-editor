@@ -60,7 +60,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
   public subscribe(
     run: Subscriber<GridRuntimeManagerData>,
-    invalidate?: (value?: GridRuntimeManagerData) => void,
+    invalidate?: (value?: GridRuntimeManagerData) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -99,7 +99,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
   public destroy(runtime: GridRuntime) {
     const destroyed = get(this._internal).data.find(
-      (e) => e.runtime.id === runtime.id,
+      (e) => e.runtime.id === runtime.id
     );
 
     if (!destroyed) {
@@ -110,7 +110,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
     this.update((store) => {
       store.data = store.data.filter(
-        (e) => e.runtime.id !== destroyed.runtime.id,
+        (e) => e.runtime.id !== destroyed.runtime.id
       );
 
       if (store.active.runtime.id === destroyed.runtime.id) {
@@ -218,7 +218,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       dx,
       dy,
       script,
-      target.runtime.virtual,
+      target.runtime.virtual
     );
     instruction.executeOn(target.runtime.connection).catch((e) => {
       console.warn(e);
@@ -229,14 +229,14 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     connection.editor_heartbeat = setIntervalAsync(
       () =>
         GridRuntimeManager.editor_heartbeat_interval_handler(
-          connection.runtime,
+          connection.runtime
         ),
-      GridRuntimeManager.heartbeat_editor_ms,
+      GridRuntimeManager.heartbeat_editor_ms
     );
     connection.grid_heartbeat = setIntervalAsync(
       () =>
         GridRuntimeManager.grid_heartbeat_interval_handler(connection.runtime),
-      GridRuntimeManager.heartbeat_grid_ms,
+      GridRuntimeManager.heartbeat_grid_ms
     );
   }
 
@@ -265,7 +265,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     ) {
       const instruction = new GridInstruction.SendHeartbeatImmediate(
         type,
-        runtime.virtual,
+        runtime.virtual
       );
 
       instruction.executeOn(runtime.connection).catch((e) => {
@@ -288,7 +288,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
           "Heartbeat lost. DESTROY:",
           device.dx,
           device.dy,
-          device.type,
+          device.type
         );
         runtime.destroy_module(device.dx, device.dy);
       }

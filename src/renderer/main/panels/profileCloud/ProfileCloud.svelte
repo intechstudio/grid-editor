@@ -68,7 +68,7 @@
       ui.dx,
       ui.dy,
       ui.pagenumber,
-      ui.elementnumber,
+      ui.elementnumber
     );
 
     if (typeof module === "undefined" || typeof element === "undefined") {
@@ -107,7 +107,7 @@
 
   function sendSelectedComponentInfos(
     selectedModuleType,
-    selectedControlElementType,
+    selectedControlElementType
   ) {
     sendMessageToProfileCloud({
       messageType: "selectedComponentTypes",
@@ -220,7 +220,7 @@
           ui.dx,
           ui.dy,
           ui.pagenumber,
-          ui.elementnumber,
+          ui.elementnumber
         );
         await element.load();
 
@@ -279,7 +279,7 @@
     ) {
       sendSelectedComponentInfos(
         selectedModuleType,
-        selectedControlElementType,
+        selectedControlElementType
       );
     }
     const path = $appSettings.persistent.profileFolder;
@@ -352,7 +352,7 @@
         case "configDragChange":
           channelMessageWrapper(
             event,
-            ProfileCloudEvent.handleConfigDragChange,
+            ProfileCloudEvent.handleConfigDragChange
           );
           break;
         case "showOverlay":
@@ -391,7 +391,7 @@
     }
     if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL) {
       fixedUrl = `package://v${new Date().getTime()}/${configuration.PROFILE_CLOUD_URL_LOCAL.substring(
-        "package://".length,
+        "package://".length
       )}/wc/components.js`;
     }
     if (offlineMode) {

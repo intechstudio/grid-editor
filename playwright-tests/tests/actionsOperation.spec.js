@@ -27,7 +27,7 @@ test.describe("Action Block Operations", () => {
     await configPage.openActionsOnEmptyElement();
     await configPage.addActionBlock("led", "Color");
     await expect(
-      configPage.blocks["led"]["Color"]["elements"]["Blue"],
+      configPage.blocks["led"]["Color"]["elements"]["Blue"]
     ).toBeVisible();
   });
 
@@ -66,7 +66,7 @@ test.describe("Action Block Operations", () => {
     await configPage.mergeAction();
     await configPage.clickActionBlock(0);
     await expect(
-      page.getByText(`--[[${expectedComment}]]--[[This Is A Comment]]`),
+      page.getByText(`--[[${expectedComment}]]--[[This Is A Comment]]`)
     ).toBeVisible();
   });
 
@@ -85,7 +85,7 @@ test.describe("Action Block Operations", () => {
       "midi",
       "MIDI 14",
       "Controller Value",
-      expectedValue,
+      expectedValue
     );
     await configPage.selectAllActions();
     await configPage.copyAction();
@@ -95,7 +95,7 @@ test.describe("Action Block Operations", () => {
     const recieved = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI 14",
-      "Controller Value",
+      "Controller Value"
     );
     await expect(recieved).toBe(expectedValue);
   });
@@ -149,7 +149,7 @@ test.describe("Element Operations", () => {
     await configPage.selectElementEvent("Button");
 
     await expect(
-      await configPage.getActionBlock("code", "Comment Block"),
+      await configPage.getActionBlock("code", "Comment Block")
     ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
@@ -169,7 +169,7 @@ test.describe("Element Operations", () => {
     await configPage.selectElementEvent("Button");
 
     await expect(
-      await configPage.getActionBlock("code", "Comment Block"),
+      await configPage.getActionBlock("code", "Comment Block")
     ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
@@ -196,7 +196,7 @@ test.describe("Element Operations", () => {
     await configPage.selectElementEvent("Button");
 
     await expect(
-      await configPage.getActionBlock("code", "Comment Block"),
+      await configPage.getActionBlock("code", "Comment Block")
     ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
@@ -211,7 +211,7 @@ test.describe("Element Operations", () => {
     await configPage.selectElementEvent("Button");
 
     await expect(
-      await configPage.getActionBlock("code", "Comment Block"),
+      await configPage.getActionBlock("code", "Comment Block")
     ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });

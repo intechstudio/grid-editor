@@ -148,7 +148,7 @@
   $: stepSize = calculateStepSize(
     Number(pmo),
     minMaxEnabled ? Number(pmi) : 0,
-    minMaxEnabled ? Number(pma) : 127,
+    minMaxEnabled ? Number(pma) : 127
   );
 </script>
 

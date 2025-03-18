@@ -29,7 +29,7 @@ function init(nightlyAllowed: boolean) {
   log.info(
     "checkForUpdatesAndNotify ---> ",
     "BULD_ENV: ",
-    import.meta.env.VITE_BUILD_ENV,
+    import.meta.env.VITE_BUILD_ENV
   );
 
   if (

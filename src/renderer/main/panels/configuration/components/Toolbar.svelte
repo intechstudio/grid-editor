@@ -154,7 +154,7 @@
             on:mouseenter={() =>
               setToolbarHoverText(
                 `Discard Element Changes`,
-                `(${modifier[0]} + Shift + D)`,
+                `(${modifier[0]} + Shift + D)`
               )}
             on:mouseleave={handleToolbarButtonBlur}
             iconPath={"clear_from_device_01"}
@@ -220,7 +220,7 @@
             on:mouseenter={() =>
               setToolbarHoverText(
                 `Merge Action(s) into Code`,
-                `(${modifier[0]} + Shift + M)`,
+                `(${modifier[0]} + Shift + M)`
               )}
             on:mouseleave={handleToolbarButtonBlur}
             disabled={$isMergeActionsEnabled === false}

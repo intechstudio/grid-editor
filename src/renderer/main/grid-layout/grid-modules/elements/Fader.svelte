@@ -33,7 +33,7 @@
             (position * -1 + 90) *
               ((0.6 / 68) * faderHeight - (faderHeight - 37) / 700) -
               (68 - faderHeight) * 0.27 -
-              (37 - faderHeight) * 0.05,
+              (37 - faderHeight) * 0.05
           ) +
           'px)'};"
       >

@@ -31,7 +31,7 @@
       Object({
         value: true,
         func: (e) => new Validator(e).isLuaVariable().Result(),
-      }),
+      })
     );
   }
 
@@ -92,7 +92,7 @@
   }
 
   function parseVariableAssignments(
-    statement: string,
+    statement: string
   ): ScriptSegment[] | undefined {
     const processed = preProcessor(statement);
     const assignments: ScriptSegment[] = [];

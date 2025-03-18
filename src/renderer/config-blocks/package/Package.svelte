@@ -37,14 +37,14 @@
         });
         dispatch("sync");
       },
-      false,
+      false
     );
     actionElement.addEventListener(
       "updateConfigHandler",
       (e) => {
         updateActionWithConfig = e.detail.handler;
       },
-      false,
+      false
     );
   }
 </script>

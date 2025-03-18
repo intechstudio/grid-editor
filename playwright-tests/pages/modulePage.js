@@ -20,59 +20,59 @@ export class ModulePage {
     this.moduleElement = {
       0: page.locator(".normal-cell-underlay-container > .w-full").first(),
       1: page.locator(
-        "cell:nth-child(2) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(2) > .normal-cell-underlay-container > .w-full"
       ),
       2: page.locator(
-        "cell:nth-child(3) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(3) > .normal-cell-underlay-container > .w-full"
       ),
       3: page.locator(
-        "cell:nth-child(4) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(4) > .normal-cell-underlay-container > .w-full"
       ),
       4: page.locator(
-        "cell:nth-child(5) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(5) > .normal-cell-underlay-container > .w-full"
       ),
       5: page.locator(
-        "cell:nth-child(6) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(6) > .normal-cell-underlay-container > .w-full"
       ),
       6: page.locator(
-        "cell:nth-child(7) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(7) > .normal-cell-underlay-container > .w-full"
       ),
       7: page.locator(
-        "cell:nth-child(8) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(8) > .normal-cell-underlay-container > .w-full"
       ),
       8: page.locator(
-        "cell:nth-child(9) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(9) > .normal-cell-underlay-container > .w-full"
       ),
       9: page.locator(
-        "cell:nth-child(10) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(10) > .normal-cell-underlay-container > .w-full"
       ),
       10: page.locator(
-        "cell:nth-child(11) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(11) > .normal-cell-underlay-container > .w-full"
       ),
       11: page.locator(
-        "cell:nth-child(12) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(12) > .normal-cell-underlay-container > .w-full"
       ),
       12: page.locator(
-        "cell:nth-child(13) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(13) > .normal-cell-underlay-container > .w-full"
       ),
       13: page.locator(
-        "cell:nth-child(14) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(14) > .normal-cell-underlay-container > .w-full"
       ),
       14: page.locator(
-        "cell:nth-child(15) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(15) > .normal-cell-underlay-container > .w-full"
       ),
       15: page.locator(
-        "cell:nth-child(16) > .normal-cell-underlay-container > .w-full",
+        "cell:nth-child(16) > .normal-cell-underlay-container > .w-full"
       ),
     };
     this.firstModuleSidesAddButton = {
       right: page.locator(
-        '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(2) > .flex',
+        '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(2) > .flex'
       ),
       top: page.locator("div:nth-child(4) > .flex").first(),
       left: page.locator(".absolute > .flex").first(),
       bottom: page.locator(
-        '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(3) > .flex',
+        '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(3) > .flex'
       ),
     };
     this.modulesFromTheFirstModule = {

@@ -46,14 +46,14 @@ export class GridProfileData {
     const data = cloudProfile.configs;
     const profile = new GridProfileData();
     for (const [index, type] of Object.entries(
-      grid.get_module_element_list(cloudProfile.type),
+      grid.get_module_element_list(cloudProfile.type)
     )) {
       if (typeof type === "undefined") {
         continue;
       }
 
       const events = data.find(
-        (e: any) => e.controlElementNumber === Number(index),
+        (e: any) => e.controlElementNumber === Number(index)
       ).events;
       const preset = new GridPresetData(type, Number(index), events);
       profile.presets.push(preset);
@@ -153,7 +153,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
 
   public subscribe(
     run: Subscriber<T>,
-    invalidate?: (value?: T) => void,
+    invalidate?: (value?: T) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -282,7 +282,7 @@ export class ActionData extends NodeData {
       if (action.id === this.id) {
         if (
           ["composite_part", "composite_close"].includes(
-            action.information.type,
+            action.information.type
           )
         ) {
           return indentation - 1;
@@ -338,7 +338,7 @@ export class GridAction extends RuntimeNode<ActionData> {
         //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
         split[0],
         configList[i + 1].trim(),
-        split.length > 1 ? split[1] : undefined,
+        split.length > 1 ? split[1] : undefined
       );
       const obj = new GridAction(undefined, data);
       result.push(obj);
@@ -539,7 +539,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public async loadSnippet(
     snippet: GridSnippetData,
-    index: number,
+    index: number
   ): Promise<SnippetLoadResult> {
     try {
       await this.insert(index, ...snippet.actions);
@@ -575,7 +575,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public async replace(
     a: GridAction,
-    b: GridAction,
+    b: GridAction
   ): Promise<ReplaceActionsResult> {
     const index = this.config.findIndex((e) => e.id === a.id);
     try {
@@ -716,7 +716,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       (e: ActionData) => {
         const data = new ActionData(e.short, e.script, e.name);
         return new GridAction(undefined, data);
-      },
+      }
     );
 
     try {
@@ -770,7 +770,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         element.elementIndex,
         this.type,
         script,
-        simulate,
+        simulate
       );
       await instruction.executeOn(runtime.connection);
       return Promise.resolve({
@@ -843,15 +843,15 @@ export class GridEvent extends RuntimeNode<EventData> {
     actions.sort(
       (a, b) =>
         this.config.findIndex((e) => e.id === a.id) -
-        this.config.findIndex((e) => e.id === b.id),
+        this.config.findIndex((e) => e.id === b.id)
     );
 
     const codeBlock = new GridAction(
       undefined,
       new ActionData(
         CodeBlock.information.short,
-        actions.map((action) => action.script).join("\n"),
-      ),
+        actions.map((action) => action.script).join("\n")
+      )
     );
 
     if (!codeBlock.isValid()) {
@@ -906,7 +906,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
     const copy = data.config.map(
       (e) =>
-        new GridAction(undefined, new ActionData(e.short, e.script, e.name)),
+        new GridAction(undefined, new ActionData(e.short, e.script, e.name))
     );
 
     this.clear();
@@ -937,7 +937,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         page.pageNumber,
         element.elementIndex,
         this.type,
-        simulate,
+        simulate
       );
 
       const descr = await instruction.executeOn(runtime.connection);
@@ -1288,7 +1288,7 @@ export class GridPage extends RuntimeNode<PageData> {
       }
 
       this.control_elements.push(
-        new GridElement(this, new ElementData(Number(index), element)),
+        new GridElement(this, new ElementData(Number(index), element))
       );
     }
   }
@@ -1313,7 +1313,7 @@ export class GridPage extends RuntimeNode<PageData> {
   }
 
   public async loadProfile(
-    profile: GridProfileData,
+    profile: GridProfileData
   ): Promise<ProfileLoadResult> {
     await this.load();
 
@@ -1431,7 +1431,7 @@ export class ModuleData extends NodeData {
     fwVersion: FirmwareVersion,
     type: ModuleType,
     fwMismatch: boolean,
-    map: DirectionMap,
+    map: DirectionMap
   ) {
     super();
     this.architecture = architecture;
@@ -1502,7 +1502,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
       promises.push(
         new Promise((resolve) => {
           page.load().then(() => resolve());
-        }),
+        })
       );
     }
     Promise.all(promises);
@@ -1618,7 +1618,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   constructor(
     connection: GridConnection = undefined,
-    virtual: boolean = false,
+    virtual: boolean = false
   ) {
     super(undefined, new RuntimeData());
     this.connection = connection;
@@ -1644,7 +1644,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     dy: number,
     page: number,
     element: number,
-    event: number,
+    event: number
   ) {
     return this.findModule(dx, dy)
       ?.findPage(page)
@@ -1733,12 +1733,12 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         const controller = this.create_module(
           descr.brc_parameters,
           descr.class_parameters,
-          false,
+          false
         );
         // check if the firmware version of the newly connected device is acceptable
         console.log(
           "Incoming Device:",
-          `${controller.dx} ${controller.dy} ${controller.type} (${controller.architecture})`,
+          `${controller.dx} ${controller.dy} ${controller.type} (${controller.architecture})`
         );
 
         const as = get(appSettings);
@@ -1748,14 +1748,14 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
             : as.firmware_d51_required;
         controller.fwMismatch = this.isFirmwareMismatch(
           controller.fwVersion,
-          firmware_required,
+          firmware_required
         );
 
         console.log(
           "Mismatch: ",
           controller.fwMismatch,
           "Firmware Version: ",
-          controller.fwVersion,
+          controller.fwVersion
         );
 
         this.modules = [...this.modules, controller];
@@ -1803,7 +1803,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
       const instruction = new GridInstruction.ChangePage(
         new_page_number,
-        this.virtual,
+        this.virtual
       );
       instruction
         .executeOn(this.connection)
@@ -1880,7 +1880,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
             ui.dy,
             ui.pagenumber,
             ui.elementnumber,
-            ui.eventtype,
+            ui.eventtype
           );
           event.load().then(() => resolve());
         })
@@ -1912,7 +1912,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
               ui.dy,
               ui.pagenumber,
               ui.elementnumber,
-              ui.eventtype,
+              ui.eventtype
             );
             event.load().then(() => resolve());
           }
@@ -1940,7 +1940,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       {
         HWCFG: moduleInfo.hwcfg,
       },
-      true,
+      true
     );
 
     connection_simulator.createModule(dx, dy, moduleInfo.type);
@@ -1950,7 +1950,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
     const moduleType = grid.module_type_from_hwcfg(
-      Number(heartbeat_class_param.HWCFG),
+      Number(heartbeat_class_param.HWCFG)
     );
 
     // generic check, code below if works only if all parameters are provided
@@ -1964,7 +1964,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         "ERROR",
         header_param,
         moduleType,
-        heartbeat_class_param,
+        heartbeat_class_param
       );
       throw "Error creating new module.";
     }
@@ -1992,8 +1992,8 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           right: { dx: header_param.SX + 1, dy: header_param.SY },
           bot: { dx: header_param.SX, dy: header_param.SY - 1 },
           left: { dx: header_param.SX - 1, dy: header_param.SY },
-        },
-      ),
+        }
+      )
     );
   }
 

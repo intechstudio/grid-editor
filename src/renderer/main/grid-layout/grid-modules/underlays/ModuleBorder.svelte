@@ -37,7 +37,7 @@
 
   $: handleAnimationChange(
     $appSettings.persistent.disableAnimations,
-    $reduced_motion_store,
+    $reduced_motion_store
   );
 </script>
 

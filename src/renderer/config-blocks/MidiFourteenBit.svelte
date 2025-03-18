@@ -102,7 +102,7 @@
     let match;
     while ((match = regex.exec(config.script)) !== null) {
       matches.push(
-        Script.toSegments({ short: "gms", script: `gms(${match[1].trim()})` }),
+        Script.toSegments({ short: "gms", script: `gms(${match[1].trim()})` })
       );
     }
 

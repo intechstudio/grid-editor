@@ -90,7 +90,7 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
     if (dropZone) {
       dropZone.dispatchEvent(
-        new DropActionEvent({ dropped: get(draggedActions) }),
+        new DropActionEvent({ dropped: get(draggedActions) })
       );
     }
 

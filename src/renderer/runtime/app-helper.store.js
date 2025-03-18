@@ -286,7 +286,7 @@ async function init_appsettings() {
                 break;
               default:
                 console.warn(
-                  `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`,
+                  `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`
                 );
             }
           }

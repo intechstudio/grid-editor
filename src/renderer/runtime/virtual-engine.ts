@@ -56,16 +56,16 @@ export class VirtualModule {
   public discardChanges() {
     this.pages.forEach((page: any) =>
       page.elements.forEach((element: any) =>
-        element.events.forEach((event: any) => (event.config = event.stored)),
-      ),
+        element.events.forEach((event: any) => (event.config = event.stored))
+      )
     );
   }
 
   public storeChanges() {
     this.pages.forEach((page: any) =>
       page.elements.forEach((element: any) =>
-        element.events.forEach((event: any) => (event.stored = event.config)),
-      ),
+        element.events.forEach((event: any) => (event.stored = event.config))
+      )
     );
   }
 
@@ -82,7 +82,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
 
   public subscribe(
     run: Subscriber<VirtualModule[]>,
-    invalidate?: (value?: VirtualModule[]) => void,
+    invalidate?: (value?: VirtualModule[]) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -128,7 +128,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
           connection_simulator.update((s) => {
             const device = s.find((e) => e.dx == dx && e.dy == dy);
             const events = device?.pages[page].elements.find(
-              (e) => e.elementIndex === element,
+              (e) => e.elementIndex === element
             ).events;
             events.find((e: any) => e.value == event).config =
               obj.descr.class_parameters.ACTIONSTRING;
@@ -246,12 +246,12 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
         obj.descr.class_parameters.EVENTTYPE ?? -1,
       ];
       const device = get(connection_simulator).find(
-        (e) => e.dx === dx && e.dy === dy,
+        (e) => e.dx === dx && e.dy === dy
       );
       switch (class_name) {
         case InstructionClassName.CONFIG: {
           const events = device?.pages[page].elements.find(
-            (e) => e.elementIndex === element,
+            (e) => e.elementIndex === element
           ).events;
           const config = events.find((e: any) => e.value == event).config;
           resolve({

@@ -33,7 +33,7 @@ export class UserInput implements Writable<UserInputValue> {
   // Subscribe to the entire object
   public subscribe(
     run: Subscriber<UserInputValue>,
-    invalidate?: (value?: UserInputValue) => void,
+    invalidate?: (value?: UserInputValue) => void
   ): Unsubscriber {
     const runtime = get(runtime_manager).active.runtime;
     const value = get(this._internal);
@@ -42,7 +42,7 @@ export class UserInput implements Writable<UserInputValue> {
       value.dx,
       value.dy,
       value.pagenumber,
-      value.elementnumber,
+      value.elementnumber
     );
 
     if (typeof element !== "undefined") {
@@ -51,7 +51,7 @@ export class UserInput implements Writable<UserInputValue> {
       if (typeof event === "undefined") {
         const closestEvent = Grid.getClosestEvent(
           element.events.map((e) => e.type),
-          value.eventtype,
+          value.eventtype
         );
         this.set({
           dx: value.dx,
@@ -122,7 +122,7 @@ export class UserInput implements Writable<UserInputValue> {
               descr.brc_parameters.SX,
               descr.brc_parameters.SY,
               ui.pagenumber,
-              descr.class_parameters.ELEMENTNUMBER,
+              descr.class_parameters.ELEMENTNUMBER
             )
             .events.map((e) => e.type);
 

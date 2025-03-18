@@ -106,7 +106,7 @@
         runtime_manager.LUAExecImmediate(
           data.targetDx ?? -127,
           data.targetDy ?? -127,
-          data.script,
+          data.script
         );
         break;
       case "add-action": {
@@ -167,7 +167,7 @@
       case "packages": {
         // refresh packagelist
         const enabledPackages = data.packages.filter(
-          (e) => e.status == "Enabled",
+          (e) => e.status == "Enabled"
         );
         for (const _package of enabledPackages) {
           if (_package.componentsPath) {
@@ -229,7 +229,7 @@
         console.info(
           `Unhandled message type of ${
             data.type
-          } received on port, data: ${JSON.stringify(data)}`,
+          } received on port, data: ${JSON.stringify(data)}`
         );
       }
     }
@@ -259,7 +259,7 @@
         const channel = new MessageChannel();
         port.postMessage(
           { type: "create-package-message-port", id, senderId },
-          [channel.port1],
+          [channel.port1]
         );
         return channel.port2;
       };
@@ -302,7 +302,7 @@
 
   $: handleDisableAnimationsChange(
     $appSettings.persistent.disableAnimations,
-    $reduced_motion_store,
+    $reduced_motion_store
   );
 </script>
 

@@ -41,7 +41,7 @@
 
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
-      get(appSettings).persistent.profileFolder,
+      get(appSettings).persistent.profileFolder
     );
   }
 
@@ -59,7 +59,7 @@
 
   function handleOpenPolicyClicked(e) {
     window.electron.openInBrowser(
-      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL,
+      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
     );
   }
 

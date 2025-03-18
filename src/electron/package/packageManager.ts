@@ -26,7 +26,7 @@ let packageFolder: string = "";
 let editorVersion: string = "";
 
 const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
-  Object.entries(configuration.RECOMMENDED_PACKAGES),
+  Object.entries(configuration.RECOMMENDED_PACKAGES)
 );
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
 let localPackages: Map<string, string> = new Map();
@@ -43,7 +43,7 @@ process.parentPort.on("message", async (e) => {
         }
 
         customGithubPackageList = new Map(
-          Object.entries(e.data.githubPackages),
+          Object.entries(e.data.githubPackages)
         );
         localPackages = new Map(Object.entries(e.data.localPackages));
 
@@ -76,7 +76,7 @@ process.parentPort.on("message", async (e) => {
         }
         await currentlyLoadedPackages[e.data.id].addMessagePort(
           e.ports?.[0],
-          e.data.senderId,
+          e.data.senderId
         );
         break;
       }
@@ -155,14 +155,14 @@ process.parentPort.on("message", async (e) => {
 
 process.on("uncaughtExceptionMonitor", (err, origin) => {
   console.log(
-    "UNCAUGHT PACKAGE MANAGER EXCEPTION, TRYING TO DISABLE PACKAGE AND RESTART",
+    "UNCAUGHT PACKAGE MANAGER EXCEPTION, TRYING TO DISABLE PACKAGE AND RESTART"
   );
   console.log({ err, origin });
   process.parentPort.postMessage({ type: "shutdown-complete" });
   for (let packageName of Object.keys(currentlyLoadedPackages)) {
     if (err.stack.includes(packageName)) {
       let packageIndex = currentPackageList.findIndex(
-        (value) => value.id == packageName,
+        (value) => value.id == packageName
       );
       console.log({ packageIndex });
       if (packageIndex != -1) {
@@ -214,7 +214,7 @@ async function loadPackage(packageName: string, persistedData: any) {
           });
         },
       },
-      persistedData,
+      persistedData
     );
     currentlyLoadedPackages[packageName] = _package;
     haveBeenLoadedPackages.add(packageName);
@@ -260,7 +260,7 @@ async function downloadPackage(packageName: string) {
     }
 
     const url = assets.find((e) =>
-      e.name.includes(platform),
+      e.name.includes(platform)
     ).browser_download_url;
     const response = await fetch(url);
     const filePath = path.join(packageFolder, `${packageName}.zip`);
@@ -417,7 +417,7 @@ async function getInstalledPackages(): Promise<
       .filter(
         (folder) =>
           path.extname(folder) === "" &&
-          !folder.toLowerCase().includes("ds_store"),
+          !folder.toLowerCase().includes("ds_store")
       )
       .map(async (folder) => {
         let packageId: string | undefined = undefined;
@@ -443,7 +443,7 @@ async function getInstalledPackages(): Promise<
           if (packageJson.grid_editor?.componentsPath) {
             componentsPath = path.join(
               packageId,
-              packageJson.grid_editor?.componentsPath,
+              packageJson.grid_editor?.componentsPath
             );
           }
           preferenceComponent = packageJson.grid_editor?.preferenceComponent;
@@ -459,13 +459,13 @@ async function getInstalledPackages(): Promise<
           packageVersion,
           loadable,
         };
-      }),
+      })
   );
 }
 
 function getPackageStatus(
   packageId: string,
-  installedPackages: { packageId: string }[],
+  installedPackages: { packageId: string }[]
 ): PackageStatus {
   if (Object.keys(currentlyLoadedPackages).includes(packageId)) {
     return PackageStatus.Enabled;
@@ -520,7 +520,7 @@ async function getAvailablePackages() {
         githubPackageList.get(_package.packageId)?.version != undefined &&
         semver.gt(
           githubPackageList.get(_package.packageId)!.version!,
-          _package.packageVersion,
+          _package.packageVersion
         ),
     });
   }
@@ -581,7 +581,7 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
       headers: {
         "User-Agent": "Grid Editor",
       },
-    },
+    }
   );
   const packageReleases = await packageReleasesResponse.json();
   return (

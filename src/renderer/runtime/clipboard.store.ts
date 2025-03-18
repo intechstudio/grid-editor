@@ -41,7 +41,7 @@ export class ApplicationClipboard implements Readable<ClipboardData> {
 
   public subscribe(
     run: Subscriber<ClipboardData>,
-    invalidate?: (value?: ClipboardData) => void,
+    invalidate?: (value?: ClipboardData) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }

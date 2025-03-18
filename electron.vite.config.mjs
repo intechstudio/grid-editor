@@ -20,7 +20,7 @@ export default defineConfig({
           index: resolve(__dirname, "src/electron/main.ts"),
           packageManager: resolve(
             __dirname,
-            "src/electron/package/packageManager.ts",
+            "src/electron/package/packageManager.ts"
           ),
         },
       },

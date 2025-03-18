@@ -31,7 +31,7 @@ export async function findBootloaderPath() {
   }
 
   let gridDrives = diskInfo.filter(
-    (a) => a.size < 64 * 1024 * 1024 && a.isUSB && !a.isSystem && !a.isReadOnly,
+    (a) => a.size < 64 * 1024 * 1024 && a.isUSB && !a.isSystem && !a.isReadOnly
   );
   if (gridDrives.length === 0) return;
 
@@ -109,7 +109,7 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
     const filePathArray = await extractArchiveToTemp(
       downloadResult,
       ".uf2",
-      targetFolder,
+      targetFolder
     );
 
     if (product === "grid") {
@@ -167,7 +167,7 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
   try {
     fs.copySync(
       targetFolder + "/temp/" + firmwareFileName,
-      path + "/" + firmwareFileName,
+      path + "/" + firmwareFileName
     );
   } catch (error) {
     console.log("COPY ERROR UNBOUND", error);

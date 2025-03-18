@@ -22,7 +22,7 @@
 
   function handleSelecteModuleChange(rt: GridRuntime, ui: UserInputValue) {
     selectedModule = rt.modules.find(
-      (e: any) => e.dx == ui.dx && e.dy == ui.dy,
+      (e: any) => e.dx == ui.dx && e.dy == ui.dy
     );
   }
 

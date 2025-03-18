@@ -79,7 +79,7 @@ const createAuth = () => {
             case "auth/invalid-email":
               throw new LoginError(
                 e.message,
-                LoginErrorType.INVALID_CREDENTIALS,
+                LoginErrorType.INVALID_CREDENTIALS
               );
             default:
               throw new LoginError(e.message, LoginErrorType.GENERAL_ERROR);
@@ -87,7 +87,7 @@ const createAuth = () => {
         } else {
           throw e;
         }
-      },
+      }
     );
   }
 
@@ -98,7 +98,7 @@ const createAuth = () => {
         (error) => {
           console.log(error);
           // ...
-        },
+        }
       );
     }
   }
@@ -106,7 +106,7 @@ const createAuth = () => {
   async function googleLoginPopup() {
     await signInWithPopup(
       getCurrentCentralAuth(),
-      new GoogleAuthProvider(),
+      new GoogleAuthProvider()
     ).catch((error) => {
       console.log(error);
     });
@@ -133,7 +133,7 @@ const createAuth = () => {
         authUnsubscribe();
       }
       authUnsubscribe = getCurrentCentralAuth().onAuthStateChanged(
-        handleAuthStateChanged,
+        handleAuthStateChanged
       );
       handleAuthStateChanged(getCurrentCentralAuth().currentUser);
       console.log(`Current user: ${JSON.stringify(currentUser?.uid)}`);

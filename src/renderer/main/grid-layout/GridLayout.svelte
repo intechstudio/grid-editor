@@ -145,7 +145,7 @@
 
   let scalingPercent = derived(
     appSettings,
-    ($appSettings) => 1 * $appSettings.persistent.size,
+    ($appSettings) => 1 * $appSettings.persistent.size
   );
 
   function handleOutroEnd() {

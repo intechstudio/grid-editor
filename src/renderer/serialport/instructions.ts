@@ -53,7 +53,7 @@ export namespace GridInstruction {
       // Only add heatbeat into the write buffer if it is not in it already
       const buffer = get(connection.buffer);
       const isHeartbeatPresent = buffer.some(
-        (e: any) => e.descr.class_name === "HEARTBEAT",
+        (e: any) => e.descr.class_name === "HEARTBEAT"
       );
 
       if (isHeartbeatPresent) {
@@ -71,7 +71,7 @@ export namespace GridInstruction {
       page: number,
       element: number,
       event: number,
-      virtual: boolean = false,
+      virtual: boolean = false
     ) {
       super(virtual);
       this.buffer_element = {
@@ -123,7 +123,7 @@ export namespace GridInstruction {
       element: number,
       event: number,
       config: string,
-      virtual: boolean = false,
+      virtual: boolean = false
     ) {
       super(virtual);
       const actionString =
@@ -183,7 +183,7 @@ export namespace GridInstruction {
       dx: number,
       dy: number,
       script: string,
-      virtual: boolean = false,
+      virtual: boolean = false
     ) {
       super(virtual);
       const actionString =

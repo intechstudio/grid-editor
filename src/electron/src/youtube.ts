@@ -32,7 +32,7 @@ export async function getLatestVideo() {
             videoLink: videoLink,
           });
         }
-      },
+      }
     );
   }).catch((err) => {
     return {

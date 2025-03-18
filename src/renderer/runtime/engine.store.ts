@@ -89,7 +89,7 @@ class GridResponse {
   constructor(
     status: ResponseStatus,
     data: any = null,
-    error: string | null = null,
+    error: string | null = null
   ) {
     this.status = status;
     this.data = data;
@@ -105,10 +105,7 @@ class ResponseWaiter {
   public stopTimestamp: number | undefined = undefined;
   public duration: number | undefined = undefined; //Time between start and stop
 
-  constructor(
-    public bufferelement: any,
-    private timeout: number,
-  ) {
+  constructor(public bufferelement: any, private timeout: number) {
     this.promise = new Promise<GridResponse>((resolve) => {
       this.resolve = resolve;
     });
@@ -120,7 +117,7 @@ class ResponseWaiter {
       const response = new GridResponse(
         ResponseStatus.TIMEOUT,
         null,
-        `Timeout with ${this.timeout}ms`,
+        `Timeout with ${this.timeout}ms`
       );
       this.resolve(response);
     }, this.timeout);
@@ -146,7 +143,7 @@ class ResponseWaiter {
       const response = new GridResponse(
         ResponseStatus.ERROR,
         null,
-        "Waiting for response was interrupted",
+        "Waiting for response was interrupted"
       );
       this.resolve(response);
     }
@@ -168,7 +165,7 @@ export class WriteBuffer implements Readable<BufferElement[]> {
 
   public subscribe(
     run: Subscriber<BufferElement[]>,
-    invalidate?: (value?: BufferElement[]) => void,
+    invalidate?: (value?: BufferElement[]) => void
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -186,8 +183,8 @@ export class WriteBuffer implements Readable<BufferElement[]> {
     this.update((s) =>
       s.filter(
         (g) =>
-          g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy,
-      ),
+          g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy
+      )
     );
 
     // clear the active element if it matches the destroyed module's dx dy
@@ -227,7 +224,7 @@ export class WriteBuffer implements Readable<BufferElement[]> {
 
   public async waitResponseFromGrid(
     bufferElement: any,
-    timeout: number,
+    timeout: number
   ): Promise<GridResponse> {
     waiter = new ResponseWaiter(bufferElement, timeout);
     const response = await waiter.waitResponse();
@@ -241,7 +238,7 @@ export class WriteBuffer implements Readable<BufferElement[]> {
 
   public async sendToGrid(
     bufferElement: BufferElement,
-    sendImmediate: boolean = false,
+    sendImmediate: boolean = false
   ) {
     return new Promise((resolve, reject) => {
       this.sendDataToGrid(bufferElement.descr)
@@ -255,7 +252,7 @@ export class WriteBuffer implements Readable<BufferElement[]> {
             const timeout = bufferElement.responseTimeout ?? 1000;
             const response = await this.waitResponseFromGrid(
               bufferElement,
-              timeout,
+              timeout
             );
             switch (response.status) {
               case ResponseStatus.OK: {
@@ -297,7 +294,7 @@ export class WriteBuffer implements Readable<BufferElement[]> {
           await this.sleep(1);
         } else {
           reject(
-            `Instruction ${current.descr.class_name} was removed from write buffer.`,
+            `Instruction ${current.descr.class_name} was removed from write buffer.`
           );
           return;
         }

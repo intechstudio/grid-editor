@@ -38,12 +38,12 @@
           {type == "success"
             ? "✔️"
             : type == "alert"
-              ? "⚠️"
-              : type == "progress"
-                ? "⏳"
-                : type == "fail"
-                  ? "❌"
-                  : null}
+            ? "⚠️"
+            : type == "progress"
+            ? "⏳"
+            : type == "fail"
+            ? "❌"
+            : null}
         </div>
         <div class="w-full flex flex-col">
           <span class="text-white">{message}</span>
