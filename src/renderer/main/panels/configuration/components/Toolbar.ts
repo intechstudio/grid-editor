@@ -16,20 +16,20 @@ export const isCopyActionsEnabled = derived(
       store.subscribe(() => {
         set(
           $selected_actions.length > 0 &&
-            $selected_actions.every((e) => e.isValid())
+            $selected_actions.every((e) => e.isValid()),
         );
-      })
+      }),
     );
 
     // Initial computation
     set(
       $selected_actions.length > 0 &&
-        $selected_actions.every((e) => e.isValid())
+        $selected_actions.every((e) => e.isValid()),
     );
 
     // Cleanup function
     return () => unsubscribers.forEach((unsub) => unsub());
-  }
+  },
 );
 export const isCutActionsEnabled = derived(
   selected_actions,
@@ -38,20 +38,20 @@ export const isCutActionsEnabled = derived(
       store.subscribe(() => {
         set(
           $selected_actions.length > 0 &&
-            $selected_actions.every((e) => e.isValid())
+            $selected_actions.every((e) => e.isValid()),
         );
-      })
+      }),
     );
 
     // Initial computation
     set(
       $selected_actions.length > 0 &&
-        $selected_actions.every((e) => e.isValid())
+        $selected_actions.every((e) => e.isValid()),
     );
 
     // Cleanup function
     return () => unsubscribers.forEach((unsub) => unsub());
-  }
+  },
 );
 
 export const isMergeActionsEnabled = derived(
@@ -61,20 +61,20 @@ export const isMergeActionsEnabled = derived(
       store.subscribe(() => {
         set(
           $selected_actions.length > 0 &&
-            $selected_actions.every((e) => e.isValid())
+            $selected_actions.every((e) => e.isValid()),
         );
-      })
+      }),
     );
 
     // Initial computation
     set(
       $selected_actions.length > 0 &&
-        $selected_actions.every((e) => e.isValid())
+        $selected_actions.every((e) => e.isValid()),
     );
 
     // Cleanup function
     return () => unsubscribers.forEach((unsub) => unsub());
-  }
+  },
 );
 
 export const isCopyElementEnabled = derived(
@@ -86,7 +86,7 @@ export const isCopyElementEnabled = derived(
       set(
         $selected_actions.length === 0 &&
           active.modules.length > 0 &&
-          active.isValid()
+          active.isValid(),
       );
     };
 
@@ -97,7 +97,7 @@ export const isCopyElementEnabled = derived(
     return () => {
       if (activeUnsub) activeUnsub();
     };
-  }
+  },
 );
 
 export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
@@ -108,7 +108,7 @@ export const isRemoveActionsEnabled = derived(
   selected_actions,
   ($selected_actions) => {
     return $selected_actions.length > 0;
-  }
+  },
 );
 
 export function isClearElementEnabled(data: ElementData) {
@@ -117,7 +117,7 @@ export function isClearElementEnabled(data: ElementData) {
 
 export function isOverwriteElementEnabled(
   data: ElementData,
-  clipboard: ClipboardData
+  clipboard: ClipboardData,
 ) {
   if (typeof clipboard === "undefined" || typeof data === "undefined") {
     return false;

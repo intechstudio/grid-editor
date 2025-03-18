@@ -15,7 +15,7 @@
   }
 
   function handlePaste(e) {
-    dispatch("paste", e.detail);
+    dispatch("paste", e.detail)
   }
 
   function handleShowActionPicker(e) {

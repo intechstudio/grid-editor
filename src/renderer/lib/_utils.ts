@@ -13,7 +13,7 @@ export namespace Grid {
 
     //Select closest event type if incoming device does not have the corrently selected event type
     const closestEvent = Math.min(
-      ...events.map((e) => Number(e)).filter((e) => e > 0)
+      ...events.map((e) => Number(e)).filter((e) => e > 0),
     );
 
     return closestEvent !== Infinity ? closestEvent : 0;
@@ -47,7 +47,7 @@ export namespace Grid {
       return new RGB(
         Int.getRandom(0, 255),
         Int.getRandom(0, 255),
-        Int.getRandom(0, 255)
+        Int.getRandom(0, 255),
       );
     }
   }

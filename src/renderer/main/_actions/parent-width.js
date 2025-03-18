@@ -5,7 +5,7 @@ export function parentWidth(node) {
   function init() {
     rect = node.getBoundingClientRect();
     node.dispatchEvent(
-      new CustomEvent("width-change", { detail: { width: rect.width } })
+      new CustomEvent("width-change", { detail: { width: rect.width } }),
     );
   }
 
@@ -13,7 +13,7 @@ export function parentWidth(node) {
     rect = node.getBoundingClientRect();
 
     node.dispatchEvent(
-      new CustomEvent("width-change", { detail: { width: rect.width } })
+      new CustomEvent("width-change", { detail: { width: rect.width } }),
     );
   };
 

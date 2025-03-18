@@ -405,7 +405,7 @@ function initialize_autocomplete() {
             suggestions: createProposals(range, model, position, prefix),
           };
         },
-      }
+      },
     );
   })();
 }
