@@ -141,7 +141,7 @@ test.describe("Interactable input field", () => {
           for (let i = 0; i < fieldCount; i++) {
             const inputField = inputFields.nth(i);
 
-            // Type in the input field and validate
+            // Fill the input field and validate
             await inputField.fill(expectedValue);
             const value = await inputField.inputValue();
             expect(value).toBe(expectedValue);
@@ -151,7 +151,6 @@ test.describe("Interactable input field", () => {
             const monacoField = monacoFields.nth(i);
 
             // Type in the monaco field and validate
-
             await monacoField.click();
             await keyboardActions.selectAll();
             await keyboardActions.type(expectedValue);
