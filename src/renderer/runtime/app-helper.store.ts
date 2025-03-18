@@ -1,9 +1,14 @@
 import { writable, get, readable } from "svelte/store";
 import { modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
-import { patch } from "semver";
 
 const configuration = window.ctxProcess.configuration();
+
+export enum ColorPickerModel {
+  Square,
+  Slider,
+  Circle,
+}
 
 const persistentDefaultValues = {
   userId: "",
@@ -49,6 +54,8 @@ const persistentDefaultValues = {
   editableBlockNames: false,
   unreleasedVirtualModules: false,
   multiViewEnabled: false,
+  colorPicker: ColorPickerModel.Circle,
+  allowDevBlocks: false,
 };
 
 function createSplitPanes() {

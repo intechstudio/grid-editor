@@ -15,7 +15,7 @@
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration";
-  import { draggable } from "../../../_actions/move.action";
+  import { draggable, draggedActions } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
   import {
     updateAction,
@@ -51,6 +51,12 @@
   });
 
   onDestroy(() => {
+    //Destroyed by removal: nothing to do
+    if (typeof action.parent === "undefined") {
+      return;
+    }
+
+    //Destroyed by getting out of scope: Revert to synced state
     revertToSynced();
   });
 
@@ -177,6 +183,7 @@
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
+    class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
     on:click|self={handleCarouselClicked}

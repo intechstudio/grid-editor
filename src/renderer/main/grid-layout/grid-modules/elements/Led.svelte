@@ -1,5 +1,5 @@
 <script>
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let size = 1;
   export let color = [255, 255, 0];
