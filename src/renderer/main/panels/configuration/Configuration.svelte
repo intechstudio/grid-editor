@@ -60,7 +60,7 @@
       ui.dx,
       ui.dy,
       ui.pagenumber,
-      ui.elementnumber
+      ui.elementnumber,
     );
 
     event = runtime.findEvent(
@@ -68,7 +68,7 @@
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
-      ui.eventtype
+      ui.eventtype,
     );
 
     if (typeof element !== "undefined" && !element.isLoaded()) {

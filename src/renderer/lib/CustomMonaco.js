@@ -319,7 +319,7 @@ function initialize_autocomplete() {
         const isInsideSelfOrElement =
           lineContent.includes("self:") || lineContent.includes("element[");
         const keyPrefix = Object.keys(elementTypeMapping).find((prefix) =>
-          key.startsWith(prefix)
+          key.startsWith(prefix),
         );
 
         if (
@@ -383,11 +383,11 @@ function initialize_autocomplete() {
           // Check for 'self:' or 'element[x]:'
           const selfIndex = lineContent.lastIndexOf(
             "self:",
-            position.column - 1
+            position.column - 1,
           );
           const elementIndex = lineContent.lastIndexOf(
             "element[",
-            position.column - 1
+            position.column - 1,
           );
 
           // If 'self:' or 'element[x]:' is found, adjust the prefix
@@ -405,7 +405,7 @@ function initialize_autocomplete() {
             suggestions: createProposals(range, model, position, prefix),
           };
         },
-      }
+      },
     );
   })();
 }

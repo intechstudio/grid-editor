@@ -214,7 +214,7 @@ export async function syncWithGrid(target: GridAction) {
 export async function updateAction(
   target: GridAction,
   data: ActionData,
-  sync: boolean
+  sync: boolean,
 ) {
   return target
     .updateData(data)
@@ -338,7 +338,7 @@ export async function addActions(
 export async function replaceAction(
   target: GridEvent,
   a: GridAction,
-  b: GridAction
+  b: GridAction,
 ) {
   target
     .replace(a, b)
@@ -392,7 +392,7 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
 
 export async function loadPreset(
   preset: GridPresetData,
-  target: GridElement
+  target: GridElement,
 ): Promise<void> {
   Analytics.track({
     event: "Preset Load Start",
@@ -432,7 +432,7 @@ export async function loadPreset(
 export async function loadSnippet(
   snippet: GridSnippetData,
   target: GridEvent,
-  index: number
+  index: number,
 ) {
   Analytics.track({
     event: "Snippet Load Start",
@@ -457,11 +457,11 @@ export async function loadSnippet(
 export async function dropActions(
   target: GridEvent,
   index: number,
-  actions: GridAction[]
+  actions: GridAction[],
 ): Promise<InsertActionsResult> {
   let targetActions = actions.filter((e) => e.parent === target);
   let targetIndexes = targetActions.map((action) =>
-    target.config.findIndex((e) => e.id === action.id)
+    target.config.findIndex((e) => e.id === action.id),
   );
   const targetMinIndex = Math.min(...targetIndexes);
   const targetMaxIndex = Math.max(...targetIndexes);
