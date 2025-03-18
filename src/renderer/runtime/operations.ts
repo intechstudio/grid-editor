@@ -26,7 +26,7 @@ import { Runtime } from "./string-table";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
-  console.warn(`Operation error: ${e.text}`);
+  console.warn(`Operation error: ${e.text}`, e);
   switch (e.type) {
     case GridOperationType.MERGE_ACTIONS_TO_CODE:
     case GridOperationType.PASTE_ACTION:
