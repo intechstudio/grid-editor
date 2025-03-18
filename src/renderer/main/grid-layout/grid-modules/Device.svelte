@@ -202,6 +202,16 @@
     selectModule();
   }}
   on:keydown={(e) => {
+    //Ignore if origin node is input
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+    ) {
+      e.stopPropagation();
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
       console.log("Ctrl + C = Copy module", device.dx, device.dy);
       handleCopyModule(device);
@@ -440,14 +450,19 @@
   }
 
   .actionlist.activator-button {
-    /*border: 1px solid red;*/
-  }
-
-  .actionlist.activator-button {
     border: 1px solid rgba(0, 0, 0, 0);
   }
 
   .actionlist.activator-button:focus-within {
+    border-color: gray;
+  }
+
+  .dynamicWrapper.activator-button {
+    border: 1px solid rgba(0, 0, 0, 0);
+    outline: 0px solid rgba(0, 0, 0, 0);
+  }
+
+  .dynamicWrapper.activator-button:focus-within {
     border-color: gray;
   }
 
