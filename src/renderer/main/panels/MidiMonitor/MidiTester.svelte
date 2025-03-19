@@ -4,6 +4,7 @@
   import {
     MeltCombo,
     MeltSelect,
+    MeltSlider,
     MoltenInput,
     MoltenPushButton,
   } from "@intechstudio/grid-uikit";
@@ -18,7 +19,7 @@
   let command = "144";
   let param1 = "60";
   let param2 = "127";
-  let interval = "50 ms";
+  let interval = 250;
   let intervalTimeout: NodeJS.Timeout;
 
   onMount(() => {
@@ -56,15 +57,6 @@
     });
   }
 
-  function handleIntervalChange(e: any) {
-    const value = parseInt(e.detail.value.replaceAll("ms", "").trim());
-    if (!isNaN(value)) {
-      interval = `${value} ms`;
-    } else {
-      interval = "0 ms";
-    }
-  }
-
   function sendMIDIMessage() {
     const out = manager.outputs.get(selected);
     manager.sendMessage(out, { cmd: 0x90, p1: 60, p2: 127 });
@@ -72,8 +64,7 @@
 
   function startMIDIPing() {
     clearInterval(intervalTimeout);
-    const time = parseInt(interval.replaceAll("ms", "").trim());
-    intervalTimeout = setInterval(sendMIDIMessage, time);
+    intervalTimeout = setInterval(sendMIDIMessage, interval);
   }
 
   function stopMIDIPing() {
@@ -105,14 +96,16 @@
       <MoltenInput bind:target={param2} />
       <MoltenPushButton click={sendMIDIMessage} text={"Send"} snap="auto" />
     </div>
-  </div>
 
-  <div class="flex flex-col gap-1">
-    <span class="text-white">Periodic MIDI Ping:</span>
-    <div class="gap-x-2 items-center grid grid-cols-[1fr_auto_auto]">
-      <span class="text-gray-500 text-sm col-span-3">Interval</span>
-      <MoltenInput bind:target={interval} on:input={handleIntervalChange} />
+    <div class="flex flex-col mt-2">
+      <span class="text-gray-500 text-sm col-span-2">Interval</span>
+      <div class="flex flex-row items-center gap-2">
+        <MeltSlider bind:target={interval} min={5} max={500} step={1} />
+        <span class="text-white flex whitespace-nowrap">{interval} ms</span>
+      </div>
+    </div>
 
+    <div class="flex flex-row gap-2">
       <MoltenPushButton click={startMIDIPing} text={"Start"} snap="auto" />
       <MoltenPushButton click={stopMIDIPing} text={"Stop"} snap="auto" />
     </div>
