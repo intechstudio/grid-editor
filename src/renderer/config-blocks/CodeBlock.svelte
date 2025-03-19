@@ -6,7 +6,7 @@
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
-
+  import { ElementType } from "@intechstudio/grid-protocol";
   // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "cb",
@@ -116,8 +116,7 @@
   }
 
   async function open_monaco() {
-    const event = config.parent as GridEvent;
-    const restrictScopeTo = event.parent as GridElement;
+    const restrictScopeTo = config.parent.getInfo().element.type;
     monaco_elementtype.set(
       restrictScopeTo == ElementType.FADER
         ? ElementType.POTMETER
