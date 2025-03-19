@@ -142,17 +142,13 @@
           </span>
         </div>
       </div>
-      <button class="w-fit h-fit">
-        <Options
-          testid="select_all"
-          selected={$event?.config.every((e) => $selected_actions.includes(e))}
-          halfSelected={$event?.config.some((e) =>
-            $selected_actions.includes(e),
-          )}
-          disabled={$event?.config.length === 0}
-          on:select={handleSelectAll}
-        />
-      </button>
+      <Options
+        testid="select_all"
+        selected={$event?.config.every((e) => $selected_actions.includes(e))}
+        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
+        disabled={$event?.config.length === 0}
+        on:select={handleSelectAll}
+      />
     </div>
 
     <ul
