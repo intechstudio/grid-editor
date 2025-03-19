@@ -90,7 +90,7 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
     if (dropZone) {
       dropZone.dispatchEvent(
-        new DropActionEvent({ dropped: get(draggedActions) })
+        new DropActionEvent({ dropped: get(draggedActions) }),
       );
     }
 
@@ -140,12 +140,22 @@ export function draggable(node: HTMLElement, params: DragParameters) {
       cursor.style.top = `${e.clientY}px`;
       cursor.style.opacity = `1`;
 
-      const distance = Math.abs(e.clientY - initPos.y);
+      const dx = Math.abs(e.clientX - initPos.x);
+      const dy = Math.abs(e.clientY - initPos.y);
+
+      // Use Euclidean distance or a weighted sum
+      const distance = Math.sqrt(dx * dx + dy * dy); // Euclidean
+
       const normalized = Math.min(distance, threshold) / threshold;
-      for (const block of targetBlocks) {
-        block.style.opacity = `${0.5 - normalized * 0.3}`;
+
+      const opacity = 0.5 - normalized * 0.3;
+      if (opacity < Number(targetBlocks[0].style.opacity)) {
+        for (const block of targetBlocks) {
+          block.style.opacity = `${0.5 - normalized * 0.3}`;
+        }
+
+        cursor.style.opacity = `${normalized === 1 ? "0.8" : "0"}`;
       }
-      cursor.style.opacity = `${normalized === 1 ? "0.8" : "0"}`;
     } else {
       handleDragStart(e.clientX, e.clientY);
     }

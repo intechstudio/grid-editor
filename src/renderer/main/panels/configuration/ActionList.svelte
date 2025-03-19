@@ -100,45 +100,48 @@
   }
 </script>
 
-<div
-  role="tabpanel"
-  tabindex="0"
-  on:keydown={(e) => {
-    //Ignore if origin node is input
-    if (
-      e.srcElement.nodeName == "INPUT" ||
-      e.srcElement.nodeName == "TEXTAREA"
-    ) {
-      return;
-    }
-
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-      console.log("Ctrl + A = Select all actions");
-      handleSelectAll();
-      e.preventDefault();
-      e.stopPropagation();
-    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-      console.log("Ctrl + V = Paste actions");
-      handlePaste();
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }}
-  class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
->
+{#key $event?.id}
   <div
-    class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+    role="tabpanel"
+    tabindex="0"
+    on:keydown={(e) => {
+      //Ignore if origin node is input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement ||
+        (e.target instanceof Element &&
+          e.target.hasAttribute("contenteditable"))
+      ) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+        console.log("Ctrl + A = Select all actions");
+        handleSelectAll();
+        e.preventDefault();
+        e.stopPropagation();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+        console.log("Ctrl + V = Paste actions");
+        handlePaste();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }}
+    class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
   >
-    <div class="flex flex-col">
-      <span class="text-white">{$event?.getName() ?? "No Device"}</span>
-      <div class="flex flex-row gap-2">
-        <span class="text-gray-500 text-sm">Script length:</span>
-        <span data-testid="charCount" class="text-white text-sm">
-          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
-        </span>
+    <div
+      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+    >
+      <div class="flex flex-col">
+        <span class="text-white">{$event?.getName() ?? "No Device"}</span>
+        <div class="flex flex-row gap-2">
+          <span class="text-gray-500 text-sm">Script length:</span>
+          <span data-testid="charCount" class="text-white text-sm">
+            {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+          </span>
+        </div>
       </div>
-    </div>
-    <button class="w-fit h-fit">
       <Options
         testid="select_all"
         selected={$event?.config.every((e) => $selected_actions.includes(e))}
@@ -146,80 +149,80 @@
         disabled={$event?.config.length === 0}
         on:select={handleSelectAll}
       />
-    </button>
-  </div>
+    </div>
 
-  <ul
-    bind:this={configList}
-    on:mousemove={handleMouseMove}
-    on:mouseleave={() => clearInterval(autoScroll)}
-    class="overflow-y-scroll justify-start w-full h-full"
-  >
-    {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
-      <ActionHelper
-        target={{ event: event, index: 0 }}
-        text={"There are no actions configured on this event."}
-      />
-    {:else}
-      <SeparatorLine target={{ event: event, index: 0 }} />
-    {/if}
+    <ul
+      bind:this={configList}
+      on:mousemove={handleMouseMove}
+      on:mouseleave={() => clearInterval(autoScroll)}
+      class="overflow-y-scroll justify-start w-full h-full"
+    >
+      {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+        <ActionHelper
+          target={{ event: event, index: 0 }}
+          text={"There are no actions configured on this event."}
+        />
+      {:else}
+        <SeparatorLine target={{ event: event, index: 0 }} />
+      {/if}
 
-    {#each $event?.config ?? [] as action, index (action.id)}
-      {@const showHelper =
-        typeof action.information.helperText !== "undefined" &&
-        ["composite_part", "composite_open"].includes(
-          action.information.type
-        ) &&
-        $event.config[index + 1]?.indentation === action.indentation &&
-        $appSettings.persistent.actionHelperText}
+      {#each $event?.config ?? [] as action, index (action.id)}
+        {@const showHelper =
+          typeof action.information.helperText !== "undefined" &&
+          ["composite_part", "composite_open"].includes(
+            action.information.type,
+          ) &&
+          $event.config[index + 1]?.indentation === action.indentation &&
+          $appSettings.persistent.actionHelperText}
 
-      <div
-        data-testid="action-block"
-        animate:flip={{ duration: 300, easing: eases.backOut }}
-        in:fade|global={{ delay: 0 }}
-      >
-        <div class="flex flex-row gap-2">
-          {#key $latestComponentVersionKeys.get(action.short)}
-            <DynamicWrapper
-              {index}
-              {action}
-              selected={typeof $selected_actions.find(
-                (e) => e.id === action.id
-              ) !== "undefined"}
-              on:select={(e) => handleSelectionChange(action, e.detail.value)}
-            />
-          {/key}
-          <div class="flex items-center">
-            <Option
-              selected={typeof $selected_actions.find(
-                (e) => e.id === action.id
-              ) !== "undefined"}
-              disabled={!action.information.selectable}
-              on:select={(e) => handleSelectionChange(action, e.detail.value)}
-            />
+        <div
+          data-testid="action-block"
+          animate:flip={{ duration: 300, easing: eases.backOut }}
+          in:fade|global={{ delay: 0 }}
+        >
+          <div class="flex flex-row gap-2">
+            {#key $latestComponentVersionKeys.get(action.short)}
+              <DynamicWrapper
+                {index}
+                {action}
+                selected={typeof $selected_actions.find(
+                  (e) => e.id === action.id,
+                ) !== "undefined"}
+                on:select={(e) => handleSelectionChange(action, e.detail.value)}
+              />
+            {/key}
+            <div class="flex items-center">
+              <Option
+                selected={typeof $selected_actions.find(
+                  (e) => e.id === action.id,
+                ) !== "undefined"}
+                disabled={!action.information.selectable}
+                on:select={(e) => handleSelectionChange(action, e.detail.value)}
+              />
+            </div>
           </div>
+
+          {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+            <ActionHelper
+              target={{ event: event, index: index + 1 }}
+              text={action.information.helperText}
+            />
+          {:else}
+            <SeparatorLine target={{ event: event, index: index + 1 }} />
+          {/if}
         </div>
+      {/each}
+    </ul>
 
-        {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
-          <ActionHelper
-            target={{ event: event, index: index + 1 }}
-            text={action.information.helperText}
-          />
-        {:else}
-          <SeparatorLine target={{ event: event, index: index + 1 }} />
-        {/if}
-      </div>
-    {/each}
-  </ul>
-
-  {#if event}
-    <BottomPanel
-      target={{ event: event, index: $event?.config.length }}
-      on:paste={handlePaste}
-      on:new-config={handleNewConfig}
-    />
-  {/if}
-</div>
+    {#if event}
+      <BottomPanel
+        target={{ event: event, index: $event?.config.length }}
+        on:paste={handlePaste}
+        on:new-config={handleNewConfig}
+      />
+    {/if}
+  </div>
+{/key}
 
 <style global>
   ::-webkit-scrollbar {

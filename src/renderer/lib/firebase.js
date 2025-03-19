@@ -27,6 +27,6 @@ export const devCentralAuth = getAuth(devCentralApp);
 
 export const prodCentralApp = initializeApp(
   prodCentralAuthConfig,
-  "prod-central"
+  "prod-central",
 );
 export const prodCentralAuth = getAuth(prodCentralApp);

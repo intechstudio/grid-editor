@@ -7,7 +7,7 @@ export function configListScrollSize(node, configs) {
     node.dispatchEvent(
       new CustomEvent("height", {
         detail: `${rect.height - (rect.bottom - window.innerHeight) - 40}px`,
-      })
+      }),
     );
   }
 

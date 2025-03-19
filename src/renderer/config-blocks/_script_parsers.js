@@ -1,39 +1,21 @@
-function splitExpression(expression) {
-  var parts = [];
-  var currentPart = "";
-  var parenthesisCount = 0;
-  var bracketCount = 0;
+import { Grid } from "../lib/_utils";
 
-  for (var i = 0; i < expression.length; i++) {
-    var char = expression.charAt(i);
-    if (
-      (char === "," && parenthesisCount === 0 && bracketCount === 0) ||
-      i === expression.length - 1
-    ) {
-      if (i === expression.length - 1 && char !== ",") {
-        currentPart += char;
-      }
-      parts.push(currentPart.trim());
-      currentPart = "";
+function splitExpression(expression) {
+  let res = [];
+  let part = "";
+  for (const char of expression) {
+    //console.log(part, char);
+    if (Grid.isBracketClosed(part) && char === ",") {
+      res.push(part.trim());
+      part = "";
     } else {
-      currentPart += char;
-      if (char === "(") {
-        parenthesisCount++;
-      } else if (char === ")") {
-        parenthesisCount--;
-      } else if (char === "[") {
-        bracketCount++;
-      } else if (char === "]") {
-        bracketCount--;
-      }
+      part += char;
     }
   }
 
-  if (expression.charAt(expression.length - 1) === ",") {
-    parts.push("");
-  }
+  res.push(part);
 
-  return parts;
+  return res;
 }
 
 export class Script {

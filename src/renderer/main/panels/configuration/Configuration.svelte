@@ -60,7 +60,7 @@
       ui.dx,
       ui.dy,
       ui.pagenumber,
-      ui.elementnumber
+      ui.elementnumber,
     );
 
     event = runtime.findEvent(
@@ -68,7 +68,7 @@
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
-      ui.eventtype
+      ui.eventtype,
     );
 
     if (typeof element !== "undefined" && !element.isLoaded()) {
@@ -173,9 +173,12 @@
   on:keydown={(e) => {
     //Ignore if origin node is input
     if (
-      e.srcElement.nodeName == "INPUT" ||
-      e.srcElement.nodeName == "TEXTAREA"
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
     ) {
+      e.stopPropagation();
       return;
     }
 

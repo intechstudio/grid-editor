@@ -103,6 +103,8 @@
   }
 
   function syncWithGrid() {
+    // TODO: remove sendData from here and fix $: reactivity properly
+    sendData(pmo, pmi, pma);
     dispatch("sync");
   }
 
@@ -148,7 +150,7 @@
   $: stepSize = calculateStepSize(
     Number(pmo),
     minMaxEnabled ? Number(pmi) : 0,
-    minMaxEnabled ? Number(pma) : 127
+    minMaxEnabled ? Number(pma) : 127,
   );
 </script>
 

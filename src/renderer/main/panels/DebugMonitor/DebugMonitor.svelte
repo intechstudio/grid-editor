@@ -37,7 +37,7 @@
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
-      ui.eventtype
+      ui.eventtype,
     );
   }
 
@@ -317,7 +317,7 @@
         y="50%"
         >{Math.floor(
           $outbound_data_rate_history[$inbound_data_rate_history.length - 1] *
-            100
+            100,
         ) / 100}</text
       >
       <text
@@ -364,7 +364,7 @@
         y="50%"
         >{Math.floor(
           $inbound_data_rate_history[$inbound_data_rate_history.length - 1] *
-            100
+            100,
         ) / 100}</text
       >
       <text
