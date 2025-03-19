@@ -50,6 +50,8 @@
       validationError: validationError,
     });
   }
+
+  let elementType = config.parent.getInfo().element.type;
 </script>
 
 <container>
@@ -61,6 +63,7 @@
       preProcessor={(script) => script}
       postProcessor={(script) => script}
       availableCharacters={$event.getAvailableChars()}
+      restrictScopeTo={elementType}
       on:input={handleUpdateAction}
       on:change={() => dispatch("sync")}
     />

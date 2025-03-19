@@ -45,7 +45,11 @@
   onMount(() => {
     input_buffer = value;
 
-    monaco_elementtype.set(restrictScopeTo);
+    monaco_elementtype.set(
+      restrictScopeTo == ElementType.FADER
+        ? ElementType.POTMETER
+        : restrictScopeTo,
+    );
     editor = monaco_editor.create(monaco_block, {
       value: value,
       language: "intech_lua",

@@ -117,8 +117,12 @@
 
   async function open_monaco() {
     const event = config.parent as GridEvent;
-    const element = event.parent as GridElement;
-    monaco_elementtype.set(element.type);
+    const restrictScopeTo = event.parent as GridElement;
+    monaco_elementtype.set(
+      restrictScopeTo == ElementType.FADER
+        ? ElementType.POTMETER
+        : restrictScopeTo,
+    );
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },
