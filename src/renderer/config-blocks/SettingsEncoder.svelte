@@ -171,6 +171,8 @@
   }
 
   function syncWithGrid() {
+    // TODO: remove sendData from here and fix $: reactivity properly
+    sendData(emo, ev0, emi, ema, ese);
     dispatch("sync");
   }
 </script>

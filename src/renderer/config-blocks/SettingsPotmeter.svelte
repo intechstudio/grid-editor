@@ -103,6 +103,8 @@
   }
 
   function syncWithGrid() {
+    // TODO: remove sendData from here and fix $: reactivity properly
+    sendData(pmo, pmi, pma);
     dispatch("sync");
   }
 

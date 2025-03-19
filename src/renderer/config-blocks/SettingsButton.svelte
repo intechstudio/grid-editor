@@ -100,6 +100,8 @@
   }
 
   function syncWithGrid() {
+    // TODO: remove sendData from here and fix $: reactivity properly
+    sendData(bmo, bmi, bma);
     dispatch("sync");
   }
 
