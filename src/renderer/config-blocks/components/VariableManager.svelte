@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
+  import { ElementType } from "@intechstudio/grid-protocol";
   import { Validator } from "../validators";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { MeltCombo, MoltenPushButton } from "@intechstudio/grid-uikit";
@@ -13,6 +14,7 @@
   export let availableCharacters: number;
   export let preProcessor: (script: string) => string;
   export let postProcessor: (script: string) => string;
+  export let restrictScopeTo: ElementType | undefined = undefined;
 
   let validators = [];
 
@@ -192,6 +194,7 @@
               handleInput();
             }}
             on:change={handleChange}
+            {restrictScopeTo}
             value={segment.value}
             {availableCharacters}
           />
