@@ -270,7 +270,13 @@
       on:input={updateColor}
       on:change={() => dispatch("sync")}
     />
-    <RandomColorGenerator {color} on:generate={updateColor} />
+    <RandomColorGenerator
+      {color}
+      on:generate={(e) => {
+        updateColor(e);
+        dispatch("sync");
+      }}
+    />
   </div>
 
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
