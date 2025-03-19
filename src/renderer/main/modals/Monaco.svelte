@@ -188,9 +188,9 @@
       new ActionData(
         monaco_action.short,
         GridScript.compressScript(editor.getValue()),
-        name !== $monaco_action?.information.displayName ? name : undefined
+        name !== $monaco_action?.information.displayName ? name : undefined,
       ),
-      true
+      true,
     ).then(() => {
       commited.name = $monaco_action.name;
       commited.script = $monaco_action.script;
