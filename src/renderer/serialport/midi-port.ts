@@ -20,7 +20,7 @@ export class GridMIDIManager implements Writable<MIDIAccess> {
 
   public subscribe(
     run: Subscriber<MIDIAccess>,
-    invalidate?: (value?: MIDIAccess) => void
+    invalidate?: (value?: MIDIAccess) => void,
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -43,7 +43,7 @@ export class GridMIDIManager implements Writable<MIDIAccess> {
 
       console.log(
         "MIDI Manager initialized:",
-        Array.from(access.outputs.values())
+        Array.from(access.outputs.values()),
       );
     } catch (err) {
       console.error("Failed to get MIDI access:", err);

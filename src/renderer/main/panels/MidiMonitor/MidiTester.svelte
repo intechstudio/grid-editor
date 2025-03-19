@@ -44,7 +44,7 @@
               }
             }
             return { title: id, value: id };
-          })
+          }),
         )
       ).filter(Boolean); // Remove null values
 
