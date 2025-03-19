@@ -58,17 +58,19 @@
   function postProcessor(script: string): string {
     return `local ${script}`;
   }
+
+  let elementType = config.parent.getInfo().element.type;
 </script>
 
 <container>
   <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
     <span class="text-white text-sm">Local Variables:</span>
-
     <VariableManager
       {script}
       {preProcessor}
       {postProcessor}
       availableCharacters={$event.getAvailableChars()}
+      restrictScopeTo={elementType}
       on:input={handleUpdateAction}
       on:change={() => dispatch("sync")}
     />
