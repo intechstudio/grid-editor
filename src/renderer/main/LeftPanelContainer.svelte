@@ -9,7 +9,6 @@
   import { windowSize } from "../runtime/window-size";
 
   import { watchResize } from "svelte-watch-resize";
-  import MidiTester from "./panels/MidiMonitor/MidiTester.svelte";
 
   function resize() {
     $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
@@ -23,7 +22,7 @@
   {/if}
 
   {#if $appSettings.leftPanel == "MIDI Monitor"}
-    <MidiTester />
+    <MidiMonitor />
   {/if}
 
   {#if $appSettings.leftPanel == "Websocket"}

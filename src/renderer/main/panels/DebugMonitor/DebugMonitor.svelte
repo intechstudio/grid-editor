@@ -24,6 +24,7 @@
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
+  import MidiTester from "../MidiMonitor/MidiTester.svelte";
 
   let event: GridEvent;
 
@@ -194,13 +195,19 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
-  <MoltenInput bind:target={immediateCommand} />
-  <MoltenPushButton
-    click={() => {
-      runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
-    }}
-    text="Immediate"
-  />
+  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+    <MoltenInput bind:target={immediateCommand} />
+    <MoltenPushButton
+      click={() => {
+        runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
+      }}
+      text="Immediate"
+    />
+  </div>
+
+  <div class="my-4">
+    <MidiTester />
+  </div>
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
