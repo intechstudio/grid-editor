@@ -47,6 +47,7 @@
         on:change={() => dispatch("sync")}
         value={scriptSegment}
         availableCharacters={$config.parent.getAvailableChars()}
+        restrictScopeTo={$config.parent.getInfo().element.type}
       />
     </div>
   </div>

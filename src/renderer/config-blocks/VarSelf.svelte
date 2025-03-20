@@ -63,6 +63,8 @@
     const rightSide = split.slice(1, split.length).join("").trim();
     return `${leftSide}=${rightSide}`;
   }
+
+  let elementType = config.parent.getInfo().element.type;
 </script>
 
 <container>
@@ -74,6 +76,7 @@
       {preProcessor}
       {postProcessor}
       availableCharacters={$event.getAvailableChars()}
+      restrictScopeTo={elementType}
       on:input={handleUpdateAction}
       on:change={() => dispatch("sync")}
     />
