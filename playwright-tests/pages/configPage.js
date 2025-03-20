@@ -60,7 +60,7 @@ export class ConfigPage {
     this.closeCodeButton = page.getByRole("button", { name: "Close" });
     this.codeblockInput = page.locator(".view-line").first();
     this.codeBlockCharacterLimitMessage = page.getByText(
-      "Config limit reached."
+      "Config limit reached.",
     );
     this.characterCount = page.getByTestId("charCount");
     this.elementMaxResolution14Bit = page.getByRole("option", {
@@ -217,7 +217,7 @@ export class ConfigPage {
     await this.blocks["code"]["Comment Block"]["block"].click();
     if (comment) {
       await this.blocks["code"]["Comment Block"]["elements"]["input"].fill(
-        comment
+        comment,
       );
     }
   }

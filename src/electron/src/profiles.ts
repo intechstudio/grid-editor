@@ -22,7 +22,7 @@ async function migrateProfileFileToCloud(
   filePath: string,
   configType: string,
   configPath: string,
-  configDirectory: string
+  configDirectory: string,
 ) {
   const id = uuidv4();
   const oldProfileBuffer = await readFile(filePath);
@@ -45,7 +45,7 @@ async function migrateProfileFileToCloud(
 export async function migrateToProfileCloud(
   oldRootPath: string,
   newRootPath: string,
-  configDirectory: string
+  configDirectory: string,
 ): Promise<void> {
   const oldConfigTypes = ["profile", "preset"];
   const zip = new AdmZip();
@@ -70,7 +70,7 @@ export async function migrateToProfileCloud(
             path.join(currentPath, entry.name),
             configType,
             newRootPath,
-            configDirectory
+            configDirectory,
           );
         }
       }
@@ -163,7 +163,7 @@ export async function saveConfig(configPath, rootDirectory, config) {
   await fs.promises
     .writeFile(
       `${path}/${rootDirectory}/${fileName}.json`,
-      JSON.stringify(config, null, 4)
+      JSON.stringify(config, null, 4),
     )
     .then((data) => {
       console.log("Saved!");
