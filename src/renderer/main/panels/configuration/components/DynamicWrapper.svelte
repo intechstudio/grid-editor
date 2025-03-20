@@ -15,7 +15,7 @@
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration";
-  import { draggable } from "../../../_actions/move.action";
+  import { draggable, draggedActions } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
   import {
     updateAction,
@@ -51,12 +51,26 @@
   });
 
   onDestroy(() => {
+    //Destroyed by removal: nothing to do
+    if (typeof action.parent === "undefined") {
+      return;
+    }
+
+    //Destroyed by getting out of scope: Revert to synced state
+    revertToSynced();
+  });
+
+  $: if (!toggled) {
+    revertToSynced();
+  }
+
+  function revertToSynced() {
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
-      false
+      false,
     );
-  });
+  }
 
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;
@@ -64,7 +78,7 @@
     const parent = oldAction.parent as GridEvent;
     const newAction = new GridAction(
       undefined,
-      new ActionData(short, GridAction.getInformation(short).defaultLua)
+      new ActionData(short, GridAction.getInformation(short).defaultLua),
     );
     console.log({ short, script, name, oldAction, newAction, parent });
     replaceAction(parent, oldAction, newAction);
@@ -126,7 +140,35 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
+<wrapper
+  role="tabpanel"
+  tabindex="0"
+  on:keydown={(e) => {
+    //Ignore if origin node is input
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+    ) {
+      e.stopPropagation();
+      return;
+    }
+    if (
+      e.key === " " &&
+      e.target.tagName !== "INPUT" &&
+      e.target.tagName !== "TEXTAREA"
+    ) {
+      e.preventDefault();
+      const carousel = e.currentTarget.querySelector("carousel");
+      if (carousel) {
+        carousel.click();
+      }
+    }
+  }}
+  class="dynamicWrapper activator-button flex flex-grow outline-none"
+  class:cursor-pointer={ctrlIsDown}
+>
   {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
@@ -141,6 +183,7 @@
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
+    class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
     on:click|self={handleCarouselClicked}

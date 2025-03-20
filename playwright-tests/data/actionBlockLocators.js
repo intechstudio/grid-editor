@@ -64,7 +64,7 @@ export const blocks = (page) => ({
       },
     },
     Color: {
-      block: page.getByText("Color"),
+      block: page.getByText("Color", { exact: true }),
       elements: {
         ledNumber: page.getByLabel("LED Number"),
         Layer: page.getByLabel("Layer"),

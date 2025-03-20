@@ -50,7 +50,7 @@ jobs:
         run: pip install setuptools --break-system-packages
 
       - name: Install dependencies
-        run: npm i
+        run: npm ci
 
       - name: Update package.json
         if: ${{ inputs.versionOverride != '' }}

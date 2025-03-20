@@ -45,8 +45,9 @@
           sendData(script);
         }}
         on:change={() => dispatch("sync")}
-        action={config}
         value={scriptSegment}
+        availableCharacters={$config.parent.getAvailableChars()}
+        restrictScopeTo={$config.parent.getInfo().element.type}
       />
     </div>
     <span class="mx-3">Then</span>

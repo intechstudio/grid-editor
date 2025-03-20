@@ -143,7 +143,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
           switch (architecture) {
             case "esp32":
               version = `v${Object.values(as.firmware_esp32_required).join(
-                "."
+                ".",
               )}`;
               break;
             case "d51":
@@ -171,7 +171,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       folder,
       product,
       architecture,
-      link
+      link,
     );
 
     Analytics.track({

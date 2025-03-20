@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm i
+          npm ci
           npm run format
           git status
           touch format_error.txt

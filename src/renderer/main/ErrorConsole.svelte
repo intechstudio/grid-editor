@@ -32,7 +32,7 @@
       "we got exception, but the app has crashed 1",
       url,
       line,
-      errorMessage
+      errorMessage,
     );
 
     let solution = undefined;
@@ -98,7 +98,7 @@
             message: generateErrorDisplayText(
               "Supressed: " + errorMsg,
               url,
-              lineNumber
+              lineNumber,
             ),
             stack: Error().stack,
           },

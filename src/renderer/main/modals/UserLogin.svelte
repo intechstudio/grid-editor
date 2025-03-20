@@ -32,7 +32,7 @@
       authStore.googleLoginPopup();
     } else {
       window.electron.openInBrowser(
-        $appSettings.persistent.profileCloudUrl + "/authorize"
+        $appSettings.persistent.profileCloudUrl + "/authorize",
       );
     }
   }
@@ -112,7 +112,7 @@
             <button
               on:click|preventDefault={() =>
                 window.electron.openInBrowser(
-                  configuration.PROFILE_CLOUD_EMAIL_REGISTRATION
+                  configuration.PROFILE_CLOUD_EMAIL_REGISTRATION,
                 )}
               class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
               >register on website</button

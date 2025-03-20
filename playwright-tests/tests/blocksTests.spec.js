@@ -45,9 +45,23 @@ test.describe("Issues", () => {
 
     const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
     await expect(preText).toBeVisible();
-
-    //TODO refactor, with contains(), it slow now
   });
+
+  // https://github.com/intechstudio/grid-editor/issues/1022
+  test("Code block saving the stored changes", async ({ page }) => {
+    const storedInput = "print('stored codeblock')";
+    await configPage.removeAllActions();
+    await configPage.addAndEditCodeBlock(storedInput);
+    await configPage.commitCode();
+    await configPage.closeCode();
+    await modulePage.storeConfig();
+    await configPage.selectElementEvent("Setup");
+    await configPage.selectElementEvent("Button");
+
+    const preText = page.locator("#cfg-0").getByText(storedInput); // should find codeblock with the sored filed
+    await expect(preText).toBeVisible();
+  });
+
   test("MIDI NRPN showes the converted value after switch element", async ({
     page,
   }) => {
@@ -307,5 +321,32 @@ test.describe("Input field keyboard shortcuts", () => {
       field,
     );
     await expect(actualValue).toBe(expectedValue);
+  });
+});
+
+test.describe("Monaco Sugestion", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("correct suggestion is visible once", async ({ page }) => {
+    const code = "button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("self:button_max");
+    await expect(buttonMax).toHaveCount(1);
+    await expect(buttonMax.first()).toBeVisible();
+  });
+  test("correct suggestion is visible after element[x]", async ({ page }) => {
+    const code = "element[2]:button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("button_max");
+    await expect(buttonMax).toHaveCount(1);
+    await expect(buttonMax.first()).toBeVisible();
   });
 });

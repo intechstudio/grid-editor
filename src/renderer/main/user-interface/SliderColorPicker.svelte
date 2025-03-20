@@ -1,204 +1,73 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { Grid } from "../../lib/_utils";
-  import RandomColorGenerator from "./RandomColorGenerator.svelte";
+  import ColorSlider from "./ColorSlider.svelte";
 
-  let mounted = false;
   const dispatch = createEventDispatcher();
 
-  export let color: Grid.HSL;
+  export let color: Grid.HSL | undefined;
 
-  let container: HTMLElement;
-  let resizeObserver: ResizeObserver;
+  enum Channel {
+    HUE = "h",
+    SATURATION = "s",
+    BRIGHTNESS = "l",
+  }
 
-  let dragParam: Grid.HSLParam;
-
-  type Scale = {
+  type SliderData = {
     label: string;
-    param: Grid.HSLParam;
-    scaleElement: HTMLCanvasElement;
-    cursorElement: HTMLElement;
-    drawFn: (canvas: HTMLCanvasElement, color: Grid.HSL) => void;
+    key: Channel;
+    max: number;
   };
 
-  let componentData: Scale[] = [
-    {
-      param: Grid.HSLParam.HUE,
-      label: "H",
-      scaleElement: undefined,
-      cursorElement: undefined,
-      drawFn: drawHUEScale,
-    },
-    {
-      param: Grid.HSLParam.SATURATION,
-      label: "S",
-      scaleElement: undefined,
-      cursorElement: undefined,
-      drawFn: drawSaturationScale,
-    },
-    {
-      param: Grid.HSLParam.LIGHTNESS,
-      label: "L",
-      scaleElement: undefined,
-      cursorElement: undefined,
-      drawFn: drawLightnessScale,
-    },
+  const sliders: SliderData[] = [
+    { label: "H", key: Channel.HUE, max: 360 },
+    { label: "S", key: Channel.SATURATION, max: 100 },
+    { label: "L", key: Channel.BRIGHTNESS, max: 100 },
   ];
 
-  onMount(() => {
-    resizeObserver = new ResizeObserver(() => {
-      if (container) {
-        drawScales(color);
-      }
-    });
-
-    if (container) {
-      resizeObserver.observe(container);
+  function handleInput(channel: Channel, inputValue: number) {
+    if (typeof color === "undefined") {
+      color = new Grid.HSL(Grid.Int.getRandom(0, 360), 100, 50);
     }
 
-    mounted = true;
-  });
-
-  onDestroy(() => {
-    if (resizeObserver) {
-      resizeObserver.disconnect(); // Properly disconnect the observer
-    }
-  });
-
-  $: if (mounted) {
-    drawScales(color);
+    color[channel] = inputValue;
+    dispatch("input", { color: color });
   }
 
-  function drawScales(color: Grid.HSL) {
-    for (const data of componentData) {
-      const rect = data.scaleElement.getBoundingClientRect();
-      let offsetX =
-        (rect.width * color.getParam(data.param)) /
-        Grid.HSL.getMaxValue(data.param);
-      data.cursorElement.style.left = `${Math.min(
-        offsetX,
-        data.scaleElement.clientWidth - data.cursorElement.clientWidth
-      )}px`;
-    }
-
-    for (const data of componentData) {
-      if (data.scaleElement) {
-        data.drawFn(data.scaleElement, color);
-      }
-    }
-  }
-
-  function drawHUEScale(canvas: HTMLCanvasElement, color: Grid.HSL) {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-
-    const hGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    const stopCount = 6;
-    for (let n = 0; n < stopCount; ++n) {
-      hGrad.addColorStop(
-        n / (stopCount - 1), // to get smooth gradient between 0 and 1
-        new Grid.HSL((360 / stopCount) * n, color.s, color.l).toHEX()
-      );
-    }
-
-    ctx.fillStyle = hGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function drawSaturationScale(canvas: HTMLCanvasElement, color: Grid.HSL) {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-    const hGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    hGrad.addColorStop(0, new Grid.HSL(color.h, 0, color.l).toHEX());
-    hGrad.addColorStop(1, new Grid.HSL(color.h, 100, color.l).toHEX());
-
-    ctx.fillStyle = hGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function drawLightnessScale(canvas: HTMLCanvasElement, color: Grid.HSL) {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-
-    const hGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    hGrad.addColorStop(0, new Grid.HSL(color.h, color.s, 0).toHEX());
-    hGrad.addColorStop(0.5, new Grid.HSL(color.h, color.s, 50).toHEX());
-    hGrad.addColorStop(1, new Grid.HSL(color.h, color.s, 100).toHEX());
-
-    ctx.fillStyle = hGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function handleRandomColorPick(e: any) {
-    const { color } = e.detail;
+  function handleChange() {
     dispatch("change", { color: color });
   }
 
-  function handleCalculateColor(e: MouseEvent) {
-    const dragged = componentData.find((e) => e.param === dragParam);
-    if (dragged) {
-      const { scaleElement } = dragged;
-      const rect = scaleElement.getBoundingClientRect();
-      let value = Math.max(
-        0,
-        Math.min(1, (e.clientX - rect.left) / rect.width)
-      );
-      color = color.setParam(
-        dragParam,
-        Math.floor(Grid.HSL.getMaxValue(dragParam) * value)
-      );
+  function getGradient(color: Grid.HSL | undefined, channel: Channel) {
+    if (typeof color === "undefined") {
+      return "background-color: white;";
     }
+
+    const stops = {
+      h: [0, 60, 120, 180, 240, 360].map((h) =>
+        new Grid.HSL(h, color.s, color.l).toHEX(),
+      ),
+      s: [0, 100].map((s) => new Grid.HSL(color.h, s, color.l).toHEX()),
+      l: [0, 50, 100].map((l) => new Grid.HSL(color.h, color.s, l).toHEX()),
+    };
+    return `background: linear-gradient(to right, ${stops[channel].join(
+      ", ",
+    )});`;
   }
 </script>
 
-<svelte:window
-  on:mouseup={(e) => {
-    if (typeof dragParam === "undefined") {
-      return;
-    }
-
-    document.removeEventListener("mousemove", handleCalculateColor);
-    dragParam = undefined;
-    dispatch("change", { color: color });
-  }}
-/>
-<container bind:this={container}>
-  <div class="flex flex-row gap-2 items-center">
-    <div class="flex flex-col gap-2 flex-grow">
-      {#each componentData as { label, param, scaleElement, cursorElement }}
-        <div class="flex flex-row gap-2 items-center">
-          <span class="text-white text-sm">{label}:</span>
-          <div class="relative flex flex-grow h-5">
-            <canvas
-              bind:this={scaleElement}
-              class="w-full h-5 relative border border-black"
-              on:mousedown={(e) => {
-                if (!(e.buttons & 1)) return;
-                dragParam = param;
-                handleCalculateColor(e);
-                document.addEventListener("mousemove", handleCalculateColor);
-              }}
-            />
-            <div
-              bind:this={cursorElement}
-              class="absolute w-2 h-full border border-white pointer-events-none"
-              style="background-color: {color.toCSS()};border-color: {new Grid.HSL(
-                color.h,
-                0,
-                100 - color.l
-              ).toCSS()};"
-            />
-          </div>
-        </div>
-      {/each}
-    </div>
-
-    <RandomColorGenerator {color} on:generate={handleRandomColorPick} />
-  </div>
-</container>
+<div class="grid grid-cols-[auto_1fr] gap-2 items-center w-full">
+  {#each sliders as { label, key, max }}
+    <span class="text-white text-sm">{label}:</span>
+    <ColorSlider
+      value={color ? color[key] : undefined}
+      {max}
+      direction="horizontal"
+      round={true}
+      on:input={(e) => handleInput(key, e.detail.value)}
+      on:change={handleChange}
+    >
+      <div class="w-full h-full" style={getGradient(color, key)} />
+    </ColorSlider>
+  {/each}
+</div>

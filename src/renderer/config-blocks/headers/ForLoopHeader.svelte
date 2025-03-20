@@ -72,7 +72,7 @@
 
     const [start, end, inc] = segments.slice(1).map((e) => Number(e));
     const iterationCount = Math.floor(
-      (Math.abs(start - end) + 1) / Math.abs(inc)
+      (Math.abs(start - end) + 1) / Math.abs(inc),
     );
 
     displayValue = Number.isInteger(iterationCount)
@@ -114,14 +114,13 @@
       class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full w-10"
       on:click|stopPropagation
     >
-      {#key displayValue}
-        <LineEditor
-          on:input={handleDisplayValueChange}
-          action={config}
-          bind:value={displayValue}
-          on:change={() => dispatch("sync")}
-        />
-      {/key}
+      <LineEditor
+        on:input={handleDisplayValueChange}
+        bind:value={displayValue}
+        on:change={() => dispatch("sync")}
+        availableCharacters={$config.parent.getAvailableChars()}
+        restrictScopeTo={$config.parent.getInfo().element.type}
+      />
     </div>
     <span>times</span>
     <div class="ml-auto flex items-center">
