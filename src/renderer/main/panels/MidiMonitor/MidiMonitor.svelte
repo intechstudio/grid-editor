@@ -19,6 +19,7 @@
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
+  import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
 
   let event: GridEvent;
 
@@ -445,8 +446,8 @@
         </div>
       </Pane>
       <Pane size={50}>
-        <div class="flex flex-col h-full w-full">
-          {#if debug}
+        {#if debug}
+          <div class="flex flex-col h-full w-full">
             <div
               class="text-white flex flex-row pb-2 pt-6 font-medium justify-between"
             >
@@ -465,14 +466,11 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
-              {#if $debug_monitor_store.length != 0}
-                {#each $debug_monitor_store as debug, i}
-                  <span class="font-mono text-white debugtexty">{debug}</span>
-                {/each}
-              {/if}
-            </div>
-          {:else}
+
+            <DebugTextList />
+          </div>
+        {:else}
+          <div class="flex flex-col h-full w-full">
             <div class="flex w-full text-white pb-2 pt-6">
               System Exclusive Messages
             </div>
@@ -505,8 +503,8 @@
                 </div>
               {/each}
             </div>
-          {/if}
-        </div>
+          </div>
+        {/if}
       </Pane>
     </Splitpanes>
   </div>

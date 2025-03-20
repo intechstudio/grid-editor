@@ -10,6 +10,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { wss_send_message } from "../../../runtime/runtime.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
 
   let frozen = false;
 
@@ -172,16 +173,7 @@
     {/if}
   </div>
 
-  {#if $debug_monitor_store.length != 0}
-    <div class="text-white">Debug Text:</div>
-    <div
-      class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px]"
-    >
-      {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-0.5">{debug}</span>
-      {/each}
-    </div>
-  {/if}
+  <DebugTextList />
 
   {#if $debug_lowlevel_store.length != 0}
     <div class="text-white">Raw Packet:</div>
@@ -347,10 +339,6 @@
   }
   .outbound.smallsvgtext {
     fill: rgba(44, 44, 80, 1);
-  }
-
-  .debugtexty:nth-child(even) {
-    @apply bg-select;
   }
 
   .output {
