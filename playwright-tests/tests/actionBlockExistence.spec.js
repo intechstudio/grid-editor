@@ -9,6 +9,7 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import blocks from "../data/actionBlocks.json";
 import blockElements from "../data/actionBlockElements.json";
+import KeyboardActions from "../keyboardActions";
 
 let configPage;
 let connectModulePage;
@@ -16,6 +17,7 @@ let modulePage;
 let browser;
 let context;
 let page;
+let keyboardActions;
 
 async function setupModule(moduleName) {
   await connectModulePage.openVirtualModules();
@@ -50,6 +52,7 @@ test.beforeAll(async () => {
 
   configPage = new ConfigPage(page);
   modulePage = new ModulePage(page);
+  keyboardActions = new KeyboardActions(page);
   connectModulePage = new ConnectModulePage(page);
 
   await page.goto(PAGE_PATH);
@@ -76,6 +79,7 @@ test.describe("Block Existence", () => {
     });
   }
 });
+
 test.describe("Elements Existence", () => {
   for (const [category, blockData] of Object.entries(blockElements)) {
     test.describe(`${category} category`, () => {
@@ -92,6 +96,76 @@ test.describe("Elements Existence", () => {
                 configPage.blocks[category][blockName]["elements"][elementName];
               await expect(element).toBeVisible({ timeout: 5000 });
             });
+          }
+        });
+      }
+    });
+  }
+});
+
+test.describe("Interactable input field", () => {
+  for (const [category, blockList] of Object.entries(blocks)) {
+    test.describe(`${category} category`, () => {
+      for (const blockName of blockList) {
+        test(`${blockName} block`, async () => {
+          if (blockName == "Press/Release") {
+            await configPage.selectElementEvent("Button");
+          }
+          await configPage.removeAllActions();
+          await configPage.openAndAddActionBlock(category, blockName);
+          const actionBlock = configPage.actionBlock;
+
+          // Click all checkboxes that are unchecked
+          const checkboxes = actionBlock.locator(
+            'button[data-state="unchecked"]',
+          );
+          const checkboxCount = await checkboxes.count();
+
+          for (let i = 0; i < checkboxCount; i++) {
+            const checkbox = checkboxes.nth(0);
+            await checkbox.click();
+          }
+
+          // Click all toggle
+          const toggles = actionBlock.locator("input.toggle");
+          const toggleCount = await toggles.count();
+
+          for (let i = 0; i < toggleCount; i++) {
+            const toggle = toggles.nth(0);
+            await toggle.click();
+          }
+
+          // Locate input fields that are not of type "checkbox"
+          const inputFields = actionBlock.locator(
+            "input[type='text']:not(.rename-input)",
+          );
+
+          const monacoFields = actionBlock.locator("div#line-editor");
+          const fieldCount = await inputFields.count();
+          const monacoCount = await monacoFields.count();
+
+          const expectedValue = "123";
+
+          // Loop through monaco fields and interact with them
+          for (let i = 0; i < monacoCount; i++) {
+            const monacoField = monacoFields.nth(i);
+
+            // Type in the monaco field and validate
+            await monacoField.click();
+            await keyboardActions.selectAll();
+            await keyboardActions.type(expectedValue);
+            const value = await monacoField.innerText();
+            expect(value).toMatch("123");
+          }
+
+          // Loop through input fields and interact with them
+          for (let i = 0; i < fieldCount; i++) {
+            const inputField = inputFields.nth(i);
+
+            // Fill the input field and validate
+            await inputField.fill(expectedValue);
+            const value = await inputField.inputValue();
+            expect(value).toBe(expectedValue);
           }
         });
       }
