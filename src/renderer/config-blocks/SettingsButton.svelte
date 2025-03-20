@@ -24,7 +24,7 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
   import {
@@ -95,26 +95,24 @@
 
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    sendData(bmo, bmi, bma);
+    sendData();
     syncWithGrid();
   }
 
   function syncWithGrid() {
-    // TODO: remove sendData from here and fix $: reactivity properly
-    sendData(bmo, bmi, bma);
     dispatch("sync");
   }
 
-  function sendData(p1, p2, p3) {
+  function sendData() {
     const optional = [];
     if (minMaxEnabled) {
-      optional.push(`self:bmi(${p2}) self:bma(${p3})`);
+      optional.push(`self:bmi(${bmi}) self:bma(${bmo})`);
     }
 
     dispatch("update-action", {
       short: `sbc`,
       script:
-        `self:bmo(${p1})` +
+        `self:bmo(${bmo})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
       validationError: validators.some((e) => e.value === false),
     });
@@ -131,7 +129,7 @@
 
   let minMaxEnabled = false;
 
-  function calculateStepValues(steps, min, max) {
+  function calculateStepValues(steps: number, min: number, max: number) {
     const stepValue = Math.floor(Math.abs(min - max) / (steps - 1));
     const res = Array.from(
       { length: steps },
@@ -140,14 +138,12 @@
     return res;
   }
 
-  let stepValues;
+  let stepValues: number[];
   $: stepValues = calculateStepValues(
     Number(bmo) + 1,
     minMaxEnabled ? Number(bmi) : 0,
     minMaxEnabled ? Number(bma) : 127,
   );
-
-  $: sendData(bmo, bmi, bma);
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
@@ -159,6 +155,7 @@
     on:input={(e) => {
       const { value, validationError } = e.detail;
       validators[0].value = !validationError;
+      sendData();
     }}
     on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
@@ -176,6 +173,7 @@
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[1].value = !validationError;
+          sendData();
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -190,6 +188,7 @@
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[2].value = !validationError;
+          sendData();
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
