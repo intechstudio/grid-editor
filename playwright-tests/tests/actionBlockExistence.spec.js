@@ -115,18 +115,9 @@ test.describe("Interactable input field", () => {
           await configPage.openAndAddActionBlock(category, blockName);
           const actionBlock = configPage.actionBlock;
 
-          // Locate input fields that are not of type "checkbox"
-          const inputFields = actionBlock.locator(
-            "input[type='text']:not(.rename-input)"
-          );
-
-          const monacoFields = actionBlock.locator("div#line-editor");
-          const fieldCount = await inputFields.count();
-          const monacoCount = await monacoFields.count();
-
           // Click all checkboxes that are unchecked
           const checkboxes = actionBlock.locator(
-            'button[data-state="unchecked"]'
+            'button[data-state="unchecked"]',
           );
           const checkboxCount = await checkboxes.count();
 
@@ -135,17 +126,26 @@ test.describe("Interactable input field", () => {
             await checkbox.click();
           }
 
+          // Click all toggle
+          const toggles = actionBlock.locator("input.toggle");
+          const toggleCount = await toggles.count();
+
+          for (let i = 0; i < toggleCount; i++) {
+            const toggle = toggles.nth(0);
+            await toggle.click();
+          }
+
+          // Locate input fields that are not of type "checkbox"
+          const inputFields = actionBlock.locator(
+            "input[type='text']:not(.rename-input)",
+          );
+
+          const monacoFields = actionBlock.locator("div#line-editor");
+          const fieldCount = await inputFields.count();
+          const monacoCount = await monacoFields.count();
+
           const expectedValue = "123";
 
-          // Loop through input fields and interact with them
-          for (let i = 0; i < fieldCount; i++) {
-            const inputField = inputFields.nth(i);
-
-            // Fill the input field and validate
-            await inputField.fill(expectedValue);
-            const value = await inputField.inputValue();
-            expect(value).toBe(expectedValue);
-          }
           // Loop through monaco fields and interact with them
           for (let i = 0; i < monacoCount; i++) {
             const monacoField = monacoFields.nth(i);
@@ -156,6 +156,16 @@ test.describe("Interactable input field", () => {
             await keyboardActions.type(expectedValue);
             const value = await monacoField.innerText();
             expect(value).toMatch("123");
+          }
+
+          // Loop through input fields and interact with them
+          for (let i = 0; i < fieldCount; i++) {
+            const inputField = inputFields.nth(i);
+
+            // Fill the input field and validate
+            await inputField.fill(expectedValue);
+            const value = await inputField.inputValue();
+            expect(value).toBe(expectedValue);
           }
         });
       }
