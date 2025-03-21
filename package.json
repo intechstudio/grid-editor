@@ -53,7 +53,7 @@
     "electron-store": "^8.1.0",
     "electron-updater": "^6.3.0",
     "eslint": "^7.23.0",
-    "firebase": "^9.18.0",
+    "firebase": "^10.9.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
     "mixpanel-browser": "^2.47.0",
