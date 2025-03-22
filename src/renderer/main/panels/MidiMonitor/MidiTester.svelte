@@ -1,10 +1,13 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { GridMIDIManager } from "../../../serialport/midi-port";
+
+  import { get, writable } from "svelte/store";
   import {
     MeltCombo,
     MeltSelect,
     MeltSlider,
+    MeltRadio,
     MoltenInput,
     MoltenPushButton,
   } from "@intechstudio/grid-uikit";
@@ -16,18 +19,20 @@
   let selected = defaultOption.value;
   let disabled = true;
 
-  let command = "144";
-  let param1 = "60";
-  let param2 = "127";
+  let channel = 0;
+  let command = 144;
+  let param1 = 60;
+  let param2 = 127;
   let interval = 250;
-  let intervalTimeout: NodeJS.Timeout;
+
+  let mode = writable(0);
 
   onMount(() => {
     refreshMIDIDevices();
   });
 
   onDestroy(() => {
-    clearInterval(intervalTimeout);
+    clearInterval(pingInterval);
   });
 
   function refreshMIDIDevices() {
@@ -58,17 +63,42 @@
   }
 
   function sendMIDIMessage() {
+    if (manager === undefined) console.error("PROBLEM");
     const out = manager.outputs.get(selected);
-    manager.sendMessage(out, { cmd: 0x90, p1: 60, p2: 127 });
+    manager.sendMessage(out, {
+      ch: channel,
+      cmd: command,
+      p1: param1,
+      p2: param2,
+    });
+  }
+
+  let pingInterval: NodeJS.Timeout | undefined;
+
+  $: {
+    if ($mode === 2) {
+      startMIDIPing();
+    } else {
+      stopMIDIPing();
+    }
+
+    if ($mode === 1) {
+      if (param2 !== undefined) {
+        sendMIDIMessage();
+      }
+    }
   }
 
   function startMIDIPing() {
-    clearInterval(intervalTimeout);
-    intervalTimeout = setInterval(sendMIDIMessage, interval);
+    if (interval > 0) {
+      pingInterval = setInterval(() => {
+        sendMIDIMessage();
+      }, interval);
+    }
   }
 
   function stopMIDIPing() {
-    clearInterval(intervalTimeout);
+    if (pingInterval) clearInterval(pingInterval);
   }
 </script>
 
@@ -87,27 +117,52 @@
 
   <div class="flex flex-col gap-1">
     <span class="text-white">Send MIDI Message:</span>
+
+    <MeltRadio
+      bind:target={$mode}
+      orientation={"horizontal"}
+      options={[
+        {
+          title: "Manual",
+          value: 0,
+        },
+        {
+          title: "Auto",
+          value: 1,
+        },
+        {
+          title: "Interval",
+          value: 2,
+        },
+      ]}
+    />
     <div class="grid grid-cols-[1fr_1fr_1fr_auto] gap-x-2 items-center">
+      <span class="text-gray-500 text-sm">Channel</span>
       <span class="text-gray-500 text-sm">Command</span>
       <span class="text-gray-500 text-sm">Param1</span>
-      <span class="col-span-2 text-gray-500 text-sm">Param2</span>
+      <span class="text-gray-500 text-sm">Param2</span>
+      <MoltenInput bind:target={channel} />
       <MoltenInput bind:target={command} />
       <MoltenInput bind:target={param1} />
       <MoltenInput bind:target={param2} />
-      <MoltenPushButton click={sendMIDIMessage} text={"Send"} snap="auto" />
     </div>
 
-    <div class="flex flex-col mt-2">
-      <span class="text-gray-500 text-sm col-span-2">Interval</span>
-      <div class="flex flex-row items-center gap-2">
+    <div class="flex flex-row items-center mt-2">
+      <div class="flex flex-row items-center gap-4">
+        <span class="text-gray-500 text-sm">Param1</span>
+        <MeltSlider bind:target={param2} min={0} max={127} step={1} />
+        <span class="text-white flex whitespace-nowrap">{param2}</span>
+      </div>
+    </div>
+
+    <div class="flex flex-row items-center mt-2">
+      <div class="flex flex-row items-center gap-4">
+        <span class="text-gray-500 text-sm">Interval</span>
         <MeltSlider bind:target={interval} min={5} max={500} step={1} />
         <span class="text-white flex whitespace-nowrap">{interval} ms</span>
       </div>
     </div>
 
-    <div class="flex flex-row gap-2">
-      <MoltenPushButton click={startMIDIPing} text={"Start"} snap="auto" />
-      <MoltenPushButton click={stopMIDIPing} text={"Stop"} snap="auto" />
-    </div>
+    <MoltenPushButton click={sendMIDIMessage} text={"Send"} snap="auto" />
   </div>
 </container>

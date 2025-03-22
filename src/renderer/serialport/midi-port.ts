@@ -8,6 +8,7 @@ import {
 } from "svelte/store";
 
 export type MIDIMessage = {
+  ch: number;
   cmd: number;
   p1: number;
   p2: number;
@@ -55,6 +56,6 @@ export class GridMIDIManager implements Writable<MIDIAccess> {
   }
 
   public sendMessage(out: MIDIOutput, message: MIDIMessage) {
-    out.send([message.cmd, message.p1, message.p2]);
+    out.send([message.cmd | message.ch, message.p1, message.p2]);
   }
 }
