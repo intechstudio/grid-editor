@@ -48,7 +48,11 @@
                 return null;
               }
             }
-            return { title: id, value: id };
+            let name =
+              midiOutput.manufacturer +
+              (midiOutput.manufacturer.length > 0 ? ": " : "") +
+              midiOutput.name;
+            return { title: name, value: id };
           }),
         )
       ).filter(Boolean); // Remove null values
@@ -76,14 +80,18 @@
   let pingInterval: NodeJS.Timeout | undefined;
 
   $: {
-    if ($mode === 2) {
+    if ($mode === 3) {
       startMIDIPing();
     } else {
       stopMIDIPing();
     }
 
-    if ($mode === 1) {
+    if ($mode === 0) {
+    }
+
+    if ($mode === 2) {
       if (param2 !== undefined) {
+        // reactively send when param2 changes
         sendMIDIMessage();
       }
     }
@@ -123,16 +131,20 @@
       orientation={"horizontal"}
       options={[
         {
-          title: "Manual",
+          title: "Disabled",
           value: 0,
         },
         {
-          title: "Auto",
+          title: "Manual",
           value: 1,
         },
         {
-          title: "Interval",
+          title: "Auto",
           value: 2,
+        },
+        {
+          title: "Interval",
+          value: 3,
         },
       ]}
     />
