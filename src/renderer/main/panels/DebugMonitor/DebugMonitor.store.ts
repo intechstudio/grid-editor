@@ -189,6 +189,6 @@ function createLuaError() {
   };
 }
 
-export const debug_monitor_store = createDebugMonitor(256);
-export const debug_lowlevel_store = createDebugLowlevel(256);
+export const debug_monitor_store = createDebugMonitor(128);
+export const debug_lowlevel_store = createDebugLowlevel(128);
 export const lua_error_store = createLuaError();

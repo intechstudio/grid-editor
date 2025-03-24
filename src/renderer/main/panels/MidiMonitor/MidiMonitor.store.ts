@@ -292,6 +292,6 @@ function createSysExMonitor(max_val) {
   };
 }
 
-export const maxMidi = 256;
+export const maxMidi = 128;
 export const midi_monitor_store = createMidiMonitor(maxMidi);
 export const sysex_monitor_store = createSysExMonitor(maxMidi);
