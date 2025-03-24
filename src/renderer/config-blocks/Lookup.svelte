@@ -76,7 +76,7 @@
     {
       value: true,
       func: (e: string) => {
-        return new Validator(e).isLuaValue().Result();
+        return new Validator(e).isLuaVariable().Result();
       },
     },
   ];
@@ -114,7 +114,7 @@
           [],
         ),
       ],
-    }); // important to set the function name
+    });
 
     dispatch("update-action", {
       short: config.short,
