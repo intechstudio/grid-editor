@@ -106,7 +106,7 @@
   function sendData() {
     const optional = [];
     if (minMaxEnabled) {
-      optional.push(`self:bmi(${bmi}) self:bma(${bmo})`);
+      optional.push(`self:bmi(${bmi}) self:bma(${bma})`);
     }
 
     dispatch("update-action", {
