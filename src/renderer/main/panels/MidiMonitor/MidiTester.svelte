@@ -27,32 +27,18 @@
 
   let mode = writable(0);
 
-  onMount(() => {
-    refreshMIDIDevices();
-  });
-
   onDestroy(() => {
     clearInterval(pingInterval);
   });
 
   function refreshMIDIDevices() {
-    manager.init().then(async () => {
+    manager.init().then(async (out) => {
       options = (
         await Promise.all(
-          [...manager.outputs].map(async ([id, midiOutput]) => {
-            if (midiOutput.connection === "closed") {
-              try {
-                await midiOutput.open();
-              } catch (error) {
-                console.error(`Failed to open MIDI output ${id}:`, error);
-                return null;
-              }
-            }
+          out.map(async (e) => {
             let name =
-              midiOutput.manufacturer +
-              (midiOutput.manufacturer.length > 0 ? ": " : "") +
-              midiOutput.name;
-            return { title: name, value: id };
+              e.manufacturer + (e.manufacturer.length > 0 ? ": " : "") + e.name;
+            return { title: name, value: e.id };
           }),
         )
       ).filter(Boolean); // Remove null values
@@ -80,13 +66,18 @@
   let pingInterval: NodeJS.Timeout | undefined;
 
   $: {
+    if ($mode === 0) {
+      manager.closeAll();
+    } else {
+      manager.init().then((e) => {
+        manager.open(selected);
+      });
+    }
+
     if ($mode === 3) {
       startMIDIPing();
     } else {
       stopMIDIPing();
-    }
-
-    if ($mode === 0) {
     }
 
     if ($mode === 2) {
@@ -161,7 +152,7 @@
 
     <div class="flex flex-row items-center mt-2">
       <div class="flex flex-row items-center gap-4">
-        <span class="text-gray-500 text-sm">Param1</span>
+        <span class="text-gray-500 text-sm">Param2</span>
         <MeltSlider bind:target={param2} min={0} max={127} step={1} />
         <span class="text-white flex whitespace-nowrap">{param2}</span>
       </div>

@@ -14,45 +14,76 @@ export type MIDIMessage = {
   p2: number;
 };
 
-export class GridMIDIManager implements Writable<MIDIAccess> {
-  private _internal: Writable<MIDIAccess> = writable(undefined);
+export class GridMIDIManager implements Writable<MIDIAccess | undefined> {
+  private _internal: Writable<MIDIAccess | undefined> = writable(undefined);
 
   constructor() {}
 
   public subscribe(
-    run: Subscriber<MIDIAccess>,
-    invalidate?: (value?: MIDIAccess) => void,
+    run: Subscriber<MIDIAccess | undefined>,
+    invalidate?: (value?: MIDIAccess | undefined) => void,
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
 
-  public set(value: MIDIAccess) {
+  public set(value: MIDIAccess | undefined) {
     this._internal.set(value);
   }
 
-  public update(updater: Updater<MIDIAccess>) {
+  public update(updater: Updater<MIDIAccess | undefined>) {
     this._internal.update(updater);
   }
 
-  async init() {
+  async init(): Promise<MIDIOutput[]> {
+    const out: MIDIOutput[] = [];
     try {
-      // Explicitly destroy previous instance (workaround for Electron caching)
-      this._internal.set(undefined);
+      const access = await navigator.requestMIDIAccess({ sysex: false });
+      access.outputs.forEach((e) => {
+        //e.close();
+        out.push(e);
+      });
 
-      const access = await navigator.requestMIDIAccess();
-      this._internal.set(access);
+      this.set(access);
+      console.log(get(this._internal));
 
-      console.log(
-        "MIDI Manager initialized:",
-        Array.from(access.outputs.values()),
-      );
+      console.log("Available MIDI Outputs:", out);
+      return out;
     } catch (err) {
-      console.error("Failed to get MIDI access:", err);
+      console.error("Failed to list MIDI ports:", err);
+      return out;
+    }
+  }
+
+  public async open(id: string) {
+    try {
+      console.log(this.outputs);
+      //console.log("ASD", access);
+      //let out: MIDIOutput = access.outputs.get(id);
+      //console.log("what", out);
+      //await out.open();
+    } catch (error) {
+      console.error(`Failed to open MIDI output ${id}:`, error);
+      return null;
+    }
+  }
+
+  public closeAll() {
+    const access = get(this._internal);
+    if (access) {
+      access.outputs.forEach((output) => {
+        try {
+          output.close();
+        } catch (err) {
+          console.warn("Failed to close MIDI output:", err);
+        }
+      });
+      this._internal.set(undefined);
+      console.log("All MIDI ports closed.");
     }
   }
 
   get outputs() {
-    return get(this._internal).outputs;
+    return get(this._internal)?.outputs ?? new Map();
   }
 
   public sendMessage(out: MIDIOutput, message: MIDIMessage) {
