@@ -35,35 +35,32 @@ export class GridMIDIManager implements Writable<MIDIAccess | undefined> {
   }
 
   async init(): Promise<MIDIOutput[]> {
+    this.closeAll();
     const out: MIDIOutput[] = [];
     try {
       const access = await navigator.requestMIDIAccess({ sysex: false });
       access.outputs.forEach((e) => {
-        //e.close();
         out.push(e);
       });
 
       this.set(access);
-      console.log(get(this._internal));
-
-      console.log("Available MIDI Outputs:", out);
       return out;
     } catch (err) {
-      console.error("Failed to list MIDI ports:", err);
+      console.warn("Failed to list MIDI ports:", err);
       return out;
     }
   }
 
   public async open(id: string) {
     try {
-      console.log(this.outputs);
-      //console.log("ASD", access);
-      //let out: MIDIOutput = access.outputs.get(id);
-      //console.log("what", out);
-      //await out.open();
+      let out: MIDIOutput[] = await this.init();
+      const port = out.find((e) => e.id === id);
+      await port.open();
+      console.log(id, "MIDI port is open");
+      return true;
     } catch (error) {
-      console.error(`Failed to open MIDI output ${id}:`, error);
-      return null;
+      console.warn(`Failed to open MIDI output ${id}:`, error);
+      return false;
     }
   }
 
@@ -83,7 +80,16 @@ export class GridMIDIManager implements Writable<MIDIAccess | undefined> {
   }
 
   get outputs() {
-    return get(this._internal)?.outputs ?? new Map();
+    return get(this._internal)?.outputs ?? (new Map() as MIDIOutputMap);
+  }
+
+  public getPort(id: string): MIDIOutput | undefined {
+    for (const value of this.outputs.values()) {
+      if (value.id === id) {
+        return value;
+      }
+    }
+    return undefined;
   }
 
   public sendMessage(out: MIDIOutput, message: MIDIMessage) {
