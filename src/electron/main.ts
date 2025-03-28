@@ -37,7 +37,7 @@ import { developerWebsocket } from "./developer_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
-import { updater, restartAfterUpdate } from "./src/updater";
+import { updater, restartAfterUpdate, forceQuitForUpdate } from "./src/updater";
 import {
   libraryDownload,
   uxpPhotoshopDownload,
@@ -311,8 +311,7 @@ function createWindow() {
     } else {
       evt.preventDefault();
       // only hide, keep in the background
-      const keepRunning = store.get("alwaysRunInTheBackground");
-      if (keepRunning === true) {
+      if (store.get("alwaysRunInTheBackground") && !forceQuitForUpdate) {
         mainWindow.hide();
       } else {
         app.quit();

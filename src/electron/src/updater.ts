@@ -17,6 +17,8 @@ export const updater: Updater = {
   setNightlyAllowed: setNightlyAllowed,
 };
 
+export let forceQuitForUpdate = false;
+
 function init(nightlyAllowed: boolean) {
   autoUpdater.logger = log;
   autoUpdater.autoDownload = false;
@@ -93,7 +95,6 @@ autoUpdater.on("update-downloaded", (info) => {
 
 export function restartAfterUpdate() {
   updater.mainWindow.setClosable(true);
-  // temporary solution, so we can quit the app for reinstall
-  store.set("alwaysRunInTheBackground", false);
+  forceQuitForUpdate = true;
   autoUpdater.quitAndInstall();
 }
