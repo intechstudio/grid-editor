@@ -175,7 +175,7 @@ if (!gotTheLock) {
           mainWindow.restore();
           mainWindow.focus();
         }
-        handleDeeplinkReturnData(commandLine.toString());
+        handleDeeplinkReturnData(commandLine.pop().toString());
       }
     },
   );
