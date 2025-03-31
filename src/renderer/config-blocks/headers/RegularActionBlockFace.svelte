@@ -1,8 +1,7 @@
 <script lang="ts">
   import { appSettings } from "./../../runtime/app-helper.store";
-  import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
+  import { SvgIcon, MoltenInput } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
   import { GridAction } from "../../runtime/runtime";
 
@@ -39,10 +38,11 @@
   });
 
   function handleNameChange(e) {
-    const { script } = e.detail;
-    name = script;
-    isEdit = false;
+    const { value } = e.detail;
+    name = value;
+    //isEdit = false;
     nameChange = true;
+    console.log(name)
     sendData(name);
   }
 
@@ -60,6 +60,8 @@
   let name: string;
   let isEdit = false;
   let nameChange = false;
+
+  $: console.log(isEdit)
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
@@ -72,11 +74,11 @@
 >
   {#if isEdit}
     <div
-      class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
+      class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full pointer-events-auto"
       on:click|stopPropagation
     >
-      <LineEditor
-        value={name}
+      <MoltenInput
+        target={name}
         on:input={handleNameChange}
         on:change={() => dispatch("sync")}
         availableCharacters={$config.parent.getAvailableChars()}
