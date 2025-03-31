@@ -42,7 +42,7 @@
     name = value;
     //isEdit = false;
     nameChange = true;
-    console.log(name)
+    console.log(name);
     sendData(name);
   }
 
@@ -61,7 +61,7 @@
   let isEdit = false;
   let nameChange = false;
 
-  $: console.log(isEdit)
+  $: console.log(isEdit);
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
