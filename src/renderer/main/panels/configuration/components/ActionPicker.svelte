@@ -406,7 +406,7 @@
                   {#each option.components as component}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    <div
+                    <button
                       style="--action-color: {component.information.color};"
                       on:click={() => handleAddAction({ component })}
                       class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
@@ -423,7 +423,7 @@
                           {component.information.menuName}
                         {/if}
                       </div>
-                    </div>
+                    </button>
                   {/each}
                 </div>
               {/each}
