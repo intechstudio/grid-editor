@@ -22,7 +22,7 @@
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { modal } from "../../modals/modal.store";
-  import UserLogin from "../../modals/UserLogin.svelte";
+  import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
@@ -135,7 +135,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    modal.show({ component: UserLogin });
+    modal.show({ component: UserAuthenticationModal });
   }
 
   async function handleCreateCloudConfigLink(event) {
