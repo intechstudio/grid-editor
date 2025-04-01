@@ -1,5 +1,6 @@
 import convert from "color-convert";
 import { grid } from "@intechstudio/grid-protocol";
+import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -295,5 +296,18 @@ export namespace Grid {
     export const scriptEnd = " ?>";
     export const maxScriptLength =
       grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
+  }
+
+  //TODO: Move it to ui-kit?
+  export namespace Types {
+    export type MeltComboData = {
+      value: string;
+      suggestions: MeltComboSuggestion[];
+      title?: string;
+      validator: {
+        value: boolean;
+        func?: (e: string) => boolean;
+      };
+    };
   }
 }
