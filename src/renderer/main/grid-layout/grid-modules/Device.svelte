@@ -439,10 +439,8 @@
 <style global>
   .activator-button {
     text-align: left;
-  }
-
-  .configpanel.activator-button {
     border: 1px solid rgba(0, 0, 0, 0);
+    outline: 0px solid rgba(0, 0, 0, 0);
   }
 
   .configpanel.activator-button:focus-within {
