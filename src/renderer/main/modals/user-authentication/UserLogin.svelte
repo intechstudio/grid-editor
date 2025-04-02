@@ -15,6 +15,8 @@
   let password = "";
   let loginError = "";
 
+  let passwordField;
+
   function submitLogin() {
     authStore.login(email, password).catch((e) => {
       if (e instanceof LoginError) {
@@ -71,6 +73,12 @@
       on:input={() => {
         loginError = "";
       }}
+      on:keyup={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          passwordField.focus();
+        }
+      }}
       class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
@@ -78,12 +86,19 @@
   <div class="w-full grid text-white">
     <label class="pb-1 block font-light" for="password">password</label>
     <input
+      bind:this={passwordField}
       id="password"
       type="password"
       placeholder="********"
       bind:value={password}
       on:input={() => {
         loginError = "";
+      }}
+      on:keyup={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitLogin();
+        }
       }}
       class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
