@@ -17,6 +17,9 @@
   let repassword = "";
   let signUpError = "";
 
+  let passwordField;
+  let repasswordField;
+
   function validateEmail(email) {
     return String(email)
       .toLowerCase()
@@ -84,6 +87,12 @@
       on:input={() => {
         signUpError = "";
       }}
+      on:keyup={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          passwordField.focus();
+        }
+      }}
       class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
@@ -94,9 +103,16 @@
       id="password"
       type="password"
       placeholder="********"
+      bind:this={passwordField}
       bind:value={password}
       on:input={() => {
         signUpError = "";
+      }}
+      on:keyup={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          repasswordField.focus();
+        }
       }}
       class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
@@ -108,9 +124,16 @@
       id="repassword"
       type="password"
       placeholder="********"
+      bind:this={repasswordField}
       bind:value={repassword}
       on:input={() => {
         signUpError = "";
+      }}
+      on:keyup={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitSignup();
+        }
       }}
       class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />

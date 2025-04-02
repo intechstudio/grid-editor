@@ -43,6 +43,12 @@
         bind:value={email}
         id="email"
         on:input={(emailError = "")}
+        on:keyup={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            forgottenPassword();
+          }
+        }}
         class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
       />
     </div>
