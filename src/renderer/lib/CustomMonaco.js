@@ -328,14 +328,17 @@ function initialize_autocomplete() {
             elementtype === undefined)
         ) {
           proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
-          proposalItem.insertText = `${proposalItem.label}()`;
+          proposalItem.insertText = `${value}()`;
         } else if (elementtype === "system" || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
             proposalItem.label = isInsideSelfOrElement
               ? value
               : `element[0]:${value}`;
-            proposalItem.insertText = `${proposalItem.label}()`;
+            proposalItem.insertText = `${value}()`;
           }
+        } else {
+          proposalItem.label = value;
+          proposalItem.insertText = `${value}()`;
         }
 
         proposalList.push(proposalItem);
