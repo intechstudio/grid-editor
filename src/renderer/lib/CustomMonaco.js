@@ -324,13 +324,12 @@ function initialize_autocomplete() {
 
         if (
           keyPrefix &&
-          (elementtype === elementTypeMapping[keyPrefix] ||
-            elementtype === undefined)
+          (elementtype === elementTypeMapping[keyPrefix] || !elementtype)
         ) {
           const prefixValue = isInsideSelfOrElement ? value : `self:${value}`;
           proposalItem.label = prefixValue;
           proposalItem.insertText = `${prefixValue}()`;
-        } else if (elementtype === "system" || !elementtype) {
+        } else if ((keyPrefix && elementtype === "system") || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
             const prefixValue = isInsideSelfOrElement
               ? value
