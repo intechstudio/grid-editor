@@ -327,16 +327,18 @@ function initialize_autocomplete() {
           (elementtype === elementTypeMapping[keyPrefix] ||
             elementtype === undefined)
         ) {
-          proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
-          proposalItem.insertText = `${value}()`;
+          const prefixValue = isInsideSelfOrElement ? value : `self:${value}`;
+          proposalItem.label = prefixValue;
+          proposalItem.insertText = `${prefixValue}()`;
         } else if (elementtype === "system" || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
-            proposalItem.label = isInsideSelfOrElement
+            const prefixValue = isInsideSelfOrElement
               ? value
               : `element[0]:${value}`;
-            proposalItem.insertText = `${value}()`;
+            proposalItem.label = prefixValue;
+            proposalItem.insertText = `${prefixValue}()`;
           }
-        } else {
+        } else if (!keyPrefix) {
           proposalItem.label = value;
           proposalItem.insertText = `${value}()`;
         }
