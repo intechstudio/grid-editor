@@ -41,11 +41,10 @@
   style="background-color:{config.information.color}"
 >
   <div
-    class="flex flex-row flex-grow items-center gap-2 py-1 pointer-events-auto text-white"
+    class="flex flex-row flex-grow items-center gap-2 py-2 pointer-events-auto text-white"
   >
     <span>Repeat</span>
     <MeltCombo
-      title=" "
       bind:value={$data.variable.value}
       suggestions={$data.variable.suggestions}
       validator={$data.variable.validator.func}
@@ -57,6 +56,7 @@
       on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
+      valueInfoEnabled={false}
     />
     <span>for</span>
     <MoltenInput
@@ -65,6 +65,6 @@
       on:change={() => dispatch("sync")}
       availableCharacters={$event.getAvailableChars()}
     />
-    <span>times</span>
+    <span class="mr-10">times</span>
   </div>
 </container>
