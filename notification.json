@@ -9,12 +9,12 @@
     "version": "1.3.8"
   },
   {
-    "type": "notification",
+    "type": "notificationBAK",
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
-    "link": "https://www.kickstarter.com/projects/intechstudio/vsn1-the-visionary-controlling-tool?utm_source=editor&utm_medium=text-banner&utm_campaign=ks",
-    "message": "Our Kickstarter ends soon! Check it out if you are interested and become a backer!"
+    "link": "https://github.com/intechstudio/grid-editor/releases/tag/v1.2.39",
+    "message": "Editor is now available with apple silicon builds. Auto updates may not work without downloading manually first!"
   },
   {
     "type": "notificationBAK",
