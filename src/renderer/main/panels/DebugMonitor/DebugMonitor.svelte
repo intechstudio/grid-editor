@@ -16,7 +16,6 @@
   } from "./DebugMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
-  import { grid } from "@intechstudio/grid-protocol";
   import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
@@ -24,7 +23,6 @@
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
-  import MidiTester from "../MidiMonitor/MidiTester.svelte";
 
   let event: GridEvent;
 
@@ -203,10 +201,6 @@
       }}
       text="Immediate"
     />
-  </div>
-
-  <div class="my-4">
-    <MidiTester />
   </div>
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">

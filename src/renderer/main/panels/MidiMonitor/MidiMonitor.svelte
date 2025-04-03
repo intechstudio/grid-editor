@@ -14,11 +14,11 @@
     MidiMonitorItem,
     SysExMonitorItem,
   } from "./MidiMonitor.store";
-  import { grid } from "@intechstudio/grid-protocol";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
+  import MidiTester from "./MidiTester.svelte";
 
   let event: GridEvent;
 
@@ -358,9 +358,12 @@
       pushOtherPanes={false}
       class="h-full w-full"
     >
-      <Pane size={50}>
+      <Pane size={debug ? 70 : 50}>
         <div class="flex flex-col overflow-hidden h-full">
           {#if debug}
+            <div class="m-4">
+              <MidiTester />
+            </div>
             <div class="flex w-full font-medium text-white pb-2 pt-8">
               MIDI Messages (RAW)
             </div>
@@ -463,7 +466,7 @@
           {/if}
         </div>
       </Pane>
-      <Pane size={50}>
+      <Pane size={debug ? 30 : 50}>
         <div class="flex flex-col h-full w-full">
           {#if debug}
             <div
