@@ -37,13 +37,16 @@
         : config.information.displayName;
   });
 
-  function handleNameChange(e) {
+  function handleNameInput(e: any) {
     const { value } = e.detail;
     name = value;
-    //isEdit = false;
-    nameChange = true;
-    console.log(name);
     sendData(name);
+  }
+
+  function handleNameChange(e) {
+    isEdit = false;
+    nameChange = true;
+    dispatch("sync");
   }
 
   function handleKeyDown(e) {
@@ -60,44 +63,44 @@
   let name: string;
   let isEdit = false;
   let nameChange = false;
-
-  $: console.log(isEdit);
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary"
+<button
+  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary overflow-hidden"
   on:click={handleClick}
 >
   {#if isEdit}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full pointer-events-auto"
       on:click|stopPropagation
     >
       <MoltenInput
         target={name}
-        on:input={handleNameChange}
-        on:change={() => dispatch("sync")}
+        on:input={handleNameInput}
+        on:change={handleNameChange}
         availableCharacters={$config.parent.getAvailableChars()}
       />
     </div>
   {:else}
-    <span class="truncate"
-      >{typeof $config?.name === "undefined"
-        ? config.information.displayName
-        : $config.name}</span
-    >
+    <div class="w-0 flex-grow min-w-0 items-start text-left">
+      <span class="truncate block">
+        {typeof $config?.name === "undefined"
+          ? config.information.displayName
+          : $config.name}
+      </span>
+    </div>
   {/if}
 
   {#if $appSettings.persistent.editableBlockNames}
     <button
       on:click|stopPropagation={handleEditClicked}
-      class="cursor-pointer pointer-events-auto"
+      class="cursor-pointer pointer-events-auto hover:bg-black/25 flex w-fit h-fit p-1.5 rounded"
     >
       <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
     </button>
   {/if}
-</div>
+</button>
