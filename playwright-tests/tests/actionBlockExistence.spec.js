@@ -95,6 +95,7 @@ test.describe("Elements Existence", () => {
               const element =
                 configPage.blocks[category][blockName]["elements"][elementName];
               await expect(element).toBeVisible({ timeout: 5000 });
+              await expect(modulePage.storeButton).toBeEnabled();
             });
           }
         });
@@ -190,4 +191,5 @@ test("should find Else If Actions", async () => {
     configPage.blocks[category][ElseIf]["elements"]["input"];
   await expect(elementElse).toBeVisible({ timeout: 5000 });
   await expect(elementElseIf).toBeVisible({ timeout: 5000 });
+  await expect(modulePage.storeButton).toBeEnabled();
 });
