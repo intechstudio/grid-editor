@@ -77,13 +77,8 @@
   },
   "loop": {
     "Repeater Loop": [
-      "input",
-      "times",
-      "end",
-      "Variable",
-      "Initial",
-      "End",
-      "Increment"
+      "variable",
+      "times"
     ]
   },
   "specialEncoder": {

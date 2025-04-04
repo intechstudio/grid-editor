@@ -232,13 +232,8 @@ export const blocks = (page) => ({
     "Repeater Loop": {
       block: page.getByText("Repeater Loop"),
       elements: {
-        input: page.locator("div").filter({ hasText: /^10$/ }).nth(3),
-        times: page.locator("#cfg-0").getByRole("checkbox"),
-        end: page.locator("#cfg-1"),
-        Variable: page.getByLabel("Variable"),
-        Initial: page.getByLabel("Initial"),
-        End: page.getByLabel("End"),
-        Increment: page.getByLabel("Increment"),
+        variable: page.locator("#cfg-0").getByRole("button"),
+        times: page.locator("#cfg-0").getByRole("textbox"),
       },
     },
   },
