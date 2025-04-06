@@ -180,10 +180,6 @@
     });
   }
 
-  onMount(() => {
-    updateSuggestions();
-  });
-
   function updateColor(e: any) {
     const color: Grid.RGB = e.detail.color.toRGB();
     scriptSegments[2] = color.r;
