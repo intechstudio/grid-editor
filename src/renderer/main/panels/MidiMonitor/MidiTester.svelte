@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import { GridMIDIManager } from "../../../serialport/midi-port";
 
-  import { get, Unsubscriber, writable } from "svelte/store";
+  import { get, Unsubscriber, Writable, writable } from "svelte/store";
   import {
-    MeltCombo,
     MeltSelect,
     MeltSlider,
     MeltRadio,
@@ -20,14 +19,20 @@
   let selected = defaultOption.value;
   let disabled = true;
 
-  let channel = 0;
-  let command = 144;
-  let param1 = 60;
-  let param2 = writable(127);
+  let channel = "0";
+  let command = "144";
+  let param1 = "60";
+  let param2 = writable("127");
   let unsubParam2: Unsubscriber;
   let interval = 250;
 
-  let mode = writable(0);
+  enum TortureMode {
+    DISABLED,
+    MANUAL,
+    AUTO,
+    INTERVAL,
+  }
+  let mode: Writable<TortureMode> = writable(TortureMode.DISABLED);
 
   onDestroy(() => {
     clearInterval(pingInterval);
@@ -59,10 +64,10 @@
     if (manager === undefined) console.error("PROBLEM");
     const out = manager.outputs.get(selected);
     manager.sendMessage(out, {
-      ch: channel,
-      cmd: command,
-      p1: param1,
-      p2: get(param2),
+      ch: Number(channel),
+      cmd: Number(command),
+      p1: Number(param1),
+      p2: Number(get(param2)),
     });
   }
 
@@ -70,7 +75,7 @@
 
   $: handleModeChange($mode);
 
-  function handleModeChange(value: number) {
+  function handleModeChange(value: TortureMode) {
     const port = manager.getPort(selected);
     if (port === undefined) {
       manager.init().then(() =>
@@ -90,14 +95,14 @@
       return;
     }
 
-    if (value === 0) {
+    if (value === TortureMode.DISABLED) {
       manager.closeAll();
       stopMIDIPing();
     }
 
-    value === 3 ? startMIDIPing() : stopMIDIPing();
+    value === TortureMode.INTERVAL ? startMIDIPing() : stopMIDIPing();
 
-    if (value === 2) {
+    if (value === TortureMode.AUTO) {
       unsubParam2 = param2.subscribe(handleParam2Change);
     } else {
       unsubParam2?.();
@@ -109,9 +114,10 @@
   }
 
   function startMIDIPing() {
-    if (interval > 0) {
-      pingInterval = setInterval(() => {
+    if (interval > 0 && get(mode) === TortureMode.INTERVAL) {
+      pingInterval = setTimeout(() => {
         sendMIDIMessage();
+        startMIDIPing();
       }, interval);
     }
   }
