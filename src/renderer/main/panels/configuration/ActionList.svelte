@@ -148,8 +148,11 @@
       </div>
       <Options
         testid="select_all"
-        selected={$event?.config.every((e) => $selected_actions.includes(e))}
-        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
+        selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
+          false}
+        halfSelected={$event?.config.some((e) =>
+          $selected_actions.includes(e),
+        ) ?? false}
         disabled={($event?.config?.length ?? 0) === 0}
         on:select={handleSelectAll}
       />
