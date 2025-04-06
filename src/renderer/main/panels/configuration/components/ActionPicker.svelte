@@ -352,20 +352,7 @@
     );
     filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
   }
-
-  function handleKeydown(e) {
-    if (e.code !== "Enter") {
-      return;
-    }
-    const component = filteredOptions[0]?.components[0];
-    if (typeof component === "undefined") {
-      return;
-    }
-    handleAddAction({ component });
-  }
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <container style="z-index: 666;">
   <Popover isOpen={true} {referenceElement} placement={"left"}>
