@@ -91,6 +91,10 @@
   }
 
   function handleSelectAll() {
+    if (!event) {
+      return;
+    }
+
     const selected = get(selected_actions);
     if (event.config.every((e) => selected.includes(e))) {
       selected_actions.set([]);
@@ -146,7 +150,7 @@
         testid="select_all"
         selected={$event?.config.every((e) => $selected_actions.includes(e))}
         halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
-        disabled={$event?.config.length === 0}
+        disabled={$event?.config.length ?? 0 === 0}
         on:select={handleSelectAll}
       />
     </div>
