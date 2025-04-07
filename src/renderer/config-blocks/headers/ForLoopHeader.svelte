@@ -137,11 +137,12 @@
               {#each data as obj, i}
                 <MeltCombo
                   title={obj.label}
-                  bind:value={obj.value}
+                  value={obj.value}
                   suggestions={obj.suggestions}
                   validator={obj.validator.func}
                   on:input={(e) => {
                     const { value, validationError } = e.detail;
+                    obj.value = value;
                     obj.validator.value = !validationError;
                   }}
                   on:change={(e) => handleInputFieldChange(e, i)}

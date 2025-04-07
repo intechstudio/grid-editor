@@ -148,10 +148,11 @@
     title={"Source"}
     {suggestions}
     placeholder={"Incoming value to match"}
-    bind:value={lookupTable.source}
+    value={lookupTable.source}
     validator={validators[0].func}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      lookupTable.source = value;
       validators[0].value = !validationError;
       dispatch("validation", { value: validationError });
       sendData();
@@ -227,9 +228,10 @@
     title={"Destination"}
     placeholder={"Variable name to load the lookup result"}
     {suggestions}
-    bind:value={lookupTable.destination}
+    value={lookupTable.destination}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      lookupTable.destination = value;
       validators[1].value = !validationError;
       dispatch("validation", { value: validationError });
       sendData();

@@ -72,9 +72,10 @@
 <element-name class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Element Name"}
-    bind:value={scriptValue}
+    value={scriptValue}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      scriptValue = value;
       validator.value = !validationError;
       dispatch("validation", { value: validationError });
       sendData(value);

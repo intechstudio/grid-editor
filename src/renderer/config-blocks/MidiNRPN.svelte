@@ -244,11 +244,12 @@
 
   <MeltCombo
     title={"Channel"}
-    bind:value={channel}
+    value={channel}
     suggestions={suggestions[0]}
     validator={validators[0].func}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      channel = value;
       validators[0].value = !validationError;
       sendData();
     }}
@@ -261,11 +262,12 @@
     <div class="flex flex-col">
       <MeltCombo
         title={"MSB"}
-        bind:value={msb}
+        value={msb}
         suggestions={suggestions[1]}
         validator={validators[1].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          msb = value;
           validators[1].value = !validationError;
           nrpnCC = calculateNRPNCC(msb, lsb);
           sendData();
@@ -277,11 +279,12 @@
 
       <MeltCombo
         title={"LSB"}
-        bind:value={lsb}
+        value={lsb}
         suggestions={suggestions[2]}
         validator={validators[2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          lsb = value;
           validators[2].value = !validationError;
           nrpnCC = calculateNRPNCC(msb, lsb);
           sendData();
@@ -318,11 +321,12 @@
 
     <MeltCombo
       title={"NRPN CC"}
-      bind:value={nrpnCC}
+      value={nrpnCC}
       suggestions={suggestions[1]}
       validator={validators[3].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        nrpnCC = value;
         validators[3].value = !validationError;
         dispatch("validation", { value: validationError });
         msb = `(${value})//128`;

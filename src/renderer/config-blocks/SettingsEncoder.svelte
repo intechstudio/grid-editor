@@ -181,11 +181,12 @@
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     <MeltCombo
       title={"Encoder Mode"}
-      bind:value={emo}
+      value={emo}
       suggestions={suggestions[0]}
       validator={validators[0].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        emo = value;
         validators[0].value = !validationError;
       }}
       on:change={syncWithGrid}
@@ -195,11 +196,12 @@
 
     <MeltCombo
       title={"Encoder Velocity"}
-      bind:value={ev0}
+      value={ev0}
       suggestions={suggestions[1]}
       validator={validators[1].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        ev0 = value;
         validators[1].value = !validationError;
       }}
       on:change={syncWithGrid}
@@ -215,10 +217,11 @@
       <MeltCombo
         title={"Min"}
         disabled={!minMaxEnabled}
-        bind:value={emi}
+        value={emi}
         validator={validators[2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          emi = value;
           validators[2].value = !validationError;
         }}
         on:change={syncWithGrid}
@@ -229,10 +232,11 @@
       <MeltCombo
         title={"Max"}
         disabled={!minMaxEnabled}
-        bind:value={ema}
+        value={ema}
         validator={validators[3].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          ema = value;
           validators[3].value = !validationError;
         }}
         on:change={syncWithGrid}
@@ -248,10 +252,11 @@
     <MeltCombo
       title={"Sensitivity"}
       disabled={!sensitivityEnabled}
-      bind:value={ese}
+      value={ese}
       validator={validators[4].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        ese = value;
         validators[4].value = !validationError;
       }}
       on:change={syncWithGrid}

@@ -153,11 +153,12 @@
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <MeltCombo
     title={"Button Mode"}
-    bind:value={bmo}
+    value={bmo}
     suggestions={suggestions[0]}
     validator={validators[0].func}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      bmo = value;
       validators[0].value = !validationError;
     }}
     on:change={syncWithGrid}
@@ -171,10 +172,11 @@
       <MeltCombo
         title={"Min"}
         disabled={!minMaxEnabled}
-        bind:value={bmi}
+        value={bmi}
         validator={validators[1].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          bmi = value;
           validators[1].value = !validationError;
         }}
         on:change={syncWithGrid}
@@ -185,10 +187,11 @@
       <MeltCombo
         title={"Max"}
         disabled={!minMaxEnabled}
-        bind:value={bma}
+        value={bma}
         validator={validators[2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          bma = value;
           validators[2].value = !validationError;
         }}
         on:change={syncWithGrid}
