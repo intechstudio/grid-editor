@@ -121,7 +121,12 @@
         break;
       }
       case "change-page": {
-        get(runtime_manager).active.runtime.change_page(data.num);
+        get(runtime_manager)
+          .active.runtime.change_page(data.num)
+          .catch((e) => {
+            //Silently handle exception if operation is not available
+            console.error(e);
+          });
         break;
       }
       case "persist-github-package": {
