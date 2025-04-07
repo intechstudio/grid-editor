@@ -36,6 +36,8 @@ export async function findBootloaderPath() {
   if (gridDrives.length === 0) return;
 
   for (const gridDrive of gridDrives) {
+    if (gridDrive.mountpoints.length == 0) continue;
+
     let mountPath = gridDrive.mountpoints[0].path;
     let data: string;
     try {
