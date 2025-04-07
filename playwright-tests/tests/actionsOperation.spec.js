@@ -44,6 +44,18 @@ test.describe("Action Block Operations", () => {
     await expect(page.locator("#cfg-1")).toBeVisible(); //last action block is comment visible
   });
 
+  test("Paste by button in 'Add Action Block'", async () => {
+    const expectedComment = "action operation";
+    await configPage.removeAllActions();
+    await configPage.addCommentBlock(expectedComment);
+    await configPage.selectAllActions();
+    await configPage.copyAction();
+    await configPage.selectElementEvent("Timer");
+    await configPage.removeAllActions();
+    await configPage.pasteActionInAddActionMenu();
+    expect(await configPage.getTextFromComment()).toBe(expectedComment);
+  });
+
   test("Cut and Paste", async () => {
     const expectedComment = "action operation";
     await configPage.removeAllActions();

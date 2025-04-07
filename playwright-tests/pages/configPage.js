@@ -10,6 +10,9 @@ export class ConfigPage {
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
     this.addActionBlockButton = page.getByText("Add action block...");
+    this.addActionMenuPasteButton = page
+      .locator("#action-menu")
+      .getByRole("button", { name: "Paste" });
     this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
 
@@ -192,6 +195,11 @@ export class ConfigPage {
 
   async pasteAction() {
     await this.actionButtons.paste.click();
+  }
+
+  async pasteActionInAddActionMenu() {
+    await this.addActionBlockButton.click();
+    await this.addActionMenuPasteButton.click();
   }
 
   async cutAction() {
