@@ -352,6 +352,19 @@
     );
     filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
   }
+
+  function handleSearchBarKeyDown(e: CustomEvent<any>) {
+    const { key } = e.detail as KeyboardEvent;
+    if (key !== "Enter") {
+      return;
+    }
+
+    const component = filteredOptions[0]?.components[0];
+    if (typeof component === "undefined") {
+      return;
+    }
+    handleAddAction({ component });
+  }
 </script>
 
 <container style="z-index: 666;">
@@ -379,7 +392,11 @@
                 <SvgIcon width={10} height={10} iconPath={"close"} />
               </button>
             </div>
-            <MoltenInput bind:this={searchBar} bind:target={searchValue} />
+            <MoltenInput
+              bind:this={searchBar}
+              bind:target={searchValue}
+              on:keydown={handleSearchBarKeyDown}
+            />
           </div>
 
           <div class="flex flex-col w-full h-full overflow-y-auto">
