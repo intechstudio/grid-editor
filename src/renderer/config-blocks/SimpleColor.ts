@@ -78,28 +78,7 @@ export namespace SimpleColor {
   }
 
   function getLayerSuggestions(element: GridElement) {
-    switch (element.type) {
-      case ElementType.BUTTON:
-        return [
-          { value: "1", info: "Button layer" },
-          { value: "2", info: "Unused layer" },
-        ];
-      case ElementType.ENCODER:
-        return [
-          { value: "1", info: "Button layer" },
-          { value: "2", info: "Rotation layer" },
-        ];
-      case ElementType.FADER:
-        return [
-          { value: "1", info: "Fader layer" },
-          { value: "2", info: "Unused layer" },
-        ];
-      case ElementType.POTMETER:
-        return [
-          { value: "1", info: "Potmeter layer" },
-          { value: "2", info: "Unused layer" },
-        ];
-    }
+    return Grid.Protocol.getLayerSuggestions(element.type);
   }
 
   function getRGBASuggestions(action: GridAction) {

@@ -173,46 +173,12 @@
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
         const target = event.parent as GridElement;
-        switch (target.type) {
-          case ElementType.BUTTON:
-            return [
-              { value: "1", info: "Button layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          case ElementType.ENDLESS:
-          case ElementType.ENCODER:
-            return [
-              { value: "1", info: "Button layer" },
-              { value: "2", info: "Rotation layer" },
-            ];
-          case ElementType.FADER:
-            return [
-              { value: "1", info: "Fader layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-
-          case ElementType.POTMETER:
-            return [
-              { value: "1", info: "Potmeter layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          default: {
-            const defaultLayerSuggestion = [
-              { value: "1", info: "Layer 1" },
-              { value: "2", info: "Layer 2" },
-            ];
-            return defaultLayerSuggestion;
-          }
-        }
+        return Grid.Protocol.getLayerSuggestions(target.type);
       } else {
         return [...localDefinitions, ...s];
       }
     });
   }
-
-  onMount(() => {
-    updateSuggestions();
-  });
 
   function updateColor(e: any) {
     const color: Grid.RGB = e.detail.color.toRGB();

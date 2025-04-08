@@ -1,6 +1,6 @@
 import convert from "color-convert";
-import { grid } from "@intechstudio/grid-protocol";
 import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
+import { ElementType, grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -296,6 +296,40 @@ export namespace Grid {
     export const scriptEnd = " ?>";
     export const maxScriptLength =
       grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
+
+    export function getLayerSuggestions(type: ElementType) {
+      switch (type) {
+        case ElementType.BUTTON:
+          return [
+            { value: "1", info: "Button layer" },
+            { value: "2", info: "Unused layer" },
+          ];
+        case ElementType.ENDLESS:
+        case ElementType.ENCODER:
+          return [
+            { value: "1", info: "Button layer" },
+            { value: "2", info: "Rotation layer" },
+          ];
+        case ElementType.FADER:
+          return [
+            { value: "1", info: "Fader layer" },
+            { value: "2", info: "Unused layer" },
+          ];
+
+        case ElementType.POTMETER:
+          return [
+            { value: "1", info: "Potmeter layer" },
+            { value: "2", info: "Unused layer" },
+          ];
+        default: {
+          const defaultLayerSuggestion = [
+            { value: "1", info: "Layer 1" },
+            { value: "2", info: "Layer 2" },
+          ];
+          return defaultLayerSuggestion;
+        }
+      }
+    }
   }
 
   //TODO: Move it to ui-kit?
