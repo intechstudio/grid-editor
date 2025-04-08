@@ -275,7 +275,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
           break;
         }
         default: {
-          reject("This operation is not implemented ye in virtual mode!");
+          reject("This operation is not implemented yet in virtual mode!");
         }
       }
     });

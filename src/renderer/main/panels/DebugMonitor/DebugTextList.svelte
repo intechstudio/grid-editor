@@ -1,0 +1,18 @@
+<script lang="ts">
+  import { debug_monitor_store } from "./DebugMonitor.store";
+  import { scrollToBottom } from "../../_actions/scroll.move";
+</script>
+
+<container
+  class="flex flex-col overflow-hidden h-full w-full"
+  class:hidden={$debug_monitor_store.length === 0}
+>
+  <div
+    use:scrollToBottom={debug_monitor_store}
+    class="flex flex-col font-mono text-white bg-secondary p-2 flex-grow overflow-y-auto"
+  >
+    {#each $debug_monitor_store as message}
+      <span>{message}</span>
+    {/each}
+  </div>
+</container>

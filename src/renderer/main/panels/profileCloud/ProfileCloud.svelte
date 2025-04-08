@@ -22,7 +22,7 @@
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { modal } from "../../modals/modal.store";
-  import UserLogin from "../../modals/UserLogin.svelte";
+  import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
@@ -135,7 +135,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    modal.show({ component: UserLogin });
+    modal.show({ component: UserAuthenticationModal });
   }
 
   async function handleCreateCloudConfigLink(event) {
@@ -200,6 +200,10 @@
       case "profile": {
         const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
         await page.load();
+        if (!page.isValid()) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+
         config.type = (page.parent as GridModule).type;
         config.configs = page.control_elements.map((element) => {
           return {
@@ -224,6 +228,10 @@
         );
         await element.load();
 
+        if (!element.isValid()) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+
         config.type = element.type;
         config.configs = {
           events: element.events.map((ev) => {
@@ -239,6 +247,9 @@
 
       case "snippet": {
         const selected = get(selected_actions);
+        if (selected.some((e) => !e.isValid())) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
         if (selected.length === 0) {
           logger.set({
             type: "fail",

@@ -121,7 +121,12 @@
         break;
       }
       case "change-page": {
-        get(runtime_manager).active.runtime.change_page(data.num);
+        get(runtime_manager)
+          .active.runtime.change_page(data.num)
+          .catch((e) => {
+            //Silently handle exception if operation is not available
+            console.error(e);
+          });
         break;
       }
       case "persist-github-package": {
@@ -287,23 +292,35 @@
 
   //Disable Context Menu
   onMount(async () => {
-    document.addEventListener("contextmenu", function (event) {
-      event.preventDefault();
-    });
+    document.addEventListener("contextmenu", preventContextMenuEvent);
+    document.addEventListener("keyup", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
-    document.removeEventListener("contextmenu", function (event) {
-      event.preventDefault();
-    });
+    document.removeEventListener("contextmenu", preventContextMenuEvent);
+    document.removeEventListener("keyup", handleEscapePress);
   });
+
+  function preventContextMenuEvent(e) {
+    e.preventDefault();
+  }
 
   $: handleDisableAnimationsChange(
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
+
+  function handleEscapePress(e) {
+    if (e.key === "Escape") {
+      if ($modal) {
+        modal.close();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  }
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}

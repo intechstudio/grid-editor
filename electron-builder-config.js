@@ -42,13 +42,13 @@ const config = {
         repo: "grid-editor",
       },
     ],
-    artifactName: "${name}-setup-${version}.${ext}",
+    artifactName: "${name}-windows-${version}-x64.${ext}",
     target: ["nsis"],
     icon: "build-assets/icon.png",
   },
   linux: {
     target: "AppImage",
-    artifactName: "${name}-setup-${version}.${ext}",
+    artifactName: "${name}-linux-${version}.${ext}",
   },
   mac: {
     target: [
@@ -57,7 +57,7 @@ const config = {
         arch: ["arm64", "x64"],
       },
     ],
-    artifactName: "${name}-setup-${version}-${arch}.${ext}",
+    artifactName: "${name}-macos-${version}-${arch}.${ext}",
     icon: "build-assets/icon_mac.png",
     hardenedRuntime: true,
     gatekeeperAssess: false,

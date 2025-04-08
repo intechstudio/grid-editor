@@ -19,6 +19,8 @@
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
+  import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
+  import { scrollToBottom } from "../../_actions/scroll.move";
 
   let event: GridEvent;
 
@@ -136,51 +138,6 @@
   $: {
     configScriptLength = $event?.toLua().length ?? 0;
   }
-
-  const createDebouncedStore = (initialValue, debounceTime) => {
-    let timeoutId;
-    const { subscribe, set } = writable(initialValue);
-
-    const debouncedSet = (value) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => set(value), debounceTime);
-    };
-
-    return {
-      subscribe,
-      set: debouncedSet,
-    };
-  };
-
-  const scrollToBottom = (node) => {
-    let isScrolling = false;
-
-    const scroll = () => {
-      if (
-        !isScrolling &&
-        node.scrollTop !== node.scrollHeight - node.offsetHeight
-      ) {
-        isScrolling = true;
-        requestAnimationFrame(() => {
-          node.scroll({
-            top: node.scrollHeight,
-            behavior: "smooth",
-          });
-
-          isScrolling = false;
-        });
-      }
-    };
-
-    const store = createDebouncedStore(null, 100);
-
-    const unsubscribe = store.subscribe(scroll);
-
-    return {
-      update: (value) => store.set(value),
-      destroy: () => unsubscribe(),
-    };
-  };
 
   //Defines
   let debug = false;
@@ -377,7 +334,7 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              use:scrollToBottom={$debug_stream}
+              use:scrollToBottom={debug_stream}
             >
               {#each $debug_stream as message}
                 <div
@@ -412,7 +369,7 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={$human_midi_store}
+              use:scrollToBottom={human_midi_store}
             >
               {#each $human_midi_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -448,8 +405,8 @@
         </div>
       </Pane>
       <Pane size={50}>
-        <div class="flex flex-col h-full w-full">
-          {#if debug}
+        {#if debug}
+          <div class="flex flex-col h-full w-full">
             <div
               class="text-white flex flex-row pb-2 pt-6 font-medium justify-between"
             >
@@ -468,20 +425,17 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
-              {#if $debug_monitor_store.length != 0}
-                {#each $debug_monitor_store as debug, i}
-                  <span class="font-mono text-white debugtexty">{debug}</span>
-                {/each}
-              {/if}
-            </div>
-          {:else}
+
+            <DebugTextList />
+          </div>
+        {:else}
+          <div class="flex flex-col h-full w-full">
             <div class="flex w-full text-white pb-2 pt-6">
               System Exclusive Messages
             </div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={$sysex_monitor_store}
+              use:scrollToBottom={sysex_monitor_store}
             >
               {#each $sysex_monitor_store as sysex}
                 <div
@@ -508,8 +462,8 @@
                 </div>
               {/each}
             </div>
-          {/if}
-        </div>
+          </div>
+        {/if}
       </Pane>
     </Splitpanes>
   </div>
