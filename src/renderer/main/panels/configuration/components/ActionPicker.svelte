@@ -364,10 +364,12 @@
     filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
   }
 
-  function handleKeydown(e) {
-    if (e.code !== "Enter") {
+  function handleSearchBarKeyDown(e: CustomEvent<any>) {
+    const { key } = e.detail as KeyboardEvent;
+    if (key !== "Enter") {
       return;
     }
+
     const component = filteredOptions[0]?.components[0];
     if (typeof component === "undefined") {
       return;
@@ -375,8 +377,6 @@
     handleAddAction({ component });
   }
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <container style="z-index: 666;">
   <Popover isOpen={true} {referenceElement} placement={"left"}>
@@ -403,7 +403,11 @@
                 <SvgIcon width={10} height={10} iconPath={"close"} />
               </button>
             </div>
-            <MoltenInput bind:this={searchBar} bind:target={searchValue} />
+            <MoltenInput
+              bind:this={searchBar}
+              bind:target={searchValue}
+              on:keydown={handleSearchBarKeyDown}
+            />
           </div>
 
           <div class="flex flex-col w-full h-full overflow-y-auto">
@@ -417,7 +421,7 @@
                   {#each option.components as component}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    <div
+                    <button
                       style="--action-color: {component.information.color};"
                       on:click={() => handleAddAction({ component })}
                       class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
@@ -434,7 +438,7 @@
                           {component.information.menuName}
                         {/if}
                       </div>
-                    </div>
+                    </button>
                   {/each}
                 </div>
               {/each}
