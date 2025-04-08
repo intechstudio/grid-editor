@@ -42,6 +42,13 @@
   let searchValue = "";
   let searchBar;
 
+  function handleEscapePress(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleClose();
+    }
+  }
+
   onMount(() => {
     referenceElement.addEventListener("click", handleReferenceElementClick);
     actionPickerTimestamp = Date.now();
@@ -49,6 +56,8 @@
     if (typeof focusSearchBar !== "undefined") {
       focusSearchBar();
     }
+
+    document.addEventListener("keyup", handleEscapePress);
   });
 
   // Clean up the event listener when the component is destroyed
@@ -62,6 +71,8 @@
       },
       mandatory: false,
     });
+
+    document.removeEventListener("keyup", handleEscapePress);
   });
 
   //////////////////////////////////////////////////////////////////////////////
