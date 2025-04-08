@@ -477,30 +477,24 @@ export async function dropActions(
     return Promise.reject(error);
   }
 
-  const remaining =
-    target.getAvailableChars() - actions.map((e) => e.toLua()).join("").length;
-  if (remaining < 0) {
-    const error = {
-      value: false,
-      text: Runtime.ErrorText.LENGTH_ERROR,
-      type: GridOperationType.INSERT_ACTIONS,
-      info: target.getInfo(),
-    };
-    handleError(error);
-    return Promise.reject(error);
-  }
-
-  for (const action of actions) {
-    const parent = action.parent as GridEvent;
-    parent.remove(action);
-  }
-
   if (targetActions.length > 0) {
     const movingDown = index > targetMaxIndex;
     index = movingDown ? index - targetIndexes.length : index;
   }
 
-  target.insert(index, ...actions).catch((e) => {
+  const removed: Array<{ index: number; action: GridAction }> = [];
+  for (const action of actions) {
+    const parent = action.parent as GridEvent;
+    removed.push(...(await parent.remove(action)).removed);
+  }
+
+  try {
+    await target.insert(index, ...actions);
+  } catch (e) {
+    for (const obj of removed) {
+      const parent = obj.action.parent as GridEvent;
+      parent.insert(obj.index, obj.action);
+    }
     handleError(e);
-  });
+  }
 }
