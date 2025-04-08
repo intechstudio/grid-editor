@@ -12,6 +12,7 @@ import {
   signInAnonymously,
   signInWithCredential,
   signInWithPopup,
+  createUserWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
@@ -103,6 +104,14 @@ const createAuth = () => {
     }
   }
 
+  async function signUpWithEmail(email, password) {
+    return await createUserWithEmailAndPassword(
+      getCurrentCentralAuth(),
+      email,
+      password,
+    );
+  }
+
   async function googleLoginPopup() {
     await signInWithPopup(
       getCurrentCentralAuth(),
@@ -165,6 +174,7 @@ const createAuth = () => {
     setCurrentAuthEnvironment,
     sendForgottenPasswordLink,
     googleLoginPopup,
+    signUpWithEmail,
   };
 };
 

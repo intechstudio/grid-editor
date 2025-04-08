@@ -56,7 +56,8 @@
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./validators";
-  import { GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import { Grid } from "../lib/_utils.js";
 
   export let config: GridAction;
 
@@ -159,19 +160,26 @@
 
   let suggestions = [];
 
-  $: {
+  $: if ($event) {
+    updateSuggestions();
+  }
+
+  function updateSuggestions() {
     const actions = $event.config;
     const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,
     });
-    suggestions = _suggestions.map((s) => [...s, ...localDefinitions]);
+    suggestions = _suggestions.map((s, i) => {
+      if (i === 1) {
+        const target = event.parent as GridElement;
+        return Grid.Protocol.getLayerSuggestions(target.type);
+      } else {
+        return [...localDefinitions, ...s];
+      }
+    });
   }
-
-  onMount(() => {
-    suggestions = _suggestions;
-  });
 </script>
 
 <config-led-phase class="flex flex-col w-full p-2 pointer-events-auto">

@@ -102,7 +102,6 @@
   $: if (!$config.invalid) {
     handleConfigChange($config);
   }
-  let hiResCheckboxValue = false;
 
   function handleConfigChange(config) {
     // Extract all contents
@@ -158,6 +157,7 @@
 
   function handleHighResValueChange(hiRes: boolean) {
     sendData();
+    dispatch("sync");
   }
 
   const channels = (length) => {
@@ -354,7 +354,7 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <MeltCheckbox bind:target={hiResCheckboxValue} title="14bit Resolution" />
+    <MeltCheckbox bind:target={hiRes} title="14bit Resolution" />
   </div>
 
   <SendFeedback

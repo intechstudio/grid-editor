@@ -94,31 +94,27 @@
     }
   }
 
-  $: sendData(pmo, pmi, pma);
-
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    sendData(pmo, pmi, pma);
+    sendData();
     syncWithGrid();
   }
 
   function syncWithGrid() {
-    // TODO: remove sendData from here and fix $: reactivity properly
-    sendData(pmo, pmi, pma);
     dispatch("sync");
   }
 
-  function sendData(p1, p2, p3) {
+  function sendData() {
     const optional = [];
 
     if (minMaxEnabled) {
-      optional.push(`self:pmi(${p2})  self:pma(${p3})`);
+      optional.push(`self:pmi(${pmi})  self:pma(${pma})`);
     }
 
     dispatch("update-action", {
       short: "spc",
       script:
-        `self:pmo(${p1})` +
+        `self:pmo(${pmo})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
       validationError: validators.some((e) => e.value === false),
     });
@@ -164,6 +160,7 @@
       const { value, validationError } = e.detail;
       pmo = value;
       validators[0].value = !validationError;
+      sendData();
     }}
     on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
@@ -183,6 +180,7 @@
           const { value, validationError } = e.detail;
           pmi = value;
           validators[1].value = !validationError;
+          sendData();
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -199,6 +197,7 @@
           const { value, validationError } = e.detail;
           pma = value;
           validators[2].value = !validationError;
+          sendData();
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}

@@ -133,7 +133,9 @@ export interface MergeActionsToCodeResult extends GridOperationResult {
   info: EventInfo;
   merged: GridAction;
 }
-export interface RemoveActionsResult extends GridOperationResult {}
+export interface RemoveActionsResult extends GridOperationResult {
+  removed: Array<{ index: number; action: GridAction }>;
+}
 export interface CutActionsResult extends GridOperationResult {}
 export interface ResetElementResult extends GridOperationResult {}
 export interface SendToGridResult extends GridOperationResult {}
@@ -303,10 +305,6 @@ export class ActionData extends NodeData {
 export class GridAction extends RuntimeNode<ActionData> {
   constructor(parent: GridEvent, data?: ActionData) {
     super(parent, data);
-  }
-
-  public destroy() {
-    this.parent = undefined;
   }
 
   static parse(script: LuaScript) {
@@ -567,13 +565,6 @@ export class GridEvent extends RuntimeNode<EventData> {
     }
   }
 
-  public destroy() {
-    for (const action of this.config) {
-      action.destroy();
-    }
-    this.config = [];
-  }
-
   public getInfo() {
     return this.data.getInfo();
   }
@@ -635,19 +626,21 @@ export class GridEvent extends RuntimeNode<EventData> {
       }
     }
 
+    const removed: Array<{ index: number; action: GridAction }> = [];
     for (const action of actions) {
       const index = this.config.findIndex((e) => e.id === action.id);
+      removed.push({ index: index, action: action });
       this.config = [
         ...this.config.slice(0, index),
         ...this.config.slice(index + 1),
       ];
-      action.destroy();
     }
 
     return Promise.resolve({
       value: true,
       text: "OK",
       type: GridOperationType.REMOVE_ACTION,
+      removed: removed,
     });
   }
 
@@ -664,11 +657,9 @@ export class GridEvent extends RuntimeNode<EventData> {
       });
     }
 
-    if (
-      this.getAvailableChars() -
-        actions.map((e) => e.toLua()).join("").length >=
-      0
-    ) {
+    const script = actions.map((e) => e.toLua()).join("");
+    const lengthAfter = this.getAvailableChars() - script.length;
+    if (lengthAfter >= 0) {
       // Create a new array reference to trigger Svelte reactivity
       this.config = [
         ...this.config.slice(0, index),
@@ -872,18 +863,23 @@ export class GridEvent extends RuntimeNode<EventData> {
       });
     }
 
-    try {
-      const index = this.config.findIndex((e) => e.id === actions[0].id);
-      await this.insert(index, codeBlock);
-      actions.forEach((e) => this.remove(e));
-    } catch (e) {
-      return Promise.reject({
-        value: false,
-        text: Runtime.ErrorText.LENGTH_ERROR,
-        type: GridOperationType.MERGE_ACTIONS_TO_CODE,
-        info: this.getInfo(),
-      });
-    }
+    const index = this.config.findIndex((e) => e.id === actions[0].id);
+    this.remove(...actions).then(async (res) => {
+      try {
+        await this.insert(index, codeBlock);
+      } catch (e) {
+        for (const obj of res.removed.sort((e) => e.index)) {
+          const parent = obj.action.parent as GridEvent;
+          parent.insert(obj.index, obj.action);
+        }
+        return Promise.reject({
+          value: false,
+          text: Runtime.ErrorText.LENGTH_ERROR,
+          type: GridOperationType.MERGE_ACTIONS_TO_CODE,
+          info: this.getInfo(),
+        });
+      }
+    });
 
     return Promise.resolve({
       value: true,
@@ -1075,12 +1071,6 @@ export class GridElement extends RuntimeNode<ElementData> {
       element: this.elementIndex,
       type: this.type,
     };
-  }
-
-  public destroy() {
-    for (const event of this.events) {
-      event.destroy();
-    }
   }
 
   public async discardChanges(): Promise<DiscardElementResult> {
@@ -1324,12 +1314,6 @@ export class GridPage extends RuntimeNode<PageData> {
     };
   }
 
-  public destroy() {
-    for (const element of this.control_elements) {
-      element.destroy();
-    }
-  }
-
   public async loadProfile(
     profile: GridProfileData,
   ): Promise<ProfileLoadResult> {
@@ -1501,12 +1485,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
       dy: this.dy,
       type: this.type,
     };
-  }
-
-  public destroy() {
-    for (const page of this.pages) {
-      page.destroy();
-    }
   }
 
   findPage(index: number) {
@@ -2035,7 +2013,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     // remove the destroyed device from runtime
     const removed = this.findModule(dx, dy);
     this.modules = this.modules.filter((e) => e.id !== removed.id);
-    removed.destroy();
 
     this.aliveModules.update((s) => {
       const index = s.findIndex((e) => e.id === removed.id);

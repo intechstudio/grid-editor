@@ -324,18 +324,22 @@ function initialize_autocomplete() {
 
         if (
           keyPrefix &&
-          (elementtype === elementTypeMapping[keyPrefix] ||
-            elementtype === undefined)
+          (elementtype === elementTypeMapping[keyPrefix] || !elementtype)
         ) {
-          proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
-          proposalItem.insertText = `${proposalItem.label}()`;
-        } else if (elementtype === "system" || !elementtype) {
+          const prefixValue = isInsideSelfOrElement ? value : `self:${value}`;
+          proposalItem.label = prefixValue;
+          proposalItem.insertText = `${prefixValue}()`;
+        } else if ((keyPrefix && elementtype === "system") || !elementtype) {
           if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
-            proposalItem.label = isInsideSelfOrElement
+            const prefixValue = isInsideSelfOrElement
               ? value
               : `element[0]:${value}`;
-            proposalItem.insertText = `${proposalItem.label}()`;
+            proposalItem.label = prefixValue;
+            proposalItem.insertText = `${prefixValue}()`;
           }
+        } else if (!keyPrefix) {
+          proposalItem.label = value;
+          proposalItem.insertText = `${value}()`;
         }
 
         proposalList.push(proposalItem);

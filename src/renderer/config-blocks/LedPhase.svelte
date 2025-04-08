@@ -57,6 +57,7 @@
   import { Validator } from "./validators";
   import { ElementType } from "@intechstudio/grid-protocol";
   import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import { Grid } from "../lib/_utils.js";
 
   export let config: GridAction;
 
@@ -145,30 +146,7 @@
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
         const target = event.parent as GridElement;
-        switch (target.type) {
-          case ElementType.BUTTON:
-            return [
-              { value: "1", info: "Button layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          case ElementType.ENCODER:
-            return [
-              { value: "1", info: "Button layer" },
-              { value: "2", info: "Rotation layer" },
-            ];
-          case ElementType.FADER:
-            return [
-              { value: "1", info: "Fader layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          case ElementType.POTMETER:
-            return [
-              { value: "1", info: "Potmeter layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          default:
-            return defaultLayerSuggestion;
-        }
+        return Grid.Protocol.getLayerSuggestions(target.type);
       } else {
         return [...localDefinitions, ...s];
       }
