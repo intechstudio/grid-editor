@@ -297,7 +297,6 @@ function initialize_autocomplete() {
 
       proposalItem.label = "math." + element;
       proposalItem.insertText = "math." + element;
-
       proposalList.push(proposalItem);
     }
 
@@ -355,6 +354,9 @@ function initialize_autocomplete() {
             : `element[0]:${value}`;
           proposalItem.insertText = `${proposalItem.label}()`;
         }
+      } else if (!keyPrefix) {
+        proposalItem.label = value;
+        proposalItem.insertText = `${value}()`;
       }
 
       proposalList.push(proposalItem);

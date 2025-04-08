@@ -19,14 +19,12 @@
   import { NumberToEventType, GridScript } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
-
-  import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
-
-  import { beforeUpdate, afterUpdate, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { clickOutside } from "../_actions/click-outside.action";
-  import { syncWithGrid, updateAction } from "../../runtime/operations";
+  import { updateAction } from "../../runtime/operations";
   import { MonacoEditor } from "../../lib/monaco";
+  import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
 
   export let monaco_action: GridAction;
   let event: GridEvent;
@@ -42,9 +40,6 @@
   let errorMesssage = "";
 
   let commited = { script: "", name: "" };
-
-  let scrollDown;
-  let autoscroll;
 
   let scriptLength = undefined;
   let pathSnippets = [];
@@ -169,18 +164,6 @@
     $monaco_action.name = commited.name;
     $monaco_action.script = commited.script;
   }
-
-  beforeUpdate(() => {
-    autoscroll =
-      scrollDown &&
-      scrollDown.offsetHeight + scrollDown.scrollTop >
-        scrollDown.scrollHeight - 20;
-  });
-
-  afterUpdate(() => {
-    if (autoscroll && scrollDown)
-      scrollDown.scrollTo(0, scrollDown.scrollHeight);
-  });
 
   async function handleCommitClicked() {
     updateAction(
@@ -323,7 +306,7 @@
 
     <div
       id="monaco-container"
-      class="{$$props.class} flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
+      class="flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
     >
       <div
         class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
@@ -338,23 +321,13 @@
       <div bind:this={monaco_block} class="flex w-full h-full" />
     </div>
 
-    <span class="mt-2">Debug Text:</span>
-    <div
-      bind:this={scrollDown}
-      class="flex-col w-full h-80 flex overflow-y-auto bg-primary border border-black"
-    >
-      {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
-      {/each}
+    <div class="h-1/4 flex w-full">
+      <DebugTextList />
     </div>
-  </div>
-</MoltenModal>
+  </div></MoltenModal
+>
 
 <style global>
-  .debugtexty:nth-child(even) {
-    @apply bg-black;
-    @apply bg-opacity-20;
-  }
   .monaco-editor .suggest-widget {
     width: 250px !important;
     overflow: hidden !important;

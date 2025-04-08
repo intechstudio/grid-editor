@@ -17,7 +17,7 @@ export const blocks = (page) => ({
         input: page.getByPlaceholder("input").first(),
         output: page.getByPlaceholder("output").first(),
         destination: page.getByPlaceholder("Variable name to load the"),
-        addNewPair: page.getByText("Add new pair..."),
+        addNewPair: page.getByRole("button", { name: "Add New Pair" }),
       },
     },
     Global: {

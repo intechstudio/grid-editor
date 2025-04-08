@@ -1,128 +1,103 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
-  let trackMouse = false;
-  let dragMouse = false;
+  let isActive = false;
+  let isDrag = false;
 
   interface Point {
     x: number;
     y: number;
   }
 
-  let startPoint: Point = { x: 0, y: 0 };
-  let previousVector = undefined;
+  let currentShift: Point;
+  let start: Point;
 
-  function handleKeyEvent(e) {
-    if (e.key !== "Control") {
+  onMount(() => {
+    currentShift = get(appSettings).gridLayoutShift;
+  });
+
+  function handleKeyEvent(e: KeyboardEvent) {
+    const { type, key } = e;
+    if (key !== "Control") {
       return;
-    } else {
-      //Filter out continous press
-      if (e.type === "keydown" && trackMouse) {
-        return;
-      }
     }
 
-    switch (e.type) {
+    switch (type) {
       case "keydown": {
-        handleKeyDown(e);
+        isActive = true;
         break;
       }
+
       case "keyup": {
-        handleKeyUp(e);
+        isActive = false;
         break;
       }
     }
   }
 
-  function handleKeyDown(e) {
-    trackMouse = true;
-  }
+  function handleMouseEvent(event: MouseEvent) {
+    const { type, button, screenX, screenY } = event;
+    if (button !== 0) return;
 
-  function handleKeyUp(e) {
-    trackMouse = false;
-  }
-
-  function handleMouseEvent(e) {
-    if (e.button !== 0) {
+    if (!isActive) {
       return;
     }
 
-    switch (e.type) {
+    switch (type) {
       case "mousedown": {
-        handleMouseDown(e);
+        currentShift = get(appSettings).gridLayoutShift;
+        start = { x: screenX, y: screenY };
+        isDrag = true;
         break;
       }
+
       case "mouseup": {
-        handleMouseUp(e);
-        break;
+        isDrag = false;
       }
     }
   }
 
-  function handleMouseDown(e) {
-    if (!trackMouse) {
-      return;
-    }
-    startPoint = { x: e.screenX, y: e.screenY };
-    dragMouse = true;
-    const current = get(appSettings).gridLayoutShift;
-    if (current.x === 0 && current.y === 0) {
-      previousVector = current;
-    }
-  }
+  function handleMouseMove(event: MouseEvent) {
+    const { screenX, screenY } = event;
+    if (!isDrag || !isActive) return;
 
-  function handleMouseUp(e) {
-    dragMouse = false;
-    previousVector = get(appSettings).gridLayoutShift;
-  }
+    const end = { x: screenX, y: screenY };
 
-  function handleMouseMove(e) {
-    if (!dragMouse) {
-      return;
-    }
-
-    const endPoint = { x: e.screenX, y: e.screenY };
-    calculateShiftVector(startPoint, endPoint);
-  }
-
-  function calculateShiftVector(p1: Point, p2: Point) {
-    let vector: Point = { x: p2.x - p1.x, y: p2.y - p1.y };
-    if (typeof previousVector !== "undefined") {
-      vector = {
-        x: previousVector.x + vector.x,
-        y: previousVector.y + vector.y,
+    appSettings.update((s) => {
+      const [shiftX, shiftY] = [end.x - start.x, end.y - start.y];
+      s.gridLayoutShift = {
+        x: currentShift.x + shiftX,
+        y: currentShift.y + shiftY,
       };
-    }
-
-    appSettings.update((s) => {
-      s.gridLayoutShift = vector;
       return s;
     });
   }
 
-  function handleMouseLeave(e) {
-    handleKeyUp(e);
-    handleMouseUp(e);
+  function handleMouseLeave(e: MouseEvent) {
+    isActive = false;
+    isDrag = false;
   }
 
-  function handleMouseWheel(e: MouseEvent) {
+  function handleMouseWheel(e: WheelEvent) {
     const as = get(appSettings);
-    const deltaY = e.deltaY > 0 ? 1 : -1;
-    switch (deltaY) {
-      case 1:
-        if (as.maxSize <= as.persistent.size) return;
-        break;
-      case -1:
-        if (as.minSize >= as.persistent.size) return;
-        break;
+    const deltaY = Math.sign(e.deltaY);
+
+    if (
+      (deltaY > 0 && as.persistent.size >= as.maxSize) ||
+      (deltaY < 0 && as.persistent.size <= as.minSize)
+    ) {
+      return;
     }
 
-    appSettings.update((s) => {
-      s.persistent.size += s.stepSize * deltaY;
-      return s;
-    });
+    appSettings.update((s) => ({
+      ...s,
+      persistent: {
+        ...s.persistent,
+        size: s.persistent.size + s.stepSize * deltaY,
+      },
+    }));
   }
 </script>
 
@@ -137,7 +112,7 @@
   on:mousedown={handleMouseEvent}
   on:mouseup={handleMouseEvent}
   on:mousewheel|preventDefault={handleMouseWheel}
-  class:pointer-events-none={!trackMouse}
-  class:cursor-grabbing={dragMouse}
-  class:cursor-grab={trackMouse}
+  class:pointer-events-none={!isActive}
+  class:cursor-grabbing={isDrag}
+  class:cursor-grab={isActive}
 />
