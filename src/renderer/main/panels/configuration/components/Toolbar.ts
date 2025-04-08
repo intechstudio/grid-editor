@@ -100,9 +100,26 @@ export const isCopyElementEnabled = derived(
   },
 );
 
-export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
-  return $appClipboard?.key === ClipboardKey.ACTION_BLOCKS;
-});
+export const isPasteActionsEnabled = derived(
+  [runtime_manager, appClipboard],
+  ([$runtime_manager, $appClipboard], set) => {
+    const active = $runtime_manager.active.runtime;
+    const update = () => {
+      set(
+        $appClipboard?.key === ClipboardKey.ACTION_BLOCKS &&
+          active.modules.length > 0,
+      );
+    };
+
+    const activeUnsub = active.subscribe ? active.subscribe(update) : null;
+
+    update(); // Initial computation
+
+    return () => {
+      if (activeUnsub) activeUnsub();
+    };
+  },
+);
 
 export const isRemoveActionsEnabled = derived(
   selected_actions,
