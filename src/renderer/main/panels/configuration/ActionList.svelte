@@ -14,17 +14,15 @@
   import Option from "./components/Options.svelte";
   import { selected_actions } from "../../../runtime/user-input.store";
   import { get } from "svelte/store";
-  import { grid } from "@intechstudio/grid-protocol";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
-  import { onMount } from "svelte";
   import { latestComponentVersionKeys } from "../../../lib/_configs";
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
+  import { autoScroll } from "../../_actions/autoscroll.action";
 
   export let event: GridEvent;
   export let targetPanel: HTMLElement;
 
-  let autoScroll;
   let configList: HTMLElement;
 
   function handleNewConfig(e: CustomEvent) {
@@ -34,31 +32,6 @@
 
   function handlePaste(index: number | undefined) {
     pasteActions(event, index);
-  }
-
-  function handleMouseMove(e: MouseEvent) {
-    const dragged = get(draggedActions);
-
-    if (typeof dragged === "undefined" || dragged.length === 0) {
-      return;
-    }
-
-    const mouseY = e.clientY - configList.getBoundingClientRect().top;
-    const configListHeight = configList.offsetHeight;
-    const treshold = 60;
-    const lowerThreshold = configListHeight - mouseY <= treshold;
-    const upperThreshold =
-      configListHeight - mouseY > configListHeight - treshold;
-    clearInterval(autoScroll);
-    if (lowerThreshold) {
-      autoScroll = setInterval(() => {
-        configList.scrollTop += 5;
-      }, 10);
-    } else if (upperThreshold) {
-      autoScroll = setInterval(() => {
-        configList.scrollTop -= 5;
-      }, 10);
-    }
   }
 
   function handleSelectionChange(action: GridAction, value: boolean) {
@@ -160,8 +133,13 @@
 
     <ul
       bind:this={configList}
-      on:mousemove={handleMouseMove}
-      on:mouseleave={() => clearInterval(autoScroll)}
+      use:autoScroll={{
+        threshold: 60,
+        scrollCondition: () => {
+          const dragged = get(draggedActions);
+          return dragged && dragged.length > 0;
+        },
+      }}
       class="overflow-y-scroll justify-start w-full h-full"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}

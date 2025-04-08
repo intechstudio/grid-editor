@@ -117,41 +117,37 @@
     }
   }
 
-  $: sendData(epmo, epv0, epmi, epma, epse);
-
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    sendData(epmo, epv0, epmi, epma, epse);
+    sendData();
     syncWithGrid();
   }
 
   $: handleSensitivityChange(sensitivityEnabled);
   function handleSensitivityChange(value) {
-    sendData(epmo, epv0, epmi, epma, epse);
+    sendData();
     syncWithGrid();
   }
 
   function syncWithGrid() {
-    // TODO: remove sendData from here and fix $: reactivity properly
-    sendData(epmo, epv0, epmi, epma, epse);
     dispatch("sync");
   }
 
-  function sendData(p1, p2, p3, p4, p5) {
+  function sendData() {
     const optional = [];
 
     if (minMaxEnabled) {
-      optional.push(`self:epmi(${p3}) self:epma(${p4})`);
+      optional.push(`self:epmi(${epmi}) self:epma(${epma})`);
     }
 
     if (sensitivityEnabled) {
-      optional.push(`self:epse(${p5})`);
+      optional.push(`self:epse(${epse})`);
     }
 
     dispatch("update-action", {
       short: `sen`,
       script:
-        `self:epmo(${p1}) self:epv0(${p2})` +
+        `self:epmo(${epmo}) self:epv0(${epv0})` +
         (optional.length > 0 ? " " + optional.join(" ") : ""),
       validationError: validators.some((e) => e.value === false),
     });
@@ -184,6 +180,7 @@
       on:input={(e) => {
         const { value, validationError } = e.detail;
         validators[0].value = !validationError;
+        sendData();
       }}
       on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
@@ -198,6 +195,7 @@
       on:input={(e) => {
         const { value, validationError } = e.detail;
         validators[1].value = !validationError;
+        sendData();
       }}
       on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
@@ -214,6 +212,7 @@
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[2].value = !validationError;
+          sendData();
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -228,6 +227,7 @@
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[3].value = !validationError;
+          sendData();
         }}
         on:change={syncWithGrid}
         postProcessor={GridScript.shortify}
@@ -245,6 +245,7 @@
       on:input={(e) => {
         const { value, validationError } = e.detail;
         validators[4].value = !validationError;
+        sendData();
       }}
       on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
