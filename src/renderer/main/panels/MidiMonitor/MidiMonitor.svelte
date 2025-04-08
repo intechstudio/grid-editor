@@ -211,7 +211,10 @@
   ): msg is MidiMonitorItem => msg.type === "MIDI";
 </script>
 
-<div class="flex flex-col h-full p-4 bg-primary">
+<container
+  data-testid="midi-monitor"
+  class="flex flex-col h-full p-4 bg-primary"
+>
   <div class="flex flex-row w-full text-white justify-between">
     <div class="flex text-2xl">MIDI Monitor</div>
     <div class="flex items-center">
@@ -489,4 +492,4 @@
   <div class="flex pt-4 pb-12">
     <MoltenPushButton text="Clear All" snap={"full"} click={onClearClicked} />
   </div>
-</div>
+</container>
