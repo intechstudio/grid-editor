@@ -80,19 +80,6 @@ jobs:
           # gh repo token
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-          # windows Code signing
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-
-          # Apple ID
-          APPLE_ID: ${{secrets.APPLE_ID}}
-          APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
-
-          # macOS Code signing
-          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-
           VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
 
       - name: Upload artifacts
