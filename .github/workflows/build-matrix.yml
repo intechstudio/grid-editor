@@ -12,7 +12,7 @@ on:
         required: false
         type: string
     secrets:
-        GITHUB_TOKEN:
+        GH_TOKEN:
           required: true
         WIN_CSC_LINK:
           required: false
@@ -78,7 +78,7 @@ jobs:
         run: npm run ${{ inputs.exportScript }}
         env:
           # gh repo token
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
           # windows Code signing
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}

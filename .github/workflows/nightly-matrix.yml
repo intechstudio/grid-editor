@@ -35,7 +35,7 @@ jobs:
       exportScript: export:nightly
       versionOverride: ${{ needs.prepare-version.outputs.versionOverride }}
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-nightly-release:
     runs-on: ubuntu-latest
