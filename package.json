@@ -22,7 +22,7 @@
     "cross-env": "^7.0.2",
     "dotenv": "^14.2.0",
     "electron": "^26.2.0",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.0.12",
     "electron-vite": "^1.0.27",
     "mocha": "^11.1.0",
     "npm-run-all": "^4.1.5",
@@ -37,7 +37,8 @@
     "tailwindcss": "^3.1.8",
     "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0",
-    "vitest": "^1.6.1"
+    "vitest": "^1.6.1",
+    "rimraf": "^6.0.1"
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20250321.1539",
@@ -83,7 +84,7 @@
     "export:nightly": "run-s s:build e:builder:nightly",
     "export:alpha": "cross-env VITE_BUILD_ENV=alpha run-s s:build e:builder",
     "export:local": "run-s clean-up s:build e:builder:local",
-    "clean-up": "rm -rf dist && rm -rf dist-web && rm -rf build",
+    "clean-up": "rimraf dist && rimraf dist-web && rimraf build",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "s:build": "electron-vite build",
     "preinstall": "node ./build-scripts/check-node-version.js",

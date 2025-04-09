@@ -34,7 +34,8 @@ jobs:
     with:
       exportScript: export:nightly
       versionOverride: ${{ needs.prepare-version.outputs.versionOverride }}
-    secrets: inherit
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-nightly-release:
     runs-on: ubuntu-latest
