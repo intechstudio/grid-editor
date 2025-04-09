@@ -63,7 +63,7 @@ const config = {
     gatekeeperAssess: false,
     entitlements: "build-assets/entitlements.mac.plist",
     entitlementsInherit: "build-assets/entitlements.mac.plist",
-    notarize: true,
+    notarize: false,
   },
   dmg: {
     sign: false,
