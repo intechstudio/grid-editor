@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20250321.1539",
-    "@intechstudio/grid-uikit": "1.20250406.1721",
+    "@intechstudio/grid-uikit": "1.20250408.1231",
     "@intechstudio/profile-cloud-webcomponent": "1.20250318.1527",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
@@ -58,6 +58,7 @@
     "googleapis": "^100.0.0",
     "mixpanel-browser": "^2.47.0",
     "monaco-editor": "^0.34.0",
+    "monaco-types": "^0.1.0",
     "node-disk-info": "^1.3.0",
     "node-fetch": "^2.6.7",
     "number-to-words": "^1.2.4",
