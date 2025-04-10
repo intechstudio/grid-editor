@@ -12,13 +12,14 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
-  import { selected_actions } from "../../../runtime/user-input.store";
+  import { selected_actions } from "../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
   import { latestComponentVersionKeys } from "../../../lib/_configs";
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
+  import { isPasteActionsEnabled } from "./components/Toolbar";
 
   export let event: GridEvent;
   export let targetPanel: HTMLElement;
@@ -98,8 +99,11 @@
         handleSelectAll();
         e.preventDefault();
         e.stopPropagation();
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-        console.log("Ctrl + V = Paste actions");
+      } else if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "v" &&
+        $isPasteActionsEnabled
+      ) {
         handlePaste();
         e.preventDefault();
         e.stopPropagation();

@@ -1,5 +1,4 @@
 import { derived } from "svelte/store";
-import { selected_actions } from "../../../../runtime/user-input.store";
 import {
   appClipboard,
   ClipboardData,
@@ -7,6 +6,7 @@ import {
 } from "../../../../runtime/clipboard.store";
 import { ElementData } from "../../../../runtime/runtime";
 import { runtime_manager } from "../../../../runtime/runtime-manager.store";
+import { selected_actions } from "../../../../runtime/selected-actions.store";
 
 export const isCopyActionsEnabled = derived(
   selected_actions,
