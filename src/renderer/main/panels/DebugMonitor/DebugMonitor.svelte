@@ -265,19 +265,19 @@
       {/if}
     </Pane>
     <Pane>
-      <div class="flex flex-col h-full overflow-hidden bg-primary">
-        <div class="text-white mt-2">Watched values:</div>
-        <div class="flex-grow overflow-y-auto mb-5">
-          {#if $incoming_messages_stores.length > 0}
-            <div class="w-full grid grid-cols-2">
+      <div class="flex flex-col h-full overflow-hidden bg-primary gap-2 mt-2">
+        <div class="text-white">Watched values:</div>
+        <div class="flex-grow overflow-y-auto">
+          {#if $incoming_messages_stores.length > 0 && $runtime_manager.active.runtime.modules.length > 0}
+            <div class="w-full grid grid-cols-2 gap-1">
               {#each $incoming_messages_stores as store}
-                <div class="m-1 bg-secondary bg-opacity-40">
-                  <PolyLineGraph incomingData={store} />
-                </div>
+                <PolyLineGraph incomingData={store} />
               {/each}
             </div>
           {:else}
-            <div class="flex w-full h-full justify-center items-center">
+            <div
+              class="flex w-full h-full justify-center items-center bg-secondary"
+            >
               <span class="text-white">None</span>
             </div>
           {/if}
@@ -286,7 +286,7 @@
     </Pane>
   </Splitpanes>
 
-  <div class="inline-flex flex-row bg-primary">
+  <div class="inline-flex flex-row bg-primary mt-2">
     <svg width="50%" height="50" viewBox="0 0 100 50">
       <polyline
         id="chart_testchart_0"
