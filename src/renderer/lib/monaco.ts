@@ -3,6 +3,7 @@ import {
   languages as monaco_languages,
   Position,
 } from "monaco-editor";
+import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 
@@ -477,6 +478,7 @@ export namespace MonacoEditor {
   ) {
     const editor: CustomCodeEditor = monaco_editor.create(node, options);
     editor.restrictScope = options.restrictScope;
+    TabFocus.setTabFocusMode(true);
     return editor;
   }
 
