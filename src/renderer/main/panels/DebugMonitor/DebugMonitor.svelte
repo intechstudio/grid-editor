@@ -264,24 +264,24 @@
         </div>
       {/if}
     </Pane>
-    <Pane class="overflow-hidden bg-primary">
-      <div class="text-white mt-2">Watched values:</div>
-      <div
-        class="mb-5 overflow-y-auto bg-secondary bg-opacity-40 flex flex-grow"
-      >
-        {#if $incoming_messages_stores.length > 0}
-          <div class="w-full h-full grid grid-cols-2">
-            {#each $incoming_messages_stores as store}
-              <div class="m-1">
-                <PolyLineGraph incomingData={store} />
-              </div>
-            {/each}
-          </div>
-        {:else}
-          <div class="flex w-full h-full justify-center items-center">
-            <span class="text-white">None</span>
-          </div>
-        {/if}
+    <Pane>
+      <div class="flex flex-col h-full overflow-hidden bg-primary">
+        <div class="text-white mt-2">Watched values:</div>
+        <div class="flex-grow overflow-y-auto mb-5">
+          {#if $incoming_messages_stores.length > 0}
+            <div class="w-full grid grid-cols-2">
+              {#each $incoming_messages_stores as store}
+                <div class="m-1 bg-secondary bg-opacity-40">
+                  <PolyLineGraph incomingData={store} />
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="flex w-full h-full justify-center items-center">
+              <span class="text-white">None</span>
+            </div>
+          {/if}
+        </div>
       </div>
     </Pane>
   </Splitpanes>
