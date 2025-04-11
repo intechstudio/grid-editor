@@ -19,8 +19,9 @@
   function handleCloseActionPicker(e) {
     showActionPicker = false;
   }
-  function handlePaste(e) {
-    dispatch("paste", e.detail);
+  function handlePaste(e: any) {
+    const { index } = e.detail;
+    dispatch("paste", { index: index });
   }
 </script>
 
@@ -28,8 +29,6 @@
   <button
     bind:this={referenceElement}
     on:click={handleShowActionPicker}
-    on:new-config={handleNewConfig}
-    on:paste={handlePaste}
     class="cursor-pointer flex w-full truncate hover:border-pick hover:bg-select-saturate-10 border-secondary
                 transition-colors duration-300 border-l-4 text-white pl-4 p-2"
   >
@@ -42,6 +41,8 @@
       index={target.index}
       {referenceElement}
       on:close={handleCloseActionPicker}
+      on:new-config={handleNewConfig}
+      on:paste={handlePaste}
     />
   {/if}
 </container>
