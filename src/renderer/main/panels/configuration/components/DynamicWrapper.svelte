@@ -68,7 +68,7 @@
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
-      false,
+      true,
     );
   }
 
@@ -95,9 +95,11 @@
   }
 
   function handleSendActionToGrid() {
-    if (!action.invalid) {
-      syncWithGrid(action);
+    if (!action.isValid()) {
+      return;
     }
+
+    syncWithGrid(action);
   }
 
   function handleToggle(e) {
