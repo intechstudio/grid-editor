@@ -1,5 +1,5 @@
 import convert from "color-convert";
-import { ElementType, grid } from "@intechstudio/grid-protocol";
+import { ElementType, grid, ModuleType } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -11,6 +11,13 @@ export namespace Grid {
     { start: "[", end: "]" },
     { start: "{", end: "}" },
   ];
+
+  export enum Direction {
+    LEFT = "left",
+    RIGHT = "right",
+    UP = "up",
+    DOWN = "down",
+  }
 
   export function parseBracketValues(value: string): string[] {
     if (value.length < 2) {
@@ -328,6 +335,208 @@ export namespace Grid {
           return defaultLayerSuggestion;
         }
       }
+    }
+  }
+
+  export namespace Module {
+    export enum Archetype {
+      XX16 = "XX16",
+      PBF4 = "PBF4",
+      EF44 = "EF44",
+      VSNX = "VSNX",
+    }
+
+    export type ElementDimension = {
+      index: number;
+      dx: number;
+      dy: number;
+      spanX: number;
+      spanY: number;
+    };
+
+    function genElements(
+      count: number,
+      offset: number,
+      dx: (i: number) => number,
+      dy: (i: number) => number,
+      spanX = 1,
+      spanY = 1,
+    ): Module.ElementDimension[] {
+      return Array.from({ length: count }, (_, i) => ({
+        index: i + offset,
+        dx: dx(i),
+        dy: dy(i),
+        spanX,
+        spanY,
+      }));
+    }
+
+    export function getElementPositionMap(
+      value: ModuleType,
+    ): Module.ElementDimension[] {
+      const archetype = toArchetype(value);
+      switch (archetype) {
+        case Module.Archetype.XX16:
+          return genElements(
+            16,
+            0,
+            (i) => i % 4,
+            (i) => Math.floor(i / 4),
+          );
+
+        case Module.Archetype.EF44:
+          return [
+            ...genElements(
+              4,
+              0,
+              (i) => i,
+              (_) => 0,
+            ),
+            ...genElements(
+              4,
+              4,
+              (i) => i,
+              (_) => 1,
+              1,
+              3,
+            ),
+          ];
+
+        case Module.Archetype.PBF4:
+          return [
+            ...genElements(
+              4,
+              0,
+              (i) => i % 4,
+              (i) => Math.floor(i / 4),
+            ),
+            ...genElements(
+              4,
+              4,
+              (i) => i % 4,
+              (i) => Math.floor(i / 4) + 4,
+              1,
+              2,
+            ),
+            ...genElements(
+              4,
+              8,
+              (i) => i % 4,
+              (i) => Math.floor(i / 4) + 8,
+            ),
+          ];
+
+        case Module.Archetype.VSNX:
+          if ([ModuleType.VSN0, ModuleType.TEK2].includes(value)) {
+            return [
+              ...genElements(
+                2,
+                8,
+                (i) => i * 2,
+                (_) => 0,
+                2,
+                2,
+              ),
+              ...genElements(
+                8,
+                0,
+                (i) => i % 4,
+                (i) => Math.floor(i / 4) + 2,
+              ),
+            ];
+          }
+
+          if ([ModuleType.VSN1L, ModuleType.TEK1].includes(value)) {
+            return [
+              { index: 13, dx: 0, dy: 0, spanX: 2, spanY: 1.5 },
+              ...genElements(
+                4,
+                9,
+                (i) => i * 0.5,
+                (_) => 1.5,
+                0.5,
+                0.5,
+              ),
+              { index: 8, dx: 2, dy: 0, spanX: 2, spanY: 2 },
+              ...genElements(
+                8,
+                0,
+                (i) => i % 4,
+                (i) => Math.floor(i / 4) + 2,
+              ),
+            ];
+          }
+
+          if (value === ModuleType.VSN1R) {
+            return [
+              { index: 8, dx: 0, dy: 0, spanX: 2, spanY: 2 },
+              { index: 13, dx: 2, dy: 0, spanX: 2, spanY: 1.5 },
+              ...genElements(
+                4,
+                9,
+                (i) => i * 0.5 + 2,
+                (_) => 1.5,
+                0.5,
+                0.5,
+              ),
+              ...genElements(
+                8,
+                0,
+                (i) => i % 4,
+                (i) => Math.floor(i / 4) + 2,
+              ),
+            ];
+          }
+
+          if (value === ModuleType.VSN2) {
+            return [
+              { index: 12, dx: 0, dy: 0, spanX: 2, spanY: 1.5 },
+              ...genElements(
+                4,
+                8,
+                (i) => i * 0.5,
+                (_) => 1.5,
+                0.5,
+                0.5,
+              ),
+              { index: 17, dx: 2, dy: 0, spanX: 2, spanY: 1.5 },
+              ...genElements(
+                4,
+                13,
+                (i) => i * 0.5 + 2,
+                (_) => 1.5,
+                0.5,
+                0.5,
+              ),
+              ...genElements(
+                8,
+                0,
+                (i) => i % 4,
+                (i) => Math.floor(i / 4) + 2,
+              ),
+            ];
+          }
+
+          return [];
+      }
+    }
+
+    const typeToArchetypeMap = {
+      [ModuleType.BU16]: Module.Archetype.XX16,
+      [ModuleType.PO16]: Module.Archetype.XX16,
+      [ModuleType.EN16]: Module.Archetype.XX16,
+      [ModuleType.PBF4]: Module.Archetype.PBF4,
+      [ModuleType.EF44]: Module.Archetype.EF44,
+      [ModuleType.TEK1]: Module.Archetype.VSNX,
+      [ModuleType.TEK2]: Module.Archetype.VSNX,
+      [ModuleType.VSN0]: Module.Archetype.VSNX,
+      [ModuleType.VSN1L]: Module.Archetype.VSNX,
+      [ModuleType.VSN1R]: Module.Archetype.VSNX,
+      [ModuleType.VSN2]: Module.Archetype.VSNX,
+    };
+
+    export function toArchetype(type: ModuleType): Module.Archetype {
+      return typeToArchetypeMap[type];
     }
   }
 }
