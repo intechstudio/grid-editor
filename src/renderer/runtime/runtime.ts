@@ -1413,23 +1413,39 @@ type DirectionMap = {
 };
 
 export class ModuleData extends NodeData {
-  public pages: Array<GridPage>;
-  public elementPositionMap: Grid.Module.ElementDimension[];
+  architecture: Architecture;
+  dx: number;
+  dy: number;
+  fwMismatch: boolean;
+  fwVersion: FirmwareVersion;
+  map: DirectionMap;
+  portstate: any;
+  rot: number;
+  type: ModuleType;
+  pages: Array<GridPage>;
 
   constructor(
-    public architecture: Architecture,
-    public portstate: any,
-    public dx: number,
-    public dy: number,
-    public rot: number,
-    public fwVersion: FirmwareVersion,
-    public type: ModuleType,
-    public fwMismatch: boolean,
-    public map: DirectionMap,
+    architecture: Architecture,
+    portstate: any,
+    dx: number,
+    dy: number,
+    rot: number,
+    fwVersion: FirmwareVersion,
+    type: ModuleType,
+    fwMismatch: boolean,
+    map: DirectionMap,
   ) {
     super();
+    this.architecture = architecture;
+    this.portstate = portstate;
+    this.dx = dx;
+    this.dy = dy;
+    this.rot = rot;
+    this.fwVersion = fwVersion;
+    this.type = type;
+    this.fwMismatch = fwMismatch;
+    this.map = map;
     this.pages = [];
-    this.elementPositionMap = Grid.Module.getElementPositionMap(type);
   }
 
   public isValid() {
@@ -1527,10 +1543,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   get pages() {
     return this.getField("pages");
-  }
-
-  get elementPositionMap() {
-    return this.getField("elementPositionMap");
   }
 
   // Setters

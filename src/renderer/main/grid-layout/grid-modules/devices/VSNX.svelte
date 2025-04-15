@@ -106,10 +106,14 @@
       ...common_elements,
       { type: ElementType.SYSTEM, index: 10 },
     ];
-  } else if (
-    moduleType === ModuleType.VSN1L ||
-    moduleType === ModuleType.TEK1
-  ) {
+  } else if (moduleType === ModuleType.VSN1L) {
+    elementArray = [
+      { type: ElementType.LCD, index: 13 },
+      { type: ElementType.ENDLESS, index: 8 },
+      ...common_elements,
+      { type: ElementType.SYSTEM, index: 14 },
+    ];
+  } else if (moduleType === ModuleType.TEK1) {
     elementArray = [
       { type: ElementType.LCD, index: 13 },
       { type: ElementType.ENDLESS, index: 8 },
