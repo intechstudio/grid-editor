@@ -13,7 +13,6 @@
   let event = config.parent as GridEvent;
 
   function handleClick(e) {
-    console.log("hmmm");
     dispatch("toggle");
   }
 

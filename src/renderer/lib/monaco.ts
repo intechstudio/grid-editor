@@ -476,9 +476,24 @@ export namespace MonacoEditor {
     node: HTMLElement,
     options: monaco_editor.IStandaloneEditorConstructionOptions & CustomOptions,
   ) {
-    const editor: CustomCodeEditor = monaco_editor.create(node, options);
+    const editor: CustomCodeEditor = monaco_editor.create(node, {
+      ...options,
+    });
+
     editor.restrictScope = options.restrictScope;
+
+    const editorDomNode = editor.getDomNode();
+
+    editorDomNode.addEventListener("mousedown", () => {
+      TabFocus.setTabFocusMode(false);
+    });
+
+    editor.onDidBlurEditorText(() => {
+      TabFocus.setTabFocusMode(true);
+    });
+
     TabFocus.setTabFocusMode(true);
+
     return editor;
   }
 

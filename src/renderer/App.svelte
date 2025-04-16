@@ -384,6 +384,17 @@
 </main>
 
 <style global>
+  .activator-button {
+    text-align: left;
+    border: 1px solid rgba(0, 0, 0, 0);
+    outline: 0px solid rgba(0, 0, 0, 0);
+  }
+
+  .activator-button:focus {
+    border-color: rgb(68, 68, 209) !important;
+    outline-color: rgb(68, 68, 209) !important;
+  }
+
   .splitpanes.modern-theme .splitpanes__pane {
     /*  @apply bg-secondary; */
     position: relative;
