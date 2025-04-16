@@ -61,8 +61,9 @@
       return;
     }
 
-    const domElement = document.getElementById(target.id);
-    domElement.focus();
+    const page = target.parent as GridPage;
+    const module = page.parent as GridModule;
+    Focus.trigger(`element-${module.dx}-${module.dy}-${target.elementIndex}`);
   }
 
   type SharedProps = {
@@ -309,7 +310,6 @@
         .findElement(elementNumber)}
       <button
         id={element.id}
-        use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
         on:focus={() => selectElement(elementNumber)}
         on:keydown={(e) => {
           const dirMap = {
@@ -393,6 +393,7 @@
             },
           ],
         }}
+        use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
         class="w-full h-full absolute element activator-button"
         on:click={(e) => {
           selectElement(elementNumber);
