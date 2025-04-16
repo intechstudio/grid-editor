@@ -12,16 +12,21 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
-  import { selected_actions } from "../../../runtime/user-input.store";
+  import {
+    selected_actions,
+    user_input,
+  } from "../../../runtime/user-input.store";
   import { get } from "svelte/store";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
   import { latestComponentVersionKeys } from "../../../lib/_configs";
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
+  import { Focus } from "../../_actions/focus.action";
 
   export let event: GridEvent;
   export let targetPanel: HTMLElement;
+  export let focusTrigger: string;
 
   let configList: HTMLElement;
 
@@ -75,8 +80,10 @@
 
 {#key $event?.id}
   <div
+    id="test"
     role="tabpanel"
     tabindex="0"
+    use:Focus.on={focusTrigger}
     on:keydown={(e) => {
       //Ignore if origin node is input
       if (
@@ -89,12 +96,19 @@
         return;
       }
 
+      if (e.key === "Escape") {
+        const { dx, dy, elementnumber } = get(user_input);
+        Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
         console.log("Ctrl + A = Select all actions");
         handleSelectAll();
         e.preventDefault();
         e.stopPropagation();
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
         console.log("Ctrl + V = Paste actions");
         handlePaste();
         e.preventDefault();

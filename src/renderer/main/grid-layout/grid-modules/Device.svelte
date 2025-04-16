@@ -44,6 +44,7 @@
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
   import { getNeighbour } from "../Device";
   import { Grid } from "../../../lib/_utils";
+  import { Focus } from "../../_actions/focus.action";
 
   export let device: GridModule = undefined;
   export let width = 225;
@@ -53,7 +54,9 @@
     element: GridElement,
     direction: Grid.Direction,
   ) {
-    const target = getNeighbour(element, direction);
+    const rotation = get(appSettings).persistent.moduleRotation;
+    const rotatedDirection = Grid.rotateDirection(direction, rotation);
+    const target = getNeighbour(element, rotatedDirection);
     if (!target) {
       return;
     }
@@ -306,6 +309,7 @@
         .findElement(elementNumber)}
       <button
         id={element.id}
+        use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
         on:focus={() => selectElement(elementNumber)}
         on:keydown={(e) => {
           const dirMap = {
@@ -320,19 +324,27 @@
             selectNextNeighBour(element, direction);
           }
 
+          if (e.key === "Enter") {
+            Focus.trigger("action-list-0");
+          }
+
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
             console.log("Ctrl + C = Copy element", elementNumber);
             handleCopyElement(element);
             visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
-          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+          }
+
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
             console.log("Ctrl + V = Overwrite element", elementNumber);
             handleOverwriteElement(element);
             visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
-          } else if (
+          }
+
+          if (
             (e.ctrlKey || e.metaKey) &&
             e.shiftKey &&
             e.key.toLowerCase() === "d"
@@ -342,7 +354,9 @@
             visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
-          } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
+          }
+
+          if (e.shiftKey && e.key.toLowerCase() === "delete") {
             console.log("Shift + Delete = Clear element", elementNumber);
             handleClearElement(element);
             visualDebugEffect(e.target, "green");

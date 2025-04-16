@@ -19,6 +19,28 @@ export namespace Grid {
     DOWN = "down",
   }
 
+  export enum Rotation {
+    R0 = 0,
+    R90 = 90,
+    R180 = 180,
+    R270 = 270,
+  }
+
+  export function rotateDirection(
+    direction: Grid.Direction,
+    rotation: Grid.Rotation,
+  ): Grid.Direction {
+    const directions = [
+      Grid.Direction.UP,
+      Grid.Direction.RIGHT,
+      Grid.Direction.DOWN,
+      Grid.Direction.LEFT,
+    ];
+    const index = directions.indexOf(direction);
+    const steps = (rotation / 90) % 4;
+    return directions[(index - steps + 4) % 4];
+  }
+
   export function parseBracketValues(value: string): string[] {
     if (value.length < 2) {
       throw "Value does not have valid starting and ending brackets";

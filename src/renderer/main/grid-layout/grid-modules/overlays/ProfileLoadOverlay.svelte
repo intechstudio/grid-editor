@@ -11,6 +11,7 @@
   import { loadProfile } from "../../../../runtime/operations";
   import { user_input } from "../../../../runtime/user-input.store";
   import { get } from "svelte/store";
+  import { Grid } from "../../../../lib/_utils";
 
   export let device: GridModule;
   export let visible = false;
@@ -60,7 +61,8 @@
       class="text-white w-full flex flex-col
     items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
       style="transform: rotate({-$appSettings.persistent.moduleRotation +
-        90 * device?.rot}deg); border-radius: var(--grid-rounding);"
+        Grid.Rotation.R90 *
+          device?.rot}deg); border-radius: var(--grid-rounding);"
     >
       {#if compatible}
         <div class="w-fit relative">
