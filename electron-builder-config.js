@@ -35,6 +35,12 @@ const config = {
   ],
   files: ["**/*"],
   win: {
+    azureSignOptions: {
+      publisherName: "Intech Studio LLC",
+      endpoint: "https://weu.codesigning.azure.net/",
+      certificateProfileName: "intechstudio",
+      codeSigningAccountName: "grid-editor"
+    },
     publish: [
       {
         provider: "github",
