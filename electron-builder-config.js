@@ -39,7 +39,7 @@ const config = {
       publisherName: "Intech Studio LLC",
       endpoint: "https://weu.codesigning.azure.net/",
       certificateProfileName: "intechstudio",
-      codeSigningAccountName: "grid-editor"
+      codeSigningAccountName: "grid-editor",
     },
     publish: [
       {
@@ -69,7 +69,7 @@ const config = {
     gatekeeperAssess: false,
     entitlements: "build-assets/entitlements.mac.plist",
     entitlementsInherit: "build-assets/entitlements.mac.plist",
-    notarize: true
+    notarize: true,
   },
   dmg: {
     sign: false,
