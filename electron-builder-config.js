@@ -39,7 +39,7 @@ const config = {
       publisherName: "Intech Studio LLC",
       endpoint: "https://weu.codesigning.azure.net/",
       certificateProfileName: "intechstudio",
-      codeSigningAccountName: "trusted-signing",
+      codeSigningAccountName: "grid-editor",
     },
     publish: [
       {
