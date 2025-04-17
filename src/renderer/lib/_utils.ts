@@ -397,17 +397,19 @@ export namespace Grid {
       value: ModuleType,
     ): Module.ElementDimension[] {
       const archetype = toArchetype(value);
+      let result: Module.ElementDimension[] = [];
       switch (archetype) {
         case Module.Archetype.XX16:
-          return genElements(
+          result = genElements(
             16,
             0,
             (i) => i % 4,
             (i) => Math.floor(i / 4),
           );
+          break;
 
         case Module.Archetype.EF44:
-          return [
+          result = [
             ...genElements(
               4,
               0,
@@ -423,9 +425,10 @@ export namespace Grid {
               3,
             ),
           ];
+          break;
 
         case Module.Archetype.PBF4:
-          return [
+          result = [
             ...genElements(
               4,
               0,
@@ -447,10 +450,11 @@ export namespace Grid {
               (i) => Math.floor(i / 4) + 8,
             ),
           ];
+          break;
 
         case Module.Archetype.VSNX:
           if ([ModuleType.VSN0, ModuleType.TEK2].includes(value)) {
-            return [
+            result = [
               ...genElements(
                 2,
                 8,
@@ -469,7 +473,7 @@ export namespace Grid {
           }
 
           if ([ModuleType.VSN1L, ModuleType.TEK1].includes(value)) {
-            return [
+            result = [
               { index: 13, dx: 0, dy: 0, spanX: 2, spanY: 1.5 },
               ...genElements(
                 4,
@@ -490,7 +494,7 @@ export namespace Grid {
           }
 
           if (value === ModuleType.VSN1R) {
-            return [
+            result = [
               { index: 8, dx: 0, dy: 0, spanX: 2, spanY: 2 },
               { index: 13, dx: 2, dy: 0, spanX: 2, spanY: 1.5 },
               ...genElements(
@@ -511,7 +515,7 @@ export namespace Grid {
           }
 
           if (value === ModuleType.VSN2) {
-            return [
+            result = [
               { index: 12, dx: 0, dy: 0, spanX: 2, spanY: 1.5 },
               ...genElements(
                 4,
@@ -538,9 +542,19 @@ export namespace Grid {
               ),
             ];
           }
-
-          return [];
+          break;
       }
+
+      //System Element for all module types
+
+      result.push({
+        index: 255,
+        dx: 1,
+        dy: 4,
+        spanX: 2,
+        spanY: 1,
+      });
+      return result;
     }
 
     const typeToArchetypeMap = {

@@ -39,8 +39,8 @@ export function getNeighbour(
   const neighborOffsets = {
     [Grid.Direction.LEFT]: [-1, 0, -4, 0],
     [Grid.Direction.RIGHT]: [1, 0, 4, 0],
-    [Grid.Direction.UP]: [0, 1, 0, -4],
-    [Grid.Direction.DOWN]: [0, -1, 0, 4],
+    [Grid.Direction.UP]: [0, 1, 0, -5],
+    [Grid.Direction.DOWN]: [0, -1, 0, 5],
   };
 
   const [dxOffset, dyOffset, shiftX, shiftY] = neighborOffsets[direction];
@@ -96,7 +96,6 @@ export function getNeighbour(
           inDirection = e.dx >= current.dx + current.spanX;
           break;
       }
-
       return aligned && inDirection;
     })
     .map((e) => {
