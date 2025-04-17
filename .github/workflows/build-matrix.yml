@@ -49,6 +49,10 @@ jobs:
       - name: Install python setup-tools dependency
         run: pip install setuptools --break-system-packages
 
+      - name: Install libudev-dev (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev
+
       - name: Install dependencies
         run: npm ci
 
@@ -77,13 +81,7 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
 
           VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        if: ${{ failure() }}
-        with:
-          ## If no one connects after 5 minutes, shut down server.
-          wait-timeout-minutes: 5
-
+          
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
