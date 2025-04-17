@@ -69,9 +69,7 @@ const config = {
     gatekeeperAssess: false,
     entitlements: "build-assets/entitlements.mac.plist",
     entitlementsInherit: "build-assets/entitlements.mac.plist",
-    notarize: {
-      teamId: process.env.APPLE_TEAM_ID,
-    },
+    notarize: true
   },
   dmg: {
     sign: false,
