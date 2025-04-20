@@ -18,11 +18,19 @@ function createDebugMonitor(maxLength: number) {
       let sy = descr.brc_parameters.SY;
       let text = descr.class_parameters.TEXT;
 
+      try {
+        const decoded = atob(text);
+        console.log(decoded);
+        text = decoded;
+      } catch (e) {
+        console.warn("Invalid Base64 string:", e); // Error decoding Base64: InvalidCharacterError: Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.
+      }
+
       store.update((d) => {
         if (d.length >= maxLength) {
           d.shift();
         }
-        d = [...d, `[${sy},${sx}] ${text}`];
+        d = [...d, `[${sy},${sx}] ${text.includes("\n") ? "\n" : ""}${text}`];
 
         return d;
       });

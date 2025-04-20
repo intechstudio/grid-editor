@@ -12,7 +12,9 @@
     class="flex flex-col font-mono text-white bg-secondary p-2 flex-grow overflow-y-auto"
   >
     {#each $debug_monitor_store as message}
-      <span>{message}</span>
+      {#each message.split("\n") as part}
+        <span>{part}</span>
+      {/each}
     {/each}
   </div>
 </container>
