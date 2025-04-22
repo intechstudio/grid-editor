@@ -39,8 +39,8 @@ export function getNeighbour(
   const neighborOffsets = {
     [Grid.Direction.LEFT]: [-1, 0, -4, 0],
     [Grid.Direction.RIGHT]: [1, 0, 4, 0],
-    [Grid.Direction.UP]: [0, 1, 0, -5],
-    [Grid.Direction.DOWN]: [0, -1, 0, 5],
+    [Grid.Direction.UP]: [0, 1, 0, -4],
+    [Grid.Direction.DOWN]: [0, -1, 0, 4],
   };
 
   const [dxOffset, dyOffset, shiftX, shiftY] = neighborOffsets[direction];
@@ -68,6 +68,13 @@ export function getNeighbour(
 
   const candidates = epm
     .filter((e) => {
+      if (
+        e.originDx === module.dx &&
+        e.originDy === module.dy &&
+        e.index === element.elementIndex
+      ) {
+        return false;
+      }
       let aligned = false;
       let inDirection = false;
 
@@ -84,16 +91,16 @@ export function getNeighbour(
 
       switch (direction) {
         case Grid.Direction.UP:
-          inDirection = e.dy + e.spanY <= current.dy;
+          inDirection = e.dy < current.dy;
           break;
         case Grid.Direction.DOWN:
-          inDirection = e.dy >= current.dy + current.spanY;
+          inDirection = e.dy > current.dy;
           break;
         case Grid.Direction.LEFT:
-          inDirection = e.dx + e.spanX <= current.dx;
+          inDirection = e.dx < current.dx;
           break;
         case Grid.Direction.RIGHT:
-          inDirection = e.dx >= current.dx + current.spanX;
+          inDirection = e.dx > current.dx;
           break;
       }
       return aligned && inDirection;
@@ -102,30 +109,31 @@ export function getNeighbour(
       let weight: number;
       switch (direction) {
         case Grid.Direction.UP:
-          weight = current.dy - (e.dy + e.spanY);
+          weight = Math.max(0, current.dy + current.spanY - (e.dy + e.spanY));
           break;
         case Grid.Direction.DOWN:
-          weight = e.dy - (current.dy + current.spanY);
+          weight = Math.max(0, e.dy + e.spanY - (current.dy + current.spanY));
           break;
         case Grid.Direction.LEFT:
-          weight = current.dx - (e.dx + e.spanX);
+          weight = Math.max(0, current.dx + current.spanX - (e.dx + e.spanX));
           break;
         case Grid.Direction.RIGHT:
-          weight = e.dx - (current.dx + current.spanX);
+          weight = Math.max(0, e.dx + e.spanX - (current.dx + current.spanX));
           break;
         default:
           weight = Number.MAX_VALUE;
       }
 
-      return {
+      const obj = {
         index: e.index,
         originDx: e.originDx,
         originDy: e.originDy,
         weight,
       };
+
+      return obj;
     })
     .sort((a, b) => a.weight - b.weight);
-
   const best = candidates[0];
   if (!best) return undefined;
 

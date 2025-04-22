@@ -26,6 +26,19 @@ export namespace Grid {
     R270 = 270,
   }
 
+  export function numberToRotation(value: number) {
+    switch (value % 4) {
+      case 0:
+        return Rotation.R0;
+      case 1:
+        return Rotation.R90;
+      case 2:
+        return Rotation.R180;
+      case 3:
+        return Rotation.R270;
+    }
+  }
+
   export function rotateDirection(
     direction: Grid.Direction,
     rotation: Grid.Rotation,
@@ -395,6 +408,7 @@ export namespace Grid {
 
     export function getElementPositionMap(
       value: ModuleType,
+      rotation: Grid.Rotation,
     ): Module.ElementDimension[] {
       const archetype = toArchetype(value);
       let result: Module.ElementDimension[] = [];
@@ -546,14 +560,48 @@ export namespace Grid {
       }
 
       //System Element for all module types
-
       result.push({
         index: 255,
-        dx: 1,
-        dy: 4,
-        spanX: 2,
+        dx: 1.5,
+        dy: 3,
+        spanX: 1,
         spanY: 1,
       });
+
+      // Apply rotation to the element positions
+      switch (rotation) {
+        case Rotation.R0:
+          break;
+        case Rotation.R90:
+          result = result.map((e) => ({
+            ...e,
+            dx: e.dy,
+            dy: 3 - e.dx,
+            spanX: e.spanY,
+            spanY: e.spanX,
+          }));
+
+          break;
+        case Rotation.R180:
+          result = result.map((e) => ({
+            ...e,
+            dx: 4 - e.dx - e.spanX,
+            dy: 4 - e.dy - e.spanY,
+          }));
+
+          break;
+        case Rotation.R270:
+          result = result.map((e) => ({
+            ...e,
+            dx: 3 - e.dy,
+            dy: e.dx,
+            spanX: e.spanY,
+            spanY: e.spanX,
+          }));
+
+          break;
+      }
+
       return result;
     }
 

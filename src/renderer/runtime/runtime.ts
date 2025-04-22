@@ -1429,7 +1429,10 @@ export class ModuleData extends NodeData {
   ) {
     super();
     this.pages = [];
-    this.elementPositionMap = Grid.Module.getElementPositionMap(type);
+    this.elementPositionMap = Grid.Module.getElementPositionMap(
+      type,
+      Grid.numberToRotation(rot),
+    );
   }
 
   public isValid() {
