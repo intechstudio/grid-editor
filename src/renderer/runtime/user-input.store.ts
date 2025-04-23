@@ -4,7 +4,7 @@ import { appSettings } from "./app-helper.store";
 import { runtime_manager } from "./runtime-manager.store";
 import { Subscriber } from "svelte/motion";
 import { Grid } from "../lib/_utils";
-import { GridAction } from "./runtime";
+import { selected_actions } from "./selected-actions.store";
 
 export type UserInputValue = {
   dx: number;
@@ -71,11 +71,13 @@ export class UserInput implements Writable<UserInputValue> {
   // Set the entire object
   public set(value: UserInputValue) {
     this._internal.set(value);
+    selected_actions.set([]);
   }
 
   // Update the object with a partial update function
   public update(updater: Updater<UserInputValue>) {
     this._internal.update(updater);
+    selected_actions.set([]);
   }
 
   // Process incoming events
@@ -175,8 +177,3 @@ export class UserInput implements Writable<UserInputValue> {
 }
 
 export const user_input = new UserInput();
-
-export const selected_actions: Writable<GridAction[]> = writable([]);
-user_input.subscribe(() => {
-  selected_actions.set([]);
-});

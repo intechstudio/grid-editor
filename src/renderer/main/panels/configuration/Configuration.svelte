@@ -17,9 +17,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy, onMount } from "svelte";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
-
-  import { selected_actions } from "./../../../runtime/user-input.store";
-
+  import { selected_actions } from "./../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import {
     mergeActionsToCode,
@@ -32,6 +30,7 @@
     clearElement,
     pasteActions,
   } from "../../../runtime/operations";
+  import { isPasteActionsEnabled } from "./components/Toolbar";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -192,7 +191,11 @@
       handleCut();
       e.preventDefault();
       e.stopPropagation();
-    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+    } else if (
+      (e.ctrlKey || e.metaKey) &&
+      e.key.toLowerCase() === "v" &&
+      $isPasteActionsEnabled
+    ) {
       console.log("Ctrl + V = Paste actions");
       handlePaste();
       e.preventDefault();
