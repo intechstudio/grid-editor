@@ -39,9 +39,6 @@ async function prepareForBlockTest(category, blockName) {
   await configPage.removeAllActions();
   await configPage.noActionAddActionButton.isVisible();
   await configPage.openAndAddActionBlock(category, blockName);
-  if (blockName == "Repeater Loop") {
-    configPage.openLoopTimes();
-  }
   if (category == "element") {
     await configPage.clickCategoryCheckboxFields(blockName);
   }
