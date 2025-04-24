@@ -1,16 +1,9 @@
 <script lang="ts">
-  import { GridAction, GridEvent, GridElement } from "./../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
-  import {
-    beforeUpdate,
-    createEventDispatcher,
-    onDestroy,
-    onMount,
-  } from "svelte";
+  import { beforeUpdate, createEventDispatcher, onMount } from "svelte";
 
-  import { monaco_editor } from "$lib/CustomMonaco";
   import { ElementType } from "@intechstudio/grid-protocol";
-  import { monaco_elementtype } from "../../lib/CustomMonaco";
+  import { MonacoEditor } from "../../lib/monaco";
 
   const dispatch = createEventDispatcher();
 
@@ -44,19 +37,14 @@
 
   onMount(() => {
     input_buffer = value;
-
-    monaco_elementtype.set(
-      restrictScopeTo == ElementType.FADER
-        ? ElementType.POTMETER
-        : restrictScopeTo,
-    );
-    editor = monaco_editor.create(monaco_block, {
+    editor = MonacoEditor.create(monaco_block, {
       value: value,
       language: "intech_lua",
       theme: "my-theme",
       minimap: {
         enabled: false,
       },
+      restrictScope: restrictScopeTo,
       readOnly: disabled,
       fontSize: $appSettings.persistent.fontSize,
       lineNumbers: "off",
@@ -74,7 +62,7 @@
       },
       contextmenu: false,
       scrollPredominantAxis: false,
-      scrollBeyondLastLine: 0,
+      scrollBeyondLastLine: false,
       suggest: {
         showIcons: false,
         showWords: true,

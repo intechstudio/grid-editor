@@ -15,9 +15,10 @@ import {
 } from "../runtime/runtime";
 import { Script } from "./_script_parsers";
 import { ElementType } from "@intechstudio/grid-protocol";
-import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
+
+type MeltComboData = Grid.Types.MeltComboData;
 
 export namespace SimpleColor {
   export enum Channel {
@@ -32,15 +33,6 @@ export namespace SimpleColor {
     green: string;
     blue: string;
     alpha: string;
-  };
-
-  type MeltComboData = {
-    value: string;
-    suggestions: MeltComboSuggestion[];
-    validator: {
-      value: boolean;
-      func: (e: string) => boolean;
-    };
   };
 
   export class ParsedData {

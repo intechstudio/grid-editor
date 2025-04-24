@@ -23,8 +23,6 @@
       <Configuration />
     {:else if $appSettings.rightPanel == "Preferences"}
       <Preferences />
-    {:else if $appSettings.rightPanel == "MIDI Monitor"}
-      <MidiMonitor />
     {/if}
   </div>
 </div>

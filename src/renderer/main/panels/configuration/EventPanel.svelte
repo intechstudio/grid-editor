@@ -75,6 +75,10 @@
   }
 
   function handleMouseEnter(event: GridEvent) {
+    if (options === defaultOptions) {
+      return;
+    }
+
     const ui = get(user_input);
     const element = event.parent as GridElement;
     const page = element.parent as GridPage;

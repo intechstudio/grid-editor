@@ -25,5 +25,5 @@ test("should open Preferences when clicked", async ({ page }) => {
 
 test("should open MIDI Monitor when clicked", async ({ page }) => {
   await navbarPage.clickNavItem("midiMonitor");
-  await expect(page.getByText("MIDI Monitor")).toBeVisible();
+  await expect(page.getByTestId("midi-monitor")).toBeVisible();
 });
