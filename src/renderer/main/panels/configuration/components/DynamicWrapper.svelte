@@ -65,10 +65,14 @@
   }
 
   function revertToSynced() {
+    if (action.script === action.synced) {
+      return;
+    }
+
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
-      true,
+      action.isValid(),
     );
   }
 
