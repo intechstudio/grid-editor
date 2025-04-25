@@ -22,7 +22,6 @@ import {
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
-import { Runtime } from "./string-table";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
