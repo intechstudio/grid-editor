@@ -12,10 +12,11 @@
 
   import { logger } from "../../../runtime/runtime.store";
   import {
-    selected_actions,
     user_input,
     UserInputValue,
   } from "./../../../runtime/user-input.store";
+
+  import { selected_actions } from "./../../../runtime/selected-actions.store";
 
   import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";

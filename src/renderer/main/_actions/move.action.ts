@@ -1,7 +1,7 @@
 import { get, writable, type Writable } from "svelte/store";
 import { GridAction, GridEvent } from "../../runtime/runtime";
 import { dropActions } from "../../runtime/operations";
-import { selected_actions } from "../../runtime/user-input.store";
+import { selected_actions } from "../../runtime/selected-actions.store";
 
 export const draggedActions: Writable<GridAction[]> = writable([]);
 export type DropTarget = { event: GridEvent; index: number };

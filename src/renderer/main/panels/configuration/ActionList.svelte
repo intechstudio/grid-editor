@@ -12,13 +12,14 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
-  import { selected_actions } from "../../../runtime/user-input.store";
+  import { selected_actions } from "../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
   import { latestComponentVersionKeys } from "../../../lib/_configs";
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
+  import { isPasteActionsEnabled } from "./components/Toolbar";
 
   export let event: GridEvent;
   export let targetPanel: HTMLElement;
@@ -65,6 +66,10 @@
   }
 
   function handleSelectAll() {
+    if (!event) {
+      return;
+    }
+
     const selected = get(selected_actions);
     if (event.config.every((e) => selected.includes(e))) {
       selected_actions.set([]);
@@ -121,9 +126,12 @@
       </div>
       <Options
         testid="select_all"
-        selected={$event?.config.every((e) => $selected_actions.includes(e))}
-        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
-        disabled={$event?.config.length === 0}
+        selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
+          false}
+        halfSelected={$event?.config.some((e) =>
+          $selected_actions.includes(e),
+        ) ?? false}
+        disabled={($event?.config?.length ?? 0) === 0}
         on:select={handleSelectAll}
       />
     </div>

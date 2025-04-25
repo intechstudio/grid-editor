@@ -5,7 +5,7 @@
   import { onMount } from "svelte";
   import { GridAction, GridEvent } from "../../runtime/runtime";
   import { get } from "svelte/store";
-  import { selected_actions } from "../../runtime/user-input.store";
+  import { selected_actions } from "../../runtime/selected-actions.store";
 
   const dispatch = createEventDispatcher();
 

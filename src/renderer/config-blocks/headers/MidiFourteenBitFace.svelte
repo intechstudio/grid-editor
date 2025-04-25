@@ -71,7 +71,7 @@
     <span class="mr-2 w-fit whitespace-nowrap"
       >{config.information.displayName}</span
     >
-    <div class="bg-primary p-1 my-auto rounded truncate">
+    <div class="bg-black/25 p-1 my-auto rounded truncate">
       <span class="whitespace-nowrap text-white text-opacity-60">
         {`(${scriptSegments.join(", ")})`}
       </span>
