@@ -187,7 +187,7 @@ export namespace GridInstruction {
     ) {
       super(virtual);
       const actionString =
-        Grid.Protocol.scriptStart + script + Grid.Protocol.scriptEnd;
+        Grid.Protocol.scriptStart + btoa(script) + Grid.Protocol.scriptEnd;
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,

@@ -5,7 +5,7 @@
   import { onMount } from "svelte";
   import { GridAction, GridEvent } from "../../runtime/runtime";
   import { get } from "svelte/store";
-  import { selected_actions } from "../../runtime/user-input.store";
+  import { selected_actions } from "../../runtime/selected-actions.store";
 
   const dispatch = createEventDispatcher();
 
@@ -13,7 +13,6 @@
   let event = config.parent as GridEvent;
 
   function handleClick(e) {
-    console.log("hmmm");
     dispatch("toggle");
   }
 

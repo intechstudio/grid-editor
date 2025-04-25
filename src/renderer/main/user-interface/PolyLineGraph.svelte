@@ -39,7 +39,7 @@
 </script>
 
 <container
-  class="container flex justify-center flex-col border border-green-400"
+  class="container flex justify-center flex-col border border-green-400 bg-secondary bg-opacity-40"
   bind:offsetWidth={width}
 >
   <div class="relative">

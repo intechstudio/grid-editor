@@ -125,6 +125,10 @@
       { value: "2", info: "3-step" },
       { value: "3", info: "4-step" },
     ],
+    [
+      { value: "127", info: "7 bit MIDI (default)" },
+      { value: "16383", info: "14 bit MIDI (high res)" },
+    ],
   ];
 
   let minMaxEnabled = false;
@@ -185,6 +189,7 @@
         disabled={!minMaxEnabled}
         bind:value={bma}
         validator={validators[2].func}
+        suggestions={suggestions[1]}
         on:input={(e) => {
           const { value, validationError } = e.detail;
           validators[2].value = !validationError;

@@ -1,7 +1,7 @@
 import { Analytics } from "./analytics";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { logger } from "./runtime.store";
-import { selected_actions } from "./user-input.store";
+import { selected_actions } from "./selected-actions.store";
 
 import {
   GridOperationResult,
@@ -22,7 +22,6 @@ import {
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
-import { Runtime } from "./string-table";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
