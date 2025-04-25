@@ -16,24 +16,19 @@
     SvgIcon,
   } from "@intechstudio/grid-uikit";
   import { onDestroy } from "svelte";
-  import {
-    grid,
-    NumberToEventType,
-    GridScript,
-  } from "@intechstudio/grid-protocol";
+  import { NumberToEventType, GridScript } from "@intechstudio/grid-protocol";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
-
-  import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
-
-  import { monaco_editor } from "../../lib/CustomMonaco";
-
-  import { beforeUpdate, afterUpdate, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { clickOutside } from "../_actions/click-outside.action";
-  import { syncWithGrid, updateAction } from "../../runtime/operations";
+  import { updateAction } from "../../runtime/operations";
+  import { MonacoEditor } from "../../lib/monaco";
+  import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
 
   export let monaco_action: GridAction;
+  let event: GridEvent;
+  let element: GridElement;
 
   let monaco_block;
 
@@ -45,9 +40,6 @@
   let errorMesssage = "";
 
   let commited = { script: "", name: "" };
-
-  let scrollDown;
-  let autoscroll;
 
   let scriptLength = undefined;
   let pathSnippets = [];
@@ -89,8 +81,8 @@
     name =
       typeof action.name !== "undefined"
         ? action.name
-        : $monaco_action.information.displayName;
-    monaco_action;
+        : action.information.displayName;
+    action;
 
     pathSnippets = [
       `${module.type} (${module.dx},${module.dy})`,
@@ -105,17 +97,20 @@
 
   onMount(() => {
     monaco_action = get(modal).args.monaco_action;
+    event = monaco_action.parent as GridEvent;
+    element = event.parent as GridElement;
+
     commited.name = monaco_action.name;
     commited.script = monaco_action.script;
-    scriptLength = (monaco_action.parent as GridEvent).toLua().length;
+    scriptLength = event.toLua().length;
 
     //Creating and configuring the editor
-    editor = monaco_editor.create(monaco_block, {
+    editor = MonacoEditor.create(monaco_block, {
       value: GridScript.expandScript(monaco_action.script),
       language: "intech_lua",
       theme: "my-theme",
       fontSize: $appSettings.persistent.fontSize,
-
+      restrictScope: $element.type,
       folding: false,
 
       renderLineHighlight: "none",
@@ -169,18 +164,6 @@
     $monaco_action.name = commited.name;
     $monaco_action.script = commited.script;
   }
-
-  beforeUpdate(() => {
-    autoscroll =
-      scrollDown &&
-      scrollDown.offsetHeight + scrollDown.scrollTop >
-        scrollDown.scrollHeight - 20;
-  });
-
-  afterUpdate(() => {
-    if (autoscroll && scrollDown)
-      scrollDown.scrollTo(0, scrollDown.scrollHeight);
-  });
 
   async function handleCommitClicked() {
     updateAction(
@@ -323,7 +306,7 @@
 
     <div
       id="monaco-container"
-      class="{$$props.class} flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
+      class="flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
     >
       <div
         class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
@@ -338,23 +321,13 @@
       <div bind:this={monaco_block} class="flex w-full h-full" />
     </div>
 
-    <span class="mt-2">Debug Text:</span>
-    <div
-      bind:this={scrollDown}
-      class="flex-col w-full h-80 flex overflow-y-auto bg-primary border border-black"
-    >
-      {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
-      {/each}
+    <div class="h-1/4 flex w-full">
+      <DebugTextList />
     </div>
-  </div>
-</MoltenModal>
+  </div></MoltenModal
+>
 
 <style global>
-  .debugtexty:nth-child(even) {
-    @apply bg-black;
-    @apply bg-opacity-20;
-  }
   .monaco-editor .suggest-widget {
     width: 250px !important;
     overflow: hidden !important;

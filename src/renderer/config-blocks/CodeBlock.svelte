@@ -39,32 +39,20 @@
 </script>
 
 <script lang="ts">
-  import {
-    GridAction,
-    GridEvent,
-    GridElement,
-    ActionData,
-  } from "./../runtime/runtime";
+  import { GridAction, ActionData, GridEvent } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
-  import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { monaco_elementtype } from "../lib/CustomMonaco";
-
-  import { monaco_editor } from "$lib/CustomMonaco";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
-  import { get } from "svelte/store";
-
-  const dispatch = createEventDispatcher();
+  import { MonacoEditor } from "../lib/monaco";
 
   export let config: GridAction;
-
-  export let index: number;
 
   let codePreview: HTMLElement;
 
@@ -105,10 +93,7 @@
 
   function handleConfigChange(config: ActionData) {
     codePreview.innerHTML = GridScript.expandScript(config.script);
-    monaco_editor.colorizeElement(codePreview, {
-      theme: "my-theme",
-      tabSize: 2,
-    });
+    MonacoEditor.colorize(codePreview);
   }
 
   $: if (codePreview && !$config.invalid) {
@@ -116,12 +101,6 @@
   }
 
   async function open_monaco() {
-    const restrictScopeTo = config.parent.getInfo().element.type;
-    monaco_elementtype.set(
-      restrictScopeTo == ElementType.FADER
-        ? ElementType.POTMETER
-        : restrictScopeTo,
-    );
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },

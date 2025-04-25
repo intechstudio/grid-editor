@@ -200,6 +200,10 @@
       case "profile": {
         const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
         await page.load();
+        if (!page.isValid()) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+
         config.type = (page.parent as GridModule).type;
         config.configs = page.control_elements.map((element) => {
           return {
@@ -224,6 +228,10 @@
         );
         await element.load();
 
+        if (!element.isValid()) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+
         config.type = element.type;
         config.configs = {
           events: element.events.map((ev) => {
@@ -239,6 +247,9 @@
 
       case "snippet": {
         const selected = get(selected_actions);
+        if (selected.some((e) => !e.isValid())) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
         if (selected.length === 0) {
           logger.set({
             type: "fail",

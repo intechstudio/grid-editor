@@ -16,7 +16,6 @@
   } from "./DebugMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
-  import { grid } from "@intechstudio/grid-protocol";
   import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
@@ -24,6 +23,7 @@
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
+  import DebugTextList from "./DebugTextList.svelte";
 
   let event: GridEvent;
 
@@ -194,13 +194,15 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
-  <MoltenInput bind:target={immediateCommand} />
-  <MoltenPushButton
-    click={() => {
-      runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
-    }}
-    text="Immediate"
-  />
+  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+    <MoltenInput bind:target={immediateCommand} />
+    <MoltenPushButton
+      click={() => {
+        runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
+      }}
+      text="Immediate"
+    />
+  </div>
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
@@ -235,16 +237,7 @@
     horizontal={true}
   >
     <Pane class="overflow-hidden bg-primary">
-      {#if $debug_monitor_store.length != 0}
-        <div class="text-white mt-2">Debug Text:</div>
-        <div
-          class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px] h-full"
-        >
-          {#each $debug_monitor_store as debug, i}
-            <span class="debugtexty px-1 py-0.5">{debug}</span>
-          {/each}
-        </div>
-      {/if}
+      <DebugTextList />
     </Pane>
     <Pane class="overflow-hidden bg-primary">
       {#if $debug_lowlevel_store.length != 0}
@@ -433,10 +426,6 @@
   }
   .outbound.smallsvgtext {
     fill: rgba(44, 44, 80, 1);
-  }
-
-  .debugtexty:nth-child(even) {
-    @apply bg-select;
   }
 
   .output {

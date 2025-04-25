@@ -12,5 +12,6 @@ export namespace ProfileCloud {
   export enum ErrorText {
     NO_DEVICE = `No device is connected.`,
     EMPTY_SNIPPET = "Snippet can not be created. No action block(s) selected.",
+    SYNTAX_ERROR = `Configuration with syntax error(s) can not be saved.`,
   }
 }

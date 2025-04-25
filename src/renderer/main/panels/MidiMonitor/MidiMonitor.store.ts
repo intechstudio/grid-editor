@@ -247,7 +247,7 @@ function createMidiMonitor(max_length) {
             cp.PARAM2,
             descr.class_instr,
           ),
-          device: new DeviceInfo(device.type, bc.SX, bc.SY),
+          device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
         };
         return [...s, item];
       });
@@ -283,7 +283,7 @@ function createSysExMonitor(max_val) {
           date: Date.now(),
           type: "SYSEX",
           data: new SysExMessage(cp.CHANNEL, descr.class_instr, descr.raw),
-          device: new DeviceInfo(device.type, bc.SX, bc.SY),
+          device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
         };
 
         return [...s, item];
@@ -292,6 +292,6 @@ function createSysExMonitor(max_val) {
   };
 }
 
-export const maxMidi = 32;
+export const maxMidi = 128;
 export const midi_monitor_store = createMidiMonitor(maxMidi);
 export const sysex_monitor_store = createSysExMonitor(maxMidi);
