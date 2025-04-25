@@ -11,7 +11,8 @@
 
   const dispatch = createEventDispatcher();
 
-  function handlePaste(index: number) {
+  function handlePaste(e: any) {
+    const { index } = e.detail;
     dispatch("paste", { index: index });
   }
 
@@ -24,7 +25,7 @@
   <AddActionButton
     {target}
     on:new-config={handleNewConfig}
-    on:click={() => handlePaste(target.index)}
+    on:paste={handlePaste}
   />
   {#if $appSettings.isMultiView}
     <button

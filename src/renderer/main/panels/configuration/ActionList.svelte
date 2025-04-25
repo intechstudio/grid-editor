@@ -31,7 +31,8 @@
     addActions(event, index, ...configs);
   }
 
-  function handlePaste(index: number | undefined) {
+  function handlePaste(e: any) {
+    const { index } = e.detail;
     pasteActions(event, index);
   }
 
@@ -76,39 +77,39 @@
       selected_actions.set(event.config);
     }
   }
+
+  function handleKeyDown(e: KeyboardEvent) {
+    //Ignore if origin node is input
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+    ) {
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+      console.log("Ctrl + A = Select all actions");
+      handleSelectAll();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Paste actions");
+      handlePaste(
+        new CustomEvent("paste", { detail: { index: event.config.length } }),
+      );
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
 </script>
 
 {#key $event?.id}
   <div
     role="tabpanel"
     tabindex="0"
-    on:keydown={(e) => {
-      //Ignore if origin node is input
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.target instanceof HTMLSelectElement ||
-        (e.target instanceof Element &&
-          e.target.hasAttribute("contenteditable"))
-      ) {
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-        console.log("Ctrl + A = Select all actions");
-        handleSelectAll();
-        e.preventDefault();
-        e.stopPropagation();
-      } else if (
-        (e.ctrlKey || e.metaKey) &&
-        e.key.toLowerCase() === "v" &&
-        $isPasteActionsEnabled
-      ) {
-        handlePaste();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }}
+    on:keydown={handleKeyDown}
     class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
   >
     <div
