@@ -1,11 +1,9 @@
 const colors = require("tailwindcss/colors");
-const uiKitConfig = require("@intechstudio/grid-uikit/tailwind.config");
 
 const config = {
   mode: "jit",
   content: ["./src/renderer/**/*.{html,js,svelte,ts}"],
   darkMode: "class",
-  presets: [uiKitConfig], // Use the UI kit's Tailwind configuration as a preset
   theme: {
     fontFamily: {
       body: ["roboto"],
