@@ -437,12 +437,6 @@
 </button>
 
 <style global>
-  .activator-button {
-    text-align: left;
-    border: 1px solid rgba(0, 0, 0, 0);
-    outline: 0px solid rgba(0, 0, 0, 0);
-  }
-
   .configpanel.activator-button:focus-within {
     border-color: gray;
   }
@@ -481,11 +475,6 @@
     left: 50%;
     transform: translate(-50%, -50%);
     outline: 1px solid rgba(0, 0, 0, 0);
-  }
-
-  .activator-button:focus {
-    border-color: rgb(68, 68, 209) !important;
-    outline-color: rgb(68, 68, 209) !important;
   }
 
   :root {
