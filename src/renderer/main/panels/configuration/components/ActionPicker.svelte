@@ -30,7 +30,7 @@
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
-  export let index;
+  export let index: number;
   export let referenceElement = undefined;
   export let event: GridEvent;
 
@@ -262,12 +262,9 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function handlePaste() {
-    const event = new CustomEvent("paste", {
-      detail: {
-        index: index,
-      },
+    dispatch("paste", {
+      index: index,
     });
-    referenceElement.dispatchEvent(event);
     handleClose();
   }
 
@@ -329,13 +326,10 @@
       }
     }
 
-    const event = new CustomEvent("new-config", {
-      detail: {
-        configs: configs,
-        index: index,
-      },
+    dispatch("new-config", {
+      configs: configs,
+      index: index,
     });
-    referenceElement.dispatchEvent(event);
 
     handleClose();
   }
@@ -364,7 +358,7 @@
     filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
   }
 
-  function handleSearchBarKeyDown(e: CustomEvent<any>) {
+  function handleSearchBarKeyDown(e: any) {
     const { key } = e.detail as KeyboardEvent;
     if (key !== "Enter") {
       return;

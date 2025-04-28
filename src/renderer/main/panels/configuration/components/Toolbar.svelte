@@ -12,7 +12,7 @@
   } from "./Toolbar";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
-  import { selected_actions } from "./../../../../runtime/user-input.store";
+  import { selected_actions } from "./../../../../runtime/selected-actions.store";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import { get } from "svelte/store";
   import {

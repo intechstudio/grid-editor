@@ -5,7 +5,7 @@
   import { onMount } from "svelte";
   import { GridAction, GridEvent } from "../../runtime/runtime";
   import { get } from "svelte/store";
-  import { selected_actions } from "../../runtime/user-input.store";
+  import { selected_actions } from "../../runtime/selected-actions.store";
 
   const dispatch = createEventDispatcher();
 
@@ -13,7 +13,6 @@
   let event = config.parent as GridEvent;
 
   function handleClick(e) {
-    console.log("hmmm");
     dispatch("toggle");
   }
 
@@ -75,16 +74,18 @@
 <div
   role="button"
   tabindex="0"
-  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary overflow-hidden pointer-events-auto"
+  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary overflow-hidden pointer-events-none"
   on:click={handleClick}
 >
   {#if isEdit}
-    <MoltenInput
-      target={name}
-      on:input={handleNameInput}
-      on:change={handleNameChange}
-      availableCharacters={$event.getAvailableChars()}
-    />
+    <div class="pointer-events-auto flex flex-grow">
+      <MoltenInput
+        target={name}
+        on:input={handleNameInput}
+        on:change={handleNameChange}
+        availableCharacters={$event.getAvailableChars()}
+      />
+    </div>
   {:else}
     <div class="w-0 flex-grow min-w-0 items-start text-left">
       <span class="truncate block">
@@ -98,7 +99,7 @@
   {#if $appSettings.persistent.editableBlockNames}
     <button
       on:click|stopPropagation={handleEditClicked}
-      class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded"
+      class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded pointer-events-auto"
     >
       <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
     </button>

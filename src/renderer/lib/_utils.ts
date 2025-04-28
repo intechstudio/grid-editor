@@ -1,5 +1,6 @@
 import convert from "color-convert";
 import { ElementType, grid, ModuleType } from "@intechstudio/grid-protocol";
+import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -622,5 +623,17 @@ export namespace Grid {
     export function toArchetype(type: ModuleType): Module.Archetype {
       return typeToArchetypeMap[type];
     }
+  }
+  //TODO: Move it to ui-kit?
+  export namespace Types {
+    export type MeltComboData = {
+      value: string;
+      suggestions: MeltComboSuggestion[];
+      title?: string;
+      validator: {
+        value: boolean;
+        func?: (e: string) => boolean;
+      };
+    };
   }
 }

@@ -287,9 +287,10 @@ export class ActionData extends NodeData {
             action.information.type,
           )
         ) {
-          return indentation - 1;
+          indentation -= 1;
+          break;
         } else {
-          return indentation;
+          break;
         }
       }
 
@@ -299,6 +300,7 @@ export class ActionData extends NodeData {
         --indentation;
       }
     }
+    return Math.max(indentation, 0);
   }
 }
 

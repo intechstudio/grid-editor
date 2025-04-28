@@ -7,10 +7,10 @@
   import ActionPicker from "./ActionPicker.svelte";
   import { GridEvent } from "../../../../runtime/runtime";
   import { addActions, pasteActions } from "../../../../runtime/operations";
+  import { isPasteActionsEnabled } from "./Toolbar";
 
   let showActionPicker = false;
   let referenceElement = undefined;
-  let pasteDisabled = $appClipboard?.key !== ClipboardKey.ACTION_BLOCKS;
 
   export let text: string;
   export let target: { event: GridEvent; index: number };
@@ -34,12 +34,7 @@
   }
 </script>
 
-<container
-  bind:this={referenceElement}
-  on:new-config={handleNewConfig}
-  on:paste={handlePaste}
-  class="relativ flex w-full"
->
+<container bind:this={referenceElement} class="relativ flex w-full">
   <div
     class="text-white/50 w-full grid grid-cols-[1fr_auto] py-2 my-4 px-5 justify-between items-center gap-2 bg-white/5"
   >
@@ -47,9 +42,9 @@
     <div class="flex flex-row gap-2">
       <button
         class="flex rounded px-3 py-1 bg-commit items-center"
-        class:opacity-50={pasteDisabled}
+        class:opacity-50={!$isPasteActionsEnabled}
         on:click={(e) => handlePaste({ detail: { index: target.index } })}
-        disabled={pasteDisabled}
+        disabled={!$isPasteActionsEnabled}
       >
         <span class="text-white"> Paste </span>
       </button>
@@ -71,6 +66,8 @@
       index={target.index}
       {referenceElement}
       on:close={handleCloseActionPicker}
+      on:new-config={handleNewConfig}
+      on:paste={handlePaste}
     />
   {/if}
 </container>

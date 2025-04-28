@@ -65,10 +65,14 @@
   }
 
   function revertToSynced() {
+    if (action.script === action.synced) {
+      return;
+    }
+
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
-      false,
+      action.isValid(),
     );
   }
 
@@ -80,7 +84,6 @@
       undefined,
       new ActionData(short, GridAction.getInformation(short).defaultLua),
     );
-    console.log({ short, script, name, oldAction, newAction, parent });
     replaceAction(parent, oldAction, newAction);
     toggled = true;
     lastOpenedActionblocksInsert(newAction.short);
@@ -95,9 +98,11 @@
   }
 
   function handleSendActionToGrid() {
-    if (!action.invalid) {
-      syncWithGrid(action);
+    if (!action.isValid()) {
+      return;
     }
+
+    syncWithGrid(action);
   }
 
   function handleToggle(e) {
@@ -178,7 +183,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {$action.invalid
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.isValid()
       ? 'border-error'
       : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}

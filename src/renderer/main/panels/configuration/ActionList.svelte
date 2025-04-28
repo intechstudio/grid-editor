@@ -12,10 +12,8 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
-  import {
-    selected_actions,
-    user_input,
-  } from "../../../runtime/user-input.store";
+  import { user_input } from "../../../runtime/user-input.store";
+  import { selected_actions } from "../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import Options from "./components/Options.svelte";
   import { Grid } from "../../../lib/_utils";
@@ -25,7 +23,6 @@
   import { Focus } from "../../_actions/focus.action";
 
   export let event: GridEvent;
-  export let targetPanel: HTMLElement;
   export let focusTrigger: string;
 
   let configList: HTMLElement;
@@ -35,7 +32,8 @@
     addActions(event, index, ...configs);
   }
 
-  function handlePaste(index: number | undefined) {
+  function handlePaste(e: any) {
+    const { index } = e.detail;
     pasteActions(event, index);
   }
 
@@ -69,11 +67,46 @@
   }
 
   function handleSelectAll() {
+    if (!event) {
+      return;
+    }
+
     const selected = get(selected_actions);
     if (event.config.every((e) => selected.includes(e))) {
       selected_actions.set([]);
     } else {
       selected_actions.set(event.config);
+    }
+  }
+
+  function handleKeyDown(e: KeyboardEvent) {
+    //Ignore if origin node is input
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+    ) {
+      return;
+    }
+
+    if (e.key === "Escape") {
+      const { dx, dy, elementnumber } = get(user_input);
+      Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+      console.log("Ctrl + A = Select all actions");
+      handleSelectAll();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Paste actions");
+      handlePaste(
+        new CustomEvent("paste", { detail: { index: event.config.length } }),
+      );
+      e.preventDefault();
+      e.stopPropagation();
     }
   }
 </script>
@@ -84,37 +117,7 @@
     role="tabpanel"
     tabindex="0"
     use:Focus.on={focusTrigger}
-    on:keydown={(e) => {
-      //Ignore if origin node is input
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.target instanceof HTMLSelectElement ||
-        (e.target instanceof Element &&
-          e.target.hasAttribute("contenteditable"))
-      ) {
-        return;
-      }
-
-      if (e.key === "Escape") {
-        const { dx, dy, elementnumber } = get(user_input);
-        Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-        console.log("Ctrl + A = Select all actions");
-        handleSelectAll();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-        console.log("Ctrl + V = Paste actions");
-        handlePaste();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }}
+    on:keydown={handleKeyDown}
     class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
   >
     <div
@@ -131,9 +134,12 @@
       </div>
       <Options
         testid="select_all"
-        selected={$event?.config.every((e) => $selected_actions.includes(e))}
-        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
-        disabled={$event?.config.length === 0}
+        selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
+          false}
+        halfSelected={$event?.config.some((e) =>
+          $selected_actions.includes(e),
+        ) ?? false}
+        disabled={($event?.config?.length ?? 0) === 0}
         on:select={handleSelectAll}
       />
     </div>

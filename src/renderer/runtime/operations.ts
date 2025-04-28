@@ -1,7 +1,7 @@
 import { Analytics } from "./analytics";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { logger } from "./runtime.store";
-import { selected_actions } from "./user-input.store";
+import { selected_actions } from "./selected-actions.store";
 
 import {
   GridOperationResult,
@@ -22,7 +22,6 @@ import {
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
-import { Runtime } from "./string-table";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -486,14 +485,17 @@ export async function dropActions(
   for (const action of actions) {
     const parent = action.parent as GridEvent;
     removed.push(...(await parent.remove(action)).removed);
+    parent.sendToGrid();
   }
 
   try {
     await target.insert(index, ...actions);
+    target.sendToGrid();
   } catch (e) {
     for (const obj of removed) {
       const parent = obj.action.parent as GridEvent;
       parent.insert(obj.index, obj.action);
+      parent.sendToGrid();
     }
     handleError(e);
   }
