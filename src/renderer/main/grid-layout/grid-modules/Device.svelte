@@ -402,9 +402,6 @@
           e.stopPropagation();
         }}
       >
-        <div class="absolute w-full h-full bg-red-500/25 flex text-white">
-          {elementNumber}
-        </div>
         <ActiveChanges
           {element}
           {isLeftCut}
