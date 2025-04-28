@@ -1,7 +1,7 @@
-@import "@intechstudio/grid-uikit/dist/app.css";
-
 /* Write your global styles here, in PostCSS syntax */
 @tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @font-face {
   font-family: "GT Pressura Pro M Trial";
@@ -109,8 +109,6 @@
   /* Legacy iOS */
 }
 
-@tailwind components;
-
 html {
   font-size: 12px;
 }
@@ -119,5 +117,3 @@ body {
   @apply select-none;
   @apply m-0 flex h-screen flex-col bg-secondary p-0 font-roboto;
 }
-
-@tailwind utilities;

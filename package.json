@@ -34,14 +34,14 @@
     "svelte": "^4.2.0",
     "svelte-grid": "^1.11.2",
     "svelte-preprocess": "^5.0.3",
-    "tailwindcss": "^3.1.8",
+    "tailwindcss": "^3.4.17",
     "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vitest": "^1.6.1"
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20250321.1539",
-    "@intechstudio/grid-uikit": "1.20250408.1231",
+    "@intechstudio/grid-uikit": "1.20250425.1503",
     "@intechstudio/profile-cloud-webcomponent": "1.20250318.1527",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",

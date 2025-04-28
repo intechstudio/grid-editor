@@ -153,11 +153,12 @@
 <potmeter-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <MeltCombo
     title={"Bit depth"}
-    bind:value={pmo}
+    value={pmo}
     suggestions={suggestions[0]}
     validator={validators[0].func}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      pmo = value;
       validators[0].value = !validationError;
       sendData();
     }}
@@ -173,10 +174,11 @@
       <MeltCombo
         title={"Min"}
         disabled={!minMaxEnabled}
-        bind:value={pmi}
+        value={pmi}
         validator={validators[1].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          pmi = value;
           validators[1].value = !validationError;
           sendData();
         }}
@@ -188,11 +190,12 @@
       <MeltCombo
         title={"Max"}
         disabled={!minMaxEnabled}
-        bind:value={pma}
+        value={pma}
         suggestions={suggestions[1]}
         validator={validators[2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          pma = value;
           validators[2].value = !validationError;
           sendData();
         }}
