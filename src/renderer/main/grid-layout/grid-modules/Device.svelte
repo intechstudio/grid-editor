@@ -42,7 +42,7 @@
   } from "../../panels/profileCloud/ProfileCloud.js";
   import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
-  import { getNeighbour } from "../Device";
+  import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
   import { Focus } from "../../_actions/focus.action";
 
@@ -54,9 +54,7 @@
     element: GridElement,
     direction: Grid.Direction,
   ) {
-    const rotation = get(appSettings).persistent.moduleRotation;
-    const rotatedDirection = Grid.rotateDirection(direction, rotation);
-    const target = getNeighbour(element, rotatedDirection);
+    const target = getNeighbour(element, direction);
     if (!target) {
       return;
     }
@@ -394,6 +392,9 @@
           ],
         }}
         use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
+        use:KeyboardTarget.set={device
+          .findPage($user_input.pagenumber)
+          .findElement(elementNumber)}
         class="w-full h-full absolute element activator-button"
         on:click={(e) => {
           selectElement(elementNumber);
@@ -401,6 +402,9 @@
           e.stopPropagation();
         }}
       >
+        <div class="absolute w-full h-full bg-red-500/25 flex text-white">
+          {elementNumber}
+        </div>
         <ActiveChanges
           {element}
           {isLeftCut}

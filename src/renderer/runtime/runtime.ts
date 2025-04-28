@@ -29,7 +29,7 @@ import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
-import { user_input, UserInput } from "./user-input.store";
+import { user_input } from "./user-input.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -1416,7 +1416,6 @@ type DirectionMap = {
 
 export class ModuleData extends NodeData {
   public pages: Array<GridPage>;
-  public elementPositionMap: Grid.Module.ElementDimension[];
 
   constructor(
     public architecture: Architecture,
@@ -1431,10 +1430,6 @@ export class ModuleData extends NodeData {
   ) {
     super();
     this.pages = [];
-    this.elementPositionMap = Grid.Module.getElementPositionMap(
-      type,
-      Grid.numberToRotation(rot),
-    );
   }
 
   public isValid() {
@@ -1532,10 +1527,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   get pages() {
     return this.getField("pages");
-  }
-
-  get elementPositionMap() {
-    return this.getField("elementPositionMap");
   }
 
   // Setters

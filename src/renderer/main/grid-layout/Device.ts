@@ -1,4 +1,6 @@
+import { get } from "svelte/store";
 import { Grid } from "../../lib/_utils";
+import { appSettings } from "../../runtime/app-helper.store";
 import {
   GridElement,
   GridModule,
@@ -6,20 +8,66 @@ import {
   GridRuntime,
 } from "../../runtime/runtime";
 
-type PositionWithOrigin = Grid.Module.ElementDimension & {
+type ElementPosition = {
+  index: number;
+  dx: number;
+  dy: number;
+  width: number;
+  height: number;
   originDx: number;
   originDy: number;
 };
 
-function overlaps(
-  aStart: number,
-  aSpan: number,
-  bStart: number,
-  bSpan: number,
-) {
-  const aEnd = aStart + aSpan;
-  const bEnd = bStart + bSpan;
-  return aStart < bEnd && bStart < aEnd;
+export namespace KeyboardTarget {
+  const ATTRIBUTE_PREFIX = "data-kbtarget";
+
+  export function set(node: HTMLElement, data: GridElement) {
+    const page = data.parent as GridPage;
+    const module = page.parent as GridModule;
+    const index = data.elementIndex;
+    const [originDx, originDy] = [module.dx, module.dy];
+    node.classList.add(ATTRIBUTE_PREFIX);
+    node.setAttribute(`${ATTRIBUTE_PREFIX}-index`, String(index));
+    node.setAttribute(`${ATTRIBUTE_PREFIX}-originDx`, String(originDx));
+    node.setAttribute(`${ATTRIBUTE_PREFIX}-originDy`, String(originDy));
+  }
+
+  export function getAll(): ElementPosition[] {
+    const elements = document.getElementsByClassName(
+      ATTRIBUTE_PREFIX,
+    ) as HTMLCollectionOf<HTMLElement>;
+    const result: ElementPosition[] = [];
+
+    for (let i = 0; i < elements.length; i++) {
+      const e = elements[i];
+      const rect = e.getBoundingClientRect();
+
+      result.push({
+        index: Number(e.getAttribute(`${ATTRIBUTE_PREFIX}-index`)),
+        dx: rect.left + window.scrollX,
+        dy: rect.top + window.scrollY,
+        width: rect.width,
+        height: rect.height,
+        originDx: Number(e.getAttribute(`${ATTRIBUTE_PREFIX}-originDx`)),
+        originDy: Number(e.getAttribute(`${ATTRIBUTE_PREFIX}-originDy`)),
+      });
+    }
+
+    return result;
+  }
+}
+
+export function directionToVector(direction: Grid.Direction) {
+  switch (direction) {
+    case Grid.Direction.UP:
+      return [0, 1];
+    case Grid.Direction.DOWN:
+      return [0, -1];
+    case Grid.Direction.LEFT:
+      return [-1, 0];
+    case Grid.Direction.RIGHT:
+      return [1, 0];
+  }
 }
 
 export function getNeighbour(
@@ -30,110 +78,102 @@ export function getNeighbour(
   const module = page.parent as GridModule;
   const runtime = module.parent as GridRuntime;
 
-  let epm: PositionWithOrigin[] = module.elementPositionMap.map((e) => ({
-    ...e,
-    originDx: module.dx,
-    originDy: module.dy,
-  }));
+  const elements = KeyboardTarget.getAll();
 
-  const neighborOffsets = {
-    [Grid.Direction.LEFT]: [-1, 0, -4, 0],
-    [Grid.Direction.RIGHT]: [1, 0, 4, 0],
-    [Grid.Direction.UP]: [0, 1, 0, -4],
-    [Grid.Direction.DOWN]: [0, -1, 0, 4],
-  };
-
-  const [dxOffset, dyOffset, shiftX, shiftY] = neighborOffsets[direction];
-  const neighbor = runtime.findModule(
-    module.dx + dxOffset,
-    module.dy + dyOffset,
+  const current = elements.find(
+    (e) =>
+      e.index === element.elementIndex &&
+      e.originDx === module.dx &&
+      e.originDy === module.dy,
   );
 
-  if (neighbor) {
-    const extended = neighbor.elementPositionMap.map((e) => ({
-      ...e,
-      dx: e.dx + shiftX,
-      dy: e.dy + shiftY,
-      originDx: neighbor.dx,
-      originDy: neighbor.dy,
-    }));
-    epm.push(...extended);
+  if (!current) {
+    throw new Error("Current element not found");
   }
 
-  const current = module.elementPositionMap.find(
-    (e) => e.index === element.elementIndex,
-  );
+  const centerX = current.dx + current.width / 2;
+  const centerY = current.dy + current.height / 2;
 
-  if (!current) return;
-
-  const candidates = epm
+  const candidates = elements
+    //Get current and neighbouring modules elements
     .filter((e) => {
-      if (
-        e.originDx === module.dx &&
-        e.originDy === module.dy &&
-        e.index === element.elementIndex
-      ) {
-        return false;
-      }
-      let aligned = false;
-      let inDirection = false;
-
-      switch (direction) {
-        case Grid.Direction.UP:
-        case Grid.Direction.DOWN:
-          aligned = overlaps(current.dx, current.spanX, e.dx, e.spanX);
-          break;
-        case Grid.Direction.LEFT:
-        case Grid.Direction.RIGHT:
-          aligned = overlaps(current.dy, current.spanY, e.dy, e.spanY);
-          break;
-      }
-
-      switch (direction) {
-        case Grid.Direction.UP:
-          inDirection = e.dy < current.dy;
-          break;
-        case Grid.Direction.DOWN:
-          inDirection = e.dy > current.dy;
-          break;
-        case Grid.Direction.LEFT:
-          inDirection = e.dx < current.dx;
-          break;
-        case Grid.Direction.RIGHT:
-          inDirection = e.dx > current.dx;
-          break;
-      }
-      return aligned && inDirection;
+      const rotation = get(appSettings).persistent.moduleRotation;
+      const rotatedDirection = Grid.rotateDirection(direction, rotation);
+      const [dirX, dirY] = directionToVector(rotatedDirection);
+      return (
+        (e.originDx === current.originDx && e.originDy === current.originDy) ||
+        (e.originDx === current.originDx + dirX &&
+          e.originDy === current.originDy + dirY)
+      );
     })
+    //Get directional elements
+    .filter((e) => {
+      if (e === current) return false;
+
+      const eCenterX = e.dx + e.width / 2;
+      const eCenterY = e.dy + e.height / 2;
+
+      const deltaX = eCenterX - centerX;
+      const deltaY = eCenterY - centerY;
+
+      switch (direction) {
+        case Grid.Direction.UP:
+          if (deltaY >= 0) return false;
+          break;
+        case Grid.Direction.DOWN:
+          if (deltaY <= 0) return false;
+          break;
+        case Grid.Direction.LEFT:
+          if (deltaX >= 0) return false;
+          break;
+        case Grid.Direction.RIGHT:
+          if (deltaX <= 0) return false;
+          break;
+      }
+
+      return true;
+    })
+    //Get aligned elements
+    .filter((e) => {
+      switch (direction) {
+        case Grid.Direction.UP:
+        case Grid.Direction.DOWN:
+          if (
+            e.dx < current.dx + current.width &&
+            e.dx + e.width > current.dx
+          ) {
+            return true;
+          }
+          return false;
+
+        case Grid.Direction.LEFT:
+        case Grid.Direction.RIGHT:
+          if (
+            e.dy < current.dy + current.height &&
+            e.dy + e.height > current.dy
+          ) {
+            return true;
+          }
+          return false;
+      }
+    })
+    //Calculate distances
     .map((e) => {
-      let weight: number;
-      switch (direction) {
-        case Grid.Direction.UP:
-          weight = Math.max(0, current.dy + current.spanY - (e.dy + e.spanY));
-          break;
-        case Grid.Direction.DOWN:
-          weight = Math.max(0, e.dy + e.spanY - (current.dy + current.spanY));
-          break;
-        case Grid.Direction.LEFT:
-          weight = Math.max(0, current.dx + current.spanX - (e.dx + e.spanX));
-          break;
-        case Grid.Direction.RIGHT:
-          weight = Math.max(0, e.dx + e.spanX - (current.dx + current.spanX));
-          break;
-        default:
-          weight = Number.MAX_VALUE;
-      }
+      const eCenterX = e.dx + e.width / 2;
+      const eCenterY = e.dy + e.height / 2;
 
-      const obj = {
-        index: e.index,
-        originDx: e.originDx,
-        originDy: e.originDy,
-        weight,
+      const deltaX = eCenterX - centerX;
+      const deltaY = eCenterY - centerY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      return {
+        ...e,
+        distance,
       };
-
-      return obj;
     })
-    .sort((a, b) => a.weight - b.weight);
+    //Sort by shortest distance
+    .sort((a, b) => a.distance - b.distance);
+
   const best = candidates[0];
   if (!best) return undefined;
 
