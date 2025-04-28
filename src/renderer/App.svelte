@@ -293,14 +293,14 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
-    document.addEventListener("keyup", handleEscapePress);
+    document.addEventListener("keydown", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
     document.removeEventListener("contextmenu", preventContextMenuEvent);
-    document.removeEventListener("keyup", handleEscapePress);
+    document.removeEventListener("keydown", handleEscapePress);
   });
 
   function preventContextMenuEvent(e) {

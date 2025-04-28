@@ -57,7 +57,7 @@
       focusSearchBar();
     }
 
-    document.addEventListener("keyup", handleEscapePress);
+    document.addEventListener("keydown", handleEscapePress);
   });
 
   // Clean up the event listener when the component is destroyed
@@ -72,7 +72,7 @@
       mandatory: false,
     });
 
-    document.removeEventListener("keyup", handleEscapePress);
+    document.removeEventListener("keydown", handleEscapePress);
   });
 
   //////////////////////////////////////////////////////////////////////////////
