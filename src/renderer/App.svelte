@@ -315,7 +315,7 @@
   function handleEscapePress(e) {
     if (e.key === "Escape") {
       if ($modal) {
-        modal.close();
+        modal.tryClose();
         e.preventDefault();
         e.stopPropagation();
       }
