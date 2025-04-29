@@ -194,7 +194,7 @@ export function dropzone(node: HTMLElement, params: DropParameters) {
     const { dropped } = e.detail;
     const { event, index } = params;
     dropActions(event, index, dropped).catch((e) => {
-      console.log(e);
+      console.warn(e);
     });
   }
 

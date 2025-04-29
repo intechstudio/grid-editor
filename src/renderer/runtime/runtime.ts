@@ -1957,7 +1957,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       moduleType === undefined ||
       heartbeat_class_param === undefined
     ) {
-      console.log(
+      console.warn(
         heartbeat_class_param.HWCFG,
         "ERROR",
         header_param,

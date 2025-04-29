@@ -89,7 +89,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         return; // already in success state
       }
 
-      //console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
       $appSettings.firmwareNotificationState = value.code;
       bootloader_path = value.path;
 
@@ -164,8 +163,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
           configuration.FIRMWARE_KNOT_URL_END;
         break;
     }
-
-    console.log("URL", link);
 
     await window.electron.firmware.firmwareDownload(
       folder,
