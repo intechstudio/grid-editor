@@ -29,6 +29,7 @@
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
+  import { ConfigTour, configTour } from "./ConfigTour";
 
   const configuration = window.ctxProcess.configuration();
 

@@ -22,6 +22,7 @@
     replaceAction,
     syncWithGrid,
   } from "./../../../../runtime/operations";
+  import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
 
   const dispatch = createEventDispatcher();
 
@@ -191,6 +192,9 @@
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
+    use:ConfigTour.displayStep={$configTour?.action.id === action.id
+      ? $configTour
+      : undefined}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->

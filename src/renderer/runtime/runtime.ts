@@ -41,6 +41,7 @@ class NodeData {
 
 export class GridProfileData {
   public presets: GridPresetData[] = [];
+  public description: string;
 
   static createFromCloudData(cloudProfile: any) {
     const data = cloudProfile.configs;
@@ -58,11 +59,14 @@ export class GridProfileData {
       const preset = new GridPresetData(type, Number(index), events);
       profile.presets.push(preset);
     }
+
+    profile.description = cloudProfile.description;
     return profile;
   }
 }
 export class GridPresetData {
   public element: GridElement;
+  public description: string;
 
   constructor(type: ElementType, index: number, array: RawEventData[]) {
     const element = new GridElement(undefined, new ElementData(index, type));
@@ -80,19 +84,28 @@ export class GridPresetData {
   }
 
   static createFromCloudData(cloudPreset: any) {
-    return new GridPresetData(cloudPreset.type, -1, cloudPreset.configs.events);
+    const preset = new GridPresetData(
+      cloudPreset.type,
+      -1,
+      cloudPreset.configs.events,
+    );
+    preset.description = cloudPreset.description;
+    return preset;
   }
 }
 
 export class GridSnippetData {
   public actions: GridAction[];
+  public description: string;
 
   constructor(array: RawEventData) {
     this.actions = GridAction.parse(array);
   }
 
   static createFromCloudData(cloudPreset: any) {
-    return new GridSnippetData(cloudPreset.configs);
+    const snippet = new GridSnippetData(cloudPreset.configs);
+    snippet.description = cloudPreset.description;
+    return snippet;
   }
 }
 
@@ -267,6 +280,16 @@ export class ActionData extends NodeData {
     return GridScript.checkSyntax(code) && !this.invalid;
   }
 
+  public getTourIndex(): number | undefined {
+    const part = this.name?.split(".")[0];
+    const index = Number(part);
+    return Number.isFinite(index) ? index : undefined;
+  }
+
+  public isTourStep() {
+    return this.getTourIndex() !== undefined;
+  }
+
   public get information() {
     let result = GridAction.getInformation(this.short);
     return result;
@@ -311,40 +334,39 @@ export class GridAction extends RuntimeNode<ActionData> {
 
   static parse(script: LuaScript) {
     const result: GridAction[] = [];
-    let configList: string[] = [];
-    let actionString = script;
-    // get rid of new line, enter
-    actionString = actionString.replace(/[\n\r]+/g, "");
-    // get rid of more than 2 spaces
-    actionString = actionString.replace(/\s{2,10}/g, " ");
-    // remove lua opening and closing characters
-    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+
+    let actionString = script.replace(/[\n\r]+/g, "").replace(/\s{2,10}/g, " ");
+
     if (actionString.startsWith(Grid.Protocol.scriptStart)) {
       actionString = actionString
         .split(Grid.Protocol.scriptStart)[1]
         .split(Grid.Protocol.scriptEnd)[0];
     }
-    // split by meta comments
-    configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
 
-    configList = configList.slice(1);
-    for (var i = 0; i < configList.length; i += 2) {
-      const split = configList[i]
-        .match(/--\[\[@(.*)\]\]/)
-        ?.at(1)
-        .split(/#(.*)/);
+    const matches = [
+      ...actionString.matchAll(/--\[\[@(.*?)\]\]\s*(.*?)(?=(--\[\[@|$))/gs),
+    ];
 
+    for (const [, meta, code] of matches) {
+      const split = meta.split(/#(.*)/);
       const data = new ActionData(
-        //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
-        split[0],
-        configList[i + 1].trim(),
-        split.length > 1 ? split[1] : undefined,
+        split[0], // Short name, e.g. 'gms'
+        code.trim(), // Action code body
+        split.length > 1 ? split[1] : undefined, // Optional long name
       );
       const obj = new GridAction(undefined, data);
       result.push(obj);
     }
 
     return result;
+  }
+
+  public isTourStep() {
+    return this.data.isTourStep();
+  }
+
+  public getTourIndex() {
+    return this.data.getTourIndex();
   }
 
   static getInformation(short: string): ActionBlockInformation {
@@ -1337,7 +1359,7 @@ export class GridPage extends RuntimeNode<PageData> {
     //PROFILE LOAD
     for (const preset of presets) {
       const element = this.findElement(preset.element.elementIndex);
-      element.loadPreset(preset);
+      await element.loadPreset(preset);
     }
     return Promise.resolve({
       value: true,

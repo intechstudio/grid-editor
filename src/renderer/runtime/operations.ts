@@ -22,6 +22,7 @@ import {
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
+import { configTour } from "../main/panels/profileCloud/ConfigTour";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -374,10 +375,21 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
           eventtype: ui.eventtype,
         });
       }
+
+      const actions = (target as GridPage).control_elements.flatMap((e) =>
+        e.events.flatMap((e) =>
+          e.config.filter((e) => {
+            return e.isTourStep();
+          }),
+        ),
+      );
+
+      configTour.createTourFrom(profile.description, actions);
       return Promise.resolve();
     })
     .catch((e) => {
       handleError(e);
+      configTour.clear();
       return Promise.reject(e);
     })
     .finally(() => {
@@ -414,9 +426,15 @@ export async function loadPreset(
           eventtype: ui.eventtype,
         });
       }
+
+      const actions = (target as GridElement).events
+        .flatMap((e) => e.config)
+        .filter((e) => e.isTourStep());
+      configTour.createTourFrom(preset.description, actions);
     })
     .catch((e) => {
       handleError(e);
+      configTour.clear();
       return Promise.reject(e);
     })
     .finally(() => {
@@ -441,7 +459,14 @@ export async function loadSnippet(
 
   return target
     .loadSnippet(snippet, index)
+    .then(() => {
+      configTour.createTourFrom(
+        snippet.description,
+        target.config.filter((e) => e.isTourStep()),
+      );
+    })
     .catch((e) => {
+      configTour.clear();
       handleError(e);
     })
     .finally(() => {
