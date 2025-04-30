@@ -112,6 +112,10 @@ jobs:
             new_file=$(echo "$file" | sed 's/-artifact/-nightly/g')
             mv "$file" "$new_file"
           done
+      - uses: johnyherangi/create-release-notes@main
+        id: create-release-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release Nightly
         uses: softprops/action-gh-release@v1
@@ -121,6 +125,7 @@ jobs:
           files: build/*.*
           draft: false
           prerelease: true
+          body: ${{ steps.create-release-notes.outputs.release-notes }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
