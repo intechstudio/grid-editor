@@ -112,8 +112,10 @@ jobs:
             new_file=$(echo "$file" | sed 's/-artifact/-nightly/g')
             mv "$file" "$new_file"
           done
-      - uses: johnyherangi/create-release-notes@main
-        id: create-release-notes
+
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -125,7 +127,7 @@ jobs:
           files: build/*.*
           draft: false
           prerelease: true
-          body: ${{ steps.create-release-notes.outputs.release-notes }}
+          body: ${{steps.github_release.outputs.changelog}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
