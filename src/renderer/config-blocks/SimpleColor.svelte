@@ -35,6 +35,7 @@
   import {
     MeltCombo,
     MeltSelect,
+    MeltSlider,
     MoltenPushButton,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -44,14 +45,11 @@
   import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
   import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
-  import ColorSlider from "../main/user-interface/ColorSlider.svelte";
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
 
   const dispatch = createEventDispatcher();
-  const checkboard =
-    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="50" height="50" fill="white" /><rect x="50" y="50" width="50" height="50" fill="white" /><rect x="50" width="50" height="50" fill="transparent" /><rect y="50" width="50" height="50" fill="transparent" /></svg>';
 
   export let config: GridAction;
 
@@ -144,25 +142,26 @@
       return s;
     });
   }
+
+  function getGradient(colors: SimpleColor.Color[]) {
+    const array = [
+      ...(colors.length === 1
+        ? [{ red: "0", green: "0", blue: "0", alpha: "0" }]
+        : []),
+      ...colors,
+    ];
+    const cssValue = array
+      .map((e) =>
+        Object.values(e).some((e) => isNaN(Number(e)))
+          ? "white"
+          : `rgba(${Object.values(e).join(",")})`,
+      )
+      .join(",");
+    return cssValue;
+  }
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-  <div class="flex flex-row w-full justify-between items-center">
-    <span class="text-white text-sm">Color</span>
-    <div class="flex flex-row gap-1">
-      <MoltenPushButton
-        text="-"
-        click={() => handleRemoveLayer()}
-        disabled={$data.previewColors.length === 1}
-      />
-      <MoltenPushButton
-        text="+"
-        click={handleAddLayer}
-        disabled={$data.previewColors.length === 3}
-      />
-    </div>
-  </div>
-
   <div class="flex flex-row w-full gap-2">
     <MeltCombo
       title={"Element"}
@@ -197,107 +196,130 @@
     />
   </div>
 
-  <div class="flex w-full h-[20px] border border-black rounded-full">
-    <div class="relative flex w-full h-full">
-      <div
-        class="absolute inset-0 opacity-20 rounded-full"
-        style="background-image: url('{checkboard}');
-      background-size: 7px 7px;
-      background-repeat: repeat;"
-      />
-      <div class="absolute w-full h-full grid grid-cols-1">
-        <div
-          class="flex flex-grow h-full rounded-full"
-          style="background-image: linear-gradient(to right, {[
-            ...($data.previewColors.length === 1
-              ? [{ red: 0, green: 0, blue: 0, alpha: 0 }]
-              : []),
-            ...$data.previewColors,
-          ]
-            .map((e) =>
-              Object.values(e).some(isNaN)
-                ? 'white'
-                : `rgba(${Object.values(e).join(',')})`,
-            )
-            .join(',')}
-);"
-        />
-      </div>
+  <div
+    class="flex flex-row items-center bg-black/25 rounded-full p-1 border border-black"
+  >
+    <button
+      on:click={handleRemoveLayer}
+      disabled={$data.previewColors.length === 1}
+    >
+      <span class="px-2 text-lg text-white/75">-</span>
+    </button>
 
+    <div
+      class="w-full h-8 px-2 bg-primary rounded-full flex flex-row items-center {$data
+        .previewColors.length === 1
+        ? 'justify-end'
+        : 'justify-between'}"
+      style="
+      background-image:
+        linear-gradient(to right, {getGradient($data.previewColors)});
+      background-size:
+        100% 100%;
+      background-repeat:
+        no-repeat;
+      background-blend-mode: normal;
+      will-change: transform;
+      transform: translateZ(0);
+    "
+    >
       {#each $data.previewColors as color, i}
-        {@const isFirst = i === 0}
-        {@const isLast = i === $data.previewColors.length - 1}
-        {@const totalSteps = $data.previewColors.length - 1}
-        {@const stepSize = 100 / totalSteps}
-        {@const position =
-          isFirst && $data.previewColors.length > 1
-            ? "12px"
-            : isLast
-              ? "calc(100% - 12px)"
-              : `${stepSize * i}%`}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div
-          on:click={() => {
-            data.selectLayer(i);
-          }}
-          class="aspect-square rounded-full bg-primary"
-          style="position: absolute; height: calc(100% + 8px); left: {position}; top: 0%; transform: translate(-50%, -4px);"
-        >
-          <div
-            class="absolute flex w-full h-full opacity-20 rounded-full"
-            style="background-image: url('{checkboard}');
-      background-size: 7px 7px;
-      background-repeat: repeat;"
-          />
-          <div
-            class="absolute flex w-full h-full rounded-full cursor-pointer hover:scale-110 border border-black"
-            style="background-color: {(() => {
-              const rgba = Object.values(color).map(Number);
-              return rgba.some(Number.isNaN)
-                ? 'white'
-                : `rgba(${rgba.join(',')})`;
-            })()};"
-          />
-          <div
-            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-black bg-opacity-50 pointer-events-none"
-            class:hidden={i !== $data.selectedIndex}
-          />
-        </div>
+        <button
+          on:click={() => data.selectLayer(i)}
+          class="aspect-square rounded-full cursor-pointer
+    {i === $data.selectedIndex
+            ? 'bg-transparent border-2 border-primary h-3/4'
+            : 'bg-primary hover:bg-transparent hover:border hover:border-primary h-1/2'}"
+        />
       {/each}
     </div>
+
+    <button
+      on:click={handleAddLayer}
+      disabled={$data.previewColors.length === 3}
+    >
+      <span class="px-2 text-lg text-white/75">+</span>
+    </button>
   </div>
 
   <div
-    class="grid grid-cols-[2fr_1fr] w-full gap-2 text-white place-items-center"
+    class="flex flex-col w-full bg-black/25 p-2 gap-2 rounded-xl border border-black"
   >
-    <div class="flex w-full">
-      <MeltSelect
-        bind:target={selected}
-        {options}
-        disabled={false}
-        size={"full"}
+    <div class="flex flex-row justify-between">
+      <span class="text-white text-lg">Mixer</span>
+      <div
+        class="flex rounded-full w-1/3 h-6"
+        style="background-color: {$data.pickerColor.toCSS()};"
       />
     </div>
-
-    <span class="text-white">Alpha</span>
-    <div class="flex h-32 w-full items-center justify-center">
-      <svelte:component
-        this={colorPickerComponent.get(selected)}
-        color={$data.pickerColor}
-        on:input={(e) => {
-          const { color } = e.detail;
-          data.updatePickerColor(color);
-          sendData($data);
-        }}
-        on:change={(e) => {
-          dispatch("sync");
-        }}
+    <div
+      class="grid grid-cols-[1fr_max-content] w-full gap-2 text-white items-center justify-center bg-secondary p-2 rounded-xl"
+    >
+      <div class="flex flex-col">
+        {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
+          <div class="flex flex-row flex-grow items-center gap-2">
+            <span>{channel[0].toLocaleUpperCase()}</span>
+            <MeltCombo
+              title={" "}
+              value={$data[channel].value}
+              validator={$data[channel].validator.func}
+              suggestions={$data[channel].suggestions}
+              on:input={(e) => {
+                const { value, validationError } = e.detail;
+                data.updateRGBAChannelValue(value, validationError, channel);
+                sendData($data);
+              }}
+              on:change={() => dispatch("sync")}
+              postProcessor={GridScript.shortify}
+              preProcessor={GridScript.humanize}
+            />
+          </div>
+        {/each}
+      </div>
+      <div class="flex h-32 w-full items-center justify-center">
+        <CircleColorPicker
+          color={$data.pickerColor}
+          on:input={(e) => {
+            const { color } = e.detail;
+            data.updatePickerColor(color);
+            sendData($data);
+          }}
+          on:change={(e) => {
+            dispatch("sync");
+          }}
+        />
+      </div>
+      <div class="flex flex-row items-center gap-2 flex-grow">
+        <span>{SimpleColor.Channel.ALPHA[0].toLocaleUpperCase()}</span>
+        <MeltCombo
+          title={" "}
+          value={$data[SimpleColor.Channel.ALPHA].value}
+          validator={$data[SimpleColor.Channel.ALPHA].validator.func}
+          suggestions={$data[SimpleColor.Channel.ALPHA].suggestions}
+          on:input={(e) => {
+            const { value, validationError } = e.detail;
+            data.updateRGBAChannelValue(
+              value,
+              validationError,
+              SimpleColor.Channel.ALPHA,
+            );
+            sendData($data);
+          }}
+          on:change={() => dispatch("sync")}
+          postProcessor={GridScript.shortify}
+          preProcessor={GridScript.humanize}
+        />
+      </div>
+      <!-- <div class="flex flex-grow">
+      <MeltSlider
+        bind:target={$data.alphaSliderValue}
+        min={0}
+        max={1}
+        step={0.01}
       />
-    </div>
-
-    <ColorSlider
-      value={$data.alphaSliderValue}
+    </div> -->
+      <!-- <ColorSlider
+      value={}
       max={1}
       direction="vertical"
       on:input={(e) => {
@@ -314,36 +336,9 @@
           ? 'bg-white'
           : 'bg-alpha'}"
       />
-    </ColorSlider>
+    </ColorSlider> -->
+    </div>
   </div>
 
-  <div class="grid grid-cols-4 w-full gap-2">
-    {#each Object.values(SimpleColor.Channel) as channel}
-      <MeltCombo
-        title={" "}
-        value={$data[channel].value}
-        validator={$data[channel].validator.func}
-        suggestions={$data[channel].suggestions}
-        on:input={(e) => {
-          const { value, validationError } = e.detail;
-          data.updateRGBAChannelValue(value, validationError, channel);
-          sendData($data);
-        }}
-        on:change={() => dispatch("sync")}
-        postProcessor={GridScript.shortify}
-        preProcessor={GridScript.humanize}
-      />
-    {/each}
-  </div>
-
-  <SendFeedback
-    feedback_context="LedColor"
-    class="mt-2 text-sm text-gray-500"
-  />
+  <SendFeedback feedback_context="LedColor" class="text-sm text-gray-500" />
 </config-led-color>
-
-<style>
-  .bg-alpha {
-    background: linear-gradient(to top, black, white);
-  }
-</style>

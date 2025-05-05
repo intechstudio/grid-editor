@@ -14,7 +14,6 @@ import {
   GridPage,
 } from "../runtime/runtime";
 import { Script } from "./_script_parsers";
-import { ElementType } from "@intechstudio/grid-protocol";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
 
