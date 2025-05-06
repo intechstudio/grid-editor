@@ -47,7 +47,7 @@ export namespace SimpleColor {
     constructor(action: GridAction) {
       const segments = Script.toSegments({
         short: `glc`,
-        script: action.script.split(":").slice(1).join(":"),
+        script: action.script.match(/glc\(([^,]+),\s*({{[^}]+}})\)/)[0],
       });
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
         const values = Grid.parseBracketValues(e);
@@ -59,8 +59,8 @@ export namespace SimpleColor {
         };
       });
 
-      this.layer = Number(segments[0]);
-      this.element = action.script.split(":")[0];
+      this.layer = segments[0];
+      this.element = action.script.match(/(.*?)glc/)[1].slice(0, -1);
     }
   }
 
