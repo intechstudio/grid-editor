@@ -47,7 +47,9 @@ jobs:
           node-version: "18.16.1"
 
       - name: Install python setup-tools dependency
-        run: pip install setuptools --break-system-packages
+        run: pip install setuptools
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
 
       - name: Install libudev-dev (Linux only)
         if: runner.os == 'Linux'
