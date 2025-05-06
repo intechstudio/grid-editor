@@ -143,6 +143,14 @@
     });
   }
 
+  function colorToCSS(color: SimpleColor.Color) {
+    if (Object.values(color).some((e) => isNaN(Number(e)))) {
+      return "white";
+    } else {
+      return `rgba(${Object.values(color).join(",")})`;
+    }
+  }
+
   function getGradient(colors: SimpleColor.Color[]) {
     const array = [
       ...(colors.length === 1
@@ -150,14 +158,13 @@
         : []),
       ...colors,
     ];
-    const cssValue = array
-      .map((e) =>
-        Object.values(e).some((e) => isNaN(Number(e)))
-          ? "white"
-          : `rgba(${Object.values(e).join(",")})`,
-      )
-      .join(",");
+    const cssValue = array.map((e) => colorToCSS(e)).join(",");
     return cssValue;
+  }
+
+  function getCurrentColor(data: SimpleColor.ViewModelData) {
+    const { previewColors, selectedIndex } = data;
+    return colorToCSS(previewColors[selectedIndex]);
   }
 </script>
 
@@ -207,7 +214,7 @@
     </button>
 
     <div
-      class="w-full h-8 px-2 bg-primary rounded-full flex flex-row items-center {$data
+      class="w-full h-8 px-2 bg-secondary rounded-full flex flex-row items-center {$data
         .previewColors.length === 1
         ? 'justify-end'
         : 'justify-between'}"
@@ -249,7 +256,7 @@
       <span class="text-white text-lg">Mixer</span>
       <div
         class="flex rounded-full w-1/3 h-6"
-        style="background-color: {$data.pickerColor.toCSS()};"
+        style="background-color: {getCurrentColor($data)};"
       />
     </div>
     <div
@@ -310,33 +317,22 @@
           preProcessor={GridScript.humanize}
         />
       </div>
-      <!-- <div class="flex flex-grow">
-      <MeltSlider
-        bind:target={$data.alphaSliderValue}
-        min={0}
-        max={1}
-        step={0.01}
-      />
-    </div> -->
-      <!-- <ColorSlider
-      value={}
-      max={1}
-      direction="vertical"
-      on:input={(e) => {
-        const { value } = e.detail;
-        data.updateAlphaSliderValue(value);
-        sendData($data);
-      }}
-      on:change={(e) => {
-        dispatch("sync");
-      }}
-    >
-      <div
-        class="w-full h-full {typeof $data.alphaSliderValue === 'undefined'
-          ? 'bg-white'
-          : 'bg-alpha'}"
-      />
-    </ColorSlider> -->
+      <div class="flex flex-grow">
+        <MeltSlider
+          bind:target={$data.alphaSliderValue}
+          min={0}
+          max={1}
+          step={0.01}
+          on:change={(e) => {
+            const { value } = e.detail;
+            data.updateAlphaSliderValue(value);
+            sendData($data);
+          }}
+          on:blur={() => {
+            dispatch("sync");
+          }}
+        />
+      </div>
     </div>
   </div>
 
