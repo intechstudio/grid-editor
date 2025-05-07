@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { Analytics } from "../runtime/analytics.js";
-  import MarkdownContainer, {
+  import {
+    MoltenPushButton,
+    MarkdownContainer,
     MarkdownContainerTypes,
-  } from "./MarkdownContainer.svelte";
+  } from "@intechstudio/grid-uikit";
+  import { Analytics } from "../runtime/analytics.js";
   import { Grid } from "../lib/_utils.js";
   import { ReleaseInfo } from "../../electron/src/fetch.js";
   import { onMount } from "svelte";
