@@ -35,11 +35,9 @@ function init(nightlyAllowed: boolean) {
   );
 
   if (
-    (import.meta.env.VITE_BUILD_ENV !== "development" &&
-      import.meta.env.VITE_BRANCH_NAME === "stable") ||
-    true
+    import.meta.env.VITE_BUILD_ENV !== "development" &&
+    import.meta.env.VITE_BRANCH_NAME === "stable"
   ) {
-    console.log("asd");
     setTimeout(() => autoUpdater.checkForUpdates(), 10000); //Give time for main window to initialize
   } else {
     console.log("Checking for updates is disabled...");
@@ -51,9 +49,8 @@ export function setNightlyAllowed(isAllowed: boolean) {
   if (autoUpdater.allowPrerelease != newValue) {
     autoUpdater.allowPrerelease = newValue;
     if (
-      (import.meta.env.VITE_BUILD_ENV !== "development" &&
-        import.meta.env.VITE_BRANCH_NAME === "stable") ||
-      true
+      import.meta.env.VITE_BUILD_ENV !== "development" &&
+      import.meta.env.VITE_BRANCH_NAME === "stable"
     ) {
       autoUpdater.checkForUpdates();
     }
@@ -78,6 +75,8 @@ autoUpdater.on("update-available", (info) => {
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-available",
     version: info.version,
+    releaseNotes: info.releaseNotes,
+    releaseName: info.releaseName,
   });
 });
 

@@ -6,8 +6,8 @@
   } from "@intechstudio/grid-uikit";
   import { Analytics } from "../runtime/analytics.js";
   import { Grid } from "../lib/_utils.js";
-  import { ReleaseInfo } from "../../electron/src/fetch.js";
-  import { onMount } from "svelte";
+  //import { UpdateInfo } from "builder-util-runtime";
+  import { val } from "cheerio/dist/commonjs/api/attributes.js";
 
   const ipcRenderer = window.sketchyAPI;
   const configuration = window.ctxProcess.configuration();
@@ -23,9 +23,8 @@
   let state = UpdateState.UPTODATE;
   let progress = 0;
   let error = "";
-  let version = "";
   let updateFromStableToNightly = false;
-  let latestReleaseNote: ReleaseInfo;
+  let info: any;
 
   function restartApp() {
     window.electron.updater.restartAfterUpdate();
@@ -34,17 +33,12 @@
   window.electron.updater.onAppUpdate((_event, value) => {
     switch (value.code) {
       case "update-available": {
-        version = value.version;
-
-        console.log(version);
-        window.electron.fetchReleaseNotes().then((e: ReleaseInfo[]) => {
-          latestReleaseNote = e[0];
-        });
+        info = value;
 
         state = UpdateState.AVAILABLE;
         updateFromStableToNightly =
           import.meta.env.VITE_BUILD_ENV == "production" &&
-          version.includes("nightly");
+          info.version.includes("nightly");
         break;
       }
 
@@ -117,16 +111,16 @@
 
 <container class:hidden={state === UpdateState.UPTODATE} class="relative">
   <div class="bg-blue-600 p-2">
-    {#if latestReleaseNote}
+    {#if typeof info?.releaseNotes !== "undefined"}
       <div class="flex flex-col gap-2">
         <span class="text-white text-2xl"
-          >{`${latestReleaseNote.title} (${latestReleaseNote.version})`}</span
+          >{`${info.releaseName} (${info.version})`}</span
         >
         <div
-          class="w-full justify-center flex flex-row items-center h-16 text-white"
+          class="w-full justify-center flex flex-row items-center h-32 text-white bg-secondary"
         >
           <MarkdownContainer
-            markdown={latestReleaseNote.releaseNotesHtml}
+            markdown={String(info.releaseNotes)}
             on:link-click={handleLinkClicked}
           />
         </div>
@@ -137,11 +131,11 @@
       {#if state === UpdateState.AVAILABLE}
         <div class="flex flex-col">
           <div class="font-bold text-white">
-            New {version.includes("nightly") ? "Nightly " : ""}version is
+            New {info.version.includes("nightly") ? "Nightly " : ""}version is
             available!
           </div>
           <div class="text-white">
-            Grid Editor version {version} is ready to be downloaded.
+            Grid Editor version {info.version} is ready to be downloaded.
           </div>
         </div>
         <div class={updateFromStableToNightly ? "bg-red-600 rounded" : ""}>

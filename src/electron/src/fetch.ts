@@ -21,7 +21,7 @@ export async function fetchUrlJSON(url) {
   });
 }
 
-export interface ReleaseInfo {
+export interface ReleaseNoteInfo {
   title: string;
   version: string;
   url: string;
@@ -30,7 +30,7 @@ export interface ReleaseInfo {
   releaseNotesText: string;
 }
 
-export async function fetchReleaseNotes(): Promise<ReleaseInfo[]> {
+export async function fetchReleaseNotes(): Promise<ReleaseNoteInfo[]> {
   const url = "https://github.com/intechstudio/grid-editor/releases";
 
   try {
