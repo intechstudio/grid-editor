@@ -249,6 +249,15 @@
     </button>
   </div>
 
+  <div class="flex w-full text-white">
+    <MeltSelect
+      bind:target={selected}
+      {options}
+      disabled={false}
+      size={"full"}
+    />
+  </div>
+
   <div
     class="flex flex-col w-full bg-black/25 p-2 gap-2 rounded-xl border border-black"
   >
@@ -284,7 +293,8 @@
         {/each}
       </div>
       <div class="flex h-32 w-full items-center justify-center">
-        <CircleColorPicker
+        <svelte:component
+          this={colorPickerComponent.get(selected)}
           color={$data.pickerColor}
           on:input={(e) => {
             const { color } = e.detail;

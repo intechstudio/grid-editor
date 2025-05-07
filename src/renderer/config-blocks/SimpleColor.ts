@@ -47,7 +47,7 @@ export namespace SimpleColor {
     constructor(action: GridAction) {
       const segments = Script.toSegments({
         short: `glc`,
-        script: action.script.match(/glc\(([^,]+),\s*({{[^}]+}})\)/)[0],
+        script: action.script.match(/glc\(.*\)$/)[0],
       });
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
         const values = Grid.parseBracketValues(e);
