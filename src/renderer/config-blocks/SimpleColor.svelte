@@ -292,7 +292,7 @@
           </div>
         {/each}
       </div>
-      <div class="flex h-32 w-full items-center justify-center">
+      <div class="flex w-32 h-full items-center justify-center">
         <svelte:component
           this={colorPickerComponent.get(selected)}
           color={$data.pickerColor}
