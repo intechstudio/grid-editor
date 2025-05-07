@@ -193,13 +193,9 @@ export function dropzone(node: HTMLElement, params: DropParameters) {
   function handleDropAction(e: DropActionEvent) {
     const { dropped } = e.detail;
     const { event, index } = params;
-    dropActions(event, index, dropped)
-      .then(() => {
-        event.sendToGrid();
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    dropActions(event, index, dropped).catch((e) => {
+      console.log(e);
+    });
   }
 
   function handleMouseOver() {

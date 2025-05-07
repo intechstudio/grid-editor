@@ -485,14 +485,17 @@ export async function dropActions(
   for (const action of actions) {
     const parent = action.parent as GridEvent;
     removed.push(...(await parent.remove(action)).removed);
+    parent.sendToGrid();
   }
 
   try {
     await target.insert(index, ...actions);
+    target.sendToGrid();
   } catch (e) {
     for (const obj of removed) {
       const parent = obj.action.parent as GridEvent;
       parent.insert(obj.index, obj.action);
+      parent.sendToGrid();
     }
     handleError(e);
   }

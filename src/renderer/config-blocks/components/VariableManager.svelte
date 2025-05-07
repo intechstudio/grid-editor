@@ -173,10 +173,11 @@
         <div data-testid="variable-name">
           <MeltCombo
             title=" "
-            bind:value={segment.name}
+            value={segment.name}
             validator={validators[i].func}
             on:input={(e) => {
               const { value, validationError } = e.detail;
+              segment.name = value;
               validators[i].value = !validationError;
               handleInput();
             }}

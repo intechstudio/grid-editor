@@ -113,6 +113,12 @@ jobs:
             mv "$file" "$new_file"
           done
 
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release Nightly
         uses: softprops/action-gh-release@v1
         with:
@@ -121,6 +127,7 @@ jobs:
           files: build/*.*
           draft: false
           prerelease: true
+          body: ${{steps.github_release.outputs.changelog}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
