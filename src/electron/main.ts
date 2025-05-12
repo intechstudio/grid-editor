@@ -57,13 +57,14 @@ log.info("App starting...");
 log.info("BUILD ENVS:", import.meta.env);
 
 usb.on("attach", () => {
-  let delay = 500;
+  let delay = 1000;
+  let totalDelay = 0;
   async function retryFind() {
     let result = await findBootloaderPath();
     if (result) return;
 
-    delay += 500;
-    if (delay > 1500) return;
+    totalDelay += delay;
+    if (totalDelay > 8000) return;
     setTimeout(retryFind, delay);
   }
   setTimeout(retryFind, delay);

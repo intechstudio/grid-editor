@@ -2,7 +2,7 @@
   "name": "grid-editor",
   "productName": "Grid Editor",
   "description": "Powerful Editor software for Intech Studio products.",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "engines": {
     "node": ">=18.16.1"
   },
