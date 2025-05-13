@@ -1,172 +1,69 @@
 <script lang="ts">
-  import {
-    MoltenPushButton,
-    MarkdownContainer,
-    MarkdownContainerTypes,
-  } from "@intechstudio/grid-uikit";
-  import { Analytics } from "../runtime/analytics.js";
-  import { Grid } from "../lib/_utils.js";
-  //import { UpdateInfo } from "builder-util-runtime";
-  import { val } from "cheerio/dist/commonjs/api/attributes.js";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { modal } from "./modals/modal.store.js";
+  import ReleaseNotes from "./modals/ReleaseNotes.svelte";
+  import { AppUpdater } from "./versionUpdateBar.js";
 
-  const ipcRenderer = window.sketchyAPI;
-  const configuration = window.ctxProcess.configuration();
-
-  enum UpdateState {
-    UPTODATE = "update to date",
-    AVAILABLE = "available",
-    DOWNLOADING = "downloading",
-    SUCCESS = "success",
-    ERROR = "error",
-  }
-
-  let state = UpdateState.UPTODATE;
-  let progress = 0;
-  let error = "";
-  let updateFromStableToNightly = false;
-  let info: any;
-
-  function restartApp() {
-    window.electron.updater.restartAfterUpdate();
-  }
-
-  window.electron.updater.onAppUpdate((_event, value) => {
-    switch (value.code) {
-      case "update-available": {
-        info = value;
-
-        state = UpdateState.AVAILABLE;
-        updateFromStableToNightly =
-          import.meta.env.VITE_BUILD_ENV == "production" &&
-          info.version.includes("nightly");
-        break;
-      }
-
-      case "update-downloaded": {
-        state = UpdateState.SUCCESS;
-        break;
-      }
-
-      case "update-progress": {
-        state = UpdateState.DOWNLOADING;
-        progress = Math.floor(value.percent);
-        break;
-      }
-
-      case "update-error": {
-        Analytics.track({
-          event: "AppUpdate",
-          payload: {
-            message: "Update Error",
-          },
-          mandatory: false,
-        });
-        state = UpdateState.ERROR;
-        error = value.error;
-        break;
-      }
-    }
-  });
-
-  function handleInstallUpdate() {
-    Analytics.track({
-      event: "AppUpdate",
-      payload: {
-        message: "Start Update",
-      },
-      mandatory: false,
-    });
-    window.electron.installUpdate();
-  }
-
-  function handleCloseClicked(e) {
-    Analytics.track({
-      event: "AppUpdate",
-      payload: {
-        message: "Skip Update",
-      },
-      mandatory: false,
-    });
-    state = UpdateState.UPTODATE;
-  }
-
-  function handleDownloadClicked(e) {
-    Analytics.track({
-      event: "AppUpdate",
-      payload: {
-        message: "Manual Download",
-      },
-      mandatory: false,
-    });
-    window.electron.openInBrowser(configuration.EDITOR_DOWNLOAD_URL);
-  }
-
-  function handleLinkClicked(
-    e: CustomEvent<MarkdownContainerTypes.LinkClickEvent>,
-  ) {
-    const { link } = e.detail;
-    Grid.Link.openExternalLink(link);
-  }
+  const manager = AppUpdater.stateManager;
+  window.electron.updater.onAppUpdate(manager.handleAppUpdate);
 </script>
 
-<container class:hidden={state === UpdateState.UPTODATE} class="relative">
+<container
+  class:hidden={$manager.state === AppUpdater.State.UPTODATE}
+  class="relative"
+>
   <div class="bg-blue-600 p-2">
-    {#if typeof info?.releaseNotes !== "undefined"}
-      <div class="flex flex-col gap-2">
-        <span class="text-white text-2xl"
-          >{`${info.releaseName} (${info.version})`}</span
-        >
-        <div
-          class="w-full justify-center flex flex-row items-center h-32 text-white bg-secondary"
-        >
-          <MarkdownContainer
-            markdown={String(info.releaseNotes)}
-            on:link-click={handleLinkClicked}
-          />
-        </div>
-      </div>
-    {/if}
-
     <div class="flex flex-row gap-5 items-center justify-center w-full">
-      {#if state === UpdateState.AVAILABLE}
+      {#if $manager.state === AppUpdater.State.AVAILABLE}
         <div class="flex flex-col">
           <div class="font-bold text-white">
-            New {info.version.includes("nightly") ? "Nightly " : ""}version is
-            available!
+            New {$manager.info?.version.includes("nightly")
+              ? "Nightly "
+              : ""}version is available!
           </div>
           <div class="text-white">
-            Grid Editor version {info.version} is ready to be downloaded.
+            Grid Editor version {$manager.info?.version} is ready to be downloaded.
           </div>
         </div>
-        <div class={updateFromStableToNightly ? "bg-red-600 rounded" : ""}>
+        <div
+          class={$manager.updateFromStableToNightly ? "bg-red-600 rounded" : ""}
+        >
           <MoltenPushButton
-            click={handleInstallUpdate}
-            text={updateFromStableToNightly ? "Update to Nightly" : "Download"}
+            click={AppUpdater.installUpdate}
+            text={$manager.updateFromStableToNightly
+              ? "Update to Nightly"
+              : "Download"}
           />
         </div>
-        <MoltenPushButton click={handleCloseClicked} text="Close" />
+        {#if typeof $manager.info?.releaseNotes !== "undefined" || true}
+          <MoltenPushButton
+            click={() => modal.show({ component: ReleaseNotes })}
+            text={"Release Notes"}
+          />
+        {/if}
+        <MoltenPushButton click={AppUpdater.abortUpdate} text="Close" />
       {/if}
-      {#if state === UpdateState.DOWNLOADING}
+      {#if $manager.state === AppUpdater.State.DOWNLOADING}
         <div class="flex flex-col">
           <p class="text-white font-bold">Downloading update...</p>
           <p class="text-white">
-            {`Downloading in the background ${progress}%`}
+            {`Downloading in the background ${$manager.progress}%`}
           </p>
         </div>
       {/if}
 
-      {#if state === UpdateState.SUCCESS}
+      {#if $manager.state === AppUpdater.State.SUCCESS}
         <div class="flex flex-col">
           <p class="text-white font-bold">Update Successful!</p>
           <p class="text-white">
             It will be installed on restart. Restart now?
           </p>
         </div>
-        <MoltenPushButton click={restartApp} text="Restart" />
-        <MoltenPushButton click={handleCloseClicked} text="Close" />
+        <MoltenPushButton click={AppUpdater.restartApp} text="Restart" />
+        <MoltenPushButton click={AppUpdater.abortUpdate} text="Close" />
       {/if}
 
-      {#if state === UpdateState.ERROR}
+      {#if $manager.state === AppUpdater.State.ERROR}
         <div class="flex flex-col">
           <p class="font-bold text-white">Error during update!</p>
           <p class="text-white">
@@ -174,8 +71,8 @@
             system!
           </p>
         </div>
-        <MoltenPushButton click={handleDownloadClicked} text="Download" />
-        <MoltenPushButton click={handleCloseClicked} text="Close" />
+        <MoltenPushButton click={AppUpdater.openDownloads} text="Download" />
+        <MoltenPushButton click={AppUpdater.abortUpdate} text="Close" />
       {/if}
     </div>
   </div>
