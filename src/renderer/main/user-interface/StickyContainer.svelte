@@ -10,6 +10,7 @@
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
   import { user_input, UserInputValue } from "../../runtime/user-input.store";
+  import { configTour } from "../panels/profileCloud/ConfigTour";
 
   let selectedModule: any = undefined;
 
@@ -36,19 +37,23 @@
     const [dx, dy] = [selectedModule.dx, selectedModule.dy];
     active.destroy_module(dx, dy);
   }
+
+  function handleStartTour() {
+    configTour.start();
+    handleCloseOverlay();
+  }
+
+  function handleCloseOverlay() {
+    selectedConfigStore.set(undefined);
+    moduleOverlay.close();
+  }
 </script>
 
-<div class="{$$props.class} flex flex-col items-center gap-2">
+<div class="flex flex-col items-center gap-2">
   <Pages />
   <div class="flex flex-row gap-2">
     {#if typeof $moduleOverlay !== "undefined"}
-      <MoltenPushButton
-        text="Close Overlay"
-        click={() => {
-          selectedConfigStore.set(undefined);
-          moduleOverlay.close();
-        }}
-      />
+      <MoltenPushButton text="Close Overlay" click={handleCloseOverlay} />
     {/if}
     {#if selectedModule?.architecture === Architecture.VIRTUAL}
       <MoltenPushButton
@@ -61,4 +66,11 @@
       />
     {/if}
   </div>
+  {#if $configTour.steps.length > 0 && typeof $moduleOverlay !== "undefined" && $selectedConfigStore.id === $configTour.id}
+    <MoltenPushButton
+      text="Start Tour!"
+      style="accept"
+      click={handleStartTour}
+    />
+  {/if}
 </div>

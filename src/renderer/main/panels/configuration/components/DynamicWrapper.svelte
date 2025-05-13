@@ -111,13 +111,15 @@
       return;
     }
 
-    toggled = !toggled;
-
-    if (toggled) {
+    if (!toggled) {
       lastOpenedActionblocksInsert(action.short);
     } else {
       lastOpenedActionblocksRemove(action.short);
     }
+  }
+
+  $: {
+    toggled = $lastOpenedActionblocks.includes(action.short);
   }
 
   function handleCarouselClicked(e) {
@@ -192,8 +194,9 @@
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
-    use:ConfigTour.displayStep={$configTour?.action.id === action.id
-      ? $configTour
+    use:ConfigTour.displayStep={$configTour.current?.action.id === action.id &&
+    $configTour.active
+      ? $configTour.current
       : undefined}
     on:click|self={handleCarouselClicked}
   >

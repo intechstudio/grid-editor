@@ -5,19 +5,16 @@
 </script>
 
 <script lang="ts">
-  import { fade, slide } from "svelte/transition";
+  import { fade } from "svelte/transition";
   import Popover from "svelte-easy-popover";
-  import { SvelteComponent, onDestroy, onMount } from "svelte";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { configTour } from "./ConfigTour";
 
   export let text = "";
   export let referenceElement: HTMLElement;
 
-  let isOpen = true;
-
   function handleClose() {
-    isOpen = false;
+    configTour.active = false;
   }
 
   function handleNextClicked() {
@@ -29,7 +26,12 @@
   }
 </script>
 
-<Popover bind:isOpen {referenceElement} placement={"left"} spaceAway={10}>
+<Popover
+  isOpen={$configTour.active}
+  {referenceElement}
+  placement={"left"}
+  spaceAway={10}
+>
   <div
     class="p-2 rounded bg-secondary flex flex-col border gap-1 border-white/30"
     transition:fade|global={{
@@ -49,7 +51,7 @@
       {text}
     </div>
     <div class="flex flex-row gap-2 self-end">
-      {#if typeof configTour.previous() !== "undefined"}
+      {#if $configTour && typeof configTour.previous() !== "undefined"}
         <MoltenPushButton
           text={"Previous"}
           snap={"auto"}
@@ -58,7 +60,7 @@
         />
       {/if}
 
-      {#if typeof configTour.next() !== "undefined"}
+      {#if $configTour && typeof configTour.next() !== "undefined"}
         <MoltenPushButton
           text={"Next"}
           snap={"auto"}

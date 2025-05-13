@@ -10,7 +10,7 @@
   } from "../../../../runtime/runtime.js";
   import { loadProfile } from "../../../../runtime/operations";
   import { user_input } from "../../../../runtime/user-input.store";
-  import { get } from "svelte/store";
+  import { get, writable } from "svelte/store";
 
   export let device: GridModule;
   export let visible = false;
@@ -21,26 +21,24 @@
     LOADED,
   }
 
-  let state = LoadState.READY;
+  let state = writable(LoadState.READY);
 
   $: {
     if ($selectedConfigStore) {
-      state = LoadState.READY;
+      state.set(LoadState.READY);
     }
   }
 
   function handleProfileLoad(e) {
     const page = device.findPage(get(user_input).pagenumber) as GridPage;
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
-
-    state = LoadState.BUSY;
     loadProfile(profile, page)
       .then(() => {
-        state = LoadState.LOADED;
+        state.set(LoadState.LOADED);
       })
       .catch((e) => {
-        console.log(e);
-        state = LoadState.READY;
+        console.warn(e);
+        state.set(LoadState.READY);
       });
   }
 
@@ -64,26 +62,24 @@
     >
       {#if compatible}
         <div class="w-fit relative">
-          {#key state || $selectedConfigStore}
-            <button
-              on:click={handleProfileLoad}
-              disabled={state === 1}
-              class="flex flex-row px-4 py-2 rounded {state == 2
-                ? 'loaded-element'
-                : 'element'}"
-            >
-              {#if state === 0}
-                <span class="text-white mr-2">Load Profile</span>
-                <SvgIcon fill="#FFF" iconPath={"download"} />
-              {:else if state === 1}
-                <span class="text-white mr-2">Loading...</span>
-                <SvgIcon fill="#FFF" iconPath={"download"} />
-              {:else if state === 2}
-                <span class="text-white">Loaded!</span>
-                <SvgIcon fill="#FFF" iconPath={"tick"} />
-              {/if}
-            </button>
-          {/key}
+          <button
+            on:click={handleProfileLoad}
+            disabled={$state !== LoadState.READY}
+            class="flex flex-row px-4 py-2 rounded {$state == LoadState.LOADED
+              ? 'loaded-element'
+              : 'element'}"
+          >
+            {#if $state === LoadState.READY}
+              <span class="text-white mr-2">Load Profile</span>
+              <SvgIcon fill="#FFF" iconPath={"download"} />
+            {:else if $state === LoadState.BUSY}
+              <span class="text-white mr-2">Loading...</span>
+              <SvgIcon fill="#FFF" iconPath={"download"} />
+            {:else if $state === LoadState.LOADED}
+              <span class="text-white">Loaded!</span>
+              <SvgIcon fill="#FFF" iconPath={"tick"} />
+            {/if}
+          </button>
         </div>
       {/if}
     </div>

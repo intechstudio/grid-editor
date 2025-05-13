@@ -361,7 +361,7 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
     payload: {},
     mandatory: false,
   });
-  target
+  return target
     .loadProfile(profile)
     .then(() => {
       const ui = get(user_input);
@@ -384,7 +384,7 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
         ),
       );
 
-      configTour.createTourFrom(profile.description, actions);
+      configTour.createTourFrom(profile.id, profile.description, actions);
       return Promise.resolve();
     })
     .catch((e) => {
@@ -430,7 +430,7 @@ export async function loadPreset(
       const actions = (target as GridElement).events
         .flatMap((e) => e.config)
         .filter((e) => e.isTourStep());
-      configTour.createTourFrom(preset.description, actions);
+      configTour.createTourFrom(preset.id, preset.description, actions);
     })
     .catch((e) => {
       handleError(e);
@@ -461,6 +461,7 @@ export async function loadSnippet(
     .loadSnippet(snippet, index)
     .then(() => {
       configTour.createTourFrom(
+        snippet.id,
         snippet.description,
         target.config.filter((e) => e.isTourStep()),
       );

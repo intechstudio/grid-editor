@@ -10,6 +10,10 @@ import TourStep, { TourStepContent } from "./TourStep.svelte";
 import { Subscriber } from "svelte/motion";
 import { GridAction, GridEvent } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
+import {
+  lastOpenedActionblocksInsert,
+  lastOpenedActionblocksRemove,
+} from "../configuration/Configuration";
 
 export namespace ConfigTour {
   export function displayStep(node: HTMLElement, step: Step | undefined) {
@@ -66,96 +70,169 @@ export namespace ConfigTour {
     action: GridAction;
   }
 
-  export class StepQueue implements Readable<Step> {
-    private internal: Writable<Step> = writable(undefined);
-    private steps: Array<Step> = [];
-    private index: number = 0;
+  export interface TourData {
+    id: string | undefined;
+    current: Step | undefined;
+    steps: Step[];
+    index: number;
+    active: boolean;
+  }
+
+  export class Tour implements Readable<TourData> {
+    private readonly defaultValue: TourData = {
+      id: undefined,
+      current: undefined,
+      steps: [],
+      index: -1,
+      active: false,
+    };
+    private internal: Writable<TourData> = writable(this.defaultValue);
 
     public subscribe(
-      run: Subscriber<Step>,
-      invalidate?: (value?: Step) => void,
+      run: Subscriber<TourData>,
+      invalidate?: (value?: TourData) => void,
     ): Unsubscriber {
       return this.internal.subscribe(run, invalidate);
     }
 
-    private set(value: Step) {
+    private set(value: TourData) {
       this.internal.set(value);
     }
 
-    private update(updater: Updater<Step>) {
+    private update(updater: Updater<TourData>) {
       this.internal.update(updater);
     }
 
     private parseSteps(
       description: string,
     ): Array<{ index: number; content: TourStepContent }> {
-      const stepRegex =
-        /<!--\s*step:(\d+):start\s*-->([\s\S]*?)<!--\s*step:\1:end\s*-->/g;
+      const stepRegex = /<!--\s*tour\s+step=(\d+)\s+text\[\[(.*?)\]\]\s*-->/gs;
+
       const steps: Array<{ index: number; content: TourStepContent }> = [];
-      let match: RegExpExecArray;
+      let match: RegExpExecArray | null;
 
       while ((match = stepRegex.exec(description)) !== null) {
-        const step = parseInt(match[1], 10);
+        const index = parseInt(match[1], 10);
+        const text = match[2];
+
         const content: TourStepContent = {
-          text: match[2].trim(),
+          text: text.trim(),
         };
-        steps.push({ index: step, content });
+
+        steps.push({ index, content });
       }
 
       return steps;
     }
 
-    public createTourFrom(description: string, targets: GridAction[]) {
+    public createTourFrom(
+      id: string,
+      description: string,
+      targets: GridAction[],
+    ) {
       const steps = this.parseSteps(description);
       const mapped = targets.map((e) => {
         const index = e.getTourIndex();
         const step = steps.find((e) => e.index === index);
-        return {
-          index: index,
-          action: e,
-          content: step.content,
-        };
+        return typeof step === "undefined"
+          ? undefined
+          : {
+              index: index,
+              action: e,
+              content: step.content,
+            };
       });
-      const sorted = [...mapped].sort((a, b) => a.index - b.index);
+      const sorted = [...mapped]
+        .filter((e) => typeof e !== "undefined")
+        .sort((a, b) => a.index - b.index);
       const first = sorted[0];
 
       if (typeof first === "undefined") {
+        this.set(this.defaultValue);
         return;
       }
 
-      this.steps = sorted;
-      this.index = 0;
-      this.set(first);
-      user_input.displayEvent(first.action.parent as GridEvent);
+      this.update((s) =>
+        Object({
+          ...s,
+          id: id,
+          steps: sorted,
+        }),
+      );
     }
 
     public next() {
-      return this.steps[this.index + 1];
+      const { steps, index } = get(this.internal);
+      return steps[index + 1];
     }
 
     public previous() {
-      return this.steps[this.index - 1];
+      const { steps, index } = get(this.internal);
+      return steps[index - 1];
     }
 
     public stepForward() {
+      const { current } = get(this.internal);
+      if (typeof current !== "undefined") {
+        lastOpenedActionblocksRemove(current.action.short);
+      }
       const next = this.next();
-      ++this.index;
-      this.set(next);
+      this.update((s) =>
+        Object({
+          ...s,
+          index: ++s.index,
+          current: next,
+        }),
+      );
+
+      lastOpenedActionblocksInsert(next.action.short);
       user_input.displayEvent(next.action.parent as GridEvent);
     }
 
     public stepBackward() {
+      const { current } = get(this.internal);
+      if (typeof current !== "undefined") {
+        lastOpenedActionblocksRemove(current.action.short);
+      }
       const previous = this.previous();
-      --this.index;
-      this.set(previous);
+      this.update((s) =>
+        Object({
+          ...s,
+          index: --s.index,
+          current: previous,
+        }),
+      );
+      lastOpenedActionblocksInsert(previous.action.short);
       user_input.displayEvent(previous.action.parent as GridEvent);
     }
 
     public clear() {
-      this.steps = [];
-      this.set(undefined);
+      this.set(this.defaultValue);
+    }
+
+    set active(value: boolean) {
+      this.update((s) => Object({ ...s, active: value }));
+    }
+
+    public reset() {
+      const { current } = get(this.internal);
+      if (typeof current !== "undefined") {
+        lastOpenedActionblocksRemove(current.action.short);
+      }
+      this.update((s) =>
+        Object({ ...s, active: false, index: 0, current: s.steps[0] }),
+      );
+      lastOpenedActionblocksInsert(get(this.internal).current.action.short);
+    }
+
+    public start() {
+      this.reset();
+      this.update((s) => Object({ ...s, active: true }));
+      const { current } = get(this.internal);
+      lastOpenedActionblocksInsert(current.action.short);
+      user_input.displayEvent(current.action.parent as GridEvent);
     }
   }
 }
 
-export const configTour = new ConfigTour.StepQueue();
+export const configTour = new ConfigTour.Tour();

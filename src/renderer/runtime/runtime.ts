@@ -42,6 +42,7 @@ class NodeData {
 export class GridProfileData {
   public presets: GridPresetData[] = [];
   public description: string;
+  public id: string;
 
   static createFromCloudData(cloudProfile: any) {
     const data = cloudProfile.configs;
@@ -61,12 +62,14 @@ export class GridProfileData {
     }
 
     profile.description = cloudProfile.description;
+    profile.id = cloudProfile.id;
     return profile;
   }
 }
 export class GridPresetData {
   public element: GridElement;
   public description: string;
+  public id: string;
 
   constructor(type: ElementType, index: number, array: RawEventData[]) {
     const element = new GridElement(undefined, new ElementData(index, type));
@@ -90,6 +93,7 @@ export class GridPresetData {
       cloudPreset.configs.events,
     );
     preset.description = cloudPreset.description;
+    preset.id = cloudPreset.id;
     return preset;
   }
 }
@@ -97,6 +101,7 @@ export class GridPresetData {
 export class GridSnippetData {
   public actions: GridAction[];
   public description: string;
+  public id: string;
 
   constructor(array: RawEventData) {
     this.actions = GridAction.parse(array);
@@ -105,6 +110,7 @@ export class GridSnippetData {
   static createFromCloudData(cloudPreset: any) {
     const snippet = new GridSnippetData(cloudPreset.configs);
     snippet.description = cloudPreset.description;
+    snippet.id = cloudPreset.id;
     return snippet;
   }
 }
