@@ -35,7 +35,6 @@
   import {
     MeltCombo,
     MeltSelect,
-    MeltSlider,
     MoltenPushButton,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -48,6 +47,7 @@
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
+  import MeltSlider from "./components/MeltSlider.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -272,6 +272,7 @@
       class="grid grid-cols-[1fr_max-content] w-full gap-2 text-white items-center justify-center bg-secondary p-2 rounded-xl"
     >
       <div class="flex flex-col">
+        {console.log($data)}
         {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
           <div class="flex flex-row flex-grow items-center gap-2">
             <span>{channel[0].toLocaleUpperCase()}</span>
@@ -329,7 +330,7 @@
       </div>
       <div class="flex flex-grow">
         <MeltSlider
-          bind:target={$data.alphaSliderValue}
+          target={$data.alphaSliderValue}
           min={0}
           max={1}
           step={0.01}

@@ -254,13 +254,8 @@ export namespace SimpleColor {
       this.update((s) => {
         s.alphaSliderValue = value;
         s.alpha.value = String(value);
-        const current = s.previewColors[s.selectedIndex];
-        s.previewColors[s.selectedIndex] = {
-          red: current.red,
-          green: current.green,
-          blue: current.blue,
-          alpha: String(value),
-        };
+        s.previewColors[s.selectedIndex].alpha = String(value);
+        console.log(s);
         return s;
       });
     }
@@ -289,25 +284,30 @@ export namespace SimpleColor {
       validationError: boolean,
       channel: Channel,
     ) {
+      console.log(value);
       this.update((s) => {
         s[channel].validator.value = !validationError;
         switch (channel) {
           case SimpleColor.Channel.RED: {
             s.previewColors[s.selectedIndex].red = value;
+            s.red.value = value;
             break;
           }
           case SimpleColor.Channel.GREEN: {
             s.previewColors[s.selectedIndex].green = value;
+            s.green.value = value;
             break;
           }
           case SimpleColor.Channel.BLUE: {
             s.previewColors[s.selectedIndex].blue = value;
+            s.blue.value = value;
             break;
           }
           case SimpleColor.Channel.ALPHA: {
             const alpha = parseFloat(value);
-            s.alphaSliderValue = isNaN(alpha) ? undefined : alpha;
+            s.alphaSliderValue = isNaN(alpha) ? 0 : alpha;
             s.previewColors[s.selectedIndex].alpha = value;
+            s.alpha.value = value;
             break;
           }
         }
