@@ -36,6 +36,7 @@
     MeltCombo,
     MeltSelect,
     MoltenPushButton,
+    MeltSlider,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
@@ -47,7 +48,6 @@
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
-  import MeltSlider from "./components/MeltSlider.svelte";
 
   const dispatch = createEventDispatcher();
 
