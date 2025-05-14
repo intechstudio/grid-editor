@@ -305,18 +305,30 @@ function createWindow() {
     );
   }
 
-  mainWindow.on("close", (evt) => {
+  mainWindow.on("close", async (evt) => {
     // when quit is terminal under darwin
     if (app.quitting) {
       mainWindow = null;
     } else {
       evt.preventDefault();
       // only hide, keep in the background
-      if (store.get("alwaysRunInTheBackground") && !forceQuitForUpdate) {
+      if (forceQuitForUpdate) {
+        app.quit();
+      } else if (store.get("alwaysRunInTheBackground")) {
         mainWindow.hide();
+      } else if ((store.get("enabledPackages")?.length ?? 1) !== 0) {
+        mainWindow.webContents.send("showQuitDialog");
       } else {
         app.quit();
       }
+    }
+  });
+
+  ipcMain.on("quitDialogResult", (_event, value) => {
+    if (value === "quit") {
+      app.quit();
+    } else if (value === "tray") {
+      mainWindow.hide();
     }
   });
 

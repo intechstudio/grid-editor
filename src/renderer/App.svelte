@@ -88,10 +88,12 @@
     configLinkStore.set({ id: value });
   });
 
+  window.electron.showQuitDialog((_event, value) => {
+    quitDialog.showModal();
+  });
+
   async function handlePackageManagerMessage(event) {
     $appSettings.packageManagerRunning = true;
-    console.log("SHOW MODAL 2");
-    quitDialog.showModal();
     const data = event.data;
     // action towards runtime
     switch (data.type) {
@@ -386,8 +388,21 @@
       </Splitpanes>
     </div>
   </div>
-  <dialog bind:this={quitDialog} class="shadow-md rounded-md bg-primary border border-gray-700 p-4 w-[30rem] text-white">
-    <QuitAppDialog />
+  <dialog
+    bind:this={quitDialog}
+    class="shadow-md rounded-md bg-primary border border-gray-700 p-4 w-[30rem] text-white"
+  >
+    <QuitAppDialog
+      on:cancel={() => quitDialog.close()}
+      on:quit={() => {
+        quitDialog.close();
+        window.electron.quitDialogResult("quit");
+      }}
+      on:tray={() => {
+        quitDialog.close();
+        window.electron.quitDialogResult("tray");
+      }}
+    />
   </dialog>
 </main>
 
