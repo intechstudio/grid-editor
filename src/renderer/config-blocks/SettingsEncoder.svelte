@@ -151,6 +151,10 @@
       { value: "50", info: "Default (50%)" },
       { value: "100", info: "Maximum (100%)" },
     ],
+    [
+      { value: "127", info: "7 bit MIDI (default)" },
+      { value: "16383", info: "14 bit MIDI (high res)" },
+    ],
   ];
 
   let minMaxEnabled = false;
@@ -177,11 +181,12 @@
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     <MeltCombo
       title={"Encoder Mode"}
-      bind:value={emo}
+      value={emo}
       suggestions={suggestions[0]}
       validator={validators[0].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        emo = value;
         validators[0].value = !validationError;
         sendData();
       }}
@@ -192,11 +197,12 @@
 
     <MeltCombo
       title={"Encoder Velocity"}
-      bind:value={ev0}
+      value={ev0}
       suggestions={suggestions[1]}
       validator={validators[1].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        ev0 = value;
         validators[1].value = !validationError;
         sendData();
       }}
@@ -213,10 +219,11 @@
       <MeltCombo
         title={"Min"}
         disabled={!minMaxEnabled}
-        bind:value={emi}
+        value={emi}
         validator={validators[2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          emi = value;
           validators[2].value = !validationError;
           sendData();
         }}
@@ -228,10 +235,12 @@
       <MeltCombo
         title={"Max"}
         disabled={!minMaxEnabled}
-        bind:value={ema}
+        value={ema}
         validator={validators[3].func}
+        suggestions={suggestions[2]}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          ema = value;
           validators[3].value = !validationError;
           sendData();
         }}
@@ -248,10 +257,11 @@
     <MeltCombo
       title={"Sensitivity"}
       disabled={!sensitivityEnabled}
-      bind:value={ese}
+      value={ese}
       validator={validators[4].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        ese = value;
         validators[4].value = !validationError;
         sendData();
       }}

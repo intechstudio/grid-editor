@@ -164,6 +164,10 @@
       { value: "50", info: "Default (50%)" },
       { value: "100", info: "Maximum (100%)" },
     ],
+    [
+      { value: "127", info: "7 bit MIDI (default)" },
+      { value: "16383", info: "14 bit MIDI (high res)" },
+    ],
   ];
 
   let minMaxEnabled = false;
@@ -174,11 +178,12 @@
   <Block>
     <MeltCombo
       title={"Endless Mode"}
-      bind:value={epmo}
+      value={epmo}
       suggestions={suggestions[0]}
       validator={validators[0].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        epmo = value;
         validators[0].value = !validationError;
         sendData();
       }}
@@ -189,11 +194,12 @@
 
     <MeltCombo
       title={"Endless Velocity"}
-      bind:value={epv0}
+      value={epv0}
       suggestions={suggestions[1]}
       validator={validators[1].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        epv0 = value;
         validators[1].value = !validationError;
         sendData();
       }}
@@ -207,10 +213,11 @@
       <MeltCombo
         title={"Min"}
         disabled={!minMaxEnabled}
-        bind:value={epmi}
+        value={epmi}
         validator={validators[2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          epmi = value;
           validators[2].value = !validationError;
           sendData();
         }}
@@ -222,10 +229,12 @@
       <MeltCombo
         title={"Max"}
         disabled={!minMaxEnabled}
-        bind:value={epma}
+        value={epma}
         validator={validators[3].func}
+        suggestions={suggestions[2]}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          epma = value;
           validators[3].value = !validationError;
           sendData();
         }}
@@ -240,10 +249,11 @@
     <MeltCombo
       title={"Sensitivity"}
       disabled={!sensitivityEnabled}
-      bind:value={epse}
+      value={epse}
       validator={validators[4].func}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        epse = value;
         validators[4].value = !validationError;
         sendData();
       }}

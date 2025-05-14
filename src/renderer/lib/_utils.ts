@@ -1,4 +1,5 @@
 import convert from "color-convert";
+import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
@@ -329,5 +330,18 @@ export namespace Grid {
         }
       }
     }
+  }
+
+  //TODO: Move it to ui-kit?
+  export namespace Types {
+    export type MeltComboData = {
+      value: string;
+      suggestions: MeltComboSuggestion[];
+      title?: string;
+      validator: {
+        value: boolean;
+        func?: (e: string) => boolean;
+      };
+    };
   }
 }

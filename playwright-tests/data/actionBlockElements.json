@@ -76,15 +76,7 @@
     "If": ["input", "end"]
   },
   "loop": {
-    "Repeater Loop": [
-      "input",
-      "times",
-      "end",
-      "Variable",
-      "Initial",
-      "End",
-      "Increment"
-    ]
+    "Repeater Loop": ["variable", "times"]
   },
   "specialEncoder": {
     "Left/Right Rotate": ["left", "right", "end"],

@@ -129,6 +129,8 @@
     });
 
     editor.onDidChangeModelContent(handleContentChange);
+
+    modal.setBlockMessage(true);
   });
 
   function handleContentChange() {

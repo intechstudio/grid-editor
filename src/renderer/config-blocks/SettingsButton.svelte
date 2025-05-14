@@ -125,6 +125,10 @@
       { value: "2", info: "3-step" },
       { value: "3", info: "4-step" },
     ],
+    [
+      { value: "127", info: "7 bit MIDI (default)" },
+      { value: "16383", info: "14 bit MIDI (high res)" },
+    ],
   ];
 
   let minMaxEnabled = false;
@@ -149,11 +153,12 @@
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <MeltCombo
     title={"Button Mode"}
-    bind:value={bmo}
+    value={bmo}
     suggestions={suggestions[0]}
     validator={validators[0].func}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      bmo = value;
       validators[0].value = !validationError;
       sendData();
     }}
@@ -168,10 +173,11 @@
       <MeltCombo
         title={"Min"}
         disabled={!minMaxEnabled}
-        bind:value={bmi}
+        value={bmi}
         validator={validators[1].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          bmi = value;
           validators[1].value = !validationError;
           sendData();
         }}
@@ -183,10 +189,12 @@
       <MeltCombo
         title={"Max"}
         disabled={!minMaxEnabled}
-        bind:value={bma}
+        value={bma}
         validator={validators[2].func}
+        suggestions={suggestions[1]}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          bma = value;
           validators[2].value = !validationError;
           sendData();
         }}

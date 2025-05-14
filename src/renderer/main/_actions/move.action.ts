@@ -1,7 +1,7 @@
 import { get, writable, type Writable } from "svelte/store";
 import { GridAction, GridEvent } from "../../runtime/runtime";
 import { dropActions } from "../../runtime/operations";
-import { selected_actions } from "../../runtime/user-input.store";
+import { selected_actions } from "../../runtime/selected-actions.store";
 
 export const draggedActions: Writable<GridAction[]> = writable([]);
 export type DropTarget = { event: GridEvent; index: number };
@@ -193,13 +193,9 @@ export function dropzone(node: HTMLElement, params: DropParameters) {
   function handleDropAction(e: DropActionEvent) {
     const { dropped } = e.detail;
     const { event, index } = params;
-    dropActions(event, index, dropped)
-      .then(() => {
-        event.sendToGrid();
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    dropActions(event, index, dropped).catch((e) => {
+      console.log(e);
+    });
   }
 
   function handleMouseOver() {

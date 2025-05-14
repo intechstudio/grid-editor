@@ -293,14 +293,14 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
-    document.addEventListener("keyup", handleEscapePress);
+    document.addEventListener("keydown", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
     document.removeEventListener("contextmenu", preventContextMenuEvent);
-    document.removeEventListener("keyup", handleEscapePress);
+    document.removeEventListener("keydown", handleEscapePress);
   });
 
   function preventContextMenuEvent(e) {
@@ -315,7 +315,7 @@
   function handleEscapePress(e) {
     if (e.key === "Escape") {
       if ($modal) {
-        modal.close();
+        modal.tryClose();
         e.preventDefault();
         e.stopPropagation();
       }
@@ -384,6 +384,17 @@
 </main>
 
 <style global>
+  .activator-button {
+    text-align: left;
+    border: 1px solid rgba(0, 0, 0, 0);
+    outline: 0px solid rgba(0, 0, 0, 0);
+  }
+
+  .activator-button:focus {
+    border-color: rgb(68, 68, 209) !important;
+    outline-color: rgb(68, 68, 209) !important;
+  }
+
   .splitpanes.modern-theme .splitpanes__pane {
     /*  @apply bg-secondary; */
     position: relative;

@@ -125,10 +125,6 @@ export class ConfigPage {
     await this.blocks[category][blockName]["elements"][field].click();
   }
 
-  async openLoopTimes() {
-    await this.loopTimesSwitch.click();
-  }
-
   async openAddBlockToLastSandwich() {
     await this.addBlocktoLastSandwichButton.click();
   }

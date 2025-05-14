@@ -121,7 +121,7 @@
     </div>
 
     <div
-      class="w-full px-2 py-1 text-white bg-secondary"
+      class="w-full px-2 py-1 text-white bg-black/25"
       contenteditable="true"
       bind:innerText={value}
       on:input={() => {

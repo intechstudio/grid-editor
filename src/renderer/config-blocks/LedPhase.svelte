@@ -163,11 +163,12 @@
     {#each scriptSegments as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        bind:value={script}
+        value={script}
         suggestions={suggestions[i]}
         validator={validators[i].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          script = value;
           validators[i].value = !validationError;
           sendData(value, i);
         }}

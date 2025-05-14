@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13]
+        os: [ubuntu-22.04, windows-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -47,7 +47,13 @@ jobs:
           node-version: "18.16.1"
 
       - name: Install python setup-tools dependency
-        run: pip install setuptools --break-system-packages
+        run: pip install setuptools
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+
+      - name: Install libudev-dev (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev
 
       - name: Install dependencies
         run: npm ci
@@ -63,8 +69,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
           # windows Code signing
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
           # Apple ID
           APPLE_ID: ${{secrets.APPLE_ID}}
