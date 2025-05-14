@@ -39,7 +39,7 @@
 <div id="modal-copy-placeholder" />
 
 <MoltenModal>
-  <div slot="content" class="flex flex-col gap-2 items-center">
+  <div slot="content" class="flex flex-col gap-2 items-center w-120">
     <div class="w-full flex justify-between items-center">
       <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
 

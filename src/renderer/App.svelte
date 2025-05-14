@@ -13,6 +13,7 @@
 
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
+  import QuitAppDialog from "./main/QuitAppDialog.svelte";
 
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
@@ -89,6 +90,8 @@
 
   async function handlePackageManagerMessage(event) {
     $appSettings.packageManagerRunning = true;
+    console.log("SHOW MODAL 2");
+    quitDialog.showModal();
     const data = event.data;
     // action towards runtime
     switch (data.type) {
@@ -321,6 +324,8 @@
       }
     }
   }
+
+  let quitDialog;
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -381,6 +386,9 @@
       </Splitpanes>
     </div>
   </div>
+  <dialog bind:this={quitDialog} class="shadow-md rounded-md bg-primary border border-gray-700 p-4 w-[30rem] text-white">
+    <QuitAppDialog />
+  </dialog>
 </main>
 
 <style global>
@@ -456,5 +464,8 @@
     height: 0.05rem;
     pointer-events: none;
     cursor: none;
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
   }
 </style>
