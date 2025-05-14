@@ -312,7 +312,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
 
       while (
         connection_manager.isSerialWriteLocked(this._port) ||
-        get(this._internal)[0] !== current ||
+        get(this._internal).array[0] !== current ||
         (typeof waiter !== "undefined" && !sendImmediate)
       ) {
         if (get(this._internal).array.includes(current)) {
