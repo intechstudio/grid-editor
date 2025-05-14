@@ -30,6 +30,7 @@
   }
 
   function handleProfileLoad(e) {
+    state.set(LoadState.BUSY);
     const page = device.findPage(get(user_input).pagenumber) as GridPage;
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
     loadProfile(profile, page)
@@ -74,7 +75,6 @@
               <SvgIcon fill="#FFF" iconPath={"download"} />
             {:else if $state === LoadState.BUSY}
               <span class="text-white mr-2">Loading...</span>
-              <SvgIcon fill="#FFF" iconPath={"download"} />
             {:else if $state === LoadState.LOADED}
               <span class="text-white">Loaded!</span>
               <SvgIcon fill="#FFF" iconPath={"tick"} />
