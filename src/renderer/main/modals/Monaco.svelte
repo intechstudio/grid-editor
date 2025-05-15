@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { get } from "svelte/store";
   import { Grid } from "./../../lib/_utils";
   import {
     GridElement,
@@ -14,9 +15,9 @@
     MoltenPushButton,
     SvgIcon,
   } from "@intechstudio/grid-uikit";
-  import { onDestroy, tick } from "svelte";
+  import { onDestroy } from "svelte";
   import { NumberToEventType, GridScript } from "@intechstudio/grid-protocol";
-  import { Modal } from "./modal.store";
+  import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -24,9 +25,7 @@
   import { updateAction } from "../../runtime/operations";
   import { MonacoEditor } from "../../lib/monaco";
   import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
-  import ConfirmModal from "./ConfirmModal.svelte";
 
-  export let data: Modal.Instance;
   export let monaco_action: GridAction;
   let event: GridEvent;
   let element: GridElement;
@@ -96,10 +95,8 @@
     ];
   }
 
-  onMount(async () => {
-    //Wait for animation to stop
-    await tick();
-
+  onMount(() => {
+    monaco_action = get(modal).args.monaco_action;
     event = monaco_action.parent as GridEvent;
     element = event.parent as GridElement;
 
@@ -132,6 +129,8 @@
     });
 
     editor.onDidChangeModelContent(handleContentChange);
+
+    modal.setBlockMessage(true);
   });
 
   function handleContentChange() {
@@ -190,31 +189,8 @@
     });
   });
 
-  function handleClose() {
-    if (commitEnabled) {
-      const confirmModal = new Modal.Window(ConfirmModal);
-      confirmModal.show({
-        buttons: [
-          {
-            text: "Discard Changes & Close",
-            style: "outlined",
-            handler: () => {
-              data.close();
-              confirmModal.close();
-            },
-          },
-          {
-            text: "Cancel",
-            style: "normal",
-            handler: () => {
-              confirmModal.close();
-            },
-          },
-        ],
-      });
-    } else {
-      data.close();
-    }
+  function handleClose(e) {
+    modal.close();
   }
 
   function handleResize(e) {
@@ -260,7 +236,7 @@
 
 <div id="modal-copy-placeholder" />
 
-<MoltenModal {data}>
+<MoltenModal>
   <div
     slot="content"
     class="h-full w-full text-white relative flex flex-col gap-2 items-start"

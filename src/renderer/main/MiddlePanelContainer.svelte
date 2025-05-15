@@ -11,7 +11,6 @@
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";
   import { GridRuntime } from "../runtime/runtime";
-  import { Modal } from "./modals/modal.store";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -87,7 +86,6 @@
 
 <div
   bind:this={container}
-  use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
   class="relative flex flex-col w-full h-full overflow-hidden justify-center"
 >
   <ControlSurface />

@@ -15,10 +15,3 @@ export namespace ProfileCloud {
     SYNTAX_ERROR = `Configuration with syntax error(s) can not be saved.`,
   }
 }
-
-export namespace TargetManager {
-  export enum ErrorText {
-    UNKNOWN_TARGET = `Modal window can not be created: Unregistered target!`,
-    ALREADY_SHOWN = `Modal is already shown.`,
-  }
-}

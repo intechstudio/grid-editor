@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Modal, modalManager } from "./main/modals/modal.store";
+  import { modal } from "./main/modals/modal.store";
 
   import "./preload-window-config";
 
@@ -314,8 +314,8 @@
 
   function handleEscapePress(e) {
     if (e.key === "Escape") {
-      if ($modalManager.windows.every((e) => e.props.blockEscape === false)) {
-        $modalManager.windows.forEach((e) => e.close());
+      if ($modal) {
+        modal.tryClose();
         e.preventDefault();
         e.stopPropagation();
       }
@@ -342,6 +342,10 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
 
+  {#if $modal?.options.snap === "full"}
+    <svelte:component this={$modal?.component} />
+  {/if}
+
   <div class="flex flex-col w-full h-full">
     <FirmwareCheck />
 
@@ -360,7 +364,11 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          <MiddlePanelContainer />
+          {#if $modal?.options.snap === "middle"}
+            <svelte:component this={$modal?.component} reference={3} />
+          {:else}
+            <MiddlePanelContainer />
+          {/if}
         </Pane>
 
         <Pane

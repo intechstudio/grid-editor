@@ -1,11 +1,9 @@
-<script lang="ts">
+<script>
   import MoltenModal from "./MoltenModal.svelte";
-  import { Modal } from "./modal.store";
+  import { modal } from "./modal.store";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-
-  export let data: Modal.Instance;
 
   const configuration = window.ctxProcess.configuration();
 
@@ -45,7 +43,7 @@
 
 <div id="modal-copy-placeholder" />
 
-<MoltenModal {data}>
+<MoltenModal>
   <div slot="content">
     <div class="flex-col w-full flex justify-between items-center mb-6">
       <div class="flex w-full text-4xl opacity-90">Grid Editor {version}</div>
@@ -53,7 +51,7 @@
 
       <button
         on:click={() => {
-          data.close();
+          modal.close();
         }}
         id="close-btn"
         class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
@@ -226,7 +224,7 @@
 
         <MoltenPushButton
           click={() => {
-            data.close();
+            modal.close();
           }}
           id="close-btn"
           text={"Close"}

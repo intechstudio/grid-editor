@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { modal } from "./../../modals/modal.store";
   import { get } from "svelte/store";
   import { appSettings } from "../../../runtime/app-helper.store";
 

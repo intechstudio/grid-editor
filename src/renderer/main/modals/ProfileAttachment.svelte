@@ -1,15 +1,24 @@
-<script lang="ts">
-  import { Modal } from "./modal.store";
+<script>
+  import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
-  export let data: Modal.Instance;
+  let editor;
+  let modalWidth;
+  let modalHeight;
+
+  $: if (modalWidth || modalHeight) {
+    if (editor !== undefined) {
+      editor.layout();
+    }
+  }
 </script>
 
-<MoltenModal {data}>
+<svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
+<MoltenModal>
   <div>Profile Attachments</div>
   <button
     on:click={() => {
-      data.close();
+      modal.close();
     }}
     id="close-btn"
     class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable

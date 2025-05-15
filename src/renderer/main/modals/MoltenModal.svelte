@@ -1,54 +1,40 @@
 <script lang="ts">
-  import { fade, fly, scale } from "svelte/transition";
-  import { Modal } from "./modal.store";
-  import { onMount } from "svelte";
+  import { get } from "svelte/store";
+  import { modal, Snap } from "./modal.store";
 
-  export let data: Modal.Instance;
-  export let width: string = "600px";
+  export let width: number = 600;
 
   function close() {
-    if (data.props.disableClickOutside) {
+    if (get(modal)?.options.disableClickOutside) {
       return;
     }
-    data.close();
+    modal.close();
   }
 
-  let mounted = false;
-  onMount(() => {
-    mounted = true;
-  });
+  const styleMap = {
+    [Snap.FULL]: {
+      class: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+      style: `width: ${width}px; max-width: calc(100% - 80px);`,
+    },
+    [Snap.MIDDLE]: {
+      class: "absolute left-0 top-0 w-full h-full",
+      style: "",
+    },
+  };
 </script>
 
-{#if mounted}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    class="z-40 absolute left-0 top-0 w-full h-full
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+  class="z-40 absolute w-full h-full
     bg-secondary bg-opacity-50"
-    on:mousedown|self={close}
+  on:mousedown|self={close}
+>
+  <div
+    class="z-50 text-white shadow-md p-6
+      bg-primary rounded max-h-screen {styleMap[$modal?.options.snap]?.class}"
+    style={styleMap[$modal?.options.snap]?.style}
   >
-    <div
-      class="z-50 text-white shadow-md p-6
-      bg-primary rounded max-h-screen"
-      class:snap-full={data.target === Modal.Snap.Full}
-      class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
-      transition:scale={{ duration: 500, start: 0.95 }}
-      style="--width: {width};"
-    >
-      <slot name="content" />
-    </div>
+    <slot name="content" />
   </div>
-{/if}
-
-<style>
-  .snap-full {
-    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
-    width: var(--width);
-    max-width: calc(100% - 80px);
-    box-sizing: border-box;
-  }
-
-  .snap-grid-layout {
-    @apply absolute left-0 top-0 w-full h-full;
-  }
-</style>
+</div>

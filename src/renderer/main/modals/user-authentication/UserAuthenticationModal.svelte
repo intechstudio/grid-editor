@@ -1,14 +1,12 @@
-<script lang="ts">
+<script>
   import MoltenModal from "../MoltenModal.svelte";
   import UserLogin from "./UserLogin.svelte";
   import UserLoggedIn from "./UserLoggedIn.svelte";
   import UserForgottenPassword from "./UserForgottenPassword.svelte";
   import UserSignUp from "./UserSignUp.svelte";
   import { userStore } from "$lib/user.store";
+  import { modal } from "../modal.store";
   import { onMount } from "svelte";
-  import { Modal } from "../modal.store";
-
-  export let data: Modal.Instance;
 
   let currentNavigationTarget = "login";
 
@@ -21,20 +19,19 @@
   onMount(resetNavigation);
 </script>
 
-<MoltenModal {data} width={"300px"}>
+<MoltenModal width={300}>
   <div slot="content">
     {#if $userStore}
-      <UserLoggedIn {data} />
+      <UserLoggedIn />
     {:else if currentNavigationTarget === "login"}
       <UserLogin
-        {data}
         on:to-forgotten={() => (currentNavigationTarget = "forgotten")}
         on:to-signup={() => (currentNavigationTarget = "signup")}
       />
     {:else if currentNavigationTarget === "forgotten"}
-      <UserForgottenPassword {data} on:back={resetNavigation} />
+      <UserForgottenPassword on:back={resetNavigation} />
     {:else if currentNavigationTarget === "signup"}
-      <UserSignUp {data} on:back={resetNavigation} />
+      <UserSignUp on:back={resetNavigation} />
     {/if}
   </div>
 </MoltenModal>

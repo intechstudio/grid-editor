@@ -1,12 +1,13 @@
 <script>
-  import { Modal } from "../../../modals/modal.store";
+  import { appSettings } from "../../../../runtime/app-helper.store";
+  import { modal } from "../../../modals/modal.store";
   import Export from "../../../modals/Export.svelte";
 </script>
 
 <button
   id="open-export-modal"
   on:click|preventDefault={() => {
-    new Modal.Window(Export).show();
+    modal.show({ component: Export });
   }}
   class="flex cursor-pointer focus:ring-1 w-9 justify-center focus:outline-none items-center hover:bg-select bg-secondary rounded"
 >

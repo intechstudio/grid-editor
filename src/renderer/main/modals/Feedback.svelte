@@ -1,14 +1,12 @@
-<script lang="ts">
+<script>
   import { onMount } from "svelte";
-  import { Modal } from "./modal.store";
+  import { appSettings } from "../../runtime/app-helper.store";
+  import { modal } from "./modal.store";
   import { fade, scale } from "svelte/transition";
   import { backOut } from "svelte/easing";
   import MoltenModal from "./MoltenModal.svelte";
   import { Analytics } from "../../runtime/analytics.js";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-
-  export let data: Modal.Instance;
-  export let feedback_context: string;
 
   let textArea = undefined;
   let inputField = undefined;
@@ -31,8 +29,14 @@
     });
   }
 
-  function handleClose() {
-    data.close();
+  function handleClose(e) {
+    modal.close();
+  }
+
+  function handleClickOutside(e) {
+    if (textArea.value === "") {
+      handleClose(e);
+    }
   }
 
   let feedbackSubmitted = false;
@@ -40,7 +44,7 @@
 
 <div id="modal-copy-placeholder" />
 
-<MoltenModal {data}>
+<MoltenModal>
   <div slot="content">
     <div class="flex flex-col gap-4 flex-grow">
       <div class="flex-row w-full flex justify-between">
@@ -79,7 +83,7 @@
           bind:this={inputField}
           class="bg-secondary p-2 text-white"
           type="text"
-          value={feedback_context}
+          value={$appSettings.feedback_context}
         />
       </div>
       <div class="flex flex-col gap-1 flex-grow">

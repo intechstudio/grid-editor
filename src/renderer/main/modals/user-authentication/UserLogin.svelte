@@ -1,12 +1,13 @@
-<script lang="ts">
+<script>
+  import { userStore } from "$lib/user.store";
   import { authStore, AuthEnvironment } from "$lib/auth.store";
+  import { modal } from "../modal.store";
+  import MoltenModal from "../MoltenModal.svelte";
   import LoginError from "$lib/auth.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import configuration from "../../../../../configuration.json";
+  import { logger } from "../../../runtime/runtime.store";
   import { createEventDispatcher } from "svelte";
-  import { Modal } from "../modal.store";
-
-  export let data: Modal.Instance;
 
   const dispatch = createEventDispatcher();
 
@@ -47,6 +48,14 @@
 
   function signUp() {
     dispatch("to-signup");
+  }
+
+  async function logout() {
+    authStore.logout();
+  }
+
+  function closeUserLoginModal() {
+    modal.close();
   }
 </script>
 

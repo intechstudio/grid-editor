@@ -1,5 +1,5 @@
 import { writable, get, readable } from "svelte/store";
-import { Modal } from "../main/modals/modal.store";
+import { modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
 
 const configuration = window.ctxProcess.configuration();
@@ -226,7 +226,7 @@ async function init_appsettings() {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
           if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-            new Modal.Window(Welcome).show();
+            modal.show({ component: Welcome });
           }
           return s;
         });

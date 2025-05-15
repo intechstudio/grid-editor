@@ -1,9 +1,10 @@
 <script>
-  import { Modal } from "./../modals/modal.store";
+  import { modal } from "./../modals/modal.store";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
+  import { logger } from "../../runtime/runtime.store";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -22,7 +23,7 @@
   }
 
   function handleAddVirtualModuleClicked(e) {
-    new Modal.Window(AddVirtualModule).show({ dx: 0, dy: 0 });
+    modal.show({ component: AddVirtualModule, args: { dx: 0, dy: 0 } });
     Analytics.track({
       event: "VirtualModule",
       payload: {
