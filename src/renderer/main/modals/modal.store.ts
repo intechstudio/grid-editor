@@ -1,70 +1,163 @@
-import { writable } from "svelte/store";
+import type { SvelteComponent, ComponentType } from "svelte";
+import {
+  writable,
+  type Readable,
+  type Writable,
+  Subscriber,
+  Unsubscriber,
+  Updater,
+  get,
+} from "svelte/store";
+import { TargetManager as _TargetManager } from "../../runtime/string-table";
 
-export const modal = createModalStore();
-
-export enum Snap {
-  FULL = "full",
-  MIDDLE = "middle",
-}
-
-export type ModalOptions = {
-  snap?: "full" | "middle";
-  disableClickOutside?: boolean;
-};
-
-export type ModalArguments = any | undefined;
-
-type ModalStoreValue = {
-  component: unknown;
-  options: ModalOptions;
-  args: ModalArguments;
-};
-
-const defaultOptions: ModalOptions = {
-  snap: "full",
-  disableClickOutside: false,
-};
-
-function createModalStore() {
-  const store = writable<ModalStoreValue | undefined>(undefined);
-  let blockEscape: boolean = false;
-
-  function close(): void {
-    store.set(undefined);
+export namespace Modal {
+  export enum Snap {
+    Full = "Full",
+    GridLayout = "GridLayout",
   }
 
-  function setBlockMessage(block: boolean) {
-    blockEscape = block;
-  }
+  export class TargetManager {
+    private targets = new Map<Snap, HTMLElement>();
+    private static instance: TargetManager;
 
-  function tryClose(): void {
-    if (!blockEscape) {
-      close();
+    private constructor() {}
+
+    public static getInstance(): TargetManager {
+      if (!TargetManager.instance) {
+        TargetManager.instance = new TargetManager();
+      }
+      return TargetManager.instance;
+    }
+
+    public static registerAs(node: HTMLElement, value: Snap): void {
+      this.getInstance().targets.set(value, node);
+    }
+
+    public get(value: Snap): HTMLElement | undefined {
+      return this.targets.get(value);
     }
   }
 
-  function show({
-    component,
-    options = defaultOptions,
-    args,
-  }: {
-    component: unknown;
-    options?: ModalOptions;
-    args?: ModalArguments;
-  }): void {
-    blockEscape = false;
-    store.set({
-      component: component,
-      options: options,
-      args: args,
-    } as ModalStoreValue);
+  export type WindowProps = {
+    blockEscape?: boolean;
+    disableClickOutside?: boolean;
+  };
+
+  // Strict type to enforce component must accept `data` prop.
+  export type ComponentWithData<TData, TExtraProps = {}> = ComponentType<
+    SvelteComponent<{ data: Window<TData, TExtraProps> } & TExtraProps>
+  >;
+
+  export type Instance = Window<any, any>;
+
+  export class Window<TData, TExtraProps = {}> {
+    private readonly defaultProps: WindowProps = {
+      blockEscape: false,
+      disableClickOutside: false,
+    };
+
+    private instance: SvelteComponent<any> | null = null;
+    private targetNode: HTMLElement | null = null;
+
+    constructor(
+      private componentType: ComponentWithData<TData, TExtraProps>,
+      public target: Snap = Snap.Full,
+      public props?: WindowProps,
+    ) {
+      this.props = { ...this.defaultProps, ...props };
+    }
+
+    public show(extraProps?: TExtraProps) {
+      if (this.instance) {
+        console.warn(_TargetManager.ErrorText.ALREADY_SHOWN);
+        return { close: this.close.bind(this) };
+      }
+
+      this.targetNode = document.createElement("div");
+
+      if (this.target === Snap.Full) {
+        document.body.appendChild(this.targetNode);
+      } else if (this.target === Snap.GridLayout) {
+        const instance = TargetManager.getInstance();
+        const targetElement = instance.get(Snap.GridLayout);
+
+        if (!targetElement) {
+          throw _TargetManager.ErrorText.UNKNOWN_TARGET;
+        }
+
+        targetElement.appendChild(this.targetNode);
+      }
+
+      this.instance = new this.componentType({
+        target: this.targetNode,
+        props: {
+          ...(extraProps as TExtraProps),
+          data: this,
+        },
+      });
+
+      modalManager.add(this);
+    }
+
+    public close(): void {
+      if (this.instance) {
+        this.instance.$destroy();
+        this.instance = null;
+      }
+
+      if (this.targetNode) {
+        this.targetNode.remove();
+        this.targetNode = null;
+        modalManager.remove(this);
+      } else {
+        console.warn("Modal target node already removed or never created.");
+      }
+    }
   }
 
-  return {
-    subscribe: store.subscribe,
-    show: show,
-    close: close,
-    tryClose: tryClose,
-    setBlockMessage: setBlockMessage,
+  export type ManagerData = {
+    windows: Window<any, any>[];
   };
+
+  export class Manager implements Readable<ManagerData> {
+    protected _internal: Writable<ManagerData> = writable({ windows: [] });
+
+    public subscribe(
+      run: Subscriber<ManagerData>,
+      invalidate?: (value?: ManagerData) => void,
+    ): Unsubscriber {
+      return this._internal.subscribe(run, invalidate);
+    }
+
+    public set(value: ManagerData) {
+      this._internal.set(value);
+    }
+
+    public update(updater: Updater<ManagerData>) {
+      this._internal.update(updater);
+    }
+
+    public add(modal: Window<any, any>) {
+      this.update((s) => ({
+        ...s,
+        windows: [...s.windows, modal],
+      }));
+    }
+
+    public remove(modal: Window<any, any>) {
+      this.update((s) => ({
+        ...s,
+        windows: s.windows.filter((e) => e !== modal),
+      }));
+    }
+
+    public closeAll() {
+      const data = get(this._internal);
+      for (const window of data.windows) {
+        window.close();
+      }
+    }
+  }
 }
+
+export const modalManager = new Modal.Manager();

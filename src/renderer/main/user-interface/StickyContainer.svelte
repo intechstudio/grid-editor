@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Architecture } from "@intechstudio/grid-protocol";
 
-  import { modal } from "./../modals/modal.store";
+  import { Modal } from "./../modals/modal.store";
   import Pages from "../panels/configuration/components/Pages.svelte";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
@@ -28,7 +28,7 @@
 
   function handleChangeModuleClicked() {
     const [dx, dy] = [selectedModule.dx, selectedModule.dy];
-    modal.show({ component: AddVirtualModule, args: { dx: dx, dy: dy } });
+    new Modal.Window(AddVirtualModule).show({ dx, dy });
   }
 
   function handleRemoveModuleClicked() {
