@@ -1,12 +1,8 @@
 <script lang="ts" context="module">
-  import {
-    type ActionBlockInformation,
-    SyntaxPreprocessor,
-  } from "./ActionBlockInformation";
+  import { type ActionBlockInformation } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
-  import { ElementType } from "@intechstudio/grid-protocol";
   // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "cb",
@@ -48,7 +44,7 @@
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { modal } from "../main/modals/modal.store";
+  import { Modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { MonacoEditor } from "../lib/monaco";
 
@@ -101,10 +97,11 @@
   }
 
   async function open_monaco() {
-    modal.show({
-      component: Monaco,
-      options: { snap: "middle", disableClickOutside: true },
-      args: { monaco_action: config },
+    new Modal.Window(Monaco, Modal.Snap.GridLayout, {
+      disableClickOutside: true,
+      blockEscape: true,
+    }).show({
+      monaco_action: config,
     });
   }
 </script>
