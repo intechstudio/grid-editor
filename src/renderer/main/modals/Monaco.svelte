@@ -16,7 +16,7 @@
   } from "@intechstudio/grid-uikit";
   import { onDestroy, tick } from "svelte";
   import { NumberToEventType, GridScript } from "@intechstudio/grid-protocol";
-  import { Modal } from "./modal.store";
+  import { Modal, modalManager } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -28,33 +28,28 @@
 
   export let data: Modal.Instance;
   export let monaco_action: GridAction;
+
   let event: GridEvent;
   let element: GridElement;
-
   let monaco_block;
-
-  let monaco_disposables = [];
-
   let editor;
-
   let commitEnabled = false;
   let errorMesssage = "";
-
   let commited = { script: "", name: "" };
-
   let scriptLength = undefined;
   let pathSnippets = [];
-
   let name;
   let isEditName = false;
   let nameInput;
+  let clickedOutside = false;
+  let monaco_disposables = [];
 
   class LengthError extends String {}
 
   $: handleFontSizechange($appSettings.persistent.fontSize);
 
   function handleFontSizechange(fontSize) {
-    editor?.updateOptions({ fontSize: fontSize });
+    editor?.updateOptions({ fontSize });
   }
 
   $: handleActionChange($monaco_action);
@@ -65,10 +60,7 @@
   }
 
   function handleActionChange(action: ActionData) {
-    if (typeof action === "undefined") {
-      return;
-    }
-
+    if (!action) return;
     if (isDeleted(action)) {
       pathSnippets = ["Deleted Code Block"];
       return;
@@ -83,7 +75,6 @@
       typeof action.name !== "undefined"
         ? action.name
         : action.information.displayName;
-    action;
 
     pathSnippets = [
       `${module.type} (${module.dx},${module.dy})`,
@@ -97,17 +88,13 @@
   }
 
   onMount(async () => {
-    //Wait for animation to stop
     await tick();
-
     event = monaco_action.parent as GridEvent;
     element = event.parent as GridElement;
-
     commited.name = monaco_action.name;
     commited.script = monaco_action.script;
     scriptLength = event.toLua().length;
 
-    //Creating and configuring the editor
     editor = MonacoEditor.create(monaco_block, {
       value: GridScript.expandScript(monaco_action.script),
       language: "intech_lua",
@@ -115,9 +102,7 @@
       fontSize: $appSettings.persistent.fontSize,
       restrictScope: $element.type,
       folding: false,
-
       renderLineHighlight: "none",
-
       contextmenu: false,
       scrollBeyondLastLine: false,
       automaticLayout: true,
@@ -126,9 +111,7 @@
         showIcons: false,
         showWords: true,
       },
-      minimap: {
-        enabled: false,
-      },
+      minimap: { enabled: false },
     });
 
     editor.onDidChangeModelContent(handleContentChange);
@@ -136,25 +119,16 @@
 
   function handleContentChange() {
     try {
-      //Throws error on syntax error
       const compressed = GridScript.compressScript(editor.getValue());
       $monaco_action.script = compressed;
       $monaco_action.name =
         name !== $monaco_action?.information.displayName ? name : undefined;
-
-      //Calculate length (this already includes the new value of referenceConfig)
       scriptLength = ($monaco_action.parent as GridEvent).toLua().length;
-
-      //Check the minified config length
       if (scriptLength >= Grid.Protocol.maxScriptLength) {
         throw new LengthError("Config limit reached.");
       }
-
-      //Everything is ok if no error was thrown previously
       errorMesssage = "";
       commitEnabled = true;
-
-      //Syntax or Length Error
     } catch (e) {
       if (!(e instanceof LengthError)) {
         scriptLength = undefined;
@@ -162,8 +136,6 @@
       commitEnabled = false;
       errorMesssage = e;
     }
-
-    //Restore to commited
     $monaco_action.name = commited.name;
     $monaco_action.script = commited.script;
   }
@@ -185,9 +157,7 @@
   }
 
   onDestroy(() => {
-    monaco_disposables.forEach((element) => {
-      element.dispose();
-    });
+    monaco_disposables.forEach((d) => d.dispose());
   });
 
   function handleClose() {
@@ -203,13 +173,6 @@
               confirmModal.close();
             },
           },
-          {
-            text: "Cancel",
-            style: "normal",
-            handler: () => {
-              confirmModal.close();
-            },
-          },
         ],
       });
     } else {
@@ -217,7 +180,7 @@
     }
   }
 
-  function handleResize(e) {
+  function handleResize() {
     editor?.layout();
   }
 
@@ -228,37 +191,51 @@
     }
     isEditName = !isEditName;
     if (isEditName) {
-      setTimeout(() => {
-        const focus = nameInput.focus;
-        focus();
-      }, 1);
+      setTimeout(() => nameInput.focus(), 1);
     }
   }
 
-  let clickedOutside = false;
-
-  function handleClickOutside(e) {
-    if (!isEditName) {
-      return;
-    }
+  function handleClickOutside() {
+    if (!isEditName) return;
     isEditName = false;
     clickedOutside = true;
   }
 
   function handleNameChange(value) {
-    if (value === monaco_action?.information.displayName) {
-      return;
-    }
-
+    if (value === monaco_action?.information.displayName) return;
     if (value !== monaco_action?.name) {
       handleContentChange();
     }
   }
 
   $: handleNameChange(name);
+
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (modalManager.getTop() !== data) {
+      return;
+    }
+
+    if (e.key === "Escape") {
+      if (
+        editor &&
+        editor.getContribution("editor.contrib.suggestController")?.model
+          ?.state === 2
+      ) {
+        // Suggest widget is open (State 2 is "Open")
+        e.stopPropagation();
+        e.preventDefault();
+        editor
+          .getContribution("editor.contrib.suggestController")
+          .cancelSuggestWidget();
+      } else {
+        handleClose();
+      }
+    }
+  }
 </script>
 
 <div id="modal-copy-placeholder" />
+<svelte:window on:keydown={handleWindowKeydown} />
 
 <MoltenModal {data}>
   <div
@@ -280,7 +257,6 @@
               disabled={!isEditName}
             />
           </div>
-
           <button
             on:click={handleEditClicked}
             class="cursor-pointer pointer-events-auto"
@@ -289,11 +265,11 @@
           </button>
         </div>
         <div class="opacity-70">
-          <span class:invisible={isDeleted($monaco_action)}
-            >{`Character Count: ${
-              typeof scriptLength === "undefined" ? "?" : scriptLength
-            }/${Grid.Protocol.maxScriptLength - 1} (max)`}</span
-          >
+          <span class:invisible={isDeleted($monaco_action)}>
+            {`Character Count: ${typeof scriptLength === "undefined" ? "?" : scriptLength}/${
+              Grid.Protocol.maxScriptLength - 1
+            } (max)`}
+          </span>
         </div>
       </div>
 
@@ -307,13 +283,11 @@
             <div
               class="text-right text-sm {commitEnabled
                 ? 'text-yellow-600'
-                : 'text-green-500'} "
+                : 'text-green-500'}"
             >
               {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
             </div>
-            <div class="text-right text-sm text-error">
-              {errorMesssage}
-            </div>
+            <div class="text-right text-sm text-error">{errorMesssage}</div>
           {/if}
         </div>
 
@@ -324,7 +298,6 @@
             text="Commit"
             style="accept"
           />
-
           <MoltenPushButton click={handleClose} text="Close" style="normal" />
         </div>
       </div>
@@ -350,8 +323,8 @@
     <div class="h-1/4 flex w-full">
       <DebugTextList />
     </div>
-  </div></MoltenModal
->
+  </div>
+</MoltenModal>
 
 <style global>
   .monaco-editor .suggest-widget {
@@ -362,7 +335,6 @@
     position: absolute !important;
     left: 0 !important;
   }
-
   #monaco-container .monaco-editor {
     position: absolute !important;
   }

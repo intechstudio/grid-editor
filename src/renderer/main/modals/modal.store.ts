@@ -39,7 +39,7 @@ export namespace Modal {
   }
 
   export type WindowProps = {
-    blockEscape?: boolean;
+    disableEscapeClose?: boolean;
     disableClickOutside?: boolean;
   };
 
@@ -52,7 +52,7 @@ export namespace Modal {
 
   export class Window<TData, TExtraProps = {}> {
     private readonly defaultProps: WindowProps = {
-      blockEscape: false,
+      disableEscapeClose: false,
       disableClickOutside: false,
     };
 
@@ -156,6 +156,11 @@ export namespace Modal {
       for (const window of data.windows) {
         window.close();
       }
+    }
+
+    public getTop() {
+      const { windows } = get(this._internal);
+      return windows.length > 0 ? windows[windows.length - 1] : undefined;
     }
   }
 }

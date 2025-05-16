@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade, fly, scale } from "svelte/transition";
-  import { Modal } from "./modal.store";
+  import { Modal, modalManager } from "./modal.store";
   import { onMount } from "svelte";
 
   export let data: Modal.Instance;
@@ -17,12 +17,29 @@
   onMount(() => {
     mounted = true;
   });
+
+  function handleKeyDown(e: KeyboardEvent) {
+    if (modalManager.getTop() !== data) {
+      return;
+    }
+
+    if (data.props.disableEscapeClose) {
+      return;
+    }
+
+    if (e.key === "Escape") {
+      data.close();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
 </script>
 
+<svelte:window on:keydown={handleKeyDown} />
+
 {#if mounted}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
+    role="presentation"
     class="z-40 absolute left-0 top-0 w-full h-full
     bg-secondary bg-opacity-50"
     on:mousedown|self={close}

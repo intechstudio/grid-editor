@@ -293,14 +293,12 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
-    document.addEventListener("keydown", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
     document.removeEventListener("contextmenu", preventContextMenuEvent);
-    document.removeEventListener("keydown", handleEscapePress);
   });
 
   function preventContextMenuEvent(e) {
@@ -311,16 +309,6 @@
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
-
-  function handleEscapePress(e) {
-    if (e.key === "Escape") {
-      if ($modalManager.windows.every((e) => e.props.blockEscape === false)) {
-        $modalManager.windows.forEach((e) => e.close());
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
-  }
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}

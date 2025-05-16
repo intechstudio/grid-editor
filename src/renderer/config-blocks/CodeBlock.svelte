@@ -99,7 +99,7 @@
   async function open_monaco() {
     new Modal.Window(Monaco, Modal.Snap.GridLayout, {
       disableClickOutside: true,
-      blockEscape: true,
+      disableEscapeClose: true,
     }).show({
       monaco_action: config,
     });

@@ -1,6 +1,3 @@
-<script lang="ts" context="module">
-</script>
-
 <script lang="ts">
   import { Modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
@@ -14,6 +11,10 @@
 
   export let data: Modal.Instance;
   export let buttons: MoltenPushButtonParams[];
+
+  function handleClose() {
+    data.close();
+  }
 </script>
 
 <MoltenModal {data} width={"25%"}>
@@ -32,6 +33,7 @@
           style={button.style}
         />
       {/each}
+      <MoltenPushButton click={handleClose} text={"Cancel"} style={"normal"} />
     </div>
   </div>
 </MoltenModal>
