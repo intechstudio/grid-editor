@@ -18,6 +18,7 @@ import {
   setIntervalAsync,
   SetIntervalAsyncTimer,
 } from "set-interval-async";
+import { modal } from "../main/modals/modal.store";
 
 type ManagedConnection = {
   runtime: GridRuntime;
@@ -59,7 +60,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
   public subscribe(
     run: Subscriber<GridRuntimeManagerData>,
-    invalidate?: (value?: GridRuntimeManagerData) => void
+    invalidate?: (value?: GridRuntimeManagerData) => void,
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
@@ -98,7 +99,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
   public destroy(runtime: GridRuntime) {
     const destroyed = get(this._internal).data.find(
-      (e) => e.runtime.id === runtime.id
+      (e) => e.runtime.id === runtime.id,
     );
 
     if (!destroyed) {
@@ -109,7 +110,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
     this.update((store) => {
       store.data = store.data.filter(
-        (e) => e.runtime.id !== destroyed.runtime.id
+        (e) => e.runtime.id !== destroyed.runtime.id,
       );
 
       if (store.active.runtime.id === destroyed.runtime.id) {
@@ -217,7 +218,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       dx,
       dy,
       script,
-      target.runtime.virtual
+      target.runtime.virtual,
     );
     instruction.executeOn(target.runtime.connection).catch((e) => {
       console.warn(e);
@@ -228,14 +229,14 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     connection.editor_heartbeat = setIntervalAsync(
       () =>
         GridRuntimeManager.editor_heartbeat_interval_handler(
-          connection.runtime
+          connection.runtime,
         ),
-      GridRuntimeManager.heartbeat_editor_ms
+      GridRuntimeManager.heartbeat_editor_ms,
     );
     connection.grid_heartbeat = setIntervalAsync(
       () =>
         GridRuntimeManager.grid_heartbeat_interval_handler(connection.runtime),
-      GridRuntimeManager.heartbeat_grid_ms
+      GridRuntimeManager.heartbeat_grid_ms,
     );
   }
 
@@ -247,9 +248,15 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
   private static async editor_heartbeat_interval_handler(runtime: GridRuntime) {
     let type = 255;
 
-    // if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
-    //   type = 254;
-    // }
+    if (
+      runtime.unsavedChangesCount() != 0 ||
+      typeof get(modal) !== "undefined"
+    ) {
+      // THIS IS NEEDED!
+      // This determines if the Grid FW should prevent page change when unsaved
+      // changes are present
+      type = 254;
+    }
 
     if (
       runtime.modules.length > 0 &&
@@ -258,7 +265,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     ) {
       const instruction = new GridInstruction.SendHeartbeatImmediate(
         type,
-        runtime.virtual
+        runtime.virtual,
       );
 
       instruction.executeOn(runtime.connection).catch((e) => {
@@ -277,7 +284,12 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
       if (!runtime.isAlive(device)) {
         // TIMEOUT! let's remove the device
-        console.log("Heartbeat lost...");
+        console.log(
+          "Heartbeat lost. DESTROY:",
+          device.dx,
+          device.dy,
+          device.type,
+        );
         runtime.destroy_module(device.dx, device.dy);
       }
     }

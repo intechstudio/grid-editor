@@ -5,7 +5,7 @@
   } from "./../../../runtime/user-input.store";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { derived, get, writable } from "svelte/store";
+  import { derived, get } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
     midi_monitor_store,
@@ -14,10 +14,13 @@
     MidiMonitorItem,
     SysExMonitorItem,
   } from "./MidiMonitor.store";
-  import { grid } from "@intechstudio/grid-protocol";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { Grid } from "../../../lib/_utils";
+  import MidiTester from "./MidiTester.svelte";
+  import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
+  import { scrollToBottom } from "../../_actions/scroll.move";
 
   let event: GridEvent;
 
@@ -30,7 +33,7 @@
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
-      ui.eventtype
+      ui.eventtype,
     );
   }
 
@@ -114,7 +117,7 @@
         ...$midi_monitor_store.map((e) => structuredClone(e)),
         ...$sysex_monitor_store.map((e) => structuredClone(e)),
       ].sort((a, b) => a.date - b.date);
-    }
+    },
   );
 
   //Human readable midi store
@@ -122,64 +125,19 @@
     [midi_monitor_store],
     ([$midi_monitor_store]) => {
       let result = replaceNRPNMessages(
-        $midi_monitor_store.map((e) => structuredClone(e))
+        $midi_monitor_store.map((e) => structuredClone(e)),
       );
       result = replaceHighResMidiMessages(result);
       result.forEach((e) => {
         e = assignP1ValueAlias(e);
       });
       return result;
-    }
+    },
   );
 
   $: {
     configScriptLength = $event?.toLua().length ?? 0;
   }
-
-  const createDebouncedStore = (initialValue, debounceTime) => {
-    let timeoutId;
-    const { subscribe, set } = writable(initialValue);
-
-    const debouncedSet = (value) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => set(value), debounceTime);
-    };
-
-    return {
-      subscribe,
-      set: debouncedSet,
-    };
-  };
-
-  const scrollToBottom = (node) => {
-    let isScrolling = false;
-
-    const scroll = () => {
-      if (
-        !isScrolling &&
-        node.scrollTop !== node.scrollHeight - node.offsetHeight
-      ) {
-        isScrolling = true;
-        requestAnimationFrame(() => {
-          node.scroll({
-            top: node.scrollHeight,
-            behavior: "smooth",
-          });
-
-          isScrolling = false;
-        });
-      }
-    };
-
-    const store = createDebouncedStore(null, 100);
-
-    const unsubscribe = store.subscribe(scroll);
-
-    return {
-      update: (value) => store.set(value),
-      destroy: () => unsubscribe(),
-    };
-  };
 
   //Defines
   let debug = false;
@@ -249,11 +207,14 @@
   }
 
   const isMIDI = (
-    msg: MidiMonitorItem | SysExMonitorItem
+    msg: MidiMonitorItem | SysExMonitorItem,
   ): msg is MidiMonitorItem => msg.type === "MIDI";
 </script>
 
-<div class="flex flex-col h-full p-4 bg-primary">
+<container
+  data-testid="midi-monitor"
+  class="flex flex-col h-full p-4 bg-primary"
+>
   <div class="flex flex-row w-full text-white justify-between">
     <div class="flex text-2xl">MIDI Monitor</div>
     <div class="flex items-center">
@@ -298,7 +259,7 @@
         <div class="border-gray-700 border rounded flex flex-col">
           <span class="text-white bg-secondary px-1 truncate">Channel</span>
           <span class="px-2 text-white text-center truncate"
-            >{last ? last.data.channel : "---"}</span
+            >{last ? last.data.channel + 1 : "---"}</span
           >
         </div>
         <div class="border-gray-700 border rounded flex flex-col">
@@ -357,9 +318,12 @@
       pushOtherPanes={false}
       class="h-full w-full"
     >
-      <Pane size={50}>
+      <Pane size={debug ? 70 : 50}>
         <div class="flex flex-col overflow-hidden h-full">
           {#if debug}
+            <div class="m-4">
+              <MidiTester />
+            </div>
             <div class="flex w-full font-medium text-white pb-2 pt-8">
               MIDI Messages (RAW)
             </div>
@@ -373,15 +337,20 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              use:scrollToBottom={$debug_stream}
+              use:scrollToBottom={debug_stream}
             >
               {#each $debug_stream as message}
                 <div
-                  class="grid grid-cols-6 items-start justify-start w-full font-mono text-green-300"
+                  class="grid grid-cols-7 items-start justify-start w-full font-mono {message
+                    .data.direction == 'REPORT'
+                    ? 'text-blue-600 '
+                    : 'text-green-400 '}"
                 >
-                  <div>[{message.device.x}, {message.device.y}]</div>
+                  <div class="col-span-2">
+                    [{message.device.x}, {message.device.y}]
+                  </div>
                   {#if isMIDI(message)}
-                    <div>{message.data.channel}</div>
+                    <div>{message.data.channel + 1}</div>
                     <div>{message.data.command.value}</div>
                     <div>{message.data.params.p1.value}</div>
                     <div>{message.data.params.p2.value}</div>
@@ -408,26 +377,40 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={$human_midi_store}
+              use:scrollToBottom={human_midi_store}
             >
               {#each $human_midi_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
-                  class="grid grid-cols-7 gap-2 text-green-400 hover:text-green-200
+                  class="grid grid-cols-8 gap-2 {midi.data.direction == 'REPORT'
+                    ? 'text-blue-600 hover:text-blue-400'
+                    : 'text-green-400 hover:text-green-200'}
                   transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
                   on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage()}
                 >
-                  <div class="flex flex-row text-white">
-                    <span>{midi.device.name}</span>
+                  <div
+                    class="flex flex-row gap-1 min-w-fit min-h-fit col-span-2"
+                  >
+                    <span class="text-white">{midi.device.name}</span>
                     {#if midi.data.direction == "REPORT"}
-                      <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                      <SvgIcon
+                        fill="#FFF"
+                        iconPath="arrow_left"
+                        width={14}
+                        height={14}
+                      />
                     {:else}
-                      <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                      <SvgIcon
+                        fill="#FFF"
+                        iconPath="arrow_right"
+                        width={14}
+                        height={14}
+                      />
                     {/if}
                   </div>
-                  <span class="truncate">Ch: {midi.data.channel}</span>
+                  <span class="truncate">Ch: {midi.data.channel + 1}</span>
                   <span class="truncate">{midi.data.command.short}</span>
                   <span class="truncate">{midi.data.params.p1.short}:</span>
                   <span class="truncate"
@@ -443,9 +426,9 @@
           {/if}
         </div>
       </Pane>
-      <Pane size={50}>
-        <div class="flex flex-col h-full w-full">
-          {#if debug}
+      <Pane size={debug ? 30 : 50}>
+        {#if debug}
+          <div class="flex flex-col h-full w-full">
             <div
               class="text-white flex flex-row pb-2 pt-6 font-medium justify-between"
             >
@@ -453,31 +436,28 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={configScriptLength >= grid.getProperty("CONFIG_LENGTH")
+                  class={configScriptLength >= Grid.Protocol.maxScriptLength
                     ? "text-error"
                     : configScriptLength >=
-                      (grid.getProperty("CONFIG_LENGTH") / 3) * 2
-                    ? "text-yellow-400"
-                    : "text-white"}
+                        (Grid.Protocol.maxScriptLength / 3) * 2
+                      ? "text-yellow-400"
+                      : "text-white"}
                 >
                   {configScriptLength}
                 </div>
               </div>
             </div>
-            <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
-              {#if $debug_monitor_store.length != 0}
-                {#each $debug_monitor_store as debug, i}
-                  <span class="font-mono text-white debugtexty">{debug}</span>
-                {/each}
-              {/if}
-            </div>
-          {:else}
+
+            <DebugTextList />
+          </div>
+        {:else}
+          <div class="flex flex-col h-full w-full">
             <div class="flex w-full text-white pb-2 pt-6">
               System Exclusive Messages
             </div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={$sysex_monitor_store}
+              use:scrollToBottom={sysex_monitor_store}
             >
               {#each $sysex_monitor_store as sysex}
                 <div
@@ -504,12 +484,12 @@
                 </div>
               {/each}
             </div>
-          {/if}
-        </div>
+          </div>
+        {/if}
       </Pane>
     </Splitpanes>
   </div>
   <div class="flex pt-4 pb-12">
     <MoltenPushButton text="Clear All" snap={"full"} click={onClearClicked} />
   </div>
-</div>
+</container>

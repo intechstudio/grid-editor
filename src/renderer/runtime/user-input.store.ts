@@ -4,7 +4,7 @@ import { appSettings } from "./app-helper.store";
 import { runtime_manager } from "./runtime-manager.store";
 import { Subscriber } from "svelte/motion";
 import { Grid } from "../lib/_utils";
-import { GridAction } from "./runtime";
+import { selected_actions } from "./selected-actions.store";
 
 export type UserInputValue = {
   dx: number;
@@ -33,45 +33,51 @@ export class UserInput implements Writable<UserInputValue> {
   // Subscribe to the entire object
   public subscribe(
     run: Subscriber<UserInputValue>,
-    invalidate?: (value?: UserInputValue) => void
+    invalidate?: (value?: UserInputValue) => void,
   ): Unsubscriber {
+    const runtime = get(runtime_manager).active.runtime;
+    const value = get(this._internal);
+
+    const element = runtime.findElement(
+      value.dx,
+      value.dy,
+      value.pagenumber,
+      value.elementnumber,
+    );
+
+    if (typeof element !== "undefined") {
+      const event = element.findEvent(value.eventtype);
+
+      if (typeof event === "undefined") {
+        const closestEvent = Grid.getClosestEvent(
+          element.events.map((e) => e.type),
+          value.eventtype,
+        );
+        this.set({
+          dx: value.dx,
+          dy: value.dy,
+          pagenumber: value.pagenumber,
+          elementnumber: value.elementnumber,
+          eventtype: closestEvent,
+        });
+      }
+    } else {
+      this.set(UserInput.defaultValue);
+    }
+
     return this._internal.subscribe(run, invalidate);
   }
 
   // Set the entire object
   public set(value: UserInputValue) {
-    const runtime = get(runtime_manager).active.runtime;
-    console.log(
-      "YAY",
-      runtime.virtual,
-      typeof runtime,
-      value.dx,
-      value.dy,
-      runtime.findModule(
-        value.dx,
-        value.dy
-        //value.pagenumber,
-        //value.elementnumber
-      )
-    );
-    const events = runtime
-      .findElement(value.dx, value.dy, value.pagenumber, value.elementnumber)
-      ?.events.map((e) => e.type);
-    const closestEvent = Grid.getClosestEvent(events ?? [2], value.eventtype);
-    console.log(value, runtime, events, closestEvent);
-
-    this._internal.set({
-      dx: value.dx,
-      dy: value.dy,
-      pagenumber: value.pagenumber,
-      elementnumber: value.elementnumber,
-      eventtype: closestEvent,
-    });
+    this._internal.set(value);
+    selected_actions.set([]);
   }
 
   // Update the object with a partial update function
   public update(updater: Updater<UserInputValue>) {
     this._internal.update(updater);
+    selected_actions.set([]);
   }
 
   // Process incoming events
@@ -118,7 +124,7 @@ export class UserInput implements Writable<UserInputValue> {
               descr.brc_parameters.SX,
               descr.brc_parameters.SY,
               ui.pagenumber,
-              descr.class_parameters.ELEMENTNUMBER
+              descr.class_parameters.ELEMENTNUMBER,
             )
             .events.map((e) => e.type);
 
@@ -171,8 +177,3 @@ export class UserInput implements Writable<UserInputValue> {
 }
 
 export const user_input = new UserInput();
-
-export const selected_actions: Writable<GridAction[]> = writable([]);
-user_input.subscribe(() => {
-  selected_actions.set([]);
-});

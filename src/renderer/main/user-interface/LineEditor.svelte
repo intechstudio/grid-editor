@@ -1,23 +1,16 @@
 <script lang="ts">
-  import { GridEvent } from "./../../runtime/runtime.ts";
-  import { GridAction, GridEvent, GridElement } from "./../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
-  import {
-    beforeUpdate,
-    createEventDispatcher,
-    onDestroy,
-    onMount,
-  } from "svelte";
+  import { beforeUpdate, createEventDispatcher, onMount } from "svelte";
 
-  import { monaco_elementtype } from "../../lib/CustomMonaco";
-
-  import { monaco_editor } from "$lib/CustomMonaco";
+  import { ElementType } from "@intechstudio/grid-protocol";
+  import { MonacoEditor } from "../../lib/monaco";
 
   const dispatch = createEventDispatcher();
 
   export let value;
-  export let action: GridAction;
   export let disabled = false;
+  export let availableCharacters = Infinity;
+  export let restrictScopeTo: ElementType | undefined = undefined;
 
   let monaco_block;
 
@@ -36,10 +29,6 @@
     }
   }
 
-  onDestroy(() => {
-    editor.dispose();
-  });
-
   $: handleFontSizechange($appSettings.persistent.fontSize);
 
   function handleFontSizechange(fontSize) {
@@ -47,18 +36,15 @@
   }
 
   onMount(() => {
-    const event = action.parent as GridEvent;
-    const element = event.parent as GridElement;
-    $monaco_elementtype = element.type;
     input_buffer = value;
-
-    editor = monaco_editor.create(monaco_block, {
+    editor = MonacoEditor.create(monaco_block, {
       value: value,
       language: "intech_lua",
       theme: "my-theme",
       minimap: {
         enabled: false,
       },
+      restrictScope: restrictScopeTo,
       readOnly: disabled,
       fontSize: $appSettings.persistent.fontSize,
       lineNumbers: "off",
@@ -76,7 +62,7 @@
       },
       contextmenu: false,
       scrollPredominantAxis: false,
-      scrollBeyondLastLine: 0,
+      scrollBeyondLastLine: false,
       suggest: {
         showIcons: false,
         showWords: true,
@@ -97,9 +83,8 @@
         return;
       }
       if (!newLinesRemoved) {
-        const parent = action.parent as GridEvent;
         const diff = value.length - input_buffer.length;
-        if (parent.getAvailableChars() - diff < 0) {
+        if (availableCharacters - diff < 0) {
           editor.setValue(input_buffer);
         } else {
           input_buffer = value;

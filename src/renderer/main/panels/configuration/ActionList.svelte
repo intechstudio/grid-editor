@@ -12,15 +12,18 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
-  import { selected_actions } from "../../../runtime/user-input.store";
+  import { selected_actions } from "../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
-  import { grid } from "@intechstudio/grid-protocol";
-  import { shortcut } from "./../../_actions/shortcut.action";
   import Options from "./components/Options.svelte";
+  import { Grid } from "../../../lib/_utils";
+  import { latestComponentVersionKeys } from "../../../lib/_configs";
+  import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
+  import { autoScroll } from "../../_actions/autoscroll.action";
+  import { isPasteActionsEnabled } from "./components/Toolbar";
 
   export let event: GridEvent;
+  export let targetPanel: HTMLElement;
 
-  let autoScroll;
   let configList: HTMLElement;
 
   function handleNewConfig(e: CustomEvent) {
@@ -28,31 +31,9 @@
     addActions(event, index, ...configs);
   }
 
-  function handlePaste(e: CustomEvent) {
-    const { index } = e?.detail ?? { index: undefined };
+  function handlePaste(e: any) {
+    const { index } = e.detail;
     pasteActions(event, index);
-  }
-
-  function handleMouseMove(e: MouseEvent) {
-    const dragged = get(draggedActions);
-    if (typeof dragged !== "undefined") {
-      const mouseY = e.clientY - configList.getBoundingClientRect().top;
-      const configListHeight = configList.offsetHeight;
-      const treshold = 60;
-      const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold =
-        configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(autoScroll);
-      if (lowerThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop += 5;
-        }, 10);
-      } else if (upperThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop -= 5;
-        }, 10);
-      }
-    }
   }
 
   function handleSelectionChange(action: GridAction, value: boolean) {
@@ -85,6 +66,10 @@
   }
 
   function handleSelectAll() {
+    if (!event) {
+      return;
+    }
+
     const selected = get(selected_actions);
     if (event.config.every((e) => selected.includes(e))) {
       selected_actions.set([]);
@@ -92,104 +77,142 @@
       selected_actions.set(event.config);
     }
   }
+
+  function handleKeyDown(e: KeyboardEvent) {
+    //Ignore if origin node is input
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+    ) {
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+      console.log("Ctrl + A = Select all actions");
+      handleSelectAll();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+      console.log("Ctrl + V = Paste actions");
+      handlePaste(
+        new CustomEvent("paste", { detail: { index: event.config.length } }),
+      );
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
 </script>
 
-<div class="flex flex-col h-full w-full overflow-hidden gap-2">
-  <div class="flex flex-row gap-2 justify-between items-center flex-none">
-    <div class="flex flex-col">
-      <span class="text-white">{$event?.getName() ?? "No Device"}</span>
-      <div class="flex flex-row gap-2">
-        <span class="text-gray-500 text-sm">Script length:</span>
-        <span data-testid="charCount" class="text-white text-sm">
-          {$event?.toLua().length ?? 0}/{grid.getProperty("CONFIG_LENGTH") - 1}
-        </span>
-      </div>
-    </div>
-    <button
-      class="w-fit h-fit mr-[16px]"
-      use:shortcut={{
-        control: true,
-        code: "KeyA",
-        callback: handleSelectAll,
-      }}
+{#key $event?.id}
+  <div
+    role="tabpanel"
+    tabindex="0"
+    on:keydown={handleKeyDown}
+    class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+  >
+    <div
+      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
     >
+      <div class="flex flex-col">
+        <span class="text-white">{$event?.getName() ?? "No Device"}</span>
+        <div class="flex flex-row gap-2">
+          <span class="text-gray-500 text-sm">Script length:</span>
+          <span data-testid="charCount" class="text-white text-sm">
+            {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+          </span>
+        </div>
+      </div>
       <Options
-        selected={$event?.config.every((e) => $selected_actions.includes(e))}
-        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
-        disabled={$event?.config.length === 0}
+        testid="select_all"
+        selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
+          false}
+        halfSelected={$event?.config.some((e) =>
+          $selected_actions.includes(e),
+        ) ?? false}
+        disabled={($event?.config?.length ?? 0) === 0}
         on:select={handleSelectAll}
       />
-    </button>
-  </div>
+    </div>
 
-  <ul
-    bind:this={configList}
-    on:mousemove={handleMouseMove}
-    on:mouseleave={() => clearInterval(autoScroll)}
-    class="flex-1 overflow-y-scroll justify-start px-3"
-  >
-    {#if $event?.config.length === 0 && $draggedActions.length === 0}
-      <ActionHelper
-        target={{ event: event, index: 0 }}
-        text={"There are no actions configured on this event."}
-      />
-    {:else}
-      <SeparatorLine target={{ event: event, index: 0 }} />
-    {/if}
+    <ul
+      bind:this={configList}
+      use:autoScroll={{
+        threshold: 60,
+        scrollCondition: () => {
+          const dragged = get(draggedActions);
+          return dragged && dragged.length > 0;
+        },
+      }}
+      class="overflow-y-scroll justify-start w-full h-full"
+    >
+      {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+        <ActionHelper
+          target={{ event: event, index: 0 }}
+          text={"There are no actions configured on this event."}
+        />
+      {:else}
+        <SeparatorLine target={{ event: event, index: 0 }} />
+      {/if}
 
-    {#each $event?.config ?? [] as action, index (action.id)}
-      {@const showHelper =
-        typeof action.information.helperText !== "undefined" &&
-        ["composite_part", "composite_open"].includes(
-          action.information.type
-        ) &&
-        $event.config[index + 1]?.indentation === action.indentation &&
-        $appSettings.persistent.actionHelperText}
+      {#each $event?.config ?? [] as action, index (action.id)}
+        {@const showHelper =
+          typeof action.information.helperText !== "undefined" &&
+          ["composite_part", "composite_open"].includes(
+            action.information.type,
+          ) &&
+          $event.config[index + 1]?.indentation === action.indentation &&
+          $appSettings.persistent.actionHelperText}
 
-      <anim-block
-        animate:flip={{ duration: 300, easing: eases.backOut }}
-        in:fade|global={{ delay: 0 }}
-      >
-        <div class="flex flex-row gap-2">
-          <DynamicWrapper
-            {index}
-            {action}
-            selected={typeof $selected_actions.find(
-              (e) => e.id === action.id
-            ) !== "undefined"}
-            on:select={(e) => handleSelectionChange(action, e.detail.value)}
-          />
-          <div class="flex items-center">
-            <Option
-              selected={typeof $selected_actions.find(
-                (e) => e.id === action.id
-              ) !== "undefined"}
-              disabled={!action.information.selectable}
-              on:select={(e) => handleSelectionChange(action, e.detail.value)}
-            />
+        <div
+          data-testid="action-block"
+          animate:flip={{ duration: 300, easing: eases.backOut }}
+          in:fade|global={{ delay: 0 }}
+        >
+          <div class="flex flex-row gap-2">
+            {#key $latestComponentVersionKeys.get(action.short)}
+              <DynamicWrapper
+                {index}
+                {action}
+                selected={typeof $selected_actions.find(
+                  (e) => e.id === action.id,
+                ) !== "undefined"}
+                on:select={(e) => handleSelectionChange(action, e.detail.value)}
+              />
+            {/key}
+            <div class="flex items-center">
+              <Option
+                selected={typeof $selected_actions.find(
+                  (e) => e.id === action.id,
+                ) !== "undefined"}
+                disabled={!action.information.selectable}
+                on:select={(e) => handleSelectionChange(action, e.detail.value)}
+              />
+            </div>
           </div>
+
+          {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+            <ActionHelper
+              target={{ event: event, index: index + 1 }}
+              text={action.information.helperText}
+            />
+          {:else}
+            <SeparatorLine target={{ event: event, index: index + 1 }} />
+          {/if}
         </div>
+      {/each}
+    </ul>
 
-        {#if showHelper && $draggedActions.length === 0}
-          <ActionHelper
-            target={{ event: event, index: index + 1 }}
-            text={action.information.helperText}
-          />
-        {:else}
-          <SeparatorLine target={{ event: event, index: index + 1 }} />
-        {/if}
-      </anim-block>
-    {/each}
-  </ul>
-
-  {#if event}
-    <BottomPanel
-      target={{ event: event, index: $event?.config.length }}
-      on:paste={handlePaste}
-      on:new-config={handleNewConfig}
-    />
-  {/if}
-</div>
+    {#if event}
+      <BottomPanel
+        target={{ event: event, index: $event?.config.length }}
+        on:paste={handlePaste}
+        on:new-config={handleNewConfig}
+      />
+    {/if}
+  </div>
+{/key}
 
 <style global>
   ::-webkit-scrollbar {

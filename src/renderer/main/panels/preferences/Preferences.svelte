@@ -1,5 +1,4 @@
 <script lang="ts">
-  import MultiEventView from "./../configuration/MultiEventView.svelte";
   import { modal } from "./../../modals/modal.store";
   import { get } from "svelte/store";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -42,7 +41,7 @@
 
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
-      get(appSettings).persistent.profileFolder
+      get(appSettings).persistent.profileFolder,
     );
   }
 
@@ -60,7 +59,7 @@
 
   function handleOpenPolicyClicked(e) {
     window.electron.openInBrowser(
-      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
+      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL,
     );
   }
 
@@ -79,7 +78,6 @@
   ];
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
-  const buildVariables = window.ctxProcess.buildVariables();
 </script>
 
 <div
@@ -319,12 +317,15 @@
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
-      <BlockTitle>Multi Event view</BlockTitle>
-      <MoltenButton
-        title={"Open"}
-        click={() => {
-          modal.show({ component: MultiEventView });
-        }}
+      <BlockTitle>Multi Event View</BlockTitle>
+      <BlockBody
+        >This feature allows editing all events of a Grid control element. Once
+        enabled, resize the configuration panel to create enough space, and all
+        events will be displayed side by side for editing.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.multiViewEnabled}
+        title={"Enabled"}
       />
     </Block>
     <Block>
@@ -359,6 +360,16 @@
       <MeltCheckbox
         bind:target={$appSettings.persistent.unreleasedVirtualModules}
         title={"Activate unreleased modules"}
+      />
+    </Block>
+
+    <Block>
+      <BlockTitle>Unreleased Action Blocks</BlockTitle>
+      <BlockBody>Enable/Disable adding unrelease action blocks.</BlockBody>
+
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.allowDevBlocks}
+        title={"Enabled"}
       />
     </Block>
 
@@ -426,7 +437,7 @@
       />
     </Block>
 
-    {#if buildVariables.BRANCH_NAME === "stable"}
+    {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
       <Block>
         <BlockTitle>Nightly Editor Update</BlockTitle>
         <BlockBody>

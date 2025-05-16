@@ -1,7 +1,7 @@
 import { Analytics } from "./analytics";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { logger } from "./runtime.store";
-import { selected_actions } from "./user-input.store";
+import { selected_actions } from "./selected-actions.store";
 
 import {
   GridOperationResult,
@@ -17,13 +17,15 @@ import {
   GridProfileData,
   GridModule,
   GridPresetData,
+  GridSnippetData,
+  SnippetLoadResult,
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
-  console.warn(`Operation error: ${e.text}`);
+  console.warn(`Operation error: ${e.text}`, e);
   switch (e.type) {
     case GridOperationType.MERGE_ACTIONS_TO_CODE:
     case GridOperationType.PASTE_ACTION:
@@ -39,16 +41,17 @@ function handleError(e: GridOperationResult) {
       });
       break;
     }
+    case GridOperationType.LOAD_SNIPPET: {
+      const error = e as SnippetLoadResult;
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "operationerror",
+        message: e.text,
+      });
+      break;
+    }
   }
-
-  /*
-  logger.set({
-    type: "fail",
-    mode: 0,
-    classname: "luanotok",
-    message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
-  });
-  */
 }
 
 //Clipboard handlers
@@ -188,21 +191,8 @@ export async function clearElement(target: GridElement) {
 }
 
 export async function syncWithGrid(target: GridAction) {
-  target.sendToGrid();
-}
-
-export async function updateAction(
-  target: GridAction,
-  data: ActionData,
-  syncWithGrid: boolean
-) {
   target
-    .updateData(data)
-    .then((result) => {
-      if (syncWithGrid) {
-        target.sendToGrid();
-      }
-    })
+    .sendToGrid()
     .catch(handleError)
     .finally(() => {
       const event = target.parent as GridEvent;
@@ -220,17 +210,35 @@ export async function updateAction(
     });
 }
 
+export async function updateAction(
+  target: GridAction,
+  data: ActionData,
+  sync: boolean,
+) {
+  return target
+    .updateData(data)
+    .catch(handleError)
+    .finally(() => {
+      if (sync) {
+        syncWithGrid(target);
+      }
+    });
+}
+
 //GridEvent handlers
 
 export async function mergeActionsToCode(
   target: GridEvent,
+  selectMergedAction: boolean,
   ...actions: GridAction[]
 ) {
   target
     .merge(...actions)
     .then((result) => {
       target.sendToGrid();
-      selected_actions.set([result.merged]);
+      if (selectMergedAction) {
+        selected_actions.set([result.merged]);
+      }
     })
     .catch(handleError)
     .finally(() => {});
@@ -329,7 +337,7 @@ export async function addActions(
 export async function replaceAction(
   target: GridEvent,
   a: GridAction,
-  b: GridAction
+  b: GridAction,
 ) {
   target
     .replace(a, b)
@@ -346,16 +354,12 @@ export async function replaceAction(
     });
 }
 
-export async function loadProfile(
-  profile: GridProfileData,
-  target: GridPage
-): Promise<void> {
+export async function loadProfile(profile: GridProfileData, target: GridPage) {
   Analytics.track({
     event: "Pro file Load Start",
     payload: {},
     mandatory: false,
   });
-
   target
     .loadProfile(profile)
     .then(() => {
@@ -387,7 +391,7 @@ export async function loadProfile(
 
 export async function loadPreset(
   preset: GridPresetData,
-  target: GridElement
+  target: GridElement,
 ): Promise<void> {
   Analytics.track({
     event: "Preset Load Start",
@@ -424,25 +428,52 @@ export async function loadPreset(
     });
 }
 
-export function dropActions(
+export async function loadSnippet(
+  snippet: GridSnippetData,
   target: GridEvent,
   index: number,
-  actions: GridAction[]
 ) {
+  Analytics.track({
+    event: "Snippet Load Start",
+    payload: {},
+    mandatory: false,
+  });
+
+  return target
+    .loadSnippet(snippet, index)
+    .catch((e) => {
+      handleError(e);
+    })
+    .finally(() => {
+      Analytics.track({
+        event: "Snippet Load Success",
+        payload: {},
+        mandatory: false,
+      });
+    });
+}
+
+export async function dropActions(
+  target: GridEvent,
+  index: number,
+  actions: GridAction[],
+): Promise<InsertActionsResult> {
   let targetActions = actions.filter((e) => e.parent === target);
   let targetIndexes = targetActions.map((action) =>
-    target.config.findIndex((e) => e.id === action.id)
+    target.config.findIndex((e) => e.id === action.id),
   );
   const targetMinIndex = Math.min(...targetIndexes);
   const targetMaxIndex = Math.max(...targetIndexes);
 
   if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
-    return; // Invalid drop zone, return the original list
-  }
-
-  for (const action of actions) {
-    const parent = action.parent as GridEvent;
-    parent.remove(action);
+    const error = {
+      value: false,
+      text: `Add failed! Invalid index: ${index}.`,
+      type: GridOperationType.INSERT_ACTIONS,
+      info: target.getInfo(),
+    };
+    handleError(error);
+    return Promise.reject(error);
   }
 
   if (targetActions.length > 0) {
@@ -450,5 +481,22 @@ export function dropActions(
     index = movingDown ? index - targetIndexes.length : index;
   }
 
-  target.insert(index, ...actions);
+  const removed: Array<{ index: number; action: GridAction }> = [];
+  for (const action of actions) {
+    const parent = action.parent as GridEvent;
+    removed.push(...(await parent.remove(action)).removed);
+    parent.sendToGrid();
+  }
+
+  try {
+    await target.insert(index, ...actions);
+    target.sendToGrid();
+  } catch (e) {
+    for (const obj of removed) {
+      const parent = obj.action.parent as GridEvent;
+      parent.insert(obj.index, obj.action);
+      parent.sendToGrid();
+    }
+    handleError(e);
+  }
 }

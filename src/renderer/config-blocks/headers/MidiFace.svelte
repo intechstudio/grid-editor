@@ -1,14 +1,17 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
+  import { GridAction } from "../../runtime/runtime.js";
 
   const dispatch = createEventDispatcher();
 
-  export let config = undefined;
+  export let config: GridAction;
 
   let scriptSegments = [];
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -26,7 +29,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="h-full bg-secondary text-white flex items-center flex-row w-full px-2 {false
+  class="bg-secondary text-white flex items-center flex-row w-full px-2 {false
     ? 'group-hover/bg-color:bg-select-saturate-10'
     : ''}"
   on:click={handleClick}
@@ -35,7 +38,7 @@
     <span class="mr-2 w-fit whitespace-nowrap"
       >{config.information.displayName}</span
     >
-    <div class="bg-primary p-1 my-auto rounded truncate">
+    <div class="bg-black/25 p-1 my-auto rounded truncate">
       <span class="whitespace-nowrap text-white text-opacity-60">
         {`(${scriptSegments.join(", ")})`}
       </span>

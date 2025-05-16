@@ -16,13 +16,14 @@
   } from "./DebugMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
-  import { grid } from "@intechstudio/grid-protocol";
   import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { Grid } from "../../../lib/_utils";
+  import DebugTextList from "./DebugTextList.svelte";
 
   let event: GridEvent;
 
@@ -35,7 +36,7 @@
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
-      ui.eventtype
+      ui.eventtype,
     );
   }
 
@@ -45,7 +46,7 @@
 
   $: {
     configScriptLength = $event?.toLua().length ?? 0;
-    syntaxError = $event?.checkSyntax() === false;
+    syntaxError = $event?.isValid() === false;
   }
 
   $: if (typeof $incoming_messages !== "undefined") {
@@ -181,9 +182,9 @@
         <div class="text-white">
           <span
             class:text-error={configScriptLength >=
-              grid.getProperty("CONFIG_LENGTH")}
+              Grid.Protocol.maxScriptLength}
             class:text-yellow-400={configScriptLength >
-              (grid.getProperty("CONFIG_LENGTH") / 3) * 2}
+              (Grid.Protocol.maxScriptLength / 3) * 2}
             >{configScriptLength}
           </span>
         </div>
@@ -193,17 +194,15 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
-  <MoltenInput bind:target={immediateCommand} />
-  <MoltenPushButton
-    click={() => {
-      runtime_manager.LUAExecImmediate(
-        0,
-        0,
-        "<?lua " + immediateCommand + " ?>"
-      );
-    }}
-    text="Immediate"
-  />
+  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+    <MoltenInput bind:target={immediateCommand} />
+    <MoltenPushButton
+      click={() => {
+        runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
+      }}
+      text="Immediate"
+    />
+  </div>
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
@@ -238,16 +237,7 @@
     horizontal={true}
   >
     <Pane class="overflow-hidden bg-primary">
-      {#if $debug_monitor_store.length != 0}
-        <div class="text-white mt-2">Debug Text:</div>
-        <div
-          class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px] h-full"
-        >
-          {#each $debug_monitor_store as debug, i}
-            <span class="debugtexty px-1 py-0.5">{debug}</span>
-          {/each}
-        </div>
-      {/if}
+      <DebugTextList />
     </Pane>
     <Pane class="overflow-hidden bg-primary">
       {#if $debug_lowlevel_store.length != 0}
@@ -274,29 +264,29 @@
         </div>
       {/if}
     </Pane>
-    <Pane class="overflow-hidden bg-primary">
-      <div class="text-white mt-2">Watched values:</div>
-      <div
-        class="mb-5 overflow-y-auto bg-secondary bg-opacity-40 flex flex-grow"
-      >
-        {#if $incoming_messages_stores.length > 0}
-          <div class="w-full h-full grid grid-cols-2">
-            {#each $incoming_messages_stores as store}
-              <div class="m-1">
+    <Pane>
+      <div class="flex flex-col h-full overflow-hidden bg-primary gap-2 mt-2">
+        <div class="text-white">Watched values:</div>
+        <div class="flex-grow overflow-y-auto">
+          {#if $incoming_messages_stores.length > 0 && $runtime_manager.active.runtime.modules.length > 0}
+            <div class="w-full grid grid-cols-2 gap-1">
+              {#each $incoming_messages_stores as store}
                 <PolyLineGraph incomingData={store} />
-              </div>
-            {/each}
-          </div>
-        {:else}
-          <div class="flex w-full h-full justify-center items-center">
-            <span class="text-white">None</span>
-          </div>
-        {/if}
+              {/each}
+            </div>
+          {:else}
+            <div
+              class="flex w-full h-full justify-center items-center bg-secondary"
+            >
+              <span class="text-white">None</span>
+            </div>
+          {/if}
+        </div>
       </div>
     </Pane>
   </Splitpanes>
 
-  <div class="inline-flex flex-row bg-primary">
+  <div class="inline-flex flex-row bg-primary mt-2">
     <svg width="50%" height="50" viewBox="0 0 100 50">
       <polyline
         id="chart_testchart_0"
@@ -313,7 +303,7 @@
         y="50%"
         >{Math.floor(
           $outbound_data_rate_history[$inbound_data_rate_history.length - 1] *
-            100
+            100,
         ) / 100}</text
       >
       <text
@@ -360,7 +350,7 @@
         y="50%"
         >{Math.floor(
           $inbound_data_rate_history[$inbound_data_rate_history.length - 1] *
-            100
+            100,
         ) / 100}</text
       >
       <text
@@ -436,10 +426,6 @@
   }
   .outbound.smallsvgtext {
     fill: rgba(44, 44, 80, 1);
-  }
-
-  .debugtexty:nth-child(even) {
-    @apply bg-select;
   }
 
   .output {

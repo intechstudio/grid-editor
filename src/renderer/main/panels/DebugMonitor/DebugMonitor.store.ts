@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 import { NumberToEventType } from "@intechstudio/grid-protocol";
 
-function createDebugMonitor() {
+function createDebugMonitor(maxLength: number) {
   const store = writable([]);
   let freeze = false;
 
@@ -19,10 +19,10 @@ function createDebugMonitor() {
       let text = descr.class_parameters.TEXT;
 
       store.update((d) => {
-        if (d.length >= 15) {
+        if (d.length >= maxLength) {
           d.shift();
         }
-        d = [...d, `[${sy},${sx}] ${text}`];
+        d = [...d, `[${sy},${sx}] ${text.includes("\n") ? "\n" : ""}${text}`];
 
         return d;
       });
@@ -36,7 +36,7 @@ export let outbound_data_rate_points = writable("");
 export const inbound_data_rate_history = writable([]);
 export const outbound_data_rate_history = writable([]);
 
-function createDebugLowlevel() {
+function createDebugLowlevel(maxLength: number) {
   const store = writable([]);
   let freeze = false;
   let inbound_data_rate = 0;
@@ -51,7 +51,7 @@ function createDebugLowlevel() {
     outbound_data_rate = 0;
 
     inbound_data_rate_history.update((d) => {
-      if (d.length >= 30) {
+      if (d.length >= maxLength) {
         d.shift();
       }
       d = [...d, in_rate_kbps];
@@ -106,9 +106,7 @@ function createDebugLowlevel() {
       inbound_data_rate += arr.length;
       store.update((d) => {
         if (freeze == false) {
-          let obj = {};
-          obj.data = arr;
-          obj.direction = "IN";
+          const obj = { data: arr, direction: "IN" };
 
           if (d.length >= 15) {
             d.pop();
@@ -123,9 +121,7 @@ function createDebugLowlevel() {
 
       store.update((d) => {
         if (freeze == false) {
-          let obj = {};
-          obj.data = arr;
-          obj.direction = "OUT";
+          let obj = { data: arr, direction: "OUT" };
 
           if (d.length >= 15) {
             d.pop();
@@ -193,6 +189,6 @@ function createLuaError() {
   };
 }
 
-export const debug_monitor_store = createDebugMonitor();
-export const debug_lowlevel_store = createDebugLowlevel();
+export const debug_monitor_store = createDebugMonitor(128);
+export const debug_lowlevel_store = createDebugLowlevel(128);
 export const lua_error_store = createLuaError();

@@ -62,9 +62,7 @@
         };
       } else {
         return {
-          title: `Element ${
-            e.elementIndex < 255 ? e.elementIndex : elements.length - 1
-          } (${e.type[0].toUpperCase() + e.type.slice(1).toLowerCase()})`,
+          title: e.getHumanName(),
           value: e.elementIndex,
         };
       }
@@ -73,7 +71,7 @@
   }
 </script>
 
-<div class="flex flex-col text-white">
+<div class="flex flex-col text-white m-4">
   <div class="flex flex-row justify-between items-center py-1">
     <div class="flex flex-row items-center">
       <div class="text-gray-500 text-sm">Element Name</div>

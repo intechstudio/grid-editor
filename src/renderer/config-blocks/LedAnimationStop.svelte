@@ -48,45 +48,62 @@
 </script>
 
 <script lang="ts">
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
-  import { Validator } from "./_validators";
-  import { GridEvent } from "./../runtime/runtime";
+  import { Validator } from "./validators";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import { Grid } from "../lib/_utils.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   let event = config.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -104,7 +121,11 @@
       short: "glpfs",
       array: scriptSegments,
     });
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   const _suggestions = [
@@ -139,26 +160,29 @@
 
   let suggestions = [];
 
-  $: {
+  $: if ($event) {
+    updateSuggestions();
+  }
+
+  function updateSuggestions() {
     const actions = $event.config;
     const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,
     });
-    suggestions = _suggestions.map((s) => [...s, ...localDefinitions]);
+    suggestions = _suggestions.map((s, i) => {
+      if (i === 1) {
+        const target = event.parent as GridElement;
+        return Grid.Protocol.getLayerSuggestions(target.type);
+      } else {
+        return [...localDefinitions, ...s];
+      }
+    });
   }
-
-  onMount(() => {
-    suggestions = _suggestions;
-  });
-
-  let suggestionElement = undefined;
 </script>
 
-<config-led-phase
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<config-led-phase class="flex flex-col w-full p-2 pointer-events-auto">
   <div class="w-full flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1 font-bold">
       Stop the periodic animation on the LED
@@ -169,15 +193,14 @@
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        bind:value={script}
+        value={script}
         suggestions={suggestions[i]}
-        validator={validators[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i].func}
         on:input={(e) => {
-          sendData(e.detail, i);
+          const { value, validationError } = e.detail;
+          script = value;
+          validators[i].value = !validationError;
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

@@ -6,7 +6,7 @@
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
-
+  import { ElementType } from "@intechstudio/grid-protocol";
   // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "cb",
@@ -39,31 +39,20 @@
 </script>
 
 <script lang="ts">
-  import {
-    GridAction,
-    GridEvent,
-    GridElement,
-    ActionData,
-  } from "./../runtime/runtime";
+  import { GridAction, ActionData, GridEvent } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
-  import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  import { monaco_elementtype } from "../lib/CustomMonaco";
-
-  import { monaco_editor } from "$lib/CustomMonaco";
   import { modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
-  import { get } from "svelte/store";
-
-  const dispatch = createEventDispatcher();
+  import { MonacoEditor } from "../lib/monaco";
 
   export let config: GridAction;
-  export let index: number;
 
   let codePreview: HTMLElement;
 
@@ -104,20 +93,14 @@
 
   function handleConfigChange(config: ActionData) {
     codePreview.innerHTML = GridScript.expandScript(config.script);
-    monaco_editor.colorizeElement(codePreview, {
-      theme: "my-theme",
-      tabSize: 2,
-    });
+    MonacoEditor.colorize(codePreview);
   }
 
-  $: if (codePreview) {
+  $: if (codePreview && !$config.invalid) {
     handleConfigChange($config);
   }
 
   async function open_monaco() {
-    const event = config.parent as GridEvent;
-    const element = event.parent as GridElement;
-    monaco_elementtype.set(element.type);
     modal.show({
       component: Monaco,
       options: { snap: "middle", disableClickOutside: true },
@@ -126,9 +109,7 @@
   }
 </script>
 
-<code-block
-  class="{$$props.class} w-full flex flex-col p-4 pb-2 pointer-events-auto"
->
+<code-block class="w-full flex flex-col p-4 pb-2 pointer-events-auto">
   <div class="w-full flex flex-col">
     <div class="text-gray-500 text-sm font-bold">Code preview:</div>
 

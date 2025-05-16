@@ -3,6 +3,7 @@
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
   import { user_input } from "./../../runtime/user-input.store";
+  import { selected_actions } from "./../../runtime/selected-actions.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
@@ -154,10 +155,7 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <PortSelector
-      visible={$runtime_manager.data.length > 1}
-      disabled={isChanges}
-    />
+    <PortSelector visible={$runtime_manager.data.length > 1} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes
@@ -191,7 +189,7 @@
     >
       <MoltenPushButton
         click={handleStore}
-        disabled={!isChanges}
+        disabled={!isChanges || !$runtime.isValid()}
         text="Store"
         style="accept"
       />
@@ -214,7 +212,7 @@
     >
       <MoltenPushButton text="Clear" click={() => {}} />
     </div>
-    {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
+    {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
         text="Connect"
         style={"outlined"}

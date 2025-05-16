@@ -3,10 +3,12 @@ import { ConnectModulePage } from "../pages/connectModulePage";
 import { ModulePage } from "../pages/modulePage";
 import { PAGE_PATH, mockNavigatorSerial, getRandomInt } from "../utility";
 import { ConfigPage } from "../pages/configPage";
+import KeyboardActions from "../keyboardActions";
 
 let connectModulePage;
 let modulePage;
 let configPage;
+let keyboardActions;
 
 test.beforeEach(async ({ page }) => {
   await mockNavigatorSerial(page);
@@ -34,7 +36,7 @@ test.describe("Issues", () => {
     await configPage.addCodeBlock();
     await configPage.selectAllActions();
     await page
-      .locator("anim-block")
+      .getByTestId("action-block")
       .filter({ hasText: 'Code preview: print("hello")' })
       .getByRole("button")
       .nth(2)
@@ -43,9 +45,23 @@ test.describe("Issues", () => {
 
     const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
     await expect(preText).toBeVisible();
-
-    //TODO refactor, with contains(), it slow now
   });
+
+  // https://github.com/intechstudio/grid-editor/issues/1022
+  test("Code block saving the stored changes", async ({ page }) => {
+    const storedInput = "print('stored codeblock')";
+    await configPage.removeAllActions();
+    await configPage.addAndEditCodeBlock(storedInput);
+    await configPage.commitCode();
+    await configPage.closeCode();
+    await modulePage.storeConfig();
+    await configPage.selectElementEvent("Setup");
+    await configPage.selectElementEvent("Button");
+
+    const preText = page.locator("#cfg-0").getByText(storedInput); // should find codeblock with the sored filed
+    await expect(preText).toBeVisible();
+  });
+
   test("MIDI NRPN showes the converted value after switch element", async ({
     page,
   }) => {
@@ -56,14 +72,32 @@ test.describe("Issues", () => {
       "midi",
       "MIDI NRPN",
       "NRPN CC",
-      expectedValue
+      expectedValue,
     );
     await configPage.selectElementEvent("Timer");
     await configPage.selectElementEvent("Button");
     const actualValue = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
-      "NRPN CC"
+      "NRPN CC",
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
+
+  test("Coma character in MIDI NRPN ", async ({ page }) => {
+    const expectedValue = ",";
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("midi", "MIDI NRPN");
+    await configPage.writeActionBlockField(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
+      expectedValue,
+    );
+    const actualValue = await configPage.getActionBlockFieldValue(
+      "midi",
+      "MIDI NRPN",
+      "NRPN CC",
     );
     await expect(actualValue).toBe(expectedValue);
   });
@@ -75,13 +109,20 @@ test.describe("Issues", () => {
       "code",
       "Element Name",
       "input",
-      "testwrite"
+      "testwrite",
     );
     await modulePage.selectModuleElement(2);
     await modulePage.selectModuleElement(0);
 
     const actualValue = await configPage.getTextFromName();
     await expect(actualValue).toBe("testwrite");
+  });
+
+  test("Nested action block should not prevent opening other actions", async () => {
+    await configPage.addActionBlockToTop("condition", "If");
+    await configPage.clickActionBlock(3);
+    const element = configPage.blocks["midi"]["MIDI"]["elements"]["Channel"];
+    await expect(element).toBeVisible();
   });
 });
 
@@ -106,7 +147,7 @@ test.describe("NRPN converting", () => {
     const actualValue = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
-      "NRPN CC"
+      "NRPN CC",
     );
     await expect(actualValue).toBe(expectedValue);
   });
@@ -120,19 +161,19 @@ test.describe("NRPN converting", () => {
       "midi",
       "MIDI NRPN",
       "NRPN CC",
-      "223"
+      "223",
     );
     await configPage.selectElementEvent("Button");
     const actualMSB = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
-      "MSB"
+      "MSB",
     );
     await expect(actualMSB).toBe(expectedMSB);
     const actualLSB = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
-      "LSB"
+      "LSB",
     );
     await expect(actualLSB).toBe(expectedLSB);
   });
@@ -145,20 +186,20 @@ test.describe("NRPN converting", () => {
       "midi",
       "MIDI NRPN",
       "MSB",
-      "x//128"
+      "x//128",
     );
     await configPage.writeActionBlockField(
       "midi",
       "MIDI NRPN",
       "LSB",
-      "x//128"
+      "x//128",
     );
     await configPage.writeActionBlockField("midi", "MIDI NRPN", "LSB", "x%128");
     await configPage.selectElementEvent("Button");
     const actualValue = await configPage.getActionBlockFieldValue(
       "midi",
       "MIDI NRPN",
-      "NRPN CC"
+      "NRPN CC",
     );
     await expect(actualValue).toBe(expectedValue);
   });
@@ -182,7 +223,7 @@ test.describe("Element Mode MAX value", () => {
     await configPage.clickActionBlockElement(
       category,
       blockName,
-      "Enable Min/Max Value"
+      "Enable Min/Max Value",
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
@@ -228,4 +269,84 @@ test.describe("Element Mode MAX value", () => {
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
   */
+});
+
+test.describe("Input field keyboard shortcuts", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("Monaco Field", async ({ page }) => {
+    const category = "condition";
+    const blockName = "If";
+    const field = "input";
+    const expectedValue = "TestTest";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await keyboardActions.selectAll();
+    await keyboardActions.type("Test");
+    await keyboardActions.selectAll();
+    await keyboardActions.copy();
+    await keyboardActions.paste();
+    await keyboardActions.paste();
+    const actualValue = await configPage.getActionBlockMonacoFieldTextContetnt(
+      category,
+      blockName,
+      field,
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
+  test("Text Field", async () => {
+    const category = "midi";
+    const blockName = "MIDI";
+    const field = "Channel";
+    const expectedValue = "TestTest";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await keyboardActions.selectAll();
+    await keyboardActions.type("Test");
+    await keyboardActions.selectAll();
+    await keyboardActions.copy();
+    await keyboardActions.paste();
+    await keyboardActions.paste();
+    const actualValue = await configPage.getActionBlockFieldValue(
+      category,
+      blockName,
+      field,
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
+});
+
+test.describe("Monaco Sugestion", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("correct suggestion is visible once", async ({ page }) => {
+    const code = "button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("self:button_max");
+    await expect(buttonMax).toHaveCount(1);
+    await expect(buttonMax.first()).toBeVisible();
+  });
+  test("correct suggestion is visible after element[x]", async ({ page }) => {
+    const code = "element[2]:button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("button_max");
+    await expect(buttonMax).toHaveCount(1);
+    await expect(buttonMax.first()).toBeVisible();
+  });
 });

@@ -1,15 +1,21 @@
 import { blocks } from "../data/actionBlockLocators";
+import KeyboardActions from "../keyboardActions";
 
 export class ConfigPage {
   constructor(page) {
     this.page = page;
 
+    this.keyboardActions = new KeyboardActions(page);
+
     // Common Locators
+    this.selectAllCheckbox = page.getByTestId("select_all");
     this.addActionBlockButton = page.getByText("Add action block...");
-    this.selectAllCheckbox = page.locator(".w-fit > .border-white");
+    this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
 
     this.firstActionBlock = page.locator("#cfg-0");
+
+    this.actionBlock = page.getByTestId("action-block");
 
     // Element Actions
     this.elementButtons = {
@@ -49,7 +55,7 @@ export class ConfigPage {
 
     // Code Block Elements
     this.addBlocktoLastSandwichButton = page
-      .locator("anim-block")
+      .getByTestId("action-block")
       .filter({ hasText: "End" })
       .locator("action-placeholder div")
       .first();
@@ -57,7 +63,7 @@ export class ConfigPage {
     this.closeCodeButton = page.getByRole("button", { name: "Close" });
     this.codeblockInput = page.locator(".view-line").first();
     this.codeBlockCharacterLimitMessage = page.getByText(
-      "Config limit reached."
+      "Config limit reached.",
     );
     this.characterCount = page.getByTestId("charCount");
     this.elementMaxResolution14Bit = page.getByRole("option", {
@@ -78,6 +84,11 @@ export class ConfigPage {
     await this.noActionAddActionButton.click();
   }
 
+  async addActionBlockToTop(category, blockName) {
+    await this.addActionLineFirst.click();
+    await this.blocks[category][blockName]["block"].click();
+  }
+
   async addActionBlock(category, blockName) {
     await this.blocks[category][blockName]["block"].click();
   }
@@ -86,10 +97,24 @@ export class ConfigPage {
     await this.blocks[category][blockName]["elements"][field].fill(input);
   }
 
+  async clickActionBlockElement(category, blockName, field) {
+    await this.blocks[category][blockName]["elements"][field].click();
+  }
+
   async getActionBlockFieldValue(category, blockName, field) {
     return await this.blocks[category][blockName]["elements"][
       field
     ].inputValue();
+  }
+
+  async getActionBlockField(category, blockName, field) {
+    return this.blocks[category][blockName]["elements"][field];
+  }
+
+  async getActionBlockMonacoFieldTextContetnt(category, blockName, field) {
+    return await this.blocks[category][blockName]["elements"][
+      field
+    ].textContent();
   }
 
   async getActionBlock(category, blockName) {
@@ -98,10 +123,6 @@ export class ConfigPage {
 
   async clickActionBlockElement(category, blockName, field) {
     await this.blocks[category][blockName]["elements"][field].click();
-  }
-
-  async openLoopTimes() {
-    await this.loopTimesSwitch.click();
   }
 
   async openAddBlockToLastSandwich() {
@@ -195,7 +216,7 @@ export class ConfigPage {
     await this.blocks["code"]["Comment Block"]["block"].click();
     if (comment) {
       await this.blocks["code"]["Comment Block"]["elements"]["input"].fill(
-        comment
+        comment,
       );
     }
   }
@@ -211,11 +232,8 @@ export class ConfigPage {
     await this.page.getByText("Synced with Grid!").click();
     await this.codeblockInput.click({ clickCount: 1 });
 
-    const isMac = process.platform === "darwin";
-    const selectAllShortcut = isMac ? "Meta+A" : "Control+A";
+    await this.keyboardActions.selectAll();
 
-    await this.codeblockInput.press(selectAllShortcut);
-    await this.page.waitForTimeout(400);
     await this.codeblockInput.type(code);
   }
 
@@ -243,8 +261,8 @@ export class ConfigPage {
     ].inputValue();
   }
 
-  async openFirstActionBlock() {
-    await this.firstActionBlock.click();
+  async clickActionBlock(index) {
+    await this.page.locator(`#cfg-${index}`).click();
   }
 
   async getCharacterCount() {

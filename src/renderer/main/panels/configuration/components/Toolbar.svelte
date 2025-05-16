@@ -12,7 +12,7 @@
   } from "./Toolbar";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
-  import { selected_actions } from "./../../../../runtime/user-input.store";
+  import { selected_actions } from "./../../../../runtime/selected-actions.store";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import { get } from "svelte/store";
   import {
@@ -30,6 +30,7 @@
 
   export let element: GridElement;
   export let event: GridEvent;
+  export let targetPanel: HTMLElement;
 
   function handleOverwriteElement() {
     overwriteElement(element);
@@ -57,11 +58,14 @@
       throw "Clipboard error: Mismatched clipboard";
     }
 
-    mergeActionsToCode(selected[0].parent as GridEvent, ...selected);
+    mergeActionsToCode(selected[0].parent as GridEvent, true, ...selected);
   }
 
   function handleRemove() {
     const selected = get(selected_actions);
+    if (selected.length === 0) {
+      return;
+    }
     if (!selected.every((e) => e.parent === selected[0].parent)) {
       throw "Clipboard error: Mismatched clipboard";
     }
@@ -71,6 +75,8 @@
 
   function handleCut() {
     const selected = get(selected_actions);
+    if (selected.length === 0) return;
+
     if (!selected.every((e) => e.parent === selected[0].parent)) {
       throw "Clipboard error: Mismatched clipboard";
     }
@@ -100,7 +106,7 @@
       : ["Ctrl", "Alt"];
 </script>
 
-<div class="flex flex-col">
+<div class="m-4 flex flex-col">
   <div class="grid grid-cols-[1fr_auto_auto] items-center">
     <!-- When any of the array elements is true -->
     <div class="flex flex-col truncate">
@@ -124,7 +130,6 @@
             on:mouseenter={() =>
               setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyC" }}
             iconPath={"copy_all"}
             disabled={$isCopyElementEnabled === false}
             color={"#03cb00"}
@@ -137,7 +142,6 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyV" }}
             iconPath={"paste_all"}
             disabled={!isOverwriteElementEnabled($element, $appClipboard)}
             color={"#006cb7"}
@@ -150,14 +154,9 @@
             on:mouseenter={() =>
               setToolbarHoverText(
                 `Discard Element Changes`,
-                `(${modifier[0]} + Shift + D)`
+                `(${modifier[0]} + Shift + D)`,
               )}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{
-              control: true,
-              shift: true,
-              code: "KeyD",
-            }}
             iconPath={"clear_from_device_01"}
             disabled={!isDiscardElementEnabled($element)}
             color={"#ff2323"}
@@ -170,10 +169,6 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{
-              shift: true,
-              code: "Delete",
-            }}
             iconPath={"clear_element"}
             disabled={!isClearElementEnabled($element)}
             color={"#A020F0"}
@@ -187,7 +182,6 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyC" }}
             disabled={$isCopyActionsEnabled === false}
             iconPath={"copy"}
             color={"#03cb00"}
@@ -201,7 +195,6 @@
               on:mouseenter={() =>
                 setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
               on:mouseleave={handleToolbarButtonBlur}
-              shortcut={{ control: true, code: "KeyV" }}
               disabled={$isPasteActionsEnabled === false}
               iconPath={"paste"}
               color={"#006cb7"}
@@ -215,7 +208,6 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{ control: true, code: "KeyX" }}
             disabled={$isCutActionsEnabled === false}
             iconPath={"cut"}
             color={"#ff6100"}
@@ -228,14 +220,9 @@
             on:mouseenter={() =>
               setToolbarHoverText(
                 `Merge Action(s) into Code`,
-                `(${modifier[0]} + Shift + M)`
+                `(${modifier[0]} + Shift + M)`,
               )}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{
-              control: true,
-              shift: true,
-              code: "KeyM",
-            }}
             disabled={$isMergeActionsEnabled === false}
             iconPath={"merge_as_code"}
             color={"#ffcc33"}
@@ -248,9 +235,6 @@
             on:mouseenter={() =>
               setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
             on:mouseleave={handleToolbarButtonBlur}
-            shortcut={{
-              code: "Delete",
-            }}
             disabled={$isRemoveActionsEnabled === false}
             iconPath={"remove"}
             color={"#ff2323"}

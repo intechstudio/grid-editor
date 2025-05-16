@@ -1,9 +1,14 @@
 import { writable, get, readable } from "svelte/store";
 import { modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
-import { patch } from "semver";
 
 const configuration = window.ctxProcess.configuration();
+
+export enum ColorPickerModel {
+  Square,
+  Slider,
+  Circle,
+}
 
 const persistentDefaultValues = {
   userId: "",
@@ -48,6 +53,9 @@ const persistentDefaultValues = {
   actionHelperText: true,
   editableBlockNames: false,
   unreleasedVirtualModules: false,
+  multiViewEnabled: false,
+  colorPicker: ColorPickerModel.Circle,
+  allowDevBlocks: false,
 };
 
 function createSplitPanes() {
@@ -217,7 +225,7 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          if (window.ctxProcess.buildVariables().BUILD_TARGET !== "web") {
+          if (import.meta.env.VITE_BUILD_TARGET !== "web") {
             modal.show({ component: Welcome });
           }
           return s;
@@ -285,7 +293,7 @@ async function init_appsettings() {
                 break;
               default:
                 console.warn(
-                  `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`
+                  `Unknown required firmware: ${ARCHITECTURE} ${MAJOR}.${MINOR}.${PATCH}`,
                 );
             }
           }

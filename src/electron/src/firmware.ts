@@ -1,12 +1,11 @@
 import nodeDiskInfo from "node-disk-info";
-import Drive from "node-disk-info/dist/classes/drive";
+
+import drivelist from "drivelist";
 
 import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
-
-import configuration from "../../../configuration.json";
 
 export const firmware = {
   mainWindow: undefined,
@@ -19,10 +18,10 @@ function delay(time) {
 }
 
 export async function findBootloaderPath() {
-  let diskInfo: Drive[] = [];
+  let diskInfo: drivelist.Drive[] = [];
 
   try {
-    diskInfo = nodeDiskInfo.getDiskInfoSync();
+    diskInfo = await drivelist.list();
   } catch (error) {
     log.warn(error);
   }
@@ -31,61 +30,42 @@ export async function findBootloaderPath() {
     return;
   }
 
-  // log.info(diskInfo)
-  // 7929 MAC ||  15867 new
-  // 3965 for Linux and 4059648 for Windows (old bootloader)
-  // 7934 for Linux and 8123904 for Windows (new bootloader)
-
-  let gridDrive = diskInfo.find(
-    (a) =>
-      // old bootloader Linux Mac Win
-      a.blocks === 3965 ||
-      a.blocks === 7929 ||
-      a.blocks === 4059648 ||
-      // new bootloader Linux, Mac, M1Mac, Win
-      a.blocks === 7934 ||
-      a.blocks === 15867 ||
-      a.blocks === 15868 ||
-      a.blocks === 8123904 ||
-      // add esp32 bootloader block size here LINUX & M1 Mac, M1 Mac & WINDOWS
-      a.blocks === 32640 ||
-      a.blocks === 65281 ||
-      a.blocks === 65280 ||
-      a.blocks === 33423360
+  let gridDrives = diskInfo.filter(
+    (a) => a.size < 64 * 1024 * 1024 && a.isUSB && !a.isSystem && !a.isReadOnly,
   );
+  if (gridDrives.length === 0) return;
 
-  //console.log("DiskInfo", diskInfo)
+  for (const gridDrive of gridDrives) {
+    if (gridDrive.mountpoints.length == 0) continue;
 
-  let data;
-
-  if (gridDrive !== undefined) {
+    let mountPath = gridDrive.mountpoints[0].path;
+    let data: string;
     try {
-      data = fs.readFileSync(gridDrive.mounted + "/INFO_UF2.TXT", {
+      data = fs.readFileSync(mountPath + "/INFO_UF2.TXT", {
         encoding: "utf8",
         flag: "r",
       });
     } catch (error) {
       console.warn(error);
     }
-  }
+    if (data === undefined) continue;
 
-  if (data !== undefined && gridDrive !== undefined) {
     // is it grid
     if (data.indexOf("SAMD51N20A-GRID") !== -1) {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
         message: "Grid D51 bootloader is detected!",
         code: 3,
-        path: gridDrive.mounted,
+        path: mountPath,
       });
-      return { path: gridDrive.mounted, architecture: "d51", product: "grid" };
+      return { path: mountPath, architecture: "d51", product: "grid" };
     } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Grid") !== -1) {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
         message: "Grid ESP32 bootloader is detected!",
         code: 3,
-        path: gridDrive.mounted,
+        path: mountPath,
       });
       return {
-        path: gridDrive.mounted,
+        path: mountPath,
         architecture: "esp32",
         product: "grid",
       };
@@ -93,10 +73,10 @@ export async function findBootloaderPath() {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
         message: "Knot ESP32 bootloader is detected!",
         code: 3,
-        path: gridDrive.mounted,
+        path: mountPath,
       });
       return {
-        path: gridDrive.mounted,
+        path: mountPath,
         architecture: "esp32",
         product: "knot",
       };
@@ -107,7 +87,7 @@ export async function findBootloaderPath() {
 export async function firmwareDownload(targetFolder, product, arch, url) {
   const { path } = await findBootloaderPath();
 
-  if (typeof path === "undefined") {
+  if (path === undefined) {
     //bootloader not found
     firmware.mainWindow.webContents.send("onFirmwareUpdate", {
       message: "Error: No device connected.",
@@ -131,7 +111,7 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
     const filePathArray = await extractArchiveToTemp(
       downloadResult,
       ".uf2",
-      targetFolder
+      targetFolder,
     );
 
     if (product === "grid") {
@@ -186,21 +166,23 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
 
   await delay(1500);
 
-  if (path !== undefined) {
-    try {
-      fs.copySync(
-        targetFolder + "/temp/" + firmwareFileName,
-        path + "/" + firmwareFileName
-      );
-    } catch (error) {
-      console.log("COPY ERROR UNBOUNT", error);
-    }
+  try {
+    fs.copySync(
+      targetFolder + "/temp/" + firmwareFileName,
+      path + "/" + firmwareFileName,
+    );
+  } catch (error) {
+    console.log("COPY ERROR UNBOUND", error);
 
     firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-      message: "Update completed successfully!",
-      code: 5,
+      message: "Bootloader connection lost!",
+      code: 6,
     });
-  } else {
-    log.warn("GRID_NOT_FOUND");
+    return;
   }
+
+  firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+    message: "Update completed successfully!",
+    code: 5,
+  });
 }

@@ -63,6 +63,7 @@
     GridAction,
     GridElement,
     GridEvent,
+    GridModule,
     GridPage,
     GridRuntime,
   } from "../runtime/runtime";
@@ -76,7 +77,6 @@
   let layout = layouts[0];
 
   export let config: GridAction;
-  export let index;
 
   let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
@@ -97,7 +97,9 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function change_layout() {
     layout = layouts.find((e) => {
@@ -135,7 +137,7 @@
                 .padStart(2, "0")
                 .toLowerCase();
             let f_key = keyMap.default.find(
-              (k) => k.value == val && array[i] == k.is_modifier
+              (k) => k.value == val && array[i] == k.is_modifier,
             );
             _keys.push({
               ...f_key,
@@ -143,10 +145,10 @@
                 array[i + 1] == 0
                   ? "keyup"
                   : array[i + 1] == 1
-                  ? "keydown"
-                  : array[i + 1] == 2
-                  ? "keydownup"
-                  : undefined,
+                    ? "keydown"
+                    : array[i + 1] == 2
+                      ? "keydownup"
+                      : undefined,
             });
           } else {
             _keys.push({
@@ -171,7 +173,11 @@
     let script = `gks(${defaultDelay}${
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
-    dispatch("update-action", { short: "gks", script: script });
+    dispatch("update-action", {
+      short: "gks",
+      script: script,
+      validationError: false,
+    });
     dispatch("sync");
   }
 
@@ -302,23 +308,23 @@
 
       if (arg.type == "keydownup") {
         coloredKeys.push(
-          `<div class="text-green-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-green-500 rounded-md">${displayname}</div>`
+          `<div class="text-green-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-green-500 rounded-md">${displayname}</div>`,
         );
       } else if (arg.type == "keydown") {
         coloredKeys.push(
           `<div class="text-red-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-red-500 rounded-md">${displayname} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` +
-            "  "
+            "  ",
         );
       } else if (arg.type == "keyup") {
         coloredKeys.push(
           `<div class="text-yellow-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${displayname} <span class="h-4 w-4 ml-1">${svg}</span></div>` +
-            "  "
+            "  ",
         );
       } else if (arg.type == "delay") {
         coloredKeys.push(
           `<div class="text-purple-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-purple-500 rounded-md">${
             arg.info + ": " + arg.value
-          }</div>` + "  "
+          }</div>` + "  ",
         );
       }
 
@@ -359,7 +365,7 @@
       "manage...",
       JSON.stringify(keyBuffer),
       caretPos,
-      JSON.stringify(caretKeyBuffer)
+      JSON.stringify(caretKeyBuffer),
     );
 
     if (caretPos != -1) {
@@ -377,10 +383,10 @@
           key.type == "keydown"
             ? 1
             : key.type == "keyup"
-            ? 0
-            : key.type == "keydownup"
-            ? 2
-            : undefined,
+              ? 0
+              : key.type == "keydownup"
+                ? 2
+                : undefined,
           parseInt(key.value),
         ];
       } else {

@@ -41,7 +41,7 @@
           const oldScript = config.script;
           if (newScript !== oldScript) {
             config.updateData(
-              new ActionData(config.short, newScript, config.name)
+              new ActionData(config.short, newScript, config.name),
             );
             config.sendToGrid();
           }
@@ -55,7 +55,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="px-2 w-full h-full {config.information.rounding === 'top'
+  class="px-2 w-full {config.information.rounding === 'top'
     ? 'rounded-tr-xl'
     : ''} {config.information.rounding === 'bottom'
     ? 'rounded-br-xl'

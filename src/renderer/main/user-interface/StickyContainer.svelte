@@ -22,7 +22,7 @@
 
   function handleSelecteModuleChange(rt: GridRuntime, ui: UserInputValue) {
     selectedModule = rt.modules.find(
-      (e: any) => e.dx == ui.dx && e.dy == ui.dy
+      (e: any) => e.dx == ui.dx && e.dy == ui.dy,
     );
   }
 
@@ -41,7 +41,7 @@
 <div class="{$$props.class} flex flex-col items-center gap-2">
   <Pages />
   <div class="flex flex-row gap-2">
-    {#if typeof $selectedConfigStore?.configType !== "undefined"}
+    {#if typeof $moduleOverlay !== "undefined"}
       <MoltenPushButton
         text="Close Overlay"
         click={() => {

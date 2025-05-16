@@ -3,7 +3,6 @@ import { get } from "svelte/store";
 import { appSettings } from "./app-helper.store";
 
 const configuration = window.ctxProcess.configuration();
-const buildVariables = window.ctxProcess.buildVariables();
 
 console.log("Analytics Hello", get(appSettings));
 
@@ -42,7 +41,7 @@ Analytics.track({
   payload: {
     Version: get(appSettings).version,
     AnalyticsEnabled: get(appSettings).persistent.analyticsEnabled,
-    ...buildVariables,
+    ...import.meta.env,
   },
   mandatory: true,
 });

@@ -64,20 +64,6 @@
   class=" flex px-1 flex-col items-center justify-between h-full"
 >
   <div class="flex flex-col">
-    <!--
-    <div 
-      class:bg-secondary={selectedRightTab == 'virtual-modules'} 
-      on:click={()=>{changeRightTab('virtual-modules')}} 
-      class="m-1 my-2 p-1 w-12 h-12 flex justify-center items-center group hover:bg-secondary rounded-lg">
-      <svg 
-        class:text-white={selectedRightTab == 'virtual-modules'} 
-        class="fill-current text-black group-hover:text-white" width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M21 2H4C2.89543 2 2 2.89543 2 4V21C2 22.1046 2.89543 23 4 23H21C22.1046 23 23 22.1046 23 21V4C23 2.89543 22.1046 2 21 2ZM4 0C1.79086 0 0 1.79086 0 4V21C0 23.2091 1.79086 25 4 25H21C23.2091 25 25 23.2091 25 21V4C25 1.79086 23.2091 0 21 0H4Z"/>
-        <path d="M12.4863 14.5869L13.8604 9.60352H15.9248L13.4297 17H11.543L9.04785 9.60352H11.1123L12.4863 14.5869Z" />
-      </svg>
-    </div>
-    -->
-
     <button
       data-testid="nav-configuration"
       use:tooltip={{
@@ -87,6 +73,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_configuration_icon",
+        triggerEvents: ["focus", "click"],
       }}
       on:click={() => {
         changeRightTab("Configuration");
@@ -94,7 +81,7 @@
       class="relative cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab ==
         'Configuration' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary focus:outline-none"
+        : 'bg-opacity-40'} bg-secondary activator-button"
     >
       <svg
         class="stroke-current text-white"
@@ -124,6 +111,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_preferences_icon",
+        triggerEvents: ["focus", "click"],
       }}
       on:click={() => {
         changeRightTab("Preferences");
@@ -131,7 +119,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
       {selectedRightTab == 'Preferences' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
+        : 'bg-opacity-40 '} bg-secondary activator-button"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -183,6 +171,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_profile_cloud_icon",
+        triggerEvents: ["focus", "click"],
       }}
       on:click={() => {
         changeLeftTab("ProfileCloud");
@@ -190,7 +179,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'ProfileCloud' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
+        : 'bg-opacity-40 '} bg-secondary activator-button"
     >
       <svg
         class="w-full h-full p-1.5 text-white fill-current"
@@ -219,6 +208,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_debugger_icon",
+        triggerEvents: ["focus", "click"],
       }}
       on:click={() => {
         changeLeftTab("Debug");
@@ -226,7 +216,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
         'Debug' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary focus:outline-none"
+        : 'bg-opacity-40'} bg-secondary activator-button"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -280,6 +270,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_midi_monitor_icon",
+        triggerEvents: ["focus", "click"],
       }}
       on:click={() => {
         changeLeftTab("MIDI Monitor");
@@ -287,7 +278,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'MIDI Monitor' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
+        : 'bg-opacity-40 '} bg-secondary activator-button"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -322,7 +313,7 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
     </button>
-    {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
+    {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
       <button
         use:tooltip={{
           nowrap: true,
@@ -330,6 +321,7 @@
           instant: true,
           class: "px-2 py-1",
           key: "sidebar_packages_icon",
+          triggerEvents: ["focus", "click"],
         }}
         on:click={() => {
           changeLeftTab("Packages");
@@ -337,7 +329,7 @@
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
           'Packages' && $splitpanes.left.size != 0
           ? 'bg-opacity-100 '
-          : 'bg-opacity-40 '} bg-secondary focus:outline-none"
+          : 'bg-opacity-40 '} bg-secondary activator-button"
       >
         <svg
           class="w-full h-full p-2 text-white fill-current"
@@ -375,6 +367,7 @@
           instant: true,
           class: "px-2 py-1",
           key: "sidebar_websocket_monitor_icon",
+          triggerEvents: ["focus", "click"],
         }}
         on:click={() => {
           changeLeftTab("Websocket");
@@ -382,7 +375,7 @@
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
           'Websocket' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary focus:outline-none"
+          : 'bg-opacity-40'} bg-secondary activator-button"
       >
         <svg
           class="fill-current text-white p-0.5"

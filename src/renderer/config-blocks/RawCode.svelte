@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+
   // Component for the untoggled "header" of the component
   export const header = undefined;
 
@@ -26,7 +27,7 @@
       </g>
     </svg>
     `,
-    selectable: false,
+    selectable: true,
     movable: false,
     hideIcon: true,
     type: "single",
@@ -35,7 +36,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
@@ -43,14 +44,17 @@
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
   import { MoltenButton } from "@intechstudio/grid-uikit";
   import { getComponentInformation } from "../../renderer/lib/_configs";
+  import { mergeActionsToCode } from "../runtime/operations";
+  import { GridAction } from "../runtime/runtime";
 
   const dispatch = createEventDispatcher();
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   let compBlock = undefined;
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     compBlock = getCompatiblityBlock(config.script);
@@ -86,10 +90,11 @@
   }
 
   function handleReplace(e) {
-    dispatch("replace", {
+    mergeActionsToCode(config.parent, false, config);
+    /*dispatch("replace", {
       short: compBlock.information.short,
       script: config.script,
-    });
+    });*/
   }
 </script>
 

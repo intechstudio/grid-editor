@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from "./Button.svelte";
+  import Btn from "./Btn.svelte";
 
   export let elementNumberList;
   export let elementposition_array;
@@ -8,7 +8,7 @@
 <container
   class="w-full h-full flex flex-col items-center justify-center relative col-span-2 row-span-2 p-3"
 >
-  <lcd class="flex-col w-full relative">
+  <lcd class="flex flex-col w-full relative">
     <div class="normal-cell-underlay-container">
       <slot name="cell-underlay-4" />
     </div>
@@ -19,11 +19,11 @@
       {"Element: " + elementNumberList[4]}<br />
       320x240
     </div>
-    <div class="normal-cell-overlay-container">
-      <slot name="cell-overlay-4" />
-    </div>
   </lcd>
-  <div class="flex flex_col items-center justify-center w-full mt-1">
+  <div class="normal-cell-overlay-container">
+    <slot name="cell-overlay-4" />
+  </div>
+  <div class="flex flex-row items-center justify-center w-full mt-1">
     {#each elementNumberList.slice(0, 4) as elementNumber}
       <cell
         class="flex items-center justify-center w-12 h-10 relative -mx-2 -my-4"
@@ -39,9 +39,9 @@
             <slot name="cell-underlay-3" />
           {/if}
         </div>
-        <button class="normal-cell-ui-container opacity-70">
-          <Button {elementNumber} size={1.0} />
-        </button>
+        <div class="normal-cell-ui-container opacity-70">
+          <Btn {elementNumber} size={1.0} />
+        </div>
         <div class="normal-cell-overlay-container">
           {#if elementNumber == Math.min(...elementNumberList)}
             <slot name="cell-overlay-0" />

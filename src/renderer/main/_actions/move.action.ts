@@ -1,12 +1,13 @@
 import { get, writable, type Writable } from "svelte/store";
 import { GridAction, GridEvent } from "../../runtime/runtime";
-import { dropActions, removeActions } from "../../runtime/operations";
+import { dropActions } from "../../runtime/operations";
+import { selected_actions } from "../../runtime/selected-actions.store";
 
 export const draggedActions: Writable<GridAction[]> = writable([]);
 export type DropTarget = { event: GridEvent; index: number };
 export const dropEventTarget: Writable<DropTarget> = writable();
 
-function getDraggedActions(action: GridAction): GridAction[] {
+function getTargetActions(action: GridAction): GridAction[] {
   const actions: GridAction[] = [];
   const event = action.parent as GridEvent;
   let index = event.config.findIndex((e) => e.id === action.id);
@@ -32,11 +33,10 @@ function getDraggedActions(action: GridAction): GridAction[] {
   return actions;
 }
 
-function getDraggedBlocks(actions: GridAction[]): HTMLElement[] {
+function getTargetBlocks(actions: GridAction[]): HTMLElement[] {
   const dragged = actions
     .map((action) => document.querySelector(`[drag-id="${action.id}"]`))
     .filter((el): el is HTMLElement => el !== null);
-
   return dragged as HTMLElement[];
 }
 
@@ -68,7 +68,7 @@ export function draggable(node: HTMLElement, params: DragParameters) {
   let threshold = params.treshold ?? 15;
   let initPos: { x: number; y: number };
   let isDragged = false;
-  let dragged: HTMLElement[] = [];
+  let targetBlocks: HTMLElement[] = [];
   let movable = params.movable ?? true;
   node.setAttribute("drag-id", params.action.id);
 
@@ -76,14 +76,11 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
   function handleDragStart(x: number, y: number) {
     isDragged = true;
-    initPos = { x, y };
-    //for (const block of dragged) {
-    //  block.style.opacity = `0.5`;
-    //}
-    const actions = getDraggedActions(params.action);
+    const actions = getTargetActions(params.action);
+    selected_actions.set([]);
     draggedActions.set(actions);
-    dragged = getDraggedBlocks(actions);
-    cursor = createDragCursor(dragged);
+    initPos = { x, y };
+    cursor = createDragCursor(targetBlocks);
     document.body.append(cursor);
   }
 
@@ -93,31 +90,46 @@ export function draggable(node: HTMLElement, params: DragParameters) {
 
     if (dropZone) {
       dropZone.dispatchEvent(
-        new DropActionEvent({ dropped: get(draggedActions) })
+        new DropActionEvent({ dropped: get(draggedActions) }),
       );
     }
 
-    //for (const block of dragged) {
-    //  block.style.opacity = `1.0`;
-    //}
-
     isDragged = false;
-    dragged = [];
     draggedActions.set([]);
     cursor.remove();
   }
 
   function handleMouseDown(e: MouseEvent) {
     const target = e.target as HTMLElement;
-    if (movable) {
-      handleDragStart(e.clientX, e.clientY);
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+    if (target !== e.currentTarget) {
+      return;
     }
+
+    if (!movable) {
+      return;
+    }
+
+    const actions = getTargetActions(params.action);
+    targetBlocks = getTargetBlocks(actions);
+
+    for (const block of targetBlocks) {
+      block.style.opacity = `0.5`;
+    }
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   }
 
   function handleMouseUp(e: MouseEvent) {
-    handleDragEnd(e);
+    if (isDragged) {
+      handleDragEnd(e);
+    }
+
+    for (const block of targetBlocks) {
+      block.style.opacity = `1.0`;
+    }
+    targetBlocks = [];
+
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   }
@@ -128,12 +140,24 @@ export function draggable(node: HTMLElement, params: DragParameters) {
       cursor.style.top = `${e.clientY}px`;
       cursor.style.opacity = `1`;
 
-      //const distance = Math.abs(e.clientY - initPos.y);
-      //const normalized = Math.min(distance, threshold) / threshold;
-      //for (const block of dragged) {
-      //  block.style.opacity = `${0.5 - normalized * 0.3}`;
-      //}
-      //cursor.style.opacity = `${normalized === 1 ? "0.8" : "0"}`;
+      const dx = Math.abs(e.clientX - initPos.x);
+      const dy = Math.abs(e.clientY - initPos.y);
+
+      // Use Euclidean distance or a weighted sum
+      const distance = Math.sqrt(dx * dx + dy * dy); // Euclidean
+
+      const normalized = Math.min(distance, threshold) / threshold;
+
+      const opacity = 0.5 - normalized * 0.3;
+      if (opacity < Number(targetBlocks[0].style.opacity)) {
+        for (const block of targetBlocks) {
+          block.style.opacity = `${0.5 - normalized * 0.3}`;
+        }
+
+        cursor.style.opacity = `${normalized === 1 ? "0.8" : "0"}`;
+      }
+    } else {
+      handleDragStart(e.clientX, e.clientY);
     }
   }
 }
@@ -169,7 +193,9 @@ export function dropzone(node: HTMLElement, params: DropParameters) {
   function handleDropAction(e: DropActionEvent) {
     const { dropped } = e.detail;
     const { event, index } = params;
-    dropActions(event, index, dropped);
+    dropActions(event, index, dropped).catch((e) => {
+      console.log(e);
+    });
   }
 
   function handleMouseOver() {

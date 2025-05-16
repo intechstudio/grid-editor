@@ -48,4 +48,5 @@ interface Information {
   compositeLua?: LuaScript[];
   syntaxPreprocessor?: SyntaxPreprocessor;
   helperText?: string;
+  devOnly?: boolean;
 }

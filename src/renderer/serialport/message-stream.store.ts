@@ -1,6 +1,6 @@
 // Top level imports
 import { writable, get } from "svelte/store";
-import { appSettings } from "../runtime/app-helper.store.js";
+import { appSettings } from "../runtime/app-helper.store";
 import { wss_send_message } from "../runtime/runtime.store";
 import {
   debug_monitor_store,
@@ -16,6 +16,8 @@ import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
 import { GridRuntime } from "../runtime/runtime.js";
 import { user_input } from "../runtime/user-input.store";
+import { runtime_manager } from "../runtime/runtime-manager.store.js";
+import { Runtime } from "../runtime/string-table.js";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -105,7 +107,7 @@ export class MessageStream {
       .pages.forEach(
         (e) =>
           (e.control_elements.find((e) => e.elementIndex === element).name =
-            name.length > 0 ? name : undefined)
+            name.length > 0 ? name : undefined),
       );
   }
 
@@ -123,12 +125,12 @@ export class MessageStream {
       const num = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
-          String.fromCharCode(descr.raw[4 + i * 4 + 1])
+          String.fromCharCode(descr.raw[4 + i * 4 + 1]),
       );
       const val = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
-          String.fromCharCode(descr.raw[4 + i * 4 + 3])
+          String.fromCharCode(descr.raw[4 + i * 4 + 3]),
       );
       //console.log(num, val)
 
@@ -149,22 +151,22 @@ export class MessageStream {
       const num = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 1])
+          String.fromCharCode(descr.raw[8 + i * 8 + 1]),
       );
       const red = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 3])
+          String.fromCharCode(descr.raw[8 + i * 8 + 3]),
       );
       const gre = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 5])
+          String.fromCharCode(descr.raw[8 + i * 8 + 5]),
       );
       const blu = parseInt(
         "0x" +
           String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
-          String.fromCharCode(descr.raw[8 + i * 8 + 7])
+          String.fromCharCode(descr.raw[8 + i * 8 + 7]),
       );
 
       //console.log(num, red, gre, blu)
@@ -233,6 +235,14 @@ export class MessageStream {
       }
 
       if (class_descr.class_name === "DEBUGTEXT") {
+        try {
+          const decoded = atob(class_descr.class_parameters.TEXT);
+          console.log(decoded);
+          class_descr.class_parameters.TEXT = decoded;
+        } catch (e) {
+          console.warn("Invalid Base64 string:", e); // Error decoding Base64: InvalidCharacterError: Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.
+        }
+
         debug_monitor_store.update_debugtext(class_descr);
         const text = class_descr.class_parameters.TEXT;
         const [sx, sy] = [
@@ -275,7 +285,7 @@ export class MessageStream {
             type: "alert",
             classname: "pagechange",
             mode: 0,
-            message: "Store your config before switching pages!",
+            message: Runtime.ErrorText.PAGE_CHANGE_DISABLED,
           });
         }
       }
@@ -324,8 +334,12 @@ export class MessageStream {
         // update control element rotation
         this.update_elementPositionStore(class_descr);
 
+        const active = get(runtime_manager).active.runtime;
         // engine is enabled
-        if (get(this._buffer).length === 0) {
+        if (
+          get(this._buffer).length === 0 &&
+          this.runtime.id === get(active).id
+        ) {
           // update active element selection
           user_input.process_incoming_event_from_grid(class_descr);
         }
@@ -362,9 +376,11 @@ export class MessageStream {
         class_descr.class_instr === "REPORT"
       ) {
         const ui = get(user_input);
-        if (typeof ui === "undefined") return;
-
-        if (ui.pagenumber !== class_descr.class_parameters.PAGENUMBER) {
+        const active = get(runtime_manager).active.runtime;
+        if (
+          ui.pagenumber !== class_descr.class_parameters.PAGENUMBER &&
+          this.runtime.id === get(active).id
+        ) {
           user_input.set({
             dx: ui.dx,
             dy: ui.dy,

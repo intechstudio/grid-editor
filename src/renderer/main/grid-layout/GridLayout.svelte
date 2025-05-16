@@ -4,7 +4,7 @@
   import { modal } from "./../modals/modal.store";
   import { watchResize } from "svelte-watch-resize";
   import { get, writable } from "svelte/store";
-  import { appSettings } from "../../runtime/app-helper.store.js";
+  import { appSettings } from "../../runtime/app-helper.store";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
   import { derived } from "svelte/store";
@@ -145,7 +145,7 @@
 
   let scalingPercent = derived(
     appSettings,
-    ($appSettings) => 1 * $appSettings.persistent.size
+    ($appSettings) => 1 * $appSettings.persistent.size,
   );
 
   function handleOutroEnd() {
@@ -259,11 +259,7 @@
                   </div>
                 {/if}
               {/if}
-              <Device
-                {device}
-                width={deviceWidth}
-                style="transform-origin: top left; transform: scale({$scalingPercent})"
-              />
+              <Device {device} width={deviceWidth} scale={$scalingPercent} />
             </div>
           {/each}
         </div>

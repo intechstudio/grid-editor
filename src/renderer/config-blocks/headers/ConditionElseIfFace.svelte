@@ -1,37 +1,36 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { parenthesis } from "../_validators";
-
-  export let config;
-  export let index;
-
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
+  import { GridAction } from "../../runtime/runtime";
+
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
   let scriptSegment = ""; // local script part
 
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegment = GridScript.humanize(config.script.slice(7, -5));
   }
 
   function sendData(e) {
-    if (parenthesis(e)) {
-      const script = GridScript.shortify(e);
+    const script = GridScript.shortify(e);
 
-      dispatch("update-action", {
-        short: "ei",
-        script: `elseif ${script} then`,
-      });
-    }
+    dispatch("update-action", {
+      short: "ei",
+      script: `elseif ${script} then`,
+      validationError: false,
+    });
   }
 </script>
 
 <div
-  class="px-2 w-full h-full flex text-white py-1 pointer-events-none"
+  class="px-2 w-full flex text-white py-1 pointer-events-none"
   style="background-color:{config.information.color}"
 >
   <div class="flex flex-row items-center w-full">
@@ -42,11 +41,13 @@
     >
       <LineEditor
         on:input={(e) => {
-          sendData(e.detail.script);
+          const { script } = e.detail;
+          sendData(script);
         }}
         on:change={() => dispatch("sync")}
-        action={config}
         value={scriptSegment}
+        availableCharacters={$config.parent.getAvailableChars()}
+        restrictScopeTo={$config.parent.getInfo().element.type}
       />
     </div>
   </div>

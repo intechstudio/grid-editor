@@ -27,9 +27,20 @@ const defaultOptions: ModalOptions = {
 
 function createModalStore() {
   const store = writable<ModalStoreValue | undefined>(undefined);
+  let blockEscape: boolean = false;
 
   function close(): void {
     store.set(undefined);
+  }
+
+  function setBlockMessage(block: boolean) {
+    blockEscape = block;
+  }
+
+  function tryClose(): void {
+    if (!blockEscape) {
+      close();
+    }
   }
 
   function show({
@@ -41,6 +52,7 @@ function createModalStore() {
     options?: ModalOptions;
     args?: ModalArguments;
   }): void {
+    blockEscape = false;
     store.set({
       component: component,
       options: options,
@@ -52,5 +64,7 @@ function createModalStore() {
     subscribe: store.subscribe,
     show: show,
     close: close,
+    tryClose: tryClose,
+    setBlockMessage: setBlockMessage,
   };
 }

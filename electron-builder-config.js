@@ -2,9 +2,9 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 function productNameByWorkflow() {
-  if (process.env.WORKFLOW_NAME == "nightly") {
+  if (process.env.VITE_BUILD_ENV == "nightly") {
     return `Grid Editor (Nightly) ${process.env.BRANCH_NAME}`;
-  } else if (process.env.WORKFLOW_NAME == "alpha") {
+  } else if (process.env.VITE_BUILD_ENV == "alpha") {
     return `Grid Editor (Alpha) ${process.env.RELEASE_VERSION}`;
   } else {
     return "Grid Editor";
@@ -35,6 +35,12 @@ const config = {
   ],
   files: ["**/*"],
   win: {
+    azureSignOptions: {
+      publisherName: "Intech Studio LLC",
+      endpoint: "https://weu.codesigning.azure.net/",
+      certificateProfileName: "intechstudio",
+      codeSigningAccountName: "grid-editor",
+    },
     publish: [
       {
         provider: "github",
@@ -42,13 +48,13 @@ const config = {
         repo: "grid-editor",
       },
     ],
-    artifactName: "${name}-setup-${version}.${ext}",
+    artifactName: "${name}-windows-${version}-x64.${ext}",
     target: ["nsis"],
     icon: "build-assets/icon.png",
   },
   linux: {
     target: "AppImage",
-    artifactName: "${name}-setup-${version}.${ext}",
+    artifactName: "${name}-linux-${version}.${ext}",
   },
   mac: {
     target: [
@@ -57,15 +63,13 @@ const config = {
         arch: ["arm64", "x64"],
       },
     ],
-    artifactName: "${name}-setup-${version}-${arch}.${ext}",
+    artifactName: "${name}-macos-${version}-${arch}.${ext}",
     icon: "build-assets/icon_mac.png",
     hardenedRuntime: true,
     gatekeeperAssess: false,
     entitlements: "build-assets/entitlements.mac.plist",
     entitlementsInherit: "build-assets/entitlements.mac.plist",
-    notarize: {
-      teamId: process.env.APPLE_TEAM_ID,
-    },
+    notarize: true,
   },
   dmg: {
     sign: false,

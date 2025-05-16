@@ -20,7 +20,6 @@ import chokidar from "chokidar";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
-import buildVariables from "../../buildVariables.json";
 
 configuration.EDITOR_VERSION = app.getVersion();
 configuration.EDITOR_NAME = app.getName();
@@ -29,7 +28,7 @@ log.info(
   "NAME: ",
   configuration.EDITOR_NAME,
   " VERSION: ",
-  configuration.EDITOR_VERSION
+  configuration.EDITOR_VERSION,
 );
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
@@ -38,7 +37,7 @@ import { developerWebsocket } from "./developer_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
-import { updater, restartAfterUpdate } from "./src/updater";
+import { updater, restartAfterUpdate, forceQuitForUpdate } from "./src/updater";
 import {
   libraryDownload,
   uxpPhotoshopDownload,
@@ -52,9 +51,25 @@ import {
 } from "./src/profiles";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { SerialPort } from "serialport";
+import { usb } from "usb";
 
 log.info("App starting...");
+log.info("BUILD ENVS:", import.meta.env);
+
+usb.on("attach", () => {
+  let delay = 1000;
+  let totalDelay = 0;
+  async function retryFind() {
+    let result = await findBootloaderPath();
+    if (result) return;
+
+    totalDelay += delay;
+    if (totalDelay > 8000) return;
+    setTimeout(retryFind, delay);
+  }
+  setTimeout(retryFind, delay);
+});
+setTimeout(findBootloaderPath, 10000); //Initial check
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -161,9 +176,9 @@ if (!gotTheLock) {
           mainWindow.restore();
           mainWindow.focus();
         }
-        handleDeeplinkReturnData(commandLine.toString());
+        handleDeeplinkReturnData(commandLine.pop().toString());
       }
-    }
+    },
   );
 
   app.whenReady().then(() => {
@@ -187,8 +202,8 @@ if (!gotTheLock) {
           app.getPath("documents"),
           "grid-userdata",
           "packages",
-          packageName
-        )
+          packageName,
+        ),
       );
 
       // Override package path for local dev packages
@@ -252,7 +267,7 @@ function createWindow() {
       }
 
       c({ cancel: false, responseHeaders: d.responseHeaders });
-    }
+    },
   );
 
   serial.mainWindow = mainWindow;
@@ -274,8 +289,8 @@ function createWindow() {
     updater.installUpdate();
   });
 
-  console.log("here what is buildVariables.BUILD_ENV");
-  if (buildVariables.BUILD_ENV === "development") {
+  console.log(`here what is VITE_BUILD_ENV: ${import.meta.env.VITE_BUILD_ENV}`);
+  if (import.meta.env.VITE_BUILD_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
     mainWindow.webContents.openDevTools();
@@ -283,10 +298,10 @@ function createWindow() {
     // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
     );
     mainWindow.loadURL(
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
     );
   }
 
@@ -297,8 +312,7 @@ function createWindow() {
     } else {
       evt.preventDefault();
       // only hide, keep in the background
-      const keepRunning = store.get("alwaysRunInTheBackground");
-      if (keepRunning === true) {
+      if (store.get("alwaysRunInTheBackground") && !forceQuitForUpdate) {
         mainWindow.hide();
       } else {
         app.quit();
@@ -321,7 +335,7 @@ function createWindow() {
       } else {
         callback(""); //Could not find any matching devices
       }
-    }
+    },
   );
 
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -342,7 +356,7 @@ function createWindow() {
       ) {
         return true;
       }
-    }
+    },
   );
 
   mainWindow.webContents.session.setDevicePermissionHandler((details) => {
@@ -372,14 +386,14 @@ let stopPackageManagerTimeout = undefined;
 let restartPackageManagerOnShutdown = true;
 let packageEditorPort = undefined;
 function startPackageManager(
-  updatePackageOnStartName: string | undefined = undefined
+  updatePackageOnStartName: string | undefined = undefined,
 ) {
   const packageFolder = path.resolve(
-    path.join(app.getPath("documents"), "grid-userdata", "packages")
+    path.join(app.getPath("documents"), "grid-userdata", "packages"),
   );
   if (!packageManagerProcess) {
     packageManagerProcess = utilityProcess.fork(
-      path.resolve(path.join(__dirname, "./packageManager.js"))
+      path.resolve(path.join(__dirname, "./packageManager.js")),
     );
     packageManagerProcess.postMessage({
       type: "init",
@@ -408,7 +422,7 @@ function startPackageManager(
       ) {
         packageManagerProcess?.once("exit", () => {
           fs.rm(message.path, { recursive: true }, () =>
-            startPackageManager(message.packageName)
+            startPackageManager(message.packageName),
           );
         });
         packageManagerProcess!.kill();
@@ -521,7 +535,7 @@ function createPackageWindow(args) {
       type: "create-package-message-port",
       senderId: windowId,
     },
-    [messageChannel.port2]
+    [messageChannel.port2],
   );
   window.show();
 }
@@ -640,7 +654,7 @@ ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
   return await migrateToProfileCloud(
     arg.oldRootPath,
     arg.newRootPath,
-    arg.configDirectory
+    arg.configDirectory,
   );
 });
 
@@ -667,7 +681,7 @@ ipcMain.handle("firmwareDownload", async (event, arg) => {
     arg.targetFolder,
     arg.product,
     arg.arch,
-    arg.url
+    arg.url,
   );
 });
 
@@ -742,11 +756,6 @@ ipcMain.handle("isMaximized", async (event, args) => {
 // configuration variables
 ipcMain.on("getConfiguration", (event) => {
   event.returnValue = configuration;
-});
-
-// build variables
-ipcMain.on("getBuildVariables", (event) => {
-  event.returnValue = buildVariables;
 });
 
 ipcMain.on("get-app-path", (event) => {

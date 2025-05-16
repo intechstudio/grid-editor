@@ -4,13 +4,18 @@
     ActionData,
     GridEvent,
   } from "./../../../../runtime/runtime";
-  import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
+  import {
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+    type SvelteComponent,
+  } from "svelte";
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration";
-  import { draggable } from "../../../_actions/move.action";
+  import { draggable, draggedActions } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
   import {
     updateAction,
@@ -26,7 +31,6 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
-  let validationError = false;
   let ctrlIsDown = false;
   let toggled = false;
 
@@ -46,13 +50,39 @@
     component = result.component;
   });
 
+  onDestroy(() => {
+    //Destroyed by removal: nothing to do
+    if (typeof action.parent === "undefined") {
+      return;
+    }
+
+    //Destroyed by getting out of scope: Revert to synced state
+    revertToSynced();
+  });
+
+  $: if (!toggled) {
+    revertToSynced();
+  }
+
+  function revertToSynced() {
+    if (action.script === action.synced) {
+      return;
+    }
+
+    updateAction(
+      action,
+      new ActionData(action.short, action.synced, action.name),
+      action.isValid(),
+    );
+  }
+
   function handleReplace(e: any) {
     const { short, script, name } = e.detail;
     const oldAction = action;
     const parent = oldAction.parent as GridEvent;
     const newAction = new GridAction(
       undefined,
-      new ActionData(short, GridAction.getInformation(short).defaultLua)
+      new ActionData(short, GridAction.getInformation(short).defaultLua),
     );
     replaceAction(parent, oldAction, newAction);
     toggled = true;
@@ -60,17 +90,19 @@
   }
 
   function handleUpdateAction(e) {
-    const { short, script, name } = e.detail;
-    updateAction(action, new ActionData(short, script, name), false);
+    const { short, script, name, validationError } = e.detail;
+    const data = new ActionData(short, script, name);
+    //TODO: Propose better solution
+    data.invalid = validationError;
+    updateAction(action, data, false);
   }
 
   function handleSendActionToGrid() {
-    syncWithGrid(action);
-  }
+    if (!action.isValid()) {
+      return;
+    }
 
-  function handleValidator(e) {
-    const data = e.detail;
-    validationError = data.isError;
+    syncWithGrid(action);
   }
 
   function handleToggle(e) {
@@ -113,7 +145,35 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
+<wrapper
+  role="tabpanel"
+  tabindex="0"
+  on:keydown={(e) => {
+    //Ignore if origin node is input
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement ||
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+    ) {
+      e.stopPropagation();
+      return;
+    }
+    if (
+      e.key === " " &&
+      e.target.tagName !== "INPUT" &&
+      e.target.tagName !== "TEXTAREA"
+    ) {
+      e.preventDefault();
+      const carousel = e.currentTarget.querySelector("carousel");
+      if (carousel) {
+        carousel.click();
+      }
+    }
+  }}
+  class="dynamicWrapper activator-button flex flex-grow outline-none"
+  class:cursor-pointer={ctrlIsDown}
+>
   {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
@@ -123,11 +183,12 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.isValid()
       ? 'border-error'
-      : 'border-transparent'}"
+      : 'border-transparent'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
+    class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
     on:click|self={handleCarouselClicked}
@@ -156,25 +217,24 @@
         <!-- Content of block -->
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="bg-secondary bg-opacity-30 h-full w-full">
-            <svelte:component
-              this={component}
-              {index}
-              config={action}
-              on:replace={handleReplace}
-              on:validator={handleValidator}
-              on:update-action={handleUpdateAction}
-              on:sync={handleSendActionToGrid}
-              on:toggle={handleToggle}
-            />
+          <div class="bg-secondary h-full w-full">
+            <div class="bg-black/15 h-full w-full">
+              <svelte:component
+                this={component}
+                config={action}
+                on:replace={handleReplace}
+                on:update-action={handleUpdateAction}
+                on:sync={handleSendActionToGrid}
+                on:toggle={handleToggle}
+              />
+            </div>
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
-          <div class="h-10 w-full">
+          <div class="min-h-10 w-full flex">
             <svelte:component
               this={header}
               config={action}
-              {index}
               on:toggle={handleToggle}
               on:update-action={handleUpdateAction}
               on:sync={handleSendActionToGrid}

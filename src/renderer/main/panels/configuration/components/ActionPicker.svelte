@@ -23,12 +23,14 @@
     MoltenInput,
     SvgIcon,
   } from "@intechstudio/grid-uikit";
+  import { get } from "svelte/store";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
-  export let index;
+  export let index: number;
   export let referenceElement = undefined;
   export let event: GridEvent;
 
@@ -40,6 +42,13 @@
   let searchValue = "";
   let searchBar;
 
+  function handleEscapePress(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      handleClose();
+    }
+  }
+
   onMount(() => {
     referenceElement.addEventListener("click", handleReferenceElementClick);
     actionPickerTimestamp = Date.now();
@@ -47,6 +56,8 @@
     if (typeof focusSearchBar !== "undefined") {
       focusSearchBar();
     }
+
+    document.addEventListener("keydown", handleEscapePress);
   });
 
   // Clean up the event listener when the component is destroyed
@@ -60,6 +71,8 @@
       },
       mandatory: false,
     });
+
+    document.removeEventListener("keydown", handleEscapePress);
   });
 
   //////////////////////////////////////////////////////////////////////////////
@@ -198,13 +211,18 @@
             "eprlrei",
             "eprlre",
             "eprlr",
-          ].includes(e.information.short)
+          ].includes(e.information.short),
       );
     }
     if (eventString !== "button") {
       comp = comp.filter(
-        (e) => !["bprel", "bpre", "bpr"].includes(e.information.short)
+        (e) => !["bprel", "bpre", "bpr"].includes(e.information.short),
       );
+    }
+
+    //Filter out dev blocks
+    if (!get(appSettings).persistent.allowDevBlocks) {
+      comp = comp.filter((e) => !e.information.devOnly);
     }
 
     //Group components by category
@@ -244,12 +262,9 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function handlePaste() {
-    const event = new CustomEvent("paste", {
-      detail: {
-        index: index,
-      },
+    dispatch("paste", {
+      index: index,
     });
-    referenceElement.dispatchEvent(event);
     handleClose();
   }
 
@@ -273,7 +288,7 @@
         index: Math.min(index, $event.config.length - 1),
       });
       const defaultLocal = localDefinitions.find(
-        (e) => e.value === localDefinition
+        (e) => e.value === localDefinition,
       )?.value;
 
       if (typeof defaultLocal !== "undefined") {
@@ -288,7 +303,7 @@
     defaultScript = replaceToLocalDefinition(
       defaultScript,
       "self:ind()",
-      "num"
+      "num",
     );
     defaultScript = replaceToLocalDefinition(defaultScript, "glr()", "red");
     defaultScript = replaceToLocalDefinition(defaultScript, "glg()", "gre");
@@ -296,7 +311,7 @@
     const configs = [
       new GridAction(
         undefined,
-        new ActionData(component.information.short, defaultScript)
+        new ActionData(component.information.short, defaultScript),
       ),
     ];
 
@@ -306,18 +321,15 @@
     if (typeof compositeLua !== "undefined") {
       for (const obj of compositeLua) {
         configs.push(
-          new GridAction(undefined, new ActionData(obj.short, obj.script))
+          new GridAction(undefined, new ActionData(obj.short, obj.script)),
         );
       }
     }
 
-    const event = new CustomEvent("new-config", {
-      detail: {
-        configs: configs,
-        index: index,
-      },
+    dispatch("new-config", {
+      configs: configs,
+      index: index,
     });
-    referenceElement.dispatchEvent(event);
 
     handleClose();
   }
@@ -341,15 +353,17 @@
           }
           return true;
         }),
-      })
+      }),
     );
     filteredOptions = filteredOptions.filter((e) => e.components.length > 0);
   }
 
-  function handleKeydown(e) {
-    if (e.code !== "Enter") {
+  function handleSearchBarKeyDown(e: any) {
+    const { key } = e.detail as KeyboardEvent;
+    if (key !== "Enter") {
       return;
     }
+
     const component = filteredOptions[0]?.components[0];
     if (typeof component === "undefined") {
       return;
@@ -357,8 +371,6 @@
     handleAddAction({ component });
   }
 </script>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <container style="z-index: 666;">
   <Popover isOpen={true} {referenceElement} placement={"left"}>
@@ -385,7 +397,11 @@
                 <SvgIcon width={10} height={10} iconPath={"close"} />
               </button>
             </div>
-            <MoltenInput bind:this={searchBar} bind:target={searchValue} />
+            <MoltenInput
+              bind:this={searchBar}
+              bind:target={searchValue}
+              on:keydown={handleSearchBarKeyDown}
+            />
           </div>
 
           <div class="flex flex-col w-full h-full overflow-y-auto">
@@ -399,7 +415,7 @@
                   {#each option.components as component}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    <div
+                    <button
                       style="--action-color: {component.information.color};"
                       on:click={() => handleAddAction({ component })}
                       class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
@@ -416,7 +432,7 @@
                           {component.information.menuName}
                         {/if}
                       </div>
-                    </div>
+                    </button>
                   {/each}
                 </div>
               {/each}

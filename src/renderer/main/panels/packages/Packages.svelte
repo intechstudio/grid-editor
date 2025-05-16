@@ -4,6 +4,8 @@
   import { Analytics } from "../../../runtime/analytics.js";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { logger } from "../../../runtime/runtime.store";
+  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
 
   onMount(async () => {
     refreshPackageList();
@@ -15,6 +17,7 @@
 
   let packagePreferenceComponents = [];
   let packagePathInput = "";
+  let packageRepositoryDialog;
 
   function refreshPackagePreferences() {
     const loadedPackages = $appSettings.persistent.enabledPackages;
@@ -157,7 +160,7 @@
               Accept: "application/vnd.github.v3.raw",
               "User-Agent": "Grid Editor",
             },
-          }
+          },
         );
 
         if (response.ok) {
@@ -227,136 +230,321 @@
   }
 </script>
 
-<preferences
-  class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto"
+<packages
+  class="bg-primary flex flex-col h-full w-full text-white overflow-y-auto"
 >
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+  <div class="flex flex-col h-full w-full p-4">
     <div class="flex py-2 text-white items-center">
-      <div class="mx-2">Packages</div>
+      <div class="font-medium w-full">Packages</div>
       <div class="mx-2">
-        <MoltenPushButton click={restartPackageManager} text="Restart" />
+        <MoltenPushButton click={restartPackageManager} text="Force Restart" />
       </div>
-      <div class="mx-2">
-        <MoltenPushButton click={refreshPackageList} text="Refresh" />
+      <div class="mx-2 font-medium text-base">
+        <MoltenPushButton
+          click={() => packageRepositoryDialog.show()}
+          text="+"
+        />
       </div>
     </div>
-    {#each $appSettings.packageList as _package}
-      <div class="flex py-2 text-white items-center">
-        <input
-          class="bg-primary my-1"
-          type="checkbox"
-          checked={_package.status === "Enabled"}
-          style="visibility:{(_package.status === 'Downloaded' &&
-            _package.loadable) ||
-          _package.status === 'Enabled'
-            ? 'visible'
-            : 'hidden'}"
-          on:change={async (e) =>
-            changePackageStatus(_package.id, e.target.checked)}
-        />
-        <div class="mx-1">{_package.name}</div>
-        {#if _package.packageVersion}
-          <div class="mx-1">{_package.packageVersion}</div>
-        {/if}
-        {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
-          <div class="mx-1">
-            <MoltenPushButton
-              click={() => {
-                downloadPackage(_package.id);
-              }}
-              disabled={_package.status == "Downloading"}
-              text="Download"
-            />
-          </div>
-          {#if _package.removable === true}
-            <div class="mx-1">
-              <MoltenPushButton
-                click={() => {
-                  removePackage(_package.id);
-                }}
-                text="Remove"
-              />
-            </div>
-          {/if}
-        {:else if _package.canUpdate}
-          <div class="mx-1">
-            <MoltenPushButton
-              click={() => {
-                updatePackage(_package.id);
-              }}
-              text="Update"
-            />
-          </div>
-        {:else if _package.uninstallable}
-          <div class="mx-1">
-            <MoltenPushButton
-              click={() => {
-                uninstallPackage(_package.id);
-              }}
-              text="Uninstall"
-            />
-          </div>
-        {:else if _package.removable}
-          <div class="mx-1">
-            <MoltenPushButton
-              click={() => {
-                removePackage(_package.id);
-              }}
-              text="Remove"
-            />
-          </div>
-        {/if}
-      </div>
-    {/each}
-    {#each $appSettings.developerPackagesRequested as request}
-      <div class="flex py-2 text-white items-center">
-        <div class="mx-1">{request.name}</div>
-        <div class="mx-1">
-          <MoltenPushButton
-            click={() => {
-              approveRequest(request);
-            }}
-            text="Approve"
-          />
+
+    {#if !$appSettings.packageManagerRunning}
+      <p class="loading">Restarting package manager</p>
+    {/if}
+    <Splitpanes
+      horizontal={true}
+      theme="modern-theme"
+      pushOtherPanes={false}
+      class="h-full w-full"
+    >
+      <Pane size={35}>
+        <div
+          class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip"
+        >
+          <!--https://github.com/WebOnWebOff/svelte-resizable-columns-->
+          <table>
+            <thead class="text-gray-500 border-b border-gray-500">
+              <tr>
+                <th>Activate</th>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each $appSettings.packageList as _package}
+                <tr class="h-20">
+                  <td>
+                    {#if (_package.status === "Downloaded" && _package.loadable) || _package.status === "Enabled"}
+                      <MeltCheckbox
+                        target={_package.status === "Enabled"}
+                        on:change={(e) =>
+                          changePackageStatus(_package.id, e.detail)}
+                        style="none"
+                      />
+                    {/if}
+                  </td>
+                  <td>
+                    <div class="mx-1">{_package.name}</div>
+                  </td>
+                  <td>
+                    {#if _package.packageVersion}
+                      <div class="mx-1">{_package.packageVersion}</div>
+                    {/if}
+                  </td>
+                  <td>
+                    {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
+                      <div class="flex flex-row">
+                        <div class="mx-1">
+                          <MoltenPushButton
+                            click={() => {
+                              downloadPackage(_package.id);
+                            }}
+                            disabled={_package.status == "Downloading"}
+                            ratio="box"
+                            text=""
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              slot="content"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="lucide lucide-arrow-down-to-line"
+                              ><path d="M12 17V3" /><path
+                                d="m6 11 6 6 6-6"
+                              /><path d="M19 21H5" /></svg
+                            >
+                          </MoltenPushButton>
+                        </div>
+                        {#if _package.removable === true}
+                          <div class="mx-1">
+                            <MoltenPushButton
+                              click={() => {
+                                removePackage(_package.id);
+                              }}
+                              ratio="box"
+                              text=""
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                slot="content"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-circle-minus"
+                                ><circle cx="12" cy="12" r="10" /><path
+                                  d="M8 12h8"
+                                /></svg
+                              >
+                            </MoltenPushButton>
+                          </div>
+                        {/if}
+                      </div>
+                    {:else if _package.canUpdate}
+                      <div class="mx-1">
+                        <MoltenPushButton
+                          click={() => {
+                            updatePackage(_package.id);
+                          }}
+                          ratio="box"
+                          text=""
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            slot="content"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-refresh-ccw"
+                            ><path
+                              d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                            /><path d="M3 3v5h5" /><path
+                              d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                            /><path d="M16 16h5v5" /></svg
+                          >
+                        </MoltenPushButton>
+                      </div>
+                    {:else if _package.uninstallable}
+                      <div class="mx-1">
+                        <MoltenPushButton
+                          click={() => {
+                            uninstallPackage(_package.id);
+                          }}
+                          ratio="box"
+                          text=""
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            slot="content"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-trash"
+                            ><path d="M3 6h18" /><path
+                              d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
+                            /><path
+                              d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"
+                            /></svg
+                          >
+                        </MoltenPushButton>
+                      </div>
+                    {:else if _package.removable}
+                      <div class="mx-1">
+                        <MoltenPushButton
+                          click={() => {
+                            removePackage(_package.id);
+                          }}
+                          ratio="box"
+                          text=""
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            slot="content"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-circle-minus"
+                            ><circle cx="12" cy="12" r="10" /><path
+                              d="M8 12h8"
+                            /></svg
+                          >
+                        </MoltenPushButton>
+                      </div>
+                    {/if}
+                  </td>
+                </tr>
+              {/each}
+              {#each $appSettings.developerPackagesRequested as request}
+                <tr class="h-20">
+                  <td />
+                  <td>{request.name}</td>
+                  <td />
+                  <td>
+                    <div class="flex flex-row">
+                      <div class="mx-1">
+                        <MoltenPushButton
+                          click={() => {
+                            approveRequest(request);
+                          }}
+                          ratio="box"
+                          text=""
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            slot="content"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-check"
+                            ><path d="M20 6 9 17l-5-5" /></svg
+                          >
+                        </MoltenPushButton>
+                      </div>
+                      <div class="mx-1">
+                        <MoltenPushButton
+                          click={() => {
+                            removeRequest(request);
+                          }}
+                          ratio="box"
+                          text=""
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            slot="content"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-x"
+                            ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
+                          >
+                        </MoltenPushButton>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div></Pane
+      >
+      <Pane size={65}>
+        <div
+          class="flex flex-col pt-2 h-full w-full overflow-y-auto overflow-x-clip {packagePreferenceComponents.length >
+          0
+            ? 'block'
+            : 'none'}"
+        >
+          {#each packagePreferenceComponents as preference}
+            {#key $appSettings.packageComponentKeys[preference.packageId]}
+              <svelte:element this={preference.componentName} class="my-2" />
+            {/key}
+          {/each}
         </div>
-        <div class="mx-1">
-          <MoltenPushButton
-            click={() => {
-              removeRequest(request);
-            }}
-            text="Reject"
-          />
-        </div>
-      </div>
-    {/each}
+      </Pane>
+    </Splitpanes>
   </div>
-
-  <div class="bg-secondary p-2 mb-4 rounded-lg flex text-white items-center">
-    <input
-      class="bg-primary mr-2 w-full"
-      type="text"
-      bind:value={packagePathInput}
-    />
-    <MoltenPushButton click={addPackageRepository} text="Add repository" />
-  </div>
-
-  {#if !$appSettings.packageManagerRunning}
-    <p class="loading">Restarting package manager</p>
-  {/if}
-
-  <div
-    class="bg-secondary rounded-lg flex flex-col mb-4 {packagePreferenceComponents.length >
-    0
-      ? 'block'
-      : 'none'}"
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <dialog
+    bind:this={packageRepositoryDialog}
+    class="w-full h-full bg-opacity-60 bg-primary"
+    on:click|self={() => packageRepositoryDialog.close()}
   >
-    {#each packagePreferenceComponents as preference}
-      {#key $appSettings.packageComponentKeys[preference.packageId]}
-        <svelte:element this={preference.componentName} />
-      {/key}
-    {/each}
-  </div>
-</preferences>
+    <div
+      class="flex flex-row bg-secondary text-gray-400 font-normal px-8 py-4 items-end"
+    >
+      <MeltCombo
+        size="full"
+        title={"Repository url or path"}
+        bind:value={packagePathInput}
+      />
+      <div class="mb-2 ml-2">
+        <MoltenPushButton
+          click={() => {
+            addPackageRepository();
+            packageRepositoryDialog.close();
+          }}
+          text="Add repository"
+        />
+      </div>
+    </div>
+  </dialog>
+</packages>
 
 <style>
   .loading:after {
@@ -367,18 +555,34 @@
     0%,
     20% {
       color: rgba(0, 0, 0, 0);
-      text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+      text-shadow:
+        0.25em 0 0 rgba(0, 0, 0, 0),
+        0.5em 0 0 rgba(0, 0, 0, 0);
     }
     40% {
       color: white;
-      text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+      text-shadow:
+        0.25em 0 0 rgba(0, 0, 0, 0),
+        0.5em 0 0 rgba(0, 0, 0, 0);
     }
     60% {
-      text-shadow: 0.25em 0 0 white, 0.5em 0 0 rgba(0, 0, 0, 0);
+      text-shadow:
+        0.25em 0 0 white,
+        0.5em 0 0 rgba(0, 0, 0, 0);
     }
     80%,
     100% {
-      text-shadow: 0.25em 0 0 white, 0.5em 0 0 white;
+      text-shadow:
+        0.25em 0 0 white,
+        0.5em 0 0 white;
     }
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+  th {
+    font-weight: normal;
+    text-align: start;
   }
 </style>

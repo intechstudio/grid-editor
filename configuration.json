@@ -11,11 +11,11 @@
   "USB_VID_2": "0x303a",
   "USB_PID_2": "0x8123",
   "FIRMWARE_GRID_D51_REQUIRED_MAJOR": 1,
-  "FIRMWARE_GRID_D51_REQUIRED_MINOR": 2,
-  "FIRMWARE_GRID_D51_REQUIRED_PATCH": 39,
+  "FIRMWARE_GRID_D51_REQUIRED_MINOR": 3,
+  "FIRMWARE_GRID_D51_REQUIRED_PATCH": 4,
   "FIRMWARE_GRID_ESP32_REQUIRED_MAJOR": 1,
-  "FIRMWARE_GRID_ESP32_REQUIRED_MINOR": 2,
-  "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 39,
+  "FIRMWARE_GRID_ESP32_REQUIRED_MINOR": 3,
+  "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 4,
   "FIRMWARE_GRID_URL_BEGINING": "https://github.com/intechstudio/grid-fw/releases/download/",
   "FIRMWARE_GRID_NIGHTLY_ESP32_URL": "https://github.com/intechstudio/grid-fw/raw/preview/Preview/Firmware/grid_esp32_nightly.uf2",
   "FIRMWARE_GRID_NIGHTLY_D51_URL": "https://github.com/intechstudio/grid-fw/raw/preview/Preview/Firmware/grid_d51_nightly.uf2",
@@ -40,20 +40,30 @@
   "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
   "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor",
   "EDITOR_VERSION": "",
-  "PROFILE_CLOUD_URL_LOCAL": "package://profile-cloud/public/wc/components.js",
-  "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app/wc/components.js",
-  "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app/wc/components.js",
+  "PROFILE_CLOUD_URL_LOCAL": "package://profile-cloud/public",
+  "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app",
+  "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
   "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth",
   "RECOMMENDED_PACKAGES": {
+    "package-spotify": {
+      "name": "Spotify",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-spotify"
+    },
+    "package-photoshop": {
+      "name": "Photoshop",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-photoshop"
+    },
+    "package-discord": {
+      "name": "Discord",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-discord"
+    },
     "package-active-win": {
       "name": "Active Window",
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-active-win"
-    },
-    "package-photoshop": {
-      "name": "Photoshop package",
-      "gitHubRepositoryOwner": "intechstudio",
-      "gitHubRepositoryName": "package-photoshop"
     }
   }
 }

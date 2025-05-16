@@ -4,11 +4,12 @@
   export const header = RegularActionBlockFace;
 </script>
 
-<script>
-  import { onMount, createEventDispatcher } from "svelte";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
+  import { GridAction } from "../../runtime/runtime";
 
-  export let config;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
@@ -32,22 +33,23 @@
         dispatch("update-action", {
           short: config.short,
           script: e.detail.script,
+          validationError: false,
         });
         dispatch("sync");
       },
-      false
+      false,
     );
     actionElement.addEventListener(
       "updateConfigHandler",
       (e) => {
         updateActionWithConfig = e.detail.handler;
       },
-      false
+      false,
     );
   }
 </script>
 
-<package class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto">
+<package class="flex flex-col w-full p-2 pointer-events-auto">
   {#if config?.information?.actionComponent}
     {#key $appSettings.packageComponentKeys[config.information.packageId]}
       <svelte:element

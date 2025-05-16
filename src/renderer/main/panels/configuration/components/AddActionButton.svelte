@@ -19,33 +19,30 @@
   function handleCloseActionPicker(e) {
     showActionPicker = false;
   }
-  function handlePaste(e) {
-    dispatch("paste", e.detail);
+  function handlePaste(e: any) {
+    const { index } = e.detail;
+    dispatch("paste", { index: index });
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<action-placeholder
-  bind:this={referenceElement}
-  on:click={handleShowActionPicker}
-  on:new-config={handleNewConfig}
-  on:paste={handlePaste}
-  class="cursor-pointer flex w-full items-center truncate"
->
-  <div
-    class="hover:border-pick hover:bg-select-saturate-10 border-secondary
-                transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2 truncate"
+<container>
+  <button
+    bind:this={referenceElement}
+    on:click={handleShowActionPicker}
+    class="cursor-pointer flex w-full truncate hover:border-pick hover:bg-select-saturate-10 border-secondary
+                transition-colors duration-300 border-l-4 text-white pl-4 p-2"
   >
     Add action block...
-  </div>
-</action-placeholder>
+  </button>
 
-{#if showActionPicker}
-  <ActionPicker
-    event={target.event}
-    index={target.index}
-    {referenceElement}
-    on:close={handleCloseActionPicker}
-  />
-{/if}
+  {#if showActionPicker}
+    <ActionPicker
+      event={target.event}
+      index={target.index}
+      {referenceElement}
+      on:close={handleCloseActionPicker}
+      on:new-config={handleNewConfig}
+      on:paste={handlePaste}
+    />
+  {/if}
+</container>

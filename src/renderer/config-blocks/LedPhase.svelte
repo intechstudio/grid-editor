@@ -54,12 +54,12 @@
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
-  import { Validator } from "./_validators";
+  import { Validator } from "./validators";
   import { ElementType } from "@intechstudio/grid-protocol";
-  import { GridElement, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import { Grid } from "../lib/_utils.js";
 
-  export let config;
-  export let index;
+  export let config: GridAction;
 
   let event = config.parent as GridEvent;
 
@@ -68,21 +68,32 @@
   const parameterNames = ["LED Number", "Layer", "Intensity"];
 
   const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
+    {
+      value: true,
+      func: (e: string) => {
+        return new Validator(e).isLuaValue().Result();
+      },
     },
   ];
 
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: handleConfigChange($config);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
+  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -98,7 +109,11 @@
       short: config.short,
       array: scriptSegments,
     });
-    dispatch("update-action", { short: config.short, script: script });
+    dispatch("update-action", {
+      short: config.short,
+      script: script,
+      validationError: validators.some((e) => e.value === false),
+    });
   }
 
   const defaultLayerSuggestion = [
@@ -131,30 +146,7 @@
     suggestions = _suggestions.map((s, i) => {
       if (i === 1) {
         const target = event.parent as GridElement;
-        switch (target.type) {
-          case ElementType.BUTTON:
-            return [
-              { value: "1", info: "Button layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          case ElementType.ENCODER:
-            return [
-              { value: "1", info: "Button layer" },
-              { value: "2", info: "Rotation layer" },
-            ];
-          case ElementType.FADER:
-            return [
-              { value: "1", info: "Fader layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          case ElementType.POTMETER:
-            return [
-              { value: "1", info: "Potmeter layer" },
-              { value: "2", info: "Unused layer" },
-            ];
-          default:
-            return defaultLayerSuggestion;
-        }
+        return Grid.Protocol.getLayerSuggestions(target.type);
       } else {
         return [...localDefinitions, ...s];
       }
@@ -166,22 +158,19 @@
   });
 </script>
 
-<config-led-phase
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<config-led-phase class="flex flex-col w-full p-2 pointer-events-auto">
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        bind:value={script}
+        value={script}
         suggestions={suggestions[i]}
-        validator={validators[i]}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
+        validator={validators[i].func}
         on:input={(e) => {
-          sendData(e.detail, i);
+          const { value, validationError } = e.detail;
+          script = value;
+          validators[i].value = !validationError;
+          sendData(value, i);
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}

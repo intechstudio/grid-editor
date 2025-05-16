@@ -32,7 +32,7 @@ export class MidiMessage {
     command: number,
     param1: number,
     param2: number,
-    direction: string
+    direction: string,
   ) {
     this.channel = channel;
     this.command = {
@@ -245,9 +245,9 @@ function createMidiMonitor(max_length) {
             cp.COMMAND,
             cp.PARAM1,
             cp.PARAM2,
-            descr.class_instr
+            descr.class_instr,
           ),
-          device: new DeviceInfo(device.type, bc.SX, bc.SY),
+          device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
         };
         return [...s, item];
       });
@@ -283,7 +283,7 @@ function createSysExMonitor(max_val) {
           date: Date.now(),
           type: "SYSEX",
           data: new SysExMessage(cp.CHANNEL, descr.class_instr, descr.raw),
-          device: new DeviceInfo(device.type, bc.SX, bc.SY),
+          device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
         };
 
         return [...s, item];
@@ -292,6 +292,6 @@ function createSysExMonitor(max_val) {
   };
 }
 
-export const maxMidi = 32;
+export const maxMidi = 128;
 export const midi_monitor_store = createMidiMonitor(maxMidi);
 export const sysex_monitor_store = createSysExMonitor(maxMidi);

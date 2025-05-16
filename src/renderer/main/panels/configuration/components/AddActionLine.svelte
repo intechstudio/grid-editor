@@ -11,7 +11,6 @@
   const dispatch = createEventDispatcher();
 
   function handleNewConfig(e) {
-    console.log("yay", e.detail);
     dispatch("new-config", e.detail);
   }
 
@@ -33,8 +32,6 @@
 <add-line
   bind:this={referenceElement}
   on:click={handleShowActionPicker}
-  on:new-config={handleNewConfig}
-  on:paste={handlePaste}
   class="hover:opacity-100 opacity-0 h-2 w-full relative mr-0.5 rounded-full bg-pick transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
 >
   <div
@@ -62,5 +59,7 @@
     index={target.index}
     {referenceElement}
     on:close={handleCloseActionPicker}
+    on:new-config={handleNewConfig}
+    on:paste={handlePaste}
   />
 {/if}

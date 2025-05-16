@@ -1,14 +1,10 @@
 <script lang="ts">
   import { GridModule, GridRuntime } from "./../../../runtime/runtime";
   import { ProfileCloud } from "./../../../runtime/string-table";
-  import { RuntimeData } from "./../../../runtime/runtime";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import {
-    moduleOverlay,
-    ModuleOverlayType,
-  } from "../../../runtime/moduleOverlay";
+  import { moduleOverlay } from "../../../runtime/moduleOverlay";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -20,18 +16,21 @@
     UserInputValue,
   } from "./../../../runtime/user-input.store";
 
+  import { selected_actions } from "./../../../runtime/selected-actions.store";
+
   import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { modal } from "../../modals/modal.store";
-  import UserLogin from "../../modals/UserLogin.svelte";
+  import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
+  import { Grid } from "../../../lib/_utils";
 
   const configuration = window.ctxProcess.configuration();
-  const buildVariables = window.ctxProcess.buildVariables();
 
   $: profileCloudIsMounted && sendAuthEventToProfileCloud($authStore);
 
@@ -70,7 +69,7 @@
       ui.dx,
       ui.dy,
       ui.pagenumber,
-      ui.elementnumber
+      ui.elementnumber,
     );
 
     if (typeof module === "undefined" || typeof element === "undefined") {
@@ -109,7 +108,7 @@
 
   function sendSelectedComponentInfos(
     selectedModuleType,
-    selectedControlElementType
+    selectedControlElementType,
   ) {
     sendMessageToProfileCloud({
       messageType: "selectedComponentTypes",
@@ -137,7 +136,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    modal.show({ component: UserLogin });
+    modal.show({ component: UserAuthenticationModal });
   }
 
   async function handleCreateCloudConfigLink(event) {
@@ -160,13 +159,6 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    if (typeof get(selectedConfigStore) !== "undefined") {
-      moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
-    } else {
-      if (get(moduleOverlay) === ModuleOverlayType.CONFIGURATION_LOAD) {
-        moduleOverlay.close();
-      }
-    }
   }
 
   async function handleDeleteLocalConfig(event) {
@@ -209,6 +201,10 @@
       case "profile": {
         const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
         await page.load();
+        if (!page.isValid()) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+
         config.type = (page.parent as GridModule).type;
         config.configs = page.control_elements.map((element) => {
           return {
@@ -221,6 +217,7 @@
             }),
           };
         });
+        config.name = `New ${config.type} config`;
         break;
       }
       case "preset": {
@@ -228,9 +225,13 @@
           ui.dx,
           ui.dy,
           ui.pagenumber,
-          ui.elementnumber
+          ui.elementnumber,
         );
         await element.load();
+
+        if (!element.isValid()) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
 
         config.type = element.type;
         config.configs = {
@@ -241,11 +242,37 @@
             };
           }),
         };
+        config.name = `New ${config.type} config`;
+        break;
+      }
+
+      case "snippet": {
+        const selected = get(selected_actions);
+        if (selected.some((e) => !e.isValid())) {
+          return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+        if (selected.length === 0) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profileclouderror",
+            message: ProfileCloud.ErrorText.EMPTY_SNIPPET,
+          });
+          return Promise.reject(ProfileCloud.ErrorText.EMPTY_SNIPPET);
+        }
+
+        const script =
+          Grid.Protocol.scriptStart +
+          selected.map((e) => e.toLua()).join("") +
+          Grid.Protocol.scriptEnd;
+
+        config.type = "snippet";
+        config.configs = script;
+        config.name = `New Snippet`;
         break;
       }
     }
 
-    config.name = `New ${config.type} config`;
     return Promise.resolve(config);
   }
 
@@ -264,7 +291,7 @@
     ) {
       sendSelectedComponentInfos(
         selectedModuleType,
-        selectedControlElementType
+        selectedControlElementType,
       );
     }
     const path = $appSettings.persistent.profileFolder;
@@ -290,7 +317,7 @@
 
   async function handleOpenExternalLink(event) {
     const { link } = event.data;
-    if (window.ctxProcess.buildVariables().BUILD_TARGET === "web") {
+    if (import.meta.env.VITE_BUILD_TARGET === "web") {
       window.open(link);
     } else {
       window.electron.openInBrowser(link);
@@ -333,6 +360,15 @@
         case "openExternalLink":
           channelMessageWrapper(event, handleOpenExternalLink);
           break;
+
+        case "configDragChange":
+          channelMessageWrapper(
+            event,
+            ProfileCloudEvent.handleConfigDragChange,
+          );
+          break;
+        case "showOverlay":
+          channelMessageWrapper(event, ProfileCloudEvent.handleShowOverlay);
       }
     }
   }
@@ -357,6 +393,7 @@
     }
 
     let fixedUrl = profileCloudUrl;
+    console.log(fixedUrl);
     if (!fixedUrl.endsWith(".js")) {
       if (fixedUrl.endsWith("/")) {
         fixedUrl = `${fixedUrl}wc/components.js`;
@@ -366,8 +403,8 @@
     }
     if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL) {
       fixedUrl = `package://v${new Date().getTime()}/${configuration.PROFILE_CLOUD_URL_LOCAL.substring(
-        "package://".length
-      )}`;
+        "package://".length,
+      )}/wc/components.js`;
     }
     if (offlineMode) {
       profileCloudWebComponentName = "profile-cloud-offline";
@@ -376,16 +413,18 @@
         .then(() => {
           if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
             profileCloudWebComponentName = "profile-cloud-nightly";
-          } else if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_PROD) {
-            profileCloudWebComponentName = "profile-cloud-prod";
+          } else if (
+            profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL
+          ) {
+            profileCloudWebComponentName = "profile-cloud-dev";
           } else if (profileCloudUrl.includes("profile-cloud-dev--pr")) {
             profileCloudWebComponentName = "profile-cloud-pr";
           } else {
-            profileCloudWebComponentName = "profile-cloud-dev";
+            profileCloudWebComponentName = "profile-cloud-prod";
           }
         })
         .catch((e) => {
-          profileCloudWebComponentName = "profile-cloud-dev";
+          profileCloudWebComponentName = "profile-cloud-prod";
           console.log(e);
         });
     }
@@ -417,11 +456,7 @@
   };
 
   function sendMessageToProfileCloud(message) {
-    let messageTarget = window;
-
-    if (!messageTarget?.postMessage) return;
-
-    messageTarget.postMessage(message, "*");
+    profile_cloud.sendMessage(message);
   }
 
   function handleMouseOut(e) {

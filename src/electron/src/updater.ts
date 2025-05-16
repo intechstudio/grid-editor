@@ -1,7 +1,6 @@
 import { autoUpdater } from "electron-updater";
 import log from "electron-log";
 
-import buildVariables from "../../../buildVariables.json";
 import { store } from "../main-store";
 
 interface Updater {
@@ -18,6 +17,8 @@ export const updater: Updater = {
   setNightlyAllowed: setNightlyAllowed,
 };
 
+export let forceQuitForUpdate = false;
+
 function init(nightlyAllowed: boolean) {
   autoUpdater.logger = log;
   autoUpdater.autoDownload = false;
@@ -25,17 +26,17 @@ function init(nightlyAllowed: boolean) {
   log.transports.file.level = "info";
 
   autoUpdater.allowPrerelease =
-    nightlyAllowed || buildVariables.BUILD_ENV !== "production";
+    nightlyAllowed || import.meta.env.VITE_BUILD_ENV !== "production";
 
   log.info(
     "checkForUpdatesAndNotify ---> ",
     "BULD_ENV: ",
-    buildVariables.BUILD_ENV
+    import.meta.env.VITE_BUILD_ENV,
   );
 
   if (
-    buildVariables.BUILD_ENV !== "development" &&
-    buildVariables.BRANCH_NAME === "stable"
+    import.meta.env.VITE_BUILD_ENV !== "development" &&
+    import.meta.env.VITE_BRANCH_NAME === "stable"
   ) {
     setTimeout(() => autoUpdater.checkForUpdates(), 10000); //Give time for main window to initialize
   } else {
@@ -44,12 +45,12 @@ function init(nightlyAllowed: boolean) {
 }
 
 export function setNightlyAllowed(isAllowed: boolean) {
-  let newValue = isAllowed || buildVariables.BUILD_ENV !== "production";
+  let newValue = isAllowed || import.meta.env.VITE_BUILD_ENV !== "production";
   if (autoUpdater.allowPrerelease != newValue) {
     autoUpdater.allowPrerelease = newValue;
     if (
-      buildVariables.BUILD_ENV !== "development" &&
-      buildVariables.BRANCH_NAME === "stable"
+      import.meta.env.VITE_BUILD_ENV !== "development" &&
+      import.meta.env.VITE_BRANCH_NAME === "stable"
     ) {
       autoUpdater.checkForUpdates();
     }
@@ -94,7 +95,6 @@ autoUpdater.on("update-downloaded", (info) => {
 
 export function restartAfterUpdate() {
   updater.mainWindow.setClosable(true);
-  // temporary solution, so we can quit the app for reinstall
-  store.set("alwaysRunInTheBackground", false);
+  forceQuitForUpdate = true;
   autoUpdater.quitAndInstall();
 }

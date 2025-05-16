@@ -1,15 +1,16 @@
 <script lang="ts">
-  import { appSettings } from "./../../runtime/app-helper.store.js";
-  import LineEditor from "./../../main/user-interface/LineEditor.svelte";
+  import { appSettings } from "./../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
+  import { SvgIcon, MoltenInput } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
-  import { GridAction } from "../../runtime/runtime";
+  import { GridAction, GridEvent } from "../../runtime/runtime";
+  import { get } from "svelte/store";
+  import { selected_actions } from "../../runtime/selected-actions.store";
 
   const dispatch = createEventDispatcher();
 
   export let config: GridAction;
-  export let index;
+  let event = config.parent as GridEvent;
 
   function handleClick(e) {
     dispatch("toggle");
@@ -20,6 +21,7 @@
       short: config.short,
       script: config.script,
       name: value,
+      validationError: false,
     });
   }
 
@@ -38,16 +40,20 @@
         : config.information.displayName;
   });
 
-  function handleNameChange(e) {
-    const { script } = e.detail;
-    name = script;
-    isEdit = false;
-    nameChange = true;
+  function handleNameInput(e: any) {
+    const { value } = e.detail;
+    name = value;
     sendData(name);
   }
 
+  function handleNameChange(e) {
+    isEdit = false;
+    nameChange = true;
+    dispatch("sync");
+  }
+
   function handleKeyDown(e) {
-    if (e.key === "F2" && config.selected) {
+    if (e.key === "F2" && get(selected_actions).includes(config)) {
       isEdit = true;
     }
 
@@ -65,37 +71,35 @@
 <svelte:window on:keydown={handleKeyDown} />
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="justify-between gap-2 w-full h-full px-2 py-1 flex-row text-white flex items-center bg-secondary {false
-    ? 'group-hover/bg-color:bg-select-saturate-10'
-    : ''}"
+  role="button"
+  tabindex="0"
+  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary overflow-hidden pointer-events-none"
   on:click={handleClick}
 >
   {#if isEdit}
-    <div
-      class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
-      on:click|stopPropagation
-    >
-      <LineEditor
-        action={config}
-        value={name}
-        on:input={handleNameChange}
-        on:change={() => dispatch("sync")}
+    <div class="pointer-events-auto flex flex-grow">
+      <MoltenInput
+        target={name}
+        on:input={handleNameInput}
+        on:change={handleNameChange}
+        availableCharacters={$event.getAvailableChars()}
       />
     </div>
   {:else}
-    <span class="truncate"
-      >{typeof $config?.name === "undefined"
-        ? config.information.displayName
-        : $config.name}</span
-    >
+    <div class="w-0 flex-grow min-w-0 items-start text-left">
+      <span class="truncate block">
+        {typeof $config?.name === "undefined"
+          ? config.information.displayName
+          : $config.name}
+      </span>
+    </div>
   {/if}
 
   {#if $appSettings.persistent.editableBlockNames}
     <button
       on:click|stopPropagation={handleEditClicked}
-      class="cursor-pointer pointer-events-auto"
+      class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded pointer-events-auto"
     >
       <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
     </button>
