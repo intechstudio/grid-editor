@@ -1,29 +1,31 @@
+<script lang="ts" context="module">
+  export const DEVICE_GAP = 5;
+  export const DEVICE_WIDTH = 225;
+  export const LAYOUT_CELL_WIDTH = DEVICE_WIDTH + DEVICE_GAP + 1;
+</script>
+
 <script lang="ts">
   import { Architecture } from "@intechstudio/grid-protocol";
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
   import { modal } from "./../modals/modal.store";
   import { watchResize } from "svelte-watch-resize";
-  import { get, writable } from "svelte/store";
+  import { get, Readable } from "svelte/store";
   import { appSettings } from "../../runtime/app-helper.store";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
-  import { derived } from "svelte/store";
   import { createEventDispatcher } from "svelte";
   import AddModuleButton from "./AddModuleButton.svelte";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridModule, GridRuntime } from "../../runtime/runtime";
 
-  export let component;
-
-  let runtime: GridRuntime;
-  $: runtime = $runtime_manager.active.runtime;
+  export let component: HTMLElement = undefined;
+  export let runtime: GridRuntime;
+  export let scale: Readable<number>;
 
   const dispatch = createEventDispatcher();
 
   let columns = 0;
   let rows = 0;
-  const deviceGap = 5;
-  const deviceWidth = 225 + deviceGap + 1;
 
   let layoutWidth = 0;
   let layoutHeight = 0;
@@ -40,7 +42,7 @@
   let layoutMargin = { left: 0, right: 0, top: 0, bottom: 0 };
 
   $: calculateRotation($appSettings.persistent.moduleRotation);
-  $: handleScalingChange($scalingPercent);
+  $: handleScalingChange($scale);
 
   function handleResize(e) {
     dispatch("resize");
@@ -54,8 +56,8 @@
     const dim = getGridDimensions();
     rows = dim.rows;
     columns = dim.columns;
-    width = columns * deviceWidth * scale;
-    height = rows * deviceWidth * scale;
+    width = columns * LAYOUT_CELL_WIDTH * scale;
+    height = rows * LAYOUT_CELL_WIDTH * scale;
     layoutWidth = rotation == 0 || rotation == 180 ? width : height;
     layoutHeight = rotation == 90 || rotation == 270 ? width : height;
     shiftX = rotation == 90 || rotation == 180 ? layoutWidth : 0;
@@ -74,7 +76,7 @@
       deltaRotation += 360;
     }
     trueRotation += deltaRotation;
-    calculateLayoutDimensions(rotation, $scalingPercent);
+    calculateLayoutDimensions(rotation, get(scale));
   }
 
   function getGridDimensions() {
@@ -143,17 +145,12 @@
     };
   }
 
-  let scalingPercent = derived(
-    appSettings,
-    ($appSettings) => 1 * $appSettings.persistent.size,
-  );
-
   function handleOutroEnd() {
-    calculateLayoutDimensions(rotation, $scalingPercent);
+    calculateLayoutDimensions(rotation, get(scale));
   }
 
   function handleIntroStart() {
-    calculateLayoutDimensions(rotation, $scalingPercent);
+    calculateLayoutDimensions(rotation, get(scale));
   }
 
   function handleAddModuleButtonClicked(x, y) {
@@ -201,8 +198,8 @@
                 y: props.fly_y_direction * 100,
                 duration: 300,
               }}
-              style="width: {deviceWidth * $scalingPercent}px; 
-                height: {deviceWidth * $scalingPercent}px;
+              style="width: {LAYOUT_CELL_WIDTH * $scale}px; 
+                height: {LAYOUT_CELL_WIDTH * $scale}px;
                 grid-area: {`${props.gridY}/${props.gridX}/${props.gridY}/${props.gridX}`};"
               out:fade|global={{ duration: 200 }}
               on:outroend={handleOutroEnd}
@@ -259,7 +256,7 @@
                   </div>
                 {/if}
               {/if}
-              <Device {device} width={deviceWidth} scale={$scalingPercent} />
+              <Device {device} width={LAYOUT_CELL_WIDTH} scale={$scale} />
             </div>
           {/each}
         </div>

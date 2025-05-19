@@ -11,6 +11,8 @@
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";
   import { GridRuntime } from "../runtime/runtime";
+  import Minimap from "./grid-layout/Minimap.svelte";
+  import { derived } from "svelte/store";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -106,6 +108,11 @@
   </div>
 
   <GridLayout
+    runtime={$runtime_manager.active.runtime}
+    scale={derived(
+      appSettings,
+      ($appSettings) => 1 * $appSettings.persistent.size,
+    )}
     bind:component={gridLayout}
     on:resize={handleResize}
     class="absolute z-[0] top-1/2 left-1/2 flex flex-col"
@@ -148,4 +155,6 @@
       on:content-change={handleContentChange}
     />
   </div>
+
+  <Minimap />
 </div>
