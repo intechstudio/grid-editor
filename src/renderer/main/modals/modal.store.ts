@@ -41,6 +41,7 @@ export namespace Modal {
   export type WindowProps = {
     disableEscapeClose?: boolean;
     disableClickOutside?: boolean;
+    showAsUnique?: boolean;
   };
 
   // Strict type to enforce component must accept `data` prop.
@@ -71,6 +72,16 @@ export namespace Modal {
       if (this.instance) {
         console.warn(_TargetManager.ErrorText.ALREADY_SHOWN);
         return { close: this.close.bind(this) };
+      }
+
+      if (this.props.showAsUnique) {
+        const manager = get(modalManager);
+        const found = manager.windows.find(
+          (e: any) => e.componentType === this.componentType,
+        );
+        if (found) {
+          return;
+        }
       }
 
       this.targetNode = document.createElement("div");

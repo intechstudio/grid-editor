@@ -100,6 +100,7 @@
     new Modal.Window(Monaco, Modal.Snap.GridLayout, {
       disableClickOutside: true,
       disableEscapeClose: true,
+      showAsUnique: true,
     }).show({
       monaco_action: config,
     });
