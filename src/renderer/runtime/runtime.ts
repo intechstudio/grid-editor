@@ -1779,7 +1779,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   public async change_page(new_page_number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (get(this.connection.buffer).length > 0) {
+      if (get(this.connection.buffer).array.length > 0) {
         reject("Wait before all operations are finished.");
         return;
       }
@@ -2002,7 +2002,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
-      get(this.connection.buffer).length > 0
+      get(this.connection.buffer).array.length > 0
         ? GridRuntimeManager.heartbeat_grid_ms * 6
         : GridRuntimeManager.heartbeat_grid_ms * 3;
     const elapsedTime = Date.now() - last;
