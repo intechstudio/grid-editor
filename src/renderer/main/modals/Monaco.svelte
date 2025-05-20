@@ -161,7 +161,7 @@
   });
 
   function handleClose() {
-    if (commitEnabled) {
+    if (errorMesssage || commitEnabled) {
       const confirmModal = new Modal.Window(ConfirmModal);
       confirmModal.show({
         buttons: [
