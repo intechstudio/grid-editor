@@ -350,3 +350,58 @@ test.describe("Monaco Sugestion", () => {
     await expect(buttonMax.first()).toBeVisible();
   });
 });
+
+test.describe("Code block closes Modal", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.removeAllActions();
+  });
+  test("Esc key closes Modal", async () => {
+    const code = "print('test')";
+    await configPage.addAndEditCodeBlock(code);
+    await configPage.closeCode();
+    await keyboardActions.esc();
+    await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
+    await expect(await configPage.commitCodeButton).toBeVisible();
+  });
+  test("Enter key closes modal and discard changes", async () => {
+    const code = "print('')";
+    await configPage.addAndEditCodeBlock(code);
+    await configPage.closeCode();
+    await keyboardActions.enter();
+    await expect(await configPage.getTextFromCode()).toBe(`print("hello")`);
+  });
+  test("Modal appears if changes present", async () => {
+    await configPage.addAndEditCodeBlock("print('test')");
+    await configPage.closeCode();
+    await expect(await configPage.codeBlockModalDiscardButton).toBeVisible();
+  });
+  test("Modal appears if syntax error presents", async () => {
+    await configPage.addAndEditCodeBlock("./././");
+    await configPage.closeCode();
+    await expect(await configPage.codeBlockModalDiscardButton).toBeVisible();
+  });
+  test("Modal not appear and not closes code editor if monaco suggestion closed by 'esc' key ", async ({
+    page,
+  }) => {
+    const code = "button_";
+    await configPage.addAndEditCodeBlock(code);
+    const buttonMax = page.getByLabel("self:button_max");
+    await buttonMax.waitFor({ state: "visible" });
+    await keyboardActions.esc();
+    await expect(await configPage.commitCodeButton).toBeVisible();
+    await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
+  });
+
+  test("Modal not appear if no cahnges", async () => {
+    await configPage.addAndEditCodeBlock(`print("hello")`);
+    await configPage.closeCode();
+    await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
+  });
+});
