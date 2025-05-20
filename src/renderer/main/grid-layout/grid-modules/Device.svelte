@@ -42,11 +42,11 @@
   } from "../../panels/profileCloud/ProfileCloud.js";
   import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
-  import { fade } from "svelte/transition";
 
   export let device: GridModule = undefined;
   export let width = 225;
   export let scale: number = 1.0;
+  export let interactive: boolean;
 
   let component = undefined;
 
@@ -193,7 +193,8 @@
 </script>
 
 <button
-  class="module activator-button"
+  class="module drop-shadow"
+  class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
   on:focus={() => {
     selectModule();
@@ -253,6 +254,7 @@
     <!-- Module Underlays -->
     <svelte:fragment slot="module-underlay" let:device>
       <!-- Default Backdrop -->
+
       <div
         class="absolute bg-primary w-full h-full"
         style="border-radius: var(--grid-rounding);"
@@ -261,12 +263,14 @@
         {device}
         visible={$appSettings.persistent.portstateOverlayEnabled}
       />
-      <ModuleSelection
-        {device}
-        visible={true}
-        class="absolute top-0 left-0 w-full h-full"
-        style="border-radius: var(--grid-rounding);"
-      />
+      {#if interactive}
+        <ModuleSelection
+          {device}
+          visible={true}
+          class="absolute top-0 left-0 w-full h-full"
+          style="border-radius: var(--grid-rounding);"
+        />
+      {/if}
     </svelte:fragment>
 
     <!-- Cell Underlays -->
@@ -276,97 +280,105 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const element = device
-        .findPage($user_input.pagenumber)
-        .findElement(elementNumber)}
-      <button
-        on:focus={selectElement(elementNumber)}
-        on:keydown={(e) => {
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
-            console.log("Ctrl + C = Copy element", elementNumber);
-            handleCopyElement(element);
-            visualDebugEffect(e.target, "green");
+      {#if interactive}
+        {@const element = device
+          .findPage($user_input.pagenumber)
+          .findElement(elementNumber)}
+        <button
+          on:focus={selectElement(elementNumber)}
+          on:keydown={(e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+              console.log("Ctrl + C = Copy element", elementNumber);
+              handleCopyElement(element);
+              visualDebugEffect(e.target, "green");
+              e.preventDefault();
+              e.stopPropagation();
+            } else if (
+              (e.ctrlKey || e.metaKey) &&
+              e.key.toLowerCase() === "v"
+            ) {
+              console.log("Ctrl + V = Overwrite element", elementNumber);
+              handleOverwriteElement(element);
+              visualDebugEffect(e.target, "green");
+              e.preventDefault();
+              e.stopPropagation();
+            } else if (
+              (e.ctrlKey || e.metaKey) &&
+              e.shiftKey &&
+              e.key.toLowerCase() === "d"
+            ) {
+              console.log("Ctrl + Shift + D = Discard element", elementNumber);
+              handleDiscardElement(element);
+              visualDebugEffect(e.target, "green");
+              e.preventDefault();
+              e.stopPropagation();
+            } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
+              console.log("Shift + Delete = Clear element", elementNumber);
+              handleClearElement(element);
+              visualDebugEffect(e.target, "green");
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          use:contextTarget={{
+            items: [
+              {
+                text: [`Copy Element`, `(${modifier[0]} + C)`],
+                handler: () => handleCopyElement(element),
+                isDisabled: () => $isCopyElementEnabled === false,
+                iconPath: "copy_all",
+              },
+              {
+                text: [`Overwrite Element`, `(${modifier[0]} + V)`],
+                handler: () => handleOverwriteElement(element),
+                isDisabled: () =>
+                  !isOverwriteElementEnabled(get(element), get(appClipboard)),
+                iconPath: "paste_all",
+              },
+              {
+                text: [
+                  `Discard Element Changes`,
+                  `(${modifier[0]} + Shift + D)`,
+                ],
+                handler: () => handleDiscardElement(element),
+                isDisabled: () => !isDiscardElementEnabled(get(element)),
+                iconPath: "clear_from_device_01",
+              },
+              {
+                text: [`Clear Element`, `(Shift + Delete)`],
+                handler: () => handleClearElement(element),
+                isDisabled: () => !isClearElementEnabled(get(element)),
+                iconPath: "clear_element",
+              },
+            ],
+          }}
+          class="w-full h-full absolute element activator-button"
+          on:click={(e) => {
+            selectElement(elementNumber);
             e.preventDefault();
             e.stopPropagation();
-          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-            console.log("Ctrl + V = Overwrite element", elementNumber);
-            handleOverwriteElement(element);
-            visualDebugEffect(e.target, "green");
-            e.preventDefault();
-            e.stopPropagation();
-          } else if (
-            (e.ctrlKey || e.metaKey) &&
-            e.shiftKey &&
-            e.key.toLowerCase() === "d"
-          ) {
-            console.log("Ctrl + Shift + D = Discard element", elementNumber);
-            handleDiscardElement(element);
-            visualDebugEffect(e.target, "green");
-            e.preventDefault();
-            e.stopPropagation();
-          } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
-            console.log("Shift + Delete = Clear element", elementNumber);
-            handleClearElement(element);
-            visualDebugEffect(e.target, "green");
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }}
-        use:contextTarget={{
-          items: [
-            {
-              text: [`Copy Element`, `(${modifier[0]} + C)`],
-              handler: () => handleCopyElement(element),
-              isDisabled: () => $isCopyElementEnabled === false,
-              iconPath: "copy_all",
-            },
-            {
-              text: [`Overwrite Element`, `(${modifier[0]} + V)`],
-              handler: () => handleOverwriteElement(element),
-              isDisabled: () =>
-                !isOverwriteElementEnabled(get(element), get(appClipboard)),
-              iconPath: "paste_all",
-            },
-            {
-              text: [`Discard Element Changes`, `(${modifier[0]} + Shift + D)`],
-              handler: () => handleDiscardElement(element),
-              isDisabled: () => !isDiscardElementEnabled(get(element)),
-              iconPath: "clear_from_device_01",
-            },
-            {
-              text: [`Clear Element`, `(Shift + Delete)`],
-              handler: () => handleClearElement(element),
-              isDisabled: () => !isClearElementEnabled(get(element)),
-              iconPath: "clear_element",
-            },
-          ],
-        }}
-        class="w-full h-full absolute element activator-button"
-        on:click={(e) => {
-          selectElement(elementNumber);
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <ActiveChanges
-          {element}
-          {isLeftCut}
-          {isRightCut}
-          visible={typeof $moduleOverlay === "undefined" ||
-            $moduleOverlay === "configuration-load-overlay"}
-        />
-        <ElementSelection
-          {element}
-          {isLeftCut}
-          {isRightCut}
-          visible={typeof $moduleOverlay === "undefined" &&
-            (typeof $contextMenu === "undefined" ||
-              ($user_input.dx === device.dx &&
-                $user_input.dy === device.dy &&
-                $user_input.elementnumber === elementNumber))}
-        />
-      </button>
-      <ModuleInfo {device} visible={true} {elementNumber} />
+          }}
+        >
+          <ActiveChanges
+            {element}
+            {isLeftCut}
+            {isRightCut}
+            visible={typeof $moduleOverlay === "undefined" ||
+              $moduleOverlay === "configuration-load-overlay"}
+          />
+          <ElementSelection
+            {element}
+            {isLeftCut}
+            {isRightCut}
+            visible={typeof $moduleOverlay === "undefined" &&
+              (typeof $contextMenu === "undefined" ||
+                ($user_input.dx === device.dx &&
+                  $user_input.dy === device.dy &&
+                  $user_input.elementnumber === elementNumber))}
+          />
+        </button>
+        <ModuleInfo {device} visible={true} {elementNumber} />
+      {/if}
     </svelte:fragment>
 
     <!-- Cell Overlays -->
@@ -376,61 +388,65 @@
       let:isLeftCut
       let:isRightCut
     >
-      {@const element = device
-        .findPage($user_input.pagenumber)
-        .findElement(elementNumber)}
-      <div
-        class="absolute"
-        style="width: calc(100% - var(--element-margin) * 2); 
+      {#if interactive}
+        {@const element = device
+          .findPage($user_input.pagenumber)
+          .findElement(elementNumber)}
+        <div
+          class="absolute"
+          style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 
           margin: var(--element-margin);"
-      >
-        <PresetLoadOverlay
-          {element}
-          {isLeftCut}
-          {isRightCut}
-          visible={$moduleOverlay === "configuration-load-overlay" &&
-            $selectedConfigStore?.configType === "preset"}
-        />
-      </div>
-      <ControlNameOverlay
-        {element}
-        visible={$moduleOverlay === "control-name-overlay"}
-      />
-
-      {#if isDrag && dragged?.configType === "preset" && dragged?.targetType === element.type}
-        <div class="absolute p-2 w-full h-full flex">
-          <div
-            role="region"
-            aria-label="Drop area for presets"
-            class="w-full h-full bg-commit/25 pointer-events-auto rounded"
-            on:dragenter={() => handleDragEnter(element)}
-            on:dragleave|preventDefault={handleDragLeave}
-            on:dragover|preventDefault
+        >
+          <PresetLoadOverlay
+            {element}
+            {isLeftCut}
+            {isRightCut}
+            visible={$moduleOverlay === "configuration-load-overlay" &&
+              $selectedConfigStore?.configType === "preset"}
           />
         </div>
+        <ControlNameOverlay
+          {element}
+          visible={$moduleOverlay === "control-name-overlay"}
+        />
+
+        {#if isDrag && dragged?.configType === "preset" && dragged?.targetType === element.type}
+          <div class="absolute p-2 w-full h-full flex">
+            <div
+              role="region"
+              aria-label="Drop area for presets"
+              class="w-full h-full bg-commit/25 pointer-events-auto rounded"
+              on:dragenter={() => handleDragEnter(element)}
+              on:dragleave|preventDefault={handleDragLeave}
+              on:dragover|preventDefault
+            />
+          </div>
+        {/if}
       {/if}
     </svelte:fragment>
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay">
-      <ProfileLoadOverlay
-        {device}
-        visible={$moduleOverlay === "configuration-load-overlay" &&
-          $selectedConfigStore?.configType === "profile"}
-      />
-      {#if isDrag && dragged?.configType === "profile" && dragged?.targetType === device.type}
-        <div class="absolute p-2 w-full h-full flex">
-          <div
-            role="region"
-            aria-label="Drop area for profiles"
-            class="w-full h-full bg-commit/25 pointer-events-auto rounded"
-            on:dragenter={() =>
-              handleDragEnter(device.findPage($user_input.pagenumber))}
-            on:dragleave|preventDefault={handleDragLeave}
-            on:dragover|preventDefault
-          />
-        </div>
+      {#if interactive}
+        <ProfileLoadOverlay
+          {device}
+          visible={$moduleOverlay === "configuration-load-overlay" &&
+            $selectedConfigStore?.configType === "profile"}
+        />
+        {#if isDrag && dragged?.configType === "profile" && dragged?.targetType === device.type}
+          <div class="absolute p-2 w-full h-full flex">
+            <div
+              role="region"
+              aria-label="Drop area for profiles"
+              class="w-full h-full bg-commit/25 pointer-events-auto rounded"
+              on:dragenter={() =>
+                handleDragEnter(device.findPage($user_input.pagenumber))}
+              on:dragleave|preventDefault={handleDragLeave}
+              on:dragover|preventDefault
+            />
+          </div>
+        {/if}
       {/if}
     </svelte:fragment>
   </svelte:component>

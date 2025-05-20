@@ -21,6 +21,7 @@
   export let component: HTMLElement = undefined;
   export let runtime: GridRuntime;
   export let scale: Readable<number>;
+  export let interactive: boolean;
 
   const dispatch = createEventDispatcher();
 
@@ -80,41 +81,42 @@
   }
 
   function getGridDimensions() {
-    const active = get(runtime_manager).active.runtime;
-    const min_x = Math.min(...active.modules.map((e) => e.dx));
-    const min_y = Math.min(...active.modules.map((e) => e.dy));
-    const max_x = Math.max(...active.modules.map((e) => e.dx));
-    const max_y = Math.max(...active.modules.map((e) => e.dy));
+    const min_x = Math.min(...runtime.modules.map((e) => e.dx));
+    const min_y = Math.min(...runtime.modules.map((e) => e.dy));
+    const max_x = Math.max(...runtime.modules.map((e) => e.dx));
+    const max_y = Math.max(...runtime.modules.map((e) => e.dy));
 
-    layoutMargin = {
-      left:
-        active.modules.find((e) => e.dx == min_x)?.architecture ==
-        Architecture.VIRTUAL
-          ? 30
-          : 0,
-      right:
-        active.modules.find((e) => e.dx == max_x)?.architecture ==
-        Architecture.VIRTUAL
-          ? 30
-          : 0,
-      top:
-        active.modules.find((e) => e.dy == max_y)?.architecture ==
-        Architecture.VIRTUAL
-          ? 30
-          : 0,
-      bottom:
-        active.modules.find((e) => e.dy == min_y)?.architecture ==
-        Architecture.VIRTUAL
-          ? 30
-          : 0,
-    };
+    if (interactive) {
+      layoutMargin = {
+        left:
+          runtime.modules.find((e) => e.dx == min_x)?.architecture ==
+          Architecture.VIRTUAL
+            ? 30
+            : 0,
+        right:
+          runtime.modules.find((e) => e.dx == max_x)?.architecture ==
+          Architecture.VIRTUAL
+            ? 30
+            : 0,
+        top:
+          runtime.modules.find((e) => e.dy == max_y)?.architecture ==
+          Architecture.VIRTUAL
+            ? 30
+            : 0,
+        bottom:
+          runtime.modules.find((e) => e.dy == min_y)?.architecture ==
+          Architecture.VIRTUAL
+            ? 30
+            : 0,
+      };
+    }
     return {
       min_x: min_x,
       min_y: min_y,
       max_x: max_x,
       max_y: max_y,
-      rows: active.modules.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
-      columns: active.modules.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
+      rows: runtime.modules.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
+      columns: runtime.modules.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
     };
   }
 
@@ -196,18 +198,18 @@
               in:fly|global={{
                 x: props.fly_x_direction * 100,
                 y: props.fly_y_direction * 100,
-                duration: 300,
+                duration: interactive ? 300 : 0,
               }}
               style="width: {LAYOUT_CELL_WIDTH * $scale}px; 
                 height: {LAYOUT_CELL_WIDTH * $scale}px;
                 grid-area: {`${props.gridY}/${props.gridX}/${props.gridY}/${props.gridX}`};"
-              out:fade|global={{ duration: 200 }}
+              out:fade|global={{ duration: interactive ? 200 : 0 }}
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
               id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
               class="relative"
             >
-              {#if device.architecture === Architecture.VIRTUAL}
+              {#if device.architecture === Architecture.VIRTUAL && interactive}
                 <!-- LEFT -->
                 {#if typeof $runtime.modules.find((e) => e.dx === device.dx - 1 && e.dy === device.dy) === "undefined"}
                   <div
@@ -256,7 +258,12 @@
                   </div>
                 {/if}
               {/if}
-              <Device {device} width={LAYOUT_CELL_WIDTH} scale={$scale} />
+              <Device
+                {device}
+                width={LAYOUT_CELL_WIDTH}
+                scale={$scale}
+                {interactive}
+              />
             </div>
           {/each}
         </div>

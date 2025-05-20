@@ -9,7 +9,6 @@
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import PortSelector from "./PortSelector.svelte";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
 
@@ -155,7 +154,6 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <PortSelector visible={$runtime_manager.data.length > 1} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes
