@@ -36,8 +36,7 @@ function init(nightlyAllowed: boolean) {
 
   if (
     (import.meta.env.VITE_BUILD_ENV !== "development" &&
-      import.meta.env.VITE_BRANCH_NAME === "stable") ||
-    true
+      import.meta.env.VITE_BRANCH_NAME === "stable")
   ) {
     setTimeout(() => autoUpdater.checkForUpdates(), 10000); //Give time for main window to initialize
   } else {
@@ -51,8 +50,7 @@ export function setNightlyAllowed(isAllowed: boolean) {
     autoUpdater.allowPrerelease = newValue;
     if (
       (import.meta.env.VITE_BUILD_ENV !== "development" &&
-        import.meta.env.VITE_BRANCH_NAME === "stable") ||
-      true
+        import.meta.env.VITE_BRANCH_NAME === "stable")
     ) {
       autoUpdater.checkForUpdates();
     }
