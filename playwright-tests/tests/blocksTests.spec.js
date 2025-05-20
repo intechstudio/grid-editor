@@ -229,7 +229,6 @@ test.describe("Element Mode MAX value", () => {
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
 
-  /*
   test("Encoder", async () => {
     const category = "element";
     const blockName = "Encoder Mode";
@@ -237,7 +236,7 @@ test.describe("Element Mode MAX value", () => {
     await configPage.clickActionBlockElement(
       category,
       blockName,
-      "Enable Min/Max Value"
+      "Enable Min/Max Value",
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
@@ -250,7 +249,7 @@ test.describe("Element Mode MAX value", () => {
     await configPage.clickActionBlockElement(
       category,
       blockName,
-      "Enable Min/Max Value"
+      "Enable Min/Max Value",
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
@@ -263,12 +262,11 @@ test.describe("Element Mode MAX value", () => {
     await configPage.clickActionBlockElement(
       category,
       blockName,
-      "Enable Min/Max Value"
+      "Enable Min/Max Value",
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
-  */
 });
 
 test.describe("Input field keyboard shortcuts", () => {
