@@ -35,7 +35,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     let firmwareMismatchFound = false;
 
     // check modules for firmware mismatch
-    $runtime.modules.forEach((device) => {
+    for (const device of $runtime.modules) {
       if ($appSettings.firmwareNotificationState == 6) {
         $appSettings.firmwareNotificationState = 0;
         uploadProgressText = "";
@@ -45,7 +45,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       if (device.fwMismatch === true) {
         firmwareMismatchFound = true;
       }
-    });
+    }
 
     // if mismatch is found, show notification
     if (firmwareMismatchFound === true) {
