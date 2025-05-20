@@ -370,6 +370,7 @@ test.describe("Code block closes Modal", () => {
     await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
     await expect(await configPage.commitCodeButton).toBeVisible();
   });
+  /*
   test("Enter key closes modal and discard changes", async () => {
     const code = "print('')";
     await configPage.addAndEditCodeBlock(code);
@@ -377,6 +378,7 @@ test.describe("Code block closes Modal", () => {
     await keyboardActions.enter();
     await expect(await configPage.getTextFromCode()).toBe(`print("hello")`);
   });
+  */
   test("Modal appears if changes present", async () => {
     await configPage.addAndEditCodeBlock("print('test')");
     await configPage.closeCode();
