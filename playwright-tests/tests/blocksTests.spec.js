@@ -292,7 +292,7 @@ test.describe("Input field keyboard shortcuts", () => {
     await keyboardActions.selectAll();
     await keyboardActions.type("Test");
     await keyboardActions.selectAll();
-    await keyboardActions.copy();
+    await keyboardActions.cut();
     await keyboardActions.paste();
     await keyboardActions.paste();
     const actualValue = await configPage.getActionBlockMonacoFieldTextContetnt(
