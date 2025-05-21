@@ -7,8 +7,13 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
   import Popover from "svelte-easy-popover";
-  import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
+  import {
+    MarkdownContainer,
+    MoltenPushButton,
+    SvgIcon,
+  } from "@intechstudio/grid-uikit";
   import { configTour } from "./ConfigTour";
+  import { marked } from "marked";
 
   export let text = "";
   export let referenceElement: HTMLElement;
@@ -24,6 +29,8 @@
   function handlePreviousClicked() {
     configTour.stepBackward();
   }
+
+  $: console.log(text);
 </script>
 
 <Popover
@@ -48,7 +55,7 @@
       </button>
     </div>
     <div class="bg-primary p-2 text-white mb-2">
-      {text}
+      <MarkdownContainer markdown={String(marked(text))} />
     </div>
     <div class="flex flex-row gap-2 self-end">
       {#if $configTour && typeof configTour.previous() !== "undefined"}

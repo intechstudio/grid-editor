@@ -14,10 +14,6 @@ import {
   GridProfileData,
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
-import {
-  lastOpenedActionblocksInsert,
-  lastOpenedActionblocksRemove,
-} from "../configuration/Configuration";
 
 export namespace ConfigTour {
   export function displayStep(node: HTMLElement, step: Step | undefined) {
@@ -112,17 +108,18 @@ export namespace ConfigTour {
     private parseSteps(
       description: string,
     ): Array<{ index: number; content: TourStepContent }> {
-      const stepRegex = /<!--\s*tour\s+step=(\d+)\s+text\[\[(.*?)\]\]\s*-->/gs;
+      const stepRegex =
+        /<!--\s*tour\s+step=(\d+)\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
 
       const steps: Array<{ index: number; content: TourStepContent }> = [];
       let match: RegExpExecArray | null;
 
       while ((match = stepRegex.exec(description)) !== null) {
         const index = parseInt(match[1], 10);
-        const text = match[2];
+        const rawText = match[2];
 
         const content: TourStepContent = {
-          text: text.trim(),
+          text: rawText.trim().replace(/\r\n|\r/g, "\n"),
         };
 
         steps.push({ index, content });
@@ -175,10 +172,6 @@ export namespace ConfigTour {
     }
 
     public stepForward() {
-      const { current } = get(this.internal);
-      if (typeof current !== "undefined") {
-        lastOpenedActionblocksRemove(current.action.short);
-      }
       const next = this.next();
       this.update((s) =>
         Object({
@@ -188,15 +181,10 @@ export namespace ConfigTour {
         }),
       );
 
-      lastOpenedActionblocksInsert(next.action.short);
       user_input.displayEvent(next.action.parent as GridEvent);
     }
 
     public stepBackward() {
-      const { current } = get(this.internal);
-      if (typeof current !== "undefined") {
-        lastOpenedActionblocksRemove(current.action.short);
-      }
       const previous = this.previous();
       this.update((s) =>
         Object({
@@ -205,7 +193,6 @@ export namespace ConfigTour {
           current: previous,
         }),
       );
-      lastOpenedActionblocksInsert(previous.action.short);
       user_input.displayEvent(previous.action.parent as GridEvent);
     }
 
@@ -218,21 +205,15 @@ export namespace ConfigTour {
     }
 
     public reset() {
-      const { current } = get(this.internal);
-      if (typeof current !== "undefined") {
-        lastOpenedActionblocksRemove(current.action.short);
-      }
       this.update((s) =>
         Object({ ...s, active: false, index: 0, current: s.steps[0] }),
       );
-      lastOpenedActionblocksInsert(get(this.internal).current.action.short);
     }
 
     public start() {
       this.reset();
       this.update((s) => Object({ ...s, active: true }));
       const { current } = get(this.internal);
-      lastOpenedActionblocksInsert(current.action.short);
       user_input.displayEvent(current.action.parent as GridEvent);
     }
   }

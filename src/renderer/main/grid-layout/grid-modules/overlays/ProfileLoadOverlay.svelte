@@ -34,6 +34,10 @@
   }
 
   function updateState(page: GridPage, selected: any) {
+    if (get(state) === ProfileLoadOverlay.State.BUSY) {
+      return;
+    }
+
     if (typeof selected === "undefined") {
       state.set(ProfileLoadOverlay.State.ERROR);
       return;

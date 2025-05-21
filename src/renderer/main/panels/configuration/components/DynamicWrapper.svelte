@@ -23,6 +23,7 @@
     syncWithGrid,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
+  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
@@ -34,6 +35,7 @@
   let component: typeof SvelteComponent;
   let ctrlIsDown = false;
   let toggled = false;
+  let isActiveTourStep = false;
 
   onMount(() => {
     if (action.information.toggleable !== false) {
@@ -107,6 +109,10 @@
   }
 
   function handleToggle(e) {
+    if (get(configTour).active) {
+      return;
+    }
+
     if (action.information.toggleable == false) {
       return;
     }
@@ -121,6 +127,9 @@
   $: {
     toggled = $lastOpenedActionblocks.includes(action.short);
   }
+
+  $: isActiveTourStep =
+    $configTour.current?.action.id === $action.id && $configTour.active;
 
   function handleCarouselClicked(e) {
     if (e.ctrlKey) {
@@ -218,11 +227,11 @@
       <!-- Body of the config block -->
       <div
         class="w-full flex flex-grow items-center"
-        class:cursor-auto={toggled}
-        class:bg-opacity-30={toggled}
+        class:cursor-auto={toggled || isActiveTourStep}
+        class:bg-opacity-30={toggled || isActiveTourStep}
       >
         <!-- Content of block -->
-        {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
+        {#if (toggled && $action.information.toggleable) || typeof header === "undefined" || isActiveTourStep}
           <!-- Body of the Action block when toggled -->
           <div class="bg-secondary h-full w-full">
             <div class="bg-black/15 h-full w-full">
