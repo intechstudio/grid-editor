@@ -340,7 +340,7 @@
   <NavTabs />
 
   {#if $modal?.options.snap === "full"}
-    <svelte:component this={$modal?.component} />
+    <svelte:component this={$modal?.component} {...$modal.args} />
   {/if}
 
   <div class="flex flex-col w-full h-full">
@@ -362,7 +362,11 @@
 
         <Pane class="overflow-clip w-full h-full">
           {#if $modal?.options.snap === "middle"}
-            <svelte:component this={$modal?.component} reference={3} />
+            <svelte:component
+              this={$modal?.component}
+              reference={3}
+              {...$modal.args}
+            />
           {:else}
             <MiddlePanelContainer />
           {/if}

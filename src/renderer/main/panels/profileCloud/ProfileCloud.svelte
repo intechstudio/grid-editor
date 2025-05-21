@@ -316,11 +316,7 @@
 
   async function handleOpenExternalLink(event) {
     const { link } = event.data;
-    if (import.meta.env.VITE_BUILD_TARGET === "web") {
-      window.open(link);
-    } else {
-      window.electron.openInBrowser(link);
-    }
+    Grid.Link.openExternalLink(link);
   }
 
   function initChannelCommunication(event) {
