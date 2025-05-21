@@ -32,6 +32,7 @@
   import { logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
+  import RightPanelToggleButton from "./main/RightPanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
   import {
@@ -351,7 +352,6 @@
 
     <ErrorConsole />
     <VersionUpdateBar />
-
     <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">
         <Pane
@@ -367,6 +367,7 @@
           {#if $modal?.options.snap === "middle"}
             <svelte:component this={$modal?.component} reference={3} />
           {:else}
+            <RightPanelToggleButton />
             <MiddlePanelContainer />
           {/if}
         </Pane>

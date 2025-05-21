@@ -106,7 +106,6 @@ function createAppSettingsStore(persistent) {
     selectedDisplay: "",
     layoutMode: false,
     preferences: false,
-    rightPanel: "Configuration",
     rightPanelVisible: true,
     leftPanel: "ProfileCloud",
     leftPanelVisible: true,

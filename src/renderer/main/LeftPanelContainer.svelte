@@ -4,6 +4,7 @@
   import WebsocketMonitor from "./panels/WebsocketMonitor/WebsocketMonitor.svelte";
   import ProfileCloud from "./panels/profileCloud/ProfileCloud.svelte";
   import Packages from "./panels/packages/Packages.svelte";
+  import Preferences from "./panels/preferences/Preferences.svelte";
   import { appSettings } from "../runtime/app-helper.store";
 
   import { windowSize } from "../runtime/window-size";
@@ -19,14 +20,14 @@
 <div class="w-full h-full" use:watchResize={resize}>
   {#if $appSettings.leftPanel == "Debug"}
     <DebugMonitor />
-  {/if}
-
-  {#if $appSettings.leftPanel == "MIDI Monitor"}
+  {:else if $appSettings.leftPanel == "Preferences"}
+    <Preferences />
+  {:else if $appSettings.leftPanel == "MIDI Monitor"}
     <MidiMonitor />
-  {/if}
-
-  {#if $appSettings.leftPanel == "Websocket"}
+  {:else if $appSettings.leftPanel == "Websocket"}
     <WebsocketMonitor />
+  {:else if $appSettings.leftPanel == "Packages"}
+    <Packages />
   {/if}
 
   <div
@@ -36,10 +37,6 @@
   >
     <ProfileCloud />
   </div>
-
-  {#if $appSettings.leftPanel == "Packages"}
-    <Packages />
-  {/if}
 </div>
 
 <!-- {/if} -->
