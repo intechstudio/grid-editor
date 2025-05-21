@@ -278,7 +278,6 @@
 
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {
-    console.log("profile cloud is mounted received");
     profileCloudIsMounted = true;
     let authEnvironment = AuthEnvironment.PRODUCTION;
     if (event.data.environment && event.data.environment !== "production") {
@@ -380,7 +379,6 @@
   ) {
     // listenerRegistered variable makes sure that the webcomponent loading is after registering the listener.
     // otherwise handleProfileCloudMounted might be missed and offline fallback is displayed
-    console.log("INSIDE EVENT HANDLER");
     if (profileCloudUrl !== $appSettings.persistent.profileCloudUrl) {
       offlineMode = false;
       profileCloudUrl = $appSettings.persistent.profileCloudUrl;
@@ -389,7 +387,6 @@
     }
 
     let fixedUrl = profileCloudUrl;
-    console.log(fixedUrl);
     if (!fixedUrl.endsWith(".js")) {
       if (fixedUrl.endsWith("/")) {
         fixedUrl = `${fixedUrl}wc/components.js`;
@@ -421,7 +418,7 @@
         })
         .catch((e) => {
           profileCloudWebComponentName = "profile-cloud-prod";
-          console.log(e);
+          console.warn(e);
         });
     }
   }
@@ -429,14 +426,14 @@
   onMount(async () => {
     // get to know the user
     await userStore.known;
-    console.log("profile cloud is mounted status", profileCloudIsMounted);
-    console.log("Profile Cloud url", $appSettings.persistent.profileCloudUrl);
+    console.log(
+      `Profile Cloud url: ${$appSettings.persistent.profileCloudUrl} (status: ${profileCloudIsMounted})`,
+    );
     window.addEventListener("message", initChannelCommunication);
     listenerRegistered = true;
   });
 
   onDestroy(() => {
-    console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     if (get(moduleOverlay) === "configuration-load-overlay") {
       moduleOverlay.close();

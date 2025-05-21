@@ -4,7 +4,6 @@ function splitExpression(expression) {
   let res = [];
   let part = "";
   for (const char of expression) {
-    //console.log(part, char);
     if (Grid.isBracketClosed(part) && char === ",") {
       res.push(part.trim());
       part = "";

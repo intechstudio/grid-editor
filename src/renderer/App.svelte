@@ -44,7 +44,6 @@
   import { runtime_manager } from "./runtime/runtime-manager.store";
   import { get } from "svelte/store";
 
-  console.log("Hello from Svelte main.js");
   console.log(import.meta.env);
 
   let shapeSelected;
@@ -69,12 +68,10 @@
 
   // websocket rx tx from main for debug
   window.electron.websocket.onReceive((_event, value) => {
-    //console.log('websocket',value);
     debug_lowlevel_store.push_inbound(new TextEncoder().encode(value));
   });
 
   window.electron.websocket.onTransmit((_event, value) => {
-    //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
   });
 

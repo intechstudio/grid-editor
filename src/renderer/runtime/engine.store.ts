@@ -289,7 +289,6 @@ export class WriteBuffer implements Readable<WriteBufferData> {
                 break;
               }
               case ResponseStatus.TIMEOUT: {
-                console.log(response.error);
                 resolve(this.sendToGrid(bufferElement)); // RETRY recursively until processed
                 break;
               }
@@ -408,8 +407,8 @@ export class WriteBuffer implements Readable<WriteBufferData> {
           resolve(res);
         })
         .catch((e) => {
-          console.log("Rejected:", obj.descr.class_name);
-          console.log("Reason:", e);
+          console.warn("Rejected:", obj.descr.class_name);
+          console.warn("Reason:", e);
           reject(e);
         })
         .finally(() => {
