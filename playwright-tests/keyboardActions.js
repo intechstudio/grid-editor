@@ -8,6 +8,10 @@ class KeyboardActions {
   async copy() {
     await this.page.keyboard.press("ControlOrMeta+C");
   }
+
+  async cut() {
+    await this.page.keyboard.press("ControlOrMeta+X");
+  }
   async paste() {
     await this.page.keyboard.press("ControlOrMeta+V");
   }
