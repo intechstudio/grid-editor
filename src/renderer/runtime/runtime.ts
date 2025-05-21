@@ -30,6 +30,7 @@ import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input, UserInput } from "./user-input.store";
+import { ProfileLoadOverlay } from "../main/grid-layout/grid-modules/overlays/ProfileLoadOverlay";
 
 type UUID = string;
 type LuaScript = string;
@@ -39,14 +40,22 @@ class NodeData {
   parent?: RuntimeNode<any>;
 }
 
+export enum ConfigurationType {
+  PROFILE = "profile",
+  PRESET = "preset",
+  SNIPPET = "snippet",
+}
+
 export class GridProfileData {
   public presets: GridPresetData[] = [];
   public description: string;
   public id: string;
+  public readonly type = ConfigurationType.PROFILE;
 
   static createFromCloudData(cloudProfile: any) {
     const data = cloudProfile.configs;
     const profile = new GridProfileData();
+
     for (const [index, type] of Object.entries(
       grid.get_module_element_list(cloudProfile.type),
     )) {
@@ -66,10 +75,12 @@ export class GridProfileData {
     return profile;
   }
 }
+
 export class GridPresetData {
   public element: GridElement;
   public description: string;
   public id: string;
+  public readonly type = ConfigurationType.PRESET;
 
   constructor(type: ElementType, index: number, array: RawEventData[]) {
     const element = new GridElement(undefined, new ElementData(index, type));
@@ -102,6 +113,7 @@ export class GridSnippetData {
   public actions: GridAction[];
   public description: string;
   public id: string;
+  public readonly type = ConfigurationType.SNIPPET;
 
   constructor(array: RawEventData) {
     this.actions = GridAction.parse(array);
@@ -1082,6 +1094,23 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
+  public isPresetLoaded(preset: GridPresetData) {
+    for (const event of preset.element.events) {
+      const found = this.events.find((e) => e.type === event.type);
+      if (!found) {
+        return false;
+      }
+
+      const left = found.toLua();
+      const right = event.toLua();
+
+      if (left !== right) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public getHumanName() {
     const page = this.parent as GridPage;
     return `Element ${
@@ -1331,6 +1360,22 @@ export class GridPage extends RuntimeNode<PageData> {
     }
   }
 
+  public isProfileLoaded(profile: GridProfileData) {
+    for (const preset of profile.presets) {
+      const found = this.control_elements.find(
+        (e) => e.elementIndex === preset.element.elementIndex,
+      );
+      if (!found) {
+        return false;
+      }
+
+      if (!found.isPresetLoaded(preset)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public isValid() {
     return this.data.isValid();
   }
@@ -1347,31 +1392,42 @@ export class GridPage extends RuntimeNode<PageData> {
   public async loadProfile(
     profile: GridProfileData,
   ): Promise<ProfileLoadResult> {
-    await this.load();
+    try {
+      ProfileLoadOverlay.state.set(ProfileLoadOverlay.State.BUSY);
+      await this.load();
 
-    const presets = profile.presets;
-    // Reorder array to send system element first
-    const index = presets.findIndex((obj) => obj.element.elementIndex === 255);
+      const presets = profile.presets;
 
-    // Check if the object with id === 255 was found
-    if (index !== -1) {
-      // Remove the object at the found index
-      const objectToMove = presets.splice(index, 1)[0];
+      // Reorder array to send system element first
+      const index = presets.findIndex(
+        (obj) => obj.element.elementIndex === 255,
+      );
 
-      // Add the object to the front of the array
-      presets.unshift(objectToMove);
+      if (index !== -1) {
+        const objectToMove = presets.splice(index, 1)[0];
+        presets.unshift(objectToMove);
+      }
+
+      // PROFILE LOAD
+      for (const preset of presets) {
+        const element = this.findElement(preset.element.elementIndex);
+        await element.loadPreset(preset);
+      }
+
+      ProfileLoadOverlay.state.set(ProfileLoadOverlay.State.LOADED);
+      return {
+        value: true,
+        text: "OK",
+        type: GridOperationType.LOAD_PROFILE,
+      };
+    } catch (error) {
+      ProfileLoadOverlay.state.set(ProfileLoadOverlay.State.ERROR);
+      return Promise.reject({
+        value: false,
+        text: error instanceof Error ? error.message : String(error),
+        type: GridOperationType.LOAD_PROFILE,
+      });
     }
-
-    //PROFILE LOAD
-    for (const preset of presets) {
-      const element = this.findElement(preset.element.elementIndex);
-      await element.loadPreset(preset);
-    }
-    return Promise.resolve({
-      value: true,
-      text: "OK",
-      type: GridOperationType.LOAD_PROFILE,
-    });
   }
 
   findElement(index: number) {

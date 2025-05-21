@@ -10,7 +10,6 @@
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
   import { user_input, UserInputValue } from "../../runtime/user-input.store";
-  import { configTour } from "../panels/profileCloud/ConfigTour";
 
   let selectedModule: any = undefined;
 
@@ -38,11 +37,6 @@
     active.destroy_module(dx, dy);
   }
 
-  function handleStartTour() {
-    configTour.start();
-    handleCloseOverlay();
-  }
-
   function handleCloseOverlay() {
     selectedConfigStore.set(undefined);
     moduleOverlay.close();
@@ -66,11 +60,4 @@
       />
     {/if}
   </div>
-  {#if $configTour.steps.length > 0 && typeof $moduleOverlay !== "undefined" && $selectedConfigStore.id === $configTour.id}
-    <MoltenPushButton
-      text="Start Tour!"
-      style="accept"
-      click={handleStartTour}
-    />
-  {/if}
 </div>

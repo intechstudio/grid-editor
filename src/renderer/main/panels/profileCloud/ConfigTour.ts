@@ -8,7 +8,11 @@ import {
 } from "svelte/store";
 import TourStep, { TourStepContent } from "./TourStep.svelte";
 import { Subscriber } from "svelte/motion";
-import { GridAction, GridEvent } from "../../../runtime/runtime";
+import {
+  GridAction,
+  GridEvent,
+  GridProfileData,
+} from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
 import {
   lastOpenedActionblocksInsert,
@@ -76,6 +80,7 @@ export namespace ConfigTour {
     steps: Step[];
     index: number;
     active: boolean;
+    profile: GridProfileData | undefined;
   }
 
   export class Tour implements Readable<TourData> {
@@ -85,6 +90,7 @@ export namespace ConfigTour {
       steps: [],
       index: -1,
       active: false,
+      profile: undefined,
     };
     private internal: Writable<TourData> = writable(this.defaultValue);
 
@@ -125,12 +131,8 @@ export namespace ConfigTour {
       return steps;
     }
 
-    public createTourFrom(
-      id: string,
-      description: string,
-      targets: GridAction[],
-    ) {
-      const steps = this.parseSteps(description);
+    public createTourFrom(profile: GridProfileData, targets: GridAction[]) {
+      const steps = this.parseSteps(profile.description);
       const mapped = targets.map((e) => {
         const index = e.getTourIndex();
         const step = steps.find((e) => e.index === index);
@@ -155,8 +157,9 @@ export namespace ConfigTour {
       this.update((s) =>
         Object({
           ...s,
-          id: id,
+          id: profile.id,
           steps: sorted,
+          profile: profile,
         }),
       );
     }

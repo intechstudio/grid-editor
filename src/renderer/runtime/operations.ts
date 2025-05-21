@@ -384,7 +384,7 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
         ),
       );
 
-      configTour.createTourFrom(profile.id, profile.description, actions);
+      configTour.createTourFrom(profile, actions);
       return Promise.resolve();
     })
     .catch((e) => {
@@ -427,10 +427,12 @@ export async function loadPreset(
         });
       }
 
+      /*
       const actions = (target as GridElement).events
         .flatMap((e) => e.config)
         .filter((e) => e.isTourStep());
       configTour.createTourFrom(preset.id, preset.description, actions);
+      */
     })
     .catch((e) => {
       handleError(e);
@@ -460,11 +462,14 @@ export async function loadSnippet(
   return target
     .loadSnippet(snippet, index)
     .then(() => {
+      /*
       configTour.createTourFrom(
         snippet.id,
         snippet.description,
         target.config.filter((e) => e.isTourStep()),
+        
       );
+      */
     })
     .catch((e) => {
       configTour.clear();
