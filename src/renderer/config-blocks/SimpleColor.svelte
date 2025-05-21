@@ -214,7 +214,7 @@
     </button>
 
     <div
-      class="w-full h-8 px-2 bg-secondary rounded-full flex flex-row items-center {$data
+      class="w-full h-8 px-1 bg-secondary rounded-full flex flex-row items-center {$data
         .previewColors.length === 1
         ? 'justify-end'
         : 'justify-between'}"
@@ -233,10 +233,10 @@
       {#each $data.previewColors as color, i}
         <button
           on:click={() => data.selectLayer(i)}
-          class="aspect-square rounded-full cursor-pointer
+          class="aspect-square rounded-full cursor-pointer h-3/4
     {i === $data.selectedIndex
-            ? 'bg-transparent border-2 border-primary h-3/4'
-            : 'bg-primary hover:bg-transparent hover:border hover:border-primary h-1/2'}"
+            ? 'bg-transparent border-2 border-primary'
+            : 'bg-primary hover:bg-transparent hover:border-2 hover:border-primary scale-50'}"
         />
       {/each}
     </div>
