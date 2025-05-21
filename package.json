@@ -55,7 +55,7 @@
     "electron-store": "^8.1.0",
     "electron-updater": "^6.3.0",
     "eslint": "^7.23.0",
-    "firebase": "^10.9.0",
+    "firebase": "^11.4.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
     "marked": "^15.0.11",
