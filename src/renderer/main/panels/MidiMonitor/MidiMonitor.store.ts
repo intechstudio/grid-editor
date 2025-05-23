@@ -199,7 +199,7 @@ function getCommand(value: number) {
 
     return cmd;
   } catch (e) {
-    console.log("MIDI message parsing error: " + e);
+    console.warn("MIDI message parsing error: " + e);
     return {
       name: "Unknown",
       short: value.toString(),

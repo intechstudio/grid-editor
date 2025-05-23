@@ -61,7 +61,9 @@
   }
 
   function sendMIDIMessage() {
-    if (manager === undefined) console.error("PROBLEM");
+    if (manager === undefined) {
+      console.error("Error sending MIDI message...");
+    }
     const out = manager.outputs.get(selected);
     manager.sendMessage(out, {
       ch: Number(channel),

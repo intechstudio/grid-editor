@@ -4,8 +4,6 @@ import { appSettings } from "./app-helper.store";
 
 const configuration = window.ctxProcess.configuration();
 
-console.log("Analytics Hello", get(appSettings));
-
 mixpanel.init(configuration.MIXPANEL_TOKEN, { debug: true });
 
 // Set this to a unique identifier for the user performing the event.

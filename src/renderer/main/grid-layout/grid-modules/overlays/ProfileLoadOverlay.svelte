@@ -39,7 +39,7 @@
         state = LoadState.LOADED;
       })
       .catch((e) => {
-        console.log(e);
+        console.warn(e);
         state = LoadState.READY;
       });
   }

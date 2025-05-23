@@ -49,7 +49,7 @@ import {
   deleteConfig,
   migrateToProfileCloud,
 } from "./src/profiles";
-import { fetchUrlJSON } from "./src/fetch";
+import { fetchReleaseNotes, fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
 import { usb } from "usb";
 
@@ -703,6 +703,10 @@ ipcMain.handle("findBootloaderPath", async (event, arg) => {
 
 ipcMain.handle("restartSerialCheckInterval", (event, arg) => {
   return restartSerialCheckInterval();
+});
+
+ipcMain.handle("fetchReleaseNotes", (event, arg) => {
+  return fetchReleaseNotes();
 });
 
 ipcMain.handle("fetchUrlJSON", (event, arg) => {

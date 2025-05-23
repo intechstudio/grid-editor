@@ -22,7 +22,7 @@ function createDebugMonitor(maxLength: number) {
         if (d.length >= maxLength) {
           d.shift();
         }
-        d = [...d, `[${sy},${sx}] ${text.includes("\n") ? "\n" : ""}${text}`];
+        d = [...d, `[${sx},${sy}] ${text.includes("\n") ? "\n" : ""}${text}`];
 
         return d;
       });
