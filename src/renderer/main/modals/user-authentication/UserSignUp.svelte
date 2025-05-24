@@ -38,8 +38,6 @@
     let passwordNoDigit = !/\d/.test(password);
     let passwordNoCapital = password == password.toLowerCase();
 
-    console.log({ passwordShort, passwordNoDigit, passwordNoCapital });
-
     if (passwordShort || passwordNoDigit || passwordNoCapital) {
       signUpError =
         "Password must contain minimum 8 characters, at least one uppercase letter and one number";

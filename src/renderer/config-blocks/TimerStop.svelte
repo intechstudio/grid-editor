@@ -101,10 +101,11 @@
 <timer-stop class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Element Number"}
-    bind:value={scriptValue}
+    value={scriptValue}
     suggestions={suggestions[0]}
     on:input={(e) => {
       const { value, validationError } = e.detail;
+      scriptValue = value;
       validator.value = !validationError;
       dispatch("validation", { value: validationError });
       scriptValue = value;

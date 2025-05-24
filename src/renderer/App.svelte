@@ -44,7 +44,6 @@
   import { runtime_manager } from "./runtime/runtime-manager.store";
   import { get } from "svelte/store";
 
-  console.log("Hello from Svelte main.js");
   console.log(import.meta.env);
 
   let shapeSelected;
@@ -69,12 +68,10 @@
 
   // websocket rx tx from main for debug
   window.electron.websocket.onReceive((_event, value) => {
-    //console.log('websocket',value);
     debug_lowlevel_store.push_inbound(new TextEncoder().encode(value));
   });
 
   window.electron.websocket.onTransmit((_event, value) => {
-    //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
   });
 
@@ -293,14 +290,14 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
-    document.addEventListener("keyup", handleEscapePress);
+    document.addEventListener("keydown", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
     document.removeEventListener("contextmenu", preventContextMenuEvent);
-    document.removeEventListener("keyup", handleEscapePress);
+    document.removeEventListener("keydown", handleEscapePress);
   });
 
   function preventContextMenuEvent(e) {
@@ -315,7 +312,7 @@
   function handleEscapePress(e) {
     if (e.key === "Escape") {
       if ($modal) {
-        modal.close();
+        modal.tryClose();
         e.preventDefault();
         e.stopPropagation();
       }
@@ -343,7 +340,7 @@
   <NavTabs />
 
   {#if $modal?.options.snap === "full"}
-    <svelte:component this={$modal?.component} />
+    <svelte:component this={$modal?.component} {...$modal.args} />
   {/if}
 
   <div class="flex flex-col w-full h-full">
@@ -365,7 +362,11 @@
 
         <Pane class="overflow-clip w-full h-full">
           {#if $modal?.options.snap === "middle"}
-            <svelte:component this={$modal?.component} reference={3} />
+            <svelte:component
+              this={$modal?.component}
+              reference={3}
+              {...$modal.args}
+            />
           {:else}
             <MiddlePanelContainer />
           {/if}

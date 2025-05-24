@@ -17,7 +17,6 @@
 
   function handleConfigChange(config) {
     scriptSegment = GridScript.humanize(config.script.slice(9));
-    console.log(scriptSegment);
   }
 
   function sendData(e) {

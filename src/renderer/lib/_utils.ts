@@ -413,4 +413,14 @@ export namespace Grid {
       };
     };
   }
+
+  export namespace Link {
+    export async function openExternalLink(link: string) {
+      if (import.meta.env.VITE_BUILD_TARGET === "web") {
+        window.open(link);
+      } else {
+        window.electron.openInBrowser(link);
+      }
+    }
+  }
 }

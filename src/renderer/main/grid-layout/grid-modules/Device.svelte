@@ -108,13 +108,6 @@
   }
 
   function selectModule() {
-    console.log(
-      "select module",
-      device?.dx,
-      device?.dy,
-      $user_input.dx,
-      $user_input.dy,
-    );
     if (device?.dx == $user_input.dx && device?.dy == $user_input.dy) {
       return;
     }
@@ -240,13 +233,11 @@
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
-      console.log("Ctrl + C = Copy module", device.dx, device.dy);
       handleCopyModule(device);
       visualDebugEffect(e.target, "gray");
       e.preventDefault();
       e.stopPropagation();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-      console.log("Ctrl + V = Overwrite module", device.dx, device.dy);
       handleOverwriteModule(device);
       visualDebugEffect(e.target, "gray");
       e.preventDefault();
@@ -256,13 +247,11 @@
       e.shiftKey &&
       e.key.toLowerCase() === "d"
     ) {
-      console.log("Ctrl + Shift + D = Discard module", device.dx, device.dy);
       handleDiscardModule(device);
       visualDebugEffect(e.target, "gray");
       e.preventDefault();
       e.stopPropagation();
     } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
-      console.log("Shift + Delete = Clear module", device.dx, device.dy);
       handleClearModule(device);
       visualDebugEffect(e.target, "gray");
       e.preventDefault();
@@ -327,15 +316,11 @@
           }
 
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
-            console.log("Ctrl + C = Copy element", elementNumber);
             handleCopyElement(element);
             visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
-          }
-
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-            console.log("Ctrl + V = Overwrite element", elementNumber);
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
             handleOverwriteElement(element);
             visualDebugEffect(e.target, "green");
             e.preventDefault();
@@ -347,15 +332,11 @@
             e.shiftKey &&
             e.key.toLowerCase() === "d"
           ) {
-            console.log("Ctrl + Shift + D = Discard element", elementNumber);
             handleDiscardElement(element);
             visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
-          }
-
-          if (e.shiftKey && e.key.toLowerCase() === "delete") {
-            console.log("Shift + Delete = Clear element", elementNumber);
+          } else if (e.shiftKey && e.key.toLowerCase() === "delete") {
             handleClearElement(element);
             visualDebugEffect(e.target, "green");
             e.preventDefault();

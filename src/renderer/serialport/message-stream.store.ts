@@ -89,8 +89,6 @@ export class MessageStream {
       descr.class_parameters.EVENTPARAM2,
     ];
 
-    //console.log("Pos", descr.class_parameters.EVENTPARAM)
-
     this.runtime.elementPositionStore.set(eps);
   }
 
@@ -132,7 +130,6 @@ export class MessageStream {
           String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
           String.fromCharCode(descr.raw[4 + i * 4 + 3]),
       );
-      //console.log(num, val)
 
       if (
         eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] === undefined
@@ -168,8 +165,6 @@ export class MessageStream {
           String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
           String.fromCharCode(descr.raw[8 + i * 8 + 7]),
       );
-
-      //console.log(num, red, gre, blu)
 
       let lcs = get(this.runtime.ledColorStore);
 
@@ -346,8 +341,6 @@ export class MessageStream {
       }
 
       if (class_descr.class_name === "EVENTPREVIEW") {
-        //console.log("EVENTPREVIEW", class_descr.class_parameters["LENGTH"])
-
         this.update_elementPositionStore_fromPreview(class_descr);
 
         // update control element rotation
@@ -368,7 +361,6 @@ export class MessageStream {
         class_descr.class_name === "PAGEACTIVE" &&
         class_descr.class_instr === "EXECUTE"
       ) {
-        //console.log("PAGE");
         //runtime.change_page(class_descr.class_parameters.PAGENUMBER);
       }
       if (

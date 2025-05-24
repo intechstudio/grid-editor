@@ -96,12 +96,10 @@
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-      console.log("Ctrl + A = Select all actions");
       handleSelectAll();
       e.preventDefault();
       e.stopPropagation();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-      console.log("Ctrl + V = Paste actions");
       handlePaste(
         new CustomEvent("paste", { detail: { index: event.config.length } }),
       );

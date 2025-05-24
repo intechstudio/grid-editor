@@ -193,11 +193,12 @@
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        bind:value={script}
+        value={script}
         suggestions={suggestions[i]}
         validator={validators[i].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          script = value;
           validators[i].value = !validationError;
           sendData(value, i);
         }}
@@ -212,11 +213,12 @@
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
       <MeltCombo
         title={parameterNames[i + 2]}
-        bind:value={script}
+        value={script}
         suggestions={suggestions[i + 2]}
         validator={validators[i + 2].func}
         on:input={(e) => {
           const { value, validationError } = e.detail;
+          script = value;
           validators[i].value = !validationError;
           sendData(value, i + 2);
         }}

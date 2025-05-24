@@ -166,11 +166,12 @@
   <div class="flex flex-row w-full gap-2">
     <MeltCombo
       title={"Element"}
-      bind:value={$data.element.value}
+      value={$data.element.value}
       validator={$data.element.validator.func}
       suggestions={$data.element.suggestions}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        $data.element.value = value;
         $data.element.validator.value = !validationError;
         sendData($data);
       }}
@@ -181,11 +182,12 @@
 
     <MeltCombo
       title={"Layer"}
-      bind:value={$data.layer.value}
+      value={$data.layer.value}
       validator={$data.layer.validator.func}
       suggestions={$data.layer.suggestions}
       on:input={(e) => {
         const { value, validationError } = e.detail;
+        $data.layer.value = value;
         $data.layer.validator.value = !validationError;
         sendData($data);
       }}
@@ -319,7 +321,7 @@
     {#each Object.values(SimpleColor.Channel) as channel}
       <MeltCombo
         title={" "}
-        bind:value={$data[channel].value}
+        value={$data[channel].value}
         validator={$data[channel].validator.func}
         suggestions={$data[channel].suggestions}
         on:input={(e) => {

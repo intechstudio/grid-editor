@@ -182,12 +182,10 @@
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
-      console.log("Ctrl + C = Copy selected actions");
       handleCopy();
       e.preventDefault();
       e.stopPropagation();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") {
-      console.log("Ctrl + X = Cut selected actions");
       handleCut();
       e.preventDefault();
       e.stopPropagation();
@@ -196,12 +194,10 @@
       e.key.toLowerCase() === "v" &&
       $isPasteActionsEnabled
     ) {
-      console.log("Ctrl + V = Paste actions");
       handlePaste();
       e.preventDefault();
       e.stopPropagation();
     } else if (!e.ctrlKey && !e.metaKey && e.key.toLowerCase() === "delete") {
-      console.log("Delete = Delete actions");
       handleRemove();
       e.preventDefault();
       e.stopPropagation();
@@ -210,12 +206,10 @@
       e.shiftKey &&
       e.key.toLowerCase() === "m"
     ) {
-      console.log("Ctrl + Shift + M = Merge actions as code");
       handleConvertToCodeBlock();
       e.preventDefault();
       e.stopPropagation();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-      console.log("Ctrl + A = Select all");
       handleSelectAll();
       e.preventDefault();
       e.stopPropagation();
