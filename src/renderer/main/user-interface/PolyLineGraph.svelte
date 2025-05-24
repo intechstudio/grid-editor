@@ -19,7 +19,6 @@
 
     if ($incomingData.value.slice(-1) === "%") {
       isPercentage = true;
-      console.log("Percent", parseInt($incomingData.value));
     }
 
     label = $incomingData.type;

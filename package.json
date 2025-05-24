@@ -2,7 +2,7 @@
   "name": "grid-editor",
   "productName": "Grid Editor",
   "description": "Powerful Editor software for Intech Studio products.",
-  "version": "1.5.5",
+  "version": "1.5.8",
   "engines": {
     "node": ">=18.16.1"
   },
@@ -41,9 +41,11 @@
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20250321.1539",
-    "@intechstudio/grid-uikit": "1.20250506.934",
+    "@intechstudio/grid-uikit": "1.20250507.1003",
     "@intechstudio/profile-cloud-webcomponent": "1.20250318.1527",
     "adm-zip": "^0.5.10",
+    "axios": "^1.9.0",
+    "cheerio": "^1.0.0",
     "chokidar": "^3.5.3",
     "color-convert": "^2.0.1",
     "discord.js": "^13.6.0",
@@ -53,9 +55,10 @@
     "electron-store": "^8.1.0",
     "electron-updater": "^6.3.0",
     "eslint": "^7.23.0",
-    "firebase": "^10.9.0",
+    "firebase": "^11.4.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
+    "marked": "^15.0.11",
     "mixpanel-browser": "^2.47.0",
     "monaco-editor": "^0.34.0",
     "monaco-types": "^0.1.0",
@@ -73,7 +76,7 @@
     "typescript": "^5.0.0",
     "usb": "^2.15.0",
     "uuid": "^9.0.0",
-    "vite": "^4.5.6",
+    "vite": "^4.5.14",
     "ws": "^7.5.8"
   },
   "scripts": {
