@@ -234,14 +234,22 @@
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
             {#each $element?.events ?? [] as event, i}
-              <ActionList {event} targetPanel={container} />
+              <ActionList
+                {event}
+                targetPanel={container}
+                focusTrigger={`action-list-${i}`}
+              />
               <div
                 class="h-full flex border-r border-black"
                 class:hidden={i === $element.events.length - 1}
               />
             {/each}
           {:else}
-            <ActionList {event} targetPanel={container} />
+            <ActionList
+              {event}
+              targetPanel={container}
+              focusTrigger={"action-list-0"}
+            />
           {/if}
         </div>
       </configs>
