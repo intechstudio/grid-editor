@@ -177,8 +177,6 @@
     const { previewColors, selectedIndex } = data;
     return colorToCSS(previewColors[selectedIndex]);
   }
-
-  let intensityEnabled = true;
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
