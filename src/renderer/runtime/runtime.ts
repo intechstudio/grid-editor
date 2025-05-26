@@ -29,7 +29,7 @@ import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
-import { user_input, UserInput } from "./user-input.store";
+import { user_input } from "./user-input.store";
 
 type UUID = string;
 type LuaScript = string;
@@ -1415,38 +1415,20 @@ type DirectionMap = {
 };
 
 export class ModuleData extends NodeData {
-  architecture: Architecture;
-  dx: number;
-  dy: number;
-  fwMismatch: boolean;
-  fwVersion: FirmwareVersion;
-  map: DirectionMap;
-  portstate: any;
-  rot: number;
-  type: ModuleType;
-  pages: Array<GridPage>;
+  public pages: Array<GridPage>;
 
   constructor(
-    architecture: Architecture,
-    portstate: any,
-    dx: number,
-    dy: number,
-    rot: number,
-    fwVersion: FirmwareVersion,
-    type: ModuleType,
-    fwMismatch: boolean,
-    map: DirectionMap,
+    public architecture: Architecture,
+    public portstate: any,
+    public dx: number,
+    public dy: number,
+    public rot: number,
+    public fwVersion: FirmwareVersion,
+    public type: ModuleType,
+    public fwMismatch: boolean,
+    public map: DirectionMap,
   ) {
     super();
-    this.architecture = architecture;
-    this.portstate = portstate;
-    this.dx = dx;
-    this.dy = dy;
-    this.rot = rot;
-    this.fwVersion = fwVersion;
-    this.type = type;
-    this.fwMismatch = fwMismatch;
-    this.map = map;
     this.pages = [];
   }
 

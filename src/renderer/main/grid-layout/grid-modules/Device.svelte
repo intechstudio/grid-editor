@@ -33,7 +33,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { onMount } from "svelte";
+  import { onMount, SvelteComponent } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
   import {
@@ -42,16 +42,45 @@
   } from "../../panels/profileCloud/ProfileCloud.js";
   import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
-  import { fade } from "svelte/transition";
+  import { getNeighbour, KeyboardTarget } from "../Device";
+  import { Grid } from "../../../lib/_utils";
+  import { Focus } from "../../_actions/focus.action";
 
   export let device: GridModule = undefined;
   export let width = 225;
   export let scale: number = 1.0;
 
-  let component = undefined;
+  function selectNextNeighBour(
+    element: GridElement,
+    direction: Grid.Direction,
+  ) {
+    const target = getNeighbour(element, direction);
+    if (!target) {
+      return;
+    }
+
+    const page = target.parent as GridPage;
+    const module = page.parent as GridModule;
+    Focus.trigger(`element-${module.dx}-${module.dy}-${target.elementIndex}`);
+  }
+
+  type SharedProps = {
+    moduleWidth: any;
+    device: GridModule;
+    id?: ModuleType;
+  };
+
+  type ModuleComponent = {
+    new (options: { target: Element; props: SharedProps }): SvelteComponent;
+  };
+
+  let component: ModuleComponent | undefined;
 
   onMount(() => {
-    const components = [
+    const components: {
+      type: string;
+      component: ModuleComponent;
+    }[] = [
       { type: "BU16", component: XX16 },
       { type: "PO16", component: XX16 },
       { type: "PBF4", component: PBF4 },
@@ -64,9 +93,7 @@
       { type: "VSN1R", component: VSNX },
       { type: "VSN2", component: VSNX },
     ];
-
-    const index = components.findIndex((e) => e.type === device?.type);
-    component = components[index].component;
+    component = components.find((e) => e.type === device?.type).component;
   });
 
   function visualDebugEffect(dom_element, color) {
@@ -88,7 +115,7 @@
     selectElement(0);
   }
 
-  function selectElement(element) {
+  function selectElement(element: number) {
     user_input.set({
       dx: device?.dx,
       dy: device?.dy,
@@ -269,8 +296,25 @@
         .findPage($user_input.pagenumber)
         .findElement(elementNumber)}
       <button
-        on:focus={selectElement(elementNumber)}
+        id={element.id}
+        on:focus={() => selectElement(elementNumber)}
         on:keydown={(e) => {
+          const dirMap = {
+            ArrowLeft: Grid.Direction.LEFT,
+            ArrowRight: Grid.Direction.RIGHT,
+            ArrowUp: Grid.Direction.UP,
+            ArrowDown: Grid.Direction.DOWN,
+          };
+
+          const direction = dirMap[e.key];
+          if (direction) {
+            selectNextNeighBour(element, direction);
+          }
+
+          if (e.key === "Enter") {
+            Focus.trigger("action-list-0");
+          }
+
           if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
             handleCopyElement(element);
             visualDebugEffect(e.target, "green");
@@ -281,7 +325,9 @@
             visualDebugEffect(e.target, "green");
             e.preventDefault();
             e.stopPropagation();
-          } else if (
+          }
+
+          if (
             (e.ctrlKey || e.metaKey) &&
             e.shiftKey &&
             e.key.toLowerCase() === "d"
@@ -326,6 +372,10 @@
             },
           ],
         }}
+        use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
+        use:KeyboardTarget.set={device
+          .findPage($user_input.pagenumber)
+          .findElement(elementNumber)}
         class="w-full h-full absolute element activator-button"
         on:click={(e) => {
           selectElement(elementNumber);

@@ -1,6 +1,7 @@
 import { writable, get, readable } from "svelte/store";
 import { modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
+import { Grid } from "../lib/_utils";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -14,7 +15,7 @@ const persistentDefaultValues = {
   userId: "",
   size: 1.0,
   wssPort: 1337,
-  moduleRotation: 0,
+  moduleRotation: Grid.Rotation.R0,
   welcomeOnStartup: true,
   lastVersion: "",
   profileFolder: "",
