@@ -1587,6 +1587,20 @@ export class RuntimeData extends NodeData {
     }
     return true;
   }
+
+  public countX() {
+    const xs = this.modules.map((m) => m.dx);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    return maxX - minX + 1;
+  }
+
+  public countY() {
+    const ys = this.modules.map((m) => m.dy);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return maxY - minY + 1;
+  }
 }
 
 export class GridRuntime extends RuntimeNode<RuntimeData> {
@@ -1604,6 +1618,14 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.connection = connection;
     this.virtual = virtual;
     this.aliveModules = writable([]);
+  }
+
+  public countX() {
+    return this.data.countX();
+  }
+
+  public countY() {
+    return this.data.countY();
   }
 
   public isValid() {
