@@ -107,7 +107,7 @@ function createAppSettingsStore(persistent) {
     layoutMode: false,
     preferences: false,
     rightPanelVisible: true,
-    leftPanel: "ProfileCloud",
+    leftPanel: "Packages",
     leftPanelVisible: true,
     isMultiView: false,
     trayState: false,

@@ -15,11 +15,14 @@
 
 <right-panel-toggle class="absolute w-full h-full">
   <div class="w-12 h-12 float-right flex items-center justify-center">
-    <button
-      class="z-50"
-      on:click={toggleRightTab}>
+    <button class="z-50" on:click={toggleRightTab}>
       <div class="p-2 bg-primary rounded-lg">
-        <SvgIcon fill="#FFF" iconPath="{$appSettings.rightPanelVisible ? "arrow_right" : "arrow_left"}" />
+        <SvgIcon
+          fill="#FFF"
+          iconPath={$appSettings.rightPanelVisible
+            ? "arrow_right"
+            : "arrow_left"}
+        />
       </div>
     </button>
   </div>

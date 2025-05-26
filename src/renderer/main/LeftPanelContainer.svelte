@@ -18,20 +18,20 @@
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
 <div class="w-full h-full" use:watchResize={resize}>
-  {#if $appSettings.leftPanel == "Debug"}
-    <DebugMonitor />
-  {:else if $appSettings.leftPanel == "Preferences"}
+  {#if $appSettings.leftPanel == "Preferences"}
     <Preferences />
-  {:else if $appSettings.leftPanel == "MIDI Monitor"}
-    <MidiMonitor />
-  {:else if $appSettings.leftPanel == "Websocket"}
-    <WebsocketMonitor />
   {:else if $appSettings.leftPanel == "Packages"}
     <Packages />
+  {:else if $appSettings.leftPanel == "debug-monitor"}
+    <DebugMonitor />
+  {:else if $appSettings.leftPanel == "midi-monitor"}
+    <MidiMonitor />
+  {:else if $appSettings.leftPanel == "websocket-monitor"}
+    <WebsocketMonitor />
   {/if}
 
   <div
-    class="w-full h-full {$appSettings.leftPanel == 'ProfileCloud'
+    class="w-full h-full {$appSettings.leftPanel == 'profile-cloud'
       ? 'visible'
       : 'hidden'}"
   >

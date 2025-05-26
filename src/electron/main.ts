@@ -395,14 +395,6 @@ function startPackageManager(
     packageManagerProcess = utilityProcess.fork(
       path.resolve(path.join(__dirname, "./packageManager.js")),
     );
-    packageManagerProcess.postMessage({
-      type: "init",
-      packageFolder: packageFolder,
-      version: configuration.EDITOR_VERSION,
-      githubPackages: store.get("githubPackages"),
-      localPackages: store.get("localPackages"),
-      updatePackageOnStartName,
-    });
 
     packageManagerProcess.on("message", (message) => {
       if (message.type == "create-window") {
@@ -431,6 +423,23 @@ function startPackageManager(
         packageEditorPort?.postMessage(message);
       }
     });
+
+    packageManagerProcess.postMessage({
+      type: "init",
+      packageFolder: packageFolder,
+      version: configuration.EDITOR_VERSION,
+      githubPackages: store.get("githubPackages"),
+      localPackages: store.get("localPackages"),
+      updatePackageOnStartName,
+    });
+
+    for (const _package of store.get("enabledPackages") ?? []) {
+      packageManagerProcess.postMessage({
+        type: "load-package",
+        id: _package,
+        payload: store.get("packagesDataStorage")[_package],
+      });
+    }
   }
 }
 

@@ -245,6 +245,9 @@
     // extract this part on refactor
     if (event.source === window && event.data === "package-manager-port") {
       const [port] = event.ports;
+      if (window.packageManagerPort) {
+        window.packageManagerPort.close();
+      }
       window.packageManagerPort = port;
       // register message handler
       port.onmessage = handlePackageManagerMessage;
@@ -253,13 +256,6 @@
         $appSettings.packageList = [];
         $appSettings.packageManagerRunning = false;
       };
-      for (const _package of $appSettings.persistent.enabledPackages ?? []) {
-        port.postMessage({
-          type: "load-package",
-          id: _package,
-          payload: $appSettings.persistent.packagesDataStorage[_package],
-        });
-      }
       // register global createPackageMessagePort for direct package communication
       window.createPackageMessagePort = (id, senderId) => {
         const channel = new MessageChannel();
