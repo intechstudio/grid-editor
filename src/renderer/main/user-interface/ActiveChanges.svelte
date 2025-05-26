@@ -11,12 +11,18 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
+  import { appSettings } from "../../runtime/app-helper.store";
+  import { WriteBuffer } from "../../runtime/engine.store";
 
   let isChanges = false;
   let changes = 0;
 
   let runtime: GridRuntime;
-  $: runtime = $runtime_manager.active.runtime;
+  let buffer: WriteBuffer;
+  $: {
+    runtime = $runtime_manager.active.runtime;
+    buffer = runtime.connection.buffer;
+  }
 
   $: {
     if ($runtime) {
@@ -151,18 +157,17 @@
 <container
   in:fade={{ delay: 300, duration: 1000 }}
   out:blur={{ duration: 150 }}
-  class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes
       </div>
-      <!-- {#if $appSettings.persistent.writeBufferDebugEnabled}
+      {#if $appSettings.persistent.writeBufferDebugEnabled}
         <div class="mx-4 text-white font-medium">
-          writeBuffer: {$writeBuffer.length}
+          writeBuffer: {$buffer?.array.length}
         </div>
-      {/if} -->
+      {/if}
     </div>
 
     <div

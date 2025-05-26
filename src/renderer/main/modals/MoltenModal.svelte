@@ -10,31 +10,36 @@
     }
     modal.close();
   }
-
-  const styleMap = {
-    [Snap.FULL]: {
-      class: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-      style: `width: ${width}px; max-width: calc(100% - 80px);`,
-    },
-    [Snap.MIDDLE]: {
-      class: "absolute left-0 top-0 w-full h-full",
-      style: "",
-    },
-  };
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="z-40 absolute w-full h-full
-    bg-secondary bg-opacity-50"
+  class="z-40 absolute w-full h-full bg-secondary bg-opacity-50"
   on:mousedown|self={close}
 >
   <div
-    class="z-50 text-white shadow-md p-6
-      bg-primary rounded max-h-screen {styleMap[$modal?.options.snap]?.class}"
-    style={styleMap[$modal?.options.snap]?.style}
+    class="z-50 text-white shadow-md bg-primary rounded max-h-[75vh] w-full"
+    style="--width: {width}px"
+    class:full={$modal?.options?.snap === Snap.FULL}
+    class:middle={$modal?.options?.snap === Snap.MIDDLE}
   >
-    <slot name="content" />
+    <div class="flex flex-col h-full">
+      <div class="p-6 flex-1 overflow-auto min-h-0">
+        <slot name="content" />
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+  .full {
+    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+    width: var(--width);
+    max-width: calc(100% - 80px);
+  }
+
+  .middle {
+    @apply absolute left-0 top-0 w-full h-full;
+  }
+</style>

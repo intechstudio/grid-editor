@@ -247,7 +247,7 @@
                 {/if}
 
                 <!-- TOP -->
-                {#if typeof $runtime.modules.find((e) => e.dy === device.dy + 1 && e.dx === device.dx) === "undefined" || true}
+                {#if typeof $runtime.modules.find((e) => e.dy === device.dy + 1 && e.dx === device.dx) === "undefined"}
                   <div
                     class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >

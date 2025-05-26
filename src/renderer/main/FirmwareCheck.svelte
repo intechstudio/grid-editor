@@ -35,7 +35,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     let firmwareMismatchFound = false;
 
     // check modules for firmware mismatch
-    $runtime.modules.forEach((device) => {
+    for (const device of $runtime.modules) {
       if ($appSettings.firmwareNotificationState == 6) {
         $appSettings.firmwareNotificationState = 0;
         uploadProgressText = "";
@@ -45,7 +45,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       if (device.fwMismatch === true) {
         firmwareMismatchFound = true;
       }
-    });
+    }
 
     // if mismatch is found, show notification
     if (firmwareMismatchFound === true) {
@@ -89,7 +89,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         return; // already in success state
       }
 
-      //console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
       $appSettings.firmwareNotificationState = value.code;
       bootloader_path = value.path;
 
@@ -164,8 +163,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
           configuration.FIRMWARE_KNOT_URL_END;
         break;
     }
-
-    console.log("URL", link);
 
     await window.electron.firmware.firmwareDownload(
       folder,
