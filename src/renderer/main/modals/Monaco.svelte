@@ -128,7 +128,7 @@
         throw new LengthError("Config limit reached.");
       }
       errorMesssage = "";
-      commitEnabled = true;
+      commitEnabled = $monaco_action.script !== commited.script;
     } catch (e) {
       if (!(e instanceof LengthError)) {
         scriptLength = undefined;
@@ -162,7 +162,9 @@
 
   function handleClose() {
     if (errorMesssage || commitEnabled) {
-      const confirmModal = new Modal.Window(ConfirmModal);
+      const confirmModal = new Modal.Window(ConfirmModal, Modal.Snap.Full, {
+        showAsUnique: true,
+      });
       confirmModal.show({
         buttons: [
           {
@@ -172,6 +174,7 @@
               data.close();
               confirmModal.close();
             },
+            focused: true,
           },
         ],
       });
@@ -215,20 +218,23 @@
       return;
     }
 
-    if (e.key === "Escape") {
-      if (
-        editor &&
-        editor.getContribution("editor.contrib.suggestController")?.model
-          ?.state === 2
-      ) {
-        // Suggest widget is open (State 2 is "Open")
-        e.stopPropagation();
-        e.preventDefault();
-        editor
-          .getContribution("editor.contrib.suggestController")
-          .cancelSuggestWidget();
-      } else {
-        handleClose();
+    switch (e.key) {
+      case "Escape": {
+        if (
+          editor &&
+          editor.getContribution("editor.contrib.suggestController")?.model
+            ?.state === 2
+        ) {
+          // Suggest widget is open (State 2 is "Open")
+          e.stopPropagation();
+          e.preventDefault();
+          editor
+            .getContribution("editor.contrib.suggestController")
+            .cancelSuggestWidget();
+        } else {
+          handleClose();
+        }
+        break;
       }
     }
   }

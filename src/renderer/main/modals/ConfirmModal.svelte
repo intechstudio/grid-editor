@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount, tick } from "svelte";
   import { Modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
@@ -6,11 +7,21 @@
   interface MoltenPushButtonParams {
     text: string;
     handler: () => void;
-    style: "outlined" | "normal" | "accept";
+    style?: "outlined" | "normal" | "accept";
+    focused?: boolean;
   }
 
   export let data: Modal.Instance;
   export let buttons: MoltenPushButtonParams[];
+  let buttonRefs: MoltenPushButton[] = [];
+
+  onMount(async () => {
+    await tick();
+    const focusedIndex = buttons.findIndex((b) => b.focused);
+    if (focusedIndex !== -1) {
+      buttonRefs[focusedIndex]?.focus();
+    }
+  });
 
   function handleClose() {
     data.close();
@@ -26,11 +37,12 @@
     </p>
 
     <div class="flex flex-row justify-end gap-2">
-      {#each buttons as button}
+      {#each buttons as button, i}
         <MoltenPushButton
+          bind:this={buttonRefs[i]}
           click={button.handler}
           text={button.text}
-          style={button.style}
+          style={button.style ?? "normal"}
         />
       {/each}
       <MoltenPushButton click={handleClose} text={"Cancel"} style={"normal"} />

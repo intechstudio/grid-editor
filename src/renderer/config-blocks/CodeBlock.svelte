@@ -114,7 +114,7 @@
     <div class="grid w-full">
       <pre
         on:dblclick={open_monaco}
-        class="bg-secondary opacity-80 my-4 p-2 w-full overflow-x-auto"
+        class="bg-black/25 opacity-80 my-4 p-2 w-full overflow-x-auto"
         bind:this={codePreview}
         data-lang="intech_lua"
       />
