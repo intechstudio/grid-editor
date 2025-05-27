@@ -5,6 +5,7 @@
     GridPage,
   } from "./../../../../runtime/runtime";
   import { appSettings } from "../../../../runtime/app-helper.store";
+  import { Grid } from "../../../../lib/_utils";
 
   export let visible = false;
   export let element: GridElement;
@@ -19,7 +20,7 @@
       <p
         class="max-w-md mx-auto break-words whitespace-normal truncate text-white"
         style="transform: rotate({-$appSettings.persistent.moduleRotation +
-          $module?.rot * 90}deg);"
+          $module?.rot * Grid.Rotation.R90}deg);"
       >
         {typeof $element.name === "undefined" ? "" : $element.name}
       </p>

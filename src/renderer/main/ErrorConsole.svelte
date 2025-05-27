@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { fly, fade, slide } from "svelte/transition";
 
@@ -285,6 +285,3 @@
     </div>
   {/key}
 {/each}
-
-<style>
-</style>

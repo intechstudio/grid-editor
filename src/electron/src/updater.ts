@@ -75,6 +75,8 @@ autoUpdater.on("update-available", (info) => {
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-available",
     version: info.version,
+    releaseNotes: info.releaseNotes,
+    releaseName: info.releaseName,
   });
 });
 

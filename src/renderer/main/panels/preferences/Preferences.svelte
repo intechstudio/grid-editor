@@ -17,6 +17,7 @@
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { Grid } from "../../../lib/_utils";
   const configuration = window.ctxProcess.configuration();
 
   async function selectDirectory() {
@@ -100,10 +101,10 @@
         bind:target={$appSettings.persistent.moduleRotation}
         orientation={"horizontal"}
         options={[
-          { title: "0°", value: 0 },
-          { title: "90°", value: 90 },
-          { title: "180°", value: 180 },
-          { title: "270°", value: 270 },
+          { title: "0°", value: Grid.Rotation.R0 },
+          { title: "90°", value: Grid.Rotation.R90 },
+          { title: "180°", value: Grid.Rotation.R180 },
+          { title: "270°", value: Grid.Rotation.R270 },
         ]}
       />
     </Block>

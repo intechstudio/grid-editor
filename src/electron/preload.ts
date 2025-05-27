@@ -83,6 +83,8 @@ contextBridge.exposeInMainWorld("electron", {
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),
   openInBrowser: (url) => ipcRenderer.invoke("openInBrowser", { url }),
   fetchUrlJSON: (url) => ipcRenderer.invoke("fetchUrlJSON", url),
+  fetchReleaseNotes: (url: string) =>
+    ipcRenderer.invoke("fetchReleaseNotes", url),
   restartApp: () => ipcRenderer.sendSync("restartApp"),
   updater: {
     restartAfterUpdate: () => ipcRenderer.sendSync("restartAfterUpdate"),

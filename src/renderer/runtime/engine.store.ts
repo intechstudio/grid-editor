@@ -1,4 +1,11 @@
-import { get, Readable, Unsubscriber, Updater, writable } from "svelte/store";
+import {
+  get,
+  Readable,
+  Unsubscriber,
+  Updater,
+  Writable,
+  writable,
+} from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
 import { connection_manager, GridPort } from "../serialport/serialport";
 import { appSettings } from "./app-helper.store";
@@ -155,8 +162,18 @@ class ResponseWaiter {
 
 let waiter: ResponseWaiter | undefined = undefined;
 
-export class WriteBuffer implements Readable<BufferElement[]> {
-  private _internal = writable([]);
+export type PendingBufferProcess = {
+  obj: BufferElement;
+  result: Promise<any>;
+};
+
+export type WriteBufferData = {
+  array: BufferElement[];
+  current: PendingBufferProcess | undefined;
+};
+
+export class WriteBuffer implements Readable<WriteBufferData> {
+  private _internal: Writable<WriteBufferData>;
   private _port: GridPort;
 
   public readonly messageStream: MessageStream;
@@ -164,31 +181,36 @@ export class WriteBuffer implements Readable<BufferElement[]> {
   constructor(port: GridPort) {
     this._port = port;
     this.messageStream = new MessageStream(this);
+    this._internal = writable({
+      array: [],
+      current: undefined,
+    });
   }
 
   public subscribe(
-    run: Subscriber<BufferElement[]>,
-    invalidate?: (value?: BufferElement[]) => void,
+    run: Subscriber<WriteBufferData>,
+    invalidate?: (value?: WriteBufferData) => void,
   ): Unsubscriber {
     return this._internal.subscribe(run, invalidate);
   }
 
-  private set(value: BufferElement[]) {
+  private set(value: WriteBufferData) {
     this._internal.set(value);
   }
 
-  private update(updater: Updater<BufferElement[]>) {
+  private update(updater: Updater<WriteBufferData>) {
     this._internal.update(updater);
   }
 
   public module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
-    this.update((s) =>
-      s.filter(
+    this.update((s) => {
+      s.array = s.array.filter(
         (g) =>
           g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy,
-      ),
-    );
+      );
+      return s;
+    });
 
     // clear the active element if it matches the destroyed module's dx dy
     if (
@@ -201,7 +223,7 @@ export class WriteBuffer implements Readable<BufferElement[]> {
   }
 
   public clear() {
-    this.set([]);
+    this.set({ array: [], current: undefined });
     waiter?.destroy();
     waiter = undefined;
   }
@@ -267,7 +289,6 @@ export class WriteBuffer implements Readable<BufferElement[]> {
                 break;
               }
               case ResponseStatus.TIMEOUT: {
-                console.log(response.error);
                 resolve(this.sendToGrid(bufferElement)); // RETRY recursively until processed
                 break;
               }
@@ -290,10 +311,10 @@ export class WriteBuffer implements Readable<BufferElement[]> {
 
       while (
         connection_manager.isSerialWriteLocked(this._port) ||
-        get(this._internal)[0] !== current ||
+        get(this._internal).array[0] !== current ||
         (typeof waiter !== "undefined" && !sendImmediate)
       ) {
-        if (get(this._internal).includes(current)) {
+        if (get(this._internal).array.includes(current)) {
           await this.sleep(1);
         } else {
           reject(
@@ -356,18 +377,24 @@ export class WriteBuffer implements Readable<BufferElement[]> {
 
   public add_first(obj: BufferElement) {
     this.validateBufferElement(obj);
-    this.update((s) => [obj, ...s]);
+    this.update((s) => {
+      s.array = [obj, ...s.array];
+      return s;
+    });
     return this.execute(obj);
   }
 
   public async add_last(obj: BufferElement) {
     this.validateBufferElement(obj);
-    this.update((s) => [...s, obj]);
+    this.update((s) => {
+      s.array = [...s.array, obj];
+      return s;
+    });
     return this.execute(obj);
   }
 
   public async execute(obj: BufferElement) {
-    return new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       let promise: Promise<any>;
       if (obj.virtual) {
         promise = simulateProcess(obj);
@@ -380,16 +407,25 @@ export class WriteBuffer implements Readable<BufferElement[]> {
           resolve(res);
         })
         .catch((e) => {
-          console.log("Rejected:", obj.descr.class_name);
-          console.log("Reason:", e);
+          console.warn("Rejected:", obj.descr.class_name);
+          console.warn("Reason:", e);
           reject(e);
         })
         .finally(() => {
           this.update((s) => {
-            s.shift();
+            s.array.shift();
             return s;
           });
         });
     });
+
+    this._internal.update((s) => {
+      s.current = {
+        obj: obj,
+        result: promise,
+      };
+      return s;
+    });
+    return promise;
   }
 }
