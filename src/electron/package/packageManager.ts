@@ -78,6 +78,7 @@ process.parentPort.on("message", async (e) => {
         if (!currentlyLoadedPackages[e.data.id]) {
           process.parentPort?.postMessage({
             type: "debug-error",
+            packageId: e.data.id,
             message:
               "Package not loaded " +
               e.data.id +
@@ -131,8 +132,7 @@ process.parentPort.on("message", async (e) => {
         if (customGithubPackageList.has(data.id)) {
           process.parentPort?.postMessage({
             type: "persist-github-package",
-            id: data.id,
-            packageName: data.packageName,
+            packageId: data.id,
             gitHubRepositoryOwner: data.gitHubRepositoryOwner,
             gitHubRepositoryName: data.gitHubRepositoryName,
           });
@@ -146,6 +146,7 @@ process.parentPort.on("message", async (e) => {
         if (!currentlyLoadedPackages[packageId]) {
           process.parentPort?.postMessage({
             type: "debug-error",
+            packageId: packageId,
             message:
               "Package not loaded " +
               packageId +
@@ -180,6 +181,7 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
         currentPackageList[packageIndex].status = PackageStatus.Downloaded;
         process.parentPort?.postMessage({
           type: "debug-error",
+          packageId: packageName,
           error: `Received uncaught exception from package: ${packageName}, error: ${err}`,
         });
       }
@@ -238,6 +240,7 @@ async function loadPackage(packageName: string, persistedData: any) {
     notifyListener();
   } catch (e) {
     process.parentPort?.postMessage({
+      packageId: packageName,
       type: "debug-error",
       error: e.message,
     });
@@ -308,16 +311,18 @@ async function downloadPackage(packageName: string) {
     if (customGithubPackageList.has(packageName)) {
       customGithubPackageList.delete(packageName);
       process.parentPort?.postMessage({
+        packageId: packageName,
         type: "show-message",
         message: "Couldn't find package archive, removed from list!",
         messageType: "fail",
       });
     }
     process.parentPort?.postMessage({
+      packageId: packageName,
       type: "remove-github-package",
-      id: packageName,
     });
     process.parentPort?.postMessage({
+      packageId: packageName,
       type: "debug-error",
       message: e.message,
     });
@@ -370,7 +375,7 @@ async function removePackage(packageName: string) {
     localPackages.delete(packageName);
     process.parentPort?.postMessage({
       type: "remove-local-package",
-      id: packageName,
+      packageId: packageName,
     });
     notifyListener();
   }
@@ -378,7 +383,7 @@ async function removePackage(packageName: string) {
     customGithubPackageList.delete(packageName);
     process.parentPort?.postMessage({
       type: "remove-github-package",
-      id: packageName,
+      packageId: packageName,
     });
     notifyListener();
   }
@@ -394,7 +399,7 @@ async function addLocalPackage(rootPath: string) {
     localPackages.set(packageId, rootPath);
     process.parentPort?.postMessage({
       type: "persist-local-package",
-      id: packageId,
+      packageId: packageId,
       rootPath: rootPath,
     });
     notifyListener();

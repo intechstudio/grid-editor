@@ -92,6 +92,13 @@
     $appSettings.packageManagerRunning = true;
     const data = event.data;
     // action towards runtime
+    if ($appSettings.persistent.packageDeveloper) {
+      $appSettings.packageDebugLogs.push({
+        time: new Date(),
+        ...data,
+      });
+      $appSettings.packageDebugLogs = [...$appSettings.packageDebugLogs];
+    }
     switch (data.type) {
       case "persist-data": {
         appSettings.update((s) => {
@@ -133,7 +140,7 @@
       case "persist-github-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          persistent.githubPackages[data.id] = {
+          persistent.githubPackages[data.packageId] = {
             name: data.packageName,
             gitHubRepositoryOwner: data.gitHubRepositoryOwner,
             gitHubRepositoryName: data.gitHubRepositoryName,
@@ -146,7 +153,7 @@
       case "remove-github-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          delete persistent.githubPackages[data.id];
+          delete persistent.githubPackages[data.packageId];
           s.persistent = persistent;
           return s;
         });
@@ -155,7 +162,7 @@
       case "persist-local-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          persistent.localPackages[data.id] = data.rootPath;
+          persistent.localPackages[data.packageId] = data.rootPath;
           s.persistent = persistent;
           return s;
         });
@@ -164,7 +171,7 @@
       case "remove-local-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          delete persistent.localPackages[data.id];
+          delete persistent.localPackages[data.packageId];
           s.persistent = persistent;
           return s;
         });

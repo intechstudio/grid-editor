@@ -6,7 +6,11 @@
   let selectedLeftTab = "ProfileCloud";
 
   $: {
-    selectedLeftTab = $appSettings.leftPanel;
+    selectedLeftTab =
+      $appSettings.leftPanel ??
+      ($appSettings.persistent.enabledPackages.includes("profile-cloud")
+        ? "profile-cloud"
+        : "Packages");
   }
 
   function toggleLeftTab() {
@@ -143,7 +147,7 @@
       {@const packageData = $appSettings.packageList.find(
         (e) => e.id == packageId,
       )}
-      {#if packageData}
+      {#if packageData?.preferenceComponent || packageData?.svgIcon}
         <button
           use:tooltip={{
             nowrap: true,
@@ -162,11 +166,14 @@
             ? 'bg-opacity-100 '
             : 'bg-opacity-40 '} bg-secondary activator-button"
         >
-          {#if packageData.svgIcon}
-            <div class="w-full h-full p-1.5 text-white fill-current">
+          <div class="w-full h-full p-1.5 text-white fill-current">
+            {#if packageData.svgIcon}
               {@html menuIcons[packageData.svgIcon]}
-            </div>
-          {/if}
+            {:else}
+              {@html menuIcons["menu_package_general"]}
+            {/if}
+          </div>
+
           <div
             class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
               packageId && $splitpanes.left.size != 0
