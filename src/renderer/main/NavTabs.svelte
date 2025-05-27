@@ -60,7 +60,9 @@
       ? 'bg-opacity-100 '
       : 'bg-opacity-40 '} bg-secondary activator-button"
   >
-    {@html menuIcons["menu_preferences"]}
+    <div class="w-full h-full p-1.5 text-white fill-current">
+      {@html menuIcons["menu_preferences"]}
+    </div>
     <div
       class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
         'Preferences' && $appSettings.leftPanelVisible
@@ -87,8 +89,9 @@
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary activator-button"
     >
-      {@html menuIcons["menu_packages"]}
-
+      <div class="w-full h-full p-1.5 text-white fill-current">
+        {@html menuIcons["menu_packages"]}
+      </div>
       <div
         class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
           'Packages' && $splitpanes.left.size != 0
