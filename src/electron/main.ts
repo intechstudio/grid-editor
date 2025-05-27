@@ -182,6 +182,22 @@ if (!gotTheLock) {
   );
 
   app.whenReady().then(() => {
+    //Migration logic
+    if (store.get("lastActiveVersion") === undefined) {
+      console.log(
+        `Starting migration from ${store.get("lastActiveVersion")} to ${configuration.EDITOR_VERSION}`,
+      );
+      let enabledPackages: string[] = store.get("enabledPackages") ?? [];
+      let newEnabledPackages = [
+        ...enabledPackages,
+        "profile-cloud",
+        "midi-monitor",
+        "debug-monitor",
+      ];
+      store.set("enabledPackages", newEnabledPackages);
+      store.set("lastActiveVersion", configuration.EDITOR_VERSION);
+    }
+
     if (process.platform !== "darwin") {
       create_tray();
     }
