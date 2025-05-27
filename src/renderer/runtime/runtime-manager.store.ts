@@ -269,7 +269,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       );
 
       instruction.executeOn(runtime.connection).catch((e) => {
-        console.log("EDITOR: Heartbeat skipped...");
+        console.warn("EDITOR: Heartbeat skipped...");
       });
     } else {
       //writeBuffer.clear();

@@ -22,12 +22,6 @@
     { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
     { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
     {
-      id: ModuleType.VSN0,
-      type: ModuleType.VSN0,
-      component: VSNX,
-      unrelease: true,
-    },
-    {
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
       component: VSNX,

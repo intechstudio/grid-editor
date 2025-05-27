@@ -4,7 +4,7 @@
 
   export let feedback_context;
 
-  function openFeedbackFrom(arg) {
+  function openFeedbackFrom() {
     console.log("feedback on " + feedback_context);
     new Modal.Window(Feedback).show({
       feedback_context,
