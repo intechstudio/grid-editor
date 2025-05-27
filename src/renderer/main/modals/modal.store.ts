@@ -1,3 +1,4 @@
+import { SvelteComponent } from "svelte";
 import { writable } from "svelte/store";
 
 export const modal = createModalStore();
@@ -15,7 +16,7 @@ export type ModalOptions = {
 export type ModalArguments = any | undefined;
 
 type ModalStoreValue = {
-  component: unknown;
+  component: any;
   options: ModalOptions;
   args: ModalArguments;
 };

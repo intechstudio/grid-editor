@@ -1,6 +1,7 @@
 import { writable, get, readable } from "svelte/store";
 import { modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
+import { Grid } from "../lib/_utils";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -14,7 +15,7 @@ const persistentDefaultValues = {
   userId: "",
   size: 1.0,
   wssPort: 1337,
-  moduleRotation: 0,
+  moduleRotation: Grid.Rotation.R0,
   welcomeOnStartup: true,
   lastVersion: "",
   profileFolder: "",
@@ -161,19 +162,6 @@ appSettings.subscribe((store) => {
   });
 });
 
-/**
-ipcRenderer.on('trayState', (event, args) => {
-
-  if (get(appSettings).trayState === true && args === false){
-    // restart session
-    sessionid = Date.now();
-  }
-
-  console.log("traystate: ", args)
-  appSettings.update(s => {s.trayState = args; return s;})  
-})
- */
-
 async function init_appsettings() {
   let request = [];
   Object.entries(persistentDefaultValues).forEach((entry) => {
@@ -259,8 +247,6 @@ async function init_appsettings() {
           minor: obj.EDITOR_VERSION.MINOR,
           patch: obj.EDITOR_VERSION.PATCH,
         };
-
-        console.log(editorVersion, targetVersion);
 
         if (
           editorVersion.major == targetVersion.major &&

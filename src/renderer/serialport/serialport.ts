@@ -169,7 +169,6 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
       debug_lowlevel_store.push_outbound(param);
 
       if (port.writable.locked === true) {
-        //console.log("SORRY it's locked");
         reject("SORRY it's locked");
         return;
       }
@@ -186,7 +185,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
           resolve("Port released");
         })
         .catch((e) => {
-          console.log(e);
+          console.warn(e);
           reject(e);
         });
     });

@@ -12,6 +12,7 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
   import Option from "./components/Options.svelte";
+  import { user_input } from "../../../runtime/user-input.store";
   import { selected_actions } from "../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import Options from "./components/Options.svelte";
@@ -19,10 +20,10 @@
   import { latestComponentVersionKeys } from "../../../lib/_configs";
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
-  import { isPasteActionsEnabled } from "./components/Toolbar";
+  import { Focus } from "../../_actions/focus.action";
 
   export let event: GridEvent;
-  export let targetPanel: HTMLElement;
+  export let focusTrigger: string;
 
   let configList: HTMLElement;
 
@@ -89,13 +90,16 @@
       return;
     }
 
+    if (e.key === "Escape") {
+      const { dx, dy, elementnumber } = get(user_input);
+      Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+    }
+
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-      console.log("Ctrl + A = Select all actions");
       handleSelectAll();
       e.preventDefault();
       e.stopPropagation();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-      console.log("Ctrl + V = Paste actions");
       handlePaste(
         new CustomEvent("paste", { detail: { index: event.config.length } }),
       );
@@ -107,8 +111,10 @@
 
 {#key $event?.id}
   <div
+    id="test"
     role="tabpanel"
     tabindex="0"
+    use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
     class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
   >

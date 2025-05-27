@@ -29,7 +29,7 @@ import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
-import { user_input, UserInput } from "./user-input.store";
+import { user_input } from "./user-input.store";
 import { ProfileLoadOverlay } from "../main/grid-layout/grid-modules/overlays/ProfileLoadOverlay";
 
 type UUID = string;
@@ -1499,38 +1499,20 @@ type DirectionMap = {
 };
 
 export class ModuleData extends NodeData {
-  architecture: Architecture;
-  dx: number;
-  dy: number;
-  fwMismatch: boolean;
-  fwVersion: FirmwareVersion;
-  map: DirectionMap;
-  portstate: any;
-  rot: number;
-  type: ModuleType;
-  pages: Array<GridPage>;
+  public pages: Array<GridPage>;
 
   constructor(
-    architecture: Architecture,
-    portstate: any,
-    dx: number,
-    dy: number,
-    rot: number,
-    fwVersion: FirmwareVersion,
-    type: ModuleType,
-    fwMismatch: boolean,
-    map: DirectionMap,
+    public architecture: Architecture,
+    public portstate: any,
+    public dx: number,
+    public dy: number,
+    public rot: number,
+    public fwVersion: FirmwareVersion,
+    public type: ModuleType,
+    public fwMismatch: boolean,
+    public map: DirectionMap,
   ) {
     super();
-    this.architecture = architecture;
-    this.portstate = portstate;
-    this.dx = dx;
-    this.dy = dy;
-    this.rot = rot;
-    this.fwVersion = fwVersion;
-    this.type = type;
-    this.fwMismatch = fwMismatch;
-    this.map = map;
     this.pages = [];
   }
 
@@ -1689,6 +1671,20 @@ export class RuntimeData extends NodeData {
     }
     return true;
   }
+
+  public countX() {
+    const xs = this.modules.map((m) => m.dx);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    return maxX - minX + 1;
+  }
+
+  public countY() {
+    const ys = this.modules.map((m) => m.dy);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return maxY - minY + 1;
+  }
 }
 
 export class GridRuntime extends RuntimeNode<RuntimeData> {
@@ -1706,6 +1702,14 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.connection = connection;
     this.virtual = virtual;
     this.aliveModules = writable([]);
+  }
+
+  public countX() {
+    return this.data.countX();
+  }
+
+  public countY() {
+    return this.data.countY();
   }
 
   public isValid() {
@@ -1863,7 +1867,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   public async change_page(new_page_number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (get(this.connection.buffer).length > 0) {
+      if (get(this.connection.buffer).array.length > 0) {
         reject("Wait before all operations are finished.");
         return;
       }
@@ -2041,7 +2045,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       moduleType === undefined ||
       heartbeat_class_param === undefined
     ) {
-      console.log(
+      console.warn(
         heartbeat_class_param.HWCFG,
         "ERROR",
         header_param,
@@ -2086,7 +2090,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
-      get(this.connection.buffer).length > 0
+      get(this.connection.buffer).array.length > 0
         ? GridRuntimeManager.heartbeat_grid_ms * 6
         : GridRuntimeManager.heartbeat_grid_ms * 3;
     const elapsedTime = Date.now() - last;

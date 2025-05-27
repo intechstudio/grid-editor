@@ -20,6 +20,7 @@
   } from "../../../panels/profileCloud/ConfigTour";
   import { moduleOverlay } from "../../../../runtime/moduleOverlay";
   import { ProfileLoadOverlay } from "./ProfileLoadOverlay";
+  import { Grid } from "../../../../lib/_utils";
 
   export let device: GridModule;
   export let visible = false;
@@ -98,7 +99,8 @@
       class="text-white w-full flex flex-col
     items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
       style="transform: rotate({-$appSettings.persistent.moduleRotation +
-        90 * device?.rot}deg); border-radius: var(--grid-rounding);"
+        Grid.Rotation.R90 *
+          device?.rot}deg); border-radius: var(--grid-rounding);"
     >
       {#if compatible}
         <div class="w-fit relative flex flex-col gap-2 items-center">

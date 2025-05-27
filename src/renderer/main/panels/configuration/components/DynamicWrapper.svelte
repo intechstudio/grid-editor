@@ -234,16 +234,14 @@
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined" || isActiveTourStep}
           <!-- Body of the Action block when toggled -->
           <div class="bg-secondary h-full w-full">
-            <div class="bg-black/15 h-full w-full">
-              <svelte:component
-                this={component}
-                config={action}
-                on:replace={handleReplace}
-                on:update-action={handleUpdateAction}
-                on:sync={handleSendActionToGrid}
-                on:toggle={handleToggle}
-              />
-            </div>
+            <svelte:component
+              this={component}
+              config={action}
+              on:replace={handleReplace}
+              on:update-action={handleUpdateAction}
+              on:sync={handleSendActionToGrid}
+              on:toggle={handleToggle}
+            />
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
