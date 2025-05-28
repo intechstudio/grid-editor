@@ -70,7 +70,7 @@ export class ModulePage {
         '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(2) > .flex',
       ),
       top: page.locator("div:nth-child(4) > .flex").first(),
-      left: page.locator(".absolute > .flex").first(),
+      left: page.locator('layout-container').getByRole('button').filter({ hasText: /^$/ }).first(),
       bottom: page.locator(
         '[id="grid-device-dx\\:0\\;dy\\:0"] > div:nth-child(3) > .flex',
       ),
