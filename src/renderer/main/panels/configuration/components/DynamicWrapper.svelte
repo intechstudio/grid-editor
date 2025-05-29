@@ -35,7 +35,6 @@
   let component: typeof SvelteComponent;
   let ctrlIsDown = false;
   let toggled = false;
-  let isActiveTourStep = false;
 
   onMount(() => {
     if (action.information.toggleable !== false) {
@@ -65,6 +64,14 @@
 
   $: if (!toggled) {
     revertToSynced();
+  }
+
+  $: {
+    const isActiveTourStep =
+      $configTour.current?.action.id === $action.id && $configTour.active;
+    if (!toggled && isActiveTourStep) {
+      toggled = true;
+    }
   }
 
   function revertToSynced() {
@@ -108,28 +115,17 @@
     syncWithGrid(action);
   }
 
-  function handleToggle(e) {
-    if (get(configTour).active) {
-      return;
-    }
-
+  function handleToggle() {
     if (action.information.toggleable == false) {
       return;
     }
-
-    if (!toggled) {
+    toggled = !toggled;
+    if (toggled) {
       lastOpenedActionblocksInsert(action.short);
     } else {
       lastOpenedActionblocksRemove(action.short);
     }
   }
-
-  $: {
-    toggled = $lastOpenedActionblocks.includes(action.short);
-  }
-
-  $: isActiveTourStep =
-    $configTour.current?.action.id === $action.id && $configTour.active;
 
   function handleCarouselClicked(e) {
     if (e.ctrlKey) {
@@ -227,11 +223,11 @@
       <!-- Body of the config block -->
       <div
         class="w-full flex flex-grow items-center"
-        class:cursor-auto={toggled || isActiveTourStep}
-        class:bg-opacity-30={toggled || isActiveTourStep}
+        class:cursor-auto={toggled}
+        class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-        {#if (toggled && $action.information.toggleable) || typeof header === "undefined" || isActiveTourStep}
+        {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
           <div class="bg-secondary h-full w-full">
             <svelte:component

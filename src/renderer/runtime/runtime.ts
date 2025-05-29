@@ -30,7 +30,6 @@ import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
-import { ProfileLoadOverlay } from "../main/grid-layout/grid-modules/overlays/ProfileLoadOverlay";
 
 type UUID = string;
 type LuaScript = string;
@@ -38,6 +37,28 @@ type RawEventData = any;
 class NodeData {
   id?: UUID;
   parent?: RuntimeNode<any>;
+}
+
+export namespace ProfileLoad {
+  export enum State {
+    READY,
+    BUSY,
+    LOADED,
+    ERROR,
+  }
+
+  export interface Status {
+    step: State;
+    message?: string;
+    error?: string;
+  }
+}
+
+export enum GridNodeState {
+  NOT_LOADED,
+  FETCHING,
+  SYNCED,
+  UNSYNCED,
 }
 
 export enum ConfigurationType {
@@ -515,20 +536,21 @@ export class EventData extends NodeData {
   public config: Array<GridAction>;
   public type: number;
   public stored: LuaScript;
-  public loaded: boolean;
+  public state: GridNodeState;
 
   constructor(type: number) {
     super();
     this.type = type;
     this.config = [];
-    this.loaded = false;
     this.stored = "";
+    this.state = GridNodeState.NOT_LOADED;
   }
 
   public hasChanges(): boolean {
+    /*
     if (!this.isLoaded()) {
       return false;
-    }
+    }*/
 
     return this.stored !== this.toLua();
   }
@@ -565,7 +587,11 @@ export class EventData extends NodeData {
   }
 
   public isLoaded() {
-    return this.loaded;
+    return (
+      [GridNodeState.NOT_LOADED, GridNodeState.FETCHING].includes(
+        this.state,
+      ) === false
+    );
   }
 
   public getInfo(): EventInfo {
@@ -865,7 +891,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public unload() {
     this.clear();
-    this.loaded = false;
+    this.state = GridNodeState.NOT_LOADED;
     this.stored = "";
   }
 
@@ -967,10 +993,11 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   public async load(): Promise<void> {
-    if (this.isLoaded()) {
+    if (this.isLoaded() || this.state === GridNodeState.FETCHING) {
       return Promise.resolve();
     }
 
+    this.state = GridNodeState.FETCHING;
     const element = this.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
@@ -992,24 +1019,21 @@ export class GridEvent extends RuntimeNode<EventData> {
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
 
-      //Handling multiple load call at the same time
-      if (this.isLoaded()) {
-        return Promise.resolve();
-      }
-
       this.push(...actions);
       this.store();
-      this.loaded = true;
-
-      console.log("EVENT LOADED");
+      this.state = GridNodeState.SYNCED;
       return Promise.resolve();
     } catch (e) {
-      this.loaded = false;
+      this.unload();
       return Promise.reject(e);
     }
   }
 
   // Getters
+  public get state() {
+    return this.getField("state");
+  }
+
   public get config() {
     return this.getField("config");
   }
@@ -1022,11 +1046,11 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.getField("stored");
   }
 
-  public get loaded() {
-    return this.getField("loaded");
+  // Setters
+  private set state(value: GridNodeState) {
+    this.setField("state", value);
   }
 
-  // Setters
   private set config(value: Array<GridAction>) {
     this.setField("config", value);
   }
@@ -1037,10 +1061,6 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   private set stored(value: string) {
     this.setField("stored", value);
-  }
-
-  private set loaded(value: boolean) {
-    this.setField("loaded", value);
   }
 }
 
@@ -1391,9 +1411,10 @@ export class GridPage extends RuntimeNode<PageData> {
 
   public async loadProfile(
     profile: GridProfileData,
+    setStatus?: (status: ProfileLoad.Status) => void,
   ): Promise<ProfileLoadResult> {
     try {
-      ProfileLoadOverlay.state.set(ProfileLoadOverlay.State.BUSY);
+      setStatus?.({ step: ProfileLoad.State.BUSY });
       await this.load();
 
       const presets = profile.presets;
@@ -1414,14 +1435,14 @@ export class GridPage extends RuntimeNode<PageData> {
         await element.loadPreset(preset);
       }
 
-      ProfileLoadOverlay.state.set(ProfileLoadOverlay.State.LOADED);
+      setStatus?.({ step: ProfileLoad.State.LOADED });
       return {
         value: true,
         text: "OK",
         type: GridOperationType.LOAD_PROFILE,
       };
     } catch (error) {
-      ProfileLoadOverlay.state.set(ProfileLoadOverlay.State.ERROR);
+      setStatus?.({ step: ProfileLoad.State.ERROR });
       return Promise.reject({
         value: false,
         text: error instanceof Error ? error.message : String(error),
@@ -1451,6 +1472,10 @@ export class GridPage extends RuntimeNode<PageData> {
     for (const element of this.control_elements) {
       element.unload();
     }
+  }
+
+  public isLoaded() {
+    return this.control_elements.every((e) => e.isLoaded());
   }
 
   public async load() {

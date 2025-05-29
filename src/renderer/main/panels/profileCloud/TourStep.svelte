@@ -14,9 +14,11 @@
   } from "@intechstudio/grid-uikit";
   import { configTour } from "./ConfigTour";
   import { marked } from "marked";
+  import { Writable } from "svelte/store";
 
   export let text = "";
   export let referenceElement: HTMLElement;
+  export let updateTrigger: Writable<number>;
 
   function handleClose() {
     configTour.active = false;
@@ -29,65 +31,74 @@
   function handlePreviousClicked() {
     configTour.stepBackward();
   }
-
-  $: console.log(text);
 </script>
 
-<Popover
-  isOpen={$configTour.active}
-  {referenceElement}
-  placement={"left"}
-  spaceAway={10}
->
-  <div
-    class="p-2 rounded bg-secondary flex flex-col border gap-1 border-white/30"
-    transition:fade|global={{
-      duration: 250,
-    }}
+{#key $updateTrigger}
+  <Popover
+    isOpen={$configTour.active}
+    {referenceElement}
+    placement={"left"}
+    spaceAway={10}
   >
-    <div class="items-center justify-between flex">
-      <span class="text-white">Tour</span>
-      <button
-        on:click={handleClose}
-        class="hover:bg-primary fill-white/30 p-1 rounded"
-      >
-        <SvgIcon width={10} height={10} iconPath={"close"} />
-      </button>
-    </div>
-    <div class="bg-primary p-2 text-white mb-2">
-      <MarkdownContainer markdown={String(marked(text))} />
-    </div>
-    <div class="flex flex-row gap-2 self-end">
-      {#if $configTour && typeof configTour.previous() !== "undefined"}
-        <MoltenPushButton
-          text={"Previous"}
-          snap={"auto"}
-          style={"normal"}
-          click={handlePreviousClicked}
-        />
-      {/if}
+    <div
+      class="p-2 rounded bg-secondary flex flex-col border gap-1 border-white/30"
+      transition:fade|global={{
+        duration: 250,
+      }}
+    >
+      <div class="items-center justify-between flex">
+        <span class="text-white">Tour</span>
+        <button
+          on:click={handleClose}
+          class="hover:bg-primary fill-white/30 p-1 rounded"
+        >
+          <SvgIcon width={10} height={10} iconPath={"close"} />
+        </button>
+      </div>
+      <div class="bg-primary p-2 text-white mb-2">
+        <MarkdownContainer markdown={String(marked(text))} />
+      </div>
+      <div class="flex flex-row gap-2 self-end">
+        {#if $configTour && typeof configTour.previous() !== "undefined"}
+          <MoltenPushButton
+            text={"Previous"}
+            snap={"auto"}
+            style={"normal"}
+            click={handlePreviousClicked}
+          />
+        {/if}
 
-      {#if $configTour && typeof configTour.next() !== "undefined"}
-        <MoltenPushButton
-          text={"Next"}
-          snap={"auto"}
-          style={"accept"}
-          click={handleNextClicked}
-        />
-      {/if}
+        {#if $configTour && typeof configTour.next() !== "undefined"}
+          <MoltenPushButton
+            text={"Next"}
+            snap={"auto"}
+            style={"accept"}
+            click={handleNextClicked}
+          />
+        {/if}
+
+        {#if $configTour && typeof configTour.next() === "undefined"}
+          <MoltenPushButton
+            text={"Quit Tour"}
+            snap={"auto"}
+            style={"accept"}
+            click={handleClose}
+          />
+        {/if}
+      </div>
     </div>
-  </div>
-  <div
-    transition:fade|global={{
-      duration: 250,
-    }}
-    class="tooltip-absolute"
-    id="arrow"
-    data-popper-arrow
-  >
-    <div class="tooltip-absolute" id="arrow_face" />
-  </div>
-</Popover>
+    <div
+      transition:fade|global={{
+        duration: 250,
+      }}
+      class="tooltip-absolute"
+      id="arrow"
+      data-popper-arrow
+    >
+      <div class="tooltip-absolute" id="arrow_face" />
+    </div>
+  </Popover>
+{/key}
 
 <style global>
   .svelte-easy-popover[data-popper-placement^="top"] > #arrow {

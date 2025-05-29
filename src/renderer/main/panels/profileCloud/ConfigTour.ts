@@ -17,49 +17,54 @@ import { user_input } from "../../../runtime/user-input.store";
 
 export namespace ConfigTour {
   export function displayStep(node: HTMLElement, step: Step | undefined) {
-    // Clean up previous step if exists
     let sibling: HTMLElement | null = null;
     let tourStepInstance: TourStep | null = null;
+    const updateTrigger: Writable<number> = writable(0);
 
-    // Initial setup or update when step changes
+    let resizeObserver: ResizeObserver | null = null;
+
+    const observeReference = () => {
+      if (!node) return;
+      resizeObserver = new ResizeObserver(() => {
+        updateTrigger.update((n) => n + 1); // Signal update
+      });
+      resizeObserver.observe(node);
+    };
+
+    const unobserveReference = () => {
+      resizeObserver?.disconnect();
+    };
+
     const createTourStep = () => {
-      if (typeof step === "undefined") {
-        return;
-      }
+      if (typeof step === "undefined") return;
 
       sibling = document.createElement("div");
       node.parentNode?.insertBefore(sibling, node.nextSibling);
 
-      // Create the TourStep instance
       tourStepInstance = new TourStep({
         target: sibling,
         props: {
           text: step.content.text,
           referenceElement: node,
+          updateTrigger, // pass the writable store
         },
       });
+
+      observeReference();
     };
 
-    // If step is provided, create the initial TourStep
     createTourStep();
 
-    // Return the update function to make it reactive
     return {
       update(newStep: Step | undefined) {
         step = newStep;
-        if (tourStepInstance) {
-          // Optionally, you can destroy or update the existing TourStep instance here
-          tourStepInstance.$destroy();
-        }
-
-        // Re-create the TourStep with the new step
+        if (tourStepInstance) tourStepInstance.$destroy();
+        unobserveReference();
         createTourStep();
       },
       destroy() {
-        // Clean up the sibling and TourStep instance
-        if (tourStepInstance) {
-          tourStepInstance.$destroy();
-        }
+        if (tourStepInstance) tourStepInstance.$destroy();
+        unobserveReference();
         sibling?.remove();
       },
     };
@@ -97,7 +102,7 @@ export namespace ConfigTour {
       return this.internal.subscribe(run, invalidate);
     }
 
-    private set(value: TourData) {
+    public set(value: TourData) {
       this.internal.set(value);
     }
 
@@ -105,7 +110,7 @@ export namespace ConfigTour {
       this.internal.update(updater);
     }
 
-    private parseSteps(
+    private static parseSteps(
       description: string,
     ): Array<{ index: number; content: TourStepContent }> {
       const stepRegex =
@@ -128,8 +133,11 @@ export namespace ConfigTour {
       return steps;
     }
 
-    public createTourFrom(profile: GridProfileData, targets: GridAction[]) {
-      const steps = this.parseSteps(profile.description);
+    public static createTourFrom(
+      profile: GridProfileData,
+      targets: GridAction[],
+    ): TourData {
+      const steps = Tour.parseSteps(profile.description);
       const mapped = targets.map((e) => {
         const index = e.getTourIndex();
         const step = steps.find((e) => e.index === index);
@@ -147,18 +155,17 @@ export namespace ConfigTour {
       const first = sorted[0];
 
       if (typeof first === "undefined") {
-        this.set(this.defaultValue);
-        return;
+        return undefined;
       }
 
-      this.update((s) =>
-        Object({
-          ...s,
-          id: profile.id,
-          steps: sorted,
-          profile: profile,
-        }),
-      );
+      return {
+        current: undefined,
+        index: -1,
+        active: false,
+        id: profile.id,
+        steps: sorted,
+        profile: profile,
+      };
     }
 
     public next() {

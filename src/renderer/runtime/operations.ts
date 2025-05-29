@@ -19,10 +19,11 @@ import {
   GridPresetData,
   GridSnippetData,
   SnippetLoadResult,
+  ProfileLoad,
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
-import { configTour } from "../main/panels/profileCloud/ConfigTour";
+import { ConfigTour, configTour } from "../main/panels/profileCloud/ConfigTour";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -355,14 +356,18 @@ export async function replaceAction(
     });
 }
 
-export async function loadProfile(profile: GridProfileData, target: GridPage) {
+export async function loadProfile(
+  profile: GridProfileData,
+  target: GridPage,
+  setStatus?: (status: ProfileLoad.Status) => void,
+) {
   Analytics.track({
     event: "Pro file Load Start",
     payload: {},
     mandatory: false,
   });
   return target
-    .loadProfile(profile)
+    .loadProfile(profile, setStatus)
     .then(() => {
       const ui = get(user_input);
       const module = target.parent as GridModule;
@@ -384,7 +389,8 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
         ),
       );
 
-      configTour.createTourFrom(profile, actions);
+      const tour = ConfigTour.Tour.createTourFrom(profile, actions);
+      configTour.set(tour);
       return Promise.resolve();
     })
     .catch((e) => {
@@ -426,13 +432,6 @@ export async function loadPreset(
           eventtype: ui.eventtype,
         });
       }
-
-      /*
-      const actions = (target as GridElement).events
-        .flatMap((e) => e.config)
-        .filter((e) => e.isTourStep());
-      configTour.createTourFrom(preset.id, preset.description, actions);
-      */
     })
     .catch((e) => {
       handleError(e);
@@ -461,16 +460,6 @@ export async function loadSnippet(
 
   return target
     .loadSnippet(snippet, index)
-    .then(() => {
-      /*
-      configTour.createTourFrom(
-        snippet.id,
-        snippet.description,
-        target.config.filter((e) => e.isTourStep()),
-        
-      );
-      */
-    })
     .catch((e) => {
       configTour.clear();
       handleError(e);

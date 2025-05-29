@@ -7,71 +7,87 @@
     GridModule,
     GridPage,
     GridProfileData,
+    ProfileLoad,
   } from "../../../../runtime/runtime.js";
   import { loadProfile } from "../../../../runtime/operations";
-  import {
-    user_input,
-    UserInputValue,
-  } from "../../../../runtime/user-input.store";
-  import { get } from "svelte/store";
+  import { user_input } from "../../../../runtime/user-input.store";
+  import { derived, get } from "svelte/store";
   import {
     ConfigTour,
     configTour,
   } from "../../../panels/profileCloud/ConfigTour";
   import { moduleOverlay } from "../../../../runtime/moduleOverlay";
-  import { ProfileLoadOverlay } from "./ProfileLoadOverlay";
   import { Grid } from "../../../../lib/_utils";
 
   export let device: GridModule;
   export let visible = false;
 
-  const state = ProfileLoadOverlay.state;
+  let state = ProfileLoad.State.READY;
+  let page = derived([device, user_input], ([$device, $user_input]) =>
+    $device.pages.find((e) => e.pageNumber === $user_input.pagenumber),
+  );
+  let tour: ConfigTour.TourData | undefined;
 
   $: {
     if (visible) {
-      const page = device.findPage($user_input.pagenumber);
-      updateState(page, $selectedConfigStore);
+      updateState($page, $selectedConfigStore);
     }
   }
 
+  $: fetchPage($page, $selectedConfigStore);
+
   function updateState(page: GridPage, selected: any) {
-    if (get(state) === ProfileLoadOverlay.State.BUSY) {
+    if (state === ProfileLoad.State.BUSY) {
       return;
     }
 
     if (typeof selected === "undefined") {
-      state.set(ProfileLoadOverlay.State.ERROR);
+      state = ProfileLoad.State.ERROR;
       return;
     }
 
     const profile = GridProfileData.createFromCloudData(selected);
     const loaded = page.isProfileLoaded(profile);
 
-    if (loaded) {
-      state.set(ProfileLoadOverlay.State.LOADED);
-    } else {
-      state.set(ProfileLoadOverlay.State.READY);
-    }
+    state = loaded ? ProfileLoad.State.LOADED : ProfileLoad.State.READY;
   }
 
   function handleProfileLoad(e) {
     const page = device.findPage(get(user_input).pagenumber);
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
-    loadProfile(profile, page).catch((e) => {
+    loadProfile(profile, page, (status) => {
+      state = status.step;
+    }).catch((e) => {
       console.warn(e);
     });
   }
 
-  $: compatible = (() => {
+  function isCompatible(a: ModuleType, b: ModuleType) {
     let vsn1Modules = [ModuleType.VSN1L, ModuleType.VSN1R];
-    if (vsn1Modules.includes(device?.type)) {
-      return vsn1Modules.includes($selectedConfigStore?.type);
+    if (vsn1Modules.includes(a)) {
+      return vsn1Modules.includes(b);
     } else {
-      return device?.type === $selectedConfigStore?.type;
+      return a === b;
     }
-  })();
+  }
+
+  async function fetchPage(page: GridPage, config: any) {
+    if (typeof config === "undefined") {
+      return;
+    }
+
+    const module = page.parent as GridModule;
+    if (!isCompatible(module.type, config.type)) {
+      return;
+    }
+
+    if (!page.isLoaded()) {
+      await page.load();
+    }
+  }
 
   function handleStartTour() {
+    configTour.set(tour);
     configTour.start();
     handleCloseOverlay();
   }
@@ -81,15 +97,37 @@
     moduleOverlay.close();
   }
 
-  function isTourAvailable(tour: ConfigTour.TourData) {
-    if (tour.steps.length === 0) {
+  function isTourAvailable(page: GridPage, config: any) {
+    const module = page.parent as GridModule;
+    if (config.configType !== "profile") {
       return false;
     }
 
-    const result = device
-      .findPage($user_input.pagenumber)
-      .isProfileLoaded(tour.profile);
-    return result;
+    if (module.type !== config.type) {
+      return false;
+    }
+
+    if (!page.isLoaded()) {
+      return false;
+    }
+
+    const profile = GridProfileData.createFromCloudData(config);
+
+    const actions = page.control_elements.flatMap((e) =>
+      e.events.flatMap((e) =>
+        e.config.filter((e) => {
+          return e.isTourStep();
+        }),
+      ),
+    );
+
+    tour = ConfigTour.Tour.createTourFrom(profile, actions);
+
+    if (typeof tour === "undefined") {
+      return false;
+    }
+
+    return true;
   }
 </script>
 
@@ -102,40 +140,69 @@
         Grid.Rotation.R90 *
           device?.rot}deg); border-radius: var(--grid-rounding);"
     >
-      {#if compatible}
-        <div class="w-fit relative flex flex-col gap-2 items-center">
-          <button
-            on:click={handleProfileLoad}
-            disabled={$state !== ProfileLoadOverlay.State.READY}
-            class="flex flex-row px-4 py-2 rounded"
-            class:loaded-element={$state == ProfileLoadOverlay.State.LOADED}
-            class:element={[
-              ProfileLoadOverlay.State.READY,
-              ProfileLoadOverlay.State.BUSY,
-            ].includes($state)}
-            class:error-element={$state == ProfileLoadOverlay.State.ERROR}
-          >
-            {#if $state === ProfileLoadOverlay.State.READY}
-              <span class="text-white mr-2">Load Profile</span>
-              <SvgIcon fill="#FFF" iconPath={"download"} />
-            {:else if $state === ProfileLoadOverlay.State.BUSY}
-              <span class="text-white mr-2">Loading...</span>
-            {:else if $state === ProfileLoadOverlay.State.LOADED}
-              <span class="text-white">Loaded!</span>
-              <SvgIcon fill="#FFF" iconPath={"tick"} />
-            {:else if $state === ProfileLoadOverlay.State.ERROR}
-              <span class="text-white">Error!</span>
-            {/if}
-          </button>
+      {#if typeof $selectedConfigStore !== "undefined" && isCompatible(device.type, $selectedConfigStore.type)}
+        {#if $page.isLoaded()}
+          <div class="w-fit relative flex flex-col gap-2 items-center">
+            <button
+              on:click={handleProfileLoad}
+              disabled={[
+                ProfileLoad.State.READY,
+                ProfileLoad.State.LOADED,
+              ].includes(state) === false}
+              class="flex flex-row px-4 py-2 rounded"
+              class:loaded-element={state == ProfileLoad.State.LOADED}
+              class:element={[
+                ProfileLoad.State.READY,
+                ProfileLoad.State.BUSY,
+              ].includes(state)}
+              class:error-element={state == ProfileLoad.State.ERROR}
+            >
+              {#if state === ProfileLoad.State.READY}
+                <span class="text-white mr-2">Load Profile</span>
+                <SvgIcon fill="#FFF" iconPath={"download"} />
+              {:else if state === ProfileLoad.State.BUSY}
+                <span class="text-white mr-2">Loading...</span>
+              {:else if state === ProfileLoad.State.LOADED}
+                <span class="text-white mr-2">Re-Load Profile</span>
+                <SvgIcon fill="#FFF" iconPath={"download"} />
+              {:else if state === ProfileLoad.State.ERROR}
+                <span class="text-white">Error!</span>
+              {/if}
+            </button>
 
-          {#if $device && isTourAvailable($configTour) && $configTour.id === $selectedConfigStore?.id}
-            <MoltenPushButton
-              text="Start Tour!"
-              style="accept"
-              click={handleStartTour}
-            />
-          {/if}
-        </div>
+            {#if isTourAvailable($page, $selectedConfigStore) && state !== ProfileLoad.State.BUSY}
+              <MoltenPushButton
+                text="Start Tour!"
+                style="accept"
+                click={handleStartTour}
+              />
+            {/if}
+          </div>
+        {:else}
+          <div class="flex flex-row gap-2 items-center">
+            <span class="text-white">Fetching</span>
+
+            <div class="fill-white opacity-75 animate-spin h-5 w-5">
+              <svg
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="2 2 20 20"
+              >
+                <path
+                  opacity="0.2"
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                  fill="currentColor"
+                ></path>
+                <path
+                  d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        {/if}
       {/if}
     </div>
   {/if}
