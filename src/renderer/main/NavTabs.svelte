@@ -39,7 +39,7 @@
 
 <nav-tab
   style="background-color:rgb(25, 26, 32)"
-  class=" flex px-1 flex-col items-center h-full overflow-y-auto"
+  class=" flex px-1 flex-col items-center h-full overflow-y-auto overflow-x-hidden"
 >
   <button
     data-testid="nav-preferences"
