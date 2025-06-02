@@ -89,3 +89,11 @@ jobs:
         with:
           name: ${{ matrix.os }}-artifact
           path: build/*.*
+
+      - name: Upload arm64.dmg if on macOS
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-dmg
+          path: |
+            $(find build -type f -name "*arm64.dmg" | head -n 1)
