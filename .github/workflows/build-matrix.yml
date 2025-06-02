@@ -90,10 +90,17 @@ jobs:
           name: ${{ matrix.os }}-artifact
           path: build/*.*
 
-      - name: Upload arm64.dmg if on macOS
+      - name: Find arm64.dmg file in build
         if: runner.os == 'macOS'
+        id: find_dmg
+        run: |
+          FILE=$(find build -type f -name "*arm64.dmg" | head -n 1)
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+          echo "name=$(basename "$FILE")" >> $GITHUB_OUTPUT
+
+      - name: Upload arm64.dmg with dynamic name
+        if: runner.os == 'macOS' && steps.find_dmg.outputs.file != ''
         uses: actions/upload-artifact@v4
         with:
-          name: arm64-dmg
-          path: |
-            $(find build -type f -name "*arm64.dmg" | head -n 1)
+          name: ${{ steps.find_dmg.outputs.name }}
+          path: ${{ steps.find_dmg.outputs.file }}
