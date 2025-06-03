@@ -229,8 +229,8 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
         let messageStopIndex = 0;
 
         for (let i = 0; i < rxBuffer.length; i++) {
-          if (rxBuffer[i] === 10) {
-            // newline character found
+          if (rxBuffer[i] === 10 && rxBuffer[i - 3] === 4) {
+            // newline character found and end-of-transmission character found
             messageStopIndex = i;
             let currentMessage = rxBuffer.slice(
               messageStartIndex,
@@ -240,6 +240,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
 
             // Decode the message
             debug_lowlevel_store.push_inbound(currentMessage);
+            console.log(currentMessage);
             let class_array = grid.decode_packet_frame(currentMessage);
             grid.decode_packet_classes(class_array);
 
