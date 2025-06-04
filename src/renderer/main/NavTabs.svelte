@@ -112,7 +112,11 @@
             instant: true,
             class: "px-2 py-1",
             text: packageData.name,
-            triggerEvents: ["focus", "click"],
+            triggerEvents: [
+              "focus",
+              "click",
+              packageData.svgIcon ? "" : "hover",
+            ],
           }}
           on:click={() => {
             changeLeftTab(packageId);
@@ -149,7 +153,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_profile_cloud_icon",
-        triggerEvents: ["focus", "click"],
+        triggerEvents: ["focus", "click", "hover"],
       }}
       on:click={() => {
         changeLeftTab("profile-cloud");
@@ -179,7 +183,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_debugger_icon",
-        triggerEvents: ["focus", "click"],
+        triggerEvents: ["focus", "click", "hover"],
       }}
       on:click={() => {
         changeLeftTab("debug-monitor");
@@ -209,7 +213,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_midi_monitor_icon",
-        triggerEvents: ["focus", "click"],
+        triggerEvents: ["focus", "click", "hover"],
       }}
       on:click={() => {
         changeLeftTab("midi-monitor");
@@ -238,7 +242,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_websocket_monitor_icon",
-        triggerEvents: ["focus", "click"],
+        triggerEvents: ["focus", "click", "hover"],
       }}
       on:click={() => {
         changeLeftTab("websocket-monitor");
