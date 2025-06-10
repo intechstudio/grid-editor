@@ -240,7 +240,6 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
 
             // Decode the message
             debug_lowlevel_store.push_inbound(currentMessage);
-            console.log(currentMessage);
             let class_array = grid.decode_packet_frame(currentMessage);
             grid.decode_packet_classes(class_array);
 
