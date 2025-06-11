@@ -50,7 +50,7 @@
       instant: true,
       class: "px-2 py-1",
       key: "sidebar_preferences_icon",
-      triggerEvents: ["focus", "click"],
+      triggerEvents: ["focus", "click", "hover"],
     }}
     on:click={() => {
       changeLeftTab("Preferences");
@@ -79,7 +79,7 @@
         instant: true,
         class: "px-2 py-1",
         key: "sidebar_packages_icon",
-        triggerEvents: ["focus", "click"],
+        triggerEvents: ["focus", "click", "hover"],
       }}
       on:click={() => {
         changeLeftTab("Packages");
@@ -112,11 +112,7 @@
             instant: true,
             class: "px-2 py-1",
             text: packageData.name,
-            triggerEvents: [
-              "focus",
-              "click",
-              packageData.svgIcon ? "" : "hover",
-            ],
+            triggerEvents: ["focus", "click", "hover"],
           }}
           on:click={() => {
             changeLeftTab(packageId);
