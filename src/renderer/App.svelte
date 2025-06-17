@@ -168,6 +168,7 @@
       }
       case "packages": {
         // refresh packagelist
+        console.log({packages: data.packages});
         const enabledPackages = data.packages.filter(
           (e) => e.status == "Enabled",
         );

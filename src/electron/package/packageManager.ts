@@ -7,6 +7,9 @@ import fetch from "node-fetch";
 import semver from "semver";
 import chokidar from "chokidar";
 import configuration from "../../../configuration.json";
+import Progress from "node-fetch-progress";
+import yauzl from "yauzl";
+import { Transform } from "stream";
 
 interface GithubPackage {
   name: string;
@@ -30,6 +33,8 @@ const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
 );
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
 let localPackages: Map<string, string> = new Map();
+
+let packageInstallProgress: Map<string, number> = new Map();
 
 process.parentPort.on("message", async (e) => {
   try {
@@ -105,7 +110,7 @@ process.parentPort.on("message", async (e) => {
         await removePackage(data.id);
         break;
       case "refresh-package-list":
-        await notifyListener();
+        await refreshInstalledPackagesCache();
         break;
       case "add-local-package":
         await addLocalPackage(data.rootPath);
@@ -263,6 +268,19 @@ async function downloadPackage(packageName: string) {
       e.name.includes(platform),
     ).browser_download_url;
     const response = await fetch(url);
+    
+    try{
+      const progress = new Progress(response, {throttle: 200});
+      progress.on('progress', (p) => {
+        packageInstallProgress.set(packageName, p.progress / 2); //Goes to 0.5 for downloading
+        notifyListener();
+      })
+    } catch(e) {
+      console.error(e);
+      packageInstallProgress.delete(packageName);
+      throw e;
+    }
+
     const filePath = path.join(packageFolder, `${packageName}.zip`);
     const fileStream = fs.createWriteStream(filePath);
     await new Promise((resolve, reject) => {
@@ -284,8 +302,90 @@ async function downloadPackage(packageName: string) {
       }
     });
 
-    const zip = new AdmZip(filePath);
-    zip.extractAllTo(path.join(packageFolder, packageName), true, true);
+    let unzipResolve: (value: unknown) => void;
+    let unzipReject: (reason: any) => void; 
+    let unzipPromise = new Promise((res, rej) => {
+      unzipResolve = res;
+      unzipReject = rej;
+    })
+    yauzl.open(filePath, {lazyEntries: true}, function(err, zipfile) {
+      if (err) unzipReject(err);
+
+      let rootFolder = path.join(packageFolder, packageName);
+      let currentEntryCount = 0;
+      let totalEntryCount = zipfile.entryCount;
+
+      function incrementEntryCount(){
+        currentEntryCount++;
+        let newValue = 0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1);
+        let oldValue = packageInstallProgress.get(packageName);
+
+        if (oldValue && newValue !== 1 && newValue - oldValue < 0.01){
+          return;
+        }
+
+        packageInstallProgress.set(packageName, 0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1));
+        notifyListener();
+      }
+
+      // track when we've closed all our file handles
+      var handleCount = 0;
+      function incrementHandleCount() {
+        handleCount++;
+      }
+      function decrementHandleCount() {
+        handleCount--;
+        if (handleCount === 0) {
+          console.log("all input and output handles closed");
+          unzipResolve(null);
+        }
+      }
+
+      incrementHandleCount();
+      zipfile.on("close", function() {
+        console.log("closed input file");
+        decrementHandleCount();
+      });
+
+      function mkdirp(dir, cb) {
+        if (dir === ".") return cb();
+        fs.stat(dir, function(err) {
+          if (err == null) return cb(); // already exists
+
+          var parent = path.dirname(dir);
+          mkdirp(parent, function() {
+            //console.log(dir.replace(/\/$/, "") + "/\n");
+            fs.mkdir(dir, cb);
+          });
+        });
+      }
+
+      zipfile.readEntry();
+      zipfile.on("entry", function(entry) {
+        if (/\/$/.test(entry.fileName)) {
+          // directory file names end with '/'
+          mkdirp(path.join(rootFolder, entry.fileName), function() {
+            if (err) unzipReject(err);
+            zipfile.readEntry();
+            incrementEntryCount();
+          });
+        } else {
+          // ensure parent directory exists
+          mkdirp(path.join(rootFolder, path.dirname(entry.fileName)), function() {
+            zipfile.openReadStream(entry, function(err, readStream) {
+              if (err) unzipReject(err);
+
+              var writeStream = fs.createWriteStream(path.join(rootFolder, entry.fileName));
+              incrementHandleCount();
+              writeStream.on("close", decrementHandleCount);
+              readStream.pipe(writeStream).on("finish", () => { zipfile.readEntry() });
+              incrementEntryCount();
+            });
+          });
+        }
+      });
+    });
+    await unzipPromise;
     fs.unlinkSync(filePath);
   } catch (e) {
     if (customGithubPackageList.has(packageName)) {
@@ -306,6 +406,7 @@ async function downloadPackage(packageName: string) {
     });
   } finally {
     downloadingPackages.delete(packageName);
+    packageInstallProgress.delete(packageName);
     notifyListener();
   }
 }
@@ -390,9 +491,23 @@ async function addLocalPackage(rootPath: string) {
   }
 }
 
-async function notifyListener() {
-  const packages = await getAvailablePackages();
+function notifyListener() {
+  const packages = getAvailablePackages();
   process.parentPort?.postMessage({ type: "packages", packages: packages });
+}
+
+let cachedInstalledPackages : {
+    packageId: string;
+    packageName: string;
+    componentsPath?: string;
+    preferenceComponent?: string;
+    packageVersion?: string;
+    loadable: boolean;
+  }[] = [];
+
+async function refreshInstalledPackagesCache() {
+  cachedInstalledPackages = await getInstalledPackages();
+  notifyListener();
 }
 
 async function getInstalledPackages(): Promise<
@@ -469,19 +584,19 @@ function getPackageStatus(
 ): PackageStatus {
   if (Object.keys(currentlyLoadedPackages).includes(packageId)) {
     return PackageStatus.Enabled;
+  } else if (downloadingPackages.has(packageId)) {
+    return PackageStatus.Downloading;
   } else if (
     installedPackages.filter((e) => e.packageId === packageId).length > 0
   ) {
     return PackageStatus.Downloaded;
-  } else if (downloadingPackages.has(packageId)) {
-    return PackageStatus.Downloading;
   } else {
     return PackageStatus.Uninstalled;
   }
 }
 
-async function getAvailablePackages() {
-  let installedPackages = await getInstalledPackages();
+function getAvailablePackages() {
+  let installedPackages = cachedInstalledPackages;
 
   const packageList: {
     id: string;
@@ -494,6 +609,7 @@ async function getAvailablePackages() {
     uninstallable: boolean;
     loadable: boolean;
     canUpdate: boolean;
+    installProgress?: number;
   }[] = [];
   let githubPackageList = new Map([
     ...recommendedGithubPackageList.entries(),
@@ -522,6 +638,7 @@ async function getAvailablePackages() {
           githubPackageList.get(_package.packageId)!.version!,
           _package.packageVersion,
         ),
+      installProgress: packageInstallProgress.get(_package.packageId),
     });
   }
   githubPackageList.forEach((entry, key) => {
@@ -535,6 +652,7 @@ async function getAvailablePackages() {
       uninstallable: true,
       removable: !recommendedGithubPackageList.has(key),
       loadable: false,
+      installProgress: packageInstallProgress.get(key),
     });
   });
   currentPackageList = packageList;
@@ -608,10 +726,10 @@ function startPackageDirectoryWatcher(path: string): void {
   });
 
   directoryWatcher
-    .on("add", notifyListener)
-    .on("change", notifyListener)
-    .on("unlink", notifyListener)
-    .on("addDir", notifyListener)
-    .on("unlinkDir", notifyListener)
-    .on("ready", notifyListener);
+    .on("add", refreshInstalledPackagesCache)
+    .on("change", refreshInstalledPackagesCache)
+    .on("unlink", refreshInstalledPackagesCache)
+    .on("addDir", refreshInstalledPackagesCache)
+    .on("unlinkDir", refreshInstalledPackagesCache)
+    .on("ready", refreshInstalledPackagesCache);
 }
