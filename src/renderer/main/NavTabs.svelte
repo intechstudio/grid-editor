@@ -46,8 +46,7 @@
     use:tooltip={{
       nowrap: true,
       placement: "right",
-      duration: 75,
-      instant: true,
+      delay: 100,
       class: "px-2 py-1",
       key: "sidebar_preferences_icon",
       triggerEvents: ["focus", "click", "hover"],
@@ -76,7 +75,7 @@
       use:tooltip={{
         nowrap: true,
         placement: "right",
-        instant: true,
+        delay: 100,
         class: "px-2 py-1",
         key: "sidebar_packages_icon",
         triggerEvents: ["focus", "click", "hover"],
@@ -108,8 +107,7 @@
           use:tooltip={{
             nowrap: true,
             placement: "right",
-            duration: 75,
-            instant: true,
+            delay: 100,
             class: "px-2 py-1",
             text: packageData.name,
             triggerEvents: ["focus", "click", "hover"],
@@ -145,8 +143,7 @@
       use:tooltip={{
         nowrap: true,
         placement: "right",
-        duration: 75,
-        instant: true,
+        delay: 100,
         class: "px-2 py-1",
         key: "sidebar_profile_cloud_icon",
         triggerEvents: ["focus", "click", "hover"],
@@ -175,8 +172,7 @@
       use:tooltip={{
         nowrap: true,
         placement: "right",
-        duration: 75,
-        instant: true,
+        delay: 100,
         class: "px-2 py-1",
         key: "sidebar_debugger_icon",
         triggerEvents: ["focus", "click", "hover"],
@@ -205,8 +201,7 @@
       use:tooltip={{
         nowrap: true,
         placement: "right",
-        duration: 75,
-        instant: true,
+        delay: 100,
         class: "px-2 py-1",
         key: "sidebar_midi_monitor_icon",
         triggerEvents: ["focus", "click", "hover"],
@@ -234,8 +229,7 @@
       use:tooltip={{
         nowrap: true,
         placement: "right",
-        duration: 75,
-        instant: true,
+        delay: 100,
         class: "px-2 py-1",
         key: "sidebar_websocket_monitor_icon",
         triggerEvents: ["focus", "click", "hover"],
