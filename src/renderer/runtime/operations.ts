@@ -19,9 +19,11 @@ import {
   GridPresetData,
   GridSnippetData,
   SnippetLoadResult,
+  ProfileLoad,
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
+import { ConfigTour, configTour } from "../main/panels/profileCloud/ConfigTour";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -354,14 +356,18 @@ export async function replaceAction(
     });
 }
 
-export async function loadProfile(profile: GridProfileData, target: GridPage) {
+export async function loadProfile(
+  profile: GridProfileData,
+  target: GridPage,
+  setStatus?: (status: ProfileLoad.Status) => void,
+) {
   Analytics.track({
     event: "Pro file Load Start",
     payload: {},
     mandatory: false,
   });
-  target
-    .loadProfile(profile)
+  return target
+    .loadProfile(profile, setStatus)
     .then(() => {
       const ui = get(user_input);
       const module = target.parent as GridModule;
@@ -374,10 +380,22 @@ export async function loadProfile(profile: GridProfileData, target: GridPage) {
           eventtype: ui.eventtype,
         });
       }
+
+      const actions = (target as GridPage).control_elements.flatMap((e) =>
+        e.events.flatMap((e) =>
+          e.config.filter((e) => {
+            return e.isTourStep();
+          }),
+        ),
+      );
+
+      const tour = ConfigTour.Tour.createTourFrom(profile, actions);
+      configTour.set(tour);
       return Promise.resolve();
     })
     .catch((e) => {
       handleError(e);
+      configTour.clear();
       return Promise.reject(e);
     })
     .finally(() => {
@@ -417,6 +435,7 @@ export async function loadPreset(
     })
     .catch((e) => {
       handleError(e);
+      configTour.clear();
       return Promise.reject(e);
     })
     .finally(() => {
@@ -442,6 +461,7 @@ export async function loadSnippet(
   return target
     .loadSnippet(snippet, index)
     .catch((e) => {
+      configTour.clear();
       handleError(e);
     })
     .finally(() => {
