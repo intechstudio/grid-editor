@@ -58,12 +58,6 @@ export class MessageStream {
   }
 
   private update_elementPositionStore(descr) {
-    if (descr.class_parameters.EVENTTYPE == 3) {
-      // button change must not be registered
-
-      return;
-    }
-
     let eps = get(this.runtime.elementPositionStore);
 
     if (eps[descr.brc_parameters.SX] === undefined) {

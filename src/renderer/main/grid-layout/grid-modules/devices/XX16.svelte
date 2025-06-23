@@ -7,6 +7,7 @@
   import Led from "../elements/Led.svelte";
 
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
+  import SquareButton from "../elements/SquareButton.svelte";
 
   export let moduleWidth;
   export let device: GridModule;
@@ -107,9 +108,26 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            {#if moduleType !== ModuleType.BU16 || device.revision !== "RevH"}
+              <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            {/if}
             {#if moduleType === ModuleType.BU16}
-              <Btn {elementNumber} size={2.1} />
+              {#if device.revision === "RevH"}
+                <SquareButton
+                  {elementNumber}
+                  size={4.2}
+                  value={elementposition_array[elementNumber][1]}
+                >
+                  <div
+                    class="absolute left-1/2 -translate-x-1/2 top-0"
+                    style="margin-top: 4px;"
+                  >
+                    <Led color={ledcolor_array[elementNumber]} size={2.1} />
+                  </div>
+                </SquareButton>
+              {:else}
+                <Btn {elementNumber} size={2.1} />
+              {/if}
             {:else if moduleType === ModuleType.PO16}
               <Potentiometer
                 {id}
