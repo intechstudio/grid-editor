@@ -82,7 +82,8 @@
 </script>
 
 <div
-  class="bg-primary flex flex-col h-full w-full text-white px-4 py-4 overflow-y-auto"
+  style="background-color: var(--background)"
+  class="flex flex-col h-full w-full px-4 py-4 overflow-y-auto"
 >
   <MeltSelect
     bind:target={activePreferenceMenu}
