@@ -81,10 +81,7 @@
   let activePreferenceMenu = PreferenceMenu.GENERAL;
 </script>
 
-<div
-  style="background-color: var(--background)"
-  class="flex flex-col h-full w-full px-4 py-4 overflow-y-auto"
->
+<div class="flex flex-col h-full w-full px-4 py-4 overflow-y-auto">
   <MeltSelect
     bind:target={activePreferenceMenu}
     options={menuItems}

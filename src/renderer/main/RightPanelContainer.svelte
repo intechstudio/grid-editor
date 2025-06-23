@@ -18,7 +18,10 @@
 </script>
 
 <div class="w-full h-full" use:watchResize={resize}>
-  <div class="h-full">
+  <div
+    style="background-color: var(--background); color: var(--foreground);"
+    class="h-full"
+  >
     {#if $appSettings.rightPanel == "Configuration"}
       <Configuration />
     {:else if $appSettings.rightPanel == "Preferences"}
