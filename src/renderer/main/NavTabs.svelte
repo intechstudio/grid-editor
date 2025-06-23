@@ -103,38 +103,40 @@
         (e) => e.id == packageId,
       )}
       {#if packageData?.preferenceComponent || packageData?.svgIcon}
-        <button
-          use:tooltip={{
-            nowrap: true,
-            placement: "right",
-            delay: 100,
-            class: "px-2 py-1",
-            text: packageData.name,
-            triggerEvents: ["focus", "click", "hover"],
-          }}
-          on:click={() => {
-            changeLeftTab(packageId);
-          }}
-          class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-            packageId && $splitpanes.left.size != 0
-            ? 'bg-opacity-100 '
-            : 'bg-opacity-40 '} bg-secondary activator-button"
-        >
-          <div class="w-full h-full p-1.5 text-white fill-current">
-            {#if packageData.svgIcon}
-              {@html menuIcons[packageData.svgIcon]}
-            {:else}
-              {@html menuIcons["menu_package_general"]}
-            {/if}
-          </div>
-
-          <div
-            class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
+        {#key packageId}
+          <button
+            use:tooltip={{
+              nowrap: true,
+              placement: "right",
+              delay: 100,
+              class: "px-2 py-1",
+              text: packageData.name,
+              triggerEvents: ["focus", "click", "hover"],
+            }}
+            on:click={() => {
+              changeLeftTab(packageId);
+            }}
+            class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
               packageId && $splitpanes.left.size != 0
-              ? 'h-8'
-              : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-          />
-        </button>
+              ? 'bg-opacity-100 '
+              : 'bg-opacity-40 '} bg-secondary activator-button"
+          >
+            <div class="w-full h-full p-1.5 text-white fill-current">
+              {#if packageData.svgIcon}
+                {@html menuIcons[packageData.svgIcon]}
+              {:else}
+                {@html menuIcons["menu_package_general"]}
+              {/if}
+            </div>
+
+            <div
+              class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
+                packageId && $splitpanes.left.size != 0
+                ? 'h-8'
+                : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+            />
+          </button>
+        {/key}
       {/if}
     {/each}
   {:else}
