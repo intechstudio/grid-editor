@@ -230,14 +230,6 @@ export class MessageStream {
       }
 
       if (class_descr.class_name === "DEBUGTEXT") {
-        try {
-          const decoded = atob(class_descr.class_parameters.TEXT);
-          console.log(decoded);
-          class_descr.class_parameters.TEXT = decoded;
-        } catch (e) {
-          console.warn("Invalid Base64 string:", e); // Error decoding Base64: InvalidCharacterError: Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.
-        }
-
         debug_monitor_store.update_debugtext(class_descr);
         const text = class_descr.class_parameters.TEXT;
         const [sx, sy] = [
@@ -332,7 +324,7 @@ export class MessageStream {
         const active = get(runtime_manager).active.runtime;
         // engine is enabled
         if (
-          get(this._buffer).length === 0 &&
+          get(this._buffer).array.length === 0 &&
           this.runtime.id === get(active).id
         ) {
           // update active element selection

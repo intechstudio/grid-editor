@@ -36,19 +36,18 @@
     const [dx, dy] = [selectedModule.dx, selectedModule.dy];
     active.destroy_module(dx, dy);
   }
+
+  function handleCloseOverlay() {
+    selectedConfigStore.set(undefined);
+    moduleOverlay.close();
+  }
 </script>
 
-<div class="{$$props.class} flex flex-col items-center gap-2">
+<div class="flex flex-col items-center gap-2">
   <Pages />
   <div class="flex flex-row gap-2">
     {#if typeof $moduleOverlay !== "undefined"}
-      <MoltenPushButton
-        text="Close Overlay"
-        click={() => {
-          selectedConfigStore.set(undefined);
-          moduleOverlay.close();
-        }}
-      />
+      <MoltenPushButton text="Close Overlay" click={handleCloseOverlay} />
     {/if}
     {#if selectedModule?.architecture === Architecture.VIRTUAL}
       <MoltenPushButton
