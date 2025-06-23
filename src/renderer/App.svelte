@@ -3,6 +3,7 @@
 
   import "./preload-window-config";
 
+  import "@intechstudio/grid-uikit/theme.css";
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
@@ -61,6 +62,14 @@
     }
 
     name = $appSettings.persistent.helperName;
+  }
+
+  $: handleColorModeChange($appSettings.persistent.lightMode);
+  function handleColorModeChange(value: boolean) {
+    document.documentElement.setAttribute(
+      "color-scheme",
+      value ? "light" : "dark",
+    );
   }
 
   function resize() {

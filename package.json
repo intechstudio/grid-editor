@@ -58,7 +58,7 @@
     "firebase": "^11.4.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
-    "marked": "^15.0.11",
+    "marked": "^15.0.12",
     "mixpanel-browser": "^2.47.0",
     "monaco-editor": "^0.34.0",
     "monaco-types": "^0.1.0",

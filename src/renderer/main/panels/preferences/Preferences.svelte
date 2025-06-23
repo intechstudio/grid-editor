@@ -318,6 +318,16 @@
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
+      <BlockTitle>Enable light mode</BlockTitle>
+      <BlockBody
+        >An experimental mode to set the color scheme to light mode.</BlockBody
+      >
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.lightMode}
+        title={"Enabled"}
+      />
+    </Block>
+    <Block>
       <BlockTitle>Multi Event View</BlockTitle>
       <BlockBody
         >This feature allows editing all events of a Grid control element. Once

@@ -57,6 +57,7 @@ const persistentDefaultValues = {
   colorPicker: ColorPickerModel.Circle,
   allowDevBlocks: false,
   lastActiveVersion: undefined,
+  lightMode: false,
 };
 
 function createSplitPanes() {
