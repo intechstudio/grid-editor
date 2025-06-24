@@ -25,7 +25,6 @@ const persistentDefaultValues = {
   githubPackages: {},
   localPackages: {},
   keyboardLayout: "",
-  websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
   writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
@@ -57,6 +56,7 @@ const persistentDefaultValues = {
   multiViewEnabled: false,
   colorPicker: ColorPickerModel.Circle,
   allowDevBlocks: false,
+  lastActiveVersion: undefined,
   lightMode: false,
 };
 
@@ -108,9 +108,8 @@ function createAppSettingsStore(persistent) {
     selectedDisplay: "",
     layoutMode: false,
     preferences: false,
-    rightPanel: "Configuration",
     rightPanelVisible: true,
-    leftPanel: "ProfileCloud",
+    leftPanel: undefined,
     leftPanelVisible: true,
     isMultiView: false,
     trayState: false,
@@ -135,6 +134,7 @@ function createAppSettingsStore(persistent) {
     packageManagerRunning: false,
     developerPackagesRequested: [],
     packageComponentKeys: {},
+    packageDebugLogs: [],
     gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
