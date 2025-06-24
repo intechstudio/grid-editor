@@ -23,7 +23,11 @@
 </script>
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
-<div class="w-full h-full" use:watchResize={resize}>
+<div
+  style="background-color: var(--background); color: var(--foreground);"
+  class="w-full h-full"
+  use:watchResize={resize}
+>
   {#if leftPanel == "Preferences"}
     <Preferences />
   {:else if leftPanel == "Packages"}
@@ -39,7 +43,7 @@
       (e) => e.id === leftPanel,
     )}
     {#if preference?.preferenceComponent}
-      <div class="w-full h-full overflow-y-auto flex flex-col bg-primary">
+      <div class="w-full h-full overflow-y-auto flex flex-col">
         {#key $appSettings.packageComponentKeys[leftPanel]}
           <svelte:element this={preference.preferenceComponent} class="m-2" />
         {/key}

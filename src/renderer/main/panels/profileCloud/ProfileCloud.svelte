@@ -460,7 +460,7 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<div class="flex flex-col bg-primary w-full h-full relative">
+<div class="flex flex-col w-full h-full relative">
   {#if !profileCloudIsMounted}
     <div class="flex items-center justify-center h-full absolute">
       <div class="p-4">
