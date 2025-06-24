@@ -124,7 +124,7 @@
   }
 </script>
 
-<config-debug class="w-full h-full flex flex-col p-4 z-10 bg-primary">
+<config-debug class="w-full h-full flex flex-col p-4 z-10">
   <div class="text-white">
     Editor v{$appSettings.version.major}.{$appSettings.version
       .minor}.{$appSettings.version.patch}

@@ -80,14 +80,15 @@
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
 </script>
+
 <div class="flex flex-col h-full w-full px-2 py-2 overflow-y-auto">
- 
-<Block> <MeltSelect
-    bind:target={activePreferenceMenu}
-    options={menuItems}
-    disabled={false}
-  /><span></span>
-</Block>
+  <Block>
+    <MeltSelect
+      bind:target={activePreferenceMenu}
+      options={menuItems}
+      disabled={false}
+    /><span></span>
+  </Block>
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
       <BlockTitle>Control surface rotation</BlockTitle>
@@ -403,7 +404,7 @@
         bind:target={$appSettings.persistent.nightlyFirmware}
         title={"Enabled"}
       />
-    {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
+      {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
         <BlockTitle>Nightly Editor Update</BlockTitle>
         <BlockBody>
           The Nightly Firmware version contains new, but potentially unstable
@@ -414,7 +415,7 @@
           bind:target={$appSettings.persistent.nightlyEditor}
           title={"Enabled"}
         />
-    {/if}
+      {/if}
 
       <!-- Radio Select for profileCloudUrl -->
 
