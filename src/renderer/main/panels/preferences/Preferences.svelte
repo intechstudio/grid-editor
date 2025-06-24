@@ -80,14 +80,14 @@
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
 </script>
-
-<div class="flex flex-col h-full w-full px-4 py-4 overflow-y-auto">
-  <MeltSelect
+<div class="flex flex-col h-full w-full px-2 py-2 overflow-y-auto">
+ 
+<Block> <MeltSelect
     bind:target={activePreferenceMenu}
     options={menuItems}
     disabled={false}
-  />
-
+  /><span></span>
+</Block>
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
       <BlockTitle>Control surface rotation</BlockTitle>
@@ -105,9 +105,7 @@
           { title: "270°", value: Grid.Rotation.R270 },
         ]}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Controller scaling</BlockTitle>
       <BlockBody>Size of the controllers in the application.</BlockBody>
       <BlockRow>
@@ -124,9 +122,7 @@
           }}
         />
       </BlockRow>
-    </Block>
 
-    <Block>
       <BlockTitle>Action Block Helpers</BlockTitle>
       <BlockBody
         >Composite action blocks have text helpers and Add buttons, that can be
@@ -136,18 +132,14 @@
         bind:target={$appSettings.persistent.actionHelperText}
         title={"Enabled"}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Colorful Toolbar</BlockTitle>
       <BlockBody>Display the colors of the toolbar button by default</BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.colorfulToolbar}
         title={"Enabled"}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Scale UI</BlockTitle>
       <BlockBody
         >Scales the font size and control elements dimensions by keeping their
@@ -167,9 +159,7 @@
           }}
         />
       </BlockRow>
-    </Block>
 
-    <Block>
       <BlockTitle>Show PCB</BlockTitle>
       <BlockBody>
         When selecting the system element of a module, it's underlaying PCB
@@ -179,9 +169,7 @@
         bind:target={$appSettings.persistent.showPCB}
         title={"Enabled"}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Editable Block Names</BlockTitle>
       <BlockBody
         >Blocks can display custom names instead of the block names.</BlockBody
@@ -190,9 +178,7 @@
         bind:target={$appSettings.persistent.editableBlockNames}
         title={"Enabled"}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Animations</BlockTitle>
       <BlockBody
         >Transition animations can be disabled to improve usability and
@@ -217,9 +203,7 @@
           },
         ]}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Welcome screen</BlockTitle>
       <BlockBody
         >News and quick links are shown every time you launch Grid Editor.</BlockBody
@@ -228,9 +212,7 @@
         bind:target={$appSettings.persistent.welcomeOnStartup}
         title={"Show welcome screen"}
       />
-    </Block>
 
-    <Block>
       <BlockTitle>Run application in background</BlockTitle>
       <BlockBody>
         Change what happens when you close the application window. Some
@@ -251,7 +233,7 @@
       />
     </Block>
 
-    <Block border={"yellow-500"}>
+    <Block border={"orange"}>
       <BlockTitle>Reset settings</BlockTitle>
       <BlockBody>
         Reset all preferences settings to their default values. This will not
@@ -273,8 +255,7 @@
         promptly respond to failing services. This analytics data is
         automatically captured when Editor has access to the internet.
       </BlockBody>
-    </Block>
-    <Block>
+
       <BlockTitle>Use data to improve Editor</BlockTitle>
       <BlockBody>
         Using your interactions with the Editor software we can get insight how
@@ -324,8 +305,6 @@
         bind:target={$appSettings.persistent.lightMode}
         title={"Enabled"}
       />
-    </Block>
-    <Block>
       <BlockTitle>Multi Event View</BlockTitle>
       <BlockBody
         >This feature allows editing all events of a Grid control element. Once
@@ -336,8 +315,6 @@
         bind:target={$appSettings.persistent.multiViewEnabled}
         title={"Enabled"}
       />
-    </Block>
-    <Block>
       <BlockTitle>NVM Defrag</BlockTitle>
       <BlockBody>
         Defragment the NVM memory of the module. This will take some time.
@@ -348,8 +325,6 @@
           runtime_manager.NVMDefrag();
         }}
       />
-    </Block>
-    <Block>
       <BlockTitle>NVM Erase</BlockTitle>
       <BlockBody>
         Erase the NVM memory of the module. This will take some time.
@@ -360,9 +335,6 @@
           runtime_manager.NVMErase();
         }}
       />
-    </Block>
-
-    <Block>
       <BlockTitle>Unreleased Virtual Modules</BlockTitle>
       <BlockBody>Enable/Disable adding unrelease virtual modules.</BlockBody>
 
@@ -370,9 +342,6 @@
         bind:target={$appSettings.persistent.unreleasedVirtualModules}
         title={"Activate unreleased modules"}
       />
-    </Block>
-
-    <Block>
       <BlockTitle>Unreleased Action Blocks</BlockTitle>
       <BlockBody>Enable/Disable adding unrelease action blocks.</BlockBody>
 
@@ -380,9 +349,6 @@
         bind:target={$appSettings.persistent.allowDevBlocks}
         title={"Enabled"}
       />
-    </Block>
-
-    <Block>
       <BlockTitle>Websocket monitor</BlockTitle>
       <BlockBody>
         Enable/Disable the websocket monitor. This will show the websocket
@@ -393,9 +359,6 @@
         bind:target={$appSettings.persistent.websocketMonitorEnabled}
         title={"Activate websocket monitor"}
       />
-    </Block>
-
-    <Block>
       <BlockTitle>Port state overlay</BlockTitle>
       <BlockBody>
         Enable/Disable the port state overlay. This will show the port state on
@@ -414,9 +377,6 @@
         bind:target={$appSettings.persistent.writeBufferDebugEnabled}
         title={"writeBuffer debug state"}
       />
-    </Block>
-
-    <Block>
       <BlockTitle>Graph based debugging</BlockTitle>
       <BlockBody>Enable/Disable heartbeat debug graphs</BlockBody>
       <MeltCheckbox
@@ -432,9 +392,6 @@
         bind:target={$appSettings.persistent.sendHeartbeatImmediate}
         title={"Send heartbeat immediate"}
       />
-    </Block>
-
-    <Block>
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>
         The Nightly Firmware version contains new, but potentially unstable
@@ -444,10 +401,7 @@
         bind:target={$appSettings.persistent.nightlyFirmware}
         title={"Enabled"}
       />
-    </Block>
-
     {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
-      <Block>
         <BlockTitle>Nightly Editor Update</BlockTitle>
         <BlockBody>
           The Nightly Firmware version contains new, but potentially unstable
@@ -458,10 +412,8 @@
           bind:target={$appSettings.persistent.nightlyEditor}
           title={"Enabled"}
         />
-      </Block>
     {/if}
 
-    <Block>
       <!-- Radio Select for profileCloudUrl -->
 
       <BlockTitle>Profile cloud URL</BlockTitle>
@@ -484,9 +436,7 @@
           },
         ]}
       />
-    </Block>
 
-    <Block>
       <!-- Checkbox for packageDeveloper -->
 
       <BlockTitle>Package Developer Mode</BlockTitle>
