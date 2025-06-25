@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ModuleType } from "@intechstudio/grid-protocol";
 
-  import Btn from "../elements/Btn.svelte";
+  import Button from "../elements/Button.svelte";
   import Encoder from "../elements/Encoder.svelte";
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
@@ -108,25 +108,20 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            {#if moduleType !== ModuleType.BU16 || device.revision !== "RevH"}
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            {/if}
             {#if moduleType === ModuleType.BU16}
               {#if device.revision === "RevH"}
                 <SquareButton
                   {elementNumber}
                   size={4.2}
                   value={elementposition_array[elementNumber][1]}
-                >
-                  <div
-                    class="absolute left-1/2 -translate-x-1/2 top-0"
-                    style="margin-top: 4px;"
-                  >
-                    <Led color={ledcolor_array[elementNumber]} size={2.1} />
-                  </div>
-                </SquareButton>
+                  color={ledcolor_array[elementNumber]}
+                />
               {:else}
-                <Btn {elementNumber} size={2.1} />
+                <Button
+                  {elementNumber}
+                  size={2.1}
+                  color={ledcolor_array[elementNumber]}
+                />
               {/if}
             {:else if moduleType === ModuleType.PO16}
               <Potentiometer
@@ -134,9 +129,14 @@
                 {elementNumber}
                 position={elementposition_array[elementNumber][1]}
                 size={2.1}
+                color={ledcolor_array[elementNumber]}
               />
             {:else if moduleType === ModuleType.EN16}
-              <Encoder {elementNumber} size={2.1} />
+              <Encoder
+                {elementNumber}
+                size={2.1}
+                color={ledcolor_array[elementNumber]}
+              />
             {/if}
           </div>
           <div class="normal-cell-overlay-container">

@@ -15,29 +15,62 @@
   import { runtime_manager } from "../../runtime/runtime-manager.store";
 
   let devices = [
-    { id: ModuleType.BU16, type: ModuleType.BU16, component: XX16 },
-    { id: ModuleType.EF44, type: ModuleType.EF44, component: EF44 },
-    { id: ModuleType.EN16, type: ModuleType.EN16, component: XX16 },
-    { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
-    { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
-    { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
+    {
+      id: ModuleType.BU16,
+      type: ModuleType.BU16,
+      component: XX16,
+      revision: "RevH",
+    },
+    {
+      id: ModuleType.EF44,
+      type: ModuleType.EF44,
+      component: EF44,
+      revision: "RevH",
+    },
+    {
+      id: ModuleType.EN16,
+      type: ModuleType.EN16,
+      component: XX16,
+      revision: "RevH",
+    },
+    {
+      id: ModuleType.PBF4,
+      type: ModuleType.PBF4,
+      component: PBF4,
+      revision: "RevH",
+    },
+    {
+      id: ModuleType.PO16,
+      type: ModuleType.PO16,
+      component: XX16,
+      revision: "RevH",
+    },
+    {
+      id: ModuleType.TEK2,
+      type: ModuleType.TEK2,
+      component: VSNX,
+      revision: "RevH",
+    },
     {
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
       component: VSNX,
       unrelease: true,
+      revision: "RevH",
     },
     {
       id: ModuleType.VSN1R,
       type: ModuleType.VSN1R,
       component: VSNX,
       unrelease: true,
+      revision: "RevH",
     },
     {
       id: ModuleType.VSN2,
       type: ModuleType.VSN2,
       component: VSNX,
       unrelease: true,
+      revision: "RevH",
     },
   ];
 

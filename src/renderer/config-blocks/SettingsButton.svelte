@@ -122,6 +122,8 @@
     [
       { value: "0", info: "Momentary" },
       { value: "1", info: "Toggle" },
+      { value: "-2", info: "Pressure" },
+      { value: "-1", info: "Velocity" },
       { value: "2", info: "3-step" },
       { value: "3", info: "4-step" },
     ],
