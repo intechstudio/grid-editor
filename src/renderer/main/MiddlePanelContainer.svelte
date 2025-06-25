@@ -101,7 +101,7 @@
     {/if}
 
     <div
-      class="absolute top-0 w-fit self-center mt-10 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
     >
       {#if showModuleHangingDialog}
         <ModuleHangingDialog />

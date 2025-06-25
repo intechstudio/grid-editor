@@ -1,6 +1,5 @@
 <script>
   import Configuration from "./panels/configuration/Configuration.svelte";
-  import Preferences from "./panels/preferences/Preferences.svelte";
   import MidiMonitor from "./panels/MidiMonitor/MidiMonitor.svelte";
 
   import { appSettings } from "../runtime/app-helper.store";
@@ -19,10 +18,6 @@
 
 <div class="w-full h-full" use:watchResize={resize}>
   <div class="h-full">
-    {#if $appSettings.rightPanel == "Configuration"}
-      <Configuration />
-    {:else if $appSettings.rightPanel == "Preferences"}
-      <Preferences />
-    {/if}
+    <Configuration />
   </div>
 </div>

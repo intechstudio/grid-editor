@@ -385,19 +385,6 @@
     </Block>
 
     <Block>
-      <BlockTitle>Websocket monitor</BlockTitle>
-      <BlockBody>
-        Enable/Disable the websocket monitor. This will show the websocket
-        messages in the console and add the websocket panel.
-      </BlockBody>
-
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.websocketMonitorEnabled}
-        title={"Activate websocket monitor"}
-      />
-    </Block>
-
-    <Block>
       <BlockTitle>Port state overlay</BlockTitle>
       <BlockBody>
         Enable/Disable the port state overlay. This will show the port state on

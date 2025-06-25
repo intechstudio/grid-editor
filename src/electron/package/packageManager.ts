@@ -18,6 +18,11 @@ interface GithubPackage {
   version?: string;
 }
 
+interface EditorPackage {
+  name: string;
+  svgIcon?: string;
+}
+
 enum PackageStatus {
   Uninstalled = "Uninstalled",
   Downloading = "Downloading",
@@ -27,6 +32,7 @@ enum PackageStatus {
 
 let packageFolder: string = "";
 let editorVersion: string = "";
+let shuttingDown: boolean = false;
 
 const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
   Object.entries(configuration.RECOMMENDED_PACKAGES),
@@ -35,6 +41,10 @@ let customGithubPackageList: Map<string, GithubPackage> = new Map();
 let localPackages: Map<string, string> = new Map();
 
 let packageInstallProgress: Map<string, number> = new Map();
+
+const editorPackages: Map<string, EditorPackage> = new Map(
+  Object.entries(configuration.EDITOR_PACKAGES),
+);
 
 process.parentPort.on("message", async (e) => {
   try {
@@ -64,6 +74,7 @@ process.parentPort.on("message", async (e) => {
         break;
       }
       case "stop-package-manager": {
+        shuttingDown = true;
         await stopPackageManager();
         process.parentPort.postMessage({ type: "shutdown-complete" });
         break;
@@ -72,6 +83,7 @@ process.parentPort.on("message", async (e) => {
         if (!currentlyLoadedPackages[e.data.id]) {
           process.parentPort?.postMessage({
             type: "debug-error",
+            packageId: e.data.id,
             message:
               "Package not loaded " +
               e.data.id +
@@ -125,8 +137,7 @@ process.parentPort.on("message", async (e) => {
         if (customGithubPackageList.has(data.id)) {
           process.parentPort?.postMessage({
             type: "persist-github-package",
-            id: data.id,
-            packageName: data.packageName,
+            packageId: data.id,
             gitHubRepositoryOwner: data.gitHubRepositoryOwner,
             gitHubRepositoryName: data.gitHubRepositoryName,
           });
@@ -140,6 +151,7 @@ process.parentPort.on("message", async (e) => {
         if (!currentlyLoadedPackages[packageId]) {
           process.parentPort?.postMessage({
             type: "debug-error",
+            packageId: packageId,
             message:
               "Package not loaded " +
               packageId +
@@ -174,6 +186,7 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
         currentPackageList[packageIndex].status = PackageStatus.Downloaded;
         process.parentPort?.postMessage({
           type: "debug-error",
+          packageId: packageName,
           error: `Received uncaught exception from package: ${packageName}, error: ${err}`,
         });
       }
@@ -203,29 +216,36 @@ async function loadPackage(packageName: string, persistedData: any) {
       return;
     }
 
-    const packageDirectory: string =
-      localPackages.get(packageName) ?? path.join(packageFolder, packageName);
+    if (editorPackages.has(packageName)) {
+      currentlyLoadedPackages[packageName] = {
+        unloadPackage: async function () {},
+      };
+    } else {
+      const packageDirectory: string =
+        localPackages.get(packageName) ?? path.join(packageFolder, packageName);
 
-    let name = require.resolve(packageDirectory);
-    delete require.cache[name];
+      let name = require.resolve(packageDirectory);
+      delete require.cache[name];
 
-    const _package = require(packageDirectory);
-    await _package.loadPackage(
-      {
-        sendMessageToEditor: (payload) => {
-          process.parentPort?.postMessage({
-            packageId: packageName,
-            ...payload,
-          });
+      const _package = require(packageDirectory);
+      await _package.loadPackage(
+        {
+          sendMessageToEditor: (payload) => {
+            process.parentPort?.postMessage({
+              packageId: packageName,
+              ...payload,
+            });
+          },
         },
-      },
-      persistedData,
-    );
-    currentlyLoadedPackages[packageName] = _package;
-    haveBeenLoadedPackages.add(packageName);
+        persistedData,
+      );
+      currentlyLoadedPackages[packageName] = _package;
+      haveBeenLoadedPackages.add(packageName);
+    }
     notifyListener();
   } catch (e) {
     process.parentPort?.postMessage({
+      packageId: packageName,
       type: "debug-error",
       error: e.message,
     });
@@ -391,16 +411,18 @@ async function downloadPackage(packageName: string) {
     if (customGithubPackageList.has(packageName)) {
       customGithubPackageList.delete(packageName);
       process.parentPort?.postMessage({
+        packageId: packageName,
         type: "show-message",
         message: "Couldn't find package archive, removed from list!",
         messageType: "fail",
       });
     }
     process.parentPort?.postMessage({
+      packageId: packageName,
       type: "remove-github-package",
-      id: packageName,
     });
     process.parentPort?.postMessage({
+      packageId: packageName,
       type: "debug-error",
       message: e.message,
     });
@@ -454,7 +476,7 @@ async function removePackage(packageName: string) {
     localPackages.delete(packageName);
     process.parentPort?.postMessage({
       type: "remove-local-package",
-      id: packageName,
+      packageId: packageName,
     });
     notifyListener();
   }
@@ -462,7 +484,7 @@ async function removePackage(packageName: string) {
     customGithubPackageList.delete(packageName);
     process.parentPort?.postMessage({
       type: "remove-github-package",
-      id: packageName,
+      packageId: packageName,
     });
     notifyListener();
   }
@@ -478,7 +500,7 @@ async function addLocalPackage(rootPath: string) {
     localPackages.set(packageId, rootPath);
     process.parentPort?.postMessage({
       type: "persist-local-package",
-      id: packageId,
+      packageId: packageId,
       rootPath: rootPath,
     });
     notifyListener();
@@ -492,6 +514,8 @@ async function addLocalPackage(rootPath: string) {
 }
 
 function notifyListener() {
+  if (shuttingDown) return;
+
   const packages = getAvailablePackages();
   process.parentPort?.postMessage({ type: "packages", packages: packages });
 }
@@ -609,8 +633,25 @@ function getAvailablePackages() {
     uninstallable: boolean;
     loadable: boolean;
     canUpdate: boolean;
+    svgIcon?: string;
     installProgress?: number;
   }[] = [];
+
+  editorPackages.forEach((entry, key) => {
+    packageList.push({
+      id: key,
+      name: entry.name,
+      status: Object.keys(currentlyLoadedPackages).includes(key)
+        ? PackageStatus.Enabled
+        : PackageStatus.Downloaded,
+      removable: false,
+      loadable: true,
+      uninstallable: false,
+      canUpdate: false,
+      svgIcon: entry.svgIcon,
+    });
+  });
+
   let githubPackageList = new Map([
     ...recommendedGithubPackageList.entries(),
     ...customGithubPackageList.entries(),
