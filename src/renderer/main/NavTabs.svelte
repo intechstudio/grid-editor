@@ -76,7 +76,7 @@
       changeLeftTab("profile-cloud");
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-      'ProfileCloud' && $splitpanes.left.size != 0
+      'profile-cloud' && $splitpanes.left.size != 0
       ? 'bg-opacity-100 '
       : 'bg-opacity-40 '} bg-secondary activator-button"
   >
@@ -85,7 +85,7 @@
     </div>
     <div
       class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-        'ProfileCloud' && $splitpanes.left.size != 0
+        'profile-cloud' && $splitpanes.left.size != 0
         ? 'h-8'
         : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
     />
@@ -175,7 +175,7 @@
         changeLeftTab("debug-monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'Debug' && $splitpanes.left.size != 0
+        'debug-monitor' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary activator-button"
     >
@@ -184,7 +184,7 @@
       </div>
       <div
         class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-          'Debug' && $splitpanes.left.size != 0
+          'debug-monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -204,7 +204,7 @@
         changeLeftTab("midi-monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-        'MIDI Monitor' && $splitpanes.left.size != 0
+        'midi-monitor' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary activator-button"
     >
@@ -213,7 +213,7 @@
       </div>
       <div
         class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-          'MIDI Monitor' && $splitpanes.left.size != 0
+          'midi-monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -232,7 +232,7 @@
         changeLeftTab("websocket-monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'Websocket' && $splitpanes.left.size != 0
+        'websocket-monitor' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary activator-button"
     >
@@ -242,7 +242,7 @@
 
       <div
         class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-          'Websocket' && $splitpanes.left.size != 0
+          'websocket-monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
