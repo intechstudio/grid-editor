@@ -15,11 +15,7 @@
     $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
   }
 
-  $: leftPanel =
-    $appSettings.leftPanel ??
-    ($appSettings.persistent.enabledPackages.includes("profile-cloud")
-      ? "profile-cloud"
-      : "Packages");
+  $: leftPanel = $appSettings.leftPanel ?? "profile-cloud";
 </script>
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
