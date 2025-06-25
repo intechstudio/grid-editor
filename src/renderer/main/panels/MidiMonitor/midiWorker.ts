@@ -143,9 +143,11 @@ function process(incoming: MidiStreamItem) {
 }
 
 function flush() {
+  console.log("yay", buffer.length);
   buffer = replaceNRPNMessages(buffer);
   buffer = replaceHighResMidiMessages(buffer);
   const next = buffer.shift();
+
   postMessage({ item: next } as MidiWorkerResponse);
 
   if (buffer.length > 0) {

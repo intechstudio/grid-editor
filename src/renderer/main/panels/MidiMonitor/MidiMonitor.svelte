@@ -21,7 +21,7 @@
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
   import { scrollToBottom } from "../../_actions/scroll.move";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import { MidiWorkerCommand, MidiWorkerResponse } from "./midiWorker";
   import VirtualList from "svelte-tiny-virtual-list";
 
@@ -83,7 +83,8 @@
 
   $: last = $midi_messages?.at(-1);
 
-  function handleWorkerMessage(e: MessageEvent<MidiWorkerResponse>) {
+  let test = 0;
+  async function handleWorkerMessage(e: MessageEvent<MidiWorkerResponse>) {
     const { item } = e.data;
     switch (item.type) {
       case MidiType.SYSEX: {
@@ -98,6 +99,8 @@
           ...s,
           item as MidiStreamItem & { data: MidiData },
         ]);
+        await tick();
+        test = $midi_messages.length - 1;
         break;
       }
     }
@@ -355,7 +358,7 @@
                   itemSize={20}
                   height={midiMessageListHeight}
                   scrollDirection="vertical"
-                  scrollToIndex={$midi_messages.length - 1}
+                  scrollToIndex={test}
                 >
                   <!-- svelte-ignore a11y-no-static-element-interactions -->
                   <!-- svelte-ignore a11y-mouse-events-have-key-events -->
