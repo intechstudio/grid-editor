@@ -89,15 +89,17 @@
 
   $: last = $midi_messages?.at(-1);
 
-  $: handleMidiStreamChange($midi_stream);
-
-  async function handleMidiStreamChange(value: MidiStreamData) {
-    // Forcefully unset and reset the scrollToIndex
-    lastMidiStreamItemIndex = Math.max(value.buffer.length - 2, 0);
-    // Wait DOM to update. Important for correct scrolling
-    requestAnimationFrame(() => {
-      lastMidiStreamItemIndex = value.buffer.length - 1;
-    });
+  $: if (midiMessageListHeight) {
+    handleResize($midi_messages, (value) => (lastMidiMessageIndex = value));
+  }
+  $: if (sysExMessageListHeight) {
+    handleResize($sysex_messages, (value) => (lastSysExMessageIndex = value));
+  }
+  $: if (debugMessageListHeight) {
+    handleResize(
+      $midi_stream.buffer,
+      (value) => (lastMidiStreamItemIndex = value),
+    );
   }
 
   async function handleWorkerMessage(e: MessageEvent<MidiWorkerResponse>) {
@@ -111,13 +113,6 @@
           }
           return result;
         });
-
-        // Forcefully unset and reset the scrollToIndex
-        lastSysExMessageIndex = Math.max($sysex_messages.length - 2, 0);
-        // Wait DOM to update. Important for correct scrolling
-        requestAnimationFrame(() => {
-          lastSysExMessageIndex = $sysex_messages.length - 1;
-        });
         break;
       }
       case MidiType.MIDI: {
@@ -127,13 +122,6 @@
             result.shift();
           }
           return result;
-        });
-
-        // Forcefully unset and reset the scrollToIndex
-        lastMidiMessageIndex = Math.max($midi_messages.length - 2, 0);
-        // Wait DOM to update. Important for correct scrolling
-        requestAnimationFrame(() => {
-          lastMidiMessageIndex = $midi_messages.length - 1;
         });
         break;
       }
@@ -172,6 +160,13 @@
     last = element;
   }
 
+  function handleResize(array: any[], setIndex: (value: number) => void) {
+    setIndex(Math.max(array.length - 2, 0));
+    requestAnimationFrame(() => {
+      setIndex(array.length - 1);
+    });
+  }
+
   function onClearClicked() {
     last = undefined;
     midi_stream.clear();
@@ -182,6 +177,10 @@
 
     midi_messages.set([]);
     sysex_messages.set([]);
+
+    midiMessageListHeight = 0;
+    sysExMessageListHeight = 0;
+    debugMessageListHeight = 0;
   }
 
   function isMIDI(
