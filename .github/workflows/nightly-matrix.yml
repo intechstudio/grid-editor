@@ -117,7 +117,7 @@ jobs:
         id: github_release
         uses: mikepenz/release-changelog-builder-action@v5
         with:
-          fromTag: ${{ github.ref }}
+          toTag: ${{ github.ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
