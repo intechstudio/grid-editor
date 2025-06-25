@@ -349,7 +349,7 @@
             data.updateAlphaSliderValue(value);
             sendData($data);
           }}
-          on:blur={() => {
+          on:commit={() => {
             dispatch("sync");
           }}
         />
