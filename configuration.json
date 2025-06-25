@@ -67,10 +67,6 @@
     }
   },
   "EDITOR_PACKAGES": {
-    "profile-cloud": {
-      "name": "Profile Cloud",
-      "svgIcon": "menu_profile_cloud"
-    },
     "debug-monitor": {
       "name": "Debug Monitor",
       "svgIcon": "menu_debug_monitor"

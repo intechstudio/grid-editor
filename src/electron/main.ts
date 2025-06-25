@@ -190,7 +190,6 @@ if (!gotTheLock) {
       let enabledPackages: string[] = store.get("enabledPackages") ?? [];
       let newEnabledPackages = [
         ...enabledPackages,
-        "profile-cloud",
         "midi-monitor",
         "debug-monitor",
       ];
