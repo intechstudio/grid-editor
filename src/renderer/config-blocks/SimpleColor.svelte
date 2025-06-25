@@ -26,7 +26,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    devOnly: true,
+    devOnly: false,
   };
 </script>
 
@@ -349,7 +349,7 @@
             data.updateAlphaSliderValue(value);
             sendData($data);
           }}
-          on:blur={() => {
+          on:commit={() => {
             dispatch("sync");
           }}
         />
