@@ -390,7 +390,7 @@ export async function loadProfile(
       );
 
       const tour = ConfigTour.Tour.createTourFrom(profile, actions);
-      configTour.set(tour);
+      configTour.set(tour ?? ConfigTour.Tour.defaultValue);
       return Promise.resolve();
     })
     .catch((e) => {
