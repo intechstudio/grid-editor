@@ -23,15 +23,16 @@
     >
       <Led {color} size={2.1} />
     </div>
+
+    {#if value}
+      <div class="pressure-bar">
+        <div
+          class="flex w-full bg-white/50"
+          style="height: {(100 / 127) * value}%;"
+        />
+      </div>
+    {/if}
   </div>
-  {#if value}
-    <div class="pressure-bar">
-      <div
-        class="flex w-full bg-black/50"
-        style="height: {(100 / 127) * value}%;"
-      />
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -41,8 +42,8 @@
     right: 0;
     top: 0;
     width: 4px;
-    height: calc(100% - 8px);
-    margin: 4px 4px 0px 0px;
+    height: calc(100% - 14px);
+    margin: 6px 6px 0px 0px;
     place-items: end;
   }
   .background {
