@@ -918,7 +918,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       undefined,
       new ActionData(
         CodeBlock.information.short,
-        actions.map((action) => action.script).join("\n"),
+        actions.map((action) => action.script).join(" "),
       ),
     );
 
