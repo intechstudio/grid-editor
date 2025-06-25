@@ -26,7 +26,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    devOnly: true,
+    devOnly: false,
   };
 </script>
 
