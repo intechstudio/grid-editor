@@ -10,6 +10,7 @@
   import {
     midi_stream,
     MidiData,
+    MidiStreamData,
     MidiStreamItem,
     MidiType,
     SysExData,
@@ -20,7 +21,6 @@
   import { Grid } from "../../../lib/_utils";
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
-  import { scrollToBottom } from "../../_actions/scroll.move";
   import { onDestroy, onMount, tick } from "svelte";
   import { MidiWorkerCommand, MidiWorkerResponse } from "./midiWorker";
   import VirtualList from "svelte-tiny-virtual-list";
@@ -39,6 +39,12 @@
   let midiMessageListHeight: number;
   let sysExMessageListHeight: number;
   let debugMessageListHeight: number;
+
+  const maxMessageCount = 1024;
+
+  let lastMidiMessageIndex = 0;
+  let lastSysExMessageIndex = 0;
+  let lastMidiStreamItemIndex = 0;
 
   const midi_messages: Writable<(MidiStreamItem & { data: MidiData })[]> =
     writable([]);
@@ -83,24 +89,52 @@
 
   $: last = $midi_messages?.at(-1);
 
-  let test = 0;
+  $: handleMidiStreamChange($midi_stream);
+
+  async function handleMidiStreamChange(value: MidiStreamData) {
+    // Forcefully unset and reset the scrollToIndex
+    lastMidiStreamItemIndex = Math.max(value.buffer.length - 2, 0);
+    // Wait DOM to update. Important for correct scrolling
+    requestAnimationFrame(() => {
+      lastMidiStreamItemIndex = value.buffer.length - 1;
+    });
+  }
+
   async function handleWorkerMessage(e: MessageEvent<MidiWorkerResponse>) {
     const { item } = e.data;
     switch (item.type) {
       case MidiType.SYSEX: {
-        sysex_messages.update((s) => [
-          ...s,
-          item as MidiStreamItem & { data: SysExData },
-        ]);
+        sysex_messages.update((s) => {
+          let result = [...s, item as MidiStreamItem & { data: SysExData }];
+          if (result.length > maxMessageCount) {
+            result.shift();
+          }
+          return result;
+        });
+
+        // Forcefully unset and reset the scrollToIndex
+        lastSysExMessageIndex = Math.max($sysex_messages.length - 2, 0);
+        // Wait DOM to update. Important for correct scrolling
+        requestAnimationFrame(() => {
+          lastSysExMessageIndex = $sysex_messages.length - 1;
+        });
         break;
       }
       case MidiType.MIDI: {
-        midi_messages.update((s) => [
-          ...s,
-          item as MidiStreamItem & { data: MidiData },
-        ]);
-        await tick();
-        test = $midi_messages.length - 1;
+        midi_messages.update((s) => {
+          let result = [...s, item as MidiStreamItem & { data: MidiData }];
+          if (result.length > maxMessageCount) {
+            result.shift();
+          }
+          return result;
+        });
+
+        // Forcefully unset and reset the scrollToIndex
+        lastMidiMessageIndex = Math.max($midi_messages.length - 2, 0);
+        // Wait DOM to update. Important for correct scrolling
+        requestAnimationFrame(() => {
+          lastMidiMessageIndex = $midi_messages.length - 1;
+        });
         break;
       }
     }
@@ -288,18 +322,17 @@
               <div>DIR</div>
             </div>
 
-            {debugMessageListHeight}
             <div
               class="flex flex-col flex-grow bg-secondary w-full overflow-clip"
               bind:clientHeight={debugMessageListHeight}
             >
-              {#if $midi_stream.buffer.length > 0}
+              {#if lastMidiMessageIndex > 0}
                 <VirtualList
                   itemCount={$midi_stream.buffer.length}
                   itemSize={20}
                   height={debugMessageListHeight}
                   scrollDirection="vertical"
-                  scrollToIndex={$midi_stream.buffer.length - 1}
+                  scrollToIndex={lastMidiStreamItemIndex}
                 >
                   <!-- svelte-ignore a11y-no-static-element-interactions -->
                   <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -319,7 +352,9 @@
                     </div>
                     {#if isMIDI($midi_stream.buffer[index])}
                       <div>{$midi_stream.buffer[index].data.channel + 1}</div>
-                      <div>{$midi_stream.buffer[index].data.command.value}</div>
+                      <div>
+                        {$midi_stream.buffer[index].data.command.value}
+                      </div>
                       <div>
                         {$midi_stream.buffer[index].data.params.p1.value}
                       </div>
@@ -352,13 +387,13 @@
               class="flex h-full bg-secondary w-full overflow-clip"
               bind:clientHeight={midiMessageListHeight}
             >
-              {#if $midi_messages.length > 0}
+              {#if lastMidiMessageIndex > 0}
                 <VirtualList
                   itemCount={$midi_messages.length}
                   itemSize={20}
                   height={midiMessageListHeight}
                   scrollDirection="vertical"
-                  scrollToIndex={test}
+                  scrollToIndex={lastMidiMessageIndex}
                 >
                   <!-- svelte-ignore a11y-no-static-element-interactions -->
                   <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -458,13 +493,13 @@
               class="flex h-full bg-secondary w-full overflow-clip"
               bind:clientHeight={sysExMessageListHeight}
             >
-              {#if $sysex_messages.length > 0}
+              {#if lastSysExMessageIndex > 0}
                 <VirtualList
                   itemCount={$sysex_messages.length}
                   itemSize={20}
                   height={sysExMessageListHeight}
                   scrollDirection="vertical"
-                  scrollToIndex={$sysex_messages.length - 1}
+                  scrollToIndex={lastSysExMessageIndex}
                 >
                   <!-- svelte-ignore a11y-no-static-element-interactions -->
                   <!-- svelte-ignore a11y-mouse-events-have-key-events -->

@@ -19,6 +19,7 @@ function replaceNRPNMessages(messages: Array<MidiStreamItem>) {
     if (data.params.p1.value !== 99) continue;
 
     const spliceLength =
+      messages[i + 3]?.type === MidiType.MIDI &&
       (messages[i + 3]?.data as MidiData | undefined)?.params.p1.value === 38
         ? 4
         : 3;
@@ -62,7 +63,11 @@ function replaceHighResMidiMessages(messages: Array<MidiStreamItem>) {
 
     if (
       HiResMessages.length !== 2 ||
-      !HiResMessages.every((e) => (e.data as MidiData).command.short === "CC")
+      !HiResMessages.every(
+        (e) =>
+          e.type === MidiType.MIDI &&
+          (e.data as MidiData).command.short === "CC",
+      )
     ) {
       continue;
     }
@@ -143,7 +148,6 @@ function process(incoming: MidiStreamItem) {
 }
 
 function flush() {
-  console.log("yay", buffer.length);
   buffer = replaceNRPNMessages(buffer);
   buffer = replaceHighResMidiMessages(buffer);
   const next = buffer.shift();
