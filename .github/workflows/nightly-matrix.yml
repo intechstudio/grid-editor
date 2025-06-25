@@ -39,7 +39,7 @@ jobs:
   publish-nightly-release:
     runs-on: ubuntu-latest
     needs: matrix-build
-    #if: ${{ github.ref == 'refs/heads/stable' }}
+    if: ${{ github.ref == 'refs/heads/stable' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
