@@ -67,6 +67,7 @@
   }
 
   $: {
+    console.log($configTour);
     const isActiveTourStep =
       $configTour.current?.action.id === $action.id && $configTour.active;
     if (!toggled && isActiveTourStep) {
