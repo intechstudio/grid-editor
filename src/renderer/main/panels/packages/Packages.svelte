@@ -8,6 +8,7 @@
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import CircularBar from "../../user-interface/CircularBar.svelte"
   import PackageItem from "./PackageItem.svelte";
+  import RequestItem from "./RequestItem.svelte";
 
   onMount(async () => {
     refreshPackageList();
@@ -257,79 +258,12 @@
         <PackageItem 
           data={_package} />
       {/each}
-      <!--https://github.com/WebOnWebOff/svelte-resizable-columns-->
-      <table>
-        <thead class="text-gray-500 border-b border-gray-500">
-          <tr>
-            <th>Activate</th>
-            <th>Name</th>
-            <th>Version</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          
-          {#each $appSettings.developerPackagesRequested as request}
-            <tr class="h-20">
-              <td />
-              <td>{request.name}</td>
-              <td />
-              <td>
-                <div class="flex flex-row">
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        approveRequest(request);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-check"
-                        ><path d="M20 6 9 17l-5-5" /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        removeRequest(request);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-x"
-                        ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
+      {#each $appSettings.developerPackagesRequested as request}
+        <RequestItem 
+          request={request} 
+          on:accept={() => approveRequest(request)}
+          on:reject={() => removeRequest(request)}/>
+      {/each}
       <textarea
         class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono w-full p-1 my-1 rounded"
       >
