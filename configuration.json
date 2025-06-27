@@ -69,15 +69,18 @@
   "EDITOR_PACKAGES": {
     "debug-monitor": {
       "name": "Debug Monitor",
-      "svgIcon": "menu_debug_monitor"
+      "svgIcon": "menu_debug_monitor",
+      "description": "Analyze Grid module traffic, LUA code interactions"
     },
     "midi-monitor": {
       "name": "Midi Monitor",
-      "svgIcon": "menu_midi_monitor"
+      "svgIcon": "menu_midi_monitor",
+      "description": "In-depth MIDI message tool"
     },
     "websocket-monitor": {
-      "name": "Websocket Monitor",
-      "svgIcon": "menu_websocket_monitor"
+      "name": "Websocket Monitor (Legacy)",
+      "svgIcon": "menu_websocket_monitor",
+      "description": "Watch communication coming from the Editor websocket port"
     }
   }
 }

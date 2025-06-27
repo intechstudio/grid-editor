@@ -21,6 +21,7 @@ interface GithubPackage {
 interface EditorPackage {
   name: string;
   svgIcon?: string;
+  description: string;
 }
 
 enum PackageStatus {
@@ -527,6 +528,9 @@ let cachedInstalledPackages : {
     preferenceComponent?: string;
     packageVersion?: string;
     loadable: boolean;
+    author?: string;
+    description?: string;
+    mainIconPath?: string;
   }[] = [];
 
 async function refreshInstalledPackagesCache() {
@@ -542,6 +546,9 @@ async function getInstalledPackages(): Promise<
     preferenceComponent?: string;
     packageVersion?: string;
     loadable: boolean;
+    author?: string;
+    description?: string;
+    mainIconPath?: string;
   }[]
 > {
   if (!fs.existsSync(packageFolder)) {
@@ -551,7 +558,7 @@ async function getInstalledPackages(): Promise<
   const readfile = util.promisify(fs.readFile);
   const opendir = util.promisify(fs.opendir);
   const folders = await readdir(packageFolder, { encoding: "utf-8" });
-  return Promise.all(
+  const packages = await Promise.all(
     [...folders, ...localPackages.values()]
       .filter(
         (folder) =>
@@ -565,31 +572,32 @@ async function getInstalledPackages(): Promise<
           packageId = folder;
           packagePath = path.join(packageFolder, folder);
         }
-        let packageName: string | undefined = undefined;
-        let componentsPath: string | undefined = undefined;
-        let preferenceComponent: string | undefined = undefined;
-        let packageVersion: string | undefined = undefined;
-        let loadable: boolean = false;
         const packageJsonPath = path.join(packagePath, "package.json");
-        if (fs.existsSync(packageJsonPath)) {
-          const packageFile = await readfile(packageJsonPath);
-          const packageJson = JSON.parse(packageFile.toString());
-          if (packageId === undefined) {
-            packageId = packageJson.name;
-          }
-          packageName = packageJson.description;
-          packageVersion = packageJson.version;
-          if (packageJson.grid_editor?.componentsPath) {
-            componentsPath = path.join(
-              packageId,
-              packageJson.grid_editor?.componentsPath,
-            );
-          }
-          preferenceComponent = packageJson.grid_editor?.preferenceComponent;
-          loadable = packageJson.main !== undefined;
+        if (!fs.existsSync(packageJsonPath)){
+          return undefined;
         }
 
-        packageName = packageName ?? packageId;
+        const packageFile = await readfile(packageJsonPath);
+        const packageJson = JSON.parse(packageFile.toString());
+        if (packageId === undefined) {
+          packageId = packageJson.name;
+        }
+        const packageName = packageJson.description;
+        const packageVersion = packageJson.version;
+
+        let componentsPath: string | undefined = undefined;
+        if (packageJson.grid_editor?.componentsPath) {
+          componentsPath = path.join(
+            packageId,
+            packageJson.grid_editor?.componentsPath,
+          );
+        }
+        const preferenceComponent = packageJson.grid_editor?.preferenceComponent;
+        const loadable = packageJson.main !== undefined;
+        const author = packageJson.author;
+        const mainIconPath = `package://${packageId}/${packageJson.grid_editor?.mainIcon}`;
+        const description = packageJson.grid_editor?.shortDescription;
+
         return {
           packageId,
           packageName,
@@ -597,9 +605,13 @@ async function getInstalledPackages(): Promise<
           preferenceComponent,
           packageVersion,
           loadable,
+          author,
+          mainIconPath,
+          description,
         };
       }),
   );
+  return packages.filter((e) => e !== undefined);
 }
 
 function getPackageStatus(
@@ -635,6 +647,9 @@ function getAvailablePackages() {
     canUpdate: boolean;
     svgIcon?: string;
     installProgress?: number;
+    author?: string,
+    description?: string;
+    mainIconPath?: string;
   }[] = [];
 
   editorPackages.forEach((entry, key) => {
@@ -649,6 +664,8 @@ function getAvailablePackages() {
       uninstallable: false,
       canUpdate: false,
       svgIcon: entry.svgIcon,
+      description: entry.description,
+      author: "Built-in"
     });
   });
 
@@ -680,6 +697,9 @@ function getAvailablePackages() {
           _package.packageVersion,
         ),
       installProgress: packageInstallProgress.get(_package.packageId),
+      author: _package.author ?? githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
+      description: _package.description,
+      mainIconPath: _package.mainIconPath,
     });
   }
   githubPackageList.forEach((entry, key) => {
@@ -694,6 +714,7 @@ function getAvailablePackages() {
       removable: !recommendedGithubPackageList.has(key),
       loadable: false,
       installProgress: packageInstallProgress.get(key),
+      author: entry.gitHubRepositoryOwner
     });
   });
   currentPackageList = packageList;

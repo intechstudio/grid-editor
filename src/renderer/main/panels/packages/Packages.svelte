@@ -6,7 +6,6 @@
   import { logger } from "../../../runtime/runtime.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
-  import CircularBar from "../../user-interface/CircularBar.svelte"
   import PackageItem from "./PackageItem.svelte";
   import RequestItem from "./RequestItem.svelte";
 
@@ -234,10 +233,10 @@
 </script>
 
 <packages
-  class="bg-primary flex flex-col h-full w-full text-white overflow-y-auto"
+  class="flex flex-col h-full w-full overflow-y-auto"
 >
   <div class="flex flex-col h-full w-full p-4">
-    <div class="flex py-2 text-white items-center">
+    <div class="flex py-2 items-center">
       <div class="font-medium w-full">Packages</div>
       <div class="mx-2">
         <MoltenPushButton click={restartPackageManager} text="Force Restart" />
@@ -255,20 +254,25 @@
     {/if}
     <div class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip">
       {#each $appSettings.packageList as _package}
-        <PackageItem 
-          data={_package} />
+        {#key _package}
+          <PackageItem 
+            data={_package} 
+            on:enable={() => changePackageStatus(_package.id, true)}
+            on:disable={() => changePackageStatus(_package.id, false)}
+            on:download={() => downloadPackage(_package.id)} 
+            on:update={() => updatePackage(_package.id)}
+            on:uninstall={() => uninstallPackage(_package.id)}
+            on:remove={() => removePackage(_package.id)} />
+        {/key}
       {/each}
       {#each $appSettings.developerPackagesRequested as request}
-        <RequestItem 
-          request={request} 
-          on:accept={() => approveRequest(request)}
-          on:reject={() => removeRequest(request)}/>
+        {#key request.name}
+          <RequestItem 
+            request={request} 
+            on:accept={() => approveRequest(request)}
+            on:reject={() => removeRequest(request)}/>
+        {/key}
       {/each}
-      <textarea
-        class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono w-full p-1 my-1 rounded"
-      >
-        {JSON.stringify($appSettings.packageDebugLogs)}
-      </textarea>
     </div>
   </div>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -279,7 +283,8 @@
     on:click|self={() => packageRepositoryDialog.close()}
   >
     <div
-      class="flex flex-row bg-secondary text-gray-400 font-normal px-8 py-4 items-end"
+      style="background-color: var(--background-muted)"
+      class="flex flex-row text-gray-400 font-normal px-8 py-4 items-end"
     >
       <MeltCombo
         size="full"

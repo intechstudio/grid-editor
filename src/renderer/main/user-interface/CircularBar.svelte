@@ -17,13 +17,15 @@
     let max = 100;
     let discRadius = 80;
 
-    $: calculate(value, rootWidth, rootHeight);
+    $: calculate(value, rootWidth, rootHeight, circle, hidCircle);
 
 
 
     function calculate() { 
+        if (newValue > value){ //Avoid jumping back with the progress
+          return;
+        }
         newValue = (value > max ? max : value < 0 ? 0 : value) || 0;
-
         if (circle && hidCircle) { 
             let isPercent = thickness.slice(-1) == '%';
             let breadth = parseInt(thickness) || 5;
@@ -116,7 +118,6 @@
         fill: transparent;
         stroke: var(--circlebar-track, var(--def-circlebar-track));
         transform: translate(5px, 5px);
-        transition: all 0.2s ease;
     }
 
     svg > circle.btn {
