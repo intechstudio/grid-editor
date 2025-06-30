@@ -232,10 +232,8 @@
   }
 </script>
 
-<packages
-  class="flex flex-col h-full w-full overflow-y-auto"
->
-  <div class="flex flex-col h-full w-full p-4">
+<packages class="flex flex-col h-full w-full overflow-y-auto">
+  <div class="flex flex-col h-full w-full p-2">
     <div class="flex py-2 items-center">
       <div class="font-medium w-full">Packages</div>
       <div class="mx-2">
@@ -254,23 +252,25 @@
     {/if}
     <div class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip">
       {#each $appSettings.packageList as _package}
-        {#key _package}
-          <PackageItem 
-            data={_package} 
+        {#key _package.id}
+          <PackageItem
+            data={_package}
             on:enable={() => changePackageStatus(_package.id, true)}
             on:disable={() => changePackageStatus(_package.id, false)}
-            on:download={() => downloadPackage(_package.id)} 
+            on:download={() => downloadPackage(_package.id)}
             on:update={() => updatePackage(_package.id)}
             on:uninstall={() => uninstallPackage(_package.id)}
-            on:remove={() => removePackage(_package.id)} />
+            on:remove={() => removePackage(_package.id)}
+          />
         {/key}
       {/each}
       {#each $appSettings.developerPackagesRequested as request}
         {#key request.name}
-          <RequestItem 
-            request={request} 
+          <RequestItem
+            {request}
             on:accept={() => approveRequest(request)}
-            on:reject={() => removeRequest(request)}/>
+            on:reject={() => removeRequest(request)}
+          />
         {/key}
       {/each}
     </div>

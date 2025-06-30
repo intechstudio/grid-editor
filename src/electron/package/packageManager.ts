@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import AdmZip from "adm-zip";
-import os from "os";
+import os, { version } from "os";
 import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
@@ -11,11 +11,18 @@ import Progress from "node-fetch-progress";
 import yauzl from "yauzl";
 import { Transform } from "stream";
 
-interface GithubPackage {
-  name: string;
+interface RecommendedGithubPackage {
+  gitHubRepositoryOwner: string;
+  gitHubRepositoryName: string;
+}
+
+interface GithubPackageDetails {
   gitHubRepositoryOwner: string;
   gitHubRepositoryName: string;
   version?: string;
+  name: string;
+  description?: string;
+  mainIconPath?: string;
 }
 
 interface EditorPackage {
@@ -35,10 +42,10 @@ let packageFolder: string = "";
 let editorVersion: string = "";
 let shuttingDown: boolean = false;
 
-const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
-  Object.entries(configuration.RECOMMENDED_PACKAGES),
-);
-let customGithubPackageList: Map<string, GithubPackage> = new Map();
+const recommendedGithubPackageList: Map<string, RecommendedGithubPackage> =
+  new Map(Object.entries(configuration.RECOMMENDED_PACKAGES));
+let customGithubPackageList: Map<string, RecommendedGithubPackage> = new Map();
+let githubPackageDetails: Map<string, GithubPackageDetails> = new Map();
 let localPackages: Map<string, string> = new Map();
 
 let packageInstallProgress: Map<string, number> = new Map();
@@ -130,7 +137,6 @@ process.parentPort.on("message", async (e) => {
         break;
       case "add-github-repository":
         customGithubPackageList.set(data.id, {
-          name: data.packageName,
           gitHubRepositoryOwner: data.gitHubRepositoryOwner,
           gitHubRepositoryName: data.gitHubRepositoryName,
         });
@@ -289,14 +295,14 @@ async function downloadPackage(packageName: string) {
       e.name.includes(platform),
     ).browser_download_url;
     const response = await fetch(url);
-    
-    try{
-      const progress = new Progress(response, {throttle: 200});
-      progress.on('progress', (p) => {
+
+    try {
+      const progress = new Progress(response, { throttle: 200 });
+      progress.on("progress", (p) => {
         packageInstallProgress.set(packageName, p.progress / 2); //Goes to 0.5 for downloading
         notifyListener();
-      })
-    } catch(e) {
+      });
+    } catch (e) {
       console.error(e);
       packageInstallProgress.delete(packageName);
       throw e;
@@ -324,28 +330,32 @@ async function downloadPackage(packageName: string) {
     });
 
     let unzipResolve: (value: unknown) => void;
-    let unzipReject: (reason: any) => void; 
+    let unzipReject: (reason: any) => void;
     let unzipPromise = new Promise((res, rej) => {
       unzipResolve = res;
       unzipReject = rej;
-    })
-    yauzl.open(filePath, {lazyEntries: true}, function(err, zipfile) {
+    });
+    yauzl.open(filePath, { lazyEntries: true }, function (err, zipfile) {
       if (err) unzipReject(err);
 
       let rootFolder = path.join(packageFolder, packageName);
       let currentEntryCount = 0;
       let totalEntryCount = zipfile.entryCount;
 
-      function incrementEntryCount(){
+      function incrementEntryCount() {
         currentEntryCount++;
-        let newValue = 0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1);
+        let newValue =
+          0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1);
         let oldValue = packageInstallProgress.get(packageName);
 
-        if (oldValue && newValue !== 1 && newValue - oldValue < 0.01){
+        if (oldValue && newValue !== 1 && newValue - oldValue < 0.01) {
           return;
         }
 
-        packageInstallProgress.set(packageName, 0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1));
+        packageInstallProgress.set(
+          packageName,
+          0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1),
+        );
         notifyListener();
       }
 
@@ -363,18 +373,18 @@ async function downloadPackage(packageName: string) {
       }
 
       incrementHandleCount();
-      zipfile.on("close", function() {
+      zipfile.on("close", function () {
         console.log("closed input file");
         decrementHandleCount();
       });
 
       function mkdirp(dir, cb) {
         if (dir === ".") return cb();
-        fs.stat(dir, function(err) {
+        fs.stat(dir, function (err) {
           if (err == null) return cb(); // already exists
 
           var parent = path.dirname(dir);
-          mkdirp(parent, function() {
+          mkdirp(parent, function () {
             //console.log(dir.replace(/\/$/, "") + "/\n");
             fs.mkdir(dir, cb);
           });
@@ -382,27 +392,34 @@ async function downloadPackage(packageName: string) {
       }
 
       zipfile.readEntry();
-      zipfile.on("entry", function(entry) {
+      zipfile.on("entry", function (entry) {
         if (/\/$/.test(entry.fileName)) {
           // directory file names end with '/'
-          mkdirp(path.join(rootFolder, entry.fileName), function() {
+          mkdirp(path.join(rootFolder, entry.fileName), function () {
             if (err) unzipReject(err);
             zipfile.readEntry();
             incrementEntryCount();
           });
         } else {
           // ensure parent directory exists
-          mkdirp(path.join(rootFolder, path.dirname(entry.fileName)), function() {
-            zipfile.openReadStream(entry, function(err, readStream) {
-              if (err) unzipReject(err);
+          mkdirp(
+            path.join(rootFolder, path.dirname(entry.fileName)),
+            function () {
+              zipfile.openReadStream(entry, function (err, readStream) {
+                if (err) unzipReject(err);
 
-              var writeStream = fs.createWriteStream(path.join(rootFolder, entry.fileName));
-              incrementHandleCount();
-              writeStream.on("close", decrementHandleCount);
-              readStream.pipe(writeStream).on("finish", () => { zipfile.readEntry() });
-              incrementEntryCount();
-            });
-          });
+                var writeStream = fs.createWriteStream(
+                  path.join(rootFolder, entry.fileName),
+                );
+                incrementHandleCount();
+                writeStream.on("close", decrementHandleCount);
+                readStream.pipe(writeStream).on("finish", () => {
+                  zipfile.readEntry();
+                });
+                incrementEntryCount();
+              });
+            },
+          );
         }
       });
     });
@@ -479,7 +496,7 @@ async function removePackage(packageName: string) {
       type: "remove-local-package",
       packageId: packageName,
     });
-    notifyListener();
+    refreshInstalledPackagesCache();
   }
   if (customGithubPackageList.has(packageName)) {
     customGithubPackageList.delete(packageName);
@@ -487,7 +504,7 @@ async function removePackage(packageName: string) {
       type: "remove-github-package",
       packageId: packageName,
     });
-    notifyListener();
+    refreshInstalledPackagesCache();
   }
 }
 
@@ -504,7 +521,7 @@ async function addLocalPackage(rootPath: string) {
       packageId: packageId,
       rootPath: rootPath,
     });
-    notifyListener();
+    refreshInstalledPackagesCache();
   } else {
     process.parentPort?.postMessage({
       type: "show-message",
@@ -521,17 +538,18 @@ function notifyListener() {
   process.parentPort?.postMessage({ type: "packages", packages: packages });
 }
 
-let cachedInstalledPackages : {
-    packageId: string;
-    packageName: string;
-    componentsPath?: string;
-    preferenceComponent?: string;
-    packageVersion?: string;
-    loadable: boolean;
-    author?: string;
-    description?: string;
-    mainIconPath?: string;
-  }[] = [];
+let cachedInstalledPackages: {
+  packageId: string;
+  packageName: string;
+  componentsPath?: string;
+  preferenceComponent?: string;
+  packageVersion?: string;
+  loadable: boolean;
+  author?: string;
+  description?: string;
+  mainIconPath?: string;
+  menuIconPath?: string;
+}[] = [];
 
 async function refreshInstalledPackagesCache() {
   cachedInstalledPackages = await getInstalledPackages();
@@ -549,6 +567,7 @@ async function getInstalledPackages(): Promise<
     author?: string;
     description?: string;
     mainIconPath?: string;
+    menuIconPath?: string;
   }[]
 > {
   if (!fs.existsSync(packageFolder)) {
@@ -573,7 +592,7 @@ async function getInstalledPackages(): Promise<
           packagePath = path.join(packageFolder, folder);
         }
         const packageJsonPath = path.join(packagePath, "package.json");
-        if (!fs.existsSync(packageJsonPath)){
+        if (!fs.existsSync(packageJsonPath)) {
           return undefined;
         }
 
@@ -592,10 +611,16 @@ async function getInstalledPackages(): Promise<
             packageJson.grid_editor?.componentsPath,
           );
         }
-        const preferenceComponent = packageJson.grid_editor?.preferenceComponent;
+        const preferenceComponent =
+          packageJson.grid_editor?.preferenceComponent;
         const loadable = packageJson.main !== undefined;
         const author = packageJson.author;
-        const mainIconPath = `package://${packageId}/${packageJson.grid_editor?.mainIcon}`;
+        const mainIconPath = packageJson.grid_editor?.mainIcon
+          ? `package://${packageId}/${packageJson.grid_editor?.mainIcon}`
+          : undefined;
+        const menuIconPath = packageJson.grid_editor?.menuIcon
+          ? `package://${packageId}/${packageJson.grid_editor?.menuIcon}`
+          : undefined;
         const description = packageJson.grid_editor?.shortDescription;
 
         return {
@@ -607,6 +632,7 @@ async function getInstalledPackages(): Promise<
           loadable,
           author,
           mainIconPath,
+          menuIconPath,
           description,
         };
       }),
@@ -647,9 +673,10 @@ function getAvailablePackages() {
     canUpdate: boolean;
     svgIcon?: string;
     installProgress?: number;
-    author?: string,
+    author?: string;
     description?: string;
     mainIconPath?: string;
+    menuIconPath?: string;
   }[] = [];
 
   editorPackages.forEach((entry, key) => {
@@ -665,7 +692,7 @@ function getAvailablePackages() {
       canUpdate: false,
       svgIcon: entry.svgIcon,
       description: entry.description,
-      author: "Built-in"
+      author: "Built-in",
     });
   });
 
@@ -691,18 +718,21 @@ function getAvailablePackages() {
       uninstallable: !localPackages.has(_package.packageId),
       canUpdate:
         _package.packageVersion != undefined &&
-        githubPackageList.get(_package.packageId)?.version != undefined &&
+        githubPackageDetails.get(_package.packageId)?.version != undefined &&
         semver.gt(
-          githubPackageList.get(_package.packageId)!.version!,
+          githubPackageDetails.get(_package.packageId)!.version!,
           _package.packageVersion,
         ),
       installProgress: packageInstallProgress.get(_package.packageId),
-      author: _package.author ?? githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
+      author:
+        _package.author ??
+        githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
       description: _package.description,
       mainIconPath: _package.mainIconPath,
+      menuIconPath: _package.menuIconPath,
     });
   }
-  githubPackageList.forEach((entry, key) => {
+  githubPackageDetails.forEach((entry, key) => {
     if (packageList.filter((e) => e.id === key).length > 0) return;
 
     packageList.push({
@@ -714,7 +744,10 @@ function getAvailablePackages() {
       removable: !recommendedGithubPackageList.has(key),
       loadable: false,
       installProgress: packageInstallProgress.get(key),
-      author: entry.gitHubRepositoryOwner
+      author: entry.gitHubRepositoryOwner,
+      mainIconPath: entry.mainIconPath,
+      description: entry.description,
+      packageVersion: entry.version,
     });
   });
   currentPackageList = packageList;
@@ -726,9 +759,21 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
     ...recommendedGithubPackageList.entries(),
     ...customGithubPackageList.entries(),
   ]);
-  try {
-    for (const [packageId, githubPackage] of githubPackageList) {
-      if (!forceRefreshVersion && githubPackage.version != undefined) continue;
+  for (const [packageId, githubPackage] of githubPackageList) {
+    try {
+      if (!forceRefreshVersion && githubPackageDetails.has(packageId)) continue;
+      let githubRawUrl = `https://raw.githubusercontent.com/${githubPackage.gitHubRepositoryOwner}/${githubPackage.gitHubRepositoryName}/refs/heads/main`;
+      let packageJsonResponse = await fetch(`${githubRawUrl}/package.json`);
+      let packageJson = await packageJsonResponse.json();
+
+      githubPackageDetails.set(packageId, {
+        ...githubPackage,
+        name: packageJson.description,
+        description: packageJson.grid_editor?.shortDescription,
+        mainIconPath: packageJson.grid_editor?.mainIcon
+          ? `${githubRawUrl}/${packageJson.grid_editor?.mainIcon}`
+          : undefined,
+      });
 
       const compatiblePackage = await getCompatibleGithubRelease(packageId);
       if (!compatiblePackage) {
@@ -739,11 +784,12 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
       let version =
         semver.coerce(compatiblePackage.tag_name) ??
         semver.coerce(compatiblePackage.name);
-      githubPackage.version = version?.version;
+      githubPackageDetails.get(packageId).version = version;
+    } catch (e) {
+      console.log(e);
+    } finally {
+      notifyListener();
     }
-    notifyListener();
-  } catch (e) {
-    console.log(e);
   }
 }
 

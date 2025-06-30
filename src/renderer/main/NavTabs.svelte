@@ -145,6 +145,8 @@
             <div class="w-full h-full p-1.5 text-white fill-current">
               {#if packageData.svgIcon}
                 {@html menuIcons[packageData.svgIcon]}
+              {:else if packageData.menuIconPath}
+                <img src={packageData.menuIconPath} alt={packageData.name} />
               {:else}
                 {@html menuIcons["menu_package_general"]}
               {/if}
