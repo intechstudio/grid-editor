@@ -398,7 +398,7 @@
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>
         The Nightly Firmware version contains new, but potentially unstable
-        features and fixes. We suggest always staying on a Stable Firmware!
+        features and fixes. We suggest staying on a Stable Firmware!
       </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.nightlyFirmware}
@@ -407,8 +407,8 @@
       {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
         <BlockTitle>Nightly Editor Update</BlockTitle>
         <BlockBody>
-          The Nightly Firmware version contains new, but potentially unstable
-          features and fixes. We suggest always staying on a Stable Editor
+          The Nightly Editor version contains new, but potentially unstable
+          features and fixes. We suggest staying on a Stable Editor
           version!
         </BlockBody>
         <MeltCheckbox
