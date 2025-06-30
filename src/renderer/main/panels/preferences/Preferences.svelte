@@ -408,8 +408,7 @@
         <BlockTitle>Nightly Editor Update</BlockTitle>
         <BlockBody>
           The Nightly Editor version contains new, but potentially unstable
-          features and fixes. We suggest staying on a Stable Editor
-          version!
+          features and fixes. We suggest staying on a Stable Editor version!
         </BlockBody>
         <MeltCheckbox
           bind:target={$appSettings.persistent.nightlyEditor}
