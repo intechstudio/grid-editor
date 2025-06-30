@@ -19,13 +19,13 @@
   on:mousedown|self={close}
 >
   <div
-    class="z-50 text-white shadow-md bg-primary rounded max-h-[75vh] w-full"
+    class="z-50 text-white shadow-md bg-primary rounded w-full"
     style="--width: {width}px"
     class:full={$modal?.options?.snap === Snap.FULL}
     class:middle={$modal?.options?.snap === Snap.MIDDLE}
   >
     <div class="flex flex-col h-full">
-      <div class="p-6 flex-1 overflow-auto min-h-0">
+      <div class="p-6 flex-1 min-h-0">
         <slot name="content" />
       </div>
     </div>
@@ -34,7 +34,7 @@
 
 <style>
   .full {
-    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[75vh];
     width: var(--width);
     max-width: calc(100% - 80px);
   }
