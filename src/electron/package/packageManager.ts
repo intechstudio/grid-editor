@@ -23,6 +23,7 @@ interface GithubPackageDetails {
   name: string;
   description?: string;
   mainIconPath?: string;
+  menuIconPath?: string;
 }
 
 interface EditorPackage {
@@ -425,6 +426,7 @@ async function downloadPackage(packageName: string) {
     });
     await unzipPromise;
     fs.unlinkSync(filePath);
+    loadPackage(packageName, undefined);
   } catch (e) {
     if (customGithubPackageList.has(packageName)) {
       customGithubPackageList.delete(packageName);
@@ -748,6 +750,7 @@ function getAvailablePackages() {
       mainIconPath: entry.mainIconPath,
       description: entry.description,
       packageVersion: entry.version,
+      menuIconPath: entry.menuIconPath,
     });
   });
   currentPackageList = packageList;
@@ -771,6 +774,9 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
         name: packageJson.description,
         description: packageJson.grid_editor?.shortDescription,
         mainIconPath: packageJson.grid_editor?.mainIcon
+          ? `${githubRawUrl}/${packageJson.grid_editor?.mainIcon}`
+          : undefined,
+        menuIconPath: packageJson.grid_editor?.menuIcon
           ? `${githubRawUrl}/${packageJson.grid_editor?.mainIcon}`
           : undefined,
       });
