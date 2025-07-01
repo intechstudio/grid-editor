@@ -5,12 +5,12 @@
     GridPage,
     GridPresetData,
   } from "./../../../../runtime/runtime";
-  import { grid } from "@intechstudio/grid-protocol";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { loadPreset } from "../../../../runtime/operations";
   import { get } from "svelte/store";
+  import { Grid } from "../../../../lib/_utils";
 
   export let element: GridElement;
   export let visible = false;
@@ -82,7 +82,7 @@
         <div
           class="flex w-full h-full items-center justify-center"
           style="transform: rotate({-$appSettings.persistent.moduleRotation +
-            $module?.rot * 90}deg);"
+            $module?.rot * Grid.Rotation.R90}deg);"
         >
           {#if !loaded}
             <button

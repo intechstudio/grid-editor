@@ -169,7 +169,6 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
       debug_lowlevel_store.push_outbound(param);
 
       if (port.writable.locked === true) {
-        //console.log("SORRY it's locked");
         reject("SORRY it's locked");
         return;
       }
@@ -186,7 +185,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
           resolve("Port released");
         })
         .catch((e) => {
-          console.log(e);
+          console.warn(e);
           reject(e);
         });
     });
@@ -230,8 +229,8 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
         let messageStopIndex = 0;
 
         for (let i = 0; i < rxBuffer.length; i++) {
-          if (rxBuffer[i] === 10) {
-            // newline character found
+          if (rxBuffer[i] === 10 && rxBuffer[i - 3] === 4) {
+            // newline character found and end-of-transmission character found
             messageStopIndex = i;
             let currentMessage = rxBuffer.slice(
               messageStartIndex,

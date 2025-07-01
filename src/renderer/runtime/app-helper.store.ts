@@ -1,6 +1,7 @@
 import { writable, get, readable } from "svelte/store";
-import { modal } from "../main/modals/modal.store";
+import { Modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
+import { Grid } from "../lib/_utils";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -14,7 +15,7 @@ const persistentDefaultValues = {
   userId: "",
   size: 1.0,
   wssPort: 1337,
-  moduleRotation: 0,
+  moduleRotation: Grid.Rotation.R0,
   welcomeOnStartup: true,
   lastVersion: "",
   profileFolder: "",
@@ -24,7 +25,6 @@ const persistentDefaultValues = {
   githubPackages: {},
   localPackages: {},
   keyboardLayout: "",
-  websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
   writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
@@ -56,6 +56,8 @@ const persistentDefaultValues = {
   multiViewEnabled: false,
   colorPicker: ColorPickerModel.Circle,
   allowDevBlocks: false,
+  lastActiveVersion: undefined,
+  lightMode: false,
 };
 
 function createSplitPanes() {
@@ -106,9 +108,8 @@ function createAppSettingsStore(persistent) {
     selectedDisplay: "",
     layoutMode: false,
     preferences: false,
-    rightPanel: "Configuration",
     rightPanelVisible: true,
-    leftPanel: "ProfileCloud",
+    leftPanel: undefined,
     leftPanelVisible: true,
     isMultiView: false,
     trayState: false,
@@ -133,6 +134,7 @@ function createAppSettingsStore(persistent) {
     packageManagerRunning: false,
     developerPackagesRequested: [],
     packageComponentKeys: {},
+    packageDebugLogs: [],
     gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
@@ -160,19 +162,6 @@ appSettings.subscribe((store) => {
     }
   });
 });
-
-/**
-ipcRenderer.on('trayState', (event, args) => {
-
-  if (get(appSettings).trayState === true && args === false){
-    // restart session
-    sessionid = Date.now();
-  }
-
-  console.log("traystate: ", args)
-  appSettings.update(s => {s.trayState = args; return s;})  
-})
- */
 
 async function init_appsettings() {
   let request = [];
@@ -226,7 +215,7 @@ async function init_appsettings() {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
           if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-            modal.show({ component: Welcome });
+            new Modal.Window(Welcome).show();
           }
           return s;
         });
@@ -259,8 +248,6 @@ async function init_appsettings() {
           minor: obj.EDITOR_VERSION.MINOR,
           patch: obj.EDITOR_VERSION.PATCH,
         };
-
-        console.log(editorVersion, targetVersion);
 
         if (
           editorVersion.major == targetVersion.major &&

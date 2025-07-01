@@ -52,7 +52,7 @@ export namespace GridInstruction {
     public executeOn(connection: GridConnection): Promise<any> {
       // Only add heatbeat into the write buffer if it is not in it already
       const buffer = get(connection.buffer);
-      const isHeartbeatPresent = buffer.some(
+      const isHeartbeatPresent = buffer.array.some(
         (e: any) => e.descr.class_name === "HEARTBEAT",
       );
 
@@ -187,7 +187,7 @@ export namespace GridInstruction {
     ) {
       super(virtual);
       const actionString =
-        Grid.Protocol.scriptStart + btoa(script) + Grid.Protocol.scriptEnd;
+        Grid.Protocol.scriptStart + script + Grid.Protocol.scriptEnd;
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,

@@ -1,6 +1,6 @@
 import convert from "color-convert";
+import { ElementType, grid, ModuleType } from "@intechstudio/grid-protocol";
 import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
-import { ElementType, grid } from "@intechstudio/grid-protocol";
 
 export namespace Grid {
   export function toFirstCase(value: string) {
@@ -12,6 +12,48 @@ export namespace Grid {
     { start: "[", end: "]" },
     { start: "{", end: "}" },
   ];
+
+  export enum Direction {
+    LEFT = "left",
+    RIGHT = "right",
+    UP = "up",
+    DOWN = "down",
+  }
+
+  export enum Rotation {
+    R0 = 0,
+    R90 = 90,
+    R180 = 180,
+    R270 = 270,
+  }
+
+  export function numberToRotation(value: number) {
+    switch (value % 4) {
+      case 0:
+        return Rotation.R0;
+      case 1:
+        return Rotation.R90;
+      case 2:
+        return Rotation.R180;
+      case 3:
+        return Rotation.R270;
+    }
+  }
+
+  export function rotateDirection(
+    direction: Grid.Direction,
+    rotation: Grid.Rotation,
+  ): Grid.Direction {
+    const directions = [
+      Grid.Direction.UP,
+      Grid.Direction.RIGHT,
+      Grid.Direction.DOWN,
+      Grid.Direction.LEFT,
+    ];
+    const index = directions.indexOf(direction);
+    const steps = (rotation / 90) % 4;
+    return directions[(index - steps + 4) % 4];
+  }
 
   export function parseBracketValues(value: string): string[] {
     if (value.length < 2) {
@@ -332,6 +374,33 @@ export namespace Grid {
     }
   }
 
+  export namespace Module {
+    export enum Archetype {
+      XX16 = "XX16",
+      PBF4 = "PBF4",
+      EF44 = "EF44",
+      VSNX = "VSNX",
+    }
+
+    const typeToArchetypeMap = {
+      [ModuleType.BU16]: Module.Archetype.XX16,
+      [ModuleType.PO16]: Module.Archetype.XX16,
+      [ModuleType.EN16]: Module.Archetype.XX16,
+      [ModuleType.PBF4]: Module.Archetype.PBF4,
+      [ModuleType.EF44]: Module.Archetype.EF44,
+      [ModuleType.TEK1]: Module.Archetype.VSNX,
+      [ModuleType.TEK2]: Module.Archetype.VSNX,
+      [ModuleType.VSN0]: Module.Archetype.VSNX,
+      [ModuleType.VSN1L]: Module.Archetype.VSNX,
+      [ModuleType.VSN1R]: Module.Archetype.VSNX,
+      [ModuleType.VSN2]: Module.Archetype.VSNX,
+    };
+
+    export function toArchetype(type: ModuleType): Module.Archetype {
+      return typeToArchetypeMap[type];
+    }
+  }
+
   //TODO: Move it to ui-kit?
   export namespace Types {
     export type MeltComboData = {
@@ -343,5 +412,15 @@ export namespace Grid {
         func?: (e: string) => boolean;
       };
     };
+  }
+
+  export namespace Link {
+    export async function openExternalLink(link: string) {
+      if (import.meta.env.VITE_BUILD_TARGET === "web") {
+        window.open(link);
+      } else {
+        window.electron.openInBrowser(link);
+      }
+    }
   }
 }

@@ -1,10 +1,11 @@
 import { get, Unsubscriber, Updater, writable, Writable } from "svelte/store";
-import { modal, Snap } from "../main/modals/modal.store";
+import { Modal, modalManager } from "../main/modals/modal.store";
 import { appSettings } from "./app-helper.store";
 import { runtime_manager } from "./runtime-manager.store";
 import { Subscriber } from "svelte/motion";
 import { Grid } from "../lib/_utils";
 import { selected_actions } from "./selected-actions.store";
+import { GridElement, GridEvent, GridModule, GridPage } from "./runtime";
 
 export type UserInputValue = {
   dx: number;
@@ -28,6 +29,19 @@ export class UserInput implements Writable<UserInputValue> {
 
   constructor() {
     this._internal = writable(UserInput.defaultValue);
+  }
+
+  public displayEvent(value: GridEvent) {
+    const element = value.parent as GridElement;
+    const page = element.parent as GridPage;
+    const module = page.parent as GridModule;
+    this.set({
+      dx: module.dx,
+      dy: module.dy,
+      pagenumber: page.pageNumber,
+      elementnumber: element.elementIndex,
+      eventtype: value.type,
+    });
   }
 
   // Subscribe to the entire object
@@ -82,10 +96,7 @@ export class UserInput implements Writable<UserInputValue> {
 
   // Process incoming events
   public process_incoming_event_from_grid(descr: any) {
-    if (
-      typeof get(modal) !== "undefined" &&
-      get(modal).options.snap === Snap.FULL
-    ) {
+    if (get(modalManager).windows.some((e) => e.target === Modal.Snap.Full)) {
       return;
     }
 

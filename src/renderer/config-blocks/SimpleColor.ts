@@ -14,7 +14,6 @@ import {
   GridPage,
 } from "../runtime/runtime";
 import { Script } from "./_script_parsers";
-import { ElementType } from "@intechstudio/grid-protocol";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
 
@@ -44,12 +43,22 @@ export namespace SimpleColor {
     }>;
     public layer: number;
     public element: string;
+    public updateIntenstiy: boolean;
 
     constructor(action: GridAction) {
+      let actionstring = action.script;
+
+      this.updateIntenstiy = actionstring.includes("glp");
+      if (this.updateIntenstiy) {
+        // remove glp call from the end
+        actionstring = actionstring.split(" ")[0];
+      }
+
       const segments = Script.toSegments({
         short: `glc`,
-        script: action.script.split(":").slice(1).join(":"),
+        script: actionstring.match(/glc\(.*\)$/)[0],
       });
+
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
         const values = Grid.parseBracketValues(e);
         return {
@@ -60,8 +69,8 @@ export namespace SimpleColor {
         };
       });
 
-      this.layer = Number(segments[0]);
-      this.element = action.script.split(":")[0];
+      this.layer = segments[0];
+      this.element = actionstring.match(/(.*?)glc/)[1].slice(0, -1);
     }
   }
 
@@ -103,6 +112,7 @@ export namespace SimpleColor {
     green: MeltComboData;
     blue: MeltComboData;
     alpha: MeltComboData;
+    updateIntensity: boolean;
   };
 
   export class ViewModel implements Readable<ViewModelData> {
@@ -140,6 +150,7 @@ export namespace SimpleColor {
       const page = element.parent as GridPage;
 
       const selectedIndex = parsed.colors.length - 1;
+      const updateIntensity = parsed.updateIntenstiy;
       const { red, green, blue, alpha } = parsed.colors[selectedIndex];
       const pickerColor = [red, green, blue].some((e) => isNaN(parseFloat(e)))
         ? undefined
@@ -177,6 +188,7 @@ export namespace SimpleColor {
         green: getColorData(green),
         blue: getColorData(blue),
         alpha: getColorData(alpha),
+        updateIntensity,
       });
 
       const unsubscribe = event.subscribe(() => {
@@ -255,13 +267,14 @@ export namespace SimpleColor {
       this.update((s) => {
         s.alphaSliderValue = value;
         s.alpha.value = String(value);
-        const current = s.previewColors[s.selectedIndex];
-        s.previewColors[s.selectedIndex] = {
-          red: current.red,
-          green: current.green,
-          blue: current.blue,
-          alpha: String(value),
-        };
+        s.previewColors[s.selectedIndex].alpha = String(value);
+        return s;
+      });
+    }
+
+    public UpdateIntensityEnabledValue(value: boolean) {
+      this.update((s) => {
+        s.updateIntensity = value;
         return s;
       });
     }
@@ -295,20 +308,24 @@ export namespace SimpleColor {
         switch (channel) {
           case SimpleColor.Channel.RED: {
             s.previewColors[s.selectedIndex].red = value;
+            s.red.value = value;
             break;
           }
           case SimpleColor.Channel.GREEN: {
             s.previewColors[s.selectedIndex].green = value;
+            s.green.value = value;
             break;
           }
           case SimpleColor.Channel.BLUE: {
             s.previewColors[s.selectedIndex].blue = value;
+            s.blue.value = value;
             break;
           }
           case SimpleColor.Channel.ALPHA: {
             const alpha = parseFloat(value);
-            s.alphaSliderValue = isNaN(alpha) ? undefined : alpha;
+            s.alphaSliderValue = isNaN(alpha) ? 0 : alpha;
             s.previewColors[s.selectedIndex].alpha = value;
+            s.alpha.value = value;
             break;
           }
         }

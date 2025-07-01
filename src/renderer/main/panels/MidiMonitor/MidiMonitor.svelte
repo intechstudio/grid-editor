@@ -211,10 +211,7 @@
   ): msg is MidiMonitorItem => msg.type === "MIDI";
 </script>
 
-<container
-  data-testid="midi-monitor"
-  class="flex flex-col h-full p-4 bg-primary"
->
+<container data-testid="midi-monitor" class="flex flex-col h-full p-4">
   <div class="flex flex-row w-full text-white justify-between">
     <div class="flex text-2xl">MIDI Monitor</div>
     <div class="flex items-center">
@@ -248,7 +245,7 @@
               <div
                 class="ml-2 flex place-self-end self-center {activity
                   ? 'bg-yellow-500'
-                  : 'bg-primary'} rounded-full w-3 h-3"
+                  : ' '} rounded-full w-3 h-3"
               />
             </div>
           {/if}

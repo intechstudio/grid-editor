@@ -22,7 +22,7 @@
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { modal } from "../../modals/modal.store";
+  import { Modal } from "../../modals/modal.store";
   import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
@@ -136,7 +136,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    modal.show({ component: UserAuthenticationModal });
+    new Modal.Window(UserAuthenticationModal).show();
   }
 
   async function handleCreateCloudConfigLink(event) {
@@ -278,7 +278,6 @@
 
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {
-    console.log("profile cloud is mounted received");
     profileCloudIsMounted = true;
     let authEnvironment = AuthEnvironment.PRODUCTION;
     if (event.data.environment && event.data.environment !== "production") {
@@ -317,11 +316,7 @@
 
   async function handleOpenExternalLink(event) {
     const { link } = event.data;
-    if (import.meta.env.VITE_BUILD_TARGET === "web") {
-      window.open(link);
-    } else {
-      window.electron.openInBrowser(link);
-    }
+    Grid.Link.openExternalLink(link);
   }
 
   function initChannelCommunication(event) {
@@ -384,7 +379,6 @@
   ) {
     // listenerRegistered variable makes sure that the webcomponent loading is after registering the listener.
     // otherwise handleProfileCloudMounted might be missed and offline fallback is displayed
-    console.log("INSIDE EVENT HANDLER");
     if (profileCloudUrl !== $appSettings.persistent.profileCloudUrl) {
       offlineMode = false;
       profileCloudUrl = $appSettings.persistent.profileCloudUrl;
@@ -393,7 +387,6 @@
     }
 
     let fixedUrl = profileCloudUrl;
-    console.log(fixedUrl);
     if (!fixedUrl.endsWith(".js")) {
       if (fixedUrl.endsWith("/")) {
         fixedUrl = `${fixedUrl}wc/components.js`;
@@ -425,7 +418,7 @@
         })
         .catch((e) => {
           profileCloudWebComponentName = "profile-cloud-prod";
-          console.log(e);
+          console.warn(e);
         });
     }
   }
@@ -433,14 +426,14 @@
   onMount(async () => {
     // get to know the user
     await userStore.known;
-    console.log("profile cloud is mounted status", profileCloudIsMounted);
-    console.log("Profile Cloud url", $appSettings.persistent.profileCloudUrl);
+    console.log(
+      `Profile Cloud url: ${$appSettings.persistent.profileCloudUrl} (status: ${profileCloudIsMounted})`,
+    );
     window.addEventListener("message", initChannelCommunication);
     listenerRegistered = true;
   });
 
   onDestroy(() => {
-    console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     if (get(moduleOverlay) === "configuration-load-overlay") {
       moduleOverlay.close();
@@ -467,7 +460,7 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<div class="flex flex-col bg-primary w-full h-full relative">
+<div class="flex flex-col w-full h-full relative">
   {#if !profileCloudIsMounted}
     <div class="flex items-center justify-center h-full absolute">
       <div class="p-4">

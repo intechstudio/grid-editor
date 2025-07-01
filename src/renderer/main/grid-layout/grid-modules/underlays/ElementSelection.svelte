@@ -13,6 +13,7 @@
 
   import { createEventDispatcher } from "svelte";
   import { draggedActions } from "../../../_actions/move.action";
+  import { Focus } from "../../../_actions/focus.action";
 
   export let element: GridElement;
   export let isLeftCut = false;
@@ -27,6 +28,7 @@
 
   let isSelected = false;
   $: handleUserInputChange($user_input);
+  $: handleSelectionChange(isSelected);
 
   function handleUserInputChange(ui: UserInputValue) {
     isSelected =
@@ -64,6 +66,14 @@
         eventtype: ui.eventtype,
       });
     }, 100);
+  }
+
+  function handleSelectionChange(value: boolean) {
+    if (value) {
+      Focus.trigger(
+        `element-${module.dx}-${module.dy}-${element.elementIndex}`,
+      );
+    }
   }
 </script>
 
