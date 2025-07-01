@@ -11,7 +11,7 @@
   onMount(() => {
     editor = MonacoEditor.create(monacoElement, {
       value: "",
-      language: "intech_lua",
+      language: "lua",
       theme: "my-theme",
       fontSize: $appSettings.persistent.fontSize,
       folding: false,
