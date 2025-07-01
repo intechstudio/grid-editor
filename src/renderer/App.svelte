@@ -33,6 +33,7 @@
   import { logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
+  import RightPanelToggleButton from "./main/RightPanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
   import {
@@ -97,6 +98,13 @@
     $appSettings.packageManagerRunning = true;
     const data = event.data;
     // action towards runtime
+    if ($appSettings.persistent.packageDeveloper) {
+      $appSettings.packageDebugLogs.push({
+        time: new Date(),
+        ...data,
+      });
+      $appSettings.packageDebugLogs = [...$appSettings.packageDebugLogs];
+    }
     switch (data.type) {
       case "persist-data": {
         appSettings.update((s) => {
@@ -138,7 +146,7 @@
       case "persist-github-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          persistent.githubPackages[data.id] = {
+          persistent.githubPackages[data.packageId] = {
             name: data.packageName,
             gitHubRepositoryOwner: data.gitHubRepositoryOwner,
             gitHubRepositoryName: data.gitHubRepositoryName,
@@ -151,7 +159,7 @@
       case "remove-github-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          delete persistent.githubPackages[data.id];
+          delete persistent.githubPackages[data.packageId];
           s.persistent = persistent;
           return s;
         });
@@ -160,7 +168,7 @@
       case "persist-local-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          persistent.localPackages[data.id] = data.rootPath;
+          persistent.localPackages[data.packageId] = data.rootPath;
           s.persistent = persistent;
           return s;
         });
@@ -169,7 +177,7 @@
       case "remove-local-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          delete persistent.localPackages[data.id];
+          delete persistent.localPackages[data.packageId];
           s.persistent = persistent;
           return s;
         });
@@ -250,6 +258,9 @@
     // extract this part on refactor
     if (event.source === window && event.data === "package-manager-port") {
       const [port] = event.ports;
+      if (window.packageManagerPort) {
+        window.packageManagerPort.close();
+      }
       window.packageManagerPort = port;
       // register message handler
       port.onmessage = handlePackageManagerMessage;
@@ -258,13 +269,6 @@
         $appSettings.packageList = [];
         $appSettings.packageManagerRunning = false;
       };
-      for (const _package of $appSettings.persistent.enabledPackages ?? []) {
-        port.postMessage({
-          type: "load-package",
-          id: _package,
-          payload: $appSettings.persistent.packagesDataStorage[_package],
-        });
-      }
       // register global createPackageMessagePort for direct package communication
       window.createPackageMessagePort = (id, senderId) => {
         const channel = new MessageChannel();
@@ -341,7 +345,6 @@
 
     <ErrorConsole />
     <VersionUpdateBar />
-
     <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">
         <Pane
@@ -354,6 +357,7 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
+          <RightPanelToggleButton />
           <MiddlePanelContainer />
         </Pane>
 

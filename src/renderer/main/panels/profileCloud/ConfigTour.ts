@@ -85,7 +85,7 @@ export namespace ConfigTour {
   }
 
   export class Tour implements Readable<TourData> {
-    private readonly defaultValue: TourData = {
+    static readonly defaultValue: TourData = {
       id: undefined,
       current: undefined,
       steps: [],
@@ -93,7 +93,7 @@ export namespace ConfigTour {
       active: false,
       profile: undefined,
     };
-    private internal: Writable<TourData> = writable(this.defaultValue);
+    private internal: Writable<TourData> = writable(Tour.defaultValue);
 
     public subscribe(
       run: Subscriber<TourData>,
@@ -204,7 +204,7 @@ export namespace ConfigTour {
     }
 
     public clear() {
-      this.set(this.defaultValue);
+      this.set(Tour.defaultValue);
     }
 
     set active(value: boolean) {
