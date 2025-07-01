@@ -54,7 +54,9 @@ export class ProfileCloudEvent {
                   .findPage(target.page);
 
                 const profile = GridProfileData.createFromCloudData(config);
-                loadProfile(profile, page);
+                loadProfile(profile, page).then(() => {
+                  moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
+                });
                 break;
               }
               case "preset": {

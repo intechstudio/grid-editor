@@ -219,7 +219,7 @@
   {#if container}
     <div
       bind:clientWidth={containerWidth}
-      class="w-full h-full flex flex-col bg-primary"
+      class="w-full h-full flex flex-col"
       transition:fade={{
         duration: 150,
         delay: 0,

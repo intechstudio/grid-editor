@@ -39,12 +39,44 @@ class NodeData {
   parent?: RuntimeNode<any>;
 }
 
+export namespace ProfileLoad {
+  export enum State {
+    READY,
+    BUSY,
+    LOADED,
+    ERROR,
+  }
+
+  export interface Status {
+    step: State;
+    message?: string;
+    error?: string;
+  }
+}
+
+export enum GridNodeState {
+  NOT_LOADED,
+  FETCHING,
+  SYNCED,
+  UNSYNCED,
+}
+
+export enum ConfigurationType {
+  PROFILE = "profile",
+  PRESET = "preset",
+  SNIPPET = "snippet",
+}
+
 export class GridProfileData {
   public presets: GridPresetData[] = [];
+  public description: string;
+  public id: string;
+  public readonly type = ConfigurationType.PROFILE;
 
   static createFromCloudData(cloudProfile: any) {
     const data = cloudProfile.configs;
     const profile = new GridProfileData();
+
     for (const [index, type] of Object.entries(
       grid.get_module_element_list(cloudProfile.type),
     )) {
@@ -58,11 +90,18 @@ export class GridProfileData {
       const preset = new GridPresetData(type, Number(index), events);
       profile.presets.push(preset);
     }
+
+    profile.description = cloudProfile.description;
+    profile.id = cloudProfile.id;
     return profile;
   }
 }
+
 export class GridPresetData {
   public element: GridElement;
+  public description: string;
+  public id: string;
+  public readonly type = ConfigurationType.PRESET;
 
   constructor(type: ElementType, index: number, array: RawEventData[]) {
     const element = new GridElement(undefined, new ElementData(index, type));
@@ -80,19 +119,32 @@ export class GridPresetData {
   }
 
   static createFromCloudData(cloudPreset: any) {
-    return new GridPresetData(cloudPreset.type, -1, cloudPreset.configs.events);
+    const preset = new GridPresetData(
+      cloudPreset.type,
+      -1,
+      cloudPreset.configs.events,
+    );
+    preset.description = cloudPreset.description;
+    preset.id = cloudPreset.id;
+    return preset;
   }
 }
 
 export class GridSnippetData {
   public actions: GridAction[];
+  public description: string;
+  public id: string;
+  public readonly type = ConfigurationType.SNIPPET;
 
   constructor(array: RawEventData) {
     this.actions = GridAction.parse(array);
   }
 
   static createFromCloudData(cloudPreset: any) {
-    return new GridSnippetData(cloudPreset.configs);
+    const snippet = new GridSnippetData(cloudPreset.configs);
+    snippet.description = cloudPreset.description;
+    snippet.id = cloudPreset.id;
+    return snippet;
   }
 }
 
@@ -267,6 +319,16 @@ export class ActionData extends NodeData {
     return GridScript.checkSyntax(code) && !this.invalid;
   }
 
+  public getTourIndex(): number | undefined {
+    const part = this.name?.split(".")[0];
+    const index = Number(part);
+    return Number.isFinite(index) ? index : undefined;
+  }
+
+  public isTourStep() {
+    return this.getTourIndex() !== undefined;
+  }
+
   public get information() {
     let result = GridAction.getInformation(this.short);
     return result;
@@ -311,40 +373,39 @@ export class GridAction extends RuntimeNode<ActionData> {
 
   static parse(script: LuaScript) {
     const result: GridAction[] = [];
-    let configList: string[] = [];
-    let actionString = script;
-    // get rid of new line, enter
-    actionString = actionString.replace(/[\n\r]+/g, "");
-    // get rid of more than 2 spaces
-    actionString = actionString.replace(/\s{2,10}/g, " ");
-    // remove lua opening and closing characters
-    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+
+    let actionString = script.replace(/[\n\r]+/g, "").replace(/\s{2,10}/g, " ");
+
     if (actionString.startsWith(Grid.Protocol.scriptStart)) {
       actionString = actionString
         .split(Grid.Protocol.scriptStart)[1]
         .split(Grid.Protocol.scriptEnd)[0];
     }
-    // split by meta comments
-    configList = actionString.split(/(--\[\[@\w+(?:#|\w|\s)*\]\])/);
 
-    configList = configList.slice(1);
-    for (var i = 0; i < configList.length; i += 2) {
-      const split = configList[i]
-        .match(/--\[\[@(.*)\]\]/)
-        ?.at(1)
-        .split(/#(.*)/);
+    const matches = [
+      ...actionString.matchAll(/--\[\[@(.*?)\]\]\s*(.*?)(?=(--\[\[@|$))/gs),
+    ];
 
+    for (const [, meta, code] of matches) {
+      const split = meta.split(/#(.*)/);
       const data = new ActionData(
-        //Extract short + name, e.g.: '--[[@gms#name]]' => 'gms'
-        split[0],
-        configList[i + 1].trim(),
-        split.length > 1 ? split[1] : undefined,
+        split[0], // Short name, e.g. 'gms'
+        code.trim(), // Action code body
+        split.length > 1 ? split[1] : undefined, // Optional long name
       );
       const obj = new GridAction(undefined, data);
       result.push(obj);
     }
 
     return result;
+  }
+
+  public isTourStep() {
+    return this.data.isTourStep();
+  }
+
+  public getTourIndex() {
+    return this.data.getTourIndex();
   }
 
   static getInformation(short: string): ActionBlockInformation {
@@ -475,20 +536,21 @@ export class EventData extends NodeData {
   public config: Array<GridAction>;
   public type: number;
   public stored: LuaScript;
-  public loaded: boolean;
+  public state: GridNodeState;
 
   constructor(type: number) {
     super();
     this.type = type;
     this.config = [];
-    this.loaded = false;
     this.stored = "";
+    this.state = GridNodeState.NOT_LOADED;
   }
 
   public hasChanges(): boolean {
+    /*
     if (!this.isLoaded()) {
       return false;
-    }
+    }*/
 
     return this.stored !== this.toLua();
   }
@@ -525,7 +587,11 @@ export class EventData extends NodeData {
   }
 
   public isLoaded() {
-    return this.loaded;
+    return (
+      [GridNodeState.NOT_LOADED, GridNodeState.FETCHING].includes(
+        this.state,
+      ) === false
+    );
   }
 
   public getInfo(): EventInfo {
@@ -825,7 +891,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public unload() {
     this.clear();
-    this.loaded = false;
+    this.state = GridNodeState.NOT_LOADED;
     this.stored = "";
   }
 
@@ -927,10 +993,11 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   public async load(): Promise<void> {
-    if (this.isLoaded()) {
+    if (this.isLoaded() || this.state === GridNodeState.FETCHING) {
       return Promise.resolve();
     }
 
+    this.state = GridNodeState.FETCHING;
     const element = this.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
@@ -952,24 +1019,21 @@ export class GridEvent extends RuntimeNode<EventData> {
       const script = descr.class_parameters.ACTIONSTRING;
       const actions = GridAction.parse(script);
 
-      //Handling multiple load call at the same time
-      if (this.isLoaded()) {
-        return Promise.resolve();
-      }
-
       this.push(...actions);
       this.store();
-      this.loaded = true;
-
-      console.log("EVENT LOADED");
+      this.state = GridNodeState.SYNCED;
       return Promise.resolve();
     } catch (e) {
-      this.loaded = false;
+      this.unload();
       return Promise.reject(e);
     }
   }
 
   // Getters
+  public get state() {
+    return this.getField("state");
+  }
+
   public get config() {
     return this.getField("config");
   }
@@ -982,11 +1046,11 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.getField("stored");
   }
 
-  public get loaded() {
-    return this.getField("loaded");
+  // Setters
+  private set state(value: GridNodeState) {
+    this.setField("state", value);
   }
 
-  // Setters
   private set config(value: Array<GridAction>) {
     this.setField("config", value);
   }
@@ -997,10 +1061,6 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   private set stored(value: string) {
     this.setField("stored", value);
-  }
-
-  private set loaded(value: boolean) {
-    this.setField("loaded", value);
   }
 }
 
@@ -1052,6 +1112,23 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
+  }
+
+  public isPresetLoaded(preset: GridPresetData) {
+    for (const event of preset.element.events) {
+      const found = this.events.find((e) => e.type === event.type);
+      if (!found) {
+        return false;
+      }
+
+      const left = found.toLua();
+      const right = event.toLua();
+
+      if (left !== right) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public getHumanName() {
@@ -1303,6 +1380,22 @@ export class GridPage extends RuntimeNode<PageData> {
     }
   }
 
+  public isProfileLoaded(profile: GridProfileData) {
+    for (const preset of profile.presets) {
+      const found = this.control_elements.find(
+        (e) => e.elementIndex === preset.element.elementIndex,
+      );
+      if (!found) {
+        return false;
+      }
+
+      if (!found.isPresetLoaded(preset)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public isValid() {
     return this.data.isValid();
   }
@@ -1318,32 +1411,44 @@ export class GridPage extends RuntimeNode<PageData> {
 
   public async loadProfile(
     profile: GridProfileData,
+    setStatus?: (status: ProfileLoad.Status) => void,
   ): Promise<ProfileLoadResult> {
-    await this.load();
+    try {
+      setStatus?.({ step: ProfileLoad.State.BUSY });
+      await this.load();
 
-    const presets = profile.presets;
-    // Reorder array to send system element first
-    const index = presets.findIndex((obj) => obj.element.elementIndex === 255);
+      const presets = profile.presets;
 
-    // Check if the object with id === 255 was found
-    if (index !== -1) {
-      // Remove the object at the found index
-      const objectToMove = presets.splice(index, 1)[0];
+      // Reorder array to send system element first
+      const index = presets.findIndex(
+        (obj) => obj.element.elementIndex === 255,
+      );
 
-      // Add the object to the front of the array
-      presets.unshift(objectToMove);
+      if (index !== -1) {
+        const objectToMove = presets.splice(index, 1)[0];
+        presets.unshift(objectToMove);
+      }
+
+      // PROFILE LOAD
+      for (const preset of presets) {
+        const element = this.findElement(preset.element.elementIndex);
+        await element.loadPreset(preset);
+      }
+
+      setStatus?.({ step: ProfileLoad.State.LOADED });
+      return {
+        value: true,
+        text: "OK",
+        type: GridOperationType.LOAD_PROFILE,
+      };
+    } catch (error) {
+      setStatus?.({ step: ProfileLoad.State.ERROR });
+      return Promise.reject({
+        value: false,
+        text: error instanceof Error ? error.message : String(error),
+        type: GridOperationType.LOAD_PROFILE,
+      });
     }
-
-    //PROFILE LOAD
-    for (const preset of presets) {
-      const element = this.findElement(preset.element.elementIndex);
-      element.loadPreset(preset);
-    }
-    return Promise.resolve({
-      value: true,
-      text: "OK",
-      type: GridOperationType.LOAD_PROFILE,
-    });
   }
 
   findElement(index: number) {
@@ -1367,6 +1472,10 @@ export class GridPage extends RuntimeNode<PageData> {
     for (const element of this.control_elements) {
       element.unload();
     }
+  }
+
+  public isLoaded() {
+    return this.control_elements.every((e) => e.isLoaded());
   }
 
   public async load() {

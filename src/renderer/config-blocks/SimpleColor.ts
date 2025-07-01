@@ -43,12 +43,22 @@ export namespace SimpleColor {
     }>;
     public layer: number;
     public element: string;
+    public updateIntenstiy: boolean;
 
     constructor(action: GridAction) {
+      let actionstring = action.script;
+
+      this.updateIntenstiy = actionstring.includes("glp");
+      if (this.updateIntenstiy) {
+        // remove glp call from the end
+        actionstring = actionstring.split(" ")[0];
+      }
+
       const segments = Script.toSegments({
         short: `glc`,
-        script: action.script.match(/glc\(.*\)$/)[0],
+        script: actionstring.match(/glc\(.*\)$/)[0],
       });
+
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
         const values = Grid.parseBracketValues(e);
         return {
@@ -60,7 +70,7 @@ export namespace SimpleColor {
       });
 
       this.layer = segments[0];
-      this.element = action.script.match(/(.*?)glc/)[1].slice(0, -1);
+      this.element = actionstring.match(/(.*?)glc/)[1].slice(0, -1);
     }
   }
 
@@ -102,6 +112,7 @@ export namespace SimpleColor {
     green: MeltComboData;
     blue: MeltComboData;
     alpha: MeltComboData;
+    updateIntensity: boolean;
   };
 
   export class ViewModel implements Readable<ViewModelData> {
@@ -139,6 +150,7 @@ export namespace SimpleColor {
       const page = element.parent as GridPage;
 
       const selectedIndex = parsed.colors.length - 1;
+      const updateIntensity = parsed.updateIntenstiy;
       const { red, green, blue, alpha } = parsed.colors[selectedIndex];
       const pickerColor = [red, green, blue].some((e) => isNaN(parseFloat(e)))
         ? undefined
@@ -176,6 +188,7 @@ export namespace SimpleColor {
         green: getColorData(green),
         blue: getColorData(blue),
         alpha: getColorData(alpha),
+        updateIntensity,
       });
 
       const unsubscribe = event.subscribe(() => {
@@ -255,7 +268,13 @@ export namespace SimpleColor {
         s.alphaSliderValue = value;
         s.alpha.value = String(value);
         s.previewColors[s.selectedIndex].alpha = String(value);
-        console.log(s);
+        return s;
+      });
+    }
+
+    public UpdateIntensityEnabledValue(value: boolean) {
+      this.update((s) => {
+        s.updateIntensity = value;
         return s;
       });
     }
@@ -284,7 +303,6 @@ export namespace SimpleColor {
       validationError: boolean,
       channel: Channel,
     ) {
-      console.log(value);
       this.update((s) => {
         s[channel].validator.value = !validationError;
         switch (channel) {

@@ -54,6 +54,12 @@ export class ConfigPage {
     this.blockSearch = page.getByRole("textbox");
 
     // Code Block Elements
+    this.codeBlockModalDiscardButton = page.getByRole("button", {
+      name: "Discard Changes & Close",
+    });
+    this.codeBlockModalCancelButton = page.getByRole("button", {
+      name: "Cancel",
+    });
     this.addBlocktoLastSandwichButton = page
       .getByTestId("action-block")
       .filter({ hasText: "End" })
@@ -245,6 +251,14 @@ export class ConfigPage {
     await this.closeCodeButton.click();
   }
 
+  async codeBlockModalDiscard() {
+    await this.codeBlockModalDiscardButton.click();
+  }
+
+  async codeBlockModalCancel() {
+    await this.codeBlockModalCancelButton.click();
+  }
+
   async getTextFromComment() {
     return await this.blocks["code"]["Comment Block"]["elements"][
       "input"
@@ -252,7 +266,9 @@ export class ConfigPage {
   }
 
   async getTextFromCode() {
-    return await this.blocks["code"]["Code Block"]["elements"]["input"];
+    return await this.blocks["code"]["Code Block"]["elements"][
+      "input"
+    ].textContent();
   }
 
   async getTextFromName() {
