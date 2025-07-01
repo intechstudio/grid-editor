@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { modal } from "./modals/modal.store.js";
+  import { Modal } from "./modals/modal.store";
   import ReleaseNotes from "./modals/ReleaseNotes.svelte";
   import { AppUpdater } from "./versionUpdateBar.js";
 
@@ -35,9 +35,9 @@
               : "Download"}
           />
         </div>
-        {#if typeof $manager.info?.releaseNotes !== "undefined" || true}
+        {#if typeof $manager.info?.releaseNotes !== "undefined"}
           <MoltenPushButton
-            click={() => modal.show({ component: ReleaseNotes })}
+            click={() => new Modal.Window(ReleaseNotes).show()}
             text={"Release Notes"}
           />
         {/if}

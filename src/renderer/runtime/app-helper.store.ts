@@ -1,5 +1,5 @@
 import { writable, get, readable } from "svelte/store";
-import { modal } from "../main/modals/modal.store";
+import { Modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
 
@@ -215,7 +215,7 @@ async function init_appsettings() {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
           if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-            modal.show({ component: Welcome });
+            new Modal.Window(Welcome).show();
           }
           return s;
         });

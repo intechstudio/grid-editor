@@ -7,7 +7,9 @@
   import MoltenModal from "./MoltenModal.svelte";
   import { Grid } from "../../lib/_utils";
   import { AppUpdater } from "../versionUpdateBar";
-  import { modal } from "./modal.store";
+  import { Modal } from "./modal.store";
+
+  export let data: Modal.Instance;
 
   const manager = AppUpdater.stateManager;
 
@@ -20,16 +22,16 @@
 
   function handleInstallUpdate() {
     AppUpdater.installUpdate();
-    modal.close();
+    data.close();
   }
 
   function handleSkipClicked() {
     AppUpdater.abortUpdate();
-    modal.close();
+    data.close();
   }
 </script>
 
-<MoltenModal>
+<MoltenModal {data}>
   <div slot="content" class="flex flex-col max-h-[80vh] gap-2">
     <span class="flex w-full text-4xl opacity-90">
       {`${$manager.info?.releaseName} (${$manager.info?.version})`}

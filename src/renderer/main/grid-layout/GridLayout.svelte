@@ -7,7 +7,7 @@
 <script lang="ts">
   import { Architecture } from "@intechstudio/grid-protocol";
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
-  import { modal } from "./../modals/modal.store";
+  import { Modal } from "./../modals/modal.store";
   import { watchResize } from "svelte-watch-resize";
   import { get, Readable } from "svelte/store";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -15,7 +15,6 @@
   import { fade, fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
   import AddModuleButton from "./AddModuleButton.svelte";
-  import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridModule, GridRuntime } from "../../runtime/runtime";
 
   export let component: HTMLElement = undefined;
@@ -155,11 +154,8 @@
     calculateLayoutDimensions(rotation, get(scale));
   }
 
-  function handleAddModuleButtonClicked(x, y) {
-    modal.show({
-      component: AddVirtualModule,
-      args: { dx: x, dy: y },
-    });
+  function handleAddModuleButtonClicked(x: number, y: number) {
+    new Modal.Window(AddVirtualModule).show({ dx: x, dy: y });
   }
 </script>
 

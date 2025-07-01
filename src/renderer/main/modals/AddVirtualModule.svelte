@@ -8,7 +8,7 @@
   import { Analytics } from "./../../runtime/analytics.js";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "./MoltenModal.svelte";
-  import { modal } from "./modal.store";
+  import { Modal } from "./modal.store";
 
   import { appSettings } from "../../runtime/app-helper.store";
   import { get } from "svelte/store";
@@ -41,13 +41,9 @@
     },
   ];
 
-  let [dx, dy]: number[] = [0, 0];
-
-  $: {
-    const args = $modal.args;
-    dx = args?.dx ?? 0;
-    dy = args?.dy ?? 0;
-  }
+  export let dx = 0;
+  export let dy = 0;
+  export let data: Modal.Instance;
 
   let selectedModule: number = -1;
 
@@ -62,7 +58,7 @@
       dy: dy,
       type: devices[selectedModule].id,
     });
-    modal.close();
+    data.close();
     Analytics.track({
       event: "VirtualModule",
       payload: {
@@ -73,7 +69,7 @@
   }
 
   function handleCancelClicked(e) {
-    modal.close();
+    data.close();
   }
 
   function handleModuleClicked(index: number) {
@@ -86,7 +82,7 @@
   }
 </script>
 
-<MoltenModal width={500}>
+<MoltenModal {data} width={"500px"}>
   <div
     slot="content"
     class="grid grid-rows-[auto_1fr_auto] max-h-[50vh] h-full"
