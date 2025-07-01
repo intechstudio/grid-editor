@@ -11,6 +11,7 @@
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";
   import { GridRuntime } from "../runtime/runtime";
+  import { Modal } from "./modals/modal.store";
   import MiniMap from "./grid-layout/MiniMap.svelte";
   import { derived } from "svelte/store";
 
@@ -88,6 +89,7 @@
 
 <container
   bind:this={container}
+  use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
   class="grid grid-rows-[1fr_auto] w-full h-full"
 >
   <div
@@ -101,7 +103,7 @@
     {/if}
 
     <div
-      class="absolute top-0 w-fit self-center mt-10 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
     >
       {#if showModuleHangingDialog}
         <ModuleHangingDialog />
