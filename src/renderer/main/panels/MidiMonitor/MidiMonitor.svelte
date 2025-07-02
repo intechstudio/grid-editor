@@ -178,9 +178,9 @@
     midi_messages.set([]);
     sysex_messages.set([]);
 
-    midiMessageListHeight = 0;
-    sysExMessageListHeight = 0;
-    debugMessageListHeight = 0;
+    lastMidiMessageIndex = 0;
+    lastSysExMessageIndex = 0;
+    lastMidiStreamItemIndex = 0;
   }
 
   function isMIDI(
