@@ -2,8 +2,13 @@
   import { tooltip } from "./_actions/tooltip.ts";
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
   import menuIcons from "$lib/menu.icons";
+  import CircularBar from "./user-interface/CircularBar.svelte";
 
   $: selectedLeftTab = $appSettings.leftPanel ?? "profile-cloud";
+  $: enabledPackages = $appSettings.persistent.enabledPackages;
+  $: menuItems = $appSettings.packageList
+    .sort((p1, p2) => p1.name.localeCompare(p2.name))
+    .filter((p) => p.status == "Downloading" || p.status == "Enabled");
 
   function toggleLeftTab() {
     // Update store and global variables
@@ -119,13 +124,11 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
     </button>
-    {#each $appSettings.persistent.enabledPackages as packageId}
-      {@const packageData = $appSettings.packageList.find(
-        (e) => e.id == packageId,
-      )}
-      {#if packageData?.preferenceComponent || packageData?.svgIcon}
-        {#key packageId}
+    {#each menuItems as packageData}
+      {#if packageData?.preferenceComponent || packageData?.svgIcon || packageData?.menuIconPath}
+        {#key packageData.id}
           <button
+            disabled={packageData.status != "Enabled"}
             use:tooltip={{
               nowrap: true,
               placement: "right",
@@ -135,10 +138,10 @@
               triggerEvents: ["focus", "click", "hover"],
             }}
             on:click={() => {
-              changeLeftTab(packageId);
+              changeLeftTab(packageData.id);
             }}
             class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-              packageId && $splitpanes.left.size != 0
+              packageData.id && $splitpanes.left.size != 0
               ? 'bg-opacity-100 '
               : 'bg-opacity-40 '} bg-secondary activator-button"
           >
@@ -152,9 +155,22 @@
               {/if}
             </div>
 
+            {#if packageData.status === "Downloading"}
+              <div
+                class="left-0 top-0 w-full h-full p-1 absolute flex items-center content-center"
+                style="background-color: #1e262870;"
+              >
+                <CircularBar
+                  value={packageData.installProgress * 100}
+                  color="#fff"
+                  thickness="10%"
+                />
+              </div>
+            {/if}
+
             <div
               class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-                packageId && $splitpanes.left.size != 0
+                packageData.id && $splitpanes.left.size != 0
                 ? 'h-8'
                 : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
             />

@@ -5,12 +5,10 @@
   export let trackColor;
   export let textColor;
   export let thickness = "5%"; // Thickness of stroke
-  export let checkable = false;
-  export let checked = false;
   export let decimals = false;
 
-  let newValue; // Value already validated
-  let radius, radiusBtn, xaxis, side;
+  let newValue = 0; // Value already validated
+  let radius, xaxis, yaxis, side;
   let circle, hidCircle, btnCircle;
   let rootEle;
   let rootWidth, rootHeight;
@@ -20,21 +18,17 @@
   $: calculate(value, rootWidth, rootHeight, circle, hidCircle);
 
   function calculate() {
-    if (newValue > value) {
-      //Avoid jumping back with the progress
-      return;
-    }
-    newValue = (value > max ? max : value < 0 ? 0 : value) || 0;
+    newValue = (value > max ? max : value < newValue ? newValue : value) || 0;
     if (circle && hidCircle) {
       let isPercent = thickness.slice(-1) == "%";
       let breadth = parseInt(thickness) || 5;
-      let border = isPercent ? (breadth / 100) * rootWidth : breadth;
+      side = Math.min(rootWidth, rootHeight);
+      let border = isPercent ? (breadth / 100) * side : breadth;
 
       // Discount the stroke thickness on both sides
-      side = rootWidth;
       radius = (side - border * 2) / 2;
-      radiusBtn = (radius - border) * (discRadius / 100);
-      xaxis = radius;
+      xaxis = rootWidth / 2;
+      yaxis = rootHeight / 2;
 
       // Colors
       if (color) {
@@ -49,19 +43,10 @@
 
       // Bar graph
       let dashValue = Math.round(2 * Math.PI * radius);
-      circle.style.strokeDashoffset = dashValue;
       circle.style.strokeDasharray = dashValue;
 
       circle.style.strokeWidth = border;
-      circle.style.transform = `translate(${border}px, ${border}px)`;
       hidCircle.style.strokeWidth = border;
-      hidCircle.style.transform = `translate(${border}px, ${border}px)`;
-      hidCircle.style.transform = `translate(${border}px, ${border}px)`;
-
-      // Position toggle button
-      if (checkable) {
-        btnCircle.style.transform = `translate(${border}px, ${border}px)`;
-      }
 
       // Decimals
       if (decimals) {
@@ -76,33 +61,20 @@
   }
 </script>
 
-<section bind:clientWidth={rootWidth} bind:this={rootEle} class="circle">
-  <div class="container">
-    <svg>
-      <circle cx={xaxis} cy={radius} r={radius} bind:this={hidCircle}></circle>
-      <circle cx={xaxis} cy={radius} r={radius} {color} bind:this={circle}
-      ></circle>
-      {#if checkable}
-        <circle
-          cx={xaxis}
-          cy={radius}
-          r={radiusBtn}
-          bind:this={btnCircle}
-          class="btn"
-          class:sel={checked}
-          on:click={() => (checked = !checked)}
-        ></circle>
-      {/if}
-    </svg>
-  </div>
+<section
+  bind:clientWidth={rootWidth}
+  bind:clientHeight={rootHeight}
+  bind:this={rootEle}
+  class="circle"
+>
+  <svg transform="rotate(270)">
+    <circle cx={xaxis} cy={yaxis} r={radius} bind:this={hidCircle}></circle>
+    <circle cx={xaxis} cy={yaxis} r={radius} {color} bind:this={circle}
+    ></circle>
+  </svg>
 </section>
 
 <style>
-  div.container {
-    width: 100%;
-    height: 0;
-    padding-bottom: 100%;
-  }
   section {
     position: relative;
     display: flex;
@@ -111,13 +83,12 @@
     width: 100%;
     height: 100%;
     --def-circlebar-color: #dc143c;
-    --def-circlebar-track: #223;
+    --def-circlebar-track: #555;
     --def-circlebar-text: #999;
   }
 
   svg {
     box-sizing: border-box;
-    transform: rotate(270deg);
     position: absolute;
     width: 100%;
     height: 100%;
@@ -130,7 +101,6 @@
     height: 100%;
     fill: transparent;
     stroke: var(--circlebar-track, var(--def-circlebar-track));
-    transform: translate(5px, 5px);
   }
 
   svg > circle.btn {
@@ -146,33 +116,5 @@
 
   svg > circle:nth-child(2) {
     stroke: var(--circlebar-color, var(--def-circlebar-color));
-  }
-
-  .info {
-    position: absolute;
-    font-weight: bold;
-    color: var(--circlebar-text, var(--def-circlebar-text));
-    text-transform: uppercase;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    white-space: pre-line;
-  }
-
-  .btn {
-    position: absolute;
-    color: var(--circlebar-text, var(--def-circlebar-text));
-    box-sizing: border-box;
-    padding: 50px;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .info > div {
-    font-weight: normal;
-    width: 90%;
-    margin: auto;
   }
 </style>

@@ -3,6 +3,7 @@
   import PackagePushButton from "./PackagePushButton.svelte";
   import CircularBar from "../../user-interface/CircularBar.svelte";
   import menuIcons from "$lib/menu.icons";
+  import icons from "$lib/icons";
 
   const dispatch = createEventDispatcher();
 
@@ -11,7 +12,9 @@
 
 <div class="flex grow flex-row max-h-[4.5rem] m-1">
   <div class="min-w-[3.5rem] relative">
-    <div class="w-full h-full pr-2 py-2 fill-white absolute">
+    <div
+      class="w-full h-full pr-2 py-2 fill-white absolute flex items-center content-center"
+    >
       {#if data.svgIcon}
         {@html menuIcons[data.svgIcon]}
       {:else if data.mainIconPath}
@@ -23,7 +26,9 @@
         class="w-full h-full absolute"
         style="background-color: #1e262870;"
       />
-      <div class="w-[3.5rem] h-[3.5rem] flex absolute">
+      <div
+        class="w-full h-full pr-2 py-2 absolute flex items-center content-center"
+      >
         <CircularBar
           value={data.installProgress * 100}
           color="#34d399"
@@ -40,6 +45,11 @@
       {data.description ?? "\n"}
     </p>
     <div class="flex flex-row pt-1 items-center gap-1">
+      <div class="w-4 h-4">
+        {#if data.isOfficial}
+          {@html icons["blue_checkmark"]}
+        {/if}
+      </div>
       <p class="text-sm font-medium text-gray-500 grow">{data.author}</p>
       {#if data.status !== "Downloading"}
         {#if data.status === "Downloaded" && data.loadable}

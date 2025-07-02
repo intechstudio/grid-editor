@@ -17,6 +17,16 @@
     $appSettings.packageList,
     refreshPackagePreferences();
 
+  $: orderedPackageList = $appSettings.packageList.toSorted((p1, p2) =>
+    p1.name.localeCompare(p2.name),
+  );
+  $: installedPackages = orderedPackageList.filter(
+    (p) => p.status === "Downloaded" || p.status === "Enabled",
+  );
+  $: availablePackages = orderedPackageList.filter(
+    (p) => p.status !== "Downloaded" && p.status !== "Enabled",
+  );
+
   let packagePreferenceComponents = [];
   let packagePathInput = "";
   let packageRepositoryDialog;
@@ -251,19 +261,6 @@
       <p class="loading">Restarting package manager</p>
     {/if}
     <div class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip">
-      {#each $appSettings.packageList as _package}
-        {#key _package.id}
-          <PackageItem
-            data={_package}
-            on:enable={() => changePackageStatus(_package.id, true)}
-            on:disable={() => changePackageStatus(_package.id, false)}
-            on:download={() => downloadPackage(_package.id)}
-            on:update={() => updatePackage(_package.id)}
-            on:uninstall={() => uninstallPackage(_package.id)}
-            on:remove={() => removePackage(_package.id)}
-          />
-        {/key}
-      {/each}
       {#each $appSettings.developerPackagesRequested as request}
         {#key request.name}
           <RequestItem
@@ -273,6 +270,42 @@
           />
         {/key}
       {/each}
+      {#if installedPackages.length > 0}
+        {#if availablePackages.length > 0}
+          <p>Installed packages</p>
+        {/if}
+        {#each installedPackages as _package}
+          {#key _package.id}
+            <PackageItem
+              data={_package}
+              on:enable={() => changePackageStatus(_package.id, true)}
+              on:disable={() => changePackageStatus(_package.id, false)}
+              on:download={() => downloadPackage(_package.id)}
+              on:update={() => updatePackage(_package.id)}
+              on:uninstall={() => uninstallPackage(_package.id)}
+              on:remove={() => removePackage(_package.id)}
+            />
+          {/key}
+        {/each}
+      {/if}
+      {#if availablePackages.length > 0}
+        {#if installedPackages.length > 0}
+          <p>Available Packages</p>
+        {/if}
+        {#each availablePackages as _package}
+          {#key _package.id}
+            <PackageItem
+              data={_package}
+              on:enable={() => changePackageStatus(_package.id, true)}
+              on:disable={() => changePackageStatus(_package.id, false)}
+              on:download={() => downloadPackage(_package.id)}
+              on:update={() => updatePackage(_package.id)}
+              on:uninstall={() => uninstallPackage(_package.id)}
+              on:remove={() => removePackage(_package.id)}
+            />
+          {/key}
+        {/each}
+      {/if}
     </div>
   </div>
   <!-- svelte-ignore a11y-click-events-have-key-events -->

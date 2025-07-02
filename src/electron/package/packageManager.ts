@@ -71,6 +71,10 @@ process.parentPort.on("message", async (e) => {
         );
         localPackages = new Map(Object.entries(e.data.localPackages));
 
+        if (e.data.cachedData) {
+          githubPackageDetails = e.data.cachedData.githubPackageDetails;
+        }
+
         startPackageDirectoryWatcher(packageFolder);
         updateGithubPackages();
         if (e.data.updatePackageOnStartName) {
@@ -216,6 +220,12 @@ async function stopPackageManager() {
     await currentlyLoadedPackages[packageName].unloadPackage();
     delete currentlyLoadedPackages[packageName];
   }
+  process.parentPort.postMessage({
+    type: "cache-temp-data",
+    data: {
+      githubPackageDetails,
+    },
+  });
 }
 
 async function loadPackage(packageName: string, persistedData: any) {
@@ -426,7 +436,7 @@ async function downloadPackage(packageName: string) {
     });
     await unzipPromise;
     fs.unlinkSync(filePath);
-    loadPackage(packageName, undefined);
+    await loadPackage(packageName, undefined);
   } catch (e) {
     if (customGithubPackageList.has(packageName)) {
       customGithubPackageList.delete(packageName);
@@ -679,6 +689,7 @@ function getAvailablePackages() {
     description?: string;
     mainIconPath?: string;
     menuIconPath?: string;
+    isOfficial: boolean;
   }[] = [];
 
   editorPackages.forEach((entry, key) => {
@@ -695,6 +706,7 @@ function getAvailablePackages() {
       svgIcon: entry.svgIcon,
       description: entry.description,
       author: "Built-in",
+      isOfficial: true,
     });
   });
 
@@ -726,12 +738,13 @@ function getAvailablePackages() {
           _package.packageVersion,
         ),
       installProgress: packageInstallProgress.get(_package.packageId),
-      author:
-        _package.author ??
-        githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
+      author: _package.author
+        ? _package.author
+        : githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
       description: _package.description,
       mainIconPath: _package.mainIconPath,
       menuIconPath: _package.menuIconPath,
+      isOfficial: recommendedGithubPackageList.has(_package.packageId),
     });
   }
   githubPackageDetails.forEach((entry, key) => {
@@ -751,6 +764,7 @@ function getAvailablePackages() {
       description: entry.description,
       packageVersion: entry.version,
       menuIconPath: entry.menuIconPath,
+      isOfficial: recommendedGithubPackageList.has(key),
     });
   });
   currentPackageList = packageList;
@@ -764,7 +778,11 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
   ]);
   for (const [packageId, githubPackage] of githubPackageList) {
     try {
-      if (!forceRefreshVersion && githubPackageDetails.has(packageId)) continue;
+      if (!forceRefreshVersion && githubPackageDetails.has(packageId)) {
+        console.log(`RUNNING CONTINUE FOR PACKAGE ${packageId}`);
+        console.log({ githubPackageDetails });
+        continue;
+      }
       let githubRawUrl = `https://raw.githubusercontent.com/${githubPackage.gitHubRepositoryOwner}/${githubPackage.gitHubRepositoryName}/refs/heads/main`;
       let packageJsonResponse = await fetch(`${githubRawUrl}/package.json`);
       let packageJson = await packageJsonResponse.json();
@@ -777,7 +795,7 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
           ? `${githubRawUrl}/${packageJson.grid_editor?.mainIcon}`
           : undefined,
         menuIconPath: packageJson.grid_editor?.menuIcon
-          ? `${githubRawUrl}/${packageJson.grid_editor?.mainIcon}`
+          ? `${githubRawUrl}/${packageJson.grid_editor?.menuIcon}`
           : undefined,
       });
 
@@ -790,7 +808,7 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
       let version =
         semver.coerce(compatiblePackage.tag_name) ??
         semver.coerce(compatiblePackage.name);
-      githubPackageDetails.get(packageId).version = version;
+      githubPackageDetails.get(packageId).version = version.toString();
     } catch (e) {
       console.log(e);
     } finally {
