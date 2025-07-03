@@ -14,6 +14,7 @@
   import { Modal } from "./modals/modal.store";
   import MiniMap from "./grid-layout/MiniMap.svelte";
   import { derived } from "svelte/store";
+  import { MeltRadio } from "@intechstudio/grid-uikit";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -103,11 +104,21 @@
     {/if}
 
     <div
-      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex justify-center"
     >
       {#if showModuleHangingDialog}
         <ModuleHangingDialog />
       {:else}
+        <MeltRadio
+          bind:target={$appSettings.persistent.userLevel}
+          orientation={"horizontal"}
+          style={"button"}
+          options={[
+            { title: "Essentials", value: "essentials" },
+            { title: "Expert", value: "expert" },
+          ]}
+        />
+
         <ActiveChanges />
       {/if}
     </div>
