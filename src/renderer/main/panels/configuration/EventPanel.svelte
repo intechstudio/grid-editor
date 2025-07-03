@@ -1,5 +1,6 @@
 <script lang="ts">
   import { user_input } from "./../../../runtime/user-input.store";
+  import { appSettings } from "./../../../runtime/app-helper.store";
   import { get } from "svelte/store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
   import {
@@ -28,7 +29,7 @@
   let selected = defaultSelected;
   let eventChangetimeout: NodeJS.Timeout = undefined;
 
-  $: handleElementChange($element);
+  $: handleElementChange($element, $appSettings);
 
   function handleElementChange(element: ElementData) {
     const ui = get(user_input);
@@ -39,7 +40,13 @@
       return;
     }
 
-    options = element.events.map((e: GridEvent) =>
+    const prefiltered = element.events.filter(
+      (e) =>
+        (e.getName() !== "Setup" && e.getName() !== "Timer") ||
+        $appSettings.persistent.userLevel === "expert",
+    );
+
+    options = prefiltered.map((e: GridEvent) =>
       Object({
         title: e.getName(),
         value: e.type,
