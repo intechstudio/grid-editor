@@ -40,7 +40,12 @@
     profile_cloud,
     profileCloudConfigDrag,
   } from "../../panels/profileCloud/ProfileCloud.js";
-  import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
+  import {
+    GridElement,
+    GridModule,
+    GridPage,
+    GridRuntime,
+  } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
   import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
@@ -50,6 +55,8 @@
   export let width = 225;
   export let scale: number = 1.0;
   export let interactive: boolean;
+
+  let runtime = device.parent as GridRuntime;
 
   function selectNextNeighBour(
     element: GridElement,
@@ -62,7 +69,9 @@
 
     const page = target.parent as GridPage;
     const module = page.parent as GridModule;
-    Focus.trigger(`element-${module.dx}-${module.dy}-${target.elementIndex}`);
+    Focus.trigger(
+      `${runtime.id}-${module.dx}-${module.dy}-${target.elementIndex}`,
+    );
   }
 
   type SharedProps = {
@@ -384,7 +393,7 @@
               },
             ],
           }}
-          use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
+          use:Focus.on={`${runtime.id}-${device.dx}-${device.dy}-${elementNumber}`}
           use:KeyboardTarget.set={device
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}

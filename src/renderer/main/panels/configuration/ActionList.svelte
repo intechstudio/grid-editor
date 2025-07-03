@@ -3,7 +3,7 @@
   import SeparatorLine from "./components/SeparatorLine.svelte";
   import ActionHelper from "./components/ActionHelper.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
-  import { GridEvent } from "./../../../runtime/runtime";
+  import { GridEvent, GridRuntime } from "./../../../runtime/runtime";
   import { fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
@@ -21,11 +21,15 @@
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
   import { Focus } from "../../_actions/focus.action";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   export let event: GridEvent;
   export let focusTrigger: string;
 
   let configList: HTMLElement;
+  let runtime: GridRuntime;
+
+  $: runtime = $runtime_manager.active.runtime;
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -92,7 +96,7 @@
 
     if (e.key === "Escape") {
       const { dx, dy, elementnumber } = get(user_input);
-      Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+      Focus.trigger(`${runtime.id}-${dx}-${dy}-${elementnumber}`);
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
