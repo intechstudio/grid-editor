@@ -8,6 +8,7 @@
   } from "../../../runtime/moduleOverlay";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import { user_input } from "./../../../runtime/user-input.store";
+  import { appSettings } from "./../../../runtime/app-helper.store";
   import { GridPage, PageData } from "../../../runtime/runtime";
 
   export let page: GridPage;
@@ -41,7 +42,7 @@
     });
   }
 
-  $: handlePageChange($page);
+  $: handlePageChange($page, $appSettings);
 
   function handlePageChange(page: PageData) {
     if (typeof page === "undefined") {
@@ -50,7 +51,11 @@
       return;
     }
 
-    const elements = page.control_elements;
+    const elements = page.control_elements.filter(
+      (e) =>
+        e.getHumanName().indexOf("System") === -1 ||
+        $appSettings.persistent.userLevel === "expert",
+    );
     options = elements.map((e) => {
       const stringName = e.name;
       if (typeof stringName !== "undefined") {
