@@ -7,12 +7,10 @@ import {
   Readable,
   get,
 } from "svelte/store";
-import { Grid } from "../lib/_utils";
+import { type MeltComboData } from "@intechstudio/grid-uikit";
 import { GridAction } from "../runtime/runtime";
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
-
-type MeltComboData = Grid.Types.MeltComboData;
 
 export namespace ForLoop {
   export class ParsedData {
