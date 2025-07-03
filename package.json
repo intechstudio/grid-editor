@@ -14,7 +14,7 @@
   "devDependencies": {
     "@melt-ui/pp": "^0.3.2",
     "@melt-ui/svelte": "^0.84.0",
-    "@playwright/test": "^1.42.0",
+    "@playwright/test": "^1.52.0",
     "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "@types/node": "^20.11.21",
     "autoprefixer": "^10.4.12",
@@ -40,8 +40,8 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "@intechstudio/grid-protocol": "1.20250321.1539",
-    "@intechstudio/grid-uikit": "1.20250612.1752",
+    "@intechstudio/grid-protocol": "1.20250630.1305",
+    "@intechstudio/grid-uikit": "1.20250625.900",
     "@intechstudio/profile-cloud-webcomponent": "1.20250318.1527",
     "adm-zip": "^0.5.10",
     "axios": "^1.9.0",
@@ -95,6 +95,7 @@
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 VITE_BUILD_TARGET=electron VITE_BUILD_ENV=development electron-vite dev --watch",
     "electron-dev": "npm run electron:dev",
+    "fix-permissions": "sudo chown root ./node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 ./node_modules/electron/dist/chrome-sandbox",
     "format": "prettier --write .",
     "web:dev": "vite dev --mode web",
     "web:build": "vite build --mode web",
