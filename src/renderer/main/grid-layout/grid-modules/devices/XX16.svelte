@@ -109,7 +109,7 @@
           </div>
           <div class="normal-cell-ui-container">
             {#if moduleType === ModuleType.BU16}
-              {#if device.revision === "RevH"}
+              {#if [131, 195].includes(device.hwcfg)}
                 <SquareButton
                   {elementNumber}
                   size={4.2}

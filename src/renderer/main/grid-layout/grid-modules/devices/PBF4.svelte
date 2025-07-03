@@ -150,7 +150,7 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            {#if device.revision === "RevH"}
+            {#if device.hwcfg === 67}
               <SquareButton
                 {elementNumber}
                 size={4.2}

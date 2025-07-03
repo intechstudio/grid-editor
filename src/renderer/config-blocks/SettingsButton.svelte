@@ -32,10 +32,22 @@
     Block,
     BlockBody,
     MeltCombo,
+    MeltComboSuggestion,
   } from "@intechstudio/grid-uikit";
-  import { GridAction } from "../runtime/runtime.js";
+  import {
+    GridAction,
+    GridElement,
+    GridEvent,
+    GridModule,
+    GridPage,
+  } from "../runtime/runtime.js";
+  import { Grid } from "../lib/_utils.js";
 
   export let config: GridAction;
+  let event = config.parent as GridEvent;
+  let element = event.parent as GridElement;
+  let page = element.parent as GridPage;
+  let module = page.parent as GridModule;
 
   const dispatch = createEventDispatcher();
 
@@ -118,12 +130,17 @@
     });
   }
 
-  const suggestions = [
+  const suggestions: Array<MeltComboSuggestion[]> = [
     [
+      ...Grid.Array.when<MeltComboSuggestion>(
+        [27, 91, 59, 123, 131, 67, 75].includes(module.hwcfg),
+        [
+          { value: "-2", info: "Pressure" },
+          { value: "-1", info: "Velocity" },
+        ],
+      ),
       { value: "0", info: "Momentary" },
       { value: "1", info: "Toggle" },
-      { value: "-2", info: "Pressure" },
-      { value: "-1", info: "Velocity" },
       { value: "2", info: "3-step" },
       { value: "3", info: "4-step" },
     ],

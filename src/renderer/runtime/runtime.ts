@@ -1537,6 +1537,7 @@ export class ModuleData extends NodeData {
     public fwMismatch: boolean,
     public map: DirectionMap,
     public revision: string,
+    public hwcfg: number,
   ) {
     super();
     this.pages = [];
@@ -1641,6 +1642,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   get revision() {
     return this.getField("revision");
+  }
+
+  get hwcfg() {
+    return this.getField("hwcfg");
   }
 
   // Setters
@@ -2112,6 +2117,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           left: { dx: header_param.SX - 1, dy: header_param.SY },
         },
         revision,
+        hwcfg,
       ),
     );
   }

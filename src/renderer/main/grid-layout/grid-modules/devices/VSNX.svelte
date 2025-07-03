@@ -248,7 +248,7 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            {#if device.revision === "RevH"}
+            {#if [27, 59, 91, 123].includes(device.hwcfg)}
               <SquareButton
                 {elementNumber}
                 size={4.2}
