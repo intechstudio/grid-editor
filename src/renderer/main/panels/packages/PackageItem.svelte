@@ -3,22 +3,24 @@
   import PackagePushButton from "./PackagePushButton.svelte";
   import CircularBar from "../../user-interface/CircularBar.svelte";
   import menuIcons from "$lib/menu.icons";
-  import icons from "$lib/icons";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
   export let data;
 </script>
 
-<div class="flex grow flex-row max-h-[4.5rem] m-1">
+<div class="flex flex-row py-4">
   <div class="min-w-[3.5rem] relative">
     <div
-      class="w-full h-full pr-2 py-2 fill-white absolute flex items-center content-center"
+      class="w-full h-full p-3 fill-white absolute flex items-center content-center"
     >
       {#if data.svgIcon}
         {@html menuIcons[data.svgIcon]}
       {:else if data.mainIconPath}
         <img src={data.mainIconPath} alt={data.name} />
+      {:else}
+        {@html menuIcons["menu_package_general"]}
       {/if}
     </div>
     {#if data.status == "Downloading"}
@@ -26,9 +28,7 @@
         class="w-full h-full absolute"
         style="background-color: #1e262870;"
       />
-      <div
-        class="w-full h-full pr-2 py-2 absolute flex items-center content-center"
-      >
+      <div class="w-full h-full p-1 absolute flex items-center content-center">
         <CircularBar
           value={data.installProgress * 100}
           color="#34d399"
@@ -45,9 +45,9 @@
       {data.description ?? "\n"}
     </p>
     <div class="flex flex-row pt-1 items-center gap-1">
-      <div class="w-4 h-4">
+      <div class="bg-secondary rounded-md mr-1">
         {#if data.isOfficial}
-          {@html icons["blue_checkmark"]}
+          <SvgIcon iconPath="tick" fill="white" />
         {/if}
       </div>
       <p class="text-sm font-medium text-gray-500 grow">{data.author}</p>

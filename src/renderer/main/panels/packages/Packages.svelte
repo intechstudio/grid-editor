@@ -243,17 +243,16 @@
 </script>
 
 <packages class="flex flex-col h-full w-full overflow-y-auto">
-  <div class="flex flex-col h-full w-full p-2">
-    <div class="flex py-2 items-center">
-      <div class="font-medium w-full">Packages</div>
-      <div class="mx-2">
-        <MoltenPushButton click={restartPackageManager} text="Force Restart" />
-      </div>
-      <div class="mx-2 font-medium text-base">
+  <div class="flex flex-col h-full w-full px-2">
+    <div class="flex py-2 items-center justify-between">
+      <div class=" text-base">
         <MoltenPushButton
           click={() => packageRepositoryDialog.show()}
-          text="+"
+          text="+    Add external package"
         />
+      </div>
+      <div class="">
+        <MoltenPushButton click={restartPackageManager} text="Force Restart" />
       </div>
     </div>
 
@@ -272,7 +271,9 @@
       {/each}
       {#if installedPackages.length > 0}
         {#if availablePackages.length > 0}
-          <p>Installed packages</p>
+          <p class="py-2 font-medium text-gray-400">
+            Installed packages ({installedPackages.length})
+          </p>
         {/if}
         {#each installedPackages as _package}
           {#key _package.id}
@@ -290,7 +291,9 @@
       {/if}
       {#if availablePackages.length > 0}
         {#if installedPackages.length > 0}
-          <p>Available Packages</p>
+          <p class="font-medium text-gray-400">
+            Available Packages ({availablePackages.length})
+          </p>
         {/if}
         {#each availablePackages as _package}
           {#key _package.id}
