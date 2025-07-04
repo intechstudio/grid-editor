@@ -27,6 +27,7 @@
     pasteActions,
   } from "../../../../runtime/operations";
   import { appSettings } from "../../../../runtime/app-helper.store";
+  import { Grid } from "../../../../lib/_utils";
 
   export let element: GridElement;
   export let event: GridEvent;
@@ -110,17 +111,21 @@
   <div class="grid grid-cols-[1fr_auto_auto] items-center">
     <!-- When any of the array elements is true -->
     <div class="flex flex-col truncate">
-      <span class="text-gray-500 text-sm truncate">Action: </span>
-      <span
-        class="text-white text-sm truncate"
-        class:invisible={typeof selectedAction === "undefined"}
-        >{selectedAction?.at(0)}</span
-      >
-      <span
-        class="text-white text-sm truncate"
-        class:invisible={typeof selectedAction === "undefined"}
-        >{selectedAction?.at(1)}</span
-      >
+      <span class="text-white text-sm truncate">
+        {#if typeof selectedAction === "undefined"}
+          {($event?.getName() ?? "No Device") + " Event"}
+        {:else}
+          {selectedAction?.at(0)}
+        {/if}
+      </span>
+      <span class="text-white text-sm truncate">
+        {#if typeof selectedAction === "undefined"}
+          <span class="text-gray-500">Script length: </span>
+          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+        {:else}
+          <span class="text-gray-500">{selectedAction?.at(1)}</span>
+        {/if}
+      </span>
     </div>
     <div class="flex flex-col">
       <div class="flex flex-wrap justify-end">

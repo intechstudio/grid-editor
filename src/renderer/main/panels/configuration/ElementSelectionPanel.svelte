@@ -1,7 +1,6 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
-  import Toggle from "../../user-interface/Toggle.svelte";
   import {
     ModuleOverlayType,
     moduleOverlay,
@@ -12,15 +11,6 @@
   import { GridPage, PageData } from "../../../runtime/runtime";
 
   export let page: GridPage;
-
-  function showControlElementNameOverlay() {
-    const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
-    if (show) {
-      moduleOverlay.show(ModuleOverlayType.CONTROL_NAME);
-    } else {
-      moduleOverlay.close();
-    }
-  }
 
   let selectedElementNumber = -1;
   let options = [{ title: "No Device", value: -1 }];
@@ -76,29 +66,6 @@
   }
 </script>
 
-<div class="flex flex-col text-white m-4">
-  <div class="flex flex-row justify-between items-center py-1">
-    <div class="flex flex-row items-center">
-      <div class="text-gray-500 text-sm">Element Name</div>
-      <TooltipQuestion
-        key={"configuration_element_name"}
-        class="ml-2 text-white"
-      />
-    </div>
-    <div class="flex flex-row items-center gap-2">
-      <span class="text-gray-500 text-sm">Element Name Overlay</span>
-      <Toggle
-        on:change={showControlElementNameOverlay}
-        toggleValue={$moduleOverlay === "control-name-overlay"}
-      />
-    </div>
-  </div>
-
-  {#key $page}
-    <MeltSelect
-      bind:target={selectedElementNumber}
-      {options}
-      disabled={false}
-    />
-  {/key}
-</div>
+{#key $page}
+  <MeltSelect bind:target={selectedElementNumber} {options} disabled={false} />
+{/key}

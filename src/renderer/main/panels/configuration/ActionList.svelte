@@ -116,10 +116,10 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+    class="px-4 pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     <div
-      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+      class="hidden flex flex-row gap-2 justify-between items-center flex-none w-full"
     >
       <div class="flex flex-col">
         <span class="text-white">{$event?.getName() ?? "No Device"}</span>

@@ -109,16 +109,6 @@
       {#if showModuleHangingDialog}
         <ModuleHangingDialog />
       {:else}
-        <MeltRadio
-          bind:target={$appSettings.persistent.userLevel}
-          orientation={"horizontal"}
-          style={"button"}
-          options={[
-            { title: "Essentials", value: "essentials" },
-            { title: "Expert", value: "expert" },
-          ]}
-        />
-
         <ActiveChanges />
       {/if}
     </div>
