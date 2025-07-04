@@ -1,5 +1,5 @@
 import { get, Unsubscriber, Updater, writable, Writable } from "svelte/store";
-import { modal, Snap } from "../main/modals/modal.store";
+import { Modal, modalManager } from "../main/modals/modal.store";
 import { appSettings } from "./app-helper.store";
 import { runtime_manager } from "./runtime-manager.store";
 import { Subscriber } from "svelte/motion";
@@ -96,10 +96,7 @@ export class UserInput implements Writable<UserInputValue> {
 
   // Process incoming events
   public process_incoming_event_from_grid(descr: any) {
-    if (
-      typeof get(modal) !== "undefined" &&
-      get(modal).options.snap === Snap.FULL
-    ) {
+    if (get(modalManager).windows.some((e) => e.target === Modal.Snap.Full)) {
       return;
     }
 

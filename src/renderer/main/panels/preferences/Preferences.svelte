@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { modal } from "./../../modals/modal.store";
   import { get } from "svelte/store";
   import { appSettings } from "../../../runtime/app-helper.store";
 
@@ -398,24 +397,21 @@
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>
         The Nightly Firmware version contains new, but potentially unstable
-        features and fixes. We suggest always staying on a Stable Firmware!
+        features and fixes. We suggest staying on a Stable Firmware!
       </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.nightlyFirmware}
         title={"Enabled"}
       />
-      {#if import.meta.env.VITE_BRANCH_NAME === "stable"}
-        <BlockTitle>Nightly Editor Update</BlockTitle>
-        <BlockBody>
-          The Nightly Firmware version contains new, but potentially unstable
-          features and fixes. We suggest always staying on a Stable Editor
-          version!
-        </BlockBody>
-        <MeltCheckbox
-          bind:target={$appSettings.persistent.nightlyEditor}
-          title={"Enabled"}
-        />
-      {/if}
+      <BlockTitle>Nightly Editor Update</BlockTitle>
+      <BlockBody>
+        The Nightly Editor version contains new, but potentially unstable
+        features and fixes. We suggest staying on a Stable Editor version!
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.nightlyEditor}
+        title={"Enabled"}
+      />
 
       <!-- Radio Select for profileCloudUrl -->
 

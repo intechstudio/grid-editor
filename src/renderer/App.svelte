@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { modal } from "./main/modals/modal.store";
+  import { Modal, modalManager } from "./main/modals/modal.store";
 
   import "./preload-window-config";
 
@@ -303,14 +303,12 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
-    document.addEventListener("keydown", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
     document.removeEventListener("contextmenu", preventContextMenuEvent);
-    document.removeEventListener("keydown", handleEscapePress);
   });
 
   function preventContextMenuEvent(e) {
@@ -321,16 +319,6 @@
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
-
-  function handleEscapePress(e) {
-    if (e.key === "Escape") {
-      if ($modal) {
-        modal.tryClose();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
-  }
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -352,10 +340,6 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
 
-  {#if $modal?.options.snap === "full"}
-    <svelte:component this={$modal?.component} {...$modal.args} />
-  {/if}
-
   <div class="flex flex-col w-full h-full">
     <FirmwareCheck />
 
@@ -373,16 +357,8 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          {#if $modal?.options.snap === "middle"}
-            <svelte:component
-              this={$modal?.component}
-              reference={3}
-              {...$modal.args}
-            />
-          {:else}
-            <RightPanelToggleButton />
-            <MiddlePanelContainer />
-          {/if}
+          <RightPanelToggleButton />
+          <MiddlePanelContainer />
         </Pane>
 
         <Pane

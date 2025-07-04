@@ -4,7 +4,7 @@
     UserInputValue,
   } from "./../../../runtime/user-input.store";
   import { GridEvent } from "./../../../runtime/runtime";
-  import { modal } from "./../../modals/modal.store";
+  import { Modal } from "./../../modals/modal.store";
   import Export from "./../../modals/Export.svelte";
   import {
     debug_monitor_store,
@@ -158,8 +158,8 @@
     return s;
   }
 
-  function handleShowCode(e) {
-    modal.show({ component: Export });
+  function handleShowCode() {
+    new Modal.Window(Export).show();
   }
 
   let immediateCommand = "print(0,1,2,3)";

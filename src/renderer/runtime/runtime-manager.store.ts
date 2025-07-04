@@ -18,7 +18,7 @@ import {
   setIntervalAsync,
   SetIntervalAsyncTimer,
 } from "set-interval-async";
-import { modal } from "../main/modals/modal.store";
+import { modalManager } from "../main/modals/modal.store";
 
 type ManagedConnection = {
   runtime: GridRuntime;
@@ -250,7 +250,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
     if (
       runtime.unsavedChangesCount() != 0 ||
-      typeof get(modal) !== "undefined"
+      get(modalManager).windows.length > 0
     ) {
       // THIS IS NEEDED!
       // This determines if the Grid FW should prevent page change when unsaved
