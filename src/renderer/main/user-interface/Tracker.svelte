@@ -47,7 +47,10 @@
 </script>
 
 <container class={$$props.class}>
-  <div class="flex flex-row items-center gap-3 bg-primary py-2 px-3 rounded-lg">
+  <div
+    style="background-color: var(--background)"
+    class="flex flex-row items-center p-2 gap-3 px-3 rounded-lg"
+  >
     <div
       class="flex gap-2 items-center"
       use:tooltip={{
@@ -56,7 +59,7 @@
         key: "configuration_element_name",
       }}
     >
-      <span class="text-white">Name Overlay:</span>
+      <span>Name Overlay:</span>
 
       <Toggle
         on:change={showControlElementNameOverlay}
@@ -71,7 +74,7 @@
         key: "tracker_tooltip",
       }}
     >
-      <span class="text-white">Track:</span>
+      <span>Track:</span>
       <MeltSelect
         bind:target={$appSettings.persistent.changeOnEvent}
         {options}

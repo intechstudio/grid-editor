@@ -91,6 +91,7 @@
 <container
   bind:this={container}
   use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
+  style="color: var(--foreground)"
   class="grid grid-rows-[1fr_auto] w-full h-full"
 >
   <div

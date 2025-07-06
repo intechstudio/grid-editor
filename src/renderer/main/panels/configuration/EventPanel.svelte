@@ -43,7 +43,7 @@
     const prefiltered = element.events.filter(
       (e) =>
         (e.getName() !== "Setup" && e.getName() !== "Timer") ||
-        $appSettings.persistent.userLevel === "expert",
+        $appSettings.persistent.userLevelMinimalist === false,
     );
 
     options = prefiltered.map((e: GridEvent) =>

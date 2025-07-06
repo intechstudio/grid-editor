@@ -44,7 +44,7 @@
     const elements = page.control_elements.filter(
       (e) =>
         e.getHumanName().indexOf("System") === -1 ||
-        $appSettings.persistent.userLevel === "expert",
+        $appSettings.persistent.userLevelMinimalist === false,
     );
     options = elements.map((e) => {
       const stringName = e.name;

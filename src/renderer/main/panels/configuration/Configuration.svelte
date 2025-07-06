@@ -236,25 +236,26 @@
           <div class="flex flex-row items-center justify-end gap-2">
             {#if false}
               <MeltRadio
-                bind:target={$appSettings.persistent.userLevel}
+                bind:target={$appSettings.persistent.userLevelMinimalist}
                 orientation={"horizontal"}
                 style={"button"}
                 options={[
-                  { title: "Essentials", value: "essentials" },
-                  { title: "Expert", value: "expert" },
+                  { title: "Essentials", value: true },
+                  { title: "Expert", value: false },
                 ]}
               />
             {:else}
               <span class="text-gray-500">Minimalist mode</span>
               <Toggle
                 on:change={() => {
-                  if ($appSettings.persistent.userLevel === "essentials") {
-                    $appSettings.persistent.userLevel = "expert";
+                  if ($appSettings.persistent.userLevelMinimalist === true) {
+                    $appSettings.persistent.userLevelMinimalist = false;
                   } else {
-                    $appSettings.persistent.userLevel = "essentials";
+                    $appSettings.persistent.userLevelMinimalist = true;
                   }
                 }}
-                toggleValue={$appSettings.persistent.userLevel === "essentials"}
+                toggleValue={$appSettings.persistent.userLevelMinimalist ===
+                  true}
               />{/if}
           </div>
         </div>

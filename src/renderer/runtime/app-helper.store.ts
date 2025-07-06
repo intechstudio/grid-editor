@@ -58,7 +58,7 @@ const persistentDefaultValues = {
   allowDevBlocks: false,
   lastActiveVersion: undefined,
   lightMode: false,
-  userLevel: "essentials",
+  userLevelMinimalist: true,
 };
 
 function createSplitPanes() {
