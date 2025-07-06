@@ -5,6 +5,7 @@
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
   import LcdAndMenuButtons from "../elements/LcdAndMenuButtons.svelte";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
 
   export let moduleWidth;
@@ -242,8 +243,10 @@
             <slot
               name="cell-underlay"
               {elementNumber}
-              isLeftCut={elementNumber == 6}
-              isRightCut={elementNumber == 5}
+              isLeftCut={elementNumber == 6 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 5 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
           <div class="normal-cell-ui-container">
@@ -254,14 +257,16 @@
             <slot
               name="cell-overlay"
               {elementNumber}
-              isLeftCut={elementNumber == 6}
-              isRightCut={elementNumber == 5}
+              isLeftCut={elementNumber == 6 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 5 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
         </cell>
       {/if}
 
-      {#if elementDescriptor.type === ElementType.SYSTEM}
+      {#if elementDescriptor.type === ElementType.SYSTEM && $appSettings.persistent.userLevelMinimalist === false}
         {@const elementNumber = 255}
         <div
           class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
