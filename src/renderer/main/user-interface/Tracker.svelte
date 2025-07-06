@@ -2,7 +2,7 @@
   import { get } from "svelte/store";
   import { tooltip } from "./../_actions/tooltip.ts";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { MeltSelect, MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MeltSelect, MoltenButton } from "@intechstudio/grid-uikit";
   import Toggle from "../user-interface/Toggle.svelte";
   import {
     ModuleOverlayType,
@@ -88,10 +88,9 @@
         key: "reset_grid_layout",
       }}
     >
-      <MoltenPushButton
-        text={"Reset View"}
+      <MoltenButton
+        title={"Reset View"}
         click={handleGridLayoutResetClicked}
-        snap={"full"}
         disabled={$appSettings.gridLayoutShift.x == 0 &&
           $appSettings.gridLayoutShift.y == 0 &&
           $appSettings.persistent.size == $appSettings.defaultSize}
