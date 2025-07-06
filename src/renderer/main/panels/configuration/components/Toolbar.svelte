@@ -111,19 +111,21 @@
   <div class="grid grid-cols-[1fr_auto_auto] items-center">
     <!-- When any of the array elements is true -->
     <div class="flex flex-col truncate">
-      <span class="text-white text-sm truncate">
+      <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined"}
           {($event?.getName() ?? "No Device") + " Event"}
         {:else}
           {selectedAction?.at(0)}
         {/if}
       </span>
-      <span class="text-white text-sm truncate">
+      <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined"}
-          <span class="text-gray-500">Script length: </span>
+          <span style="color: var(--foreground-disabled)">Script length: </span>
           {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
         {:else}
-          <span class="text-gray-500">{selectedAction?.at(1)}</span>
+          <span style="color: var(--foreground-disabled)"
+            >{selectedAction?.at(1)}</span
+          >
         {/if}
       </span>
     </div>
