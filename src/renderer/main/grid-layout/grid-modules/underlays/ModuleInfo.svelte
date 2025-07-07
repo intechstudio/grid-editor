@@ -7,7 +7,7 @@
 
 {#if visible && typeof device.architecture !== "undefined"}
   <div
-    class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 text-opacity-20 text-white font-bold text-xs"
+    class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 text-opacity-20 text-white font-bold text-xs z-0"
   >
     {#if device?.architecture === Architecture.VIRTUAL}
       <span class="text-white font-mono">VIRTUAL</span>
