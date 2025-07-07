@@ -118,6 +118,15 @@
     on:keydown={handleKeyDown}
     class="px-4 pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
+    {#if $appSettings.isMultiView}
+      <div class="flex flex-row gap-2">
+        {($event?.getName() ?? "No Device") + " Event"}
+        <div style="color: var(--foreground-disabled);">
+          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+        </div>
+      </div>
+    {/if}
+
     <div
       class="hidden flex flex-row gap-2 justify-between items-center flex-none w-full"
     >

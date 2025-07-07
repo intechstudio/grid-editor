@@ -112,19 +112,19 @@
     <!-- When any of the array elements is true -->
     <div class="flex flex-col truncate">
       <span class="text-sm truncate">
-        {#if typeof selectedAction === "undefined"}
+        {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
           {($event?.getName() ?? "No Device") + " Event"}
         {:else}
-          {selectedAction?.at(0)}
+          {selectedAction?.at(0) ?? ""}
         {/if}
       </span>
       <span class="text-sm truncate">
-        {#if typeof selectedAction === "undefined"}
+        {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
           <span style="color: var(--foreground-disabled)">Script length: </span>
           {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
         {:else}
           <span style="color: var(--foreground-disabled)"
-            >{selectedAction?.at(1)}</span
+            >{selectedAction?.at(1) ?? ""}</span
           >
         {/if}
       </span>

@@ -85,7 +85,12 @@
 
   let containerWidth: number;
 
-  $: {
+  $: handleIsMultiViewAutoupdate(
+    containerWidth,
+    $appSettings.persistent.multiViewEnabled,
+  );
+
+  function handleIsMultiViewAutoupdate(containerWidth) {
     if (containerWidth) {
       appSettings.update((store) => {
         store.isMultiView =
@@ -265,7 +270,7 @@
         <Toolbar {event} {element} targetPanel={container} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
-            {#each $element?.events ?? [] as event, i}
+            {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
               <ActionList
                 {event}
                 targetPanel={container}
