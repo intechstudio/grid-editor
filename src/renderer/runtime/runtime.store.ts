@@ -19,7 +19,7 @@ export class LocalDefinitions {
       --n;
     }
 
-    let arr = [];
+    let arr: Array<{ info: string; value: string }> = [];
     list.forEach((c) => {
       if (c.short == "l" && c.script !== "") {
         let _variable_array = c.script.split("=")[0];
