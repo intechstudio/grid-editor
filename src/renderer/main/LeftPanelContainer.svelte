@@ -43,15 +43,18 @@
         {#key $appSettings.packageComponentKeys[leftPanel]}
           <svelte:element this={preference.preferenceComponent} class="m-2" />
         {/key}
-        <textarea
-          class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono p-1 m-2 rounded text-white"
-        >
-          {JSON.stringify(
-            $appSettings.packageDebugLogs.filter(
-              (e) => e.packageId === preference.id,
-            ),
-          )}
-        </textarea>
+        {#if $appSettings.persistent.packageDeveloper}
+          <p class="m-2">Debug logs</p>
+          <textarea
+            class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono p-1 m-2 rounded text-white"
+          >
+            {JSON.stringify(
+              $appSettings.packageDebugLogs.filter(
+                (e) => e.packageId === preference.id,
+              ),
+            )}
+          </textarea>
+        {/if}
       </div>
     {/if}
   {/if}
