@@ -90,14 +90,19 @@
     $appSettings.persistent.multiViewEnabled,
   );
 
-  function handleIsMultiViewAutoupdate(containerWidth) {
-    if (containerWidth) {
+  function handleIsMultiViewAutoupdate(containerWidth, multiViewEnabled) {
+    if (!containerWidth) {
+      return;
+    }
+
+    let multiView =
+      document.body.clientWidth * 0.4 < containerWidth &&
+      containerWidth > 550 &&
+      typeof element !== "undefined" &&
+      multiViewEnabled;
+    if (multiView !== $appSettings.isMultiView) {
       appSettings.update((store) => {
-        store.isMultiView =
-          document.body.clientWidth * 0.4 < containerWidth &&
-          containerWidth > 550 &&
-          typeof element !== "undefined" &&
-          store.persistent.multiViewEnabled;
+        store.isMultiView = multiView;
         return store;
       });
     }
