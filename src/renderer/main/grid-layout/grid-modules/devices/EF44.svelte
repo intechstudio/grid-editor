@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime.js";
 
@@ -169,4 +170,5 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
+  <ModuleInfo {device} visible={true} />
 </div>

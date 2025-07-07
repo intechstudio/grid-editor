@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import { ModuleType, ElementType } from "@intechstudio/grid-protocol";
 
   import Btn from "../elements/Btn.svelte";
@@ -284,4 +285,5 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
+  <ModuleInfo {device} visible={true} />
 </div>
