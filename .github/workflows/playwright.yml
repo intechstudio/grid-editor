@@ -6,6 +6,7 @@ on:
       - "**"
     tags-ignore:
       - "*"
+  pull_request:
 
 # only one workflow is running at the same time for each branch
 # concurrency:
