@@ -71,7 +71,7 @@ jobs:
           projectId: grid-editor-web
           target: playwright-preview
           channelId: ${{ steps.derive_channel.outputs.channel }}
-          expires: 7d
+          expires: 1d
       - name: Output Preview URL
         if: ${{ github.event_name == 'push' }}
         run: |
