@@ -64,6 +64,7 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
           target: playwright-preview
+          channelId: pr-${{ github.event.pull_request.number }}
           expires: 7d
 
       - name: Output Preview URL
