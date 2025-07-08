@@ -123,7 +123,7 @@
       sendData($data);
       dispatch("sync");
     }}
-    title={"Update intensity automatically"}
+    title={"Trigger event automatically"}
   />
   <SendFeedback feedback_context="LedColor" class="text-sm text-gray-500" />
 </config-led-color>
