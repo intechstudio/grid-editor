@@ -5,14 +5,15 @@
   } from "./../../../runtime/user-input.store";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { derived, get } from "svelte/store";
+  import { get, Writable, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
-    midi_monitor_store,
-    sysex_monitor_store,
-    MusicalNotes,
-    MidiMonitorItem,
-    SysExMonitorItem,
+    midi_stream,
+    MidiData,
+    MidiStreamData,
+    MidiStreamItem,
+    MidiType,
+    SysExData,
   } from "./MidiMonitor.store";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
@@ -20,11 +21,112 @@
   import { Grid } from "../../../lib/_utils";
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
-  import { scrollToBottom } from "../../_actions/scroll.move";
+  import { onDestroy, onMount, tick } from "svelte";
+  import { MidiWorkerCommand, MidiWorkerResponse } from "./midiWorker";
+  import VirtualList from "svelte-tiny-virtual-list";
 
+  //Defines
+  let debug = false;
+  let hover = false;
+  let last = undefined;
+  let configScriptLength = 0;
+  let activity = false;
+  let timer = undefined;
   let event: GridEvent;
+  let worker: Worker;
+  let mounted = false;
+
+  let midiMessageListHeight: number;
+  let sysExMessageListHeight: number;
+  let debugMessageListHeight: number;
+
+  const maxMessageCount = 1024;
+
+  let lastMidiMessageIndex = 0;
+  let lastSysExMessageIndex = 0;
+  let lastMidiStreamItemIndex = 0;
+
+  const midi_messages: Writable<(MidiStreamItem & { data: MidiData })[]> =
+    writable([]);
+  const sysex_messages: Writable<(MidiStreamItem & { data: SysExData })[]> =
+    writable([]);
+
+  onMount(() => {
+    worker = new Worker(new URL("./midiWorker.ts", import.meta.url), {
+      type: "module",
+    });
+    worker.onmessage = handleWorkerMessage;
+
+    midi_stream.subscribe((s) => {
+      if (!mounted) {
+        return;
+      }
+      const incoming = s.last;
+      if (typeof incoming === "undefined") {
+        return;
+      }
+
+      worker.postMessage({ item: incoming } as MidiWorkerCommand);
+    });
+
+    for (const item of $midi_stream.buffer) {
+      worker.postMessage({ item: item } as MidiWorkerCommand);
+    }
+    mounted = true;
+  });
+
+  onDestroy(() => {
+    worker.terminate();
+  });
 
   $: handleUserInputChange($user_input);
+
+  $: configScriptLength = $event?.toLua().length ?? 0;
+
+  $: if ($midi_stream) {
+    showActivity();
+  }
+
+  $: last = $midi_messages?.at(-1);
+
+  $: if (midiMessageListHeight) {
+    handleResize($midi_messages, (value) => (lastMidiMessageIndex = value));
+  }
+  $: if (sysExMessageListHeight) {
+    handleResize($sysex_messages, (value) => (lastSysExMessageIndex = value));
+  }
+  $: if (debugMessageListHeight) {
+    handleResize(
+      $midi_stream.buffer,
+      (value) => (lastMidiStreamItemIndex = value),
+    );
+  }
+
+  async function handleWorkerMessage(e: MessageEvent<MidiWorkerResponse>) {
+    const { item } = e.data;
+    switch (item.type) {
+      case MidiType.SYSEX: {
+        sysex_messages.update((s) => {
+          let result = [...s, item as MidiStreamItem & { data: SysExData }];
+          if (result.length > maxMessageCount) {
+            result.shift();
+          }
+          return result;
+        });
+        break;
+      }
+      case MidiType.MIDI: {
+        midi_messages.update((s) => {
+          let result = [...s, item as MidiStreamItem & { data: MidiData }];
+          if (result.length > maxMessageCount) {
+            result.shift();
+          }
+          return result;
+        });
+        break;
+      }
+    }
+  }
 
   function handleUserInputChange(ui: UserInputValue) {
     const active = get(runtime_manager).active.runtime;
@@ -36,138 +138,6 @@
       ui.eventtype,
     );
   }
-
-  let configScriptLength = 0;
-
-  function replaceNRPNMessages(messages: MidiMonitorItem[]) {
-    const NRPNCC = [99, 98, 38, 6];
-
-    for (let i = 0; i < messages.length; i++) {
-      if (messages[i].data.params.p1.value !== 99) continue;
-
-      const spliceLength = messages[i + 3]?.data.params.p1.value === 38 ? 4 : 3;
-      const NRPNMessages = messages.slice(i, i + spliceLength);
-
-      if (
-        NRPNMessages.length < spliceLength ||
-        !NRPNMessages.every((e) => NRPNCC.includes(e.data.params.p1.value))
-      ) {
-        continue;
-      }
-
-      const [m1, m2, m3, m4] = messages.splice(i, spliceLength);
-      m1.data.command.name += " (NRPN)";
-      m1.data.command.short += " (NPRN)";
-      m1.data.params.p1.value =
-        (m1.data.params.p2.value << 7) + m2.data.params.p2.value;
-      m1.data.params.p2.value =
-        spliceLength === 4
-          ? (m3.data.params.p2.value << 7) + m4.data.params.p2.value
-          : m3.data.params.p2.value;
-
-      messages.splice(i, 0, m1); // Re-insert modified m1
-    }
-
-    return messages;
-  }
-
-  function replaceHighResMidiMessages(messages: MidiMonitorItem[]) {
-    for (let i = 0; i < messages.length; i++) {
-      const HiResMessages = messages.slice(i, i + 2);
-
-      if (
-        HiResMessages.length !== 2 ||
-        !HiResMessages.every((e) => e.data.command.short === "CC")
-      ) {
-        continue;
-      }
-
-      const offset_diff =
-        HiResMessages[0].data.params.p1.value -
-        HiResMessages[1].data.params.p1.value;
-      if (offset_diff !== -32) {
-        continue;
-      }
-
-      // Extract the two messages from the slice
-      const [m1, m2] = messages.splice(i, 2);
-
-      // Get the two halves of the high-resolution value
-      const upper_value = m1.data.params.p2.value << 7;
-      const lower_value = m2.data.params.p2.value;
-
-      // Update display values
-      m1.data.command.name += " (14)";
-      m1.data.command.short += " (14)";
-
-      // Set the high-resolution message's value
-      m1.data.params.p2.value = upper_value + lower_value;
-
-      // Insert the modified message back into the array
-      messages.splice(i, 0, m1);
-    }
-
-    return messages;
-  }
-
-  const debug_stream = derived(
-    [midi_monitor_store, sysex_monitor_store],
-    ([$midi_monitor_store, $sysex_monitor_store]) => {
-      return [
-        ...$midi_monitor_store.map((e) => structuredClone(e)),
-        ...$sysex_monitor_store.map((e) => structuredClone(e)),
-      ].sort((a, b) => a.date - b.date);
-    },
-  );
-
-  //Human readable midi store
-  const human_midi_store = derived(
-    [midi_monitor_store],
-    ([$midi_monitor_store]) => {
-      let result = replaceNRPNMessages(
-        $midi_monitor_store.map((e) => structuredClone(e)),
-      );
-      result = replaceHighResMidiMessages(result);
-      result.forEach((e) => {
-        e = assignP1ValueAlias(e);
-      });
-      return result;
-    },
-  );
-
-  $: {
-    configScriptLength = $event?.toLua().length ?? 0;
-  }
-
-  //Defines
-  let debug = false;
-  let hover = false;
-  let last = undefined;
-
-  let activity = false;
-  let timer = undefined;
-
-  //Assign PARAM1 value aliases e.g.: musical note names to Int values
-  //If possible: display these values instead of the Int values
-  function assignP1ValueAlias(obj) {
-    let p1 = obj.data.params.p1;
-
-    //Does not have alias yet
-    if (typeof p1.value_alias === "undefined") {
-      switch (p1.name) {
-        case "Note":
-          p1.value_alias = MusicalNotes.FromInt(p1.value);
-          break;
-      }
-    }
-    return obj;
-  }
-
-  $: if ($sysex_monitor_store || $human_midi_store) {
-    showActivity();
-  }
-
-  $: last = $human_midi_store?.at(-1);
 
   function showActivity() {
     activity = true;
@@ -181,7 +151,7 @@
 
   function onLeaveMidiMessage() {
     hover = false;
-    let mms = get(human_midi_store);
+    let mms = get(midi_messages);
     last = mms[mms.length - 1];
   }
 
@@ -190,25 +160,40 @@
     last = element;
   }
 
+  function handleResize(array: any[], setIndex: (value: number) => void) {
+    setIndex(Math.max(array.length - 2, 0));
+    requestAnimationFrame(() => {
+      setIndex(array.length - 1);
+    });
+  }
+
   function onClearClicked() {
     last = undefined;
+    midi_stream.clear();
     debug_monitor_store.update((s) => {
       s = [];
       return s;
     });
-    midi_monitor_store.update((s) => {
-      s = [];
-      return s;
-    });
-    sysex_monitor_store.update((s) => {
-      s = [];
-      return s;
-    });
+
+    midi_messages.set([]);
+    sysex_messages.set([]);
+
+    lastMidiMessageIndex = 0;
+    lastSysExMessageIndex = 0;
+    lastMidiStreamItemIndex = 0;
   }
 
-  const isMIDI = (
-    msg: MidiMonitorItem | SysExMonitorItem,
-  ): msg is MidiMonitorItem => msg.type === "MIDI";
+  function isMIDI(
+    message: MidiStreamItem,
+  ): message is MidiStreamItem & { data: MidiData } {
+    return message.type === MidiType.MIDI;
+  }
+
+  function isSysEx(
+    message: MidiStreamItem,
+  ): message is MidiStreamItem & { data: SysExData } {
+    return message.type === MidiType.SYSEX;
+  }
 </script>
 
 <container data-testid="midi-monitor" class="flex flex-col h-full p-4">
@@ -332,93 +317,141 @@
               <div>P2</div>
               <div>DIR</div>
             </div>
+
             <div
-              class="flex flex-col grow overflow-y-auto bg-secondary"
-              use:scrollToBottom={debug_stream}
+              class="flex flex-col flex-grow bg-secondary w-full overflow-clip"
+              bind:clientHeight={debugMessageListHeight}
             >
-              {#each $debug_stream as message}
-                <div
-                  class="grid grid-cols-7 items-start justify-start w-full font-mono {message
-                    .data.direction == 'REPORT'
-                    ? 'text-blue-600 '
-                    : 'text-green-400 '}"
+              {#if lastMidiMessageIndex > 0}
+                <VirtualList
+                  itemCount={$midi_stream.buffer.length}
+                  itemSize={20}
+                  height={debugMessageListHeight}
+                  scrollDirection="vertical"
+                  scrollToIndex={lastMidiStreamItemIndex}
                 >
-                  <div class="col-span-2">
-                    [{message.device.x}, {message.device.y}]
-                  </div>
-                  {#if isMIDI(message)}
-                    <div>{message.data.channel + 1}</div>
-                    <div>{message.data.command.value}</div>
-                    <div>{message.data.params.p1.value}</div>
-                    <div>{message.data.params.p2.value}</div>
-                  {:else}
-                    <div class="col-span-4">
-                      SysEx: {String.fromCharCode
-                        .apply(String, message.data.raw)
-                        .substr(8)}
+                  <!-- svelte-ignore a11y-no-static-element-interactions -->
+                  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+                  <div
+                    slot="item"
+                    let:index
+                    let:style
+                    {style}
+                    class="grid grid-cols-7 items-start justify-start w-full font-mono {$midi_stream
+                      .buffer[index].data.direction == 'REPORT'
+                      ? 'text-blue-600 '
+                      : 'text-green-400 '}"
+                  >
+                    <div class="col-span-2">
+                      [{$midi_stream.buffer[index].device.x}, {$midi_stream
+                        .buffer[index].device.y}]
                     </div>
-                  {/if}
-                  <div class="flex items-center">
-                    {#if message.data.direction == "REPORT"}
-                      <span>RX</span>
-                      <SvgIcon fill="#FFF" iconPath="arrow_left" />
-                    {:else}
-                      <span>TX</span>
-                      <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                    {#if isMIDI($midi_stream.buffer[index])}
+                      <div>{$midi_stream.buffer[index].data.channel + 1}</div>
+                      <div>
+                        {$midi_stream.buffer[index].data.command.value}
+                      </div>
+                      <div>
+                        {$midi_stream.buffer[index].data.params.p1.value}
+                      </div>
+                      <div>
+                        {$midi_stream.buffer[index].data.params.p2.value}
+                      </div>
+                    {:else if isSysEx($midi_stream.buffer[index])}
+                      <div class="col-span-4">
+                        SysEx: {String.fromCharCode
+                          .apply(String, $midi_stream.buffer[index].data.raw)
+                          .substr(8)}
+                      </div>
                     {/if}
+                    <div class="flex items-center">
+                      {#if $midi_stream.buffer[index].data.direction == "REPORT"}
+                        <span>RX</span>
+                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                      {:else}
+                        <span>TX</span>
+                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                      {/if}
+                    </div>
                   </div>
-                </div>
-              {/each}
+                </VirtualList>
+              {/if}
             </div>
           {:else}
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
-              class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={human_midi_store}
+              class="flex h-full bg-secondary w-full overflow-clip"
+              bind:clientHeight={midiMessageListHeight}
             >
-              {#each $human_midi_store as midi}
-                <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-static-element-interactions -->
-                <div
-                  class="grid grid-cols-8 gap-2 {midi.data.direction == 'REPORT'
-                    ? 'text-blue-600 hover:text-blue-400'
-                    : 'text-green-400 hover:text-green-200'}
-                  transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
-                  on:mouseover={() => onEnterMidiMessage(midi)}
-                  on:mouseleave={() => onLeaveMidiMessage()}
+              {#if lastMidiMessageIndex > 0}
+                <VirtualList
+                  itemCount={$midi_messages.length}
+                  itemSize={20}
+                  height={midiMessageListHeight}
+                  scrollDirection="vertical"
+                  scrollToIndex={lastMidiMessageIndex}
                 >
+                  <!-- svelte-ignore a11y-no-static-element-interactions -->
+                  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                   <div
-                    class="flex flex-row gap-1 min-w-fit min-h-fit col-span-2"
+                    slot="item"
+                    let:index
+                    let:style
+                    {style}
+                    class="grid grid-cols-8 gap-2 {$midi_messages[index].data
+                      .direction == 'REPORT'
+                      ? 'text-blue-600 hover:text-blue-400'
+                      : 'text-green-400 hover:text-green-200'}
+              transition-transform origin-left duration-100 transform w-full"
+                    on:mouseover={() =>
+                      onEnterMidiMessage($midi_messages[index])}
+                    on:mouseleave={() => onLeaveMidiMessage()}
                   >
-                    <span class="text-white">{midi.device.name}</span>
-                    {#if midi.data.direction == "REPORT"}
-                      <SvgIcon
-                        fill="#FFF"
-                        iconPath="arrow_left"
-                        width={14}
-                        height={14}
-                      />
-                    {:else}
-                      <SvgIcon
-                        fill="#FFF"
-                        iconPath="arrow_right"
-                        width={14}
-                        height={14}
-                      />
-                    {/if}
+                    <div
+                      class="flex flex-row gap-1 min-w-fit min-h-fit col-span-2"
+                    >
+                      <span class="text-white"
+                        >{$midi_messages[index].device.name}</span
+                      >
+                      {#if $midi_messages[index].data.direction == "REPORT"}
+                        <SvgIcon
+                          fill="#FFF"
+                          iconPath="arrow_left"
+                          width={14}
+                          height={14}
+                        />
+                      {:else}
+                        <SvgIcon
+                          fill="#FFF"
+                          iconPath="arrow_right"
+                          width={14}
+                          height={14}
+                        />
+                      {/if}
+                    </div>
+                    <span class="truncate"
+                      >Ch: {$midi_messages[index].data.channel + 1}</span
+                    >
+                    <span class="truncate"
+                      >{$midi_messages[index].data.command.short}</span
+                    >
+                    <span class="truncate"
+                      >{$midi_messages[index].data.params.p1.short}:</span
+                    >
+                    <span class="truncate"
+                      >{$midi_messages[index].data.params.p1.value_alias
+                        ? $midi_messages[index].data.params.p1.value_alias
+                        : $midi_messages[index].data.params.p1.value}</span
+                    >
+                    <span class="truncate"
+                      >{$midi_messages[index].data.params.p2.short}:</span
+                    >
+                    <span class="truncate"
+                      >{$midi_messages[index].data.params.p2.value}</span
+                    >
                   </div>
-                  <span class="truncate">Ch: {midi.data.channel + 1}</span>
-                  <span class="truncate">{midi.data.command.short}</span>
-                  <span class="truncate">{midi.data.params.p1.short}:</span>
-                  <span class="truncate"
-                    >{midi.data.params.p1.value_alias
-                      ? midi.data.params.p1.value_alias
-                      : midi.data.params.p1.value}</span
-                  >
-                  <span class="truncate">{midi.data.params.p2.short}:</span>
-                  <span class="truncate">{midi.data.params.p2.value}</span>
-                </div>
-              {/each}
+                </VirtualList>
+              {/if}
             </div>
           {/if}
         </div>
@@ -453,33 +486,47 @@
               System Exclusive Messages
             </div>
             <div
-              class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={sysex_monitor_store}
+              class="flex h-full bg-secondary w-full overflow-clip"
+              bind:clientHeight={sysExMessageListHeight}
             >
-              {#each $sysex_monitor_store as sysex}
-                <div
-                  class="{sysex.data.direction == 'REPORT'
-                    ? 'text-blue-400'
-                    : 'text-green-400'} font-mono"
+              {#if lastSysExMessageIndex > 0}
+                <VirtualList
+                  itemCount={$sysex_messages.length}
+                  itemSize={20}
+                  height={sysExMessageListHeight}
+                  scrollDirection="vertical"
+                  scrollToIndex={lastSysExMessageIndex}
                 >
-                  <div class="flex flex-row gap-2">
-                    <div class="flex flex-row text-white">
-                      <span>{sysex.device.name}</span>
-                      {#if sysex.data.direction == "REPORT"}
-                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
-                      {:else}
-                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
-                      {/if}
-                    </div>
+                  <!-- svelte-ignore a11y-no-static-element-interactions -->
+                  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+                  <div
+                    slot="item"
+                    let:index
+                    let:style
+                    {style}
+                    class="{$sysex_messages[index].data.direction == 'REPORT'
+                      ? 'text-blue-400'
+                      : 'text-green-400'} font-mono"
+                  >
+                    <div class="flex flex-row gap-2">
+                      <div class="flex flex-row text-white">
+                        <span>{$sysex_messages[index].device.name}</span>
+                        {#if $sysex_messages[index].data.direction == "REPORT"}
+                          <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                        {:else}
+                          <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                        {/if}
+                      </div>
 
-                    <span>
-                      {String.fromCharCode
-                        .apply(String, sysex.data.raw)
-                        .substr(8)}
-                    </span>
+                      <span>
+                        {String.fromCharCode
+                          .apply(String, $sysex_messages[index].data.raw)
+                          .substr(8)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              {/each}
+                </VirtualList>
+              {/if}
             </div>
           </div>
         {/if}

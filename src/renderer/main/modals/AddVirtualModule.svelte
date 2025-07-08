@@ -83,7 +83,10 @@
 </script>
 
 <MoltenModal {data} width={"500px"}>
-  <div slot="content" class="grid grid-rows-[auto_1fr_auto] max-h-[80vh]">
+  <div
+    slot="content"
+    class="grid grid-rows-[auto_1fr_auto] max-h-[50vh] h-full"
+  >
     <div>
       <div class="flex w-full text-4xl opacity-90 pb-2">Add Virtual Module</div>
       <p>
@@ -95,49 +98,51 @@
         your virtual module!
       </p>
     </div>
-    <div
-      class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full mt-4
-          overflow-auto max-h-[50vh]"
-    >
-      {#each devices as device, index}
-        {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
-          <div class="flex w-full h-full items-center justify-center">
-            <div class="flex flex-col">
-              <span class="text-white text-opacity-75 font-mono"
-                >{device.id}</span
-              >
-              <button
-                data-testid={device.id}
-                class="border"
-                class:border-transparent={index !== selectedModule}
-                class:hover:border-emerald-600={index !== selectedModule}
-                class:border-emerald-300={index === selectedModule}
-                on:click={() => handleModuleClicked(index)}
-                on:dblclick={() => handleModuleDoubleClicked(index)}
-              >
-                <div
-                  style="
+    <div class="overflow-y-scroll mt-4">
+      <div
+        class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full
+          "
+      >
+        {#each devices as device, index}
+          {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
+            <div class="flex w-full h-full items-center justify-center">
+              <div class="flex flex-col">
+                <span class="text-white text-opacity-75 font-mono"
+                  >{device.id}</span
+                >
+                <button
+                  data-testid={device.id}
+                  class="border"
+                  class:border-transparent={index !== selectedModule}
+                  class:hover:border-emerald-600={index !== selectedModule}
+                  class:border-emerald-300={index === selectedModule}
+                  on:click={() => handleModuleClicked(index)}
+                  on:dblclick={() => handleModuleDoubleClicked(index)}
+                >
+                  <div
+                    style="
                       transform-origin: top left;
                       width: calc(113px);
                       height: calc(113px);
                       transform: scale(0.5); 
                     "
-                >
-                  <div
-                    class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
                   >
-                    <svelte:component
-                      this={device.component}
-                      {device}
-                      moduleWidth={225}
-                    />
+                    <div
+                      class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
+                    >
+                      <svelte:component
+                        this={device.component}
+                        {device}
+                        moduleWidth={225}
+                      />
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
-          </div>
-        {/if}
-      {/each}
+          {/if}
+        {/each}
+      </div>
     </div>
     <div class="flex flex-row gap-2 pt-4 ml-auto">
       <MoltenPushButton

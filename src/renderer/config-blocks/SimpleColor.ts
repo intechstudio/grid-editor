@@ -172,7 +172,10 @@ export namespace SimpleColor {
         previewColors: parsed.colors,
         layer: {
           value: String(parsed.layer),
-          suggestions: getLayerSuggestions(element),
+          suggestions: [
+            { value: "-1", info: "Auto" },
+            ...getLayerSuggestions(element),
+          ],
           validator: getValidator(String(parsed.layer)),
         },
         element: {

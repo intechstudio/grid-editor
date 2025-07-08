@@ -72,6 +72,7 @@
     "set-interval-async": "^3.0.3",
     "svelte-easy-popover": "^1.0.0",
     "svelte-splitpanes": "0.8.0",
+    "svelte-tiny-virtual-list": "^2.1.2",
     "svelte-watch-resize": "^1.0.3",
     "ts-jest": "^29.1.2",
     "typescript": "^5.0.0",
