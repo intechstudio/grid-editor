@@ -51,6 +51,7 @@ jobs:
       # Unique URL path for each workflow run attempt
       HTML_REPORT_URL_PATH: reports/${{ github.ref_name }}/${{ github.run_id }}/${{ github.run_attempt }}
     steps:
+      - uses: actions/checkout@v4
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:

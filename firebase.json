@@ -1,7 +1,7 @@
 {
   "hosting": [
     {
-      "target": "default",
+      "target": "grid-editor",
       "public": "dist-web",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
