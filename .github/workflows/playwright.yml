@@ -84,7 +84,6 @@ jobs:
           projectId: grid-editor-web
           target: playwright-preview
           expires: 7d
-
 # # HEADED MODE
 #  name: Playwright Tests
 
