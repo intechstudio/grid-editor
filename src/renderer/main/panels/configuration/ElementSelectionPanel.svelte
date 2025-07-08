@@ -46,6 +46,17 @@
         e.getHumanName().indexOf("System") === -1 ||
         $appSettings.persistent.userLevelMinimalist === false,
     );
+
+    if (
+      $appSettings.persistent.userLevelMinimalist === true &&
+      $user_input.elementnumber === 255
+    ) {
+      user_input.update((s) => {
+        s.elementnumber = 0;
+        return s;
+      });
+    }
+
     options = elements.map((e) => {
       const stringName = e.name;
       if (typeof stringName !== "undefined") {
