@@ -59,7 +59,6 @@ export namespace SimpleColor {
         script: actionstring.match(/glc\(.*\)$/)[0],
       });
 
-      console.log(segments);
       this.colors = Grid.parseBracketValues(segments[1]).map((e) => {
         const values = Grid.parseBracketValues(e);
         return {
@@ -174,7 +173,10 @@ export namespace SimpleColor {
         previewColors: parsed.colors,
         layer: {
           value: String(parsed.layer),
-          suggestions: getLayerSuggestions(element),
+          suggestions: [
+            { value: "-1", info: "Auto" },
+            ...getLayerSuggestions(element),
+          ],
           validator: getValidator(String(parsed.layer)),
         },
         element: {
@@ -269,7 +271,6 @@ export namespace SimpleColor {
         s.alphaSliderValue = value;
         s.alpha.value = String(value);
         s.previewColors[s.selectedIndex].alpha = String(value);
-        //console.log(s);
         return s;
       });
     }
@@ -305,7 +306,6 @@ export namespace SimpleColor {
       validationError: boolean,
       channel: Channel,
     ) {
-      //console.log(value);
       this.update((s) => {
         s[channel].validator.value = !validationError;
         switch (channel) {

@@ -321,7 +321,7 @@ export class MessageStream {
         const active = get(runtime_manager).active.runtime;
         // engine is enabled
         if (
-          get(this._buffer).length === 0 &&
+          get(this._buffer).array.length === 0 &&
           this.runtime.id === get(active).id
         ) {
           // update active element selection
