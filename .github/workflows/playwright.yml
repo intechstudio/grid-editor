@@ -49,17 +49,19 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Derive Channel ID from Commit SHA
-        id: derive_channel
-        run: |
-          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
-          echo "channel=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
-      - name: Deploy to Firebase Hosting (Reports Site)
+      - name: Derive Channel ID from Commit SHA
+        if: ${{ github.event_name == 'push' }}
+        id: derive_channel
+        run: |
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
+          echo "channel=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Report to Firebase Hosting on Push
+        if: ${{ github.event_name == 'push' }}
         id: firebase_deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -68,6 +70,16 @@ jobs:
           projectId: grid-editor-web
           target: playwright-preview
           channelId: ${{ steps.derive_channel.outputs.channel }}
+          expires: 7d
+      - name: Report to Firebase Hosting on Pull Request
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        id: firebase_deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
+          projectId: grid-editor-web
+          target: playwright-preview
           expires: 7d
 
       - name: Output Preview URL
