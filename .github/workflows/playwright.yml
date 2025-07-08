@@ -49,6 +49,11 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - name: Derive Channel ID from Commit SHA
+        id: derive_channel
+        run: |
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
+          echo "channel=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
@@ -62,6 +67,7 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
           target: playwright-preview
+          channelId: ${{ steps.derive_channel.outputs.channel }}
           expires: 7d
 
       - name: Output Preview URL
