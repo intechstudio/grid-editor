@@ -71,9 +71,12 @@ jobs:
           target: playwright-preview
           channelId: ${{ steps.derive_channel.outputs.channel }}
           expires: 7d
+      - name: Output Preview URL
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "::notice title=📋 Playwright Report Preview::${{ steps.firebase_deploy.outputs.details_url }}"
       - name: Report to Firebase Hosting on Pull Request
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-        id: firebase_deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
@@ -81,10 +84,6 @@ jobs:
           projectId: grid-editor-web
           target: playwright-preview
           expires: 7d
-
-      - name: Output Preview URL
-        run: |
-          echo "::notice title=📋 Playwright Report Preview::${{ steps.firebase_deploy.outputs.details_url }}"
 
 # # HEADED MODE
 #  name: Playwright Tests
