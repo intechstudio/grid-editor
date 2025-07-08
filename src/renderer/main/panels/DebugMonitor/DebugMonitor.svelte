@@ -24,6 +24,7 @@
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
   import DebugTextList from "./DebugTextList.svelte";
+  import SendInmediate from "./SendInmediate.svelte";
 
   let event: GridEvent;
 
@@ -194,15 +195,7 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
-  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
-    <MoltenInput bind:target={immediateCommand} />
-    <MoltenPushButton
-      click={() => {
-        runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
-      }}
-      text="Immediate"
-    />
-  </div>
+  <SendInmediate />
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
