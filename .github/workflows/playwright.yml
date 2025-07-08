@@ -47,16 +47,13 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     continue-on-error: true
-    env:
-      # Unique URL path for each workflow run attempt
-      HTML_REPORT_URL_PATH: reports/${{ github.ref_name }}/${{ github.run_id }}/${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
           name: playwright-report
-          path: ${{ env.HTML_REPORT_URL_PATH }}
+          path: playwright-report/
       - name: Deploy to Firebase Hosting (Reports Site)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
