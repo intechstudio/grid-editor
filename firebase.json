@@ -1,12 +1,20 @@
 {
-  "hosting": {
-    "public": "dist-web",
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/src/renderer/index.html"
-      }
-    ],
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
-  }
+  "hosting": [
+    {
+      "target": "default",
+      "public": "dist-web",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/src/renderer/index.html"
+        }
+      ]
+    },
+    {
+      "target": "playwright-preview",
+      "public": "playwright-report",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  ]
 }

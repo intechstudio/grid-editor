@@ -1,5 +1,12 @@
 {
   "projects": {
     "default": "grid-editor-web"
+  },
+  "targets": {
+    "grid-editor-web": {
+      "hosting": {
+        "playwright-preview": ["grid-playwright-report"]
+      }
+    }
   }
 }
