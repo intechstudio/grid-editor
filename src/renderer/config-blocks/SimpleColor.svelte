@@ -145,15 +145,6 @@
     { title: "HSL", value: ColorPickerModel.Slider },
   ];
 
-  let selected = $appSettings.persistent.colorPicker;
-
-  $: if (selected !== $appSettings.persistent.colorPicker) {
-    appSettings.update((s) => {
-      s.persistent.colorPicker = selected;
-      return s;
-    });
-  }
-
   function colorToCSS(color: SimpleColor.Color) {
     if (Object.values(color).some((e) => isNaN(Number(e)))) {
       return "white";
@@ -262,7 +253,7 @@
 
   <div class="flex w-full text-white">
     <MeltSelect
-      bind:target={selected}
+      bind:target={$appSettings.persistent.colorPicker}
       {options}
       disabled={false}
       size={"full"}
@@ -305,7 +296,7 @@
       </div>
       <div class="flex w-32 h-full items-center justify-center">
         <svelte:component
-          this={colorPickerComponent.get(selected)}
+          this={colorPickerComponent.get($appSettings.persistent.colorPicker)}
           color={$data.pickerColor}
           on:input={(e) => {
             const { color } = e.detail;
