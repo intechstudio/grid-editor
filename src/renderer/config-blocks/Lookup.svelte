@@ -35,11 +35,11 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import {
     MeltCombo,
-    MeltComboSuggestion,
     MoltenPushButton,
+    type MeltComboData,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -49,15 +49,6 @@
   import { Script } from "./_script_parsers.js";
 
   export let config: GridAction;
-
-  type MeltComboData = {
-    value: string;
-    suggestions: MeltComboSuggestion[];
-    validator: {
-      value: boolean;
-      func: (e: string) => boolean;
-    };
-  };
 
   type Pair = {
     input: MeltComboData;

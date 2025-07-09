@@ -16,8 +16,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-
-type MeltComboData = Grid.Types.MeltComboData;
+import { MeltComboData } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
   export enum Channel {
@@ -173,7 +172,10 @@ export namespace SimpleColor {
         previewColors: parsed.colors,
         layer: {
           value: String(parsed.layer),
-          suggestions: getLayerSuggestions(element),
+          suggestions: [
+            { value: "-1", info: "Auto" },
+            ...getLayerSuggestions(element),
+          ],
           validator: getValidator(String(parsed.layer)),
         },
         element: {
