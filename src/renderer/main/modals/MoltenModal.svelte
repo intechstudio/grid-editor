@@ -45,14 +45,18 @@
     on:mousedown|self={close}
   >
     <div
-      class="z-50 text-white shadow-md p-6
+      class="z-50 text-white shadow-md
       bg-primary rounded max-h-screen"
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
       transition:scale={{ duration: 500, start: 0.95 }}
       style="--width: {width};"
     >
-      <slot name="content" />
+      <div class="flex flex-col h-full">
+        <div class="p-6 flex-1 min-h-0">
+          <slot name="content" />
+        </div>
+      </div>
     </div>
   </div>
 {/if}

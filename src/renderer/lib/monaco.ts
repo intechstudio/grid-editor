@@ -38,7 +38,7 @@ const language_config = {
   ],
 };
 
-export const language = {
+const [lua, intech_lua] = Array(2).fill({
   defaultToken: "",
   tokenPostfix: ".lua",
   keywords: [
@@ -206,10 +206,11 @@ export const language = {
       ],
     ],
   },
-};
+});
 
 function initialize_language() {
   monaco_languages.register({ id: "intech_lua" });
+  monaco_languages.register({ id: "lua" });
 }
 
 function initialize_theme() {
@@ -268,7 +269,60 @@ type Range = {
 };
 
 function initialize_autocomplete() {
-  function createProposals(
+  function createLuaProposals(range: Range) {
+    let proposalList = [];
+    lua.functions = ["print"];
+
+    // Handle other general cases (mathfunctions, keywords, etc.)
+    for (const element of lua.mathfunctions) {
+      let proposalItem = {
+        label: "",
+        kind: monaco_languages.CompletionItemKind.Function,
+        documentation: "Documentation",
+        insertText: "",
+        range: range,
+      };
+
+      proposalItem.label = "math." + element;
+      proposalItem.insertText = "math." + element;
+      proposalList.push(proposalItem);
+    }
+
+    for (const element of lua.keywords) {
+      let proposalItem = {
+        label: "",
+        kind: monaco_languages.CompletionItemKind.Keyword,
+        documentation: "Documentation",
+        insertText: "",
+        range: range,
+      };
+
+      proposalItem.label = element;
+      proposalItem.insertText = element;
+
+      proposalList.push(proposalItem);
+    }
+
+    for (const element of lua.functions) {
+      if (proposalList.find((e) => e.label === element)) {
+        continue;
+      }
+
+      let proposalItem = {
+        kind: monaco_languages.CompletionItemKind.Function,
+        documentation: "Documentation",
+        range: range,
+        label: element,
+        insertText: element + "()",
+      };
+
+      proposalList.push(proposalItem);
+    }
+
+    return proposalList;
+  }
+
+  function createIntechLuaProposals(
     range: Range,
     model: monaco_editor.ITextModel,
     position: Position,
@@ -284,10 +338,10 @@ function initialize_autocomplete() {
         : instance.restrictScope;
 
     let proposalList = [];
-    language.functions = ["print"];
+    intech_lua.functions = ["print"];
 
     // Handle other general cases (mathfunctions, keywords, etc.)
-    for (const element of language.mathfunctions) {
+    for (const element of intech_lua.mathfunctions) {
       let proposalItem = {
         label: "",
         kind: monaco_languages.CompletionItemKind.Function,
@@ -301,7 +355,7 @@ function initialize_autocomplete() {
       proposalList.push(proposalItem);
     }
 
-    for (const element of language.keywords) {
+    for (const element of intech_lua.keywords) {
       let proposalItem = {
         label: "",
         kind: monaco_languages.CompletionItemKind.Keyword,
@@ -368,7 +422,7 @@ function initialize_autocomplete() {
       }
     }
 
-    for (const element of language.functions) {
+    for (const element of intech_lua.functions) {
       if (proposalList.find((e) => e.label === element)) {
         continue;
       }
@@ -414,7 +468,23 @@ function initialize_autocomplete() {
       }
 
       return {
-        suggestions: createProposals(range, model, position, prefix),
+        suggestions: createIntechLuaProposals(range, model, position, prefix),
+      };
+    },
+  });
+
+  monaco_languages.registerCompletionItemProvider("lua", {
+    provideCompletionItems: function (model, position) {
+      const word = model.getWordUntilPosition(position);
+      const range: Range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn,
+      };
+
+      return {
+        suggestions: createLuaProposals(range),
       };
     },
   });
@@ -423,12 +493,12 @@ function initialize_autocomplete() {
 function initialize_highlight() {
   grid.lua_function_to_human_map().forEach((value, key) => {
     //AUTOCOMPLETE FUNCTIONS
-    language.functions.push(value);
+    intech_lua.functions.push(value);
   });
 
   grid.lua_function_forbiddens().forEach((value) => {
     //FORBIDDEN IDENTIFIERS
-    language.forbiddens.push(value);
+    intech_lua.forbiddens.push(value);
   });
 }
 
@@ -451,7 +521,7 @@ function initialize_hover() {
 }
 
 function initialize_grammar() {
-  monaco_languages.setMonarchTokensProvider("intech_lua", language);
+  monaco_languages.setMonarchTokensProvider("intech_lua", intech_lua);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
 
