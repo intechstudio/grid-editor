@@ -32,7 +32,7 @@
     {#if preference?.preferenceComponent}
       {#key $appSettings.packageComponentKeys[leftPanel] ?? leftPanel}
         <div class="w-full h-full overflow-y-auto flex flex-col">
-            <svelte:element this={preference.preferenceComponent} class="m-2" />
+          <svelte:element this={preference.preferenceComponent} class="m-2" />
           {#if $appSettings.persistent.packageDeveloper}
             <p class="m-2">Debug logs</p>
             <textarea
