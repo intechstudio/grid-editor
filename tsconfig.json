@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
+    "lib": ["esnext", "webworker", "DOM"],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "downlevelIteration": true,
-    "module": "es2022",
-    "moduleResolution": "Node"
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   }
 }
