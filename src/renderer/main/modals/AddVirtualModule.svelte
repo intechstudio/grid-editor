@@ -25,13 +25,11 @@
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
       component: VSNX,
-      unrelease: true,
     },
     {
       id: ModuleType.VSN1R,
       type: ModuleType.VSN1R,
       component: VSNX,
-      unrelease: true,
     },
     {
       id: ModuleType.VSN2,
