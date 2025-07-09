@@ -11,28 +11,10 @@ export namespace MiniMap {
     moduleCount: number;
   };
 
-  // This only updates if runtime_managers managed connections change in terms of count
-  export const connectedRuntimes = (() => {
-    const { subscribe, set } = writable([] as GridRuntime[]);
-
-    let previous: number;
-
-    const update = () => {
-      const rm = get(runtime_manager);
-      const current = rm.data.length;
-      if (current !== previous) {
-        previous = current;
-        set(rm.data.map((e) => e.runtime));
-      }
-    };
-
-    const unsubscribe = runtime_manager.subscribe(update);
-
-    return {
-      subscribe,
-      destroy: () => unsubscribe(),
-    };
-  })();
+  export const connectedRuntimes: Readable<GridRuntime[]> = derived(
+    runtime_manager,
+    ($runtime_manager) => $runtime_manager.data.map((e) => e.runtime),
+  );
 
   function computeMinimapData(runtimes: GridRuntime[]): MinimapData[] {
     let virtual = 0;
