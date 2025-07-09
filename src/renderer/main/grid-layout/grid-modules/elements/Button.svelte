@@ -4,12 +4,15 @@
   export let size = 1;
   export let elementNumber;
   export let color;
+  export let ledless = false;
 
   let buttonSize = 9.5;
 </script>
 
 <div class="flex flex-col items-center">
-  <Led {color} size={2.1} />
+  {#if !ledless}
+    <Led {color} size={2.1} />
+  {/if}
   <svg
     data-control-number={elementNumber}
     width={size * buttonSize + "px"}

@@ -40,7 +40,7 @@
           {/if}
         </div>
         <div class="normal-cell-ui-container opacity-70">
-          <Button {elementNumber} size={1.0} color={[]} />
+          <Button {elementNumber} size={1.0} color={[]} ledless={true} />
         </div>
         <div class="normal-cell-overlay-container">
           {#if elementNumber == Math.min(...elementNumberList)}
