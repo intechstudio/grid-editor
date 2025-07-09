@@ -39,35 +39,6 @@
   class=" flex px-1 flex-col items-center h-full overflow-y-auto overflow-x-hidden"
 >
   <button
-    data-testid="nav-preferences"
-    use:tooltip={{
-      nowrap: true,
-      placement: "right",
-      delay: 100,
-      class: "px-2 py-1",
-      key: "sidebar_preferences_icon",
-      triggerEvents: ["focus", "click", "hover"],
-    }}
-    on:click={() => {
-      changeLeftTab("Preferences");
-    }}
-    class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
-    {selectedLeftTab == 'Preferences' && $appSettings.leftPanelVisible
-      ? 'bg-opacity-100 '
-      : 'bg-opacity-40 '} bg-secondary activator-button"
-  >
-    <div class="w-full h-full p-1.5 text-white fill-current">
-      {@html menuIcons["menu_preferences"]}
-    </div>
-    <div
-      class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-        'Preferences' && $appSettings.leftPanelVisible
-        ? 'h-8'
-        : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-    />
-  </button>
-
-  <button
     data-testid="nav-profile-cloud"
     use:tooltip={{
       nowrap: true,
@@ -266,4 +237,32 @@
       />
     </button>
   {/if}
+  <button
+    data-testid="nav-preferences"
+    use:tooltip={{
+      nowrap: true,
+      placement: "right",
+      delay: 100,
+      class: "px-2 py-1",
+      key: "sidebar_preferences_icon",
+      triggerEvents: ["focus", "click", "hover"],
+    }}
+    on:click={() => {
+      changeLeftTab("Preferences");
+    }}
+    class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
+    {selectedLeftTab == 'Preferences' && $appSettings.leftPanelVisible
+      ? 'bg-opacity-100 '
+      : 'bg-opacity-40 '} bg-secondary activator-button"
+  >
+    <div class="w-full h-full p-1.5 text-white fill-current">
+      {@html menuIcons["menu_preferences"]}
+    </div>
+    <div
+      class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
+        'Preferences' && $appSettings.leftPanelVisible
+        ? 'h-8'
+        : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+    />
+  </button>
 </nav-tab>

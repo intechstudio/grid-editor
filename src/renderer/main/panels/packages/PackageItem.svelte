@@ -74,6 +74,7 @@
           <PackagePushButton text="Remove" click={() => dispatch("remove")} />
         {/if}
       {/if}
+      <PackagePushButton icon={"preferences"} click={() => {}} />
     </div>
   </div>
 </div>
