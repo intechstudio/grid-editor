@@ -95,9 +95,7 @@
     configLinkStore.set({ id: value });
   });
 
-  window.electron.showQuitDialog((_event, value) => {
-    quitDialog.showModal();
-  });
+  window.electron.showQuitDialog((_event, value) => {});
 
   async function handlePackageManagerMessage(event) {
     $appSettings.packageManagerRunning = true;
@@ -376,22 +374,6 @@
       </Splitpanes>
     </div>
   </div>
-  <dialog
-    bind:this={quitDialog}
-    class="shadow-md rounded-md bg-primary border border-gray-700 p-4 w-[30rem] text-white"
-  >
-    <QuitAppDialog
-      on:cancel={() => quitDialog.close()}
-      on:quit={() => {
-        quitDialog.close();
-        window.electron.quitDialogResult("quit");
-      }}
-      on:tray={() => {
-        quitDialog.close();
-        window.electron.quitDialogResult("tray");
-      }}
-    />
-  </dialog>
 </main>
 
 <style global>
