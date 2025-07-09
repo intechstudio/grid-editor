@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { modal } from "./main/modals/modal.store";
+  import { Modal, modalManager } from "./main/modals/modal.store";
 
   import "./preload-window-config";
 
+  import "@intechstudio/grid-uikit/theme.css";
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
@@ -33,6 +34,7 @@
   import { logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
+  import RightPanelToggleButton from "./main/RightPanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
   import {
@@ -61,6 +63,14 @@
     }
 
     name = $appSettings.persistent.helperName;
+  }
+
+  $: handleColorModeChange($appSettings.persistent.lightMode);
+  function handleColorModeChange(value: boolean) {
+    document.documentElement.setAttribute(
+      "color-scheme",
+      value ? "light" : "dark",
+    );
   }
 
   function resize() {
@@ -93,6 +103,13 @@
     $appSettings.packageManagerRunning = true;
     const data = event.data;
     // action towards runtime
+    if ($appSettings.persistent.packageDeveloper) {
+      $appSettings.packageDebugLogs.push({
+        time: new Date(),
+        ...data,
+      });
+      $appSettings.packageDebugLogs = [...$appSettings.packageDebugLogs];
+    }
     switch (data.type) {
       case "persist-data": {
         appSettings.update((s) => {
@@ -134,7 +151,7 @@
       case "persist-github-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          persistent.githubPackages[data.id] = {
+          persistent.githubPackages[data.packageId] = {
             name: data.packageName,
             gitHubRepositoryOwner: data.gitHubRepositoryOwner,
             gitHubRepositoryName: data.gitHubRepositoryName,
@@ -147,7 +164,7 @@
       case "remove-github-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          delete persistent.githubPackages[data.id];
+          delete persistent.githubPackages[data.packageId];
           s.persistent = persistent;
           return s;
         });
@@ -156,7 +173,7 @@
       case "persist-local-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          persistent.localPackages[data.id] = data.rootPath;
+          persistent.localPackages[data.packageId] = data.rootPath;
           s.persistent = persistent;
           return s;
         });
@@ -165,7 +182,7 @@
       case "remove-local-package": {
         appSettings.update((s) => {
           let persistent = structuredClone(s.persistent);
-          delete persistent.localPackages[data.id];
+          delete persistent.localPackages[data.packageId];
           s.persistent = persistent;
           return s;
         });
@@ -246,6 +263,9 @@
     // extract this part on refactor
     if (event.source === window && event.data === "package-manager-port") {
       const [port] = event.ports;
+      if (window.packageManagerPort) {
+        window.packageManagerPort.close();
+      }
       window.packageManagerPort = port;
       // register message handler
       port.onmessage = handlePackageManagerMessage;
@@ -254,13 +274,6 @@
         $appSettings.packageList = [];
         $appSettings.packageManagerRunning = false;
       };
-      for (const _package of $appSettings.persistent.enabledPackages ?? []) {
-        port.postMessage({
-          type: "load-package",
-          id: _package,
-          payload: $appSettings.persistent.packagesDataStorage[_package],
-        });
-      }
       // register global createPackageMessagePort for direct package communication
       window.createPackageMessagePort = (id, senderId) => {
         const channel = new MessageChannel();
@@ -295,14 +308,12 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
-    document.addEventListener("keydown", handleEscapePress);
     loaded = true;
     window.electron.appLoaded();
   });
 
   onDestroy(() => {
     document.removeEventListener("contextmenu", preventContextMenuEvent);
-    document.removeEventListener("keydown", handleEscapePress);
   });
 
   function preventContextMenuEvent(e) {
@@ -313,18 +324,6 @@
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
-
-  function handleEscapePress(e) {
-    if (e.key === "Escape") {
-      if ($modal) {
-        modal.tryClose();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
-  }
-
-  let quitDialog;
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -346,16 +345,11 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
 
-  {#if $modal?.options.snap === "full"}
-    <svelte:component this={$modal?.component} {...$modal.args} />
-  {/if}
-
   <div class="flex flex-col w-full h-full">
     <FirmwareCheck />
 
     <ErrorConsole />
     <VersionUpdateBar />
-
     <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">
         <Pane
@@ -368,15 +362,8 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          {#if $modal?.options.snap === "middle"}
-            <svelte:component
-              this={$modal?.component}
-              reference={3}
-              {...$modal.args}
-            />
-          {:else}
-            <MiddlePanelContainer />
-          {/if}
+          <RightPanelToggleButton />
+          <MiddlePanelContainer />
         </Pane>
 
         <Pane

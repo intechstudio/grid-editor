@@ -1,14 +1,10 @@
-<script>
-  import { userStore } from "$lib/user.store";
-  import { authStore, AuthEnvironment } from "$lib/auth.store";
-  import { modal } from "../modal.store";
-  import MoltenModal from "../MoltenModal.svelte";
-  import LoginError from "$lib/auth.store";
-  import { appSettings } from "../../../runtime/app-helper.store";
-  import configuration from "../../../../../configuration.json";
-  import { logger } from "../../../runtime/runtime.store";
+<script lang="ts">
+  import { authStore } from "$lib/auth.store";
   import { createEventDispatcher } from "svelte";
   import { FirebaseError } from "firebase/app";
+  import { Modal } from "../modal.store";
+
+  export let data: Modal.Instance;
 
   const dispatch = createEventDispatcher();
 

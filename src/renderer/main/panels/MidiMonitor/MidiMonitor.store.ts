@@ -21,7 +21,7 @@ type MidiParameter = {
   value_alias?: string;
 };
 
-export class MidiMessage {
+export class MidiData {
   public params: { p1: MidiParameter; p2: MidiParameter };
   public channel: number;
   public command: MidiParameter;
@@ -58,7 +58,7 @@ export class MidiMessage {
   }
 }
 
-class SysExMessage {
+export class SysExData {
   public channel: number;
   public direction: string;
   public raw: any;
@@ -211,87 +211,85 @@ function getCommand(value: number) {
   }
 }
 
-export type MidiMonitorItem = {
-  id: any;
-  date: number;
-  type: string;
-  data: MidiMessage;
-  device: DeviceInfo;
-};
+export enum MidiType {
+  "SYSEX",
+  "MIDI",
+}
 
-function createMidiMonitor(max_length) {
-  const store: Writable<MidiMonitorItem[]> = writable([]);
+export interface MidiStreamItem {
+  id: any;
+  packetId: number;
+  date: number;
+  type: MidiType;
+  data: MidiData | SysExData;
+  device: DeviceInfo;
+}
+
+export interface MidiStreamData {
+  buffer: Array<MidiStreamItem>;
+  last: MidiStreamItem | undefined;
+}
+
+function createMidiStream(max_length: number) {
+  const defaultValue = { buffer: [], last: undefined };
+  const store: Writable<MidiStreamData> = writable(defaultValue);
   return {
     ...store,
-    update_midi: (descr: any, device: GridModule) => {
-      if (descr.class_name !== "MIDI") return;
+    update: (descr: any, device: GridModule) => {
+      let incoming: MidiStreamItem;
+      switch (descr.class_name) {
+        case "MIDI": {
+          let bc = descr.brc_parameters;
+          let cp = descr.class_parameters;
 
-      store.update((s) => {
-        //Shift store length if max length is reached
-        if (s.length >= max_length) {
-          s.shift();
+          incoming = {
+            id: uuidv4(),
+            packetId: descr.brc_parameters.ID,
+            date: Date.now(),
+            type: MidiType.MIDI,
+            data: new MidiData(
+              cp.CHANNEL,
+              cp.COMMAND,
+              cp.PARAM1,
+              cp.PARAM2,
+              descr.class_instr,
+            ),
+            device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
+          };
+
+          break;
         }
+        case "MIDISYSEX": {
+          let bc = descr.brc_parameters;
+          let cp = descr.class_parameters;
 
-        let bc = descr.brc_parameters;
-        let cp = descr.class_parameters;
+          incoming = {
+            id: uuidv4(),
+            packetId: descr.brc_parameters.ID,
+            date: Date.now(),
+            type: MidiType.SYSEX,
+            data: new SysExData(cp.CHANNEL, descr.class_instr, descr.raw),
+            device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
+          };
 
-        //Make full MIDI message from raw data (param names, command name, etc.)
-        let item = {
-          id: uuidv4(),
-          date: Date.now(),
-          type: "MIDI",
-          data: new MidiMessage(
-            cp.CHANNEL,
-            cp.COMMAND,
-            cp.PARAM1,
-            cp.PARAM2,
-            descr.class_instr,
-          ),
-          device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
-        };
-        return [...s, item];
+          break;
+        }
+        default: {
+          throw `Invalid incoming descriptor type: ${descr.class_name}`;
+        }
+      }
+      store.update((s) => {
+        if (s.buffer.length >= max_length) {
+          s.buffer.shift();
+        }
+        return { buffer: [...s.buffer, incoming], last: incoming };
       });
+    },
+    clear: () => {
+      store.set(defaultValue);
     },
   };
 }
 
-export type SysExMonitorItem = {
-  id: any;
-  date: number;
-  type: string;
-  data: SysExMessage;
-  device: DeviceInfo;
-};
-
-function createSysExMonitor(max_val) {
-  const store: Writable<SysExMonitorItem[]> = writable([]);
-  return {
-    ...store,
-    update_sysex: (descr: any, device: GridModule) => {
-      if (descr.class_name !== "MIDISYSEX") return;
-
-      store.update((s) => {
-        if (s.length >= max_val) {
-          s.shift();
-        }
-
-        let bc = descr.brc_parameters;
-        let cp = descr.class_parameters;
-
-        let item = {
-          id: uuidv4(),
-          date: Date.now(),
-          type: "SYSEX",
-          data: new SysExMessage(cp.CHANNEL, descr.class_instr, descr.raw),
-          device: new DeviceInfo(device?.type ?? "RX", bc.SX, bc.SY),
-        };
-
-        return [...s, item];
-      });
-    },
-  };
-}
-
-export const maxMidi = 128;
-export const midi_monitor_store = createMidiMonitor(maxMidi);
-export const sysex_monitor_store = createSysExMonitor(maxMidi);
+export const maxMessageCount = 256;
+export const midi_stream = createMidiStream(maxMessageCount);

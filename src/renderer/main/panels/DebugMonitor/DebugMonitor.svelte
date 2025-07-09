@@ -4,7 +4,7 @@
     UserInputValue,
   } from "./../../../runtime/user-input.store";
   import { GridEvent } from "./../../../runtime/runtime";
-  import { modal } from "./../../modals/modal.store";
+  import { Modal } from "./../../modals/modal.store";
   import Export from "./../../modals/Export.svelte";
   import {
     debug_monitor_store,
@@ -24,6 +24,8 @@
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
   import DebugTextList from "./DebugTextList.svelte";
+  import { scrollToBottom } from "../../_actions/scroll.move";
+  import SendInmediate from "./SendInmediate.svelte";
 
   let event: GridEvent;
 
@@ -158,8 +160,8 @@
     return s;
   }
 
-  function handleShowCode(e) {
-    modal.show({ component: Export });
+  function handleShowCode() {
+    new Modal.Window(Export).show();
   }
 
   let immediateCommand = "print(0,1,2,3)";
@@ -167,7 +169,7 @@
 
 <config-debug
   transition:fade|global={{ duration: 150 }}
-  class="w-full h-full flex flex-col p-4 z-10 bg-primary"
+  class="w-full h-full flex flex-col p-4 z-10"
 >
   <div class="text-white">
     Editor v{$appSettings.version.major}.{$appSettings.version
@@ -194,15 +196,7 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
-  <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
-    <MoltenInput bind:target={immediateCommand} />
-    <MoltenPushButton
-      click={() => {
-        runtime_manager.LUAExecImmediate(0, 0, immediateCommand);
-      }}
-      text="Immediate"
-    />
-  </div>
+  <SendInmediate />
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
@@ -236,36 +230,41 @@
     class="w-full overflow-hidden"
     horizontal={true}
   >
-    <Pane class="overflow-hidden bg-primary">
+    <Pane class="overflow-hidden">
       <DebugTextList />
     </Pane>
-    <Pane class="overflow-hidden bg-primary">
+    <Pane class="overflow-hidden">
       {#if $debug_lowlevel_store.length != 0}
-        <div class="text-white mt-2">Raw Packet:</div>
-
-        <div
-          class="selectable flex flex-col flex-grow min-h-[100px] h-full w-full font-mono overflow-y-auto text-white m-1"
-        >
-          {#each $debug_lowlevel_store as debug, i}
-            <span
-              class="px-1 py-0.5 my-1 w-full break-all {debug.direction == 'IN'
-                ? 'input'
-                : 'output'} "
-            >
-              {#if display == "DEC"}
-                {toDecString(debug.data)}
-              {:else if display == "HEX"}
-                {toHexString(debug.data)}
-              {:else}
-                {toCharString(debug.data)}
-              {/if}
-            </span>
-          {/each}
+        <div class="flex flex-col w-full h-full">
+          <div class="text-white mt-2">Raw Packet:</div>
+          <div
+            class="flex flex-grow w-full selectable overflow-y-auto p-1"
+            use:scrollToBottom={debug_lowlevel_store}
+          >
+            <div class=" flex flex-col min-h-[100px] font-mono text-white">
+              {#each $debug_lowlevel_store as debug, i}
+                <span
+                  class="px-1 py-0.5 my-1 w-full break-all {debug.direction ==
+                  'IN'
+                    ? 'input'
+                    : 'output'} "
+                >
+                  {#if display == "DEC"}
+                    {toDecString(debug.data)}
+                  {:else if display == "HEX"}
+                    {toHexString(debug.data)}
+                  {:else}
+                    {toCharString(debug.data)}
+                  {/if}
+                </span>
+              {/each}
+            </div>
+          </div>
         </div>
       {/if}
     </Pane>
     <Pane>
-      <div class="flex flex-col h-full overflow-hidden bg-primary gap-2 mt-2">
+      <div class="flex flex-col h-full overflow-hidden gap-2 mt-2">
         <div class="text-white">Watched values:</div>
         <div class="flex-grow overflow-y-auto">
           {#if $incoming_messages_stores.length > 0 && $runtime_manager.active.runtime.modules.length > 0}
@@ -286,7 +285,7 @@
     </Pane>
   </Splitpanes>
 
-  <div class="inline-flex flex-row bg-primary mt-2">
+  <div class="inline-flex flex-row mt-2">
     <svg width="50%" height="50" viewBox="0 0 100 50">
       <polyline
         id="chart_testchart_0"

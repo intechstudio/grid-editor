@@ -182,6 +182,21 @@ if (!gotTheLock) {
   );
 
   app.whenReady().then(() => {
+    //Migration logic
+    if (store.get("lastActiveVersion") === undefined) {
+      console.log(
+        `Starting migration from ${store.get("lastActiveVersion")} to ${configuration.EDITOR_VERSION}`,
+      );
+      let enabledPackages: string[] = store.get("enabledPackages") ?? [];
+      let newEnabledPackages = [
+        ...enabledPackages,
+        "midi-monitor",
+        "debug-monitor",
+      ];
+      store.set("enabledPackages", newEnabledPackages);
+      store.set("lastActiveVersion", configuration.EDITOR_VERSION);
+    }
+
     if (process.platform !== "darwin") {
       create_tray();
     }
@@ -407,14 +422,6 @@ function startPackageManager(
     packageManagerProcess = utilityProcess.fork(
       path.resolve(path.join(__dirname, "./packageManager.js")),
     );
-    packageManagerProcess.postMessage({
-      type: "init",
-      packageFolder: packageFolder,
-      version: configuration.EDITOR_VERSION,
-      githubPackages: store.get("githubPackages"),
-      localPackages: store.get("localPackages"),
-      updatePackageOnStartName,
-    });
 
     packageManagerProcess.on("message", (message) => {
       if (message.type == "create-window") {
@@ -443,6 +450,23 @@ function startPackageManager(
         packageEditorPort?.postMessage(message);
       }
     });
+
+    packageManagerProcess.postMessage({
+      type: "init",
+      packageFolder: packageFolder,
+      version: configuration.EDITOR_VERSION,
+      githubPackages: store.get("githubPackages"),
+      localPackages: store.get("localPackages"),
+      updatePackageOnStartName,
+    });
+
+    for (const _package of store.get("enabledPackages") ?? []) {
+      packageManagerProcess.postMessage({
+        type: "load-package",
+        id: _package,
+        payload: store.get("packagesDataStorage")[_package],
+      });
+    }
   }
 }
 

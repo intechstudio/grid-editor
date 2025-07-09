@@ -6,10 +6,7 @@ import {
   debug_monitor_store,
   lua_error_store,
 } from "../main/panels/DebugMonitor/DebugMonitor.store";
-import {
-  midi_monitor_store,
-  sysex_monitor_store,
-} from "../main/panels/MidiMonitor/MidiMonitor.store";
+import { midi_stream } from "../main/panels/MidiMonitor/MidiMonitor.store";
 import { logger } from "../runtime/runtime.store";
 
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
@@ -230,14 +227,6 @@ export class MessageStream {
       }
 
       if (class_descr.class_name === "DEBUGTEXT") {
-        try {
-          const decoded = atob(class_descr.class_parameters.TEXT);
-          console.log(decoded);
-          class_descr.class_parameters.TEXT = decoded;
-        } catch (e) {
-          console.warn("Invalid Base64 string:", e); // Error decoding Base64: InvalidCharacterError: Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.
-        }
-
         debug_monitor_store.update_debugtext(class_descr);
         const text = class_descr.class_parameters.TEXT;
         const [sx, sy] = [
@@ -307,7 +296,7 @@ export class MessageStream {
           class_descr.brc_parameters.SY,
         ];
         const device = this.runtime.findModule(sx, sy);
-        midi_monitor_store.update_midi(class_descr, device);
+        midi_stream.update(class_descr, device);
 
         // websocket send data to package
         // ipcRenderer.send('websocket_tx', class_descr);
@@ -319,7 +308,7 @@ export class MessageStream {
           class_descr.brc_parameters.SY,
         ];
         const device = this.runtime.findModule(sx, sy);
-        sysex_monitor_store.update_sysex(class_descr, device);
+        midi_stream.update(class_descr, device);
       }
 
       if (class_descr.class_name === "CONFIG") {
@@ -332,7 +321,7 @@ export class MessageStream {
         const active = get(runtime_manager).active.runtime;
         // engine is enabled
         if (
-          get(this._buffer).length === 0 &&
+          get(this._buffer).array.length === 0 &&
           this.runtime.id === get(active).id
         ) {
           // update active element selection

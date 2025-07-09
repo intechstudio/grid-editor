@@ -1,12 +1,14 @@
 <script lang="ts">
   import { GridEvent } from "./../../runtime/runtime";
   import { get } from "svelte/store";
-  import { modal } from "./modal.store";
+  import { Modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
   import { user_input, UserInputValue } from "./../../runtime/user-input.store";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
+
+  export let data: Modal.Instance;
 
   let event: GridEvent;
 
@@ -38,14 +40,14 @@
 
 <div id="modal-copy-placeholder" />
 
-<MoltenModal>
-  <div slot="content" class="flex flex-col gap-2 items-center w-120">
+<MoltenModal {data}>
+  <div slot="content" class="flex flex-col gap-2 items-center">
     <div class="w-full flex justify-between items-center">
       <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
 
       <button
         on:click={() => {
-          modal.close();
+          data.close();
         }}
         id="close-btn"
         class="p-1 cursor-pointer rounded not-draggable hover:bg-secondary"
