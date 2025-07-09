@@ -16,8 +16,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-
-type MeltComboData = Grid.Types.MeltComboData;
+import { MeltComboData } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
   export enum Channel {
