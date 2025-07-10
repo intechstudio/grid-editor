@@ -60,13 +60,7 @@
   }
 
   function buildScript(data: ResetEncoder.ViewModelData) {
-    const part1 = `${data.element.value}:eva(${data.rotationValue.value})`;
-
-    if (!data.autoTriggerEvent) {
-      return part1;
-    }
-
-    return `${part1} self:get(2)`;
+    return `${data.element.value}:eva(${data.rotationValue.value}) self:get(2)`;
   }
 
   function sendData(data: ResetEncoder.ViewModelData) {
@@ -115,15 +109,5 @@
       preProcessor={GridScript.humanize}
     />
   </div>
-
-  <MeltCheckbox
-    bind:target={$data.autoTriggerEvent}
-    on:change={(e) => {
-      data.updateAutoTriggerEventValue(e.detail);
-      sendData($data);
-      dispatch("sync");
-    }}
-    title={"Trigger event automatically"}
-  />
   <SendFeedback feedback_context="LedColor" class="text-sm text-gray-500" />
 </config-led-color>

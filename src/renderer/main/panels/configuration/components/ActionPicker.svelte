@@ -211,12 +211,13 @@
             "eprlrei",
             "eprlre",
             "eprlr",
+            "rse",
           ].includes(e.information.short),
       );
     }
     if (eventString !== "button") {
       comp = comp.filter(
-        (e) => !["bprel", "bpre", "bpr"].includes(e.information.short),
+        (e) => !["bprel", "bpre", "bpr", "bst0"].includes(e.information.short),
       );
     }
 

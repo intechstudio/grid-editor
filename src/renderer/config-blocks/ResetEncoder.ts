@@ -22,16 +22,12 @@ export namespace ResetEncoder {
   export class ParsedData {
     public rotationValue: string;
     public element: string;
-    public autoTriggerEvent: boolean;
 
     constructor(action: GridAction) {
       let actionstring = action.script;
 
-      this.autoTriggerEvent = actionstring.includes("self:get(2)");
-      if (this.autoTriggerEvent) {
-        // remove self:get(2) call from the end
-        actionstring = actionstring.split(" ")[0];
-      }
+      // remove self:get(2) call from the end
+      actionstring = actionstring.split(" ")[0];
 
       this.rotationValue = actionstring.match(/eva\(([^)]*)\)$/)[1];
       this.element = actionstring.match(/(.*?)eva/)[1].slice(0, -1);
@@ -75,7 +71,6 @@ export namespace ResetEncoder {
   export type ViewModelData = {
     rotationValue: MeltComboData;
     element: MeltComboData;
-    autoTriggerEvent: boolean;
   };
 
   export class ViewModel implements Readable<ViewModelData> {
@@ -128,7 +123,6 @@ export namespace ResetEncoder {
           suggestions: getElementSuggestions(page),
           validator: getValidator(parsed.element),
         },
-        autoTriggerEvent: parsed.autoTriggerEvent,
       });
 
       const unsubscribe = event.subscribe(() => {
@@ -138,13 +132,6 @@ export namespace ResetEncoder {
         });
       });
       this.unsubscribers.push(unsubscribe);
-    }
-
-    public updateAutoTriggerEventValue(value: boolean) {
-      this.update((s) => {
-        s.autoTriggerEvent = value;
-        return s;
-      });
     }
   }
 }
