@@ -401,19 +401,6 @@ export namespace Grid {
     }
   }
 
-  //TODO: Move it to ui-kit?
-  export namespace Types {
-    export type MeltComboData = {
-      value: string;
-      suggestions: MeltComboSuggestion[];
-      title?: string;
-      validator: {
-        value: boolean;
-        func?: (e: string) => boolean;
-      };
-    };
-  }
-
   export namespace Link {
     export async function openExternalLink(link: string) {
       if (import.meta.env.VITE_BUILD_TARGET === "web") {

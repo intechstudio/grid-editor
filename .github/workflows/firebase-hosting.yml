@@ -29,6 +29,7 @@ jobs:
           channelId: live
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
+          target: grid-editor
 
       - name: Deploy to Firebase Hosting on pull request
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
@@ -37,4 +38,5 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
+          target: grid-editor
           expires: 30d
