@@ -5,6 +5,8 @@ export class ConnectModulePage {
       name: "Add Virtual Module",
     });
 
+    this.connectModuleModal = page.getByText("Connect your modules!");
+
     this.addModuleButton = page.getByRole("button", { name: "Add Module" });
     this.modules = {
       BU16: page.getByTestId("BU16"),
