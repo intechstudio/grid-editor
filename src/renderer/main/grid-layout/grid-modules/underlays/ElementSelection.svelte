@@ -70,9 +70,10 @@
 
   function handleSelectionChange(value: boolean) {
     if (value) {
-      Focus.trigger(
-        `element-${module.dx}-${module.dy}-${element.elementIndex}`,
-      );
+      //Wait module to be rendered
+      requestAnimationFrame(() => {
+        Focus.trigger(`${module.id}-${element.elementIndex}`);
+      });
     }
   }
 </script>

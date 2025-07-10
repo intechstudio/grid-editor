@@ -21,6 +21,7 @@
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
   import { Focus } from "../../_actions/focus.action";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   export let event: GridEvent;
   export let focusTrigger: string;
@@ -92,7 +93,10 @@
 
     if (e.key === "Escape") {
       const { dx, dy, elementnumber } = get(user_input);
-      Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+      const runtime = get(runtime_manager).active.runtime;
+      const module = runtime.findModule(dx, dy);
+
+      Focus.trigger(`${module.id}-${elementnumber}`);
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
