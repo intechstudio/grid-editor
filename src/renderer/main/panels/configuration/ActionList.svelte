@@ -116,10 +116,19 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+    class="px-4 pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
+    {#if $appSettings.isMultiView}
+      <div class="flex flex-row gap-2">
+        {($event?.getName() ?? "No Device") + " Event"}
+        <div style="color: var(--foreground-disabled);">
+          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+        </div>
+      </div>
+    {/if}
+
     <div
-      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+      class="hidden flex flex-row gap-2 justify-between items-center flex-none w-full"
     >
       <div class="flex flex-col">
         <span class="text-white">{$event?.getName() ?? "No Device"}</span>

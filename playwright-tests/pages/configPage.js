@@ -7,11 +7,16 @@ export class ConfigPage {
 
     this.keyboardActions = new KeyboardActions(page);
 
+    this.configFocus = page.locator(
+      "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
+    );
+
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
     this.addActionBlockButton = page.getByText("Add action block...");
     this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
+    this.minimalistCheckbox = page.locator("configs").getByRole("checkbox");
 
     this.firstActionBlock = page.locator("#cfg-0");
 
@@ -75,6 +80,14 @@ export class ConfigPage {
     this.elementMaxResolution14Bit = page.getByRole("option", {
       name: "14 bit MIDI",
     });
+  }
+
+  async turnOffMinimalistMode() {
+    await this.minimalistCheckbox.uncheck();
+  }
+
+  async turnOnMinimalistMode() {
+    await this.minimalistCheckbox.check();
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -169,7 +182,8 @@ export class ConfigPage {
   // Element and Action Operations
 
   async selectAllActions() {
-    await this.selectAllCheckbox.click();
+    await this.configFocus.click();
+    await this.keyboardActions.selectAll();
   }
 
   async copyElement() {
@@ -209,7 +223,7 @@ export class ConfigPage {
   }
 
   async removeAllActions() {
-    await this.selectAllCheckbox.click();
+    await this.selectAllActions();
     await this.actionButtons.remove.click();
   }
 

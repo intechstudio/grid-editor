@@ -14,7 +14,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   on:click={handleClick}
-  class="tab-button grid grid-cols-[auto_1fr_auto] group"
+  class="tab-button grid grid-cols-[auto_1fr_auto] group text-black"
 >
   <div class={selected ? "tab-left-triangle-selected" : "tab-left-triangle"} />
 

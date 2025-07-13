@@ -13,10 +13,6 @@
   let textArea = undefined;
   let inputField = undefined;
 
-  onMount(() => {
-    textArea.focus();
-  });
-
   async function sendFeedback() {
     feedbackSubmitted = true;
     setTimeout(handleClose, 3000);
