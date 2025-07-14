@@ -14,7 +14,6 @@
 
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
-  import QuitAppDialog from "./main/QuitAppDialog.svelte";
 
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
@@ -22,6 +21,8 @@
   import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
+
+  import QuitApp from "./main/modals/QuitApp.svelte";
 
   import { windowSize } from "./runtime/window-size";
 
@@ -95,7 +96,9 @@
     configLinkStore.set({ id: value });
   });
 
-  window.electron.showQuitDialog((_event, value) => {});
+  window.electron.showQuitDialog((_event, value) => {
+    new Modal.Window(QuitApp).show();
+  });
 
   async function handlePackageManagerMessage(event) {
     $appSettings.packageManagerRunning = true;

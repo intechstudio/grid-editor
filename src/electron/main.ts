@@ -331,8 +331,8 @@ function createWindow() {
         app.quit();
       } else if (store.get("alwaysRunInTheBackground")) {
         mainWindow.hide();
-      } else if ((store.get("enabledPackages")?.length ?? 1) !== 0) {
-        mainWindow.webContents.send("showQuitDialog");
+      } else if (packageManagerProcess) {
+        packageManagerProcess!.postMessage({ type: "query-running-packages" });
       } else {
         app.quit();
       }
@@ -446,6 +446,12 @@ function startPackageManager(
         });
         packageManagerProcess!.kill();
         packageManagerProcess = undefined;
+      } else if (message.type === "running-packages-result") {
+        if (message.hasRunningPackage) {
+          mainWindow.webContents.send("showQuitDialog");
+        } else {
+          app.quit();
+        }
       } else {
         packageEditorPort?.postMessage(message);
       }
