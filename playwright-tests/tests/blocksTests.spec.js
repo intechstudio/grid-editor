@@ -22,6 +22,7 @@ test.describe("Issues", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
   });
 
   // https://github.com/intechstudio/grid-editor/issues/751
@@ -293,6 +294,7 @@ test.describe("Input field keyboard shortcuts", () => {
     await keyboardActions.cut();
     await keyboardActions.paste();
     await keyboardActions.paste();
+    await configPage.clickActionBlockElement(category, blockName, field); // make sure expected value is loaded
     const actualValue = await configPage.getActionBlockMonacoFieldTextContetnt(
       category,
       blockName,

@@ -1,25 +1,16 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
-  import Toggle from "../../user-interface/Toggle.svelte";
   import {
     ModuleOverlayType,
     moduleOverlay,
   } from "../../../runtime/moduleOverlay";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import { user_input } from "./../../../runtime/user-input.store";
+  import { appSettings } from "./../../../runtime/app-helper.store";
   import { GridPage, PageData } from "../../../runtime/runtime";
 
   export let page: GridPage;
-
-  function showControlElementNameOverlay() {
-    const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
-    if (show) {
-      moduleOverlay.show(ModuleOverlayType.CONTROL_NAME);
-    } else {
-      moduleOverlay.close();
-    }
-  }
 
   let selectedElementNumber = -1;
   let options = [{ title: "No Device", value: -1 }];
@@ -41,7 +32,7 @@
     });
   }
 
-  $: handlePageChange($page);
+  $: handlePageChange($page, $appSettings);
 
   function handlePageChange(page: PageData) {
     if (typeof page === "undefined") {
@@ -50,7 +41,22 @@
       return;
     }
 
-    const elements = page.control_elements;
+    const elements = page.control_elements.filter(
+      (e) =>
+        e.getHumanName().indexOf("System") === -1 ||
+        $appSettings.persistent.userLevelMinimalist === false,
+    );
+
+    if (
+      $appSettings.persistent.userLevelMinimalist === true &&
+      $user_input.elementnumber === 255
+    ) {
+      user_input.update((s) => {
+        s.elementnumber = 0;
+        return s;
+      });
+    }
+
     options = elements.map((e) => {
       const stringName = e.name;
       if (typeof stringName !== "undefined") {
@@ -71,29 +77,6 @@
   }
 </script>
 
-<div class="flex flex-col text-white m-4">
-  <div class="flex flex-row justify-between items-center py-1">
-    <div class="flex flex-row items-center">
-      <div class="text-gray-500 text-sm">Element Name</div>
-      <TooltipQuestion
-        key={"configuration_element_name"}
-        class="ml-2 text-white"
-      />
-    </div>
-    <div class="flex flex-row items-center gap-2">
-      <span class="text-gray-500 text-sm">Element Name Overlay</span>
-      <Toggle
-        on:change={showControlElementNameOverlay}
-        toggleValue={$moduleOverlay === "control-name-overlay"}
-      />
-    </div>
-  </div>
-
-  {#key $page}
-    <MeltSelect
-      bind:target={selectedElementNumber}
-      {options}
-      disabled={false}
-    />
-  {/key}
-</div>
+{#key $page}
+  <MeltSelect bind:target={selectedElementNumber} {options} disabled={false} />
+{/key}

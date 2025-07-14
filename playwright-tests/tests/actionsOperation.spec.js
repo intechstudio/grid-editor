@@ -20,10 +20,11 @@ test.describe("Action Block Operations", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
+    await configPage.removeAllActions();
+    await configPage.turnOffMinimalistMode();
   });
 
   test("Add Action Block to empty element", async () => {
-    await configPage.removeAllActions();
     await configPage.openActionsOnEmptyElement();
     await configPage.addActionBlock("led", "Color");
     await expect(
@@ -33,7 +34,6 @@ test.describe("Action Block Operations", () => {
 
   test("Copy and Paste", async ({ page }) => {
     const expectedComment = "action operation";
-    await configPage.removeAllActions();
     await configPage.addCommentBlock(expectedComment);
     await configPage.selectAllActions();
     await configPage.copyAction();
@@ -46,7 +46,6 @@ test.describe("Action Block Operations", () => {
 
   test("Cut and Paste", async () => {
     const expectedComment = "action operation";
-    await configPage.removeAllActions();
     await configPage.addCommentBlock(expectedComment);
     await configPage.selectAllActions();
     await configPage.cutAction();
@@ -59,7 +58,6 @@ test.describe("Action Block Operations", () => {
 
   test("Merge", async ({ page }) => {
     const expectedComment = "merged comment";
-    await configPage.removeAllActions();
     await configPage.addCommentBlock(expectedComment);
     await configPage.addCommentBlock();
     await configPage.selectAllActions();
@@ -71,7 +69,6 @@ test.describe("Action Block Operations", () => {
   });
 
   test("Remove", async () => {
-    await configPage.removeAllActions();
     await expect(await configPage.noActionAddActionButton).toBeVisible();
   });
 
@@ -79,7 +76,6 @@ test.describe("Action Block Operations", () => {
     page,
   }) => {
     const expectedValue = "math.random(1,33)";
-    await configPage.removeAllActions();
     await configPage.openAndAddActionBlock("midi", "MIDI 14");
     await configPage.writeActionBlockField(
       "midi",
@@ -109,6 +105,7 @@ test.describe("Element Operations", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
   });
 
   test("Copy and Overwrite", async () => {
