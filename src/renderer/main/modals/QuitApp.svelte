@@ -1,8 +1,16 @@
 <script lang="ts">
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "./MoltenModal.svelte";
+  import { onMount, tick } from "svelte";
 
   export let data: Modal.Instance;
+
+  let quitButton: MoltenPushButton;
+
+  onMount(async () => {
+    await tick();
+    quitButton.focus();
+  });
 </script>
 
 <MoltenModal {data}>
@@ -21,6 +29,7 @@
         style={"normal"}
       />
       <MoltenPushButton
+        bind:this={quitButton}
         click={() => {
           data.close();
           window.electron.quitDialogResult("quit");
