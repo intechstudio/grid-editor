@@ -16,10 +16,10 @@
     while (contextItems.length > 0) {
       contextItems.pop();
     }
-    if (data.status == "Downloading") {
+    if (data.installProgress !== undefined) {
       return;
     }
-    if (data.status == "Downloaded" && data.loadable) {
+    if (data.isDownloaded && !data.isEnabled && data.loadable) {
       contextItems.push({
         text: [`Enable`, ""],
         handler: () => dispatch("enable"),
@@ -40,14 +40,14 @@
         isDisabled: () => false,
       });
     }
-    if (data.status == "Enabled") {
+    if (data.isEnabled && data.isDownloaded) {
       contextItems.push({
         text: [`Disable`, ""],
         handler: () => dispatch("disable"),
         isDisabled: () => false,
       });
     }
-    if (data.status === "Downloaded" && data.uninstallable) {
+    if (data.isDownloaded && data.uninstallable) {
       contextItems.push({
         text: [`Uninstall`, ""],
         handler: () => dispatch("uninstall"),
@@ -77,7 +77,7 @@
         {@html menuIcons["menu_package_general"]}
       {/if}
     </div>
-    {#if data.status == "Downloading"}
+    {#if data.installProgress !== undefined}
       <div
         class="w-full h-full absolute"
         style="background-color: #1e262870;"
@@ -105,10 +105,10 @@
         {/if}
       </div>
       <p class="text-sm font-medium text-gray-500 grow">{data.author}</p>
-      {#if data.status !== "Downloading"}
-        {#if data.status === "Downloaded" && data.loadable}
+      {#if data.installProgress === undefined}
+        {#if data.isDownloaded && !data.isEnabled && data.loadable}
           <PackagePushButton text="Enable" click={() => dispatch("enable")} />
-        {:else if data.status === "Uninstalled"}
+        {:else if !data.isDownloaded}
           <PackagePushButton
             text="Install"
             click={() => dispatch("download")}
@@ -117,7 +117,7 @@
         {#if data.canUpdate}
           <PackagePushButton text="Update" click={() => dispatch("update")} />
         {/if}
-        {#if data.status !== "Uninstalled"}
+        {#if data.isDownloaded}
           <PackagePushButton
             icon={"preferences"}
             click={(e) => {

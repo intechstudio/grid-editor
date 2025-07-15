@@ -32,13 +32,6 @@ interface EditorPackage {
   description: string;
 }
 
-enum PackageStatus {
-  Uninstalled = "Uninstalled",
-  Downloading = "Downloading",
-  Downloaded = "Downloaded",
-  Enabled = "Enabled",
-}
-
 let packageFolder: string = "";
 let editorVersion: string = "";
 let shuttingDown: boolean = false;
@@ -49,7 +42,11 @@ let customGithubPackageList: Map<string, RecommendedGithubPackage> = new Map();
 let githubPackageDetails: Map<string, GithubPackageDetails> = new Map();
 let localPackages: Map<string, string> = new Map();
 
+let installedPackagesChecked = false;
+let githubPackagesChecked = false;
+
 let packageInstallProgress: Map<string, number> = new Map();
+let updatingPackages: Set<string> = new Set();
 
 const editorPackages: Map<string, EditorPackage> = new Map(
   Object.entries(configuration.EDITOR_PACKAGES),
@@ -78,6 +75,7 @@ process.parentPort.on("message", async (e) => {
         startPackageDirectoryWatcher(packageFolder);
         updateGithubPackages();
         if (e.data.updatePackageOnStartName) {
+          updatingPackages.add(e.data.updatePackageOnStartName);
           await downloadPackage(e.data.updatePackageOnStartName);
         }
         break;
@@ -195,7 +193,7 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
       );
       console.log({ packageIndex });
       if (packageIndex != -1) {
-        currentPackageList[packageIndex].status = PackageStatus.Downloaded;
+        unloadPackage(currentPackageList[packageIndex].id);
         process.parentPort?.postMessage({
           type: "debug-error",
           packageId: packageName,
@@ -459,6 +457,7 @@ async function downloadPackage(packageName: string) {
   } finally {
     downloadingPackages.delete(packageName);
     packageInstallProgress.delete(packageName);
+    updatingPackages.delete(packageName);
     notifyListener();
   }
 }
@@ -477,6 +476,7 @@ async function updatePackage(packageName: string) {
       packageName: packageName,
     });
   } else {
+    updatingPackages.add(packageName);
     fs.rm(packagePath, { recursive: true }, () => {
       downloadPackage(packageName);
     });
@@ -544,7 +544,8 @@ async function addLocalPackage(rootPath: string) {
 }
 
 function notifyListener() {
-  if (shuttingDown) return;
+  if (shuttingDown || !installedPackagesChecked || !githubPackagesChecked)
+    return;
 
   const packages = getAvailablePackages();
   process.parentPort?.postMessage({ type: "packages", packages: packages });
@@ -565,6 +566,7 @@ let cachedInstalledPackages: {
 
 async function refreshInstalledPackagesCache() {
   cachedInstalledPackages = await getInstalledPackages();
+  installedPackagesChecked = true;
   notifyListener();
 }
 
@@ -652,30 +654,12 @@ async function getInstalledPackages(): Promise<
   return packages.filter((e) => e !== undefined);
 }
 
-function getPackageStatus(
-  packageId: string,
-  installedPackages: { packageId: string }[],
-): PackageStatus {
-  if (Object.keys(currentlyLoadedPackages).includes(packageId)) {
-    return PackageStatus.Enabled;
-  } else if (downloadingPackages.has(packageId)) {
-    return PackageStatus.Downloading;
-  } else if (
-    installedPackages.filter((e) => e.packageId === packageId).length > 0
-  ) {
-    return PackageStatus.Downloaded;
-  } else {
-    return PackageStatus.Uninstalled;
-  }
-}
-
 function getAvailablePackages() {
   let installedPackages = cachedInstalledPackages;
 
   const packageList: {
     id: string;
     name: string;
-    status: PackageStatus;
     componentsPath?: string;
     preferenceComponent?: string;
     packageVersion?: string;
@@ -690,15 +674,15 @@ function getAvailablePackages() {
     mainIconPath?: string;
     menuIconPath?: string;
     isOfficial: boolean;
+    isEnabled: boolean;
+    isDownloaded: boolean;
   }[] = [];
 
   editorPackages.forEach((entry, key) => {
     packageList.push({
       id: key,
       name: entry.name,
-      status: Object.keys(currentlyLoadedPackages).includes(key)
-        ? PackageStatus.Enabled
-        : PackageStatus.Downloaded,
+      isEnabled: Object.keys(currentlyLoadedPackages).includes(key),
       removable: false,
       loadable: true,
       uninstallable: false,
@@ -707,6 +691,7 @@ function getAvailablePackages() {
       description: entry.description,
       author: "Built-in",
       isOfficial: true,
+      isDownloaded: true,
     });
   });
 
@@ -721,7 +706,9 @@ function getAvailablePackages() {
     packageList.push({
       id: _package.packageId,
       name: _package.packageName,
-      status: getPackageStatus(_package.packageId, installedPackages),
+      isEnabled: Object.keys(currentlyLoadedPackages).includes(
+        _package.packageId,
+      ),
       componentsPath: _package.componentsPath,
       preferenceComponent: _package.preferenceComponent,
       packageVersion: _package.packageVersion,
@@ -745,6 +732,7 @@ function getAvailablePackages() {
       mainIconPath: _package.mainIconPath,
       menuIconPath: _package.menuIconPath,
       isOfficial: recommendedGithubPackageList.has(_package.packageId),
+      isDownloaded: true,
     });
   }
   githubPackageDetails.forEach((entry, key) => {
@@ -753,7 +741,7 @@ function getAvailablePackages() {
     packageList.push({
       id: key,
       name: entry.name,
-      status: getPackageStatus(key, installedPackages),
+      isEnabled: false,
       canUpdate: false,
       uninstallable: true,
       removable: !recommendedGithubPackageList.has(key),
@@ -765,6 +753,7 @@ function getAvailablePackages() {
       packageVersion: entry.version,
       menuIconPath: entry.menuIconPath,
       isOfficial: recommendedGithubPackageList.has(key),
+      isDownloaded: updatingPackages.has(key),
     });
   });
   currentPackageList = packageList;
@@ -811,10 +800,10 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
       githubPackageDetails.get(packageId).version = version.toString();
     } catch (e) {
       console.log(e);
-    } finally {
-      notifyListener();
     }
   }
+  githubPackagesChecked = true;
+  notifyListener();
 }
 
 async function getCompatibleGithubRelease(githubPackageName: string) {

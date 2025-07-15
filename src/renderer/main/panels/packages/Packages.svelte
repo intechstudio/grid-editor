@@ -20,12 +20,8 @@
   $: orderedPackageList = $appSettings.packageList.toSorted((p1, p2) =>
     p1.name.localeCompare(p2.name),
   );
-  $: installedPackages = orderedPackageList.filter(
-    (p) => p.status === "Downloaded" || p.status === "Enabled",
-  );
-  $: availablePackages = orderedPackageList.filter(
-    (p) => p.status !== "Downloaded" && p.status !== "Enabled",
-  );
+  $: installedPackages = orderedPackageList.filter((p) => p.isDownloaded);
+  $: availablePackages = orderedPackageList.filter((p) => !p.isDownloaded);
 
   let packagePreferenceComponents = [];
   let packagePathInput = "";

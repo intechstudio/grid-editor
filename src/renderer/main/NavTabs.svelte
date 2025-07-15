@@ -8,7 +8,7 @@
   $: enabledPackages = $appSettings.persistent.enabledPackages;
   $: menuItems = $appSettings.packageList
     .sort((p1, p2) => p1.name.localeCompare(p2.name))
-    .filter((p) => p.status == "Downloading" || p.status == "Enabled");
+    .filter((p) => p.installProgress !== undefined || p.isEnabled);
 
   function toggleLeftTab() {
     // Update store and global variables
@@ -99,7 +99,7 @@
       {#if packageData?.preferenceComponent || packageData?.svgIcon || packageData?.menuIconPath}
         {#key packageData.id}
           <button
-            disabled={packageData.status != "Enabled"}
+            disabled={!packageData.isEnabled}
             use:tooltip={{
               nowrap: true,
               placement: "right",
@@ -126,7 +126,7 @@
               {/if}
             </div>
 
-            {#if packageData.status === "Downloading"}
+            {#if packageData.installProgress !== undefined}
               <div
                 class="left-0 top-0 w-full h-full p-1 absolute flex items-center content-center"
                 style="background-color: #1e262870;"

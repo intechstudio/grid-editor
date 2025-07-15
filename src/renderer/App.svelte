@@ -185,9 +185,7 @@
       }
       case "packages": {
         // refresh packagelist
-        const enabledPackages = data.packages.filter(
-          (e) => e.status == "Enabled",
-        );
+        const enabledPackages = data.packages.filter((e) => e.isEnabled);
         for (const _package of enabledPackages) {
           if (_package.componentsPath) {
             import(`package://${_package.componentsPath}`);
