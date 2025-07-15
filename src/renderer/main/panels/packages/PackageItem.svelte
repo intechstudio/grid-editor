@@ -65,17 +65,17 @@
     items: contextItems,
   }}
 >
-  <div class="min-w-[3.5rem] relative">
-    <div
-      class="w-full h-full p-3 fill-white absolute flex items-center content-center"
-    >
-      {#if data.svgIcon}
-        {@html menuIcons[data.svgIcon]}
-      {:else if data.mainIconPath}
-        <img src={data.mainIconPath} alt={data.name} />
-      {:else}
-        {@html menuIcons["menu_package_general"]}
-      {/if}
+  <div class="min-w-[3.25rem] relative mr-1">
+    <div class="w-full h-full absolute flex items-center content-center">
+      <div class="p-2 fill-white w-full rounded-lg bg-secondary">
+        {#if data.svgIcon}
+          {@html menuIcons[data.svgIcon]}
+        {:else if data.mainIconPath}
+          <img src={data.mainIconPath} alt={data.name} />
+        {:else}
+          {@html menuIcons["menu_package_general"]}
+        {/if}
+      </div>
     </div>
     {#if data.installProgress !== undefined}
       <div
