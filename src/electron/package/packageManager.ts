@@ -636,7 +636,6 @@ async function getInstalledPackages(): Promise<
           ? `package://${packageId}/${packageJson.grid_editor?.menuIcon}`
           : undefined;
         const description = packageJson.grid_editor?.shortDescription;
-
         return {
           packageId,
           packageName,
@@ -651,7 +650,11 @@ async function getInstalledPackages(): Promise<
         };
       }),
   );
-  return packages.filter((e) => e !== undefined);
+  return packages.filter(
+    (e) =>
+      e !== undefined &&
+      packages.findLast((e2) => e.packageId == e2.packageId) == e,
+  );
 }
 
 function getAvailablePackages() {
@@ -703,6 +706,15 @@ function getAvailablePackages() {
     if (packageList.filter((e) => e.id === _package.packageId).length > 0)
       continue;
 
+    //TODO: Temporarly allow new version of packages to overwrite package data. Can be removed in the future.
+    let canUpdate =
+      _package.packageVersion != undefined &&
+      githubPackageDetails.get(_package.packageId)?.version != undefined &&
+      semver.gt(
+        githubPackageDetails.get(_package.packageId)!.version!,
+        _package.packageVersion,
+      );
+
     packageList.push({
       id: _package.packageId,
       name: _package.packageName,
@@ -717,20 +729,20 @@ function getAvailablePackages() {
         localPackages.has(_package.packageId),
       loadable: _package.loadable,
       uninstallable: !localPackages.has(_package.packageId),
-      canUpdate:
-        _package.packageVersion != undefined &&
-        githubPackageDetails.get(_package.packageId)?.version != undefined &&
-        semver.gt(
-          githubPackageDetails.get(_package.packageId)!.version!,
-          _package.packageVersion,
-        ),
+      canUpdate,
       installProgress: packageInstallProgress.get(_package.packageId),
       author: _package.author
         ? _package.author
         : githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
-      description: _package.description,
-      mainIconPath: _package.mainIconPath,
-      menuIconPath: _package.menuIconPath,
+      description: canUpdate
+        ? githubPackageDetails.get(_package.packageId).description
+        : _package.description,
+      mainIconPath: canUpdate
+        ? githubPackageDetails.get(_package.packageId).mainIconPath
+        : _package.mainIconPath,
+      menuIconPath: canUpdate
+        ? githubPackageDetails.get(_package.packageId).menuIconPath
+        : _package.menuIconPath,
       isOfficial: recommendedGithubPackageList.has(_package.packageId),
       isDownloaded: true,
     });

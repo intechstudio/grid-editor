@@ -33,17 +33,17 @@
         isDisabled: () => false,
       });
     }
-    if (data.removable) {
-      contextItems.push({
-        text: [`Remove`, ""],
-        handler: () => dispatch("remove"),
-        isDisabled: () => false,
-      });
-    }
     if (data.isEnabled && data.isDownloaded) {
       contextItems.push({
         text: [`Disable`, ""],
         handler: () => dispatch("disable"),
+        isDisabled: () => false,
+      });
+    }
+    if (data.removable) {
+      contextItems.push({
+        text: [`Remove`, ""],
+        handler: () => dispatch("remove"),
         isDisabled: () => false,
       });
     }
