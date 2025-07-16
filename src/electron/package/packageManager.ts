@@ -24,6 +24,7 @@ interface GithubPackageDetails {
   description?: string;
   mainIconPath?: string;
   menuIconPath?: string;
+  preferenceComponent?: string;
 }
 
 interface EditorPackage {
@@ -766,6 +767,7 @@ function getAvailablePackages() {
       menuIconPath: entry.menuIconPath,
       isOfficial: recommendedGithubPackageList.has(key),
       isDownloaded: updatingPackages.has(key),
+      preferenceComponent: entry.preferenceComponent,
     });
   });
   currentPackageList = packageList;
@@ -798,6 +800,7 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
         menuIconPath: packageJson.grid_editor?.menuIcon
           ? `${githubRawUrl}/${packageJson.grid_editor?.menuIcon}`
           : undefined,
+        preferenceComponent: packageJson.grid_editor?.preferenceComponent,
       });
 
       const compatiblePackage = await getCompatibleGithubRelease(packageId);
