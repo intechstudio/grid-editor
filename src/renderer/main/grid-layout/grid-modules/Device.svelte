@@ -226,6 +226,7 @@
   class="module drop-shadow"
   class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
+  tabindex={interactive ? 0 : -1}
   on:focus={() => {
     selectModule();
   }}
