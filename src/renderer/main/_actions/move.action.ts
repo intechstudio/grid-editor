@@ -10,24 +10,32 @@ export const dropEventTarget: Writable<DropTarget> = writable();
 function getTargetActions(action: GridAction): GridAction[] {
   const actions: GridAction[] = [];
   const event = action.parent as GridEvent;
-  let index = event.config.findIndex((e) => e.id === action.id);
-  let depth = 0;
+  const selected = get(selected_actions);
 
-  while (index < event.config.length) {
-    const current = event.config[index];
-    switch (current.information.type) {
-      case "composite_open": {
-        depth += 1;
-        break;
+  if (selected.includes(action)) {
+    // Selection is present
+    return event.config.filter((e) => selected.includes(e));
+  } else {
+    // Regular drag
+    let index = event.config.findIndex((e) => e.id === action.id);
+    let depth = 0;
+
+    while (index < event.config.length) {
+      const current = event.config[index];
+      switch (current.information.type) {
+        case "composite_open": {
+          depth += 1;
+          break;
+        }
+        case "composite_close": {
+          depth -= 1;
+          break;
+        }
       }
-      case "composite_close": {
-        depth -= 1;
-        break;
-      }
+      actions.push(current);
+      ++index;
+      if (depth <= 0) break;
     }
-    actions.push(current);
-    ++index;
-    if (depth <= 0) break;
   }
 
   return actions;
