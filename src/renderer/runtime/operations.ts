@@ -488,7 +488,7 @@ export async function dropActions(
   if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
     const error = {
       value: false,
-      text: `Add failed! Invalid index: ${index}.`,
+      text: `Oops! You can\'t drop actions here — try a different spot.`,
       type: GridOperationType.INSERT_ACTIONS,
       info: target.getInfo(),
     };
