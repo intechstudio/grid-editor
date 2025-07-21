@@ -5,11 +5,11 @@
 
   export let data: Modal.Instance;
 
-  let quitButton: MoltenPushButton;
+  let minimizeButton: MoltenPushButton;
 
   onMount(async () => {
     await tick();
-    quitButton.focus();
+    minimizeButton.focus();
   });
 </script>
 
@@ -29,7 +29,6 @@
         style={"normal"}
       />
       <MoltenPushButton
-        bind:this={quitButton}
         click={() => {
           data.close();
           window.electron.quitDialogResult("quit");
@@ -38,6 +37,7 @@
         style={"outlined"}
       />
       <MoltenPushButton
+        bind:this={minimizeButton}
         click={() => {
           data.close();
           window.electron.quitDialogResult("tray");
