@@ -3,13 +3,14 @@
 
   import { ModuleType } from "@intechstudio/grid-protocol";
 
-  import Btn from "../elements/Btn.svelte";
+  import Button from "../elements/Button.svelte";
   import Encoder from "../elements/Encoder.svelte";
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
 
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
+  import SquareButton from "../elements/SquareButton.svelte";
 
   export let moduleWidth;
   export let device: GridModule;
@@ -112,18 +113,35 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
             {#if moduleType === ModuleType.BU16}
-              <Btn {elementNumber} size={2.1} />
+              {#if [131, 195].includes(device.hwcfg)}
+                <SquareButton
+                  {elementNumber}
+                  size={4.2}
+                  value={elementposition_array[elementNumber][1]}
+                  color={ledcolor_array[elementNumber]}
+                />
+              {:else}
+                <Button
+                  {elementNumber}
+                  size={2.1}
+                  color={ledcolor_array[elementNumber]}
+                />
+              {/if}
             {:else if moduleType === ModuleType.PO16}
               <Potentiometer
                 {id}
                 {elementNumber}
                 position={elementposition_array[elementNumber][1]}
                 size={2.1}
+                color={ledcolor_array[elementNumber]}
               />
             {:else if moduleType === ModuleType.EN16}
-              <Encoder {elementNumber} size={2.1} />
+              <Encoder
+                {elementNumber}
+                size={2.1}
+                color={ledcolor_array[elementNumber]}
+              />
             {/if}
           </div>
           <div class="normal-cell-overlay-container">

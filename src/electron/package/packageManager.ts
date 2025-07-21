@@ -91,6 +91,16 @@ process.parentPort.on("message", async (e) => {
         process.parentPort.postMessage({ type: "shutdown-complete" });
         break;
       }
+      case "query-running-packages": {
+        let onlyBuiltInPackages = Object.keys(currentlyLoadedPackages).every(
+          (e) => editorPackages.has(e),
+        );
+        process.parentPort.postMessage({
+          type: "running-packages-result",
+          hasRunningPackage: !onlyBuiltInPackages,
+        });
+        break;
+      }
       case "create-package-message-port": {
         if (!currentlyLoadedPackages[e.data.id]) {
           process.parentPort?.postMessage({

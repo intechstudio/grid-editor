@@ -2,12 +2,13 @@
   import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import { ModuleType, ElementType } from "@intechstudio/grid-protocol";
 
-  import Btn from "../elements/Btn.svelte";
+  import Button from "../elements/Button.svelte";
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
   import LcdAndMenuButtons from "../elements/LcdAndMenuButtons.svelte";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
+  import SquareButton from "../elements/SquareButton.svelte";
 
   export let moduleWidth;
   export let device: GridModule;
@@ -251,8 +252,20 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Btn {elementNumber} size={2.1} />
+            {#if [27, 59, 91, 123].includes(device.hwcfg)}
+              <SquareButton
+                {elementNumber}
+                size={4.2}
+                value={elementposition_array[elementNumber][1]}
+                color={ledcolor_array[elementNumber]}
+              />
+            {:else}
+              <Button
+                {elementNumber}
+                size={2.1}
+                color={ledcolor_array[elementNumber]}
+              />
+            {/if}
           </div>
           <div class="normal-cell-overlay-container">
             <slot

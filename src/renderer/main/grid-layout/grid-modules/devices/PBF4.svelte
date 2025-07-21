@@ -3,9 +3,10 @@
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
   import Fader from "../elements/Fader.svelte";
-  import Btn from "../elements/Btn.svelte";
+  import Button from "../elements/Button.svelte";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
+  import SquareButton from "../elements/SquareButton.svelte";
 
   export let id = "PBF4";
   export let rotation = 0;
@@ -103,12 +104,12 @@
           <slot name="cell-underlay" {elementNumber} />
         </div>
         <div class="normal-cell-ui-container">
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Potentiometer
             {elementNumber}
             {id}
             position={elementposition_array[elementNumber][1]}
             size={2.1}
+            color={ledcolor_array[elementNumber]}
           />
         </div>
         <div class="normal-cell-overlay-container">
@@ -125,13 +126,12 @@
           <slot name="cell-underlay" {elementNumber} />
         </div>
         <div class="normal-cell-ui-container">
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-
           <Fader
             {elementNumber}
             position={elementposition_array[elementNumber][1]}
             size={2.1}
             faderHeight={37}
+            color={ledcolor_array[elementNumber]}
           />
         </div>
         <div class="normal-cell-overlay-container">
@@ -154,9 +154,20 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
-
-            <Btn {elementNumber} size={2.1} />
+            {#if device.hwcfg === 67}
+              <SquareButton
+                {elementNumber}
+                size={4.2}
+                value={elementposition_array[elementNumber][1]}
+                color={ledcolor_array[elementNumber]}
+              />
+            {:else}
+              <Button
+                {elementNumber}
+                size={2.1}
+                color={ledcolor_array[elementNumber]}
+              />
+            {/if}
           </div>
           <div class="normal-cell-overlay-container">
             <slot

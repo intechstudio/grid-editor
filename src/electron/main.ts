@@ -320,18 +320,30 @@ function createWindow() {
     );
   }
 
-  mainWindow.on("close", (evt) => {
+  mainWindow.on("close", async (evt) => {
     // when quit is terminal under darwin
     if (app.quitting) {
       mainWindow = null;
     } else {
       evt.preventDefault();
       // only hide, keep in the background
-      if (store.get("alwaysRunInTheBackground") && !forceQuitForUpdate) {
+      if (forceQuitForUpdate) {
+        app.quit();
+      } else if (store.get("alwaysRunInTheBackground")) {
         mainWindow.hide();
+      } else if (packageManagerProcess) {
+        packageManagerProcess!.postMessage({ type: "query-running-packages" });
       } else {
         app.quit();
       }
+    }
+  });
+
+  ipcMain.on("quitDialogResult", (_event, value) => {
+    if (value === "quit") {
+      app.quit();
+    } else if (value === "tray") {
+      mainWindow.hide();
     }
   });
 
@@ -435,6 +447,12 @@ function startPackageManager(
         });
         packageManagerProcess!.kill();
         packageManagerProcess = undefined;
+      } else if (message.type === "running-packages-result") {
+        if (message.hasRunningPackage) {
+          mainWindow.webContents.send("showQuitDialog");
+        } else {
+          app.quit();
+        }
       } else if (message.type === "cache-temp-data") {
         packageManagerCachedData = message.data;
       } else {
