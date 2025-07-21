@@ -3,7 +3,7 @@
   import PackagePushButton from "./PackagePushButton.svelte";
   import CircularBar from "../../user-interface/CircularBar.svelte";
   import menuIcons from "$lib/menu.icons";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
+  import icons from "$lib/icons";
   import { contextTarget } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
@@ -99,11 +99,11 @@
       {data.description ?? "\n"}
     </p>
     <div class="flex flex-row pt-1 items-center gap-1" bind:this={eventSource}>
-      <div class="bg-secondary rounded-md mr-1">
-        {#if data.isOfficial}
-          <SvgIcon iconPath="tick" fill="white" />
-        {/if}
-      </div>
+      {#if data.isOfficial}
+        <div class="bg-secondary rounded-md mr-1 p-1">
+          {@html icons["logo_wave_white"]}
+        </div>
+      {/if}
       <p class="text-sm font-medium text-gray-500 grow">{data.author}</p>
       {#if data.installProgress === undefined}
         {#if data.isDownloaded && !data.isEnabled && data.loadable}
