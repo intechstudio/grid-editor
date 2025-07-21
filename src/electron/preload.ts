@@ -112,6 +112,8 @@ contextBridge.exposeInMainWorld("electron", {
   installUpdate: () => ipcRenderer.send("installUpdate"),
   overlay: (payload) => ipcRenderer.invoke("overlay", { payload }),
   appLoaded: () => appLoadedPromiseResolve(undefined),
+  showQuitDialog: (callback) => ipcRenderer.on("showQuitDialog", callback),
+  quitDialogResult: (result) => ipcRenderer.send("quitDialogResult", result),
 });
 
 let appLoadedPromiseResolve: (any) => any;
