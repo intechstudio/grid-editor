@@ -45,13 +45,17 @@
   "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
   "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth",
   "RECOMMENDED_PACKAGES": {
-    "package-spotify": {
-      "gitHubRepositoryOwner": "intechstudio",
-      "gitHubRepositoryName": "package-spotify"
-    },
     "package-photoshop": {
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-photoshop"
+    },
+    "package-lightroom-classic": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-lightroom-classic"
+    },
+    "package-spotify": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-spotify"
     },
     "package-discord": {
       "gitHubRepositoryOwner": "intechstudio",
@@ -60,6 +64,14 @@
     "package-active-win": {
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-active-win"
+    },
+    "package-overlay": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-overlay"
+    },
+    "package-image-stream": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-image-stream"
     }
   },
   "EDITOR_PACKAGES": {
