@@ -192,7 +192,6 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
       let packageIndex = currentPackageList.findIndex(
         (value) => value.id == packageName,
       );
-      console.log({ packageIndex });
       if (packageIndex != -1) {
         unloadPackage(currentPackageList[packageIndex].id);
         process.parentPort?.postMessage({
@@ -613,11 +612,6 @@ async function getInstalledPackages(): Promise<
 
         const packageFile = await readfile(packageJsonPath);
         const packageJson = JSON.parse(packageFile.toString());
-        console.log("*************");
-        console.log(packageFile);
-        console.log("-------------");
-        console.log(packageJson);
-        console.log("+++++++++++++");
         if (packageId === undefined) {
           packageId = packageJson.name;
         }
@@ -788,8 +782,6 @@ async function updateGithubPackages(forceRefreshVersion: boolean = false) {
   for (const [packageId, githubPackage] of githubPackageList) {
     try {
       if (!forceRefreshVersion && githubPackageDetails.has(packageId)) {
-        console.log(`RUNNING CONTINUE FOR PACKAGE ${packageId}`);
-        console.log({ githubPackageDetails });
         continue;
       }
       let githubRawUrl = `https://raw.githubusercontent.com/${githubPackage.gitHubRepositoryOwner}/${githubPackage.gitHubRepositoryName}/refs/heads/main`;
