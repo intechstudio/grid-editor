@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ModuleInfo from "../underlays/ModuleInfo.svelte";
+
   import { ModuleType } from "@intechstudio/grid-protocol";
 
   import Button from "../elements/Button.svelte";
@@ -6,6 +8,7 @@
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
 
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
   import SquareButton from "../elements/SquareButton.svelte";
 
@@ -103,8 +106,10 @@
             <slot
               name="cell-underlay"
               {elementNumber}
-              isLeftCut={elementNumber == 14}
-              isRightCut={elementNumber == 13}
+              isLeftCut={elementNumber == 14 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 13 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
           <div class="normal-cell-ui-container">
@@ -143,12 +148,14 @@
             <slot
               name="cell-overlay"
               {elementNumber}
-              isLeftCut={elementNumber == 14}
-              isRightCut={elementNumber == 13}
+              isLeftCut={elementNumber == 14 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 13 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
         </cell>
-      {:else}
+      {:else if $appSettings.persistent.userLevelMinimalist === false}
         <div
           class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
         >
@@ -165,4 +172,5 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
+  <ModuleInfo {device} visible={true} />
 </div>

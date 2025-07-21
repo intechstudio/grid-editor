@@ -26,7 +26,6 @@
 
   //Underlays
   import PortState from "./underlays/PortState.svelte";
-  import ModuleInfo from "./underlays/ModuleInfo.svelte";
   import ActiveChanges from "./underlays/ActiveChanges.svelte";
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
@@ -413,7 +412,6 @@
                   $user_input.elementnumber === elementNumber))}
           />
         </button>
-        <ModuleInfo {device} visible={true} {elementNumber} />
       {/if}
     </svelte:fragment>
 
