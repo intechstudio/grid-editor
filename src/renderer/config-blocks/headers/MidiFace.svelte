@@ -2,7 +2,7 @@
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
   import { GridAction } from "../../runtime/runtime.js";
-  import InfoBox from "@intechstudio/grid-uikit";
+  import { InfoBox } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
