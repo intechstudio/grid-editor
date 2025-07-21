@@ -251,8 +251,9 @@
         <MoltenPushButton click={restartPackageManager} text="Force Restart" />
       </div>
     </div>
-
-    {#if !$appSettings.packageManagerRunning}
+    {#if import.meta.env.VITE_BUILD_TARGET === "web"}
+      <p>Package manager currently not available!</p>
+    {:else if !$appSettings.packageManagerRunning}
       <p class="loading">Restarting package manager</p>
     {/if}
     <div class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip">
