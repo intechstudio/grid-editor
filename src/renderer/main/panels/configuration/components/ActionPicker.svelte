@@ -347,7 +347,12 @@
           ).toLocaleLowerCase();
 
           for (const term of searchTerms) {
-            if (name.indexOf(term.toLocaleLowerCase()) === -1) {
+            if (
+              name.indexOf(term.toLocaleLowerCase()) === -1 &&
+              option.category
+                .toLocaleLowerCase()
+                .indexOf(term.toLocaleLowerCase()) === -1
+            ) {
               return false;
             }
           }
