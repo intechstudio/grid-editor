@@ -38,14 +38,15 @@
     MeltCheckbox,
     MoltenPushButton,
     MeltSlider,
+    SliderColorPicker,
+    SquareColorPicker,
+    CircleColorPicker,
+    Color,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Script } from "./_script_parsers.js";
   import { GridAction } from "./../runtime/runtime";
-  import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
-  import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
-  import CircleColorPicker from "../main/user-interface/CircleColorPicker.svelte";
   import { get } from "svelte/store";
   import { SimpleColor } from "./SimpleColor";
   import { appSettings } from "../runtime/app-helper.store";
@@ -205,14 +206,12 @@
     />
   </div>
 
-  <div
-    class="flex flex-row items-center bg-black/25 rounded-full p-1 border border-black"
-  >
+  <div class="flex flex-row items-center bg-black/25 rounded-full p-1">
     <button
       on:click={handleRemoveLayer}
       disabled={$data.previewColors.length === 1}
     >
-      <span class="px-2 text-lg text-white/75">-</span>
+      <span class="px-2 text-lg">-</span>
     </button>
 
     <div
@@ -247,11 +246,11 @@
       on:click={handleAddLayer}
       disabled={$data.previewColors.length === 3}
     >
-      <span class="px-2 text-lg text-white/75">+</span>
+      <span class="px-2 text-lg">+</span>
     </button>
   </div>
 
-  <div class="flex w-full text-white">
+  <div class="flex w-full">
     <MeltSelect
       bind:target={$appSettings.persistent.colorPicker}
       {options}
@@ -260,18 +259,16 @@
     />
   </div>
 
-  <div
-    class="flex flex-col w-full bg-black/25 p-2 gap-2 rounded-xl border border-black"
-  >
+  <div class="flex flex-col w-full bg-black/25 p-2 gap-2 rounded-xl">
     <div class="flex flex-row justify-between">
-      <span class="text-white text-lg">Mixer</span>
+      <span class="text-lg">Mixer</span>
       <div
         class="flex rounded-full w-1/3 h-6"
         style="background-color: {getCurrentColor($data)};"
       />
     </div>
     <div
-      class="grid grid-cols-[1fr_max-content] w-full gap-2 text-white items-center justify-center bg-secondary p-2 rounded-xl"
+      class="grid grid-cols-[1fr_max-content] w-full gap-2 items-center justify-center bg-background p-2 rounded-xl"
     >
       <div class="flex flex-col">
         {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
@@ -357,5 +354,5 @@
     }}
     title={"Update intensity automatically"}
   />
-  <SendFeedback feedback_context="LedColor" class="text-sm text-gray-500" />
+  <SendFeedback feedback_context="LedColor" />
 </config-led-color>

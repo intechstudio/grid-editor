@@ -238,5 +238,7 @@
     {/each}
   </div>
 
-  <SendFeedback feedback_context="Midi" class="mt-2 text-sm text-gray-500" />
+  <div class="mt-2">
+    <SendFeedback feedback_context="Midi" />
+  </div>
 </action-midi>

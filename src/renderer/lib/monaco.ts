@@ -4,9 +4,7 @@ import {
   Position,
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
-
 import { ElementType, grid } from "@intechstudio/grid-protocol";
-
 import { writable, get } from "svelte/store";
 import { appSettings } from "../runtime/app-helper.store";
 
@@ -214,13 +212,13 @@ function initialize_language() {
 }
 
 function initialize_theme() {
-  monaco_editor.defineTheme("my-theme", {
+  monaco_editor.defineTheme("monaco-dark", {
     base: "vs-dark",
     inherit: true,
     rules: [
       {
         token: "customClass",
-        foreground: "ffa500",
+        foreground: "ffffff",
         fontStyle: "italic underline",
       },
       { token: "function", foreground: "dee4b1" },
@@ -232,33 +230,23 @@ function initialize_theme() {
     },
   });
 
-  monaco_editor.defineTheme("my-theme-disabled", {
-    base: "vs-dark",
+  monaco_editor.defineTheme("monaco-light", {
+    base: "vs",
     inherit: true,
     rules: [
       {
         token: "customClass",
-        foreground: "A8A8A8",
+        foreground: "000000",
         fontStyle: "italic underline",
       },
-      { token: "function", foreground: "A8A8A8" },
-      { token: "variable", foreground: "A8A8A8" },
-      { token: "forbidden", foreground: "A8A8A8" },
+      { token: "function", foreground: "5a4b00" },
+      { token: "variable", foreground: "1a4c7e" },
+      { token: "forbidden", foreground: "cc0000" },
     ],
     colors: {
       "editor.background": "#2a343900",
     },
   });
-
-  let monaco_block = document.createElement("div");
-
-  let editor = monaco_editor.create(monaco_block, {
-    value: "",
-    language: "intech_lua",
-    theme: "my-theme",
-  });
-
-  editor.dispose();
 }
 
 type Range = {
@@ -567,9 +555,15 @@ export namespace MonacoEditor {
     return editor;
   }
 
+  export function setTheme(value: "monaco-light" | "monaco-dark") {
+    monaco_editor.setTheme(value);
+  }
+
   export function colorize(node: HTMLElement) {
     monaco_editor.colorizeElement(node, {
-      theme: "my-theme",
+      theme: get(appSettings).persistent.lightMode
+        ? "monaco-light"
+        : "monaco-dark",
       tabSize: 2,
     });
   }

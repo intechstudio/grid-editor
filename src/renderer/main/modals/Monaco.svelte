@@ -98,7 +98,7 @@
     editor = MonacoEditor.create(monaco_block, {
       value: GridScript.expandScript(monaco_action.script),
       language: "intech_lua",
-      theme: "my-theme",
+      theme: $appSettings.persistent.lightMode ? "monaco-light" : "monaco-dark",
       fontSize: $appSettings.persistent.fontSize,
       restrictScope: $element.type,
       folding: false,
@@ -116,6 +116,14 @@
 
     editor.onDidChangeModelContent(handleContentChange);
   });
+
+  $: if (editor) {
+    handleLightModeChange($appSettings.persistent.lightMode);
+  }
+
+  function handleLightModeChange(value: boolean) {
+    MonacoEditor.setTheme(value ? "monaco-light" : "monaco-dark");
+  }
 
   function handleContentChange() {
     try {
@@ -246,11 +254,11 @@
 <MoltenModal {data}>
   <div
     slot="content"
-    class="h-full w-full text-white relative flex flex-col gap-2 items-start"
+    class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
     use:watchResize={handleResize}
   >
     <div class="flex flex-row w-full items-center">
-      <div class="flex flex-col text-white">
+      <div class="flex flex-col">
         <div class="flex flex-row gap-2 items-center">
           <span>Name:</span>
           <div
@@ -270,13 +278,11 @@
             <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
           </button>
         </div>
-        <div class="opacity-70">
-          <span class:invisible={isDeleted($monaco_action)}>
-            {`Character Count: ${typeof scriptLength === "undefined" ? "?" : scriptLength}/${
-              Grid.Protocol.maxScriptLength - 1
-            } (max)`}
-          </span>
-        </div>
+        <span class:invisible={isDeleted($monaco_action)}>
+          {`Character Count: ${typeof scriptLength === "undefined" ? "?" : scriptLength}/${
+            Grid.Protocol.maxScriptLength - 1
+          } (max)`}
+        </span>
       </div>
 
       <div
@@ -284,7 +290,7 @@
       >
         <div class="flex flex-col">
           {#if isDeleted($monaco_action)}
-            <div class="text-right text-sm text-white">Deleted Action</div>
+            <div class="text-right text-sm">Deleted Action</div>
           {:else}
             <div
               class="text-right text-sm {commitEnabled
@@ -311,15 +317,15 @@
 
     <div
       id="monaco-container"
-      class="flex flex-col h-full w-full bg-black bg-opacity-20 border border-black"
+      class="flex flex-col h-full w-full border border-background-soft bg-background-muted"
     >
       <div
         class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
       >
         {#each pathSnippets as snippet, i}
-          <span class="text-white text-opacity-85">{snippet}</span>
+          <span>{snippet}</span>
           {#if i < pathSnippets.length - 1}
-            <div class="fill-orange-700">/</div>
+            <span>/</span>
           {/if}
         {/each}
       </div>

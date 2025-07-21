@@ -2,13 +2,11 @@
   import { get } from "svelte/store";
   import { tooltip } from "./../_actions/tooltip.ts";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { MeltSelect, MoltenButton } from "@intechstudio/grid-uikit";
-  import Toggle from "../user-interface/Toggle.svelte";
+  import { MeltSelect, MoltenButton, Toggle } from "@intechstudio/grid-uikit";
   import {
     ModuleOverlayType,
     moduleOverlay,
   } from "../../runtime/moduleOverlay";
-  import { user_input } from "./../../runtime/user-input.store";
 
   const options = [
     {
@@ -52,18 +50,16 @@
     class="flex flex-row items-center p-2 gap-3 px-3 rounded-lg"
   >
     <div
-      class="flex gap-2 items-center"
       use:tooltip={{
         placement: "top",
         class: "w-60 p-4 z-10",
         key: "configuration_element_name",
       }}
     >
-      <span>Name Overlay:</span>
-
       <Toggle
+        title="Name Overlay"
         on:change={showControlElementNameOverlay}
-        toggleValue={$moduleOverlay === "control-name-overlay"}
+        value={$moduleOverlay === "control-name-overlay"}
       />
     </div>
     <div

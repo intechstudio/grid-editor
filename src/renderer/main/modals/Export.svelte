@@ -50,10 +50,10 @@
           data.close();
         }}
         id="close-btn"
-        class="p-1 cursor-pointer rounded not-draggable hover:bg-secondary"
+        class="p-1 cursor-pointer rounded not-draggable hover:bg-background-soft"
       >
         <svg
-          class="w-5 h-5 p-1 fill-current text-gray-300"
+          class="w-5 h-5 p-1 fill-foreground"
           viewBox="0 0 29 29"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -70,7 +70,7 @@
 
     <textarea
       value={$event.toLua()}
-      class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
+      class="min-h-200 font-mono w-full p-1 my-1 rounded bg-background-muted"
     />
 
     <MoltenPushButton click={handleCopy} text="Copy" style="accept">

@@ -25,9 +25,9 @@
   on:click={handleClick}
   class="{disabled
     ? 'border-error'
-    : 'border-white'}  flex w-6 h-6 items-center justify-center border transition-opacity rounded-md fill-white"
+    : 'border-foreground'}  flex w-6 h-6 items-center justify-center border transition-opacity rounded-md fill-foreground"
   class:border-opacity-80={selected}
-  class:bg-secondary={selected}
+  class:bg-background-muted={selected}
   class:border-opacity-30={!selected}
   class:hover:border-opacity-100={!selected && !disabled}
   class:bg-error={disabled}

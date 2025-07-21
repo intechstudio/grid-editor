@@ -191,9 +191,9 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.isValid()
+    class="flex flex-grow h-auto min-h-[32px] border {!$action.isValid()
       ? 'border-error'
-      : 'border-transparent'} cursor-pointer"
+      : 'border-black'} cursor-pointer border-background-soft"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
     class:opacity-20={$draggedActions.includes(action)}
@@ -229,7 +229,7 @@
         <!-- Content of block -->
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="bg-secondary h-full w-full">
+          <div class="h-full w-full bg-background-muted">
             <svelte:component
               this={component}
               config={action}

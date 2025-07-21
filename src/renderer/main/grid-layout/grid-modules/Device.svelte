@@ -272,7 +272,7 @@
       <!-- Default Backdrop -->
 
       <div
-        class="absolute bg-primary w-full h-full"
+        class="absolute w-full h-full"
         style="border-radius: var(--grid-rounding);"
       />
       <PortState
