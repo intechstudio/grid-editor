@@ -613,6 +613,11 @@ async function getInstalledPackages(): Promise<
 
         const packageFile = await readfile(packageJsonPath);
         const packageJson = JSON.parse(packageFile.toString());
+        console.log("*************");
+        console.log(packageFile);
+        console.log("-------------");
+        console.log(packageJson);
+        console.log("+++++++++++++");
         if (packageId === undefined) {
           packageId = packageJson.name;
         }
@@ -734,7 +739,8 @@ function getAvailablePackages() {
       installProgress: packageInstallProgress.get(_package.packageId),
       author: _package.author
         ? _package.author
-        : githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner,
+        : (githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner ??
+          _package.author),
       description: canUpdate
         ? githubPackageDetails.get(_package.packageId).description
         : _package.description,
