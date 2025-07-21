@@ -61,7 +61,7 @@
 
     const page = target.parent as GridPage;
     const module = page.parent as GridModule;
-    Focus.trigger(`element-${module.dx}-${module.dy}-${target.elementIndex}`);
+    Focus.trigger(`${module.id}-${target.elementIndex}`);
   }
 
   type SharedProps = {
@@ -383,7 +383,7 @@
               },
             ],
           }}
-          use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
+          use:Focus.on={`${device.id}-${elementNumber}`}
           use:KeyboardTarget.set={device
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}
