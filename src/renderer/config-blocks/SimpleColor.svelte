@@ -36,13 +36,15 @@
     MeltCombo,
     MeltSelect,
     MeltCheckbox,
-    MoltenPushButton,
     MeltSlider,
     SliderColorPicker,
     SquareColorPicker,
     CircleColorPicker,
-    Color,
+    ColorLayerSelector,
+    type LayerClickDetail,
+    ControlGroup,
   } from "@intechstudio/grid-uikit";
+
   import { GridScript } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Script } from "./_script_parsers.js";
@@ -128,6 +130,11 @@
     dispatch("sync");
   }
 
+  function handleLayerClicked(e: CustomEvent<LayerClickDetail>) {
+    const { index } = e.detail;
+    data.selectLayer(index);
+  }
+
   enum ColorPickerModel {
     Square,
     Slider,
@@ -206,49 +213,13 @@
     />
   </div>
 
-  <div class="flex flex-row items-center bg-black/25 rounded-full p-1">
-    <button
-      on:click={handleRemoveLayer}
-      disabled={$data.previewColors.length === 1}
-    >
-      <span class="px-2 text-lg">-</span>
-    </button>
-
-    <div
-      class="w-full h-8 px-1 bg-secondary rounded-full flex flex-row items-center {$data
-        .previewColors.length === 1
-        ? 'justify-end'
-        : 'justify-between'}"
-      style="
-      background-image:
-        linear-gradient(to right, {getGradient($data.previewColors)});
-      background-size:
-        100% 100%;
-      background-repeat:
-        no-repeat;
-      background-blend-mode: normal;
-      will-change: transform;
-      transform: translateZ(0);
-    "
-    >
-      {#each $data.previewColors as color, i}
-        <button
-          on:click={() => data.selectLayer(i)}
-          class="aspect-square rounded-full cursor-pointer h-3/4
-    {i === $data.selectedIndex
-            ? 'bg-transparent border-2 border-primary'
-            : 'bg-primary hover:bg-transparent hover:border-2 hover:border-primary scale-50'}"
-        />
-      {/each}
-    </div>
-
-    <button
-      on:click={handleAddLayer}
-      disabled={$data.previewColors.length === 3}
-    >
-      <span class="px-2 text-lg">+</span>
-    </button>
-  </div>
+  <ColorLayerSelector
+    colors={$data.previewColors}
+    selected={$data.selectedIndex}
+    on:add-layer={handleAddLayer}
+    on:remove-layer={handleRemoveLayer}
+    on:layer-click={handleLayerClicked}
+  />
 
   <div class="flex w-full">
     <MeltSelect
@@ -259,8 +230,8 @@
     />
   </div>
 
-  <div class="flex flex-col w-full bg-black/25 p-2 gap-2 rounded-xl">
-    <div class="flex flex-row justify-between">
+  <ControlGroup>
+    <div slot="header" class="flex flex-row justify-between">
       <span class="text-lg">Mixer</span>
       <div
         class="flex rounded-full w-1/3 h-6"
@@ -268,6 +239,7 @@
       />
     </div>
     <div
+      slot="content"
       class="grid grid-cols-[1fr_max-content] w-full gap-2 items-center justify-center bg-background p-2 rounded-xl"
     >
       <div class="flex flex-col">
@@ -343,7 +315,7 @@
         />
       </div>
     </div>
-  </div>
+  </ControlGroup>
 
   <MeltCheckbox
     bind:target={$data.updateIntensity}
