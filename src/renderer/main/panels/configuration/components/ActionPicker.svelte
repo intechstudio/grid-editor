@@ -211,7 +211,6 @@
             "eprlrei",
             "eprlre",
             "eprlr",
-            "rse",
           ].includes(e.information.short),
       );
     }
