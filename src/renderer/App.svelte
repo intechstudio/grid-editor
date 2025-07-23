@@ -245,7 +245,7 @@
         break;
       }
       case "debug-error": {
-        console.log(`Package error: ${data.error}`);
+        console.log(`Package error: ${JSON.stringify(data)}`);
         break;
       }
       default: {
