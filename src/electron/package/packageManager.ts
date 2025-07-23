@@ -144,7 +144,7 @@ process.parentPort.on("message", async (e) => {
         await removePackage(data.id);
         break;
       case "refresh-package-list":
-        await refreshInstalledPackagesCache();
+        await scheduleRefreshInstalledPackages();
         break;
       case "add-local-package":
         await addLocalPackage(data.rootPath);
@@ -318,7 +318,7 @@ async function downloadPackage(packageName: string) {
     try {
       const progress = new Progress(response, { throttle: 200 });
       progress.on("progress", (p) => {
-        packageInstallProgress.set(packageName, p.progress / 2); //Goes to 0.5 for downloading
+        packageInstallProgress.set(packageName, p.progress / 5); //Goes to 0.2 for downloading
         notifyListener();
       });
     } catch (e) {
@@ -364,17 +364,14 @@ async function downloadPackage(packageName: string) {
       function incrementEntryCount() {
         currentEntryCount++;
         let newValue =
-          0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1);
+          0.2 + 0.8 * Math.min(currentEntryCount / totalEntryCount, 1);
         let oldValue = packageInstallProgress.get(packageName);
 
         if (oldValue && newValue !== 1 && newValue - oldValue < 0.01) {
           return;
         }
 
-        packageInstallProgress.set(
-          packageName,
-          0.5 + 0.5 * Math.min(currentEntryCount / totalEntryCount, 1),
-        );
+        packageInstallProgress.set(packageName, newValue);
         notifyListener();
       }
 
@@ -479,6 +476,16 @@ async function updatePackage(packageName: string) {
   }
   const packagePath = path.join(packageFolder, packageName);
   if (haveBeenLoadedPackages.has(packageName)) {
+    if (downloadingPackages.size > 0) {
+      process.parentPort?.postMessage({
+        packageId: packageName,
+        type: "show-message",
+        message:
+          "Please wait for all downloads to complete before updating package!",
+        messageType: "fail",
+      });
+      return;
+    }
     await stopPackageManager();
     process.parentPort.postMessage({
       type: "update-package-folder",
@@ -488,6 +495,7 @@ async function updatePackage(packageName: string) {
   } else {
     updatingPackages.add(packageName);
     fs.rm(packagePath, { recursive: true }, () => {
+      refreshInstalledPackagesCache();
       downloadPackage(packageName);
     });
   }
@@ -500,13 +508,23 @@ async function uninstallPackage(packageName: string) {
   }
   const packagePath = path.join(packageFolder, packageName);
   if (haveBeenLoadedPackages.has(packageName)) {
+    if (downloadingPackages.size > 0) {
+      process.parentPort?.postMessage({
+        packageId: packageName,
+        type: "show-message",
+        message:
+          "Please wait for all downloads to complete before deleting package!",
+        messageType: "fail",
+      });
+      return;
+    }
     await stopPackageManager();
     process.parentPort.postMessage({
       type: "delete-package-folder",
       path: packagePath,
     });
   } else {
-    fs.rm(packagePath, { recursive: true }, notifyListener);
+    fs.rm(packagePath, { recursive: true }, refreshInstalledPackagesCache);
   }
 }
 
@@ -574,6 +592,16 @@ let cachedInstalledPackages: {
   menuIconPath?: string;
 }[] = [];
 
+let scheduleRefreshInstalledPackagesTimeout: NodeJS.Timeout | undefined =
+  undefined;
+function scheduleRefreshInstalledPackages() {
+  clearTimeout(scheduleRefreshInstalledPackagesTimeout);
+  scheduleRefreshInstalledPackagesTimeout = setTimeout(
+    refreshInstalledPackagesCache,
+    50,
+  );
+}
+
 async function refreshInstalledPackagesCache() {
   cachedInstalledPackages = await getInstalledPackages();
   installedPackagesChecked = true;
@@ -606,6 +634,7 @@ async function getInstalledPackages(): Promise<
       .filter(
         (folder) =>
           path.extname(folder) === "" &&
+          !downloadingPackages.has(path.basename(folder)) &&
           !folder.toLowerCase().includes("ds_store"),
       )
       .map(async (folder) => {
@@ -660,11 +689,16 @@ async function getInstalledPackages(): Promise<
         };
       }),
   );
-  return packages.filter(
-    (e) =>
-      e !== undefined &&
-      packages.findLast((e2) => e.packageId == e2.packageId) == e,
-  );
+  let validPackages = packages.filter((e) => e !== undefined);
+  let seenPackageIds = new Set<String>();
+  let finalPackageList = [];
+  validPackages.reverse().forEach((p) => {
+    if (!seenPackageIds.has(p.packageId)) {
+      seenPackageIds.add(p.packageId);
+      finalPackageList.push(p);
+    }
+  });
+  return finalPackageList.reverse();
 }
 
 function getAvailablePackages() {
@@ -870,10 +904,10 @@ function startPackageDirectoryWatcher(path: string): void {
   });
 
   directoryWatcher
-    .on("add", refreshInstalledPackagesCache)
-    .on("change", refreshInstalledPackagesCache)
-    .on("unlink", refreshInstalledPackagesCache)
-    .on("addDir", refreshInstalledPackagesCache)
-    .on("unlinkDir", refreshInstalledPackagesCache)
-    .on("ready", refreshInstalledPackagesCache);
+    .on("add", scheduleRefreshInstalledPackages)
+    .on("change", scheduleRefreshInstalledPackages)
+    .on("unlink", scheduleRefreshInstalledPackages)
+    .on("addDir", scheduleRefreshInstalledPackages)
+    .on("unlinkDir", scheduleRefreshInstalledPackages)
+    .on("ready", scheduleRefreshInstalledPackages);
 }
