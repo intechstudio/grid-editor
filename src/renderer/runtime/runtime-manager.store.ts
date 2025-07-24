@@ -19,6 +19,7 @@ import {
   SetIntervalAsyncTimer,
 } from "set-interval-async";
 import { modalManager } from "../main/modals/modal.store";
+import { Grid } from "../lib/_utils";
 
 type ManagedConnection = {
   runtime: GridRuntime;
@@ -41,6 +42,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     this._internal = writable({ data: [], active: undefined });
     const virtual = this.createVirtual();
     this.add(virtual);
+    this.setActive(virtual.id);
   }
 
   get data(): ManagedConnection[] {
@@ -81,20 +83,25 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     };
 
     this.update((store) => {
-      if (store.active?.runtime.virtual) {
-        this.killHeartbeat(store.active);
-        store.data = [];
-        store.active = undefined;
-      }
-
       store.data.push(incoming);
-      if (typeof store.active === "undefined") {
-        store.active = incoming;
-      }
       return store;
     });
 
     this.startHeartbeat(incoming);
+  }
+
+  public setActive(id: string) {
+    const connection = get(this._internal).data.find(
+      (e) => e.runtime.id === id,
+    );
+    if (typeof connection === "undefined") {
+      throw `Destroy failed: runtime with id of ${id} was not found`;
+    }
+
+    this.update((store) => {
+      store.active = connection;
+      return store;
+    });
   }
 
   public destroy(runtime: GridRuntime) {
@@ -109,13 +116,14 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     this.killHeartbeat(destroyed);
 
     this.update((store) => {
-      store.data = store.data.filter(
-        (e) => e.runtime.id !== destroyed.runtime.id,
-      );
+      const index = store.data.findIndex((e) => e.runtime.id === runtime.id);
 
-      if (store.active.runtime.id === destroyed.runtime.id) {
-        store.active = store.data[0];
+      if (this.active.runtime.id === runtime.id) {
+        const next = Grid.findNearestNeighbour(store.data, index);
+        store.active = next;
       }
+
+      store.data.splice(index, 1);
 
       if (typeof store.active === "undefined") {
         const virtual = this.createVirtual();

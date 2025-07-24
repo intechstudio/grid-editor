@@ -3,9 +3,10 @@
   import GridLayout from "./GridLayout.svelte";
   import { slide } from "svelte/transition";
   import { MiniMap } from "./MiniMap";
-  import { onMount } from "svelte";
-  import { get } from "svelte/store";
   import PanelToggleButton from "../PanelToggleButton.svelte";
+  import AddButton from "../user-interface/AddButton.svelte";
+  import CloseButton from "../user-interface/CloseButton.svelte";
+  import { GridRuntime } from "../../runtime/runtime";
 
   export let toggled = false;
 
@@ -13,6 +14,16 @@
 
   function handleToggle() {
     toggled = !toggled;
+  }
+
+  function handleDestroyRuntime(runtime: GridRuntime) {
+    runtime_manager.destroy(runtime);
+  }
+
+  function handleAddRuntime() {
+    const virtual = runtime_manager.createVirtual();
+    runtime_manager.add(virtual);
+    runtime_manager.setActive(virtual.id);
   }
 </script>
 
@@ -31,7 +42,10 @@
   </div>
 
   {#if toggled}
-    <div class="flex w-full" transition:slide={{ duration: 200 }}>
+    <div
+      class="flex w-full items-center flex-row"
+      transition:slide={{ duration: 200 }}
+    >
       {#each $data as entry (entry.runtime.id)}
         <button
           class="flex flex-col gap-2 bg-black bg-opacity-25 px-4 pb-4 pt-2 m-4 cursor-pointer rounded border-2 {entry
@@ -40,7 +54,14 @@
             : 'border-transparent'}"
           on:click={() => MiniMap.selectRuntime(entry.runtime.id)}
         >
-          <span class="text-white">{entry.label}</span>
+          <div class="flex flex-row justify-between items-center w-full">
+            <span class="text-white">{entry.label}</span>
+            {#if entry.runtime.virtual}
+              <CloseButton
+                on:click={() => handleDestroyRuntime(entry.runtime)}
+              />
+            {/if}
+          </div>
           <div class="pointer-events-none">
             <GridLayout
               runtime={entry.runtime}
@@ -50,6 +71,9 @@
           </div>
         </button>
       {/each}
+      <div class="flex h-full w-fit">
+        <AddButton on:click={handleAddRuntime} />
+      </div>
     </div>
   {/if}
 </container>

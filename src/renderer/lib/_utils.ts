@@ -55,6 +55,23 @@ export namespace Grid {
     return directions[(index - steps + 4) % 4];
   }
 
+  export function findNearestNeighbour<T>(
+    arr: T[],
+    index: number,
+  ): T | undefined {
+    const len = arr.length;
+
+    for (let i = index + 1; i < len; i++) {
+      if (arr[i] !== undefined) return arr[i];
+    }
+
+    for (let i = index - 1; i >= 0; i--) {
+      if (arr[i] !== undefined) return arr[i];
+    }
+
+    return undefined;
+  }
+
   export function parseBracketValues(value: string): string[] {
     if (value.length < 2) {
       throw "Value does not have valid starting and ending brackets";

@@ -1825,7 +1825,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     try {
       const [sx, sy] = [descr.brc_parameters.SX, descr.brc_parameters.SY];
 
-      let firstConnection = false;
       const module = this.findModule(sx, sy);
       if (module) {
         if (module.rot != descr.brc_parameters.ROT) {
