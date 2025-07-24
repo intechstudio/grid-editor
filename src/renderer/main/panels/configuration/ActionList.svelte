@@ -3,7 +3,7 @@
   import SeparatorLine from "./components/SeparatorLine.svelte";
   import ActionHelper from "./components/ActionHelper.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
-  import { GridEvent } from "./../../../runtime/runtime";
+  import { GridEvent, GridRuntime } from "./../../../runtime/runtime";
   import { fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
@@ -27,6 +27,9 @@
   export let focusTrigger: string;
 
   let configList: HTMLElement;
+  let runtime: GridRuntime;
+
+  $: runtime = $runtime_manager.active.runtime;
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
