@@ -22,6 +22,8 @@
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
 
+  import QuitApp from "./main/modals/QuitApp.svelte";
+
   import { windowSize } from "./runtime/window-size";
 
   import { authStore } from "$lib/auth.store";
@@ -92,6 +94,10 @@
   window.electron.configs.onExternalResponse((_event, value) => {
     // listening to this store on ProfileCloud.svelte
     configLinkStore.set({ id: value });
+  });
+
+  window.electron.showQuitDialog((_event, value) => {
+    new Modal.Window(QuitApp).show();
   });
 
   async function handlePackageManagerMessage(event) {
@@ -468,5 +474,8 @@
     height: 0.05rem;
     pointer-events: none;
     cursor: none;
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
   }
 </style>

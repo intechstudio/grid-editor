@@ -26,7 +26,6 @@
 
   //Underlays
   import PortState from "./underlays/PortState.svelte";
-  import ModuleInfo from "./underlays/ModuleInfo.svelte";
   import ActiveChanges from "./underlays/ActiveChanges.svelte";
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
@@ -69,9 +68,7 @@
 
     const page = target.parent as GridPage;
     const module = page.parent as GridModule;
-    Focus.trigger(
-      `${runtime.id}-${module.dx}-${module.dy}-${target.elementIndex}`,
-    );
+    Focus.trigger(`${module.id}-${target.elementIndex}`);
   }
 
   type SharedProps = {
@@ -394,7 +391,7 @@
               },
             ],
           }}
-          use:Focus.on={`${runtime.id}-${device.dx}-${device.dy}-${elementNumber}`}
+          use:Focus.on={`${device.id}-${elementNumber}`}
           use:KeyboardTarget.set={device
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}
@@ -423,7 +420,6 @@
                   $user_input.elementnumber === elementNumber))}
           />
         </button>
-        <ModuleInfo {device} visible={true} {elementNumber} />
       {/if}
     </svelte:fragment>
 
