@@ -124,39 +124,39 @@
     return arr;
   };
 
-const _suggestions = [
-  // channels
-  [...channels(16)],
+  const _suggestions = [
+    // channels
+    [...channels(16)],
 
-  // commands
-  [
-    { value: "176", info: "Control Change", key: "control_change_messages" },
-    { value: "144", info: "Note On", key: "note_on_event" },
-    { value: "128", info: "Note Off", key: "note_off_event" },
-    { value: "192", info: "Program Change", key: "program_change_messages" },
-  ],
-
-  // param 1
-  {
-    note_on_event: [
-      ...[...Array(128).keys()].map((e) => ({
-        value: String(e),
-        info: MusicalNotes.FromInt(e),
-      })),
+    // commands
+    [
+      { value: "176", info: "Control Change", key: "control_change_messages" },
+      { value: "144", info: "Note On", key: "note_on_event" },
+      { value: "128", info: "Note Off", key: "note_off_event" },
+      { value: "192", info: "Program Change", key: "program_change_messages" },
     ],
-    note_off_event: [
-      ...[...Array(128).keys()].map((e) => ({
-        value: String(e),
-        info: MusicalNotes.FromInt(e),
-      })),
-    ],
-  },
 
-  // param 2
-  [
-    // { value: '', info: 'to do...' }
-  ],
-];
+    // param 1
+    {
+      note_on_event: [
+        ...[...Array(128).keys()].map((e) => ({
+          value: String(e),
+          info: MusicalNotes.FromInt(e),
+        })),
+      ],
+      note_off_event: [
+        ...[...Array(128).keys()].map((e) => ({
+          value: String(e),
+          info: MusicalNotes.FromInt(e),
+        })),
+      ],
+    },
+
+    // param 2
+    [
+      // { value: '', info: 'to do...' }
+    ],
+  ];
 
   let suggestions = [];
 
@@ -194,7 +194,11 @@ const _suggestions = [
       configs: actions,
       index: index,
     });
-    suggestions = suggestions.map((s) => [{value: -1, info: "Auto"},...localDefinitions, ...s]);
+    suggestions = suggestions.map((s) => [
+      { value: -1, info: "Auto" },
+      ...localDefinitions,
+      ...s,
+    ]);
   }
 
   const tabs = [
