@@ -39,7 +39,12 @@
     profile_cloud,
     profileCloudConfigDrag,
   } from "../../panels/profileCloud/ProfileCloud.js";
-  import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
+  import {
+    GridElement,
+    GridModule,
+    GridPage,
+    GridRuntime,
+  } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
   import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
@@ -49,6 +54,8 @@
   export let width = 225;
   export let scale: number = 1.0;
   export let interactive: boolean;
+
+  let runtime = device.parent as GridRuntime;
 
   function selectNextNeighBour(
     element: GridElement,
@@ -216,6 +223,7 @@
   class="module drop-shadow"
   class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
+  tabindex={interactive ? 0 : -1}
   on:focus={() => {
     selectModule();
   }}

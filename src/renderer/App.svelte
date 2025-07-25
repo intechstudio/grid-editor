@@ -35,7 +35,7 @@
   import { logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
-  import RightPanelToggleButton from "./main/RightPanelToggleButton.svelte";
+  import PanelToggleButton from "./main/PanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
   import {
@@ -325,6 +325,20 @@
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
+
+  function handleRightPanelToggle(e: CustomEvent<any>) {
+    const { value } = e.detail;
+    appSettings.update((s) => Object({ ...s, rightPanelVisible: value }));
+    splitpanes.update((s) =>
+      Object({
+        ...s,
+        right: {
+          ...s.right,
+          size: $appSettings.rightPanelVisible ? s.right.default : 0,
+        },
+      }),
+    );
+  }
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -363,8 +377,16 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          <RightPanelToggleButton />
-          <MiddlePanelContainer />
+          <div class="flex w-full h-full">
+            <div class="absolute top-0 right-0 m-2 z-50">
+              <PanelToggleButton
+                value={$appSettings.rightPanelVisible}
+                direction={"right"}
+                on:toggle={handleRightPanelToggle}
+              />
+            </div>
+            <MiddlePanelContainer />
+          </div>
         </Pane>
 
         <Pane

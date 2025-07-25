@@ -164,5 +164,5 @@
       />
     </div>
   </div>
-  <MiniMap visible={$runtime_manager.data.length > 1} />
+  <MiniMap />
 </container>
