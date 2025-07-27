@@ -14,6 +14,7 @@
   import { Modal } from "./modals/modal.store";
   import MiniMap from "./grid-layout/MiniMap.svelte";
   import { derived } from "svelte/store";
+  import { MeltRadio } from "@intechstudio/grid-uikit";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -90,6 +91,7 @@
 <container
   bind:this={container}
   use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
+  style="color: var(--foreground)"
   class="grid grid-rows-[1fr_auto] w-full h-full"
 >
   <div
@@ -103,7 +105,7 @@
     {/if}
 
     <div
-      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex justify-center"
     >
       {#if showModuleHangingDialog}
         <ModuleHangingDialog />
@@ -162,5 +164,5 @@
       />
     </div>
   </div>
-  <MiniMap visible={$runtime_manager.data.length > 1} />
+  <MiniMap />
 </container>

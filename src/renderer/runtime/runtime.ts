@@ -1536,6 +1536,8 @@ export class ModuleData extends NodeData {
     public type: ModuleType,
     public fwMismatch: boolean,
     public map: DirectionMap,
+    public revision: string,
+    public hwcfg: number,
   ) {
     super();
     this.pages = [];
@@ -1636,6 +1638,14 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   get pages() {
     return this.getField("pages");
+  }
+
+  get revision() {
+    return this.getField("revision");
+  }
+
+  get hwcfg() {
+    return this.getField("hwcfg");
   }
 
   // Setters
@@ -2060,9 +2070,11 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
-    const moduleType = grid.module_type_from_hwcfg(
-      Number(heartbeat_class_param.HWCFG),
-    );
+    const hwcfg = Number(heartbeat_class_param.HWCFG);
+    const revision: string = grid
+      .module_hwcfgs()
+      .find((e) => Number(e.hwcfg) === hwcfg).revision;
+    const moduleType = grid.module_type_from_hwcfg(hwcfg);
 
     // generic check, code below if works only if all parameters are provided
     if (
@@ -2071,7 +2083,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       heartbeat_class_param === undefined
     ) {
       console.warn(
-        heartbeat_class_param.HWCFG,
+        hwcfg,
         "ERROR",
         header_param,
         moduleType,
@@ -2086,7 +2098,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         // implement the module id rep / req
         virtual
           ? Architecture.VIRTUAL
-          : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
+          : grid.module_architecture_from_hwcfg(hwcfg),
         heartbeat_class_param.PORTSTATE,
         header_param.SX,
         header_param.SY,
@@ -2104,6 +2116,8 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           bot: { dx: header_param.SX, dy: header_param.SY - 1 },
           left: { dx: header_param.SX - 1, dy: header_param.SY },
         },
+        revision,
+        hwcfg,
       ),
     );
   }

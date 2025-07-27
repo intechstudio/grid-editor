@@ -5,13 +5,14 @@
     GridEvent,
     GridModule,
     GridPage,
+    GridRuntime,
   } from "../../../../runtime/runtime";
   import {
     user_input,
     UserInputValue,
   } from "../../../../runtime/user-input.store";
 
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { draggedActions } from "../../../_actions/move.action";
   import { Focus } from "../../../_actions/focus.action";
 
@@ -22,13 +23,22 @@
 
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
+  let runtime = module.parent as GridRuntime;
+
   let elementChangeTimeout: NodeJS.Timeout = undefined;
 
   const dispatch = createEventDispatcher();
 
   let isSelected = false;
+  let mounted = false;
   $: handleUserInputChange($user_input);
-  $: handleSelectionChange(isSelected);
+  $: if (mounted) {
+    handleSelectionChange(isSelected);
+  }
+
+  onMount(() => {
+    mounted = true;
+  });
 
   function handleUserInputChange(ui: UserInputValue) {
     isSelected =
@@ -70,9 +80,10 @@
 
   function handleSelectionChange(value: boolean) {
     if (value) {
-      Focus.trigger(
-        `element-${module.dx}-${module.dy}-${element.elementIndex}`,
-      );
+      //Wait module to be rendered
+      requestAnimationFrame(() => {
+        Focus.trigger(`${module.id}-${element.elementIndex}`);
+      });
     }
   }
 </script>

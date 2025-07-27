@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Btn from "./Btn.svelte";
+  import Button from "./Button.svelte";
 
   export let elementNumberList;
   export let elementposition_array;
@@ -40,7 +40,7 @@
           {/if}
         </div>
         <div class="normal-cell-ui-container opacity-70">
-          <Btn {elementNumber} size={1.0} />
+          <Button {elementNumber} size={1.0} color={[]} ledless={true} />
         </div>
         <div class="normal-cell-overlay-container">
           {#if elementNumber == Math.min(...elementNumberList)}

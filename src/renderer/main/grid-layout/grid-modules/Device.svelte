@@ -26,7 +26,6 @@
 
   //Underlays
   import PortState from "./underlays/PortState.svelte";
-  import ModuleInfo from "./underlays/ModuleInfo.svelte";
   import ActiveChanges from "./underlays/ActiveChanges.svelte";
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
@@ -40,7 +39,12 @@
     profile_cloud,
     profileCloudConfigDrag,
   } from "../../panels/profileCloud/ProfileCloud.js";
-  import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
+  import {
+    GridElement,
+    GridModule,
+    GridPage,
+    GridRuntime,
+  } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
   import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
@@ -50,6 +54,8 @@
   export let width = 225;
   export let scale: number = 1.0;
   export let interactive: boolean;
+
+  let runtime = device.parent as GridRuntime;
 
   function selectNextNeighBour(
     element: GridElement,
@@ -62,7 +68,7 @@
 
     const page = target.parent as GridPage;
     const module = page.parent as GridModule;
-    Focus.trigger(`element-${module.dx}-${module.dy}-${target.elementIndex}`);
+    Focus.trigger(`${module.id}-${target.elementIndex}`);
   }
 
   type SharedProps = {
@@ -217,6 +223,7 @@
   class="module drop-shadow"
   class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
+  tabindex={interactive ? 0 : -1}
   on:focus={() => {
     selectModule();
   }}
@@ -384,7 +391,7 @@
               },
             ],
           }}
-          use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
+          use:Focus.on={`${device.id}-${elementNumber}`}
           use:KeyboardTarget.set={device
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}
@@ -413,7 +420,6 @@
                   $user_input.elementnumber === elementNumber))}
           />
         </button>
-        <ModuleInfo {device} visible={true} {elementNumber} />
       {/if}
     </svelte:fragment>
 

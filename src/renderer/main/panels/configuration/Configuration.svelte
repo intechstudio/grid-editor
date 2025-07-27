@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Toggle from "../../user-interface/Toggle.svelte";
   import {
     user_input,
     UserInputValue,
@@ -31,6 +32,8 @@
     pasteActions,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
+  import { MeltRadio } from "@intechstudio/grid-uikit";
+  import Toggle from "../../user-interface/Toggle.svelte";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -82,14 +85,24 @@
 
   let containerWidth: number;
 
-  $: {
-    if (containerWidth) {
+  $: handleIsMultiViewAutoupdate(
+    containerWidth,
+    $appSettings.persistent.multiViewEnabled,
+  );
+
+  function handleIsMultiViewAutoupdate(containerWidth, multiViewEnabled) {
+    if (!containerWidth) {
+      return;
+    }
+
+    let multiView =
+      document.body.clientWidth * 0.4 < containerWidth &&
+      containerWidth > 550 &&
+      typeof element !== "undefined" &&
+      multiViewEnabled;
+    if (multiView !== $appSettings.isMultiView) {
       appSettings.update((store) => {
-        store.isMultiView =
-          document.body.clientWidth * 0.4 < containerWidth &&
-          containerWidth > 550 &&
-          typeof element !== "undefined" &&
-          store.persistent.multiViewEnabled;
+        store.isMultiView = multiView;
         return store;
       });
     }
@@ -226,14 +239,43 @@
       }}
     >
       <configs class="w-full h-full flex flex-col overflow-hidden text-left">
-        <ElementSelectionPanel {page} />
+        <div class="flex flex-row p-2 gap-2 items-center">
+          <div class="flex flex-grow h-fit">
+            <ElementSelectionPanel {page} />
+          </div>
+          <div class="flex flex-row items-center justify-end gap-2">
+            {#if false}
+              <MeltRadio
+                bind:target={$appSettings.persistent.userLevelMinimalist}
+                orientation={"horizontal"}
+                style={"button"}
+                options={[
+                  { title: "Essentials", value: true },
+                  { title: "Expert", value: false },
+                ]}
+              />
+            {:else}
+              <span class="text-gray-500">Minimalist mode</span>
+              <Toggle
+                on:change={() => {
+                  if ($appSettings.persistent.userLevelMinimalist === true) {
+                    $appSettings.persistent.userLevelMinimalist = false;
+                  } else {
+                    $appSettings.persistent.userLevelMinimalist = true;
+                  }
+                }}
+                toggleValue={$appSettings.persistent.userLevelMinimalist ===
+                  true}
+              />{/if}
+          </div>
+        </div>
         {#if !$appSettings.isMultiView}
           <EventPanel {element} />
         {/if}
         <Toolbar {event} {element} targetPanel={container} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
-            {#each $element?.events ?? [] as event, i}
+            {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
               <ActionList
                 {event}
                 targetPanel={container}

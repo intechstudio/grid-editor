@@ -1,4 +1,4 @@
-import { writable, get, readable } from "svelte/store";
+import { writable, get, readable, Writable } from "svelte/store";
 import { Modal } from "../main/modals/modal.store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
@@ -58,35 +58,26 @@ const persistentDefaultValues = {
   allowDevBlocks: false,
   lastActiveVersion: undefined,
   lightMode: false,
+  userLevelMinimalist: true,
 };
 
-function createSplitPanes() {
+interface PaneData {
+  size: number;
+  readonly default: number;
+}
+
+interface SplitPaneData {
+  left: PaneData;
+  middle: PaneData;
+  right: PaneData;
+}
+
+function createSplitPanes(): Writable<SplitPaneData> {
   const obj = {
-    left: { size: 25 },
-    middle: { size: 50 },
-    right: { size: 25 },
+    left: { size: 25, default: 25 },
+    middle: { size: 50, default: 50 },
+    right: { size: 25, default: 25 },
   };
-
-  Object.defineProperty(obj.left, "default", {
-    value: 25,
-    writable: false,
-    enumerable: true,
-    configurable: true,
-  });
-
-  Object.defineProperty(obj.middle, "default", {
-    value: 50,
-    writable: false,
-    enumerable: true,
-    configurable: true,
-  });
-
-  Object.defineProperty(obj.right, "default", {
-    value: 25,
-    writable: false,
-    enumerable: true,
-    configurable: true,
-  });
 
   return writable(obj);
 }

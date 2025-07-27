@@ -410,4 +410,10 @@ export namespace Grid {
       }
     }
   }
+
+  export namespace Array {
+    export function when<T = unknown>(condition: boolean, items: T[]): T[] {
+      return condition ? items : [];
+    }
+  }
 }

@@ -3,7 +3,7 @@
   import SeparatorLine from "./components/SeparatorLine.svelte";
   import ActionHelper from "./components/ActionHelper.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
-  import { GridEvent } from "./../../../runtime/runtime";
+  import { GridEvent, GridRuntime } from "./../../../runtime/runtime";
   import { fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
@@ -21,11 +21,15 @@
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
   import { Focus } from "../../_actions/focus.action";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   export let event: GridEvent;
   export let focusTrigger: string;
 
   let configList: HTMLElement;
+  let runtime: GridRuntime;
+
+  $: runtime = $runtime_manager.active.runtime;
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -92,7 +96,10 @@
 
     if (e.key === "Escape") {
       const { dx, dy, elementnumber } = get(user_input);
-      Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+      const runtime = get(runtime_manager).active.runtime;
+      const module = runtime.findModule(dx, dy);
+
+      Focus.trigger(`${module.id}-${elementnumber}`);
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
@@ -116,10 +123,19 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+    class="px-4 pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
+    {#if $appSettings.isMultiView}
+      <div class="flex flex-row gap-2">
+        {($event?.getName() ?? "No Device") + " Event"}
+        <div style="color: var(--foreground-disabled);">
+          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+        </div>
+      </div>
+    {/if}
+
     <div
-      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+      class="hidden flex flex-row gap-2 justify-between items-center flex-none w-full"
     >
       <div class="flex flex-col">
         <span class="text-white">{$event?.getName() ?? "No Device"}</span>
