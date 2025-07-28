@@ -191,9 +191,7 @@
       }
       case "packages": {
         // refresh packagelist
-        const enabledPackages = data.packages.filter(
-          (e) => e.status == "Enabled",
-        );
+        const enabledPackages = data.packages.filter((e) => e.isEnabled);
         for (const _package of enabledPackages) {
           if (_package.componentsPath) {
             import(`package://${_package.componentsPath}`);
@@ -247,7 +245,7 @@
         break;
       }
       case "debug-error": {
-        console.log(`Package error: ${data.error}`);
+        console.log(`Package error: ${JSON.stringify(data)}`);
         break;
       }
       default: {
