@@ -44,7 +44,7 @@
     on:mousedown|self={close}
   >
     <div
-      class="z-50 text-white shadow-md
+      class="z-50 shadow-md
       rounded max-h-screen bg-background"
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}

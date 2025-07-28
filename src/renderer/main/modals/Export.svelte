@@ -43,7 +43,9 @@
 <MoltenModal {data}>
   <div slot="content" class="flex flex-col gap-2 items-center">
     <div class="w-full flex justify-between items-center">
-      <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
+      <div class="text-foreground-muted text-sm pb-1">
+        Export Configurations
+      </div>
 
       <button
         on:click={() => {
