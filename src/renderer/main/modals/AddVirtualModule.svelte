@@ -54,7 +54,7 @@
     {
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
-      component: VSNX,  
+      component: VSNX,
       hwcfg: 59,
     },
     {
