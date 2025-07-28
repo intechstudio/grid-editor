@@ -7,7 +7,7 @@
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
   import { user_input, UserInputValue } from "./../../runtime/user-input.store";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
-  import CloseButton from "../user-interface/CloseButton.svelte";
+  import MoltenIconButton from "../user-interface/MoltenIconButton.svelte";
 
   export let data: Modal.Instance;
 
@@ -46,7 +46,7 @@
     <div class="w-full flex justify-between items-center">
       <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
 
-      <CloseButton
+      <MoltenIconButton
         on:click={() => {
           data.close();
         }}

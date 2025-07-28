@@ -13,7 +13,8 @@
   on:click={handleClick}
 >
   <div
-    class="rounded-full bg-white/5 fill-white/10 h-10 w-10 p-3 group-hover:bg-white/15 group-hover:fill-white/20 group-hover:bg-gray-600"
+    class="rounded-full fill-foreground-muted h-10 w-10 p-3 opacity-50 group-hover:opacity-100"
+    style="background-color: color-mix(in srgb, var(--foreground) 20%, transparent);"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

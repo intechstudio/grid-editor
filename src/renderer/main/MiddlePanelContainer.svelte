@@ -4,7 +4,7 @@
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./user-interface/ModulConnectionDialog.svelte";
   import { fade, blur, fly } from "svelte/transition";
-  import { appSettings } from "../runtime/app-helper.store";
+  import { appSettings, splitpanes } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
@@ -14,7 +14,8 @@
   import { Modal } from "./modals/modal.store";
   import MiniMap from "./grid-layout/MiniMap.svelte";
   import { derived } from "svelte/store";
-  import { MeltRadio } from "@intechstudio/grid-uikit";
+  import PanelToggleButton from "./PanelToggleButton.svelte";
+  import { Pane, Splitpanes } from "svelte-splitpanes";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -88,81 +89,103 @@
 
 <svelte:window on:resize={handleResize} />
 
-<container
-  bind:this={container}
-  use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
-  style="color: var(--foreground)"
-  class="grid grid-rows-[1fr_auto] w-full h-full"
->
-  <div
-    class="relative flex flex-col w-full h-full overflow-hidden justify-center"
-  >
-    <ControlSurface />
-    {#if showFixedStickyContainer}
-      <StickyContainer
-        class="absolute z-[2] bottom-0 left-1/2 -translate-x-1/2 mb-5"
-      />
-    {/if}
-
+<Splitpanes theme="modern-theme" horizontal={true} class="w-full">
+  <Pane size={100 - $splitpanes.minimap.size}>
     <div
-      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex justify-center"
-    >
-      {#if showModuleHangingDialog}
-        <ModuleHangingDialog />
-      {:else}
-        <ActiveChanges />
-      {/if}
-    </div>
-
-    <GridLayout
-      runtime={$runtime_manager.active.runtime}
-      scale={derived(
-        appSettings,
-        ($appSettings) => 1 * $appSettings.persistent.size,
-      )}
-      bind:component={gridLayout}
-      on:resize={handleResize}
-      interactive={true}
-      class="absolute z-[0] top-1/2 left-1/2 flex flex-col"
-      style="transform: translate(calc(-50% + {$appSettings.gridLayoutShift
-        .x}px), calc(-50% + {$appSettings.gridLayoutShift.y}px));"
+      bind:this={container}
+      use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
+      style="color: var(--foreground)"
+      class="grid grid-rows-[1fr_auto] w-full h-full"
     >
       <div
-        bind:this={stickyContainer}
-        class="absolute top-full left-1/2 -translate-x-1/2"
-        class:invisible={showFixedStickyContainer ||
-          $runtime.modules.length === 0}
+        class="relative flex flex-col w-full h-full overflow-hidden justify-center"
       >
-        <StickyContainer />
-      </div>
-    </GridLayout>
+        <ControlSurface />
+        {#if showFixedStickyContainer}
+          <StickyContainer
+            class="absolute z-[2] bottom-0 left-1/2 -translate-x-1/2 mb-5"
+          />
+        {/if}
 
-    {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
-      <div
-        in:fade|global={{ delay: 2000, duration: 1000 }}
-        out:blur|global={{ duration: 150 }}
-        class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
-      >
-        <ModulConnectionDialog />
-      </div>
-    {/if}
-
-    <div class="flex">
-      {#if trackerVisible}
         <div
-          in:fly|global={{ x: -10 }}
-          out:fly|global={{ x: 10 }}
-          class="w-fit absolute right-0 bottom-0 mb-12 mr-10"
+          class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex justify-center"
         >
-          <Tracker />
+          {#if showModuleHangingDialog}
+            <ModuleHangingDialog />
+          {:else}
+            <ActiveChanges />
+          {/if}
         </div>
-      {/if}
 
-      <CursorLog
-        class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[2]"
-        on:content-change={handleContentChange}
-      />
+        <GridLayout
+          runtime={$runtime_manager.active.runtime}
+          scale={derived(
+            appSettings,
+            ($appSettings) => 1 * $appSettings.persistent.size,
+          )}
+          bind:component={gridLayout}
+          on:resize={handleResize}
+          interactive={true}
+          class="absolute z-[0] top-1/2 left-1/2 flex flex-col"
+          style="transform: translate(calc(-50% + {$appSettings.gridLayoutShift
+            .x}px), calc(-50% + {$appSettings.gridLayoutShift.y}px));"
+        >
+          <div
+            bind:this={stickyContainer}
+            class="absolute top-full left-1/2 -translate-x-1/2"
+            class:invisible={showFixedStickyContainer ||
+              $runtime.modules.length === 0}
+          >
+            <StickyContainer />
+          </div>
+        </GridLayout>
+
+        {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
+          <div
+            in:fade|global={{ delay: 2000, duration: 1000 }}
+            out:blur|global={{ duration: 150 }}
+            class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
+          >
+            <ModulConnectionDialog />
+          </div>
+        {/if}
+
+        <div class="flex">
+          {#if trackerVisible}
+            <div
+              in:fly|global={{ x: -10 }}
+              out:fly|global={{ x: 10 }}
+              class="w-fit absolute right-0 bottom-0 mb-12 mr-10"
+            >
+              <Tracker />
+            </div>
+          {/if}
+
+          <CursorLog
+            class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[2]"
+            on:content-change={handleContentChange}
+          />
+        </div>
+      </div>
+
+      <div class="absolute bottom-0 right-0 m-2">
+        <PanelToggleButton
+          value={false}
+          direction={"down"}
+          on:toggle={(e) => {
+            const value = e.detail;
+            $splitpanes.minimap.size = value ? 0 : $splitpanes.minimap.default;
+          }}
+        />
+      </div>
     </div>
-  </div>
-  <MiniMap />
-</container>
+  </Pane>
+  <Pane
+    bind:size={$splitpanes.minimap.size}
+    minSize={$splitpanes.minimap.default}
+  >
+    <div class="flex w-full h-full">
+      <MiniMap />
+    </div>
+  </Pane>
+</Splitpanes>

@@ -10,7 +10,7 @@ import { grid } from "@intechstudio/grid-protocol";
 import { connection_manager, GridPort } from "../serialport/serialport";
 import { appSettings } from "./app-helper.store";
 import { Subscriber } from "svelte/motion";
-import { simulateProcess } from "./virtual-engine";
+import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 
 export enum InstructionClassName {
@@ -175,6 +175,7 @@ export type WriteBufferData = {
 export class WriteBuffer implements Readable<WriteBufferData> {
   private _internal: Writable<WriteBufferData>;
   private _port: GridPort;
+  public readonly simulator = new ConnectionSimulator();
 
   public readonly messageStream: MessageStream;
 
@@ -397,7 +398,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     const promise = new Promise((resolve, reject) => {
       let promise: Promise<any>;
       if (obj.virtual) {
-        promise = simulateProcess(obj);
+        promise = this.simulator.simulateProcess(obj);
       } else {
         promise = this.processElement(obj);
       }

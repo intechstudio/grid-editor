@@ -40,6 +40,13 @@ export namespace Grid {
     }
   }
 
+  export function addRotations(
+    a: Grid.Rotation,
+    b: Grid.Rotation,
+  ): Grid.Rotation {
+    return (a + b) % 360;
+  }
+
   export function rotateDirection(
     direction: Grid.Direction,
     rotation: Grid.Rotation,

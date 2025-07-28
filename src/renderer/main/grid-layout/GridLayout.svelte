@@ -16,6 +16,7 @@
   import { createEventDispatcher } from "svelte";
   import { GridModule, GridRuntime } from "../../runtime/runtime";
   import AddButton from "../user-interface/AddButton.svelte";
+  import { Grid } from "../../lib/_utils";
 
   export let component: HTMLElement = undefined;
   export let runtime: GridRuntime;
@@ -41,7 +42,13 @@
 
   let layoutMargin = { left: 0, right: 0, top: 0, bottom: 0 };
 
-  $: calculateRotation($appSettings.persistent.moduleRotation);
+  $: {
+    const rotation = Grid.addRotations(
+      $appSettings.persistent.moduleRotation,
+      $runtime.rotation,
+    );
+    calculateRotation(rotation);
+  }
   $: handleScalingChange($scale);
 
   function handleResize(e) {
@@ -64,7 +71,7 @@
     shiftY = rotation == 270 || rotation == 180 ? layoutHeight : 0;
   }
 
-  function calculateRotation(value) {
+  function calculateRotation(value: Grid.Rotation) {
     rotationBuffer = rotation;
     rotation = value;
 

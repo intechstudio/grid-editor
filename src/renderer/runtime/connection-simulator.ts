@@ -12,7 +12,7 @@ import {
   InstructionClass,
   InstructionClassName,
   BufferElement,
-} from "../runtime/engine.store";
+} from "./engine.store";
 
 export class VirtualModule {
   public dx: number;
@@ -125,7 +125,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
       ];
       switch (class_name) {
         case InstructionClassName.CONFIG: {
-          connection_simulator.update((s) => {
+          this.update((s) => {
             const device = s.find((e) => e.dx == dx && e.dy == dy);
             const events = device?.pages[page].elements.find(
               (e) => e.elementIndex === element,
@@ -154,7 +154,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
           break;
         }
         case InstructionClassName.PAGESTORE: {
-          connection_simulator.update((s) => {
+          this.update((s) => {
             s.forEach((device) => {
               device.storeChanges();
             });
@@ -179,7 +179,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
           break;
         }
         case InstructionClassName.PAGECLEAR: {
-          connection_simulator.update((s) => {
+          this.update((s) => {
             s.forEach((device) => {
               device.resetDefaultConfiguration();
             });
@@ -204,7 +204,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
           break;
         }
         case InstructionClassName.PAGEDISCARD: {
-          connection_simulator.update((s) => {
+          this.update((s) => {
             s.forEach((device) => {
               device.discardChanges();
             });
@@ -245,9 +245,7 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
         obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
         obj.descr.class_parameters.EVENTTYPE ?? -1,
       ];
-      const device = get(connection_simulator).find(
-        (e) => e.dx === dx && e.dy === dy,
-      );
+      const device = get(this).find((e) => e.dx === dx && e.dy === dy);
       switch (class_name) {
         case InstructionClassName.CONFIG: {
           const events = device?.pages[page].elements.find(
@@ -280,24 +278,22 @@ export class ConnectionSimulator implements Readable<VirtualModule[]> {
       }
     });
   }
-}
 
-export const connection_simulator = new ConnectionSimulator();
-
-export function simulateProcess(obj: BufferElement): Promise<any> {
-  const class_instr = obj.descr.class_instr;
-  switch (class_instr) {
-    case InstructionClass.FETCH: {
-      return connection_simulator.answerFetchTypeRequests(obj);
-    }
-    case InstructionClass.ACKNOWLEDGE: {
-      return Promise.reject();
-    }
-    case InstructionClass.EXECUTE: {
-      return connection_simulator.answerExecuteTypeRequest(obj);
-    }
-    case InstructionClass.REPORT: {
-      return Promise.reject();
+  public simulateProcess(obj: BufferElement): Promise<any> {
+    const class_instr = obj.descr.class_instr;
+    switch (class_instr) {
+      case InstructionClass.FETCH: {
+        return this.answerFetchTypeRequests(obj);
+      }
+      case InstructionClass.ACKNOWLEDGE: {
+        return Promise.reject();
+      }
+      case InstructionClass.EXECUTE: {
+        return this.answerExecuteTypeRequest(obj);
+      }
+      case InstructionClass.REPORT: {
+        return Promise.reject();
+      }
     }
   }
 }

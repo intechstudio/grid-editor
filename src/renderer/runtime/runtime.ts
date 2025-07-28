@@ -15,7 +15,6 @@ import {
   Updater,
 } from "svelte/store";
 import { GridInstruction } from "../serialport/instructions";
-import { connection_simulator } from "./virtual-engine";
 import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
@@ -1692,10 +1691,12 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
 export class RuntimeData extends NodeData {
   public modules: Array<GridModule>;
+  public rotation: Grid.Rotation;
 
   constructor() {
     super();
     this.modules = [];
+    this.rotation = Grid.Rotation.R0;
   }
 
   public isValid() {
@@ -1751,13 +1752,22 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     return this.data.isValid();
   }
 
+  // Getters
   get modules() {
     return this.getField("modules");
+  }
+
+  get rotation() {
+    return this.getField("rotation");
   }
 
   // Setters
   set modules(value: Array<GridModule>) {
     this.setField("modules", value);
+  }
+
+  set rotation(value: Grid.Rotation) {
+    this.setField("rotation", value);
   }
 
   findEvent(
@@ -2063,7 +2073,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       true,
     );
 
-    connection_simulator.createModule(dx, dy, moduleInfo.type);
+    this.connection.buffer.simulator.createModule(dx, dy, moduleInfo.type);
 
     this.modules = [...this.modules, controller];
   }
@@ -2156,7 +2166,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     }
 
     if (removed.architecture === Architecture.VIRTUAL) {
-      connection_simulator.destroyModule(dx, dy);
+      this.connection.buffer.simulator.destroyModule(dx, dy);
     } else {
       this.connection.buffer.module_destroy_handler(dx, dy);
     }
