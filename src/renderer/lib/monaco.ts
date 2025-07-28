@@ -212,7 +212,7 @@ function initialize_language() {
 }
 
 function initialize_theme() {
-  monaco_editor.defineTheme("monaco-dark", {
+  monaco_editor.defineTheme(MonacoEditor.Theme.DARK, {
     base: "vs-dark",
     inherit: true,
     rules: [
@@ -230,7 +230,7 @@ function initialize_theme() {
     },
   });
 
-  monaco_editor.defineTheme("monaco-light", {
+  monaco_editor.defineTheme(MonacoEditor.Theme.LIGHT, {
     base: "vs",
     inherit: true,
     rules: [
@@ -241,7 +241,7 @@ function initialize_theme() {
       },
       { token: "function", foreground: "5a4b00" },
       { token: "variable", foreground: "1a4c7e" },
-      { token: "forbidden", foreground: "cc0000" },
+      { token: "forbidden", foreground: "990000" },
     ],
     colors: {
       "editor.background": "#2a343900",
@@ -514,6 +514,10 @@ function initialize_grammar() {
 }
 
 export namespace MonacoEditor {
+  export enum Theme {
+    LIGHT = "monaco-light",
+    DARK = "monaco-dark",
+  }
   initialize_theme();
   initialize_language();
   initialize_highlight();
@@ -555,15 +559,13 @@ export namespace MonacoEditor {
     return editor;
   }
 
-  export function setTheme(value: "monaco-light" | "monaco-dark") {
+  export function setTheme(value: Theme) {
     monaco_editor.setTheme(value);
   }
 
-  export function colorize(node: HTMLElement) {
+  export function colorize(node: HTMLElement, theme: Theme) {
     monaco_editor.colorizeElement(node, {
-      theme: get(appSettings).persistent.lightMode
-        ? "monaco-light"
-        : "monaco-dark",
+      theme,
       tabSize: 2,
     });
   }

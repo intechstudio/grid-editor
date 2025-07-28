@@ -36,7 +36,9 @@
   }
 
   function handleLightModeChange(value: boolean) {
-    MonacoEditor.setTheme(value ? "monaco-light" : "monaco-dark");
+    MonacoEditor.setTheme(
+      value ? MonacoEditor.Theme.LIGHT : MonacoEditor.Theme.DARK,
+    );
   }
 
   function handleFontSizechange(fontSize) {
@@ -48,7 +50,9 @@
     editor = MonacoEditor.create(monaco_block, {
       value: value,
       language: "intech_lua",
-      theme: $appSettings.persistent.lightMode ? "monaco-light" : "monaco-dark",
+      theme: $appSettings.persistent.lightMode
+        ? MonacoEditor.Theme.LIGHT
+        : MonacoEditor.Theme.DARK,
       minimap: {
         enabled: false,
       },

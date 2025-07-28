@@ -12,7 +12,9 @@
     editor = MonacoEditor.create(monacoElement, {
       value: "",
       language: "lua",
-      theme: $appSettings.persistent.lightMode ? "monaco-light" : "monaco-dark",
+      theme: $appSettings.persistent.lightMode
+        ? MonacoEditor.Theme.LIGHT
+        : MonacoEditor.Theme.DARK,
       fontSize: $appSettings.persistent.fontSize,
       folding: false,
       renderLineHighlight: "none",
@@ -36,7 +38,9 @@
   }
 
   function handleLightModeChange(value: boolean) {
-    MonacoEditor.setTheme(value ? "monaco-light" : "monaco-dark");
+    MonacoEditor.setTheme(
+      value ? MonacoEditor.Theme.LIGHT : MonacoEditor.Theme.DARK,
+    );
   }
 
   function handleSendInmediateclicked() {

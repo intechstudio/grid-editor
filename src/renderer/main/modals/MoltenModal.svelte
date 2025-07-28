@@ -45,7 +45,7 @@
   >
     <div
       class="z-50 shadow-md
-      rounded max-h-screen bg-background"
+      rounded max-h-screen bg-background text-foreground"
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
       transition:scale={{ duration: 500, start: 0.95 }}

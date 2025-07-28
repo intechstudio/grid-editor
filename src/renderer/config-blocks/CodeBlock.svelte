@@ -38,7 +38,7 @@
   import { GridAction, ActionData, GridEvent } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
@@ -47,6 +47,8 @@
   import { Modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { MonacoEditor } from "../lib/monaco";
+  import { appSettings } from "../runtime/app-helper.store";
+  import { get } from "svelte/store";
 
   export let config: GridAction;
 
@@ -87,13 +89,16 @@
     });
   });
 
-  function handleConfigChange(config: ActionData) {
+  function handleConfigChange(config: ActionData, theme: MonacoEditor.Theme) {
     codePreview.innerHTML = GridScript.expandScript(config.script);
-    MonacoEditor.colorize(codePreview);
+    MonacoEditor.colorize(codePreview, theme);
   }
 
   $: if (codePreview && !$config.invalid) {
-    handleConfigChange($config);
+    const theme = $appSettings.persistent.lightMode
+      ? MonacoEditor.Theme.LIGHT
+      : MonacoEditor.Theme.DARK;
+    handleConfigChange($config, theme);
   }
 
   async function open_monaco() {
