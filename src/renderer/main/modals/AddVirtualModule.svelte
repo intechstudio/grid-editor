@@ -55,14 +55,12 @@
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
       component: VSNX,
-      unrelease: true,
       hwcfg: 59,
     },
     {
       id: ModuleType.VSN1R,
       type: ModuleType.VSN1R,
       component: VSNX,
-      unrelease: true,
       hwcfg: 91,
     },
     {
