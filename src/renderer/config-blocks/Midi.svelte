@@ -56,6 +56,7 @@
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
   import { Validator } from "./validators";
   import { valid } from "semver";
+  import { Grid } from "../lib/_utils.js";
 
   export let config: GridAction;
 
@@ -135,18 +136,7 @@
       { value: "192", info: "Program Change", key: "program_change_messages" },
     ],
     // param 1
-    {
-      control_change_messages: Object.entries(midiCC).map(([value, info]) => ({
-        value: Number(value),
-        info,
-      })),
-      note_on_event: [...Array(128).keys()].map((e) => {
-        return { value: String(e), info: MusicalNotes.FromInt(e) };
-      }),
-      note_off_event: [...Array(128).keys()].map((e) => {
-        return { value: String(e), info: MusicalNotes.FromInt(e) };
-      }),
-    },
+    [],
     // param 2
     [
       //{value: '', info: 'to do...'}
@@ -171,12 +161,53 @@
     }
 
     try {
-      let param_1 = _suggestions[2][selectedCommand];
+      let param_1: any[] = [];
+      if (selectedCommand === "control_change_messages") {
+        param_1 = Object.entries(midiCC).map(([value, info]) => ({
+          value: Number(value),
+          info,
+        }));
+      } else if (
+        ["note_on_event", "note_off_event"].includes(selectedCommand)
+      ) {
+        param_1 = [...Array(128).keys()].map((e) => {
+          return { value: String(e), info: MusicalNotes.FromInt(e) };
+        });
+      }
+
       suggestions = [
-        _suggestions[0],
-        _suggestions[1],
-        param_1 || [],
-        _suggestions[3],
+        [
+          {
+            value: "-1",
+            info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
+            key: "auto",
+          },
+          ..._suggestions[0],
+        ],
+        [
+          {
+            value: "-1",
+            info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_COMMAND)})`,
+            key: "auto",
+          },
+          ..._suggestions[1],
+        ],
+        [
+          {
+            value: "-1",
+            info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1)})`,
+            key: "auto",
+          },
+          ...param_1,
+        ],
+        [
+          {
+            value: "-1",
+            info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P2)})`,
+            key: "auto",
+          },
+          ..._suggestions[3],
+        ],
       ];
     } catch (error) {
       console.warn("error while creating midi suggetions");

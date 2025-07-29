@@ -284,7 +284,12 @@
               suggestions={$data[channel].suggestions}
               on:input={(e) => {
                 const { value, validationError } = e.detail;
-                data.updateRGBAChannelValue(value, validationError, channel);
+                data.updateRGBAChannelValue(
+                  config,
+                  value,
+                  validationError,
+                  channel,
+                );
                 sendData($data);
               }}
               on:change={() => dispatch("sync")}
@@ -318,6 +323,7 @@
           on:input={(e) => {
             const { value, validationError } = e.detail;
             data.updateRGBAChannelValue(
+              config,
               value,
               validationError,
               SimpleColor.Channel.ALPHA,

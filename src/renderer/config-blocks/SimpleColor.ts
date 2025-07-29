@@ -26,6 +26,11 @@ export namespace SimpleColor {
     ALPHA = "alpha",
   }
 
+  export function toChannel(value: string): Channel | undefined {
+    const values = Object.values(Channel) as string[];
+    return values.includes(value) ? (value as Channel) : undefined;
+  }
+
   export type Color = {
     red: string;
     green: string;
@@ -89,7 +94,7 @@ export namespace SimpleColor {
     return Grid.Protocol.getLayerSuggestions(element.type);
   }
 
-  function getRGBASuggestions(action: GridAction) {
+  function getRGBASuggestions(action: GridAction, channel: Channel) {
     const event = action.parent as GridEvent;
     const actions = event.config;
     const index = actions.findIndex((e) => e.id === action.id);
@@ -97,7 +102,29 @@ export namespace SimpleColor {
       configs: actions,
       index: index,
     });
-    return localDefinitions;
+    const typeMap = new Map<
+      Channel,
+      | Grid.Auto.Value.LED_RED
+      | Grid.Auto.Value.LED_GREEN
+      | Grid.Auto.Value.LED_BLUE
+    >([
+      [Channel.RED, Grid.Auto.Value.LED_RED],
+      [Channel.GREEN, Grid.Auto.Value.LED_GREEN],
+      [Channel.BLUE, Grid.Auto.Value.LED_BLUE],
+    ]);
+
+    if (channel === Channel.ALPHA) {
+      return localDefinitions;
+    } else {
+      return [
+        {
+          value: "-1",
+          info: `Auto (${Grid.Auto.getRGB(action, typeMap.get(channel))})`,
+          key: "auto",
+        },
+        ...localDefinitions,
+      ];
+    }
   }
 
   export type ViewModelData = {
@@ -162,14 +189,30 @@ export namespace SimpleColor {
         func: (e: string) => new Validator(e).isLuaValue().Result(),
       });
 
-      const getColorData = (value: string) => ({
+      const getColorData = (value: string, channel: Channel) => ({
         value,
-        suggestions: getRGBASuggestions(action),
+        suggestions: getRGBASuggestions(action, channel),
         validator: getValidator(value),
       });
 
       this.set({
-        previewColors: parsed.colors,
+        previewColors: parsed.colors.map((e) =>
+          Object({
+            ...e,
+            red:
+              e.red === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_RED))
+                : e.red,
+            green:
+              e.green === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_GREEN))
+                : e.green,
+            blue:
+              e.blue === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_BLUE))
+                : e.blue,
+          }),
+        ),
         layer: {
           value: String(parsed.layer),
           suggestions: [
@@ -186,17 +229,17 @@ export namespace SimpleColor {
         selectedIndex,
         pickerColor,
         alphaSliderValue,
-        red: getColorData(red),
-        green: getColorData(green),
-        blue: getColorData(blue),
-        alpha: getColorData(alpha),
+        red: getColorData(red, Channel.RED),
+        green: getColorData(green, Channel.GREEN),
+        blue: getColorData(blue, Channel.BLUE),
+        alpha: getColorData(alpha, Channel.ALPHA),
         updateIntensity,
       });
 
       const unsubscribe = event.subscribe(() => {
         this.update((s) => {
           ["red", "green", "blue", "alpha"].forEach((color) => {
-            s[color].suggestions = getRGBASuggestions(action);
+            s[color].suggestions = getRGBASuggestions(action, toChannel(color));
           });
           return s;
         });
@@ -301,6 +344,7 @@ export namespace SimpleColor {
     }
 
     public updateRGBAChannelValue(
+      action: GridAction,
       value: string,
       validationError: boolean,
       channel: Channel,
@@ -309,17 +353,26 @@ export namespace SimpleColor {
         s[channel].validator.value = !validationError;
         switch (channel) {
           case SimpleColor.Channel.RED: {
-            s.previewColors[s.selectedIndex].red = value;
+            s.previewColors[s.selectedIndex].red =
+              value === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_RED))
+                : value;
             s.red.value = value;
             break;
           }
           case SimpleColor.Channel.GREEN: {
-            s.previewColors[s.selectedIndex].green = value;
+            s.previewColors[s.selectedIndex].green =
+              value === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_GREEN))
+                : value;
             s.green.value = value;
             break;
           }
           case SimpleColor.Channel.BLUE: {
-            s.previewColors[s.selectedIndex].blue = value;
+            s.previewColors[s.selectedIndex].blue =
+              value === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_BLUE))
+                : value;
             s.blue.value = value;
             break;
           }

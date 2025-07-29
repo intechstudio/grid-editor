@@ -1,8 +1,106 @@
 import convert from "color-convert";
-import { ElementType, grid, ModuleType } from "@intechstudio/grid-protocol";
+import {
+  ElementType,
+  EventType,
+  EventTypeToNumber,
+  grid,
+  ModuleType,
+} from "@intechstudio/grid-protocol";
 import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
+import {
+  GridAction,
+  GridElement,
+  GridEvent,
+  GridModule,
+  GridPage,
+} from "../runtime/runtime";
 
 export namespace Grid {
+  export namespace Auto {
+    export enum Value {
+      MIDI_CHANNEL,
+      MIDI_COMMAND,
+      MIDI_P1,
+      MIDI_P2,
+      LED_RED,
+      LED_GREEN,
+      LED_BLUE,
+    }
+
+    export function getMidi(
+      action: GridAction,
+      param:
+        | Value.MIDI_CHANNEL
+        | Value.MIDI_COMMAND
+        | Value.MIDI_P1
+        | Value.MIDI_P2,
+    ) {
+      const event = action.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+      const module = page.parent as GridModule;
+
+      switch (param) {
+        case Value.MIDI_CHANNEL: {
+          const [module_position_y, page_current] = [
+            module.dy,
+            page.pageNumber,
+          ];
+          return (module_position_y * 4 + page_current) % 16;
+        }
+        case Value.MIDI_COMMAND: {
+          return event.type === EventTypeToNumber(EventType.BUTTON) ? 144 : 176;
+        }
+        case Value.MIDI_P1: {
+          const [module_position_x, element_index] = [
+            module.dx,
+            element.elementIndex,
+          ];
+          return (32 + module_position_x * 16 + element_index) % 128;
+        }
+        case Value.MIDI_P2: {
+          return "?";
+        }
+      }
+    }
+
+    export function getRGB(
+      action: GridAction,
+      param: Value.LED_RED | Value.LED_GREEN | Value.LED_BLUE,
+    ) {
+      const event = action.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+
+      const defaultColors: Array<
+        Map<Value.LED_RED | Value.LED_GREEN | Value.LED_BLUE, number>
+      > = [
+        new Map([
+          [Value.LED_RED, 0],
+          [Value.LED_GREEN, 100],
+          [Value.LED_BLUE, 200],
+        ]),
+        new Map([
+          [Value.LED_RED, 200],
+          [Value.LED_GREEN, 100],
+          [Value.LED_BLUE, 0],
+        ]),
+        new Map([
+          [Value.LED_RED, 50],
+          [Value.LED_GREEN, 200],
+          [Value.LED_BLUE, 50],
+        ]),
+        new Map([
+          [Value.LED_RED, 100],
+          [Value.LED_GREEN, 0],
+          [Value.LED_BLUE, 200],
+        ]),
+      ];
+
+      return defaultColors[page.pageNumber].get(param);
+    }
+  }
+
   export function toFirstCase(value: string) {
     return value[0].toUpperCase() + value.slice(1, value.length);
   }
