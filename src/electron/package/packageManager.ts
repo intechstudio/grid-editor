@@ -92,9 +92,9 @@ process.parentPort.on("message", async (e) => {
         break;
       }
       case "query-running-packages": {
-        let onlyBuiltInPackages = currentlyLoadedPackages
-          .keys()
-          .every((e) => editorPackages.has(e));
+        let onlyBuiltInPackages = [...currentlyLoadedPackages.keys()].every(
+          (e) => editorPackages.has(e),
+        );
         process.parentPort.postMessage({
           type: "running-packages-result",
           hasRunningPackage: !onlyBuiltInPackages,
