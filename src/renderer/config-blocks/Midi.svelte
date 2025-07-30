@@ -203,7 +203,7 @@
         [
           {
             value: "-1",
-            info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P2)})`,
+            info: `Auto`,
             key: "auto",
           },
           ..._suggestions[3],
