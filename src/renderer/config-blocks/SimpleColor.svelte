@@ -77,7 +77,7 @@
       short: `${data.element.value}:glc`,
       array: [
         data.layer.value,
-        `{${data.previewColors
+        `{${data.colors
           .map((e) => `{${[e.red, e.green, e.blue, e.alpha].join(",")}}`)
           .join(",")}}`,
       ],
@@ -114,7 +114,7 @@
   }
 
   function handleAddLayer() {
-    const last = get(data).previewColors.at(-1);
+    const last = get(data).colors.at(-1);
     data.addLayer(last);
     sendData(get(data));
     dispatch("sync");
@@ -145,14 +145,6 @@
     { title: "HSL", value: ColorPickerModel.Slider },
   ];
 
-  function colorToCSS(color: SimpleColor.Color) {
-    if (Object.values(color).some((e) => isNaN(Number(e)))) {
-      return "white";
-    } else {
-      return `rgba(${Object.values(color).join(",")})`;
-    }
-  }
-
   function getGradient(colors: SimpleColor.Color[]) {
     const array = [
       ...(colors.length === 1
@@ -160,13 +152,13 @@
         : []),
       ...colors,
     ];
-    const cssValue = array.map((e) => colorToCSS(e)).join(",");
+    const cssValue = array.map((e) => SimpleColor.colorToCSS(e)).join(",");
     return cssValue;
   }
 
-  function getCurrentColor(data: SimpleColor.ViewModelData) {
+  function getMixerPreviewColor(data: SimpleColor.ViewModelData) {
     const { previewColors, selectedIndex } = data;
-    return colorToCSS(previewColors[selectedIndex]);
+    return SimpleColor.colorToCSS(previewColors[selectedIndex]);
   }
 </script>
 
@@ -267,7 +259,7 @@
       <span class="text-white text-lg">Mixer</span>
       <div
         class="flex rounded-full w-1/3 h-6"
-        style="background-color: {getCurrentColor($data)};"
+        style="background-color: {getMixerPreviewColor($data)};"
       />
     </div>
     <div
