@@ -92,7 +92,7 @@ process.parentPort.on("message", async (e) => {
         break;
       }
       case "query-running-packages": {
-        let onlyBuiltInPackages = Object.keys(currentlyLoadedPackages).every(
+        let onlyBuiltInPackages = [...currentlyLoadedPackages.keys()].every(
           (e) => editorPackages.has(e),
         );
         process.parentPort.postMessage({
@@ -102,28 +102,27 @@ process.parentPort.on("message", async (e) => {
         break;
       }
       case "create-package-message-port": {
-        if (!currentlyLoadedPackages[e.data.id]) {
+        if (!currentlyLoadedPackages.has(e.data.id)) {
           process.parentPort?.postMessage({
             type: "debug-error",
             packageId: e.data.id,
             message:
               "Package not loaded " +
               e.data.id +
-              ` ${Object.keys(currentlyLoadedPackages)}`,
+              ` ${currentlyLoadedPackages.keys()}`,
           });
           break;
         }
-        await currentlyLoadedPackages[e.data.id].addMessagePort(
-          e.ports?.[0],
-          e.data.senderId,
-        );
+        await currentlyLoadedPackages
+          .get(e.data.id)
+          .addMessagePort(e.ports?.[0], e.data.senderId);
         break;
       }
       case "load-package":
         await loadPackage(data.id, data.payload);
         break;
       case "restart-package":
-        if (currentlyLoadedPackages[data.id]) {
+        if (currentlyLoadedPackages.get(data.id)) {
           await unloadPackage(data.id);
           await loadPackage(data.id, data.payload);
         }
@@ -169,18 +168,18 @@ process.parentPort.on("message", async (e) => {
         // add the following to a codeblock: package_send("package_name", 123.3, 22, "hello")
         let args = JSON.parse(`[${data.message}]`);
         let packageId = args.shift();
-        if (!currentlyLoadedPackages[packageId]) {
+        if (!currentlyLoadedPackages.get(packageId)) {
           process.parentPort?.postMessage({
             type: "debug-error",
             packageId: packageId,
             message:
               "Package not loaded " +
               packageId +
-              ` ${Object.keys(currentlyLoadedPackages)}`,
+              `${currentlyLoadedPackages.keys()}`,
           });
           break;
         }
-        await currentlyLoadedPackages[packageId].sendMessage(args);
+        await currentlyLoadedPackages.get(packageId).sendMessage(args);
         break;
       default: {
         console.log(`Package Manager: Unknown message type of ${e.data.type}`);
@@ -197,7 +196,7 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
   );
   console.log({ err, origin });
   process.parentPort.postMessage({ type: "shutdown-complete" });
-  for (let packageName of Object.keys(currentlyLoadedPackages)) {
+  for (let packageName of currentlyLoadedPackages.keys()) {
     if (err.stack.includes(packageName)) {
       let packageIndex = currentPackageList.findIndex(
         (value) => value.id == packageName,
@@ -218,15 +217,15 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
   });
 });
 
-const currentlyLoadedPackages = {};
+const currentlyLoadedPackages = new Map<string, any>();
 const haveBeenLoadedPackages = new Set<string>();
 const downloadingPackages = new Set<string>();
 let currentPackageList = [];
 
 async function stopPackageManager() {
-  for (let packageName of Object.keys(currentlyLoadedPackages)) {
-    await currentlyLoadedPackages[packageName].unloadPackage();
-    delete currentlyLoadedPackages[packageName];
+  for (let packageName of currentlyLoadedPackages.keys()) {
+    await currentlyLoadedPackages.get(packageName).unloadPackage();
+    currentlyLoadedPackages.delete(packageName);
   }
   process.parentPort.postMessage({
     type: "cache-temp-data",
@@ -238,14 +237,14 @@ async function stopPackageManager() {
 
 async function loadPackage(packageName: string, persistedData: any) {
   try {
-    if (currentlyLoadedPackages[packageName]) {
+    if (currentlyLoadedPackages.has(packageName)) {
       return;
     }
 
     if (editorPackages.has(packageName)) {
-      currentlyLoadedPackages[packageName] = {
+      currentlyLoadedPackages.set(packageName, {
         unloadPackage: async function () {},
-      };
+      });
     } else {
       const packageDirectory: string =
         localPackages.get(packageName) ?? path.join(packageFolder, packageName);
@@ -257,15 +256,28 @@ async function loadPackage(packageName: string, persistedData: any) {
       await _package.loadPackage(
         {
           sendMessageToEditor: (payload) => {
-            process.parentPort?.postMessage({
-              packageId: packageName,
-              ...payload,
-            });
+            if (payload.type === "send-package-message") {
+              let requestedId = payload.targetPackageId;
+              if (!currentlyLoadedPackages.has(requestedId)) {
+                return;
+              }
+
+              currentlyLoadedPackages.get(requestedId).sendMessage({
+                ...payload.message,
+                senderPackageId: packageName,
+              });
+              return;
+            } else {
+              process.parentPort?.postMessage({
+                ...payload,
+                packageId: packageName,
+              });
+            }
           },
         },
         persistedData,
       );
-      currentlyLoadedPackages[packageName] = _package;
+      currentlyLoadedPackages.set(packageName, _package);
       haveBeenLoadedPackages.add(packageName);
     }
     notifyListener();
@@ -279,9 +291,9 @@ async function loadPackage(packageName: string, persistedData: any) {
 }
 
 async function unloadPackage(packageName: string) {
-  if (currentlyLoadedPackages[packageName]) {
-    await currentlyLoadedPackages[packageName].unloadPackage();
-    delete currentlyLoadedPackages[packageName];
+  if (currentlyLoadedPackages.has(packageName)) {
+    await currentlyLoadedPackages.get(packageName).unloadPackage();
+    currentlyLoadedPackages.delete(packageName);
     notifyListener();
   }
 }
@@ -470,9 +482,9 @@ async function downloadPackage(packageName: string) {
 }
 
 async function updatePackage(packageName: string) {
-  if (currentlyLoadedPackages[packageName]) {
-    currentlyLoadedPackages[packageName].unloadPackage();
-    delete currentlyLoadedPackages[packageName];
+  if (currentlyLoadedPackages.has(packageName)) {
+    currentlyLoadedPackages.get(packageName).unloadPackage();
+    currentlyLoadedPackages.delete(packageName);
   }
   const packagePath = path.join(packageFolder, packageName);
   if (haveBeenLoadedPackages.has(packageName)) {
@@ -729,7 +741,7 @@ function getAvailablePackages() {
     packageList.push({
       id: key,
       name: entry.name,
-      isEnabled: Object.keys(currentlyLoadedPackages).includes(key),
+      isEnabled: currentlyLoadedPackages.has(key),
       removable: false,
       loadable: true,
       uninstallable: false,
@@ -762,9 +774,7 @@ function getAvailablePackages() {
     packageList.push({
       id: _package.packageId,
       name: _package.packageName,
-      isEnabled: Object.keys(currentlyLoadedPackages).includes(
-        _package.packageId,
-      ),
+      isEnabled: currentlyLoadedPackages.has(_package.packageId),
       componentsPath: _package.componentsPath,
       preferenceComponent: _package.preferenceComponent,
       packageVersion: _package.packageVersion,
