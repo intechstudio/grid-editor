@@ -154,7 +154,7 @@
   let minMaxEnabled = false;
 
   let stepValues: number[];
-  $: stepValues = SettingsButton.calculateStepValues(
+  $: stepValues = SettingsButton.calculateStepValuesFirmwareStyle(
     Number(bmo) + 1,
     minMaxEnabled ? Number(bmi) : 0,
     minMaxEnabled ? Number(bma) : 127,

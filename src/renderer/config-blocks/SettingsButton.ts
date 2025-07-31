@@ -1,14 +1,21 @@
 export namespace SettingsButton {
-  export function calculateStepValues(
+  export function calculateStepValuesFirmwareStyle(
     steps: number,
     min: number,
     max: number,
   ): number[] {
-    if (steps < 2) return [min];
+    if (steps < 2) return [Math.round(min)];
 
-    const stepValue = (max - min) / (steps - 1);
-    return Array.from({ length: steps }, (_, i) =>
-      Math.round(min + i * stepValue),
-    );
+    const [tmin, tmax] = [min, max];
+    const res = [tmin];
+    let last = tmin;
+    for (let i = 1; i < steps; ++i) {
+      let new_value = last + Math.trunc((tmax - tmin) / (steps - 1));
+
+      last = new_value;
+
+      res.push(new_value);
+    }
+    return res;
   }
 }
