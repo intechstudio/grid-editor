@@ -209,7 +209,10 @@
               out:fade|global={{ duration: interactive ? 200 : 0 }}
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
-              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+              id="{interactive ? '' : `${device.id}-`}grid-device-{'dx:' +
+                device.dx +
+                ';dy:' +
+                device.dy}"
               class="relative"
             >
               {#if device.architecture === Architecture.VIRTUAL && interactive}
