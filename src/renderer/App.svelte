@@ -325,7 +325,7 @@
   );
 
   function handleRightPanelToggle(e: CustomEvent<any>) {
-    const { value } = e.detail;
+    const value = e.detail;
     appSettings.update((s) => Object({ ...s, rightPanelVisible: value }));
     splitpanes.update((s) =>
       Object({
