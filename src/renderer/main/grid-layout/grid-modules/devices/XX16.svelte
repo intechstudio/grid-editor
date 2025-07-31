@@ -88,7 +88,7 @@
 </script>
 
 <div
-  data-testid="{moduleType}_dx:{dx};dy:{dy}"
+  {...$$restProps}
   class="module-dimensions relative"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"

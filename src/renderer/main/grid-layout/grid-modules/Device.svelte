@@ -75,6 +75,7 @@
     moduleWidth: any;
     device: GridModule;
     id?: ModuleType;
+    [key: string]: any;
   };
 
   type ModuleComponent = {
@@ -270,6 +271,7 @@
 >
   <svelte:component
     this={component}
+    data-testid={`${interactive ? "" : `${device.id}_`}${device.type}_dx:${device.dx};dy:${device.dy}`}
     {device}
     moduleWidth={width}
     let:elementNumber
