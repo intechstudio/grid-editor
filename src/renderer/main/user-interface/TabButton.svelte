@@ -12,9 +12,9 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
+<button
   on:click={handleClick}
-  class="tab-button grid grid-cols-[auto_1fr_auto] group text-black"
+  class="tab-button grid grid-cols-[auto_1fr_auto] group"
 >
   <div class={selected ? "tab-left-triangle-selected" : "tab-left-triangle"} />
 
@@ -25,11 +25,11 @@
   <div
     class={selected ? "tab-right-triangle-selected" : "tab-right-triangle"}
   />
-</div>
+</button>
 
 <style>
   :root {
-    --tab_color: #372c32;
+    --tab_color: #b33454;
     --tab_selected_color: #da4167;
     --tab_hover_color: #7d3549;
   }

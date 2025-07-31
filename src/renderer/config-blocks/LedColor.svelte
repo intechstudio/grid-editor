@@ -30,11 +30,16 @@
 </script>
 
 <script lang="ts">
-  import { onMount, createEventDispatcher } from "svelte";
-  import { MeltCombo, MeltSelect } from "@intechstudio/grid-uikit";
+  import { createEventDispatcher } from "svelte";
+  import {
+    MeltCombo,
+    MeltSelect,
+    Toggle,
+    SliderColorPicker,
+    SquareColorPicker,
+    Color,
+  } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import Toggle from "../main/user-interface/Toggle.svelte";
-  import { ElementType } from "@intechstudio/grid-protocol";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
@@ -46,8 +51,6 @@
     GridEvent,
   } from "./../runtime/runtime";
   import { Grid } from "../lib/_utils.js";
-  import SliderColorPicker from "../main/user-interface/SliderColorPicker.svelte";
-  import SquareColorPicker from "../main/user-interface/SquareColorPicker.svelte";
   import RandomColorGenerator from "../main/user-interface/RandomColorGenerator.svelte";
 
   export let config: GridAction;
@@ -94,8 +97,8 @@
   let beautyMode = 0;
   let beautify = true;
 
-  const defaultColor = new Grid.RGB(255, 255, 255).toHSL();
-  let color: Grid.HSL = defaultColor;
+  const defaultColor = new Color.RGB(255, 255, 255).toHSL();
+  let color: Color.HSL = defaultColor;
 
   $: if (!$config.invalid) {
     handleConfigChange($config);
@@ -181,7 +184,7 @@
   }
 
   function updateColor(e: any) {
-    const color: Grid.RGB = e.detail.color.toRGB();
+    const color: Color.RGB = e.detail.color.toRGB();
     scriptSegments[2] = color.r;
     scriptSegments[3] = color.g;
     scriptSegments[4] = color.b;
@@ -266,13 +269,7 @@
     {/each}
   </div>
 
-  <div class="p-2 flex items-center text-sm text-gray-500">
-    <Toggle bind:toggleValue={beautify} on:change={changeBeautify} />
-    <div class="pl-2">Beautify is {beautify ? "on" : "off"}.</div>
-  </div>
+  <Toggle bind:value={beautify} on:change={changeBeautify} title="Beautify" />
 
-  <SendFeedback
-    feedback_context="LedColor"
-    class="mt-2 text-sm text-gray-500"
-  />
+  <SendFeedback feedback_context="LedColor" />
 </config-led-color>

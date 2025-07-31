@@ -40,13 +40,12 @@
 {#if mounted}
   <div
     role="presentation"
-    class="z-40 absolute left-0 top-0 w-full h-full
-    bg-secondary bg-opacity-50"
+    class="z-40 absolute left-0 top-0 w-full h-full bg-gray-800/50"
     on:mousedown|self={close}
   >
     <div
-      class="z-50 text-white shadow-md
-      bg-primary rounded max-h-screen"
+      class="z-50 shadow-md
+      rounded max-h-screen bg-background text-foreground"
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
       transition:scale={{ duration: 500, start: 0.95 }}

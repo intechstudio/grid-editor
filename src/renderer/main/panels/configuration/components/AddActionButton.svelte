@@ -29,8 +29,8 @@
   <button
     bind:this={referenceElement}
     on:click={handleShowActionPicker}
-    class="cursor-pointer flex w-full truncate hover:border-pick hover:bg-select-saturate-10 border-secondary
-                transition-colors duration-300 border-l-4 text-white pl-4 p-2"
+    class="cursor-pointer flex w-full truncate hover:border-pick border-l-foreground hover:bg-background-muted
+                transition-colors duration-300 border-l-4 pl-4 p-2"
   >
     Add action block...
   </button>

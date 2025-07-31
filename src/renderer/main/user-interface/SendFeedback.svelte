@@ -12,7 +12,7 @@
   }
 </script>
 
-<button on:click={openFeedbackFrom} class="{$$props.class} feedback">
+<button on:click={openFeedbackFrom} class="text-sm text-gray-500 feedback">
   Send Feedback
 </button>
 

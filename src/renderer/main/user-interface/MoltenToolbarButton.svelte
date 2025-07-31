@@ -58,11 +58,11 @@
     border-radius: 0.25rem;
     border-color: transparent;
     border-width: 1px;
-    fill: #fff;
+    fill: var(--foreground);
   }
 
   .toolbar-button-disabled {
-    filter: brightness(33%);
+    fill: var(--foreground-disabled);
     pointer-events: none;
   }
 

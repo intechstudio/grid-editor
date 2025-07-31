@@ -12,7 +12,9 @@
     editor = MonacoEditor.create(monacoElement, {
       value: "",
       language: "lua",
-      theme: "my-theme",
+      theme: $appSettings.persistent.lightMode
+        ? MonacoEditor.Theme.LIGHT
+        : MonacoEditor.Theme.DARK,
       fontSize: $appSettings.persistent.fontSize,
       folding: false,
       renderLineHighlight: "none",
@@ -30,6 +32,16 @@
       lineNumbers: "off",
     });
   });
+
+  $: if (editor) {
+    handleLightModeChange($appSettings.persistent.lightMode);
+  }
+
+  function handleLightModeChange(value: boolean) {
+    MonacoEditor.setTheme(
+      value ? MonacoEditor.Theme.LIGHT : MonacoEditor.Theme.DARK,
+    );
+  }
 
   function handleSendInmediateclicked() {
     const value = editor.getValue();

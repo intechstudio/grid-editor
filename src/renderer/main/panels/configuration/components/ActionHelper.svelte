@@ -36,7 +36,7 @@
 
 <container bind:this={referenceElement} class="relativ flex w-full">
   <div
-    class="text-white/50 w-full grid grid-cols-[1fr_auto] py-2 my-4 px-5 justify-between items-center gap-2 bg-white/5"
+    class="w-full grid grid-cols-[1fr_auto] py-2 my-4 px-5 justify-between items-center gap-2 bg-background-muted"
   >
     <span class="text-start line-clamp-3 flex-grow">{text}</span>
     <div class="flex flex-row gap-2">
@@ -46,13 +46,13 @@
         on:click={(e) => handlePaste({ detail: { index: target.index } })}
         disabled={!$isPasteActionsEnabled}
       >
-        <span class="text-white"> Paste </span>
+        <span> Paste </span>
       </button>
       <button
         class="rounded px-2 py-1 border border-pick group-hover:bg-pick/40"
         on:click={handleShowActionPicker}
       >
-        <div class="flex flex-row items-center gap-2 text-white">
+        <div class="flex flex-row items-center gap-2">
           <span> Add </span>
           <span class="text-2xl">+</span>
         </div>

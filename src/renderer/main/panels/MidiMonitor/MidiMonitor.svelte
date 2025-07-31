@@ -3,7 +3,6 @@
     user_input,
     UserInputValue,
   } from "./../../../runtime/user-input.store";
-  import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, Writable, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
@@ -15,7 +14,7 @@
     MidiType,
     SysExData,
   } from "./MidiMonitor.store";
-  import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton, SvgIcon, Toggle } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
@@ -199,10 +198,8 @@
 <container data-testid="midi-monitor" class="flex flex-col h-full p-4">
   <div class="flex flex-row w-full text-white justify-between">
     <div class="flex text-2xl">MIDI Monitor</div>
-    <div class="flex items-center">
-      <span class="text-white font-medium mr-2">Debug View</span>
-      <Toggle bind:toggleValue={debug} />
-    </div>
+
+    <Toggle bind:value={debug} title="Debug View" />
   </div>
   {#if !debug}
     <div class="py-8 px-6">

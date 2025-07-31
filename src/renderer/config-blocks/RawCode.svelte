@@ -129,9 +129,8 @@
         click={handleReplace}
       />
     </div>
-    <SendFeedback
-      feedback_context={`RAW action block: ${config.script}`}
-      class="mt-2 text-sm text-gray-500"
-    />
+    <div class="mt-2">
+      <SendFeedback feedback_context={`RAW action block: ${config.script}`} />
+    </div>
   </div>
 </code-block>
