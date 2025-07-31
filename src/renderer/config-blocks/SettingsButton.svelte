@@ -42,6 +42,7 @@
     GridPage,
   } from "../runtime/runtime.js";
   import { Grid } from "../lib/_utils.js";
+  import { SettingsButton } from "./SettingsButton.js";
 
   export let config: GridAction;
   let event = config.parent as GridEvent;
@@ -152,17 +153,8 @@
 
   let minMaxEnabled = false;
 
-  function calculateStepValues(steps: number, min: number, max: number) {
-    const stepValue = Math.floor(Math.abs(min - max) / (steps - 1));
-    const res = Array.from(
-      { length: steps },
-      (_, index) => min + index * stepValue,
-    );
-    return res;
-  }
-
   let stepValues: number[];
-  $: stepValues = calculateStepValues(
+  $: stepValues = SettingsButton.calculateStepValues(
     Number(bmo) + 1,
     minMaxEnabled ? Number(bmi) : 0,
     minMaxEnabled ? Number(bma) : 127,
