@@ -128,7 +128,9 @@
         throw new LengthError("Config limit reached.");
       }
       errorMesssage = "";
-      commitEnabled = $monaco_action.script !== commited.script;
+      commitEnabled =
+        $monaco_action.script !== commited.script ||
+        commited.name !== $monaco_action.name;
     } catch (e) {
       if (!(e instanceof LengthError)) {
         scriptLength = undefined;
