@@ -44,10 +44,11 @@
   import { MoltenButton } from "@intechstudio/grid-uikit";
   import { mergeActionsToCode } from "../runtime/operations";
   import { GridAction, GridEvent } from "../runtime/runtime";
+  import { Analytics } from "../runtime/analytics.js";
 
   export let config: GridAction;
 
-  $: config, checkConfig();
+  $: config, $appSettings.packageList, checkConfig();
 
   let targetPackage: string | undefined = undefined;
   let availablePackage: any | undefined = undefined;
@@ -73,6 +74,28 @@
       type: "load-package",
       id: availablePackage.id,
       payload: $appSettings.persistent.packagesDataStorage[availablePackage.id],
+    });
+    Analytics.track({
+      event: "Package Manager",
+      payload: {
+        click: "Status Change - Raw Code",
+        id: packageId,
+        status: true,
+      },
+      mandatory: false,
+    });
+  }
+
+  function handleInstallPackage() {
+    window.packageManagerPort?.postMessage({
+      type: "download-package",
+      id: availablePackage.id,
+    });
+
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Download - Raw Code", id: availablePackage.id },
+      mandatory: false,
     });
   }
 </script>
@@ -104,11 +127,19 @@
     </div>
 
     <div class="text-white">
-      {#if availablePackage?.id}
+      {#if availablePackage?.isDownloaded === true}
         <MoltenButton
           title={"Enable Package"}
           border={"yellow-500"}
           click={handleEnablePackage}
+        />
+      {:else if availablePackage?.installProgress !== undefined}
+        <p class="text-white">Installing package...</p>
+      {:else if availablePackage?.isDownloaded === false}
+        <MoltenButton
+          title={"Install Package"}
+          border={"yellow-500"}
+          click={handleInstallPackage}
         />
       {:else}
         <MoltenButton
