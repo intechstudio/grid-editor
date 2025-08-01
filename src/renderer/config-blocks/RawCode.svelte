@@ -79,7 +79,7 @@
       event: "Package Manager",
       payload: {
         click: "Status Change - Raw Code",
-        id: packageId,
+        id: availablePackage.id,
         status: true,
       },
       mandatory: false,
