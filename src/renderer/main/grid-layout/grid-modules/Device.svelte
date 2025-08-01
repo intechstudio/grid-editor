@@ -572,7 +572,6 @@
     justify-content: center;
     align-items: center;
     transition: filter 0.2s;
-    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
   }
   .normal-cell-overlay-container {
     pointer-events: none;

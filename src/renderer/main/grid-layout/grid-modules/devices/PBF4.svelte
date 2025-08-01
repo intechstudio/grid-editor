@@ -88,8 +88,8 @@
 <div
   data-testid="PBF4_dx:{dx};dy:{dy}"
   class="module-dimensions relative bg-primary"
-  style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
-    -90}deg)"
+  style="background-color: var(--background); --module-size: {moduleWidth +
+    'px'}; transform: rotate({device?.rot * -90}deg)"
 >
   <div class="module-underlay-container">
     <slot name="module-underlay" {device} />

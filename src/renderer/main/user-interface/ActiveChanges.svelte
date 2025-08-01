@@ -160,11 +160,11 @@
 >
   <div class="flex flex-row justify-center items-center gap-2">
     <div class="flex flex-col">
-      <div class="mx-4 text-white font-medium">
+      <div class="mx-4 font-medium">
         {changes} active changes
       </div>
       {#if $appSettings.persistent.writeBufferDebugEnabled}
-        <div class="mx-4 text-white font-medium">
+        <div class="mx-4 font-medium">
           writeBuffer: {$buffer?.array.length}
         </div>
       {/if}
