@@ -121,11 +121,13 @@
   }
   div.selected-element::before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.2);
+    box-shadow: 0px 300px 0px 1000px
+      color-mix(in srgb, var(--foreground) 20%, var(--background));
   }
   div.selectable-element:hover:before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.1);
+    box-shadow: 0px 300px 0px 1000px
+      color-mix(in srgb, var(--foreground) 10%, var(--background));
   }
 
   div.corner-cut-l:before {

@@ -495,6 +495,27 @@
 </button>
 
 <style global>
+  .knob-element {
+    width: auto;
+    height: auto;
+    border-radius: 9999px; /* full rounding */
+    border-width: 1px;
+    border-style: solid;
+    border-color: #00000000; /* Tailwind gray-700 */
+  }
+
+  .knob-dent {
+    fill: var(--background-soft);
+    stroke: var(--background-soft);
+  }
+  .knob-face {
+    fill2: var(--background-muted);
+  }
+  .knob-edge {
+    fill: var(--background-muted);
+    stroke: var(--background-soft);
+  }
+
   .configpanel.activator-button:focus-within {
     border-color: gray;
   }

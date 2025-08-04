@@ -56,7 +56,7 @@
 
 <container>
   <div class="flex flex-col gap-2 w-full px-2 py-4 pointer-events-auto">
-    <span class="text-white text-sm">Global Variables:</span>
+    <span class="text-sm">Global Variables:</span>
 
     <VariableManager
       {script}

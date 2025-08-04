@@ -35,7 +35,7 @@
 </script>
 
 <nav-tab
-  style="background-color:rgb(25, 26, 32)"
+  style="background-color: var(--background-soft)"
   class=" flex px-1 flex-col items-center h-full overflow-y-auto overflow-x-hidden"
 >
   <button
@@ -53,10 +53,10 @@
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
       'profile-cloud' && $splitpanes.left.size != 0
-      ? 'bg-opacity-100 '
-      : 'bg-opacity-40 '} bg-secondary activator-button"
+      ? 'selected '
+      : 'bg-opacity-40 '} tabButtonElement activator-button"
   >
-    <div class="w-full h-full p-1.5 text-white fill-current">
+    <div class="tabButtonIcon">
       {@html menuIcons["menu_profile_cloud"]}
     </div>
     <div
@@ -86,10 +86,10 @@
             }}
             class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
               packageData.id && $splitpanes.left.size != 0
-              ? 'bg-opacity-100 '
-              : 'bg-opacity-40 '} bg-secondary activator-button"
+              ? 'selected '
+              : 'bg-opacity-40 '} tabButtonElement activator-button"
           >
-            <div class="w-full h-full p-1.5 text-white fill-current">
+            <div class="tabButtonIcon">
               {#if packageData.svgIcon}
                 {@html menuIcons[packageData.svgIcon]}
               {:else if packageData.menuIconPath}
@@ -138,10 +138,10 @@
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
         'debug-monitor' && $splitpanes.left.size != 0
-        ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary activator-button"
+        ? 'selected'
+        : 'bg-opacity-40'} tabButtonElement activator-button"
     >
-      <div class="w-full h-full p-1.5 text-white fill-current">
+      <div class="tabButtonIcon">
         {@html menuIcons["menu_debug_monitor"]}
       </div>
       <div
@@ -167,10 +167,10 @@
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'midi-monitor' && $splitpanes.left.size != 0
-        ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary activator-button"
+        ? 'selected '
+        : 'bg-opacity-40 '} tabButtonElement activator-button"
     >
-      <div class="w-full h-full p-1.5 text-white fill-current">
+      <div class="tabButtonIcon">
         {@html menuIcons["menu_midi_monitor"]}
       </div>
       <div
@@ -195,10 +195,10 @@
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
         'websocket-monitor' && $splitpanes.left.size != 0
-        ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary activator-button"
+        ? 'selected'
+        : 'bg-opacity-40'} tabButtonElement activator-button"
     >
-      <div class="w-full h-full p-1.5 text-white fill-current">
+      <div class="tabButtonIcon">
         {@html menuIcons["menu_websocket_monitor"]}
       </div>
 
@@ -225,10 +225,10 @@
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
       'Packages' && $splitpanes.left.size != 0
-      ? 'bg-opacity-100 '
-      : 'bg-opacity-40 '} bg-secondary activator-button"
+      ? 'selected '
+      : 'bg-opacity-40 '} tabButtonElement activator-button"
   >
-    <div class="w-full h-full p-1.5 text-white fill-current">
+    <div class="tabButtonIcon">
       {@html menuIcons["menu_packages"]}
     </div>
     <div
@@ -253,10 +253,10 @@
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
     {selectedLeftTab == 'Preferences' && $appSettings.leftPanelVisible
-      ? 'bg-opacity-100 '
-      : 'bg-opacity-40 '} bg-secondary activator-button"
+      ? 'selected '
+      : 'bg-opacity-40 '} tabButtonElement activator-button"
   >
-    <div class="w-full h-full p-1.5 text-white fill-current">
+    <div class="tabButtonIcon">
       {@html menuIcons["menu_preferences"]}
     </div>
     <div
@@ -267,3 +267,29 @@
     />
   </button>
 </nav-tab>
+
+<style>
+  .tabButtonIcon {
+    width: 100%;
+    height: 100%;
+    padding: 0.375rem; /* or 6px */
+  }
+
+  .tabButtonElement {
+    background-color: var(--background-muted);
+    color: var(--foreground-muted);
+    fill: var(--foreground-muted);
+  }
+
+  .tabButtonElement:hover {
+    background-color: var(--background);
+    color: var(--foreground);
+    fill: var(--foreground);
+  }
+
+  .tabButtonElement.selected {
+    background-color: var(--background);
+    color: var(--foreground);
+    fill: var(--foreground);
+  }
+</style>

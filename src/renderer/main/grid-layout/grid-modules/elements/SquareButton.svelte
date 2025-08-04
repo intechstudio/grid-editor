@@ -47,7 +47,8 @@
   }
   .background {
     display: flex;
-    background-color: var(--background-soft);
+    background-color: var(--background-muted);
+    border: 1px solid var(--background-soft);
     width: 100%;
     height: 100%;
     overflow: hidden;
