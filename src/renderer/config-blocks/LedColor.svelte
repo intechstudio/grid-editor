@@ -104,6 +104,14 @@
     handleConfigChange($config);
   }
 
+  function parseRGB(r: any, g: any, b: any): Color.RGB | undefined {
+    if (![r, g, b].map((e) => parseInt(e)).every((e) => Number.isFinite(e))) {
+      return undefined;
+    }
+
+    return new Color.RGB(parseInt(r), parseInt(g), parseInt(b));
+  }
+
   function handleConfigChange(config: ActionData) {
     const _segments = Script.toSegments({
       short: config.short,
@@ -120,7 +128,7 @@
     }
 
     color =
-      Grid.parseRGB(
+      parseRGB(
         scriptSegments[2],
         scriptSegments[3],
         scriptSegments[4],

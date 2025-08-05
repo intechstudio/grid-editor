@@ -162,14 +162,6 @@ export namespace Grid {
     }
   }
 
-  export function parseRGB(r: any, g: any, b: any): RGB | undefined {
-    if (![r, g, b].map((e) => parseInt(e)).every((e) => Number.isFinite(e))) {
-      return undefined;
-    }
-
-    return new RGB(parseInt(r), parseInt(g), parseInt(b));
-  }
-
   export namespace Protocol {
     export const scriptStart = "<?lua ";
     export const scriptEnd = " ?>";

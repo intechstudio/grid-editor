@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { appSettings } from "../runtime/app-helper.store";
 
   // Component for the untoggled "header" of the component
   export const header = undefined;
@@ -37,64 +38,65 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher, onMount } from "svelte";
-
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
   import { MoltenButton } from "@intechstudio/grid-uikit";
-  import { getComponentInformation } from "../../renderer/lib/_configs";
   import { mergeActionsToCode } from "../runtime/operations";
-  import { GridAction } from "../runtime/runtime";
-
-  const dispatch = createEventDispatcher();
+  import { GridAction, GridEvent } from "../runtime/runtime";
+  import { Analytics } from "../runtime/analytics.js";
 
   export let config: GridAction;
 
-  let compBlock = undefined;
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
+  $: config, $appSettings.packageList, checkConfig();
 
-  function handleConfigChange(config) {
-    compBlock = getCompatiblityBlock(config.script);
-  }
+  let targetPackage: string | undefined = undefined;
+  let availablePackage: any | undefined = undefined;
 
-  function getCompatiblityBlock(script) {
-    let block = undefined;
-
-    const compatibility_map = new Map([
-      ["elseif (self:bst()>0 and self:est()>63) then", "eprlrei1"],
-      ["elseif (self:bst()==0 and self:est()<64) then", "eprlrei2"],
-    ]);
-
-    for (const [key, value] of compatibility_map.entries()) {
-      if (key !== script) {
-        continue;
-      }
-
-      const obj = getComponentInformation(value);
-      //Can not replace for RAW code
-      if (obj.information.short !== information.short) {
-        block = obj;
-        break;
-      }
+  function checkConfig() {
+    console.log({ config });
+    const match = config.script.match(/gps\("([^"]+)/);
+    if (match === null) {
+      return;
     }
 
-    //Fallback logic, everything can be converted to codeblock
-    if (!block) {
-      block = getComponentInformation("cb");
-    }
-
-    return block;
+    targetPackage = match[1];
+    let packageList = $appSettings.packageList;
+    availablePackage = packageList.find((e) => e.id === targetPackage);
   }
 
-  function handleReplace(e) {
-    mergeActionsToCode(config.parent, false, config);
-    /*dispatch("replace", {
-      short: compBlock.information.short,
-      script: config.script,
-    });*/
+  function handleReplace() {
+    mergeActionsToCode(config.parent as GridEvent, false, config);
+  }
+
+  function handleEnablePackage() {
+    window.packageManagerPort?.postMessage({
+      type: "load-package",
+      id: availablePackage.id,
+      payload: $appSettings.persistent.packagesDataStorage[availablePackage.id],
+    });
+    Analytics.track({
+      event: "Package Manager",
+      payload: {
+        click: "Status Change - Raw Code",
+        id: availablePackage.id,
+        status: true,
+      },
+      mandatory: false,
+    });
+  }
+
+  function handleInstallPackage() {
+    window.packageManagerPort?.postMessage({
+      type: "download-package",
+      id: availablePackage.id,
+    });
+
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Download - Raw Code", id: availablePackage.id },
+      mandatory: false,
+    });
   }
 </script>
 
@@ -108,7 +110,9 @@
           Missing Package Action!
         </div>
         <div class="flex flex-row gap-1 ml-auto items-center">
-          <span class="text-sm text-gray-500">{config.short}</span>
+          <span class="text-sm text-gray-500 justify-end"
+            >{availablePackage?.name ?? targetPackage ?? config.short}</span
+          >
         </div>
       {:else}
         <div class="text-gray-500 text-sm font-bold">Missing Action Block!</div>
@@ -123,11 +127,27 @@
     </div>
 
     <div class="text-white">
-      <MoltenButton
-        title={"Update"}
-        border={"yellow-500"}
-        click={handleReplace}
-      />
+      {#if availablePackage?.isDownloaded === true}
+        <MoltenButton
+          title={"Enable Package"}
+          border={"yellow-500"}
+          click={handleEnablePackage}
+        />
+      {:else if availablePackage?.installProgress !== undefined}
+        <p class="text-white">Installing package...</p>
+      {:else if availablePackage?.isDownloaded === false}
+        <MoltenButton
+          title={"Install Package"}
+          border={"yellow-500"}
+          click={handleInstallPackage}
+        />
+      {:else}
+        <MoltenButton
+          title={"To Code"}
+          border={"yellow-500"}
+          click={handleReplace}
+        />
+      {/if}
     </div>
     <div class="mt-2">
       <SendFeedback feedback_context={`RAW action block: ${config.script}`} />
