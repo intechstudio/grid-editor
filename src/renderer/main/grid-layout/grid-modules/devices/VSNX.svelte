@@ -148,7 +148,7 @@
   <div
     class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
   >
-    {#each elementArray as elementDescriptor}
+    {#each elementArray as elementDescriptor, index}
       {#if elementDescriptor.type === ElementType.LCD}
         {@const elementNumberList = [
           elementDescriptor.index - 4,
@@ -217,9 +217,7 @@
               "
               >
                 <Led
-                  color={ledcolor_array[
-                    (elementNumber == 8 ? 8 : 9) + ledNumber * 2
-                  ]}
+                  color={ledcolor_array[index == 0 ? ledNumber : 5 + ledNumber]}
                   size={1.4}
                 />
               </div>
@@ -257,13 +255,13 @@
                 {elementNumber}
                 size={4.2}
                 value={elementposition_array[elementNumber][1]}
-                color={ledcolor_array[elementNumber]}
+                color={ledcolor_array[10 + elementNumber]}
               />
             {:else}
               <Button
                 {elementNumber}
                 size={2.1}
-                color={ledcolor_array[elementNumber]}
+                color={ledcolor_array[10 + elementNumber]}
               />
             {/if}
           </div>
