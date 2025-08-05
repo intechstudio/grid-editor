@@ -17,7 +17,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-import { MeltComboData } from "@intechstudio/grid-uikit";
+import { MeltComboData, Color } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
   export enum Channel {
@@ -142,7 +142,7 @@ export namespace SimpleColor {
     layer: MeltComboData;
     element: MeltComboData;
     selectedIndex: number;
-    pickerColor: Grid.HSL | undefined;
+    pickerColor: Color.HSL | undefined;
     alphaSliderValue: number | undefined;
     red: MeltComboData;
     green: MeltComboData;
@@ -190,7 +190,7 @@ export namespace SimpleColor {
       const { red, green, blue, alpha } = parsed.colors[selectedIndex];
       const pickerColor = [red, green, blue].some((e) => isNaN(parseFloat(e)))
         ? undefined
-        : new Grid.RGB(parseInt(red), parseInt(green), parseInt(blue)).toHSL();
+        : new Color.RGB(parseInt(red), parseInt(green), parseInt(blue)).toHSL();
       const alphaSliderValue = isNaN(parseFloat(alpha))
         ? undefined
         : parseFloat(alpha);
@@ -317,7 +317,7 @@ export namespace SimpleColor {
 
         s.pickerColor = [red, green, blue].some((e) => isNaN(parseInt(e)))
           ? undefined
-          : new Grid.RGB(
+          : new Color.RGB(
               parseInt(red),
               parseInt(green),
               parseInt(blue),
@@ -348,7 +348,7 @@ export namespace SimpleColor {
       });
     }
 
-    public updatePickerColor(color: Grid.HSL) {
+    public updatePickerColor(color: Color.HSL) {
       this.update((s) => {
         const { r, g, b } = color.toRGB();
         s.pickerColor = color;
@@ -423,7 +423,7 @@ export namespace SimpleColor {
         const { red, green, blue } = s.previewColors[s.selectedIndex];
         s.pickerColor = [red, green, blue].some((e) => isNaN(parseInt(e)))
           ? undefined
-          : new Grid.RGB(
+          : new Color.RGB(
               parseInt(red),
               parseInt(green),
               parseInt(blue),

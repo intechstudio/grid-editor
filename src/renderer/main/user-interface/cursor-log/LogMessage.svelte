@@ -32,7 +32,7 @@
     {/if}
     <div class="flex bg-secondary my-1 rounded-md bg-opacity-70 w-full">
       <div
-        class="flex flex-row items-center p-2 bg-primary rounded-md border border-opacity-0 hover:border-opacity-60 border-primary-800 hover:bg-primary-700 hover:bg-opacity-80 bg-opacity-50 w-full shadow-md transition-color duration-[30ms]"
+        class="flex flex-row items-center p-2 bg-black/20 rounded-md hover:bg-black/30 hover:bg-opacity-80 bg-opacity-50 w-full shadow-md transition-color duration-[30ms]"
       >
         <div class="px-2 py-1 bg-primary rounded mr-2 text-white">
           {type == "success"

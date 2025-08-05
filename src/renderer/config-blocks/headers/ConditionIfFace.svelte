@@ -36,9 +36,7 @@
   <div class="flex flex-row items-center w-full">
     <span class="mr-4">If</span>
 
-    <div
-      class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full"
-    >
+    <div class="my-auto mr-1 rounded flex items-center flex-grow h-full">
       <LineEditor
         on:input={(e) => {
           const { script } = e.detail;

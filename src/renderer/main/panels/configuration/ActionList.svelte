@@ -135,10 +135,10 @@
     {/if}
 
     <div
-      class="hidden flex flex-row gap-2 justify-between items-center flex-none w-full"
+      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
     >
       <div class="flex flex-col">
-        <span class="text-white">{$event?.getName() ?? "No Device"}</span>
+        <span>{$event?.getName() ?? "No Device"}</span>
         <div class="flex flex-row gap-2">
           <span class="text-gray-500 text-sm">Script length:</span>
           <span data-testid="charCount" class="text-white text-sm">

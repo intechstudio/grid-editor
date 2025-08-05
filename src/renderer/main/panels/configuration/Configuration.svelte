@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Toggle from "../../user-interface/Toggle.svelte";
   import {
     user_input,
     UserInputValue,
@@ -32,8 +31,7 @@
     pasteActions,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
-  import { MeltRadio } from "@intechstudio/grid-uikit";
-  import Toggle from "../../user-interface/Toggle.svelte";
+  import { MeltRadio, Toggle } from "@intechstudio/grid-uikit";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -255,8 +253,8 @@
                 ]}
               />
             {:else}
-              <span class="text-gray-500">Minimalist mode</span>
               <Toggle
+                title="Minimalist mode"
                 on:change={() => {
                   if ($appSettings.persistent.userLevelMinimalist === true) {
                     $appSettings.persistent.userLevelMinimalist = false;
@@ -264,8 +262,7 @@
                     $appSettings.persistent.userLevelMinimalist = true;
                   }
                 }}
-                toggleValue={$appSettings.persistent.userLevelMinimalist ===
-                  true}
+                value={$appSettings.persistent.userLevelMinimalist === true}
               />{/if}
           </div>
         </div>
