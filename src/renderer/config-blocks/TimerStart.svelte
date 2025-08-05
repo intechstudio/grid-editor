@@ -28,6 +28,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    hiddenInMinimalist: true,
   };
 </script>
 

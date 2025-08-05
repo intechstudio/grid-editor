@@ -225,6 +225,10 @@
       comp = comp.filter((e) => !e.information.devOnly);
     }
 
+    if (get(appSettings).persistent.userLevelMinimalist === true) {
+      comp = comp.filter((e) => !e.information.hiddenInMinimalist);
+    }
+
     //Group components by category
     comp = comp.reduce(function (r, a) {
       r[a.information.category] = r[a.information.category] || [];
