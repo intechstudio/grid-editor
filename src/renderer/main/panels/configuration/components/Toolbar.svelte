@@ -120,12 +120,11 @@
       </span>
       <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
-          <span
-            data-testid="charCount"
-            style="color: var(--foreground-disabled)"
-            >Script length:
-          </span>
-          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+          <span style="color: var(--foreground-disabled)">Script length: </span>
+          <span data-testid="charCount"
+            >{$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength -
+              1}</span
+          >
         {:else}
           <span style="color: var(--foreground-disabled)"
             >{selectedAction?.at(1) ?? ""}</span
