@@ -38,10 +38,8 @@ async function prepareForBlockTest(category, blockName) {
   await changeModuleIfNeeded(blockName);
   await configPage.removeAllActions();
   await configPage.noActionAddActionButton.isVisible();
+  await configPage.turnOffMinimalistMode();
   await configPage.openAndAddActionBlock(category, blockName);
-  if (category == "element") {
-    await configPage.clickCategoryCheckboxFields(blockName);
-  }
 }
 
 test.beforeAll(async () => {
@@ -66,6 +64,7 @@ test.describe("Block Existence", () => {
       for (const blockName of blockList) {
         test(`should find ${blockName} block`, async () => {
           const blockElement = configPage.blocks[category][blockName]["block"];
+          await configPage.turnOffMinimalistMode();
           await changeModuleIfNeeded(category);
           await configPage.clearElement();
           await configPage.removeAllActions();
@@ -85,7 +84,6 @@ test.describe("Elements Existence", () => {
           test.beforeAll(async () => {
             await prepareForBlockTest(category, blockName);
           });
-
           // Test
           for (const elementName of elementList) {
             test(`should find ${blockName} block's ${elementName} element`, async () => {
@@ -108,6 +106,7 @@ test.describe("Interactable input field", () => {
           if (blockName == "Press/Release") {
             await configPage.selectElementEvent("Button");
           }
+          await configPage.turnOffMinimalistMode();
           await configPage.removeAllActions();
           await configPage.openAndAddActionBlock(category, blockName);
           const actionBlock = configPage.actionBlock;
@@ -174,6 +173,7 @@ test("should find Else If Actions", async () => {
   const category = "condition";
   const ElseIf = "Else if";
   const Else = "Else";
+  await configPage.turnOffMinimalistMode();
   await configPage.removeAllActions();
   await configPage.noActionAddActionButton.isVisible();
   await configPage.openAndAddActionBlock(category, "If");

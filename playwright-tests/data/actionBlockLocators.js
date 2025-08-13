@@ -168,7 +168,6 @@ export const blocks = (page) => ({
       block: page.getByText("Button Mode"),
       elements: {
         Mode: page.getByLabel("Mode"),
-        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
         Min: page.getByLabel("Min", { exact: true }),
         Max: page.getByLabel("Max", { exact: true }),
       },
@@ -178,10 +177,8 @@ export const blocks = (page) => ({
       elements: {
         Mode: page.getByLabel("Mode"),
         Velocity: page.getByLabel("Velocity"),
-        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
         Min: page.getByLabel("Min", { exact: true }),
         Max: page.getByLabel("Max", { exact: true }),
-        "Enable Sensitivity": page.getByLabel("Enable Sensitivity"),
         Sensitivity: page.getByLabel("Sensitivity", { exact: true }),
       },
     },
@@ -189,7 +186,6 @@ export const blocks = (page) => ({
       block: page.getByText("Potmeter Mode"),
       elements: {
         Bit: page.getByLabel("Bit"),
-        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
         Min: page.getByLabel("Min", { exact: true }),
         Max: page.getByLabel("Max", { exact: true }),
       },
@@ -199,10 +195,8 @@ export const blocks = (page) => ({
       elements: {
         Mode: page.getByLabel("Mode"),
         Velocity: page.getByLabel("Velocity"),
-        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
         Min: page.getByLabel("Min", { exact: true }),
         Max: page.getByLabel("Max", { exact: true }),
-        "Enable Sensitivity": page.getByLabel("Enable Sensitivity"),
         Sensitivity: page.getByLabel("Sensitivity", { exact: true }),
       },
     },

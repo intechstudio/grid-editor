@@ -51,24 +51,20 @@
     "Mouse Move": ["Axis", "Position"]
   },
   "element": {
-    "Button Mode": ["Mode", "Enable Min/Max Value", "Min", "Max"],
+    "Button Mode": ["Mode", "Min", "Max"],
     "Encoder Mode": [
       "Mode",
       "Velocity",
-      "Enable Min/Max Value",
       "Min",
       "Max",
-      "Enable Sensitivity",
       "Sensitivity"
     ],
-    "Potmeter Mode": ["Bit", "Enable Min/Max Value", "Min", "Max"],
+    "Potmeter Mode": ["Bit", "Min", "Max"],
     "Endless Mode": [
       "Mode",
       "Velocity",
-      "Enable Min/Max Value",
       "Min",
       "Max",
-      "Enable Sensitivity",
       "Sensitivity"
     ]
   },

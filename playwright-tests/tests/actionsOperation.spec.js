@@ -222,6 +222,7 @@ test.describe("Character limit", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
+    await configPage.turnOffMinimalistMode();
   });
 
   //test for https://github.com/intechstudio/grid-editor/issues/741
