@@ -37,6 +37,10 @@
   $: fetchPage($page, $selectedConfigStore);
 
   function updateState(page: GridPage, selected: any) {
+    if ($selectedConfigStore?.configType !== "profile") {
+      return;
+    }
+
     if (state === ProfileLoad.State.BUSY) {
       return;
     }
