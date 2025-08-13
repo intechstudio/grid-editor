@@ -91,7 +91,7 @@
 
 <div
   {...$$restProps}
-  class="module-dimensions relative"
+  class="module-dimensions relative bg-primary"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
 >

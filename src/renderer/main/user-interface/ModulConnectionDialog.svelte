@@ -125,10 +125,7 @@
           Try reconnecting your Grid module by unplugging it, then plugging it
           in.
         </span>
-        <SendFeedback
-          feedback_context="Module not responding"
-          class="self-start text-gray-500 text-sm"
-        />
+        <SendFeedback feedback_context="Module not responding" />
       </div>
       <div class="flex flex-col gap-2 mt-4">
         <MoltenPushButton

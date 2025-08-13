@@ -385,11 +385,7 @@
       class="flex w-96"
       style={`max-height: calc(100vh - 27px); width: 20vw;`}
     >
-      <menu
-        id="action-menu"
-        class="shadow-md rounded-md bg-primary border border-gray-700 p-4"
-        style="height: 35rem; width: 20vw;"
-      >
+      <menu id="action-menu" class="action-menu shadow-md rounded-md p-4">
         <wrapper class="flex flex-col w-full h-full gap-2">
           <div class="flex flex-col flex-grow">
             <div class="flex flex-row justify-between">
@@ -416,14 +412,14 @@
                   {option.category[0].toUpperCase() + option.category.slice(1)}
                 </div>
 
-                <div class="w-full flex justify-start py-1 flex-wrap">
+                <div class="w-full flex justify-start py-1 flex-wrap gap-1">
                   {#each option.components as component}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
                     <button
                       style="--action-color: {component.information.color};"
                       on:click={() => handleAddAction({ component })}
-                      class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
+                      class="action-card hover:border-pick cursor-pointer py-0.5 px-1 flex items-center rounded-md text-white"
                     >
                       <div class="w-6 h-6 p-0.5 m-0.5">
                         {@html component.information.icon}
@@ -483,5 +479,12 @@
 
   ::-webkit-scrollbar-corner {
     background: #1e2628;
+  }
+
+  .action-menu {
+    background-color: var(--background);
+    border: 1px solid var(--background-soft);
+    height: 35rem;
+    width: 20vw;
   }
 </style>

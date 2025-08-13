@@ -44,18 +44,23 @@
 <MoltenModal {data}>
   <div slot="content" class="flex flex-col gap-2 items-center">
     <div class="w-full flex justify-between items-center">
-      <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
+      <div class="text-foreground-muted text-sm pb-1">
+        Export Configurations
+      </div>
 
-      <MoltenIconButton
-        on:click={() => {
-          data.close();
-        }}
-      />
+      <div id="close-btn">
+        <MoltenIconButton
+          iconPath="close"
+          on:click={() => {
+            data.close();
+          }}
+        />
+      </div>
     </div>
 
     <textarea
       value={$event.toLua()}
-      class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
+      class="min-h-200 font-mono w-full p-1 my-1 rounded bg-background-muted"
     />
 
     <MoltenPushButton click={handleCopy} text="Copy" style="accept">

@@ -55,14 +55,12 @@
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
       component: VSNX,
-      unrelease: true,
       hwcfg: 59,
     },
     {
       id: ModuleType.VSN1R,
       type: ModuleType.VSN1R,
       component: VSNX,
-      unrelease: true,
       hwcfg: 91,
     },
     {
@@ -140,9 +138,7 @@
           {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
             <div class="flex w-full h-full items-center justify-center">
               <div class="flex flex-col">
-                <span class="text-white text-opacity-75 font-mono"
-                  >{device.id}</span
-                >
+                <span class="font-mono">{device.id}</span>
                 <button
                   data-testid={device.id}
                   class="border"
@@ -160,9 +156,7 @@
                       transform: scale(0.5); 
                     "
                   >
-                    <div
-                      class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
-                    >
+                    <div class="w-fit h-fit rounded shadow-lg">
                       <svelte:component
                         this={device.component}
                         {device}

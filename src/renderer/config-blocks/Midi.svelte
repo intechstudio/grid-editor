@@ -44,7 +44,7 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { midiCC } from "./_midi.js";
@@ -55,7 +55,6 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
   import { Validator } from "./validators";
-  import { valid } from "semver";
 
   export let config: GridAction;
 
@@ -238,5 +237,7 @@
     {/each}
   </div>
 
-  <SendFeedback feedback_context="Midi" class="mt-2 text-sm text-gray-500" />
+  <div class="mt-2">
+    <SendFeedback feedback_context="Midi" />
+  </div>
 </action-midi>

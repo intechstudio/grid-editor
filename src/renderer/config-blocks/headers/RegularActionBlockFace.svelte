@@ -74,7 +74,7 @@
 <div
   role="button"
   tabindex="0"
-  class="justify-between gap-2 w-full px-2 py-1 flex-row text-white flex items-center bg-secondary overflow-hidden pointer-events-none"
+  class="justify-between gap-2 w-full px-2 py-1 flex-row flex items-center overflow-hidden pointer-events-none bg-background-muted"
   on:click={handleClick}
 >
   {#if isEdit}

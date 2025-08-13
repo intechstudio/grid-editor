@@ -412,6 +412,7 @@ function createWindow() {
 let stopPackageManagerTimeout = undefined;
 let restartPackageManagerOnShutdown = true;
 let packageEditorPort = undefined;
+let packageManagerCachedData = undefined;
 function startPackageManager(
   updatePackageOnStartName: string | undefined = undefined,
 ) {
@@ -452,6 +453,8 @@ function startPackageManager(
         } else {
           app.quit();
         }
+      } else if (message.type === "cache-temp-data") {
+        packageManagerCachedData = message.data;
       } else {
         packageEditorPort?.postMessage(message);
       }
@@ -464,6 +467,7 @@ function startPackageManager(
       githubPackages: store.get("githubPackages"),
       localPackages: store.get("localPackages"),
       updatePackageOnStartName,
+      cachedData: packageManagerCachedData,
     });
 
     for (const _package of store.get("enabledPackages") ?? []) {
