@@ -46,7 +46,7 @@
 
 <container class={$$props.class}>
   <div
-    style="background-color: var(--background)"
+    style="background-color: var(--background); color: var(--foreground-muted)"
     class="flex flex-row items-center p-2 gap-3 px-3 rounded-lg"
   >
     <div

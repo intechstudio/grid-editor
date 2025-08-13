@@ -80,7 +80,7 @@
       short: `${data.element.value}:glc`,
       array: [
         data.layer.value,
-        `{${data.previewColors
+        `{${data.colors
           .map((e) => `{${[e.red, e.green, e.blue, e.alpha].join(",")}}`)
           .join(",")}}`,
       ],
@@ -117,7 +117,7 @@
   }
 
   function handleAddLayer() {
-    const last = get(data).previewColors.at(-1);
+    const last = get(data).colors.at(-1);
     data.addLayer(last);
     sendData(get(data));
     dispatch("sync");
@@ -153,14 +153,6 @@
     { title: "HSL", value: ColorPickerModel.Slider },
   ];
 
-  function colorToCSS(color: SimpleColor.Color) {
-    if (Object.values(color).some((e) => isNaN(Number(e)))) {
-      return "white";
-    } else {
-      return `rgba(${Object.values(color).join(",")})`;
-    }
-  }
-
   function getGradient(colors: SimpleColor.Color[]) {
     const array = [
       ...(colors.length === 1
@@ -168,51 +160,52 @@
         : []),
       ...colors,
     ];
-    const cssValue = array.map((e) => colorToCSS(e)).join(",");
+    const cssValue = array.map((e) => SimpleColor.colorToCSS(e)).join(",");
     return cssValue;
   }
 
-  function getCurrentColor(data: SimpleColor.ViewModelData) {
+  function getMixerPreviewColor(data: SimpleColor.ViewModelData) {
     const { previewColors, selectedIndex } = data;
-    return colorToCSS(previewColors[selectedIndex]);
+    return SimpleColor.colorToCSS(previewColors[selectedIndex]);
   }
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-  <div class="flex flex-row w-full gap-2">
-    <MeltCombo
-      title={"Element"}
-      value={$data.element.value}
-      validator={$data.element.validator.func}
-      suggestions={$data.element.suggestions}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        $data.element.value = value;
-        $data.element.validator.value = !validationError;
-        sendData($data);
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
+  {#if $appSettings.persistent.userLevelMinimalist == false}
+    <div class="flex flex-row w-full gap-2">
+      <MeltCombo
+        title={"Element"}
+        value={$data.element.value}
+        validator={$data.element.validator.func}
+        suggestions={$data.element.suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          $data.element.value = value;
+          $data.element.validator.value = !validationError;
+          sendData($data);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
 
-    <MeltCombo
-      title={"Layer"}
-      value={$data.layer.value}
-      validator={$data.layer.validator.func}
-      suggestions={$data.layer.suggestions}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        $data.layer.value = value;
-        $data.layer.validator.value = !validationError;
-        sendData($data);
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
-  </div>
-
+      <MeltCombo
+        title={"Layer"}
+        value={$data.layer.value}
+        validator={$data.layer.validator.func}
+        suggestions={$data.layer.suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          $data.layer.value = value;
+          $data.layer.validator.value = !validationError;
+          sendData($data);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    </div>
+  {/if}
   <ColorLayerSelector
     colors={$data.previewColors}
     selected={$data.selectedIndex}
@@ -235,7 +228,7 @@
       <span class="text-lg">Mixer</span>
       <div
         class="flex rounded-full w-1/3 h-6"
-        style="background-color: {getCurrentColor($data)};"
+        style="background-color: {getMixerPreviewColor($data)};"
       />
     </div>
     <div
@@ -253,7 +246,12 @@
               suggestions={$data[channel].suggestions}
               on:input={(e) => {
                 const { value, validationError } = e.detail;
-                data.updateRGBAChannelValue(value, validationError, channel);
+                data.updateRGBAChannelValue(
+                  config,
+                  value,
+                  validationError,
+                  channel,
+                );
                 sendData($data);
               }}
               on:change={() => dispatch("sync")}
@@ -263,7 +261,7 @@
           </div>
         {/each}
       </div>
-      <div class="flex w-32 h-full items-center justify-center">
+      <div class="flex w-32 h-32 items-center justify-center">
         <svelte:component
           this={colorPickerComponent.get($appSettings.persistent.colorPicker)}
           color={$data.pickerColor}
@@ -287,6 +285,7 @@
           on:input={(e) => {
             const { value, validationError } = e.detail;
             data.updateRGBAChannelValue(
+              config,
               value,
               validationError,
               SimpleColor.Channel.ALPHA,
@@ -317,14 +316,16 @@
     </div>
   </ControlGroup>
 
-  <MeltCheckbox
-    bind:target={$data.updateIntensity}
-    on:change={(e) => {
-      data.UpdateIntensityEnabledValue(e.detail);
-      sendData($data);
-      dispatch("sync");
-    }}
-    title={"Update intensity automatically"}
-  />
+  {#if $appSettings.persistent.userLevelMinimalist == false}
+    <MeltCheckbox
+      bind:target={$data.updateIntensity}
+      on:change={(e) => {
+        data.UpdateIntensityEnabledValue(e.detail);
+        sendData($data);
+        dispatch("sync");
+      }}
+      title={"Update intensity automatically"}
+    />
+  {/if}
   <SendFeedback feedback_context="LedColor" />
 </config-led-color>

@@ -15,8 +15,8 @@
   width: {size * buttonSize + 'px'};
   height: {size * buttonSize + 'px'};"
 >
-  <div class="relative background inner-shadow">
-    <div class="flex w-full h-full inner-border" />
+  <div class="relative background">
+    <div class="flex w-full h-full" />
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2"
       style="margin-top: 4px;"
@@ -27,7 +27,7 @@
     {#if value}
       <div class="pressure-bar">
         <div
-          class="flex w-full bg-white/50"
+          class="flex w-full bg-white/20"
           style="height: {(100 / 127) * value}%;"
         />
       </div>
@@ -41,28 +41,17 @@
     position: absolute;
     right: 0;
     top: 0;
-    width: 4px;
-    height: calc(100% - 14px);
-    margin: 6px 6px 0px 0px;
+    width: 100%;
+    height: 100%;
     place-items: end;
   }
   .background {
     display: flex;
-    background-color: rgb(55, 55, 55);
+    background-color: var(--background-muted);
+    border: 1px solid var(--background-soft);
     width: 100%;
     height: 100%;
+    overflow: hidden;
     border-radius: 3px;
-  }
-
-  .inner-shadow {
-    box-shadow: inset 0 0 15px rgb(36, 36, 36);
-  }
-
-  .inner-border {
-    box-shadow:
-      inset 0 2px 0 0 rgb(35, 35, 35),
-      inset 4px 0 0 0 rgb(43, 43, 43),
-      inset 0 -4px 0 0 rgb(45, 45, 45),
-      inset -4px 0 0 0 rgb(60, 60, 60);
   }
 </style>

@@ -49,4 +49,5 @@ interface Information {
   syntaxPreprocessor?: SyntaxPreprocessor;
   helperText?: string;
   devOnly?: boolean;
+  hiddenInMinimalist?: boolean;
 }

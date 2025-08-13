@@ -12,7 +12,7 @@
     category: "element settings",
     color: "#5F416D",
     displayName: "Potmeter Mode",
-    defaultLua: "self:pmo(7)",
+    defaultLua: "self:pmo(7) self:pmi(0) self:pma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     selectable: true,
@@ -31,6 +31,7 @@
     MeltCheckbox,
     Block,
     BlockBody,
+    BlockRow,
     MeltCombo,
   } from "@intechstudio/grid-uikit";
   import { GridAction } from "../runtime/runtime.js";
@@ -87,17 +88,10 @@
 
     pmo = parts.pmo;
 
-    minMaxEnabled = !!parts.pmi || !!parts.pma;
-    if (minMaxEnabled) {
+    if (!!parts.pmi || !!parts.pma) {
       pmi = parts.pmi;
       pma = parts.pma;
     }
-  }
-
-  $: handleMinMaxChange(minMaxEnabled);
-  function handleMinMaxChange(value) {
-    sendData();
-    syncWithGrid();
   }
 
   function syncWithGrid() {
@@ -107,9 +101,7 @@
   function sendData() {
     const optional = [];
 
-    if (minMaxEnabled) {
-      optional.push(`self:pmi(${pmi})  self:pma(${pma})`);
-    }
+    optional.push(`self:pmi(${pmi})  self:pma(${pma})`);
 
     dispatch("update-action", {
       short: "spc",
@@ -136,44 +128,35 @@
     ],
   ];
 
-  let minMaxEnabled = false;
-
   function calculateStepSize(bit, min, max) {
     return ((max - min + 1) / Math.pow(2, bit)).toFixed(2);
   }
 
   let stepSize;
-  $: stepSize = calculateStepSize(
-    Number(pmo),
-    minMaxEnabled ? Number(pmi) : 0,
-    minMaxEnabled ? Number(pma) : 127,
-  );
+  $: stepSize = calculateStepSize(Number(pmo), Number(pmi), Number(pma));
 </script>
 
 <potmeter-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
-  <MeltCombo
-    title={"Bit depth"}
-    value={pmo}
-    suggestions={suggestions[0]}
-    validator={validators[0].func}
-    on:input={(e) => {
-      const { value, validationError } = e.detail;
-      pmo = value;
-      validators[0].value = !validationError;
-      sendData();
-    }}
-    on:change={syncWithGrid}
-    postProcessor={GridScript.shortify}
-    preProcessor={GridScript.humanize}
-  />
-
   <Block>
-    <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+    <MeltCombo
+      title={"Bit depth"}
+      value={pmo}
+      suggestions={suggestions[0]}
+      validator={validators[0].func}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        pmo = value;
+        validators[0].value = !validationError;
+        sendData();
+      }}
+      on:change={syncWithGrid}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
 
-    <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+    <BlockRow>
       <MeltCombo
         title={"Min"}
-        disabled={!minMaxEnabled}
         value={pmi}
         validator={validators[1].func}
         on:input={(e) => {
@@ -189,7 +172,6 @@
 
       <MeltCombo
         title={"Max"}
-        disabled={!minMaxEnabled}
         value={pma}
         suggestions={suggestions[1]}
         validator={validators[2].func}
@@ -203,17 +185,11 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-    </div>
-    <BlockBody>
-      Note: When Min/Max values are disabled, any changes to the default values
-      will only be reset after storing.
-    </BlockBody>
+    </BlockRow>
   </Block>
 
-  {#if minMaxEnabled}
-    <div class="flex flex-row gap-2">
-      <span class="text-gray-500 text-sm">Step size:</span>
-      <span class="text-white text-sm">{stepSize}</span>
-    </div>
-  {/if}
+  <div class="flex flex-row gap-2">
+    <span class="text-gray-500 text-sm">Step size:</span>
+    <span class="text-white text-sm">{stepSize}</span>
+  </div>
 </potmeter-settings>

@@ -225,6 +225,10 @@
       comp = comp.filter((e) => !e.information.devOnly);
     }
 
+    if (get(appSettings).persistent.userLevelMinimalist === true) {
+      comp = comp.filter((e) => !e.information.hiddenInMinimalist);
+    }
+
     //Group components by category
     comp = comp.reduce(function (r, a) {
       r[a.information.category] = r[a.information.category] || [];
@@ -464,21 +468,6 @@
 
   .action-card:hover {
     background-color: rgba(95, 120, 133, 1);
-  }
-
-  ::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-    background: #1e2628;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #286787;
-    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: #1e2628;
   }
 
   .action-menu {
