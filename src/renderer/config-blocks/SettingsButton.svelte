@@ -12,7 +12,7 @@
     category: "element settings",
     displayName: "Button Mode",
     color: "#5F416D",
-    defaultLua: "self:bmo(0)",
+    defaultLua: "self:bmo(0) self:bmi(0) self:bma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
     selectable: true,
@@ -31,6 +31,7 @@
     MeltCheckbox,
     Block,
     BlockBody,
+    BlockRow,
     MeltCombo,
     MeltComboSuggestion,
   } from "@intechstudio/grid-uikit";
@@ -99,17 +100,10 @@
 
     bmo = parts.bmo;
 
-    minMaxEnabled = !!parts.bmi || !!parts.bma;
-    if (minMaxEnabled) {
+    if (!!parts.bmi || !!parts.bma) {
       bmi = parts.bmi;
       bma = parts.bma;
     }
-  }
-
-  $: handleMinMaxChange(minMaxEnabled);
-  function handleMinMaxChange(value) {
-    sendData();
-    syncWithGrid();
   }
 
   function syncWithGrid() {
@@ -118,9 +112,7 @@
 
   function sendData() {
     const optional = [];
-    if (minMaxEnabled) {
-      optional.push(`self:bmi(${bmi}) self:bma(${bma})`);
-    }
+    optional.push(`self:bmi(${bmi}) self:bma(${bma})`);
 
     dispatch("update-action", {
       short: `sbc`,
@@ -151,39 +143,35 @@
     ],
   ];
 
-  let minMaxEnabled = false;
-
   let stepValues: number[];
   $: stepValues = SettingsButton.calculateStepValuesFirmwareStyle(
     Number(bmo) + 1,
-    minMaxEnabled ? Number(bmi) : 0,
-    minMaxEnabled ? Number(bma) : 127,
+    Number(bmi),
+    Number(bma),
   );
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
-  <MeltCombo
-    title={"Button Mode"}
-    value={bmo}
-    suggestions={suggestions[0]}
-    validator={validators[0].func}
-    on:input={(e) => {
-      const { value, validationError } = e.detail;
-      bmo = value;
-      validators[0].value = !validationError;
-      sendData();
-    }}
-    on:change={syncWithGrid}
-    postProcessor={GridScript.shortify}
-    preProcessor={GridScript.humanize}
-  />
-
   <Block>
-    <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
-    <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+    <MeltCombo
+      title={"Button Mode"}
+      value={bmo}
+      suggestions={suggestions[0]}
+      validator={validators[0].func}
+      on:input={(e) => {
+        const { value, validationError } = e.detail;
+        bmo = value;
+        validators[0].value = !validationError;
+        sendData();
+      }}
+      on:change={syncWithGrid}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
+
+    <BlockRow>
       <MeltCombo
         title={"Min"}
-        disabled={!minMaxEnabled}
         value={bmi}
         validator={validators[1].func}
         on:input={(e) => {
@@ -199,7 +187,6 @@
 
       <MeltCombo
         title={"Max"}
-        disabled={!minMaxEnabled}
         value={bma}
         validator={validators[2].func}
         suggestions={suggestions[1]}
@@ -213,18 +200,10 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-    </div>
-
-    <BlockBody>
-      Note: When Min/Max values are disabled, any changes to the default values
-      will only be reset after storing.
-    </BlockBody>
+    </BlockRow>
   </Block>
 
-  <div
-    class="flex flex-row gap-2"
-    class:invisible={!minMaxEnabled || Number(bmo) === 0}
-  >
+  <div class="flex flex-row gap-2" class:invisible={Number(bmo) === 0}>
     <span class="text-gray-500 text-sm">Step values:</span>
     <div class="text-white text-sm">
       {#each stepValues as step, i}

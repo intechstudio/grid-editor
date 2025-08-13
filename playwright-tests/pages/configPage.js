@@ -160,23 +160,8 @@ export class ConfigPage {
     await this.page.getByRole("button", { name: "Add +" }).nth(2).click();
   }
 
-  async clickCategoryCheckboxFields(blockName) {
-    await this.clickCategoryMinMax();
-    if (blockName === "Encoder Mode" || blockName === "Endless Mode") {
-      await this.clickCategorySensitivity();
-    }
-  }
-
   async searchBlock(search) {
     this.blockSearch.fill(search);
-  }
-
-  async clickCategoryMinMax() {
-    await this.elementMinMaxButton.click();
-  }
-
-  async clickCategorySensitivity() {
-    await this.elementSensitivity.click();
   }
 
   // Element and Action Operations

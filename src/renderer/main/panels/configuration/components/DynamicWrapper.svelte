@@ -184,16 +184,16 @@
 >
   {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
-      <div class="w-3 h-3 rounded-full bg-secondary" />
+      <div class="w-3 h-3 rounded-full" />
     </div>
   {/each}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="flex flex-grow h-auto min-h-[32px] border {!$action.isValid()
-      ? 'border-error'
-      : 'border-black'} cursor-pointer border-background-soft"
+    class="flex flex-grow h-auto min-h-[32px] {!$action.isValid()
+      ? 'border border-error'
+      : 'border border-background-soft'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
     class:opacity-20={$draggedActions.includes(action)}
@@ -229,7 +229,7 @@
         <!-- Content of block -->
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="h-full w-full bg-background-muted">
+          <div class="h-full w-full bg-background-mute">
             <svelte:component
               this={component}
               config={action}

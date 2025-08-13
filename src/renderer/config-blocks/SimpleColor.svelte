@@ -171,40 +171,41 @@
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-  <div class="flex flex-row w-full gap-2">
-    <MeltCombo
-      title={"Element"}
-      value={$data.element.value}
-      validator={$data.element.validator.func}
-      suggestions={$data.element.suggestions}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        $data.element.value = value;
-        $data.element.validator.value = !validationError;
-        sendData($data);
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
+  {#if $appSettings.persistent.userLevelMinimalist == false}
+    <div class="flex flex-row w-full gap-2">
+      <MeltCombo
+        title={"Element"}
+        value={$data.element.value}
+        validator={$data.element.validator.func}
+        suggestions={$data.element.suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          $data.element.value = value;
+          $data.element.validator.value = !validationError;
+          sendData($data);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
 
-    <MeltCombo
-      title={"Layer"}
-      value={$data.layer.value}
-      validator={$data.layer.validator.func}
-      suggestions={$data.layer.suggestions}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        $data.layer.value = value;
-        $data.layer.validator.value = !validationError;
-        sendData($data);
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
-  </div>
-
+      <MeltCombo
+        title={"Layer"}
+        value={$data.layer.value}
+        validator={$data.layer.validator.func}
+        suggestions={$data.layer.suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          $data.layer.value = value;
+          $data.layer.validator.value = !validationError;
+          sendData($data);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    </div>
+  {/if}
   <ColorLayerSelector
     colors={$data.previewColors}
     selected={$data.selectedIndex}
@@ -315,14 +316,16 @@
     </div>
   </ControlGroup>
 
-  <MeltCheckbox
-    bind:target={$data.updateIntensity}
-    on:change={(e) => {
-      data.UpdateIntensityEnabledValue(e.detail);
-      sendData($data);
-      dispatch("sync");
-    }}
-    title={"Update intensity automatically"}
-  />
+  {#if $appSettings.persistent.userLevelMinimalist == false}
+    <MeltCheckbox
+      bind:target={$data.updateIntensity}
+      on:change={(e) => {
+        data.UpdateIntensityEnabledValue(e.detail);
+        sendData($data);
+        dispatch("sync");
+      }}
+      title={"Update intensity automatically"}
+    />
+  {/if}
   <SendFeedback feedback_context="LedColor" />
 </config-led-color>

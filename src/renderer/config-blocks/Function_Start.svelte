@@ -30,5 +30,6 @@
     type: "composite_open",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
+    hiddenInMinimalist: true,
   };
 </script>

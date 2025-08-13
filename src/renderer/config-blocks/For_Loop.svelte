@@ -27,5 +27,6 @@
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
     helperText: "Actions here are triggered each time the loop runs.",
+    hiddenInMinimalist: true,
   };
 </script>

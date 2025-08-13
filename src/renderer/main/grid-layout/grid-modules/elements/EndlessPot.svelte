@@ -33,7 +33,7 @@
   }
 </script>
 
-<div class="w-auto h-auto rounded-full border border-gray-800">
+<div class="knob-element">
   <svg
     on:grabstart={handleGrabStart}
     on:grabmove={handleGrabMove}
@@ -48,8 +48,7 @@
   >
     <path
       d="M29.5 15C29.5 23.0082 23.0081 29.5 15 29.5C6.99187 29.5 0.5 23.0082 0.5 15C0.5 6.9919 6.99187 0.500031 15 0.500031C23.0081 0.500031 29.5 6.9919 29.5 15Z"
-      fill="#323232"
-      stroke="#2B2B2B"
+      class="knob-edge"
     />
     <g
       style="transform:rotate({-50 +
@@ -57,10 +56,11 @@
     >
       <path
         d="M27 15C27 21.6274 21.6274 27 15 27C8.37258 27 3 21.6274 3 15C3 8.37258 8.37258 3 15 3C21.6274 3 27 8.37258 27 15Z"
-        fill="#373737"
+        class="knob-face"
       />
       <circle
-        style="fill:#232323;stroke:#2c2c2c;stroke-width:0.37795276;fill-opacity:1;stroke-opacity:1;stroke-dasharray:none"
+        class="knob-dent"
+        style="stroke-width:0.67795276;fill-opacity:1;stroke-opacity:1;stroke-dasharray:none"
         id="path468"
         cx="5.6170802"
         cy="15"
@@ -69,6 +69,3 @@
     </g>
   </svg>
 </div>
-
-<style>
-</style>

@@ -133,22 +133,13 @@
         </div>
       </div>
     {/if}
+    <!--- <Options
 
     <div
       class="flex flex-row gap-2 justify-between items-center flex-none w-full"
     >
-      <div class="flex flex-col">
-        <span>{$event?.getName() ?? "No Device"}</span>
-        <div class="flex flex-row gap-2">
-          <span class="text-gray-500 text-sm">Script length:</span>
-          <span data-testid="charCount" class="text-white text-sm">
-            {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
-          </span>
-        </div>
-      </div>
-      <Options
-        testid="select_all"
-        selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
+      testid="select_all"
+      selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
           false}
         halfSelected={$event?.config.some((e) =>
           $selected_actions.includes(e),
@@ -156,7 +147,7 @@
         disabled={($event?.config?.length ?? 0) === 0}
         on:select={handleSelectAll}
       />
-    </div>
+    </div> -->
 
     <ul
       bind:this={configList}
@@ -235,20 +226,3 @@
     {/if}
   </div>
 {/key}
-
-<style global>
-  ::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-    background: #1e2628;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #286787;
-    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: #1e2628;
-  }
-</style>

@@ -38,7 +38,7 @@
 <div class="flex flex-col items-center">
   <Led {color} size={2.1} />
 
-  <div class="w-auto h-auto rounded-full border border-gray-800">
+  <div class="knob-element">
     <svg
       on:grabstart={handleGrabStart}
       on:grabmove={handleGrabMove}
@@ -52,17 +52,16 @@
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
+        class="knob-edge"
         d="M29.5 15C29.5 23.0082 23.0081 29.5 15 29.5C6.99187 29.5 0.5 23.0082 0.5 15C0.5 6.9919 6.99187 0.500031 15 0.500031C23.0081 0.500031 29.5 6.9919 29.5 15Z"
-        fill="#323232"
-        stroke="#2B2B2B"
       />
       <g
         style="transform:rotate({-50 +
           Math.round(position * midiToDeg)}deg); transform-origin:center;"
       >
         <path
+          class="knob-face"
           d="M27 15C27 21.6274 21.6274 27 15 27C8.37258 27 3 21.6274 3 15C3 8.37258 8.37258 3 15 3C21.6274 3 27 8.37258 27 15Z"
-          fill="#373737"
         />
         <path
           d="M4.84618 15H12.1863"

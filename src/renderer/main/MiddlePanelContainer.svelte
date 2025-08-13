@@ -91,7 +91,7 @@
 <container
   bind:this={container}
   use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
-  style="color: var(--foreground)"
+  style="color: var(--foreground); background-color: color-mix(in srgb, var(--background) 90%, var(--foreground));"
   class="grid grid-rows-[1fr_auto] w-full h-full"
 >
   <div
@@ -105,13 +105,10 @@
     {/if}
 
     <div
-      class="absolute top-0 w-fit self-center mt-12 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex justify-center"
+      style="background-color: var(--background); color: var(--foreground-muted);"
+      class="absolute top-0 w-fit self-center mt-12 z-[1] rounded-lg py-2 px-4 items-center flex justify-center"
     >
-      {#if showModuleHangingDialog}
-        <ModuleHangingDialog />
-      {:else}
-        <ActiveChanges />
-      {/if}
+      <ActiveChanges />
     </div>
 
     <GridLayout
