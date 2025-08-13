@@ -534,7 +534,7 @@ function handleDeveloperWebsocketMessage(data: any) {
 let openWindows: Map<String, BrowserWindow> = new Map();
 function createPackageWindow(args) {
   const windowId = args.windowId;
-  if (openWindows.has(windowId) && args.recreateIfExists) {
+  if (openWindows.has(windowId)) {
     if (args.recreateIfExists) {
       closePackageWindow(windowId);
     } else {
@@ -556,6 +556,7 @@ function createPackageWindow(args) {
     resizable: args.resizable,
     transparent: args.transparent,
     alwaysOnTop: args.alwaysOnTop,
+    title: args.title ?? `Grid Editor - ${windowId}`,
     x: args.x ?? 0,
     y: args.y ?? 0,
     webPreferences: {
@@ -588,8 +589,8 @@ function createPackageWindow(args) {
 function closePackageWindow(windowId) {
   let window = openWindows.get(windowId);
   if (window) {
-    window.close();
     openWindows.delete(windowId);
+    window.close();
   }
 }
 
