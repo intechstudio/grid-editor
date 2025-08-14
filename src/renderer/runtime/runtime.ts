@@ -30,6 +30,7 @@ import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
+import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
 
 type UUID = string;
 type LuaScript = string;
@@ -1017,9 +1018,8 @@ export class GridEvent extends RuntimeNode<EventData> {
       const descr = await instruction.executeOn(runtime.connection);
 
       const script = descr.class_parameters.ACTIONSTRING;
-      const actions = GridAction.parse(script);
+      this.push(...GridAction.parse(script));
 
-      this.push(...actions);
       this.store();
       this.state = GridNodeState.SYNCED;
       return Promise.resolve();
@@ -1298,6 +1298,15 @@ export class GridElement extends RuntimeNode<ElementData> {
       for (const event of this.events) {
         await event.load();
       }
+
+      const setup = this.findEvent(0);
+      const action = setup.actionAt(0);
+      if (action?.short === elementNameInformation.short) {
+        const regex = elementNameInformation.valueRegex;
+        const name = action.script.match(regex)[1];
+        this.name = name;
+      }
+
       return Promise.resolve();
     } catch (e) {
       return Promise.reject(e);
