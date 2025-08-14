@@ -152,9 +152,19 @@
             <div
               in:fly|global={{ x: -10 }}
               out:fly|global={{ x: 10 }}
-              class="w-fit absolute right-0 bottom-0 mb-12 mr-10"
+              class="w-fit absolute right-0 bottom-0 mb-6 mr-4 flex flex-row items-center gap-2"
             >
-              <!-- <Tracker /> -->
+              <Tracker />
+              <PanelToggleButton
+                value={false}
+                direction={"down"}
+                on:toggle={(e) => {
+                  const value = e.detail;
+                  $splitpanes.minimap.size = value
+                    ? 0
+                    : $splitpanes.minimap.default;
+                }}
+              />
             </div>
           {/if}
 
@@ -163,17 +173,6 @@
             on:content-change={handleContentChange}
           />
         </div>
-      </div>
-
-      <div class="absolute bottom-0 right-0 m-2">
-        <PanelToggleButton
-          value={false}
-          direction={"down"}
-          on:toggle={(e) => {
-            const value = e.detail;
-            $splitpanes.minimap.size = value ? 0 : $splitpanes.minimap.default;
-          }}
-        />
       </div>
     </container>
   </Pane>
