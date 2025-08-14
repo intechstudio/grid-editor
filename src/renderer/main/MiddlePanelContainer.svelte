@@ -154,7 +154,7 @@
               out:fly|global={{ x: 10 }}
               class="w-fit absolute right-0 bottom-0 mb-12 mr-10"
             >
-              <Tracker />
+              <!-- <Tracker /> -->
             </div>
           {/if}
 
