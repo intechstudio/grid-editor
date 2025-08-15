@@ -34,6 +34,7 @@
     copyElement,
     clearElement,
     pasteActions,
+    updateAction,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
   import { MeltRadio, MoltenInput, Toggle } from "@intechstudio/grid-uikit";
@@ -66,19 +67,24 @@
     handleElementChange(element);
   }
 
-  function handleElementNameChange(name: string | undefined) {
+  function handleElementNameChange(value: string | undefined) {
+    if (typeof element === "undefined") {
+      return;
+    }
+
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
     const action = setup.actionAt(0);
 
     if (action?.short === elementNameInformation.short) {
       const regex = elementNameInformation.valueRegex;
-      const value = action.script.match(regex)[1];
-      if (name.length > 0) {
-        if (value !== name) {
-          action.update((s) => {
-            s.script = generateScript(name);
-            return s;
-          });
+      const name = action.script.match(regex)[1];
+      if (value.length > 0) {
+        if (name !== value) {
+          const data = new ActionData(
+            elementNameInformation.short,
+            generateScript(value),
+          );
+          updateAction(action, data, true);
         }
       } else {
         setup.remove(action);
@@ -86,7 +92,7 @@
     } else {
       const data = new ActionData(
         elementNameInformation.short,
-        generateScript(name),
+        generateScript(value),
       );
       setup.insert(0, new GridAction(setup, data));
     }
@@ -331,7 +337,12 @@
         {/if}
 
         {#if $element}
-          <MoltenInput bind:target={elementName} />
+          <div
+            class="flex flex-row gap-2 px-2 w-full items-center whitespace-nowrap"
+          >
+            <span>Element Name:</span>
+            <MoltenInput bind:target={elementName} />
+          </div>
         {/if}
         <Toolbar {event} {element} targetPanel={container} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
