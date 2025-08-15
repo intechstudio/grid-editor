@@ -130,6 +130,13 @@ export namespace Grid {
     }
   }
 
+  export function addRotations(
+    a: Grid.Rotation,
+    b: Grid.Rotation,
+  ): Grid.Rotation {
+    return (a + b) % 360;
+  }
+
   export function rotateDirection(
     direction: Grid.Direction,
     rotation: Grid.Rotation,
@@ -143,6 +150,23 @@ export namespace Grid {
     const index = directions.indexOf(direction);
     const steps = (rotation / 90) % 4;
     return directions[(index - steps + 4) % 4];
+  }
+
+  export function findNearestNeighbour<T>(
+    arr: T[],
+    index: number,
+  ): T | undefined {
+    const len = arr.length;
+
+    for (let i = index + 1; i < len; i++) {
+      if (arr[i] !== undefined) return arr[i];
+    }
+
+    for (let i = index - 1; i >= 0; i--) {
+      if (arr[i] !== undefined) return arr[i];
+    }
+
+    return undefined;
   }
 
   export function parseBracketValues(value: string): string[] {

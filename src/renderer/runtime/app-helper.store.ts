@@ -70,6 +70,7 @@ interface SplitPaneData {
   left: PaneData;
   middle: PaneData;
   right: PaneData;
+  minimap: PaneData;
 }
 
 function createSplitPanes(): Writable<SplitPaneData> {
@@ -77,6 +78,7 @@ function createSplitPanes(): Writable<SplitPaneData> {
     left: { size: 25, default: 25 },
     middle: { size: 50, default: 50 },
     right: { size: 25, default: 25 },
+    minimap: { size: 20, default: 20 },
   };
 
   return writable(obj);

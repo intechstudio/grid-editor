@@ -14,8 +14,9 @@
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
-  import AddModuleButton from "./AddModuleButton.svelte";
   import { GridModule, GridRuntime } from "../../runtime/runtime";
+  import AddButton from "../user-interface/AddButton.svelte";
+  import { Grid } from "../../lib/_utils";
 
   export let component: HTMLElement = undefined;
   export let runtime: GridRuntime;
@@ -41,7 +42,13 @@
 
   let layoutMargin = { left: 0, right: 0, top: 0, bottom: 0 };
 
-  $: calculateRotation($appSettings.persistent.moduleRotation);
+  $: {
+    const rotation = Grid.addRotations(
+      $appSettings.persistent.moduleRotation,
+      $runtime.rotation,
+    );
+    calculateRotation(rotation);
+  }
   $: handleScalingChange($scale);
 
   function handleResize(e) {
@@ -64,7 +71,7 @@
     shiftY = rotation == 270 || rotation == 180 ? layoutHeight : 0;
   }
 
-  function calculateRotation(value) {
+  function calculateRotation(value: Grid.Rotation) {
     rotationBuffer = rotation;
     rotation = value;
 
@@ -202,7 +209,10 @@
               out:fade|global={{ duration: interactive ? 200 : 0 }}
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
-              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+              id="{interactive ? '' : `${device.id}-`}grid-device-{'dx:' +
+                device.dx +
+                ';dy:' +
+                device.dy}"
               class="relative"
             >
               {#if device.architecture === Architecture.VIRTUAL && interactive}
@@ -211,7 +221,7 @@
                   <div
                     class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 h-full"
                   >
-                    <AddModuleButton
+                    <AddButton
                       on:click={() =>
                         handleAddModuleButtonClicked(device.dx - 1, device.dy)}
                     />
@@ -223,7 +233,7 @@
                   <div
                     class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2 h-full"
                   >
-                    <AddModuleButton
+                    <AddButton
                       on:click={() =>
                         handleAddModuleButtonClicked(device.dx + 1, device.dy)}
                     />
@@ -235,7 +245,7 @@
                   <div
                     class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2 w-full"
                   >
-                    <AddModuleButton
+                    <AddButton
                       on:click={() =>
                         handleAddModuleButtonClicked(device.dx, device.dy - 1)}
                     />
@@ -247,7 +257,7 @@
                   <div
                     class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >
-                    <AddModuleButton
+                    <AddButton
                       on:click={() =>
                         handleAddModuleButtonClicked(device.dx, device.dy + 1)}
                     />
