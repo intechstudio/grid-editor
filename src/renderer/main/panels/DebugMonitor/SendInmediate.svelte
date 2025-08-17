@@ -1,12 +1,14 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { onMount } from "svelte";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  let monacoElement: HTMLElement;
-  let editor: MonacoEditor.CustomCodeEditor;
+  let monacoElement: HTMLElement = $state();
+  let editor: MonacoEditor.CustomCodeEditor = $state();
 
   onMount(() => {
     editor = MonacoEditor.create(monacoElement, {
@@ -33,9 +35,6 @@
     });
   });
 
-  $: if (editor) {
-    handleLightModeChange($appSettings.persistent.lightMode);
-  }
 
   function handleLightModeChange(value: boolean) {
     MonacoEditor.setTheme(
@@ -47,12 +46,17 @@
     const value = editor.getValue();
     runtime_manager.LUAExecImmediate(0, 0, value);
   }
+  run(() => {
+    if (editor) {
+      handleLightModeChange($appSettings.persistent.lightMode);
+    }
+  });
 </script>
 
 <div class="grid grid-cols-[1fr_auto] gap-2 items-center h-32">
   <div
     bind:this={monacoElement}
     class="flex w-full h-full border border-black"
-  />
+></div>
   <MoltenPushButton click={handleSendInmediateclicked} text="Immediate" />
 </div>

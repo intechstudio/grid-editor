@@ -4,8 +4,12 @@
 
   const dispatch = createEventDispatcher();
 
-  export let value = false;
-  export let direction: "right" | "left" | "up" | "down";
+  interface Props {
+    value?: boolean;
+    direction: "right" | "left" | "up" | "down";
+  }
+
+  let { value = $bindable(false), direction }: Props = $props();
 
   const rotationMap = { right: 0, left: 180, up: -90, down: 90 };
 
@@ -18,7 +22,7 @@
 <button
   class="p-2 w-10 h-10 flex items-center justify-center bg-primary rounded-lg rotate-90"
   style="transform: rotate({rotationMap[direction]}deg);"
-  on:click={handleClick}
+  onclick={handleClick}
 >
   <SvgIcon fill="#FFF" iconPath={value ? "arrow_right" : "arrow_left"} />
 </button>

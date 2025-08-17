@@ -3,10 +3,14 @@
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
-  export let target: { index: number; event: GridEvent } = undefined;
+  interface Props {
+    target?: { index: number; event: GridEvent };
+  }
 
-  let showActionPicker = false;
-  let referenceElement = undefined;
+  let { target = undefined }: Props = $props();
+
+  let showActionPicker = $state(false);
+  let referenceElement = $state(undefined);
 
   const dispatch = createEventDispatcher();
 
@@ -27,11 +31,11 @@
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <add-line
   bind:this={referenceElement}
-  on:click={handleShowActionPicker}
+  onclick={handleShowActionPicker}
   class="hover:opacity-100 opacity-0 h-2 w-full relative mr-0.5 rounded-full bg-pick transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
 >
   <div

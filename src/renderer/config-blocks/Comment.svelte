@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -28,28 +28,31 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
   import { GridAction } from "../runtime/runtime.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  let scriptValue = ""; // local script part
+  let scriptValue = $state(""); // local script part
 
-  const validator = {
+  const validator = $state({
     value: true,
     func: (e: string) => {
       return new Validator(e).NotEmpty().Result();
     },
-  };
+  });
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     scriptValue = config.script.split("--[[")[1].split("]]")[0];
@@ -62,6 +65,11 @@
       validationError: validator.value === false,
     });
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
 </script>
 
 <element-name class="flex flex-col w-full p-2 pointer-events-auto">

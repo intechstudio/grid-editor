@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { get } from "svelte/store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
   import {
@@ -10,12 +12,15 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { GridPage, PageData } from "../../../runtime/runtime";
 
-  export let page: GridPage;
+  interface Props {
+    page: GridPage;
+  }
 
-  let selectedElementNumber = -1;
-  let options = [{ title: "No Device", value: -1 }];
+  let { page }: Props = $props();
 
-  $: handleSelectedChange(selectedElementNumber);
+  let selectedElementNumber = $state(-1);
+  let options = $state([{ title: "No Device", value: -1 }]);
+
 
   function handleSelectedChange(elementNumber) {
     if (elementNumber === -1 || typeof elementNumber === "undefined") {
@@ -32,7 +37,6 @@
     });
   }
 
-  $: handlePageChange($page, $appSettings);
 
   function handlePageChange(page: PageData) {
     if (typeof page === "undefined") {
@@ -75,6 +79,12 @@
     });
     selectedElementNumber = get(user_input).elementnumber;
   }
+  run(() => {
+    handleSelectedChange(selectedElementNumber);
+  });
+  run(() => {
+    handlePageChange($page, $appSettings);
+  });
 </script>
 
 {#key $page}

@@ -1,36 +1,44 @@
-<script>
+<script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { appSettings } from "../../../../runtime/app-helper.store";
 
-  export let size = 1;
-  export let color = [255, 255, 0];
-
-  let rgb = [255, 255, 0];
-  let alpha = 1;
-
-  $: if (color !== undefined) {
-    let maximum = Math.max(color[0], color[1], color[2]);
-    alpha = (color[0] + color[1] + color[2]) / (2 * 256);
-
-    if (alpha > 1) {
-      alpha = 1;
-    }
-
-    rgb[0] = (color[0] / maximum) * 255;
-    rgb[1] = (color[1] / maximum) * 255;
-    rgb[2] = (color[2] / maximum) * 255;
-
-    if (isNaN(rgb[0])) {
-      rgb[0] = 150;
-    }
-
-    if (isNaN(rgb[1])) {
-      rgb[1] = 150;
-    }
-
-    if (isNaN(rgb[2])) {
-      rgb[2] = 150;
-    }
+  interface Props {
+    size?: number;
+    color?: any;
   }
+
+  let { size = 1, color = [255, 255, 0] }: Props = $props();
+
+  let rgb = $state([255, 255, 0]);
+  let alpha = $state(1);
+
+  run(() => {
+    if (color !== undefined) {
+      let maximum = Math.max(color[0], color[1], color[2]);
+      alpha = (color[0] + color[1] + color[2]) / (2 * 256);
+
+      if (alpha > 1) {
+        alpha = 1;
+      }
+
+      rgb[0] = (color[0] / maximum) * 255;
+      rgb[1] = (color[1] / maximum) * 255;
+      rgb[2] = (color[2] / maximum) * 255;
+
+      if (isNaN(rgb[0])) {
+        rgb[0] = 150;
+      }
+
+      if (isNaN(rgb[1])) {
+        rgb[1] = 150;
+      }
+
+      if (isNaN(rgb[2])) {
+        rgb[2] = 150;
+      }
+    }
+  });
 
   let ledSize = 6;
 </script>

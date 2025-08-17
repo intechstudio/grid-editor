@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -24,6 +24,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
@@ -36,11 +38,15 @@
   } from "@intechstudio/grid-uikit";
   import { GridAction } from "../runtime/runtime.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -59,18 +65,15 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let pmo = ""; // local script part
+  let pmo = $state(""); // local script part
 
-  let pma = "127";
-  let pmi = "0";
+  let pma = $state("127");
+  let pmi = $state("0");
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
@@ -132,8 +135,13 @@
     return ((max - min + 1) / Math.pow(2, bit)).toFixed(2);
   }
 
-  let stepSize;
-  $: stepSize = calculateStepSize(Number(pmo), Number(pmi), Number(pma));
+  let stepSize = $derived(calculateStepSize(Number(pmo), Number(pmi), Number(pma)));
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  
 </script>
 
 <potmeter-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">

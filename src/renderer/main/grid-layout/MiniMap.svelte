@@ -36,7 +36,7 @@
           .runtime.id === $runtime_manager.active.runtime.id
           ? 'border-white/30'
           : 'border-transparent'}"
-        on:click={() => MiniMap.selectRuntime(entry.runtime.id)}
+        onclick={() => MiniMap.selectRuntime(entry.runtime.id)}
       >
         <div class="flex flex-row justify-between items-center w-full">
           <span class="text-white">{entry.label}</span>

@@ -2,13 +2,17 @@
   import { Modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
-  export let data: Modal.Instance;
+  interface Props {
+    data: Modal.Instance;
+  }
+
+  let { data }: Props = $props();
 </script>
 
 <MoltenModal {data}>
   <div>Profile Attachments</div>
   <button
-    on:click={() => {
+    onclick={() => {
       data.close();
     }}
     id="close-btn"

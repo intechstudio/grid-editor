@@ -1,8 +1,13 @@
-<script>
+<script lang="ts">
   import LogMessage from "./LogMessage.svelte";
   import { logStreamStore } from "./LogStream.store";
   import { fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
+  interface Props {
+    [key: string]: any
+  }
+
+  let { ...props }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -30,12 +35,12 @@
   }
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <container
   id="cursor-log"
-  class={$$props.class}
-  on:mouseenter={handleMouseEnter}
-  on:mouseleave={handleMouseLeave}
+  class={props.class}
+  onmouseenter={handleMouseEnter}
+  onmouseleave={handleMouseLeave}
 >
   <div class="flex flex-col w-[30rem]">
     {#each $logStreamStore as log, i (log)}

@@ -1,8 +1,12 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
 
-  export let selected = false;
-  export let text = "";
+  interface Props {
+    selected?: boolean;
+    text?: string;
+  }
+
+  let { selected = false, text = "" }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -11,12 +15,12 @@
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <button
-  on:click={handleClick}
+  onclick={handleClick}
   class="tab-button grid grid-cols-[auto_1fr_auto] group"
 >
-  <div class={selected ? "tab-left-triangle-selected" : "tab-left-triangle"} />
+  <div class={selected ? "tab-left-triangle-selected" : "tab-left-triangle"}></div>
 
   <span class="{selected ? 'tab-inside-selected' : 'tab-inside'} truncate px-1"
     >{text}</span
@@ -24,7 +28,7 @@
 
   <div
     class={selected ? "tab-right-triangle-selected" : "tab-right-triangle"}
-  />
+></div>
 </button>
 
 <style>

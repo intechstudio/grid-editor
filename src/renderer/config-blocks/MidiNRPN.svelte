@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.js";
   // Component for the untoggled "header" of the component
   import MidiFourteenBitFace from "./headers/MidiFourteenBitFace.svelte";
@@ -44,6 +44,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, createEventDispatcher } from "svelte";
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -54,12 +56,16 @@
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
   let event = config.parent as GridEvent;
 
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -90,18 +96,15 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let channel: string;
-  let msb: string;
-  let lsb: string;
-  let nrpnCC: string;
-  let value: string;
-  let hiRes: boolean;
+  let channel: string = $state();
+  let msb: string = $state();
+  let lsb: string = $state();
+  let nrpnCC: string = $state();
+  let value: string = $state();
+  let hiRes: boolean = $state();
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     // Extract all contents
@@ -153,7 +156,6 @@
     });
   }
 
-  $: handleHighResValueChange(hiRes);
 
   function handleHighResValueChange(hiRes: boolean) {
     sendData();
@@ -179,7 +181,7 @@
     [],
   ];
 
-  let suggestions = [];
+  let suggestions = $state([]);
 
   function renderSuggestions() {
     const actions = $event.config;
@@ -195,9 +197,6 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if ($event) {
-    renderSuggestions();
-  }
 
   const tabs = [
     { name: "MIDI", short: "gms" },
@@ -226,12 +225,25 @@
       return `(${msb})*128+${lsb}`;
     }
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
+    handleHighResValueChange(hiRes);
+  });
+  run(() => {
+    if ($event) {
+      renderSuggestions();
+    }
+  });
 </script>
 
 <action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
-      <div />
+      <div></div>
       {#each tabs as element}
         <TabButton
           selected={config.information.short == element.short}

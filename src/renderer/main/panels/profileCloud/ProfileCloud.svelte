@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { GridModule, GridRuntime } from "./../../../runtime/runtime";
   import { ProfileCloud } from "./../../../runtime/string-table";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, mount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
@@ -32,16 +34,10 @@
 
   const configuration = window.ctxProcess.configuration();
 
-  $: profileCloudIsMounted && sendAuthEventToProfileCloud($authStore);
 
-  $: sendConfigLinkToProfileCloud($configLinkStore);
 
-  let runtime: GridRuntime;
-  $: runtime = $runtime_manager.active.runtime;
+  let runtime: GridRuntime = $state();
 
-  $: if ($runtime) {
-    handleRuntimeChange(runtime);
-  }
 
   function handleRuntimeChange(rt: GridRuntime) {
     const compatible = new Set([]);
@@ -61,7 +57,6 @@
     });
   }
 
-  $: handleDataChange($user_input, $runtime_manager.active.runtime);
 
   function handleDataChange(ui: UserInputValue, rt: GridRuntime) {
     const module = rt.findModule(ui.dx, ui.dy);
@@ -136,7 +131,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    new Modal.Window(UserAuthenticationModal).show();
+    mount(UserAuthenticationModal, UserAuthenticationModal).show();
   }
 
   async function handleCreateCloudConfigLink(event) {
@@ -276,7 +271,7 @@
     return Promise.resolve(config);
   }
 
-  let profileCloudIsMounted = false;
+  let profileCloudIsMounted = $state(false);
   async function handleProfileCloudMounted(event) {
     profileCloudIsMounted = true;
     let authEnvironment = AuthEnvironment.PRODUCTION;
@@ -368,60 +363,11 @@
     }
   }
 
-  let listenerRegistered = false;
-  let profileCloudUrl = "";
-  let offlineMode = false;
-  let profileCloudWebComponentName = undefined;
+  let listenerRegistered = $state(false);
+  let profileCloudUrl = $state("");
+  let offlineMode = $state(false);
+  let profileCloudWebComponentName = $state(undefined);
 
-  $: if (
-    listenerRegistered === true &&
-    (profileCloudUrl !== $appSettings.persistent.profileCloudUrl || offlineMode)
-  ) {
-    // listenerRegistered variable makes sure that the webcomponent loading is after registering the listener.
-    // otherwise handleProfileCloudMounted might be missed and offline fallback is displayed
-    if (profileCloudUrl !== $appSettings.persistent.profileCloudUrl) {
-      offlineMode = false;
-      profileCloudUrl = $appSettings.persistent.profileCloudUrl;
-      profileCloudIsMounted = false;
-      profileCloudWebComponentName = undefined;
-    }
-
-    let fixedUrl = profileCloudUrl;
-    if (!fixedUrl.endsWith(".js")) {
-      if (fixedUrl.endsWith("/")) {
-        fixedUrl = `${fixedUrl}wc/components.js`;
-      } else {
-        fixedUrl = `${fixedUrl}/wc/components.js`;
-      }
-    }
-    if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL) {
-      fixedUrl = `package://v${new Date().getTime()}/${configuration.PROFILE_CLOUD_URL_LOCAL.substring(
-        "package://".length,
-      )}/wc/components.js`;
-    }
-    if (offlineMode) {
-      profileCloudWebComponentName = "profile-cloud-offline";
-    } else {
-      import(fixedUrl)
-        .then(() => {
-          if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
-            profileCloudWebComponentName = "profile-cloud-nightly";
-          } else if (
-            profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL
-          ) {
-            profileCloudWebComponentName = "profile-cloud-dev";
-          } else if (profileCloudUrl.includes("profile-cloud-dev--pr")) {
-            profileCloudWebComponentName = "profile-cloud-pr";
-          } else {
-            profileCloudWebComponentName = "profile-cloud-prod";
-          }
-        })
-        .catch((e) => {
-          profileCloudWebComponentName = "profile-cloud-prod";
-          console.warn(e);
-        });
-    }
-  }
 
   onMount(async () => {
     // get to know the user
@@ -456,10 +402,78 @@
     //Removed due to textArea losing focus when in edit mode
     //window.focus();
   }
+  run(() => {
+    if (
+      listenerRegistered === true &&
+      (profileCloudUrl !== $appSettings.persistent.profileCloudUrl || offlineMode)
+    ) {
+      // listenerRegistered variable makes sure that the webcomponent loading is after registering the listener.
+      // otherwise handleProfileCloudMounted might be missed and offline fallback is displayed
+      if (profileCloudUrl !== $appSettings.persistent.profileCloudUrl) {
+        offlineMode = false;
+        profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+        profileCloudIsMounted = false;
+        profileCloudWebComponentName = undefined;
+      }
+
+      let fixedUrl = profileCloudUrl;
+      if (!fixedUrl.endsWith(".js")) {
+        if (fixedUrl.endsWith("/")) {
+          fixedUrl = `${fixedUrl}wc/components.js`;
+        } else {
+          fixedUrl = `${fixedUrl}/wc/components.js`;
+        }
+      }
+      if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL) {
+        fixedUrl = `package://v${new Date().getTime()}/${configuration.PROFILE_CLOUD_URL_LOCAL.substring(
+          "package://".length,
+        )}/wc/components.js`;
+      }
+      if (offlineMode) {
+        profileCloudWebComponentName = "profile-cloud-offline";
+      } else {
+        import(fixedUrl)
+          .then(() => {
+            if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
+              profileCloudWebComponentName = "profile-cloud-nightly";
+            } else if (
+              profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL
+            ) {
+              profileCloudWebComponentName = "profile-cloud-dev";
+            } else if (profileCloudUrl.includes("profile-cloud-dev--pr")) {
+              profileCloudWebComponentName = "profile-cloud-pr";
+            } else {
+              profileCloudWebComponentName = "profile-cloud-prod";
+            }
+          })
+          .catch((e) => {
+            profileCloudWebComponentName = "profile-cloud-prod";
+            console.warn(e);
+          });
+      }
+    }
+  });
+  run(() => {
+    profileCloudIsMounted && sendAuthEventToProfileCloud($authStore);
+  });
+  run(() => {
+    sendConfigLinkToProfileCloud($configLinkStore);
+  });
+  run(() => {
+    runtime = $runtime_manager.active.runtime;
+  });
+  run(() => {
+    if ($runtime) {
+      handleRuntimeChange(runtime);
+    }
+  });
+  run(() => {
+    handleDataChange($user_input, $runtime_manager.active.runtime);
+  });
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 <div class="flex flex-col w-full h-full relative">
   {#if !profileCloudIsMounted}
     <div class="flex items-center justify-center h-full absolute">

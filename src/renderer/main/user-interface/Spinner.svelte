@@ -1,8 +1,16 @@
-<div class="lds-ellipsis {$$props.class}">
-  <div />
-  <div />
-  <div />
-  <div />
+<script lang="ts">
+  interface Props {
+    [key: string]: any
+  }
+
+  let { ...props }: Props = $props();
+</script>
+
+<div class="lds-ellipsis {props.class}">
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
 </div>
 
 <style>

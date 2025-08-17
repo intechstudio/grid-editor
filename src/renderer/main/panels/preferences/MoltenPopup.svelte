@@ -1,7 +1,11 @@
-<script>
+<script lang="ts">
   import { fade } from "svelte/transition";
-  export let spaceAway = 5;
-  export let text = "";
+  interface Props {
+    spaceAway?: number;
+    text?: string;
+  }
+
+  let { spaceAway = 5, text = "" }: Props = $props();
 </script>
 
 <div

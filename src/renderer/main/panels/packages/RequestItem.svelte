@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import PackagePushButton from "./PackagePushButton.svelte";
 
   let dispatch = createEventDispatcher();
-  export let request;
+  let { request } = $props();
 </script>
 
 <div class="flex grow flex-row text-white min-h-[4.5rem] max-h-[4.5rem] m-1">

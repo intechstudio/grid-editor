@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     EventData,
     GridAction,
@@ -10,16 +12,19 @@
 
   const dispatch = createEventDispatcher();
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
 
-  let step = 0;
+  let { config }: Props = $props();
+
+  let step = $state(0);
   const event = config.parent as GridEvent;
 
   function handleClick(e) {
     dispatch("toggle");
   }
 
-  $: handleEventDataChange($event);
 
   function handleEventDataChange(event: EventData) {
     step = 0;
@@ -50,10 +55,13 @@
       }
     }
   }
+  run(() => {
+    handleEventDataChange($event);
+  });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="px-2 w-full {config.information.rounding === 'top'
     ? 'rounded-tr-xl'
@@ -61,7 +69,7 @@
     ? 'rounded-br-xl'
     : ''} text-white flex items-center"
   style="background-color:{config.information.color}"
-  on:click={handleClick}
+  onclick={handleClick}
 >
   {#if config.information.short === "bstn"}
     <span

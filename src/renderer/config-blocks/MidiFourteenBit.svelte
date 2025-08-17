@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import { midiCC } from "./_midi.js";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
@@ -45,6 +45,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -56,14 +58,18 @@
   import { Validator } from "./validators";
   import { Grid } from "../lib/_utils.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["Channel", "CC number", "Controller Value"];
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -88,13 +94,10 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let scriptSegments = [];
+  let scriptSegments = $state([]);
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     const matches = [];
@@ -157,7 +160,7 @@
     ],
   ];
 
-  let suggestions = [];
+  let suggestions = $state([]);
 
   function renderSuggestions() {
     const actions = $event.config;
@@ -193,9 +196,6 @@
     ];
   }
 
-  $: if ($event) {
-    renderSuggestions();
-  }
   const tabs = [
     { name: "MIDI", short: "gms" },
     { name: "14 bit MIDI", short: "gmsh" },
@@ -206,12 +206,22 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
+    if ($event) {
+      renderSuggestions();
+    }
+  });
 </script>
 
 <action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
-      <div />
+      <div></div>
       {#each tabs as element}
         <TabButton
           selected={config.information.short == element.short}

@@ -1,13 +1,22 @@
-<script>
+<script lang="ts">
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  export let selected = false;
-  export let halfSelected = false;
-  export let disabled = false;
-  export let testid;
+  interface Props {
+    selected?: boolean;
+    halfSelected?: boolean;
+    disabled?: boolean;
+    testid: any;
+  }
+
+  let {
+    selected = $bindable(false),
+    halfSelected = false,
+    disabled = false,
+    testid
+  }: Props = $props();
 
   function handleClick(e) {
     if (disabled) {
@@ -22,7 +31,7 @@
 
 <button
   data-testid={testid}
-  on:click={handleClick}
+  onclick={handleClick}
   class="{disabled
     ? 'border-error'
     : 'border-foreground'}  flex w-6 h-6 items-center justify-center border transition-opacity rounded-md fill-foreground"
@@ -38,6 +47,6 @@
     <SvgIcon iconPath={"tick"} />
   {:else if halfSelected}
     <!-- TODO: Make half selected with proper SVG icon -->
-    <div />
+    <div></div>
   {/if}
 </button>

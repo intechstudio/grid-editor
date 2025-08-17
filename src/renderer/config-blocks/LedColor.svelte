@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -30,6 +30,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import {
     MeltCombo,
@@ -53,13 +55,17 @@
   import { Grid } from "../lib/_utils.js";
   import RandomColorGenerator from "../main/user-interface/RandomColorGenerator.svelte";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   let event = config.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Red", "Green", "Blue"];
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -90,19 +96,16 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let scriptSegments = [];
+  let scriptSegments = $state([]);
 
   let beautyMode = 0;
-  let beautify = true;
+  let beautify = $state(true);
 
   const defaultColor = new Color.RGB(255, 255, 255).toHSL();
-  let color: Color.HSL = defaultColor;
+  let color: Color.HSL = $state(defaultColor);
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function parseRGB(r: any, g: any, b: any): Color.RGB | undefined {
     if (![r, g, b].map((e) => parseInt(e)).every((e) => Number.isFinite(e))) {
@@ -168,11 +171,8 @@
     [],
   ];
 
-  let suggestions = [];
+  let suggestions = $state([]);
 
-  $: if ($event) {
-    updateSuggestions();
-  }
 
   function updateSuggestions() {
     const actions = $event.config;
@@ -214,7 +214,19 @@
     { title: "RGB", value: ColorPickerModel.RGB },
     { title: "HSL", value: ColorPickerModel.HSL },
   ];
-  let selected = ColorPickerModel.RGB;
+  let selected = $state(ColorPickerModel.RGB);
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
+    if ($event) {
+      updateSuggestions();
+    }
+  });
+
+  const SvelteComponent = $derived(colorPickerComponent.get(selected));
 </script>
 
 <config-led-color class="flex flex-col gap-2 w-full p-2 pointer-events-auto">
@@ -242,8 +254,7 @@
     <MeltSelect bind:target={selected} {options} disabled={false} />
   </div>
   <div class="grid grid-cols-[1fr_auto] gap-2 items-center h-24">
-    <svelte:component
-      this={colorPickerComponent.get(selected)}
+    <SvelteComponent
       {color}
       on:input={updateColor}
       on:change={() => dispatch("sync")}

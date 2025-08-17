@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher, onDestroy } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { MeltCombo, MoltenInput } from "@intechstudio/grid-uikit";
@@ -8,7 +10,11 @@
 
   const dispatch = createEventDispatcher();
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
   let event = config.parent as GridEvent;
 
   const data = new ForLoop.ViewModel(config);
@@ -17,9 +23,6 @@
     data.destroy();
   });
 
-  $: if (!$config.invalid) {
-    handleConfigChange(config);
-  }
 
   function handleConfigChange(action: GridAction) {
     data.updateData(action);
@@ -34,6 +37,11 @@
     const event = new DynamicWrapper.Event.UpdateAction(short, script, error);
     dispatch(event.type, event.data);
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange(config);
+    }
+  });
 </script>
 
 <container

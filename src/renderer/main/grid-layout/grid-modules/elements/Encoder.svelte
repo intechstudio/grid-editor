@@ -1,9 +1,13 @@
-<script>
+<script lang="ts">
   import Led from "./Led.svelte";
 
-  export let size = 1;
-  export let elementNumber;
-  export let color;
+  interface Props {
+    size?: number;
+    elementNumber: any;
+    color: any;
+  }
+
+  let { size = 1, elementNumber, color }: Props = $props();
 
   const encoderSize = 13;
 </script>

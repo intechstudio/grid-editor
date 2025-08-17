@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     GridElement,
     GridModule,
@@ -12,15 +14,24 @@
   import { get } from "svelte/store";
   import { Grid } from "../../../../lib/_utils";
 
-  export let element: GridElement;
-  export let visible = false;
-  export let isRightCut = undefined;
-  export let isLeftCut = undefined;
+  interface Props {
+    element: GridElement;
+    visible?: boolean;
+    isRightCut?: any;
+    isLeftCut?: any;
+  }
+
+  let {
+    element,
+    visible = false,
+    isRightCut = undefined,
+    isLeftCut = undefined
+  }: Props = $props();
 
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
 
-  let loaded = false;
+  let loaded = $state(false);
 
   enum Compatibility {
     INCOMPATIBLE,
@@ -28,7 +39,7 @@
     MATCHING,
   }
 
-  let compatible = Compatibility.INCOMPATIBLE;
+  let compatible = $state(Compatibility.INCOMPATIBLE);
 
   function handlePresetLoad(e) {
     const data = get(selectedConfigStore);
@@ -57,13 +68,13 @@
     }
   }
 
-  $: {
+  run(() => {
     const store = $selectedConfigStore;
     if (typeof store !== "undefined" && store.configType === "preset") {
       const preset = GridPresetData.createFromCloudData(store);
       handleSelectedConfigChange(preset);
     }
-  }
+  });
 </script>
 
 <container>
@@ -86,7 +97,7 @@
         >
           {#if !loaded}
             <button
-              on:click={handlePresetLoad}
+              onclick={handlePresetLoad}
               class="rounded pointer-events-auto {compatible ===
               Compatibility.MATCHING
                 ? 'matching-icon'
@@ -112,7 +123,7 @@
         style="{$element.elementIndex === 255
           ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
           : 'border-radius: var(--grid-rounding);'} "
-      />
+></div>
     {/if}
   {/if}
 </container>

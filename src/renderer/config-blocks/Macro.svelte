@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -36,6 +36,8 @@
 </script>
 
 <script lang="ts">
+  import { run, preventDefault } from 'svelte/legacy';
+
   /* ========== Macro block documentation ==========
   1. Detect key press
   2. Display the key assuming layout is English-US
@@ -74,9 +76,13 @@
     { name: "De", lookup: keyMap_de.default },
   ];
 
-  let layout = layouts[0];
+  let layout = $state(layouts[0]);
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
@@ -84,12 +90,9 @@
   let module = page.parent as GridModule;
   let runtime = module.parent as GridRuntime;
 
-  let macroInputField;
+  let macroInputField = $state();
 
-  let isChanges = false;
-  $: if ($runtime) {
-    isChanges = runtime.unsavedChangesCount() > 0;
-  }
+  let isChanges = $state(false);
 
   onMount(() => {
     selectedLayout = $appSettings.persistent.keyboardLayout;
@@ -97,9 +100,6 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function change_layout() {
     layout = layouts.find((e) => {
@@ -181,20 +181,20 @@
     dispatch("sync");
   }
 
-  let keyDivList = "";
+  let keyDivList = $state("");
   let lastKeyDivList = "";
   let caretKeyBuffer = [];
   let keyBuffer = [];
 
-  let caretFocus = false;
+  let caretFocus = $state(false);
 
-  let caretPos = 0;
+  let caretPos = $state(0);
 
-  let selectedKey;
-  let selectedLayout;
-  let addonKeyType = "keydownup";
-  let delayKey = 100; // ms
-  let defaultDelay = 25; // ms
+  let selectedKey = $state();
+  let selectedLayout = $state();
+  let addonKeyType = $state("keydownup");
+  let delayKey = $state(100); // ms
+  let defaultDelay = $state(25); // ms
 
   function handleKeyboardInput(e) {
     // delete on backspace
@@ -405,6 +405,16 @@
     }
     lastKeyDivList = keyDivList;
   }
+  run(() => {
+    if ($runtime) {
+      isChanges = runtime.unsavedChangesCount() > 0;
+    }
+  });
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
 </script>
 
 <div class="flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto">
@@ -418,7 +428,7 @@
         <select
           class="rounded bg-secondary text-white focus:outline-none border-select"
           bind:value={selectedLayout}
-          on:change={change_layout}
+          onchange={change_layout}
         >
           {#each layouts as layout}
             <option value={layout.name} class="text-white bg-secondary py-1"
@@ -429,20 +439,20 @@
       </div>
     </div>
     <!-- Keyboard Input Field -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       use:clickOutside={{ useCapture: true }}
-      on:click-outside={(e) => {
+      onclick-outside={(e) => {
         caretFocus = false;
       }}
       bind:this={macroInputField}
       class="
         focus:border-select-desaturate-20 border-select editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
-      on:keydown|preventDefault={handleKeyboardInput}
-      on:keyup|preventDefault={handleKeyboardInput}
-      on:blur={onBlur}
+      onkeydown={preventDefault(handleKeyboardInput)}
+      onkeyup={preventDefault(handleKeyboardInput)}
+      onblur={onBlur}
       contenteditable="true"
-      on:click={(e) => {
+      onclick={(e) => {
         caretFocus = true;
         setCaret(e);
       }}
@@ -483,7 +493,7 @@
         {/each}
       </select>
       <button
-        on:click={() => {
+        onclick={() => {
           addonKeyType = "keyup";
         }}
         class="truncate text-sm text-center border rounded-md px-1
@@ -494,7 +504,7 @@
         keyup
       </button>
       <button
-        on:click={() => {
+        onclick={() => {
           addonKeyType = "keydown";
         }}
         class="truncate text-sm text-center border rounded-md px-1
@@ -505,7 +515,7 @@
         keydown
       </button>
       <button
-        on:click={() => {
+        onclick={() => {
           addonKeyType = "keydownup";
         }}
         class="truncate text-sm text-center border rounded-md px-1
@@ -545,7 +555,7 @@
 
     <input
       bind:value={defaultDelay}
-      on:input={(e) => {
+      oninput={(e) => {
         keyListToScript();
       }}
       type="number"

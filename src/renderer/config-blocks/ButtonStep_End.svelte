@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import {
     type ActionBlockInformation,
     SyntaxPreprocessor,
@@ -31,4 +31,4 @@
 <else-block
   class="w-full h-fit flex flex-col text-white py-1 pointer-events-auto"
   style="min-height: 2.5rem; background: {information.color};"
-/>
+></else-block>

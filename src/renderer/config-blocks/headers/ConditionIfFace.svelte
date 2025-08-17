@@ -1,18 +1,21 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { GridAction } from "../../runtime/runtime";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  let scriptSegment = ""; // local script part
+  let scriptSegment = $state(""); // local script part
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     scriptSegment = GridScript.humanize(config.script.slice(3, -5));
@@ -27,6 +30,11 @@
       validationError: false,
     });
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
 </script>
 
 <div

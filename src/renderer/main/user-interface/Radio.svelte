@@ -1,10 +1,14 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  export let radioValue = "";
-  export let pairs = [];
+  interface Props {
+    radioValue?: string;
+    pairs?: any;
+  }
+
+  let { radioValue = $bindable(""), pairs = [] }: Props = $props();
 
   function handleChange(arg) {
     radioValue = arg;
@@ -18,7 +22,7 @@
   {#each pairs as pair, i}
     <div
       class:tab={radioValue == pair.value}
-      on:click={() => {
+      onclick={() => {
         handleChange(pair.value);
       }}
       class:rounded-r-none={i == 0}

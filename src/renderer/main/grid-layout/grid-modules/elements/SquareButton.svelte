@@ -1,10 +1,19 @@
-<script>
+<script lang="ts">
   import Led from "./Led.svelte";
 
-  export let size = 1;
-  export let elementNumber;
-  export let value;
-  export let color;
+  interface Props {
+    size?: number;
+    elementNumber: any;
+    value: any;
+    color: any;
+  }
+
+  let {
+    size = 1,
+    elementNumber,
+    value,
+    color
+  }: Props = $props();
 
   let buttonSize = 9.5;
 </script>
@@ -16,7 +25,7 @@
   height: {size * buttonSize + 'px'};"
 >
   <div class="relative background">
-    <div class="flex w-full h-full" />
+    <div class="flex w-full h-full"></div>
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2"
       style="margin-top: 4px;"
@@ -29,7 +38,7 @@
         <div
           class="flex w-full bg-white/20"
           style="height: {(100 / 127) * value}%;"
-        />
+></div>
       </div>
     {/if}
   </div>

@@ -1,12 +1,16 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import { onDestroy } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  export let type = undefined;
-  export let count = 1;
-  export let message = "";
+  interface Props {
+    type?: any;
+    count?: number;
+    message?: string;
+  }
+
+  let { type = undefined, count = 1, message = "" }: Props = $props();
 
   function handleClick(e) {
     dispatch("click");
@@ -21,7 +25,7 @@
   });
 </script>
 
-<button on:click={handleClick} class="w-full">
+<button onclick={handleClick} class="w-full">
   <div class="relative flex flex-row items-center">
     {#if count > 1}
       <div

@@ -1,3 +1,5 @@
+<!-- @migration-task Error while migrating Svelte code: can't migrate `let state = ProfileLoad.State.READY;` to `$state` because there's a variable named state.
+     Rename the variable and try again or migrate by hand. -->
 <script lang="ts">
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { appSettings } from "../../../../runtime/app-helper.store";

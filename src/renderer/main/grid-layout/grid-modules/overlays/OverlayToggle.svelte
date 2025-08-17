@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  export let type;
+  let { type } = $props();
 
-  let activated = false;
+  let activated = $state(false);
 
   function toggleOverlay() {
     activated = !activated;
@@ -16,7 +16,7 @@
 </script>
 
 <div
-  on:click={toggleOverlay}
+  onclick={toggleOverlay}
   class:bg-highlight-400={activated}
   class="ml-2 rounded-full w-6 hover:bg-highlight cursor-pointer text-center"
 >

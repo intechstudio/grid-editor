@@ -12,7 +12,7 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
 
-  let frozen = false;
+  let frozen = $state(false);
 
   function freezeDebugtext() {
     frozen = true;
@@ -37,7 +37,7 @@
     });
   }
 
-  let display = "CHAR";
+  let display = $state("CHAR");
 
   function average(arr) {
     let sum = 0;
@@ -113,7 +113,7 @@
     return s;
   }
 
-  let websocketMessage = `{zyp: "hy"}`;
+  let websocketMessage = $state(`{zyp: "hy"}`);
 
   function sendMessage() {
     wss_send_message(websocketMessage);
@@ -133,7 +133,7 @@
   <input
     type="number"
     bind:value={$appSettings.persistent.wssPort}
-    on:change={portChange}
+    onchange={portChange}
   />
 
   <div class="text-white">Websocket Monitor</div>
@@ -141,7 +141,7 @@
     spellcheck="false"
     bind:value={websocketMessage}
     class="w-full cursor-default min-h-36 h-36 bg-secondary rounded px-1 my-2 text-white font-mono"
-  />
+></textarea>
 
   <MoltenPushButton text="Send" click={sendMessage} />
 

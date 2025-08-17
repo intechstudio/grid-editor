@@ -29,9 +29,13 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { Grid } from "../../../../lib/_utils";
 
-  export let element: GridElement;
-  export let event: GridEvent;
-  export let targetPanel: HTMLElement;
+  interface Props {
+    element: GridElement;
+    event: GridEvent;
+    targetPanel: HTMLElement;
+  }
+
+  let { element, event, targetPanel }: Props = $props();
 
   function handleOverwriteElement() {
     overwriteElement(element);
@@ -90,7 +94,7 @@
     pasteActions(event, index);
   }
 
-  let selectedAction = undefined;
+  let selectedAction = $state(undefined);
 
   function setToolbarHoverText(buttonText, hotkeyText) {
     selectedAction = [buttonText, hotkeyText];

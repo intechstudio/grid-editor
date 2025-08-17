@@ -1,22 +1,27 @@
-<script context="module">
+<script module>
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "../headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { GridAction } from "../../runtime/runtime";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  let actionElement;
-  let updateActionWithConfig;
+  let actionElement = $state();
+  let updateActionWithConfig = $state();
 
-  $: config, updateActionWithConfig, refreshActionConfig();
 
   function refreshActionConfig() {
     if (updateActionWithConfig) {
@@ -24,7 +29,6 @@
     }
   }
 
-  $: actionElement && addListeners();
 
   function addListeners() {
     actionElement.addEventListener(
@@ -47,6 +51,12 @@
       false,
     );
   }
+  run(() => {
+    config, updateActionWithConfig, refreshActionConfig();
+  });
+  run(() => {
+    actionElement && addListeners();
+  });
 </script>
 
 <package class="flex flex-col w-full p-2 pointer-events-auto">

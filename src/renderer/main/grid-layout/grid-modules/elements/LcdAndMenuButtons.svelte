@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (cell-underlay-4 to cell_underlay_4) making the component unusable -->
 <script lang="ts">
   import Button from "./Button.svelte";
 

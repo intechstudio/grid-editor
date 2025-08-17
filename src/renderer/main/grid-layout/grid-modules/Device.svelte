@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { run, preventDefault, createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import { appClipboard } from "./../../../runtime/clipboard.store";
   import { user_input } from "./../../../runtime/user-input.store";
   import {
@@ -50,10 +53,19 @@
   import { Grid } from "../../../lib/_utils";
   import { Focus } from "../../_actions/focus.action";
 
-  export let device: GridModule = undefined;
-  export let width = 225;
-  export let scale: number = 1.0;
-  export let interactive: boolean;
+  interface Props {
+    device?: GridModule;
+    width?: number;
+    scale?: number;
+    interactive: boolean;
+  }
+
+  let {
+    device = undefined,
+    width = 225,
+    scale = 1.0,
+    interactive
+  }: Props = $props();
 
   let runtime = device.parent as GridRuntime;
 
@@ -82,7 +94,7 @@
     new (options: { target: Element; props: SharedProps }): SvelteComponent;
   };
 
-  let component: ModuleComponent | undefined;
+  let component: ModuleComponent | undefined = $state();
 
   onMount(() => {
     const components: {
@@ -189,13 +201,13 @@
     profile_cloud.sendMessage(message);
   }
 
-  let isDrag = false;
+  let isDrag = $state(false);
   let dragged: {
     configType: "profile" | "preset";
     targetType: ModuleType | ElementType;
-  } = undefined;
+  } = $state(undefined);
 
-  $: {
+  run(() => {
     isDrag = typeof $profileCloudConfigDrag !== "undefined";
     if (isDrag) {
       switch ($profileCloudConfigDrag.configType) {
@@ -217,7 +229,9 @@
     } else {
       dragged = undefined;
     }
-  }
+  });
+
+  const SvelteComponent_1 = $derived(component);
 </script>
 
 <button
@@ -225,13 +239,13 @@
   class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
   tabindex={interactive ? 0 : -1}
-  on:focus={() => {
+  onfocus={() => {
     selectModule();
   }}
-  on:click={() => {
+  onclick={() => {
     selectModule();
   }}
-  on:keydown={(e) => {
+  onkeydown={(e) => {
     //Ignore if origin node is input
     if (
       e.target instanceof HTMLInputElement ||
@@ -269,22 +283,24 @@
     }
   }}
 >
-  <svelte:component
-    this={component}
+  <SvelteComponent_1
     data-testid={`${interactive ? "" : `${device.id}_`}${device.type}_dx:${device.dx};dy:${device.dy}`}
     {device}
     moduleWidth={width}
-    let:elementNumber
-    let:device
+    
+    
   >
-    <!-- Module Underlays -->
-    <svelte:fragment slot="module-underlay" let:device>
+    {#snippet children({ elementNumber, device })}
+        <!-- Module Underlays -->
+        <!-- Cell Underlays --><!-- Cell Overlays --><!-- Module Overlays -->{/snippet}
+      <!-- @migration-task: migrate this slot by hand, `module-underlay` is an invalid identifier -->
+  <svelte:fragment slot="module-underlay" let:device>
       <!-- Default Backdrop -->
 
       <div
         class="absolute w-full h-full"
         style="border-radius: var(--grid-rounding);"
-      />
+></div>
       <PortState
         {device}
         visible={$appSettings.persistent.portstateOverlayEnabled}
@@ -299,8 +315,9 @@
       {/if}
     </svelte:fragment>
 
-    <!-- Cell Underlays -->
-    <svelte:fragment
+    
+    <!-- @migration-task: migrate this slot by hand, `cell-underlay` is an invalid identifier -->
+  <svelte:fragment
       slot="cell-underlay"
       let:elementNumber
       let:isLeftCut
@@ -312,8 +329,8 @@
           .findElement(elementNumber)}
         <button
           id={element.id}
-          on:focus={() => selectElement(elementNumber)}
-          on:keydown={(e) => {
+          onfocus={() => selectElement(elementNumber)}
+          onkeydown={(e) => {
             const dirMap = {
               ArrowLeft: Grid.Direction.LEFT,
               ArrowRight: Grid.Direction.RIGHT,
@@ -398,7 +415,7 @@
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}
           class="w-full h-full absolute element activator-button"
-          on:click={(e) => {
+          onclick={(e) => {
             selectElement(elementNumber);
             e.preventDefault();
             e.stopPropagation();
@@ -425,8 +442,9 @@
       {/if}
     </svelte:fragment>
 
-    <!-- Cell Overlays -->
-    <svelte:fragment
+    
+    <!-- @migration-task: migrate this slot by hand, `cell-overlay` is an invalid identifier -->
+  <svelte:fragment
       slot="cell-overlay"
       let:elementNumber
       let:isLeftCut
@@ -461,17 +479,18 @@
               role="region"
               aria-label="Drop area for presets"
               class="w-full h-full bg-commit/25 pointer-events-auto rounded"
-              on:dragenter={() => handleDragEnter(element)}
-              on:dragleave|preventDefault={handleDragLeave}
-              on:dragover|preventDefault
-            />
+              ondragenter={() => handleDragEnter(element)}
+              ondragleave={preventDefault(handleDragLeave)}
+              ondragover={preventDefault(bubble('dragover'))}
+></div>
           </div>
         {/if}
       {/if}
     </svelte:fragment>
 
-    <!-- Module Overlays -->
-    <svelte:fragment slot="module-overlay">
+    
+    <!-- @migration-task: migrate this slot by hand, `module-overlay` is an invalid identifier -->
+  <svelte:fragment slot="module-overlay">
       {#if interactive}
         <ProfileLoadOverlay
           {device}
@@ -484,16 +503,16 @@
               role="region"
               aria-label="Drop area for profiles"
               class="w-full h-full bg-commit/25 pointer-events-auto rounded"
-              on:dragenter={() =>
+              ondragenter={() =>
                 handleDragEnter(device.findPage($user_input.pagenumber))}
-              on:dragleave|preventDefault={handleDragLeave}
-              on:dragover|preventDefault
-            />
+              ondragleave={preventDefault(handleDragLeave)}
+              ondragover={preventDefault(bubble('dragover'))}
+></div>
           </div>
         {/if}
       {/if}
     </svelte:fragment>
-  </svelte:component>
+  </SvelteComponent_1>
 </button>
 
 <style global>

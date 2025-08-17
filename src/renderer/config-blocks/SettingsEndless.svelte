@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.js";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -25,6 +25,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
@@ -37,11 +39,15 @@
   } from "@intechstudio/grid-uikit";
   import { GridAction } from "../runtime/runtime.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -72,20 +78,17 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let epmo = ""; // local script part
-  let epv0 = "";
+  let epmo = $state(""); // local script part
+  let epv0 = $state("");
 
-  let epmi = "0";
-  let epma = "16383";
-  let epse = "50";
+  let epmi = $state("0");
+  let epma = $state("16383");
+  let epse = $state("50");
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
@@ -153,6 +156,11 @@
       { value: "16383", info: "14 bit MIDI (high res)" },
     ],
   ];
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
 </script>
 
 <endless-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">

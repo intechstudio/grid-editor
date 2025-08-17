@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     user_input,
     UserInputValue,
@@ -26,10 +28,10 @@
   import DebugTextList from "./DebugTextList.svelte";
   import { scrollToBottom } from "../../_actions/scroll.move";
   import SendInmediate from "./SendInmediate.svelte";
+import { mount } from "svelte";
 
-  let event: GridEvent;
+  let event: GridEvent = $state();
 
-  $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui: UserInputValue) {
     const active = get(runtime_manager).active.runtime;
@@ -42,24 +44,17 @@
     );
   }
 
-  let configScriptLength = 0;
-  let syntaxError = false;
+  let configScriptLength = $state(0);
+  let syntaxError = $state(false);
   const incoming_messages_stores = writable([]);
 
-  $: {
-    configScriptLength = $event?.toLua().length ?? 0;
-    syntaxError = $event?.isValid() === false;
-  }
 
-  $: if (typeof $incoming_messages !== "undefined") {
-    handleIncomingMessage($incoming_messages);
-  }
 
   function handleIncomingMessage(messages) {
     incoming_messages_stores.set(messages.map((e) => readable(e)));
   }
 
-  let frozen = false;
+  let frozen = $state(false);
 
   function freezeDebugtext() {
     frozen = true;
@@ -84,7 +79,7 @@
     });
   }
 
-  let display = "CHAR";
+  let display = $state("CHAR");
 
   function average(arr) {
     let sum = 0;
@@ -161,10 +156,22 @@
   }
 
   function handleShowCode() {
-    new Modal.Window(Export).show();
+    mount(Export, Export).show();
   }
 
   let immediateCommand = "print(0,1,2,3)";
+  run(() => {
+    handleUserInputChange($user_input);
+  });
+  run(() => {
+    configScriptLength = $event?.toLua().length ?? 0;
+    syntaxError = $event?.isValid() === false;
+  });
+  run(() => {
+    if (typeof $incoming_messages !== "undefined") {
+      handleIncomingMessage($incoming_messages);
+    }
+  });
 </script>
 
 <config-debug

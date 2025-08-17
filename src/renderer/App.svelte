@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { Modal, modalManager } from "./main/modals/modal.store";
 
   import "./preload-window-config";
@@ -37,7 +39,7 @@
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import PanelToggleButton from "./main/PanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, mount } from "svelte";
   import {
     setDocumentAnimationsEnabled,
     reduced_motion_store,
@@ -50,23 +52,11 @@
 
   console.log(import.meta.env);
 
-  let shapeSelected;
-  let colorSelected;
-  let name;
+  let shapeSelected = $state();
+  let colorSelected = $state();
+  let name = $state();
 
-  $: {
-    if ($appSettings.persistent.helperShape !== undefined) {
-      shapeSelected = $appSettings.persistent.helperShape;
-    }
 
-    if ($appSettings.persistent.helperColor !== undefined) {
-      colorSelected = $appSettings.persistent.helperColor;
-    }
-
-    name = $appSettings.persistent.helperName;
-  }
-
-  $: handleColorModeChange($appSettings.persistent.lightMode);
   function handleColorModeChange(value: boolean) {
     document.documentElement.setAttribute(
       "color-scheme",
@@ -97,7 +87,7 @@
   });
 
   window.electron.showQuitDialog((_event, value) => {
-    new Modal.Window(QuitApp).show();
+    mount(QuitApp, QuitApp).show();
   });
 
   async function handlePackageManagerMessage(event) {
@@ -319,10 +309,6 @@
     e.preventDefault();
   }
 
-  $: handleDisableAnimationsChange(
-    $appSettings.persistent.disableAnimations,
-    $reduced_motion_store,
-  );
 
   function handleRightPanelToggle(e: CustomEvent<any>) {
     const value = e.detail;
@@ -337,6 +323,26 @@
       }),
     );
   }
+  run(() => {
+    if ($appSettings.persistent.helperShape !== undefined) {
+      shapeSelected = $appSettings.persistent.helperShape;
+    }
+
+    if ($appSettings.persistent.helperColor !== undefined) {
+      colorSelected = $appSettings.persistent.helperColor;
+    }
+
+    name = $appSettings.persistent.helperName;
+  });
+  run(() => {
+    handleColorModeChange($appSettings.persistent.lightMode);
+  });
+  run(() => {
+    handleDisableAnimationsChange(
+      $appSettings.persistent.disableAnimations,
+      $reduced_motion_store,
+    );
+  });
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -345,7 +351,7 @@
 
 <main
   use:watchResize={resize}
-  on:mousewheel={(e) => {
+  onmousewheel={(e) => {
     if (event.ctrlKey) {
       event.preventDefault();
     }

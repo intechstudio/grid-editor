@@ -4,11 +4,15 @@
 
   const dispatch = createEventDispatcher();
 
-  export let iconPath: string;
+  interface Props {
+    iconPath: string;
+  }
+
+  let { iconPath }: Props = $props();
 </script>
 
 <button
-  on:click={() => {
+  onclick={() => {
     dispatch("click");
   }}
   id="molten-icon-button"

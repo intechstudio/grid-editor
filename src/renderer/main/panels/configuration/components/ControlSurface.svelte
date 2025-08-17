@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { onMount } from "svelte";
 
-  let isActive = false;
-  let isDrag = false;
+  let isActive = $state(false);
+  let isDrag = $state(false);
 
   interface Point {
     x: number;
@@ -101,18 +103,18 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeyEvent} on:keyup={handleKeyEvent} />
+<svelte:window onkeydown={handleKeyEvent} onkeyup={handleKeyEvent} />
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <container
   id="surface"
   class="absolute w-full h-full z-[1]"
-  on:mouseleave={handleMouseLeave}
-  on:mousemove={handleMouseMove}
-  on:mousedown={handleMouseEvent}
-  on:mouseup={handleMouseEvent}
-  on:mousewheel|preventDefault={handleMouseWheel}
+  onmouseleave={handleMouseLeave}
+  onmousemove={handleMouseMove}
+  onmousedown={handleMouseEvent}
+  onmouseup={handleMouseEvent}
+  onmousewheel={preventDefault(handleMouseWheel)}
   class:pointer-events-none={!isActive}
   class:cursor-grabbing={isDrag}
   class:cursor-grab={isActive}
-/>
+></container>

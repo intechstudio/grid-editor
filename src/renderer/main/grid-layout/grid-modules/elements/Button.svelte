@@ -1,10 +1,19 @@
-<script>
+<script lang="ts">
   import Led from "./Led.svelte";
 
-  export let size = 1;
-  export let elementNumber;
-  export let color;
-  export let ledless = false;
+  interface Props {
+    size?: number;
+    elementNumber: any;
+    color: any;
+    ledless?: boolean;
+  }
+
+  let {
+    size = 1,
+    elementNumber,
+    color,
+    ledless = false
+  }: Props = $props();
 
   let buttonSize = 9.5;
 </script>

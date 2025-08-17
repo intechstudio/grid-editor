@@ -1,20 +1,26 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
   import { authStore } from "$lib/auth.store";
   import { createEventDispatcher } from "svelte";
   import { FirebaseError } from "firebase/app";
   import { Modal } from "../modal.store";
 
-  export let data: Modal.Instance;
+  interface Props {
+    data: Modal.Instance;
+  }
+
+  let { data }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  let email = "";
-  let password = "";
-  let repassword = "";
-  let signUpError = "";
+  let email = $state("");
+  let password = $state("");
+  let repassword = $state("");
+  let signUpError = $state("");
 
-  let passwordField;
-  let repasswordField;
+  let passwordField = $state();
+  let repasswordField = $state();
 
   function validateEmail(email) {
     return String(email)
@@ -78,10 +84,10 @@
       placeholder="email@example.com"
       bind:value={email}
       id="email"
-      on:input={() => {
+      oninput={() => {
         signUpError = "";
       }}
-      on:keyup={(e) => {
+      onkeyup={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           passwordField.focus();
@@ -99,10 +105,10 @@
       placeholder="********"
       bind:this={passwordField}
       bind:value={password}
-      on:input={() => {
+      oninput={() => {
         signUpError = "";
       }}
-      on:keyup={(e) => {
+      onkeyup={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           repasswordField.focus();
@@ -120,10 +126,10 @@
       placeholder="********"
       bind:this={repasswordField}
       bind:value={repassword}
-      on:input={() => {
+      oninput={() => {
         signUpError = "";
       }}
-      on:keyup={(e) => {
+      onkeyup={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           submitSignup();
@@ -140,12 +146,12 @@
   {/if}
   <div class="pt-2 w-full flex flex-col justify-between">
     <button
-      on:click|preventDefault={submitSignup}
+      onclick={preventDefault(submitSignup)}
       class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
       >register</button
     >
     <button
-      on:click|preventDefault={navigateBack}
+      onclick={preventDefault(navigateBack)}
       class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
       >back</button
     >

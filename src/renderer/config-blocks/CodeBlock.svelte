@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import { type ActionBlockInformation } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -36,6 +36,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { GridAction, ActionData, GridEvent } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
@@ -51,9 +53,13 @@
   import { appSettings } from "../runtime/app-helper.store";
   import { get } from "svelte/store";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
 
-  let codePreview: HTMLElement;
+  let { config }: Props = $props();
+
+  let codePreview: HTMLElement = $state();
 
   const lualogo_foreground = "#808080";
   const lualogo_background = "#212a2c";
@@ -95,12 +101,14 @@
     MonacoEditor.colorize(codePreview, theme);
   }
 
-  $: if (codePreview && !$config.invalid) {
-    const theme = $appSettings.persistent.lightMode
-      ? MonacoEditor.Theme.LIGHT
-      : MonacoEditor.Theme.DARK;
-    handleConfigChange($config, theme);
-  }
+  run(() => {
+    if (codePreview && !$config.invalid) {
+      const theme = $appSettings.persistent.lightMode
+        ? MonacoEditor.Theme.LIGHT
+        : MonacoEditor.Theme.DARK;
+      handleConfigChange($config, theme);
+    }
+  });
 
   async function open_monaco() {
     new Modal.Window(Monaco, Modal.Snap.GridLayout, {
@@ -119,11 +127,11 @@
 
     <div class="grid w-full">
       <pre
-        on:dblclick={open_monaco}
+        ondblclick={open_monaco}
         class="bg-black/25 my-4 p-2 w-full overflow-x-auto border border-black"
         bind:this={codePreview}
         data-lang="intech_lua"
-      />
+></pre>
     </div>
 
     <MoltenPushButton click={open_monaco} text={"Edit Code"} style={"accept"} />

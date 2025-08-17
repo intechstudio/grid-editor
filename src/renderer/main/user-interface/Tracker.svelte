@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { get } from "svelte/store";
   import { tooltip } from "./../_actions/tooltip.ts";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -7,6 +7,11 @@
     ModuleOverlayType,
     moduleOverlay,
   } from "../../runtime/moduleOverlay";
+  interface Props {
+    [key: string]: any
+  }
+
+  let { ...props }: Props = $props();
 
   const options = [
     {
@@ -44,7 +49,7 @@
   }
 </script>
 
-<container class={$$props.class}>
+<container class={props.class}>
   <div
     style="background-color: var(--background); color: var(--foreground-muted)"
     class="flex flex-row items-center p-2 gap-3 px-3 rounded-lg"

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run, self } from 'svelte/legacy';
+
   import {
     GridAction,
     ActionData,
@@ -27,14 +29,18 @@
 
   const dispatch = createEventDispatcher();
 
-  export let index = undefined;
-  export let action: GridAction;
-  export let selected = false;
+  interface Props {
+    index?: any;
+    action: GridAction;
+    selected?: boolean;
+  }
 
-  let header: typeof SvelteComponent;
-  let component: typeof SvelteComponent;
-  let ctrlIsDown = false;
-  let toggled = false;
+  let { index = undefined, action, selected = $bindable(false) }: Props = $props();
+
+  let header: typeof SvelteComponent = $state();
+  let component: typeof SvelteComponent = $state();
+  let ctrlIsDown = $state(false);
+  let toggled = $state(false);
 
   onMount(() => {
     if (action.information.toggleable !== false) {
@@ -62,17 +68,7 @@
     revertToSynced();
   });
 
-  $: if (!toggled) {
-    revertToSynced();
-  }
 
-  $: {
-    const isActiveTourStep =
-      $configTour.current?.action.id === $action.id && $configTour.active;
-    if (!toggled && isActiveTourStep) {
-      toggled = true;
-    }
-  }
 
   function revertToSynced() {
     if (action.script === action.synced) {
@@ -147,16 +143,28 @@
       ctrlIsDown = false;
     }
   }
+  run(() => {
+    const isActiveTourStep =
+      $configTour.current?.action.id === $action.id && $configTour.active;
+    if (!toggled && isActiveTourStep) {
+      toggled = true;
+    }
+  });
+  run(() => {
+    if (!toggled) {
+      revertToSynced();
+    }
+  });
 </script>
 
-<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <wrapper
   role="tabpanel"
   tabindex="0"
-  on:keydown={(e) => {
+  onkeydown={(e) => {
     //Ignore if origin node is input
     if (
       e.target instanceof HTMLInputElement ||
@@ -184,11 +192,11 @@
 >
   {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
-      <div class="w-3 h-3 rounded-full" />
+      <div class="w-3 h-3 rounded-full"></div>
     </div>
   {/each}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <carousel
     id="cfg-{index}"
     class="flex flex-grow h-auto min-h-[32px] {!$action.isValid()
@@ -203,7 +211,7 @@
     $configTour.active
       ? $configTour.current
       : undefined}
-    on:click|self={handleCarouselClicked}
+    onclick={self(handleCarouselClicked)}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
@@ -229,9 +237,9 @@
         <!-- Content of block -->
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
+          {@const SvelteComponent_1 = component}
           <div class="h-full w-full bg-background-mute">
-            <svelte:component
-              this={component}
+            <SvelteComponent_1
               config={action}
               on:replace={handleReplace}
               on:update-action={handleUpdateAction}
@@ -241,9 +249,9 @@
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
+          {@const SvelteComponent_2 = header}
           <div class="min-h-10 w-full flex">
-            <svelte:component
-              this={header}
+            <SvelteComponent_2
               config={action}
               on:toggle={handleToggle}
               on:update-action={handleUpdateAction}

@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import PackagePushButton from "./PackagePushButton.svelte";
   import CircularBar from "../../user-interface/CircularBar.svelte";
@@ -8,10 +10,9 @@
 
   const dispatch = createEventDispatcher();
 
-  export let data;
+  let { data } = $props();
 
   let contextItems = [];
-  $: data, refreshContextItems();
   function refreshContextItems() {
     while (contextItems.length > 0) {
       contextItems.pop();
@@ -56,7 +57,10 @@
     }
   }
 
-  let eventSource;
+  let eventSource = $state();
+  run(() => {
+    data, refreshContextItems();
+  });
 </script>
 
 <div
@@ -81,7 +85,7 @@
       <div
         class="w-full h-full absolute"
         style="background-color: #1e262870;"
-      />
+></div>
       <div class="w-full h-full p-1 absolute flex items-center content-center">
         <CircularBar
           value={data.installProgress * 100}

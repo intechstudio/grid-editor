@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     user_input,
     UserInputValue,
@@ -25,25 +27,25 @@
   import VirtualList from "svelte-tiny-virtual-list";
 
   //Defines
-  let debug = false;
-  let hover = false;
-  let last = undefined;
-  let configScriptLength = 0;
-  let activity = false;
+  let debug = $state(false);
+  let hover = $state(false);
+  let last = $state(undefined);
+  let configScriptLength = $state(0);
+  let activity = $state(false);
   let timer = undefined;
-  let event: GridEvent;
+  let event: GridEvent = $state();
   let worker: Worker;
   let mounted = false;
 
-  let midiMessageListHeight: number;
-  let sysExMessageListHeight: number;
-  let debugMessageListHeight: number;
+  let midiMessageListHeight: number = $state();
+  let sysExMessageListHeight: number = $state();
+  let debugMessageListHeight: number = $state();
 
   const maxMessageCount = 1024;
 
-  let lastMidiMessageIndex = 0;
-  let lastSysExMessageIndex = 0;
-  let lastMidiStreamItemIndex = 0;
+  let lastMidiMessageIndex = $state(0);
+  let lastSysExMessageIndex = $state(0);
+  let lastMidiStreamItemIndex = $state(0);
 
   const midi_messages: Writable<(MidiStreamItem & { data: MidiData })[]> =
     writable([]);
@@ -78,28 +80,10 @@
     worker.terminate();
   });
 
-  $: handleUserInputChange($user_input);
 
-  $: configScriptLength = $event?.toLua().length ?? 0;
 
-  $: if ($midi_stream) {
-    showActivity();
-  }
 
-  $: last = $midi_messages?.at(-1);
 
-  $: if (midiMessageListHeight) {
-    handleResize($midi_messages, (value) => (lastMidiMessageIndex = value));
-  }
-  $: if (sysExMessageListHeight) {
-    handleResize($sysex_messages, (value) => (lastSysExMessageIndex = value));
-  }
-  $: if (debugMessageListHeight) {
-    handleResize(
-      $midi_stream.buffer,
-      (value) => (lastMidiStreamItemIndex = value),
-    );
-  }
 
   async function handleWorkerMessage(e: MessageEvent<MidiWorkerResponse>) {
     const { item } = e.data;
@@ -193,6 +177,38 @@
   ): message is MidiStreamItem & { data: SysExData } {
     return message.type === MidiType.SYSEX;
   }
+  run(() => {
+    handleUserInputChange($user_input);
+  });
+  run(() => {
+    configScriptLength = $event?.toLua().length ?? 0;
+  });
+  run(() => {
+    if ($midi_stream) {
+      showActivity();
+    }
+  });
+  run(() => {
+    last = $midi_messages?.at(-1);
+  });
+  run(() => {
+    if (midiMessageListHeight) {
+      handleResize($midi_messages, (value) => (lastMidiMessageIndex = value));
+    }
+  });
+  run(() => {
+    if (sysExMessageListHeight) {
+      handleResize($sysex_messages, (value) => (lastSysExMessageIndex = value));
+    }
+  });
+  run(() => {
+    if (debugMessageListHeight) {
+      handleResize(
+        $midi_stream.buffer,
+        (value) => (lastMidiStreamItemIndex = value),
+      );
+    }
+  });
 </script>
 
 <container data-testid="midi-monitor" class="flex flex-col h-full p-4">
@@ -228,7 +244,7 @@
                 class="ml-2 flex place-self-end self-center {activity
                   ? 'bg-yellow-500'
                   : ' '} rounded-full w-3 h-3"
-              />
+></div>
             </div>
           {/if}
         </div>
@@ -327,50 +343,52 @@
                   scrollDirection="vertical"
                   scrollToIndex={lastMidiStreamItemIndex}
                 >
-                  <!-- svelte-ignore a11y-no-static-element-interactions -->
-                  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-                  <div
-                    slot="item"
-                    let:index
-                    let:style
-                    {style}
-                    class="grid grid-cols-7 items-start justify-start w-full font-mono {$midi_stream
-                      .buffer[index].data.direction == 'REPORT'
-                      ? 'text-blue-600 '
-                      : 'text-green-400 '}"
-                  >
-                    <div class="col-span-2">
-                      [{$midi_stream.buffer[index].device.x}, {$midi_stream
-                        .buffer[index].device.y}]
-                    </div>
-                    {#if isMIDI($midi_stream.buffer[index])}
-                      <div>{$midi_stream.buffer[index].data.channel + 1}</div>
-                      <div>
-                        {$midi_stream.buffer[index].data.command.value}
+                  <!-- svelte-ignore a11y_no_static_element_interactions -->
+                  <!-- svelte-ignore a11y_mouse_events_have_key_events -->
+                  {#snippet item({ index, style })}
+                                    <div
+                      
+                      
+                      
+                      {style}
+                      class="grid grid-cols-7 items-start justify-start w-full font-mono {$midi_stream
+                        .buffer[index].data.direction == 'REPORT'
+                        ? 'text-blue-600 '
+                        : 'text-green-400 '}"
+                    >
+                      <div class="col-span-2">
+                        [{$midi_stream.buffer[index].device.x}, {$midi_stream
+                          .buffer[index].device.y}]
                       </div>
-                      <div>
-                        {$midi_stream.buffer[index].data.params.p1.value}
-                      </div>
-                      <div>
-                        {$midi_stream.buffer[index].data.params.p2.value}
-                      </div>
-                    {:else if isSysEx($midi_stream.buffer[index])}
-                      <div class="col-span-4">
-                        SysEx: {String.fromCharCode
-                          .apply(String, $midi_stream.buffer[index].data.raw)
-                          .substr(8)}
-                      </div>
-                    {/if}
-                    <div class="flex items-center">
-                      {#if $midi_stream.buffer[index].data.direction == "REPORT"}
-                        <span>RX</span>
-                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
-                      {:else}
-                        <span>TX</span>
-                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                      {#if isMIDI($midi_stream.buffer[index])}
+                        <div>{$midi_stream.buffer[index].data.channel + 1}</div>
+                        <div>
+                          {$midi_stream.buffer[index].data.command.value}
+                        </div>
+                        <div>
+                          {$midi_stream.buffer[index].data.params.p1.value}
+                        </div>
+                        <div>
+                          {$midi_stream.buffer[index].data.params.p2.value}
+                        </div>
+                      {:else if isSysEx($midi_stream.buffer[index])}
+                        <div class="col-span-4">
+                          SysEx: {String.fromCharCode
+                            .apply(String, $midi_stream.buffer[index].data.raw)
+                            .substr(8)}
+                        </div>
                       {/if}
+                      <div class="flex items-center">
+                        {#if $midi_stream.buffer[index].data.direction == "REPORT"}
+                          <span>RX</span>
+                          <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                        {:else}
+                          <span>TX</span>
+                          <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                        {/if}
+                      </div>
                     </div>
-                  </div>
+                                  {/snippet}
                 </VirtualList>
               {/if}
             </div>
@@ -388,65 +406,67 @@
                   scrollDirection="vertical"
                   scrollToIndex={lastMidiMessageIndex}
                 >
-                  <!-- svelte-ignore a11y-no-static-element-interactions -->
-                  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-                  <div
-                    slot="item"
-                    let:index
-                    let:style
-                    {style}
-                    class="grid grid-cols-8 gap-2 {$midi_messages[index].data
-                      .direction == 'REPORT'
-                      ? 'text-blue-600 hover:text-blue-400'
-                      : 'text-green-400 hover:text-green-200'}
-              transition-transform origin-left duration-100 transform w-full"
-                    on:mouseover={() =>
+                  <!-- svelte-ignore a11y_no_static_element_interactions -->
+                  <!-- svelte-ignore a11y_mouse_events_have_key_events -->
+                  {#snippet item({ index, style })}
+                                    <div
+                      
+                      
+                      
+                      {style}
+                      class="grid grid-cols-8 gap-2 {$midi_messages[index].data
+                        .direction == 'REPORT'
+                        ? 'text-blue-600 hover:text-blue-400'
+                        : 'text-green-400 hover:text-green-200'}
+                transition-transform origin-left duration-100 transform w-full"
+                      onmouseover={() =>
                       onEnterMidiMessage($midi_messages[index])}
-                    on:mouseleave={() => onLeaveMidiMessage()}
-                  >
-                    <div
-                      class="flex flex-row gap-1 min-w-fit min-h-fit col-span-2"
+                      onmouseleave={() => onLeaveMidiMessage()}
                     >
-                      <span class="text-white"
-                        >{$midi_messages[index].device.name}</span
+                      <div
+                        class="flex flex-row gap-1 min-w-fit min-h-fit col-span-2"
                       >
-                      {#if $midi_messages[index].data.direction == "REPORT"}
-                        <SvgIcon
-                          fill="#FFF"
-                          iconPath="arrow_left"
-                          width={14}
-                          height={14}
-                        />
-                      {:else}
-                        <SvgIcon
-                          fill="#FFF"
-                          iconPath="arrow_right"
-                          width={14}
-                          height={14}
-                        />
-                      {/if}
+                        <span class="text-white"
+                          >{$midi_messages[index].device.name}</span
+                        >
+                        {#if $midi_messages[index].data.direction == "REPORT"}
+                          <SvgIcon
+                            fill="#FFF"
+                            iconPath="arrow_left"
+                            width={14}
+                            height={14}
+                          />
+                        {:else}
+                          <SvgIcon
+                            fill="#FFF"
+                            iconPath="arrow_right"
+                            width={14}
+                            height={14}
+                          />
+                        {/if}
+                      </div>
+                      <span class="truncate"
+                        >Ch: {$midi_messages[index].data.channel + 1}</span
+                      >
+                      <span class="truncate"
+                        >{$midi_messages[index].data.command.short}</span
+                      >
+                      <span class="truncate"
+                        >{$midi_messages[index].data.params.p1.short}:</span
+                      >
+                      <span class="truncate"
+                        >{$midi_messages[index].data.params.p1.value_alias
+                          ? $midi_messages[index].data.params.p1.value_alias
+                          : $midi_messages[index].data.params.p1.value}</span
+                      >
+                      <span class="truncate"
+                        >{$midi_messages[index].data.params.p2.short}:</span
+                      >
+                      <span class="truncate"
+                        >{$midi_messages[index].data.params.p2.value}</span
+                      >
                     </div>
-                    <span class="truncate"
-                      >Ch: {$midi_messages[index].data.channel + 1}</span
-                    >
-                    <span class="truncate"
-                      >{$midi_messages[index].data.command.short}</span
-                    >
-                    <span class="truncate"
-                      >{$midi_messages[index].data.params.p1.short}:</span
-                    >
-                    <span class="truncate"
-                      >{$midi_messages[index].data.params.p1.value_alias
-                        ? $midi_messages[index].data.params.p1.value_alias
-                        : $midi_messages[index].data.params.p1.value}</span
-                    >
-                    <span class="truncate"
-                      >{$midi_messages[index].data.params.p2.short}:</span
-                    >
-                    <span class="truncate"
-                      >{$midi_messages[index].data.params.p2.value}</span
-                    >
-                  </div>
+                                  {/snippet}
                 </VirtualList>
               {/if}
             </div>
@@ -494,34 +514,36 @@
                   scrollDirection="vertical"
                   scrollToIndex={lastSysExMessageIndex}
                 >
-                  <!-- svelte-ignore a11y-no-static-element-interactions -->
-                  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-                  <div
-                    slot="item"
-                    let:index
-                    let:style
-                    {style}
-                    class="{$sysex_messages[index].data.direction == 'REPORT'
-                      ? 'text-blue-400'
-                      : 'text-green-400'} font-mono"
-                  >
-                    <div class="flex flex-row gap-2">
-                      <div class="flex flex-row text-white">
-                        <span>{$sysex_messages[index].device.name}</span>
-                        {#if $sysex_messages[index].data.direction == "REPORT"}
-                          <SvgIcon fill="#FFF" iconPath="arrow_left" />
-                        {:else}
-                          <SvgIcon fill="#FFF" iconPath="arrow_right" />
-                        {/if}
-                      </div>
+                  <!-- svelte-ignore a11y_no_static_element_interactions -->
+                  <!-- svelte-ignore a11y_mouse_events_have_key_events -->
+                  {#snippet item({ index, style })}
+                                    <div
+                      
+                      
+                      
+                      {style}
+                      class="{$sysex_messages[index].data.direction == 'REPORT'
+                        ? 'text-blue-400'
+                        : 'text-green-400'} font-mono"
+                    >
+                      <div class="flex flex-row gap-2">
+                        <div class="flex flex-row text-white">
+                          <span>{$sysex_messages[index].device.name}</span>
+                          {#if $sysex_messages[index].data.direction == "REPORT"}
+                            <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                          {:else}
+                            <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                          {/if}
+                        </div>
 
-                      <span>
-                        {String.fromCharCode
-                          .apply(String, $sysex_messages[index].data.raw)
-                          .substr(8)}
-                      </span>
+                        <span>
+                          {String.fromCharCode
+                            .apply(String, $sysex_messages[index].data.raw)
+                            .substr(8)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                                  {/snippet}
                 </VirtualList>
               {/if}
             </div>

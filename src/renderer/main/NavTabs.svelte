@@ -4,11 +4,11 @@
   import menuIcons from "$lib/menu.icons";
   import CircularBar from "./user-interface/CircularBar.svelte";
 
-  $: selectedLeftTab = $appSettings.leftPanel ?? "profile-cloud";
-  $: enabledPackages = $appSettings.persistent.enabledPackages;
-  $: menuItems = $appSettings.packageList
+  let selectedLeftTab = $derived($appSettings.leftPanel ?? "profile-cloud");
+  let enabledPackages = $derived($appSettings.persistent.enabledPackages);
+  let menuItems = $derived($appSettings.packageList
     .sort((p1, p2) => p1.name.localeCompare(p2.name))
-    .filter((p) => p.installProgress !== undefined || p.isEnabled);
+    .filter((p) => p.installProgress !== undefined || p.isEnabled));
 
   function toggleLeftTab() {
     // Update store and global variables
@@ -48,7 +48,7 @@
       key: "sidebar_profile_cloud_icon",
       triggerEvents: ["focus", "click", "hover"],
     }}
-    on:click={() => {
+    onclick={() => {
       changeLeftTab("profile-cloud");
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
@@ -64,7 +64,7 @@
         'profile-cloud' && $splitpanes.left.size != 0
         ? 'h-8'
         : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-    />
+></div>
   </button>
 
   {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -81,7 +81,7 @@
               text: packageData.name,
               triggerEvents: ["focus", "click", "hover"],
             }}
-            on:click={() => {
+            onclick={() => {
               changeLeftTab(packageData.id);
             }}
             class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
@@ -117,7 +117,7 @@
                 packageData.id && $splitpanes.left.size != 0
                 ? 'h-8'
                 : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-            />
+></div>
           </button>
         {/key}
       {/if}
@@ -133,7 +133,7 @@
         key: "sidebar_debugger_icon",
         triggerEvents: ["focus", "click", "hover"],
       }}
-      on:click={() => {
+      onclick={() => {
         changeLeftTab("debug-monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
@@ -149,7 +149,7 @@
           'debug-monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-      />
+></div>
     </button>
 
     <button
@@ -162,7 +162,7 @@
         key: "sidebar_midi_monitor_icon",
         triggerEvents: ["focus", "click", "hover"],
       }}
-      on:click={() => {
+      onclick={() => {
         changeLeftTab("midi-monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
@@ -178,7 +178,7 @@
           'midi-monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-      />
+></div>
     </button>
 
     <button
@@ -190,7 +190,7 @@
         key: "sidebar_websocket_monitor_icon",
         triggerEvents: ["focus", "click", "hover"],
       }}
-      on:click={() => {
+      onclick={() => {
         changeLeftTab("websocket-monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
@@ -207,10 +207,10 @@
           'websocket-monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-      />
+></div>
     </button>
   {/if}
-  <div class="grow" />
+  <div class="grow"></div>
   <button
     use:tooltip={{
       nowrap: true,
@@ -220,7 +220,7 @@
       key: "sidebar_packages_icon",
       triggerEvents: ["focus", "click", "hover"],
     }}
-    on:click={() => {
+    onclick={() => {
       changeLeftTab("Packages");
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
@@ -236,7 +236,7 @@
         'Packages' && $splitpanes.left.size != 0
         ? 'h-8'
         : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-    />
+></div>
   </button>
   <button
     data-testid="nav-preferences"
@@ -248,7 +248,7 @@
       key: "sidebar_preferences_icon",
       triggerEvents: ["focus", "click", "hover"],
     }}
-    on:click={() => {
+    onclick={() => {
       changeLeftTab("Preferences");
     }}
     class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
@@ -264,7 +264,7 @@
         'Preferences' && $appSettings.leftPanelVisible
         ? 'h-8'
         : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-    />
+></div>
   </button>
 </nav-tab>
 

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import MidiFace from "./headers/MidiFace.svelte";
@@ -44,6 +44,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -58,14 +60,18 @@
   import { valid } from "semver";
   import { Grid } from "../lib/_utils.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["Channel", "Command", "Parameter 1", "Parameter 2"];
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -90,13 +96,10 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let scriptSegments = [];
+  let scriptSegments = $state([]);
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -143,12 +146,9 @@
     ],
   ];
 
-  let suggestions = [];
+  let suggestions = $state([]);
   let suggestionsAuto = [];
 
-  $: if ($event) {
-    renderSuggestions();
-  }
 
   function renderSuggestions() {
     // removed ?. as terser didn't work
@@ -232,12 +232,22 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
+    if ($event) {
+      renderSuggestions();
+    }
+  });
 </script>
 
 <action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
-      <div />
+      <div></div>
       {#each tabs as element}
         <TabButton
           selected={config.information.short == element.short}

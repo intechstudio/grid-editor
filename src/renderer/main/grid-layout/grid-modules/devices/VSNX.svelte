@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (module-underlay to module_underlay) making the component unusable -->
 <script lang="ts">
   import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import { ModuleType, ElementType } from "@intechstudio/grid-protocol";

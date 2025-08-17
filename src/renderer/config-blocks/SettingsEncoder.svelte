@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -25,6 +25,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher, onDestroy } from "svelte";
   import {
     MeltCheckbox,
@@ -37,11 +39,15 @@
   import { Validator } from "./validators";
   import { GridAction } from "../runtime/runtime.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -72,20 +78,17 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let emo = ""; // local script part
-  let ev0 = "";
+  let emo = $state(""); // local script part
+  let ev0 = $state("");
 
-  let emi = "0";
-  let ema = "127";
-  let ese = "100";
+  let emi = $state("0");
+  let ema = $state("127");
+  let ese = $state("100");
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
@@ -155,6 +158,11 @@
   function syncWithGrid() {
     dispatch("sync");
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">

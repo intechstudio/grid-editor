@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { Architecture } from "@intechstudio/grid-protocol";
 
   import { Modal } from "./../modals/modal.store";
@@ -10,15 +12,12 @@
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
   import { user_input, UserInputValue } from "../../runtime/user-input.store";
+import { mount } from "svelte";
 
-  let selectedModule: any = undefined;
+  let selectedModule: any = $state(undefined);
 
-  let runtime: GridRuntime;
-  $: runtime = $runtime_manager.active.runtime;
+  let runtime: GridRuntime = $state();
 
-  $: if ($runtime) {
-    handleSelecteModuleChange(runtime, $user_input);
-  }
 
   function handleSelecteModuleChange(rt: GridRuntime, ui: UserInputValue) {
     selectedModule = rt.modules.find(
@@ -28,7 +27,7 @@
 
   function handleChangeModuleClicked() {
     const [dx, dy] = [selectedModule.dx, selectedModule.dy];
-    new Modal.Window(AddVirtualModule).show({ dx, dy });
+    mount(AddVirtualModule, AddVirtualModule).show({ dx, dy });
   }
 
   function handleRemoveModuleClicked() {
@@ -41,6 +40,14 @@
     selectedConfigStore.set(undefined);
     moduleOverlay.close();
   }
+  run(() => {
+    runtime = $runtime_manager.active.runtime;
+  });
+  run(() => {
+    if ($runtime) {
+      handleSelecteModuleChange(runtime, $user_input);
+    }
+  });
 </script>
 
 <div class="flex flex-col items-center gap-2">

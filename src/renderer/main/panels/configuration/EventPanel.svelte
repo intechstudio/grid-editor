@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { user_input } from "./../../../runtime/user-input.store";
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { get } from "svelte/store";
@@ -13,7 +15,11 @@
   import { Grid } from "../../../lib/_utils";
   import { draggedActions } from "../../_actions/move.action";
 
-  export let element: GridElement;
+  interface Props {
+    element: GridElement;
+  }
+
+  let { element }: Props = $props();
 
   type EventPanelOption = {
     title: string;
@@ -25,11 +31,10 @@
 
   const defaultSelected = -1;
 
-  let options = defaultOptions;
-  let selected = defaultSelected;
+  let options = $state(defaultOptions);
+  let selected = $state(defaultSelected);
   let eventChangetimeout: NodeJS.Timeout = undefined;
 
-  $: handleElementChange($element, $appSettings);
 
   function handleElementChange(element: ElementData) {
     const ui = get(user_input);
@@ -60,7 +65,6 @@
     selected = closestEvent;
   }
 
-  $: handleSelectEvent(selected);
 
   function handleSelectEvent(value: any) {
     const ui = get(user_input);
@@ -115,6 +119,12 @@
       });
     }, 100);
   }
+  run(() => {
+    handleElementChange($element, $appSettings);
+  });
+  run(() => {
+    handleSelectEvent(selected);
+  });
 </script>
 
 <div class="p-2 flex flex-col justify-center items-center relative">
@@ -125,20 +135,22 @@
     size="full"
     {options}
   >
-    <svelte:fragment slot="item" let:value>
-      {@const event = element?.events.find((e) => e.type === Number(value))}
-      {#key $element}
-        <button
-          class="absolute left-0 top-0 w-full h-full"
-          on:mouseenter={() => handleMouseEnter(event)}
-          on:mouseleave={handleMouseLeave}
-        >
-          <unsaved-changes-marker
-            class:hidden={!event?.hasChanges()}
-            class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
-          />
-        </button>
-      {/key}
-    </svelte:fragment>
+    {#snippet item({ value })}
+      
+        {@const event = element?.events.find((e) => e.type === Number(value))}
+        {#key $element}
+          <button
+            class="absolute left-0 top-0 w-full h-full"
+            onmouseenter={() => handleMouseEnter(event)}
+            onmouseleave={handleMouseLeave}
+          >
+            <unsaved-changes-marker
+              class:hidden={!event?.hasChanges()}
+              class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
+></unsaved-changes-marker>
+          </button>
+        {/key}
+      
+      {/snippet}
   </MeltRadio>
 </div>

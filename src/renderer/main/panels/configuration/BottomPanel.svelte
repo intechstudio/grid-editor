@@ -7,7 +7,11 @@
   import AddActionButton from "./components/AddActionButton.svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  export let target: { event: GridEvent; index: number };
+  interface Props {
+    target: { event: GridEvent; index: number };
+  }
+
+  let { target }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -31,7 +35,7 @@
     <button
       class="flex rounded px-3 py-1 bg-commit items-center justify-center"
       class:opacity-50={!$isPasteActionsEnabled}
-      on:click={() => handlePaste(target.index)}
+      onclick={() => handlePaste(target.index)}
       disabled={!$isPasteActionsEnabled}
     >
       <span class="text-white"> Paste </span>

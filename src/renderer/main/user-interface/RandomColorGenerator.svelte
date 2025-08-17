@@ -4,9 +4,13 @@
 
   const dispatch = createEventDispatcher();
 
-  export let color: Grid.HSL;
+  interface Props {
+    color: Grid.HSL;
+  }
 
-  let preview: HTMLElement;
+  let { color }: Props = $props();
+
+  let preview: HTMLElement = $state();
 
   function generateRandomColor() {
     let hsl = Grid.RGB.getRandom().toHSL();
@@ -20,13 +24,13 @@
   <button
     data-testid="random-color-generator"
     bind:this={preview}
-    on:click={generateRandomColor}
+    onclick={generateRandomColor}
     class="group flex h-14 w-14 border border-black"
     style="background-color: {color.toCSS()};"
   >
     <div
       class="preview w-full h-full items-center text-2xl justify-center flex group-hover:opacity-100 opacity-0 transition-opacity"
-    />
+></div>
   </button>
 </container>
 

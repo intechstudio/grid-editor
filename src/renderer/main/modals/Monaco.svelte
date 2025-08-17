@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { Grid } from "./../../lib/_utils";
   import {
     GridElement,
@@ -26,33 +28,35 @@
   import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
   import ConfirmModal from "./ConfirmModal.svelte";
 
-  export let data: Modal.Instance;
-  export let monaco_action: GridAction;
+  interface Props {
+    data: Modal.Instance;
+    monaco_action: GridAction;
+  }
+
+  let { data, monaco_action }: Props = $props();
 
   let event: GridEvent;
-  let element: GridElement;
-  let monaco_block;
-  let editor;
-  let commitEnabled = false;
-  let errorMesssage = "";
+  let element: GridElement = $state();
+  let monaco_block = $state();
+  let editor = $state();
+  let commitEnabled = $state(false);
+  let errorMesssage = $state("");
   let commited = { script: "", name: "" };
-  let scriptLength = undefined;
-  let pathSnippets = [];
-  let name;
-  let isEditName = false;
-  let nameInput;
+  let scriptLength = $state(undefined);
+  let pathSnippets = $state([]);
+  let name = $state();
+  let isEditName = $state(false);
+  let nameInput = $state();
   let clickedOutside = false;
   let monaco_disposables = [];
 
   class LengthError extends String {}
 
-  $: handleFontSizechange($appSettings.persistent.fontSize);
 
   function handleFontSizechange(fontSize) {
     editor?.updateOptions({ fontSize });
   }
 
-  $: handleActionChange($monaco_action);
 
   function isDeleted(action: ActionData) {
     const event = action?.parent as GridEvent;
@@ -119,9 +123,6 @@
     editor.onDidChangeModelContent(handleContentChange);
   });
 
-  $: if (editor) {
-    handleLightModeChange($appSettings.persistent.lightMode);
-  }
 
   function handleLightModeChange(value: boolean) {
     MonacoEditor.setTheme(
@@ -225,7 +226,6 @@
     }
   }
 
-  $: handleNameChange(name);
 
   function handleWindowKeydown(e: KeyboardEvent) {
     if (modalManager.getTop() !== data) {
@@ -252,96 +252,112 @@
       }
     }
   }
+  run(() => {
+    handleFontSizechange($appSettings.persistent.fontSize);
+  });
+  run(() => {
+    handleActionChange($monaco_action);
+  });
+  run(() => {
+    if (editor) {
+      handleLightModeChange($appSettings.persistent.lightMode);
+    }
+  });
+  run(() => {
+    handleNameChange(name);
+  });
 </script>
 
-<div id="modal-copy-placeholder" />
-<svelte:window on:keydown={handleWindowKeydown} />
+<div id="modal-copy-placeholder"></div>
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <MoltenModal {data}>
-  <div
-    slot="content"
-    class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
-    use:watchResize={handleResize}
-  >
-    <div class="flex flex-row w-full items-center">
-      <div class="flex flex-col">
-        <div class="flex flex-row gap-2 items-center">
-          <span>Name:</span>
-          <div
-            use:clickOutside={{ useCapture: true }}
-            on:click-outside={handleClickOutside}
-          >
-            <MoltenInput
-              bind:this={nameInput}
-              bind:target={name}
-              disabled={!isEditName}
-            />
-          </div>
-          <button
-            on:click={handleEditClicked}
-            class="cursor-pointer pointer-events-auto"
-          >
-            <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
-          </button>
-        </div>
-        <span class:invisible={isDeleted($monaco_action)}>
-          {`Character Count: ${typeof scriptLength === "undefined" ? "?" : scriptLength}/${
-            Grid.Protocol.maxScriptLength - 1
-          } (max)`}
-        </span>
-      </div>
-
-      <div
-        class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
-      >
-        <div class="flex flex-col">
-          {#if isDeleted($monaco_action)}
-            <div class="text-right text-sm">Deleted Action</div>
-          {:else}
-            <div
-              class="text-right text-sm {commitEnabled
-                ? 'text-yellow-600'
-                : 'text-green-500'}"
-            >
-              {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
-            </div>
-            <div class="text-right text-sm text-error">{errorMesssage}</div>
-          {/if}
-        </div>
-
-        <div class="flex flex-row flex-wrap gap-2 justify-end">
-          <MoltenPushButton
-            click={handleCommitClicked}
-            disabled={!commitEnabled || isDeleted($monaco_action)}
-            text="Commit"
-            style="accept"
-          />
-          <MoltenPushButton click={handleClose} text="Close" style="normal" />
-        </div>
-      </div>
-    </div>
-
+  {#snippet content()}
     <div
-      id="monaco-container"
-      class="flex flex-col h-full w-full border border-background-soft bg-background-muted"
+      
+      class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
+      use:watchResize={handleResize}
     >
-      <div
-        class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
-      >
-        {#each pathSnippets as snippet, i}
-          <span>{snippet}</span>
-          {#if i < pathSnippets.length - 1}
-            <span>/</span>
-          {/if}
-        {/each}
-      </div>
-      <div bind:this={monaco_block} class="flex w-full h-full" />
-    </div>
+      <div class="flex flex-row w-full items-center">
+        <div class="flex flex-col">
+          <div class="flex flex-row gap-2 items-center">
+            <span>Name:</span>
+            <div
+              use:clickOutside={{ useCapture: true }}
+              onclick-outside={handleClickOutside}
+            >
+              <MoltenInput
+                bind:this={nameInput}
+                bind:target={name}
+                disabled={!isEditName}
+              />
+            </div>
+            <button
+              onclick={handleEditClicked}
+              class="cursor-pointer pointer-events-auto"
+            >
+              <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+            </button>
+          </div>
+          <span class:invisible={isDeleted($monaco_action)}>
+            {`Character Count: ${typeof scriptLength === "undefined" ? "?" : scriptLength}/${
+              Grid.Protocol.maxScriptLength - 1
+            } (max)`}
+          </span>
+        </div>
 
-    <div class="h-1/4 flex w-full">
-      <DebugTextList />
+        <div
+          class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
+        >
+          <div class="flex flex-col">
+            {#if isDeleted($monaco_action)}
+              <div class="text-right text-sm">Deleted Action</div>
+            {:else}
+              <div
+                class="text-right text-sm {commitEnabled
+                  ? 'text-yellow-600'
+                  : 'text-green-500'}"
+              >
+                {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
+              </div>
+              <div class="text-right text-sm text-error">{errorMesssage}</div>
+            {/if}
+          </div>
+
+          <div class="flex flex-row flex-wrap gap-2 justify-end">
+            <MoltenPushButton
+              click={handleCommitClicked}
+              disabled={!commitEnabled || isDeleted($monaco_action)}
+              text="Commit"
+              style="accept"
+            />
+            <MoltenPushButton click={handleClose} text="Close" style="normal" />
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="monaco-container"
+        class="flex flex-col h-full w-full border border-background-soft bg-background-muted"
+      >
+        <div
+          class="flex flex-row gap-1 items-center flex-wrap bg-black bg-opacity-30 px-2 py-1 text-sm font-mono"
+        >
+          {#each pathSnippets as snippet, i}
+            <span>{snippet}</span>
+            {#if i < pathSnippets.length - 1}
+              <span>/</span>
+            {/if}
+          {/each}
+        </div>
+        <div bind:this={monaco_block} class="flex w-full h-full"></div>
+      </div>
+
+      <div class="h-1/4 flex w-full">
+        <DebugTextList />
+      </div>
     </div>
-  </div>
+  {/snippet}
 </MoltenModal>
 
 <style global>

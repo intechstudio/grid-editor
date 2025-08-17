@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
   import { authStore, AuthEnvironment } from "$lib/auth.store";
   import LoginError from "$lib/auth.store";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -6,15 +8,19 @@
   import { createEventDispatcher } from "svelte";
   import { Modal } from "../modal.store";
 
-  export let data: Modal.Instance;
+  interface Props {
+    data: Modal.Instance;
+  }
+
+  let { data }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  let email = "";
-  let password = "";
-  let loginError = "";
+  let email = $state("");
+  let password = $state("");
+  let loginError = $state("");
 
-  let passwordField;
+  let passwordField = $state();
 
   function submitLogin() {
     authStore.login(email, password).catch((e) => {
@@ -61,10 +67,10 @@
       placeholder="email@example.com"
       bind:value={email}
       id="email"
-      on:input={() => {
+      oninput={() => {
         loginError = "";
       }}
-      on:keyup={(e) => {
+      onkeyup={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           passwordField.focus();
@@ -82,10 +88,10 @@
       type="password"
       placeholder="********"
       bind:value={password}
-      on:input={() => {
+      oninput={() => {
         loginError = "";
       }}
-      on:keyup={(e) => {
+      onkeyup={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           submitLogin();
@@ -97,7 +103,7 @@
 
   <div class="text-left">
     <button
-      on:click={forgottenPassword}
+      onclick={forgottenPassword}
       class="text-gray-300 hover:text-gray-500 text-sm font-medium hover:underline focus:outline-none"
       type="button"
     >
@@ -111,27 +117,27 @@
   {/if}
   <div class="pt-2 w-full flex flex-col justify-between">
     <button
-      on:click|preventDefault={submitLogin}
+      onclick={preventDefault(submitLogin)}
       class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
       >login</button
     >
   </div>
 
   <button
-    on:click|preventDefault={signUp}
+    onclick={preventDefault(signUp)}
     class="min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
     >register</button
   >
 
   <div class="px-8 py-2 w-full">
-    <div class="border-b border-neutral-700 w-full" />
+    <div class="border-b border-neutral-700 w-full"></div>
   </div>
   {#if authStore.getCurrentAuthEnvironment() === AuthEnvironment.PRODUCTION}
     <button
-      on:click|preventDefault={() =>
+      onclick={preventDefault(() =>
         window.electron.openInBrowser(
           configuration.PROFILE_CLOUD_EMAIL_REGISTRATION,
-        )}
+        ))}
       class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
       >register on website</button
     >
@@ -143,7 +149,7 @@
 
   <button
     class="self-center rounded flex items-center justify-start font-medium bg-emerald-600 hover:bg-emerald-700"
-    on:click={() => socialLogin()}
+    onclick={() => socialLogin()}
   >
     <div class="w-14 h-14 p-1">
       <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">

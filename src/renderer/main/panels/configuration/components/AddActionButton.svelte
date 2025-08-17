@@ -3,10 +3,14 @@
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
-  export let target: { event: GridEvent; index: number };
+  interface Props {
+    target: { event: GridEvent; index: number };
+  }
 
-  let showActionPicker = false;
-  let referenceElement = undefined;
+  let { target }: Props = $props();
+
+  let showActionPicker = $state(false);
+  let referenceElement = $state(undefined);
 
   const dispatch = createEventDispatcher();
 
@@ -28,7 +32,7 @@
 <container>
   <button
     bind:this={referenceElement}
-    on:click={handleShowActionPicker}
+    onclick={handleShowActionPicker}
     class="cursor-pointer flex w-full truncate hover:border-pick border-l-foreground hover:bg-background-muted
                 transition-colors duration-300 border-l-4 pl-4 p-2"
   >

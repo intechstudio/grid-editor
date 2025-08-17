@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { tooltip } from "./../_actions/tooltip";
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
@@ -14,22 +16,22 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { WriteBuffer } from "../../runtime/engine.store";
 
-  let isChanges = false;
-  let changes = 0;
+  let isChanges = $state(false);
+  let changes = $state(0);
 
-  let runtime: GridRuntime;
-  let buffer: WriteBuffer;
-  $: {
+  let runtime: GridRuntime = $state();
+  let buffer: WriteBuffer = $state();
+  run(() => {
     runtime = $runtime_manager.active.runtime;
     buffer = runtime.connection.buffer;
-  }
+  });
 
-  $: {
+  run(() => {
     if ($runtime) {
       changes = runtime.unsavedChangesCount();
       isChanges = changes > 0;
     }
-  }
+  });
 
   function clearOverlays() {
     if (get(moduleOverlay) === "configuration-load-overlay") {

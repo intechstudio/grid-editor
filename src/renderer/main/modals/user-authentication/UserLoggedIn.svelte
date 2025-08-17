@@ -1,9 +1,15 @@
 <script lang="ts">
+  import { preventDefault } from 'svelte/legacy';
+
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
   import { Modal } from "../modal.store";
 
-  export let data: Modal.Instance;
+  interface Props {
+    data: Modal.Instance;
+  }
+
+  let { data }: Props = $props();
 </script>
 
 <div class="text-white px-2">
@@ -17,12 +23,12 @@
 
 <div class="flex justify-between">
   <button
-    on:click|preventDefault={() => data.close()}
+    onclick={preventDefault(() => data.close())}
     class=" px-4 items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
     >close</button
   >
   <button
-    on:click|preventDefault={() => authStore.logout()}
+    onclick={preventDefault(() => authStore.logout())}
     class="px-4 items-center inline-flex justify-center py-1 border dark:border-emerald-600 dark:hover:bg-emerald-700 text-white font-medium rounded active:border-neutral-800 border-neutral-500 active:outline-none active:ring-blue-300 active:ring-2"
     >logout</button
   >

@@ -1,4 +1,6 @@
 <script>
+  import { run, self } from 'svelte/legacy';
+
   import { onMount } from "svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";
@@ -13,19 +15,11 @@
     refreshPackageList();
   });
 
-  $: $appSettings.persistent.enabledPackages,
-    $appSettings.packageList,
-    refreshPackagePreferences();
 
-  $: orderedPackageList = $appSettings.packageList.toSorted((p1, p2) =>
-    p1.name.localeCompare(p2.name),
-  );
-  $: installedPackages = orderedPackageList.filter((p) => p.isDownloaded);
-  $: availablePackages = orderedPackageList.filter((p) => !p.isDownloaded);
 
   let packagePreferenceComponents = [];
-  let packagePathInput = "";
-  let packageRepositoryDialog;
+  let packagePathInput = $state("");
+  let packageRepositoryDialog = $state();
 
   function refreshPackagePreferences() {
     const loadedPackages = $appSettings.persistent.enabledPackages;
@@ -236,6 +230,16 @@
     $appSettings.packageManagerRunning = false;
     window.electron.restartPackageManager();
   }
+  run(() => {
+    $appSettings.persistent.enabledPackages,
+      $appSettings.packageList,
+      refreshPackagePreferences();
+  });
+  let orderedPackageList = $derived($appSettings.packageList.toSorted((p1, p2) =>
+    p1.name.localeCompare(p2.name),
+  ));
+  let installedPackages = $derived(orderedPackageList.filter((p) => p.isDownloaded));
+  let availablePackages = $derived(orderedPackageList.filter((p) => !p.isDownloaded));
 </script>
 
 <packages class="flex flex-col h-full w-full overflow-y-auto">
@@ -308,12 +312,12 @@
       {/if}
     </div>
   </div>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <dialog
     bind:this={packageRepositoryDialog}
     class="w-full h-full bg-opacity-60 bg-primary"
-    on:click|self={() => packageRepositoryDialog.close()}
+    onclick={self(() => packageRepositoryDialog.close())}
   >
     <div
       style="background-color: var(--background-muted)"

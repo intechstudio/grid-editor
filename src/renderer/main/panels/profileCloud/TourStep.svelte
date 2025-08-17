@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export type TourStepContent = {
     text: string;
   };
@@ -16,9 +16,13 @@
   import { marked } from "marked";
   import { Writable } from "svelte/store";
 
-  export let text = "";
-  export let referenceElement: HTMLElement;
-  export let updateTrigger: Writable<number>;
+  interface Props {
+    text?: string;
+    referenceElement: HTMLElement;
+    updateTrigger: Writable<number>;
+  }
+
+  let { text = "", referenceElement, updateTrigger }: Props = $props();
 
   function handleClose() {
     configTour.active = false;
@@ -49,7 +53,7 @@
       <div class="items-center justify-between flex">
         <span class="text-white">Tour</span>
         <button
-          on:click={handleClose}
+          onclick={handleClose}
           class="hover:bg-primary fill-white/30 p-1 rounded"
         >
           <SvgIcon width={10} height={10} iconPath={"close"} />
@@ -95,7 +99,7 @@
       id="arrow"
       data-popper-arrow
     >
-      <div class="tooltip-absolute" id="arrow_face" />
+      <div class="tooltip-absolute" id="arrow_face"></div>
     </div>
   </Popover>
 {/key}

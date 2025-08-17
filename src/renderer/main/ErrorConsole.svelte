@@ -7,15 +7,15 @@
   const ctxProcess = window.ctxProcess;
   const configuration = ctxProcess.configuration();
 
-  let logelement;
-  let text = "";
+  let logelement = $state();
+  let text = $state("");
 
-  let logtext = [];
+  let logtext = $state([]);
 
   let solutions = [];
-  let notifications = [];
+  let notifications = $state([]);
 
-  let bgHelper = 0;
+  let bgHelper = $state(0);
 
   function displayError(errorMessage, stack, url, line) {
     if (logtext.length > 4) {
@@ -222,7 +222,7 @@
 
               {#if log.solution.link !== undefined && log.solution.link !== ""}
                 <button
-                  on:click={solution(log.solution.link)}
+                  onclick={solution(log.solution.link)}
                   class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
                 >
                   Find solution
@@ -238,13 +238,13 @@
       Reload the application using {text} or click
 
       <button
-        on:click={refresh}
+        onclick={refresh}
         class="relative bg-gray-500 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
       >
         Restart
       </button>
       <button
-        on:click={dismiss}
+        onclick={dismiss}
         class="relative bg-gray-500 mr-3 block hover:bg-gray-300 text-white ml-1 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
       >
         Dismiss
@@ -265,7 +265,7 @@
 
       {#if notification.link !== undefined && notification.link !== ""}
         <button
-          on:click={solution(notification.link)}
+          onclick={solution(notification.link)}
           class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
         >
           Open Link
@@ -273,7 +273,7 @@
 
         {#if notification.dismissable === true}
           <button
-            on:click={() => {
+            onclick={() => {
               close_notification(index);
             }}
             class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"

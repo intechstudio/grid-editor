@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -36,6 +36,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import {
     MeltCombo,
@@ -49,7 +51,11 @@
   import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   type Pair = {
     input: MeltComboData;
@@ -58,7 +64,7 @@
 
   const dispatch = createEventDispatcher();
 
-  let validators = [
+  let validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -71,30 +77,18 @@
         return new Validator(e).isLuaVariable().Result();
       },
     },
-  ];
+  ]);
 
   let event = config.parent as GridEvent;
 
-  let lookupTable: { pairs: Pair[]; destination: string; source: string };
+  let lookupTable: { pairs: Pair[]; destination: string; source: string } = $state();
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config: ActionData) {
     lookupTable = createLookupTable(config.script);
   }
 
-  let suggestions = [];
-  $: {
-    const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === config.id);
-    const localDefinitions = LocalDefinitions.getFrom({
-      configs: actions,
-      index: index,
-    });
-    suggestions = localDefinitions;
-  }
+  let suggestions = $state([]);
 
   function sendData() {
     const script = Script.toScript({
@@ -198,6 +192,20 @@
     sendData();
     dispatch("sync");
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: actions,
+      index: index,
+    });
+    suggestions = localDefinitions;
+  });
 </script>
 
 <config-lookup class="flex flex-col w-full p-2 pointer-events-auto">
@@ -254,7 +262,7 @@
 
         <button
           class:invisible={i === 0}
-          on:click={() => {
+          onclick={() => {
             removeLine(i);
           }}
           class="flex group cursor-pointer"

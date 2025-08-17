@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -24,6 +24,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
@@ -45,7 +47,11 @@
   import { Grid } from "../lib/_utils.js";
   import { SettingsButton } from "./SettingsButton.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
   let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
   let page = element.parent as GridPage;
@@ -53,7 +59,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -72,16 +78,13 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
   const whatsInParenthesis = /\(([^)]+)\)/;
-  let bmo = "";
-  let bmi = "0";
-  let bma = "127";
+  let bmo = $state("");
+  let bmi = $state("0");
+  let bma = $state("127");
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
@@ -143,12 +146,17 @@
     ],
   ];
 
-  let stepValues: number[];
-  $: stepValues = SettingsButton.calculateStepValuesFirmwareStyle(
+  let stepValues: number[] = $derived(SettingsButton.calculateStepValuesFirmwareStyle(
     Number(bmo) + 1,
     Number(bmi),
     Number(bma),
-  );
+  ));
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">

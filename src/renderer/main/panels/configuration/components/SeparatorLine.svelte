@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { preventDefault, createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import DropZone from "./DropZone.svelte";
   import AddActionLine from "./AddActionLine.svelte";
   import { GridEvent } from "../../../../runtime/runtime";
@@ -9,7 +12,11 @@
     profileCloudConfigDrag,
   } from "../../profileCloud/ProfileCloud";
 
-  export let target: { index: number; event: GridEvent } = undefined;
+  interface Props {
+    target?: { index: number; event: GridEvent };
+  }
+
+  let { target = undefined }: Props = $props();
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -49,10 +56,10 @@
         role="region"
         aria-label="Drop area for presets"
         class="w-full h-full bg-commit/25 pointer-events-auto rounded"
-        on:dragenter={() => handleDragEnter(target.event, target.index)}
-        on:dragleave|preventDefault={handleDragLeave}
-        on:dragover|preventDefault
-      />
+        ondragenter={() => handleDragEnter(target.event, target.index)}
+        ondragleave={preventDefault(handleDragLeave)}
+        ondragover={preventDefault(bubble('dragover'))}
+></div>
     </div>
   {:else}
     <AddActionLine

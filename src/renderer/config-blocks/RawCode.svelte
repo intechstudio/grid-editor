@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import {
     type ActionBlockInformation,
     SyntaxPreprocessor,
@@ -38,6 +38,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
@@ -46,12 +48,15 @@
   import { GridAction, GridEvent } from "../runtime/runtime";
   import { Analytics } from "../runtime/analytics.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
 
-  $: config, $appSettings.packageList, checkConfig();
+  let { config }: Props = $props();
 
-  let targetPackage: string | undefined = undefined;
-  let availablePackage: any | undefined = undefined;
+
+  let targetPackage: string | undefined = $state(undefined);
+  let availablePackage: any | undefined = $state(undefined);
 
   function checkConfig() {
     console.log({ config });
@@ -98,6 +103,9 @@
       mandatory: false,
     });
   }
+  run(() => {
+    config, $appSettings.packageList, checkConfig();
+  });
 </script>
 
 <code-block

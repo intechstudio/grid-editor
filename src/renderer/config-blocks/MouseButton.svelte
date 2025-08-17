@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -32,6 +32,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -40,12 +42,16 @@
   import { Validator } from "./validators";
   import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["Button", "State"];
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -58,14 +64,11 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let scriptSegments = [];
+  let scriptSegments = $state([]);
   let event = config.parent as GridEvent;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -88,7 +91,7 @@
     });
   }
 
-  let suggestions = [];
+  let suggestions = $state([]);
 
   const _suggestions = [
     [
@@ -102,7 +105,16 @@
     ],
   ];
 
-  $: {
+
+  onMount(() => {
+    suggestions = _suggestions;
+  });
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
     const actions = $event.config;
     const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
@@ -112,10 +124,6 @@
     suggestions = _suggestions.map((s, i) => {
       return [...s, ...localDefinitions];
     });
-  }
-
-  onMount(() => {
-    suggestions = _suggestions;
   });
 </script>
 

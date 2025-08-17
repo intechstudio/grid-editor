@@ -23,13 +23,17 @@
   import { Focus } from "../../_actions/focus.action";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
-  export let event: GridEvent;
-  export let focusTrigger: string;
+  interface Props {
+    event: GridEvent;
+    focusTrigger: string;
+  }
 
-  let configList: HTMLElement;
-  let runtime: GridRuntime;
+  let { event, focusTrigger }: Props = $props();
 
-  $: runtime = $runtime_manager.active.runtime;
+  let configList: HTMLElement = $state();
+  let runtime: GridRuntime = $derived($runtime_manager.active.runtime);
+
+  
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -122,7 +126,7 @@
     role="tabpanel"
     tabindex="0"
     use:Focus.on={focusTrigger}
-    on:keydown={handleKeyDown}
+    onkeydown={handleKeyDown}
     class="px-4 pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     {#if $appSettings.isMultiView}

@@ -7,8 +7,12 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { Grid } from "../../../../lib/_utils";
 
-  export let visible = false;
-  export let element: GridElement;
+  interface Props {
+    visible?: boolean;
+    element: GridElement;
+  }
+
+  let { visible = false, element }: Props = $props();
 
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;

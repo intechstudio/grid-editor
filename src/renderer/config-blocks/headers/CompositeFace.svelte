@@ -3,15 +3,19 @@
   import { GridAction } from "../../runtime/runtime";
   const dispatch = createEventDispatcher();
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   function handleClick(e) {
     dispatch("toggle");
   }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="px-2 w-full {config.information.rounding === 'top'
     ? 'rounded-tr-xl'
@@ -19,7 +23,7 @@
     ? 'rounded-br-xl'
     : ''} text-white flex items-center"
   style="background-color:{config.information.color}"
-  on:click={handleClick}
+  onclick={handleClick}
 >
   <span>{config.information.displayName}</span>
 </div>

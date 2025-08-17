@@ -10,7 +10,7 @@
 
 <button
   class="flex h-full w-full items-center justify-center group"
-  on:click={handleClick}
+  onclick={handleClick}
 >
   <div
     class="rounded-full fill-foreground-muted h-10 w-10 p-3 opacity-50 group-hover:opacity-100"

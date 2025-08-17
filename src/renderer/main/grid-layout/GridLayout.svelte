@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: $$props is used together with named props in a way that cannot be automatically migrated. -->
 <script lang="ts" context="module">
   export const DEVICE_GAP = 5;
   export const DEVICE_WIDTH = 225;
@@ -13,7 +14,7 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, mount } from "svelte";
   import { GridModule, GridRuntime } from "../../runtime/runtime";
   import AddButton from "../user-interface/AddButton.svelte";
   import { Grid } from "../../lib/_utils";
@@ -162,7 +163,7 @@
   }
 
   function handleAddModuleButtonClicked(x: number, y: number) {
-    new Modal.Window(AddVirtualModule).show({ dx: x, dy: y });
+    mount(AddVirtualModule, AddVirtualModule).show({ dx: x, dy: y });
   }
 </script>
 

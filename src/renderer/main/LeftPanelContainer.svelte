@@ -7,7 +7,7 @@
   import Preferences from "./panels/preferences/Preferences.svelte";
   import { appSettings } from "../runtime/app-helper.store";
 
-  $: leftPanel = $appSettings.leftPanel ?? "profile-cloud";
+  let leftPanel = $derived($appSettings.leftPanel ?? "profile-cloud");
 </script>
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->

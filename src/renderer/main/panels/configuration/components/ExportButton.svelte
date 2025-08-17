@@ -1,13 +1,15 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { Modal } from "../../../modals/modal.store";
   import Export from "../../../modals/Export.svelte";
 </script>
 
 <button
   id="open-export-modal"
-  on:click|preventDefault={() => {
+  onclick={preventDefault(() => {
     new Modal.Window(Export).show();
-  }}
+  })}
   class="flex cursor-pointer focus:ring-1 w-9 justify-center focus:outline-none items-center hover:bg-background-muted rounded"
 >
   <svg

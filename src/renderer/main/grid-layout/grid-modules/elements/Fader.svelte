@@ -1,12 +1,22 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import Led from "./Led.svelte";
 
-  export let elementNumber;
-  export let size = 1;
-  export let faderHeight = 0; // was 37 or 68
-  export let position = 0;
-  export let color;
+  interface Props {
+    elementNumber: any;
+    size?: number;
+    faderHeight?: number; // was 37 or 68
+    position?: number;
+    color: any;
+  }
+
+  let {
+    elementNumber,
+    size = 1,
+    faderHeight = 0,
+    position = 0,
+    color
+  }: Props = $props();
 
   const faderWidth = 16;
 </script>

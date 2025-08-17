@@ -1,9 +1,15 @@
-<script>
+<script lang="ts">
   import { Modal } from "./../modals/modal.store";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
+import { mount } from "svelte";
+  interface Props {
+    [key: string]: any
+  }
+
+  let { ...props }: Props = $props();
 
   const configuration = window.ctxProcess.configuration();
 
@@ -22,7 +28,7 @@
   }
 
   function handleAddVirtualModuleClicked(e) {
-    new Modal.Window(AddVirtualModule).show({ dx: 0, dy: 0 });
+    mount(AddVirtualModule, AddVirtualModule).show({ dx: 0, dy: 0 });
     Analytics.track({
       event: "VirtualModule",
       payload: {
@@ -33,7 +39,7 @@
   }
 </script>
 
-<div class={$$props.class}>
+<div class={props.class}>
   <div
     style="background-color: var(--background); color: var(--foreground)"
     class="flex flex-col rounded-md shadow-xl w-64 p-4 relative"

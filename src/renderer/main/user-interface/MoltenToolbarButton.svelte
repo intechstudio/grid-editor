@@ -5,12 +5,21 @@
 
   const dispatch = createEventDispatcher();
 
-  export let selected: boolean = false;
-  export let iconPath: string = "";
-  export let disabled: boolean = false;
-  export let color: string = "#FFF";
+  interface Props {
+    selected?: boolean;
+    iconPath?: string;
+    disabled?: boolean;
+    color?: string;
+  }
 
-  let buttonElement: HTMLElement;
+  let {
+    selected = false,
+    iconPath = "",
+    disabled = false,
+    color = "#FFF"
+  }: Props = $props();
+
+  let buttonElement: HTMLElement = $state();
 
   function handleClick(e) {
     animate();
@@ -37,9 +46,9 @@
 <button
   bind:this={buttonElement}
   class:selected
-  on:click={handleClick}
-  on:mouseenter={handleMouseEnter}
-  on:mouseleave={handleMouseLeave}
+  onclick={handleClick}
+  onmouseenter={handleMouseEnter}
+  onmouseleave={handleMouseLeave}
   {disabled}
   class="{$appSettings.persistent.colorfulToolbar
     ? 'colorful-toolbar-button'

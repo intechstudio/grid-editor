@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { GridEvent } from "./../../../../runtime/runtime";
   import {
     dropEventTarget,
@@ -7,13 +9,16 @@
     type DropTarget,
   } from "../../../_actions/move.action";
 
-  export let target: { index: number; event: GridEvent } = undefined;
 
-  export let threshold = 25;
+  interface Props {
+    target?: { index: number; event: GridEvent };
+    threshold?: number;
+  }
 
-  let disabled = false;
+  let { target = undefined, threshold = 25 }: Props = $props();
 
-  $: handleDropEventTargetChange($dropEventTarget);
+  let disabled = $state(false);
+
 
   function handleDropEventTargetChange(drop: DropTarget) {
     if (drop?.index !== target.index) {
@@ -41,6 +46,9 @@
     disabled =
       target.index >= targetMinIndex && target.index <= targetMaxIndex + 1;
   }
+  run(() => {
+    handleDropEventTargetChange($dropEventTarget);
+  });
 </script>
 
 <div class="flex relative h-2 w-full">
@@ -52,6 +60,6 @@
   >
     <div
       class="h-2 w-full rounded-full {disabled ? 'bg-error' : 'bg-commit'}"
-    />
+></div>
   </div>
 </div>

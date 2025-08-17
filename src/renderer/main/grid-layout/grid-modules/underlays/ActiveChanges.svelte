@@ -2,16 +2,25 @@
   import { GridElement } from "./../../../../runtime/runtime";
   import { createEventDispatcher } from "svelte";
 
-  export let element: GridElement;
-  export let isLeftCut = false;
-  export let isRightCut = false;
-  export let visible = false;
+  interface Props {
+    element: GridElement;
+    isLeftCut?: boolean;
+    isRightCut?: boolean;
+    visible?: boolean;
+  }
+
+  let {
+    element,
+    isLeftCut = false,
+    isRightCut = false,
+    visible = false
+  }: Props = $props();
 
   const dispatch = createEventDispatcher();
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 {#if visible}
   <div
     class="changeable-element
@@ -21,12 +30,12 @@
     style="   {$element.elementIndex == 255
       ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
       : 'border-radius: var(--grid-rounding);'}   "
-    on:click={() => {
+    onclick={() => {
       dispatch("click", {
         elementNumber: $element.elementIndex,
       });
     }}
-  />
+></div>
 {/if}
 
 <style>

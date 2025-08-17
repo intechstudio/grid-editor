@@ -9,11 +9,15 @@
   import { addActions, pasteActions } from "../../../../runtime/operations";
   import { isPasteActionsEnabled } from "./Toolbar";
 
-  let showActionPicker = false;
-  let referenceElement = undefined;
+  let showActionPicker = $state(false);
+  let referenceElement = $state(undefined);
 
-  export let text: string;
-  export let target: { event: GridEvent; index: number };
+  interface Props {
+    text: string;
+    target: { event: GridEvent; index: number };
+  }
+
+  let { text, target }: Props = $props();
 
   function handleShowActionPicker(e) {
     showActionPicker = true;
@@ -43,14 +47,14 @@
       <button
         class="flex rounded px-3 py-1 bg-commit items-center"
         class:opacity-50={!$isPasteActionsEnabled}
-        on:click={(e) => handlePaste({ detail: { index: target.index } })}
+        onclick={(e) => handlePaste({ detail: { index: target.index } })}
         disabled={!$isPasteActionsEnabled}
       >
         <span> Paste </span>
       </button>
       <button
         class="rounded px-2 py-1 border border-pick group-hover:bg-pick/40"
-        on:click={handleShowActionPicker}
+        onclick={handleShowActionPicker}
       >
         <div class="flex flex-row items-center gap-2">
           <span> Add </span>

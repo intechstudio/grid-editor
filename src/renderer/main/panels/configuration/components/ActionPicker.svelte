@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     GridAction,
     ActionData,
@@ -28,19 +30,24 @@
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
-  //////////////////////////////////////////////////////////////////////////////
+  
 
-  export let index: number;
-  export let referenceElement = undefined;
-  export let event: GridEvent;
+  interface Props {
+    //////////////////////////////////////////////////////////////////////////////
+    index: number;
+    referenceElement?: any;
+    event: GridEvent;
+  }
+
+  let { index, referenceElement = undefined, event }: Props = $props();
 
   let offset = 0;
   const dispatch = createEventDispatcher();
   let actionPickerTimestamp = 0;
-  let options = [];
-  let filteredOptions = [];
-  let searchValue = "";
-  let searchBar;
+  let options = $state([]);
+  let filteredOptions = $state([]);
+  let searchValue = $state("");
+  let searchBar = $state();
 
   function handleEscapePress(e) {
     if (e.key === "Escape") {
@@ -75,19 +82,7 @@
     document.removeEventListener("keydown", handleEscapePress);
   });
 
-  //////////////////////////////////////////////////////////////////////////////
-  /////////////////       REACTIVE STATEMENTS        ///////////////////////////
-  //////////////////////////////////////////////////////////////////////////////
 
-  $: {
-    try {
-      options = getAvailableOptions($event);
-    } catch (e) {
-      handleClose();
-    }
-  }
-
-  $: handleSearchValueChange(searchValue);
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
@@ -379,13 +374,27 @@
     }
     handleAddAction({ component });
   }
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       REACTIVE STATEMENTS        ///////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  run(() => {
+    try {
+      options = getAvailableOptions($event);
+    } catch (e) {
+      handleClose();
+    }
+  });
+  run(() => {
+    handleSearchValueChange(searchValue);
+  });
 </script>
 
 <container style="z-index: 666;">
   <Popover isOpen={true} {referenceElement} placement={"left"}>
     <pick-action
       use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
+      onclick-outside={handleClickOutside}
       class="flex w-96"
       style={`max-height: calc(100vh - 27px); width: 20vw;`}
     >
@@ -395,7 +404,7 @@
             <div class="flex flex-row justify-between">
               <span class="text-gray-500 text-sm self-end"> Search: </span>
               <button
-                on:click={handleClose}
+                onclick={handleClose}
                 id="close-btn"
                 class="hover:bg-secondary fill-gray-500 p-1 rounded mb-1"
               >
@@ -418,11 +427,11 @@
 
                 <div class="w-full flex justify-start py-1 flex-wrap gap-1">
                   {#each option.components as component}
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-no-static-element-interactions -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_no_static_element_interactions -->
                     <button
                       style="--action-color: {component.information.color};"
-                      on:click={() => handleAddAction({ component })}
+                      onclick={() => handleAddAction({ component })}
                       class="action-card hover:border-pick cursor-pointer py-0.5 px-1 flex items-center rounded-md text-white"
                     >
                       <div class="w-6 h-6 p-0.5 m-0.5">

@@ -1,36 +1,42 @@
-<script>
+<script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createDataPointsStore, PolyLineGraphData } from "./PolyLineGraph";
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
 
-  export let incomingData = writable();
-  let label = undefined;
-  let width = 0;
+  let { incomingData = writable() } = $props();
+  let label = $state(undefined);
+  let width = $state(0);
 
-  let max_value = 0;
-  let min_value = 0;
-  let avg_value = 0;
-  let last_value = 0;
+  let max_value = $state(0);
+  let min_value = $state(0);
+  let avg_value = $state(0);
+  let last_value = $state(0);
 
   const data_points = createDataPointsStore({ max_x: 0, max_y: 0 });
 
-  $: if (typeof $incomingData.value !== "undefined") {
-    let isPercentage = false;
+  run(() => {
+    if (typeof $incomingData.value !== "undefined") {
+      let isPercentage = false;
 
-    if ($incomingData.value.slice(-1) === "%") {
-      isPercentage = true;
+      if ($incomingData.value.slice(-1) === "%") {
+        isPercentage = true;
+      }
+
+      label = $incomingData.type;
+      data_points.add(parseInt($incomingData.value), isPercentage);
+      const values = data_points.get_values();
+      max_value = Math.floor(Math.max(...values));
+      min_value = Math.floor(Math.min(...values));
+      avg_value = Math.floor(values.reduce((a, b) => a + b, 0) / values.length);
+      last_value = Math.floor(parseInt($incomingData.value));
     }
+  });
 
-    label = $incomingData.type;
-    data_points.add(parseInt($incomingData.value), isPercentage);
-    const values = data_points.get_values();
-    max_value = Math.floor(Math.max(...values));
-    min_value = Math.floor(Math.min(...values));
-    avg_value = Math.floor(values.reduce((a, b) => a + b, 0) / values.length);
-    last_value = Math.floor(parseInt($incomingData.value));
-  }
-
-  $: data_points.set_max_values({ max_x: width, max_y: (width / 3) * 2 });
+  run(() => {
+    data_points.set_max_values({ max_x: width, max_y: (width / 3) * 2 });
+  });
 
   onMount(() => {
     data_points.set_max_values({ max_x: width, max_y: (width / 3) * 2 });

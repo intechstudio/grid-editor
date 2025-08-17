@@ -1,14 +1,24 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from "svelte";
   import Led from "./Led.svelte";
 
   const dispatch = createEventDispatcher();
 
-  export let size = 1;
-  export let elementNumber;
-  export let position;
-  export let id;
-  export let color;
+  interface Props {
+    size?: number;
+    elementNumber: any;
+    position: any;
+    id: any;
+    color: any;
+  }
+
+  let {
+    size = 1,
+    elementNumber,
+    position = $bindable(),
+    id,
+    color
+  }: Props = $props();
 
   const knobSize = 13;
 
@@ -40,9 +50,9 @@
 
   <div class="knob-element">
     <svg
-      on:grabstart={handleGrabStart}
-      on:grabmove={handleGrabMove}
-      on:grabend={handleGrabEnd}
+      ongrabstart={handleGrabStart}
+      ongrabmove={handleGrabMove}
+      ongrabend={handleGrabEnd}
       data-control-number={elementNumber}
       data-module-id={id}
       width={size * knobSize + "px"}

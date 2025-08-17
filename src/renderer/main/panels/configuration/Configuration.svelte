@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     user_input,
     UserInputValue,
@@ -33,12 +35,12 @@
   import { isPasteActionsEnabled } from "./components/Toolbar";
   import { MeltRadio, Toggle } from "@intechstudio/grid-uikit";
 
-  let runtime: GridRuntime;
-  let element: GridElement;
-  let event: GridEvent;
-  let page: GridPage;
+  let runtime: GridRuntime = $state();
+  let element: GridElement = $state();
+  let event: GridEvent = $state();
+  let page: GridPage = $state();
 
-  let container: HTMLElement;
+  let container: HTMLElement = $state();
 
   onDestroy(() => {
     appSettings.update((store) => {
@@ -47,11 +49,7 @@
     });
   });
 
-  $: runtime = $runtime_manager.active.runtime;
 
-  $: if ($runtime) {
-    handleUserInputChange($user_input);
-  }
 
   function handleUserInputChange(ui: UserInputValue) {
     page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
@@ -81,12 +79,8 @@
     }
   }
 
-  let containerWidth: number;
+  let containerWidth: number = $state();
 
-  $: handleIsMultiViewAutoupdate(
-    containerWidth,
-    $appSettings.persistent.multiViewEnabled,
-  );
 
   function handleIsMultiViewAutoupdate(containerWidth, multiViewEnabled) {
     if (!containerWidth) {
@@ -173,6 +167,20 @@
     const { index } = e?.detail ?? { index: undefined };
     pasteActions(event, index);
   }
+  run(() => {
+    runtime = $runtime_manager.active.runtime;
+  });
+  run(() => {
+    if ($runtime) {
+      handleUserInputChange($user_input);
+    }
+  });
+  run(() => {
+    handleIsMultiViewAutoupdate(
+      containerWidth,
+      $appSettings.persistent.multiViewEnabled,
+    );
+  });
 </script>
 
 <div
@@ -180,7 +188,7 @@
   tabindex="0"
   bind:this={container}
   class="flex w-full h-full configpanel activator-button"
-  on:keydown={(e) => {
+  onkeydown={(e) => {
     //Ignore if origin node is input
     if (
       e.target instanceof HTMLInputElement ||
@@ -281,7 +289,7 @@
               <div
                 class="h-full flex border-r border-black"
                 class:hidden={i === $element.events.length - 1}
-              />
+></div>
             {/each}
           {:else}
             <ActionList

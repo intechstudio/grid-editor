@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
   import { appSettings } from "./../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
   import { SvgIcon, MoltenInput } from "@intechstudio/grid-uikit";
@@ -9,7 +11,11 @@
 
   const dispatch = createEventDispatcher();
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
   let event = config.parent as GridEvent;
 
   function handleClick(e) {
@@ -63,19 +69,19 @@
     }
   }
 
-  let name: string;
-  let isEdit = false;
+  let name: string = $state();
+  let isEdit = $state(false);
   let nameChange = false;
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} />
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
   role="button"
   tabindex="0"
   class="justify-between gap-2 w-full px-2 py-1 flex-row flex items-center overflow-hidden pointer-events-none bg-background-muted"
-  on:click={handleClick}
+  onclick={handleClick}
 >
   {#if isEdit}
     <div class="pointer-events-auto flex flex-grow">
@@ -98,7 +104,7 @@
 
   {#if $appSettings.persistent.editableBlockNames}
     <button
-      on:click|stopPropagation={handleEditClicked}
+      onclick={stopPropagation(handleEditClicked)}
       class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded pointer-events-auto"
     >
       <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />

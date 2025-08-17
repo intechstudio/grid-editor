@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Can't migrate code with beforeUpdate. Please migrate by hand. -->
 <script lang="ts">
   import { appSettings } from "../../runtime/app-helper.store";
   import { beforeUpdate, createEventDispatcher, onMount } from "svelte";

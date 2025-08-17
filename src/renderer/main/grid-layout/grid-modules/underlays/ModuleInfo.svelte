@@ -1,8 +1,12 @@
-<script>
+<script lang="ts">
   import { Architecture } from "@intechstudio/grid-protocol";
 
-  export let visible = true;
-  export let device = undefined;
+  interface Props {
+    visible?: boolean;
+    device?: any;
+  }
+
+  let { visible = true, device = undefined }: Props = $props();
 </script>
 
 {#if visible && typeof device.architecture !== "undefined"}

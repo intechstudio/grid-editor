@@ -1,21 +1,34 @@
-<script>
-  export let value = 0;
-  export let info = "";
-  export let color;
-  export let trackColor;
-  export let textColor;
-  export let thickness = "5%"; // Thickness of stroke
-  export let decimals = false;
+<script lang="ts">
+  import { run } from 'svelte/legacy';
+
+  interface Props {
+    value?: number;
+    info?: string;
+    color: any;
+    trackColor: any;
+    textColor: any;
+    thickness?: string; // Thickness of stroke
+    decimals?: boolean;
+  }
+
+  let {
+    value = 0,
+    info = "",
+    color,
+    trackColor,
+    textColor,
+    thickness = "5%",
+    decimals = false
+  }: Props = $props();
 
   let newValue = 0; // Value already validated
-  let radius, xaxis, yaxis, side;
-  let circle, hidCircle, btnCircle;
-  let rootEle;
-  let rootWidth, rootHeight;
+  let radius = $state(), xaxis = $state(), yaxis = $state(), side;
+  let circle = $state(), hidCircle = $state(), btnCircle;
+  let rootEle = $state();
+  let rootWidth = $state(), rootHeight = $state();
   let max = 100;
   let discRadius = 80;
 
-  $: calculate(value, rootWidth, rootHeight, circle, hidCircle);
 
   function calculate() {
     newValue = (value > max ? max : value < newValue ? newValue : value) || 0;
@@ -59,6 +72,9 @@
       circle.style.strokeDashoffset = dashValue - (dashValue * newValue) / 100;
     }
   }
+  run(() => {
+    calculate(value, rootWidth, rootHeight, circle, hidCircle);
+  });
 </script>
 
 <section

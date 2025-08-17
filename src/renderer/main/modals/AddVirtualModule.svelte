@@ -72,11 +72,15 @@
     },
   ];
 
-  export let dx = 0;
-  export let dy = 0;
-  export let data: Modal.Instance;
+  interface Props {
+    dx?: number;
+    dy?: number;
+    data: Modal.Instance;
+  }
 
-  let selectedModule: number = -1;
+  let { dx = 0, dy = 0, data }: Props = $props();
+
+  let selectedModule: number = $state(-1);
 
   function handleAddClicked() {
     const active = get(runtime_manager).active.runtime;
@@ -114,73 +118,74 @@
 </script>
 
 <MoltenModal {data} width={"500px"}>
-  <div
-    slot="content"
-    class="grid grid-rows-[auto_1fr_auto] max-h-[50vh] h-full"
-  >
-    <div>
-      <div class="flex w-full text-4xl opacity-90 pb-2">Add Virtual Module</div>
-      <p>
-        In virtual mode you can check out the features of Grid Editor. Add your
-        chosen module as a preview, and get started!
-      </p>
-      <p>
-        Browse profiles and presets in the Profile Cloud, or download them to
-        your virtual module!
-      </p>
-    </div>
-    <div class="overflow-y-scroll mt-4">
-      <div
-        class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full
-          "
-      >
-        {#each devices as device, index}
-          {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
-            <div class="flex w-full h-full items-center justify-center">
-              <div class="flex flex-col">
-                <span class="font-mono">{device.id}</span>
-                <button
-                  data-testid={device.id}
-                  class="border"
-                  class:border-transparent={index !== selectedModule}
-                  class:hover:border-emerald-600={index !== selectedModule}
-                  class:border-emerald-300={index === selectedModule}
-                  on:click={() => handleModuleClicked(index)}
-                  on:dblclick={() => handleModuleDoubleClicked(index)}
-                >
-                  <div
-                    style="
-                      transform-origin: top left;
-                      width: calc(113px);
-                      height: calc(113px);
-                      transform: scale(0.5); 
-                    "
+  {#snippet content()}
+    <div
+      
+      class="grid grid-rows-[auto_1fr_auto] max-h-[50vh] h-full"
+    >
+      <div>
+        <div class="flex w-full text-4xl opacity-90 pb-2">Add Virtual Module</div>
+        <p>
+          In virtual mode you can check out the features of Grid Editor. Add your
+          chosen module as a preview, and get started!
+        </p>
+        <p>
+          Browse profiles and presets in the Profile Cloud, or download them to
+          your virtual module!
+        </p>
+      </div>
+      <div class="overflow-y-scroll mt-4">
+        <div
+          class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full
+            "
+        >
+          {#each devices as device, index}
+            {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
+              <div class="flex w-full h-full items-center justify-center">
+                <div class="flex flex-col">
+                  <span class="font-mono">{device.id}</span>
+                  <button
+                    data-testid={device.id}
+                    class="border"
+                    class:border-transparent={index !== selectedModule}
+                    class:hover:border-emerald-600={index !== selectedModule}
+                    class:border-emerald-300={index === selectedModule}
+                    onclick={() => handleModuleClicked(index)}
+                    ondblclick={() => handleModuleDoubleClicked(index)}
                   >
-                    <div class="w-fit h-fit rounded shadow-lg">
-                      <svelte:component
-                        this={device.component}
-                        {device}
-                        moduleWidth={225}
-                      />
+                    <div
+                      style="
+                        transform-origin: top left;
+                        width: calc(113px);
+                        height: calc(113px);
+                        transform: scale(0.5); 
+                      "
+                    >
+                      <div class="w-fit h-fit rounded shadow-lg">
+                        <device.component
+                          {device}
+                          moduleWidth={225}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                </div>
               </div>
-            </div>
-          {/if}
-        {/each}
+            {/if}
+          {/each}
+        </div>
+      </div>
+      <div class="flex flex-row gap-2 pt-4 ml-auto">
+        <MoltenPushButton
+          text="Add Module"
+          click={handleAddClicked}
+          style={"accept"}
+          disabled={selectedModule === -1}
+        />
+        {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
+          <MoltenPushButton text="Cancel" click={handleCancelClicked} />
+        {/if}
       </div>
     </div>
-    <div class="flex flex-row gap-2 pt-4 ml-auto">
-      <MoltenPushButton
-        text="Add Module"
-        click={handleAddClicked}
-        style={"accept"}
-        disabled={selectedModule === -1}
-      />
-      {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
-        <MoltenPushButton text="Cancel" click={handleCancelClicked} />
-      {/if}
-    </div>
-  </div>
+  {/snippet}
 </MoltenModal>

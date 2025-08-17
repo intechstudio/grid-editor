@@ -1,18 +1,19 @@
-<script>
+<script lang="ts">
   import { Modal } from "./../modals/modal.store";
   import Feedback from "../modals/Feedback.svelte";
+import { mount } from "svelte";
 
-  export let feedback_context;
+  let { feedback_context } = $props();
 
   function openFeedbackFrom() {
     console.log("feedback on " + feedback_context);
-    new Modal.Window(Feedback).show({
+    mount(Feedback, Feedback).show({
       feedback_context,
     });
   }
 </script>
 
-<button on:click={openFeedbackFrom} class="text-sm text-gray-500 feedback">
+<button onclick={openFeedbackFrom} class="text-sm text-gray-500 feedback">
   Send Feedback
 </button>
 

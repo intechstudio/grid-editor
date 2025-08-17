@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import MidiSysExFace from "./headers/MidiSysExFace.svelte";
@@ -44,6 +44,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
 
@@ -52,19 +54,20 @@
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { GridAction } from "../runtime/runtime.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  let commitState = 0;
+  let commitState = $state(0);
 
   const dispatch = createEventDispatcher();
 
-  let value;
+  let value = $state();
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     let textdata = whatsInParenthesis.exec(config.script);
@@ -96,12 +99,17 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
   }
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
 </script>
 
 <action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
-      <div />
+      <div></div>
       {#each tabs as element}
         <TabButton
           selected={config.information.short == element.short}
@@ -124,10 +132,10 @@
       class="w-full px-2 py-1 text-white bg-black/25"
       contenteditable="true"
       bind:innerText={value}
-      on:input={() => {
+      oninput={() => {
         commitState = 1;
       }}
-    />
+></div>
   </div>
 
   <div class="flex justify-between items-center mt-2">

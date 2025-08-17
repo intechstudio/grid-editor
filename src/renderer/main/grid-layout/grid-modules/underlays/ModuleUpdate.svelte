@@ -1,9 +1,13 @@
 <script lang="ts">
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  export let rows = 7;
-  export let cols = 7;
-  export let baseColor = "#2563eb"; // Bright green like Matrix
+  interface Props {
+    rows?: number;
+    cols?: number;
+    baseColor?: string; // Bright green like Matrix
+  }
+
+  let { rows = 7, cols = 7, baseColor = "#2563eb" }: Props = $props();
 
   // Create grid data with random values and random delays
   const grid = Array.from({ length: rows * cols }, () => ({

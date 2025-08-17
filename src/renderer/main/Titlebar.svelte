@@ -12,7 +12,7 @@
 
   const configuration = window.ctxProcess.configuration();
 
-  let isMaximized;
+  let isMaximized = $state();
 
   onMount(async () => {
     browserWindow.isMaximized() ? (isMaximized = true) : (isMaximized = false);
@@ -55,7 +55,7 @@
       </div>
       <div class="flex justify-between w-full">
         <!-- TODO: Make use of the Pane Buttons to collapse left and right Panes -->
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- <PaneButton
           inverted={true}
           on:paneCollapse={(e) => {
@@ -81,7 +81,7 @@
 
         <div class="flex items-center text-gray-300 not-draggable">
           <!-- TODO: Make use of the Pane Buttons to collapse left and right Panes -->
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- <PaneButton
             on:paneCollapse={(e) => {
               dispatch("rightPaneCollapse", {
@@ -92,7 +92,7 @@
 
           <div
             id="minimize-btn"
-            on:click={() => {
+            onclick={() => {
               browserWindow.minimize();
             }}
             class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary"
@@ -109,7 +109,7 @@
 
           <div
             id="maximize-btn"
-            on:click={() => {
+            onclick={() => {
               isMaximized = true;
               browserWindow.maximize();
             }}
@@ -132,7 +132,7 @@
 
           <div
             id="restore-down-btn"
-            on:click={() => {
+            onclick={() => {
               isMaximized = false;
               browserWindow.restore();
             }}
@@ -156,7 +156,7 @@
 
           <div
             id="close-btn"
-            on:click={() => {
+            onclick={() => {
               browserWindow.close();
             }}
             class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary"

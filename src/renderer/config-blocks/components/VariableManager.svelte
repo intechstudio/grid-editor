@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher, onMount } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { ElementType } from "@intechstudio/grid-protocol";
@@ -10,17 +12,26 @@
   const dispatch = createEventDispatcher();
   type ScriptSegment = { name: string; value: string };
 
-  export let script: string;
-  export let availableCharacters: number;
-  export let preProcessor: (script: string) => string;
-  export let postProcessor: (script: string) => string;
-  export let restrictScopeTo: ElementType | undefined = undefined;
+  interface Props {
+    script: string;
+    availableCharacters: number;
+    preProcessor: (script: string) => string;
+    postProcessor: (script: string) => string;
+    restrictScopeTo?: ElementType | undefined;
+  }
 
-  let validators = [];
+  let {
+    script,
+    availableCharacters,
+    preProcessor,
+    postProcessor,
+    restrictScopeTo = undefined
+  }: Props = $props();
 
-  let segments: ScriptSegment[] = [];
+  let validators = $state([]);
 
-  $: handleScriptChange(script);
+  let segments: ScriptSegment[] = $state([]);
+
 
   function handleScriptChange(script: string) {
     if (script === buildScript(segments)) {
@@ -164,6 +175,9 @@
     handleInput();
     handleChange();
   }
+  run(() => {
+    handleScriptChange(script);
+  });
 </script>
 
 <container>
@@ -203,7 +217,7 @@
 
         <button
           class:invisible={i === 0}
-          on:click={() => {
+          onclick={() => {
             removeVariable(i);
           }}
           class="flex group cursor-pointer"

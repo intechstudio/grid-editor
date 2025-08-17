@@ -77,7 +77,7 @@
     { title: "Developer settings", value: PreferenceMenu.DEVELOPER },
   ];
 
-  let activePreferenceMenu = PreferenceMenu.GENERAL;
+  let activePreferenceMenu = $state(PreferenceMenu.GENERAL);
 </script>
 
 <div class="flex flex-col h-full w-full px-2 py-2 overflow-y-auto">

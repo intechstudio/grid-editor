@@ -1,9 +1,16 @@
-<script>
+<script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { get } from "svelte/store";
   import { logger } from "../../../../runtime/runtime.store";
   import { runtime_manager } from "../../../../runtime/runtime-manager.store";
   import { user_input } from "../../../../runtime/user-input.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
+  interface Props {
+    [key: string]: any
+  }
+
+  let { ...props }: Props = $props();
 
   let selectedPage = undefined;
   function handleSelectPage(page) {
@@ -23,14 +30,12 @@
       });
   }
 
-  $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {
     selectedPage = ui.pagenumber;
     selected = ui.pagenumber;
   }
 
-  $: handleSelectPage(selected);
 
   const defaultOptions = Array.from(Array(4).keys()).map((i) => ({
     title: i + 1,
@@ -38,12 +43,18 @@
   }));
 
   const defaultSelected = 1;
-  let selected = defaultSelected;
+  let selected = $state(defaultSelected);
 
   let options = defaultOptions;
+  run(() => {
+    handleUserInputChange($user_input);
+  });
+  run(() => {
+    handleSelectPage(selected);
+  });
 </script>
 
-<div class="{$$props.class} flex flex-row gap-2 mt-3 items-center">
+<div class="{props.class} flex flex-row gap-2 mt-3 items-center">
   <MeltRadio
     bind:target={selected}
     style="button"

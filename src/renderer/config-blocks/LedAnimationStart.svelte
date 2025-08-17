@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
@@ -48,6 +48,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -59,13 +61,17 @@
   import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
   import { Grid } from "../lib/_utils.js";
 
-  export let config: GridAction;
+  interface Props {
+    config: GridAction;
+  }
+
+  let { config }: Props = $props();
 
   let event = config.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
-  const validators = [
+  const validators = $state([
     {
       value: true,
       func: (e: string) => {
@@ -96,14 +102,10 @@
         return new Validator(e).isLuaValue().Result();
       },
     },
-  ];
+  ]);
 
-  let scriptSegments = [];
+  let scriptSegments = $state([]);
 
-  // config.script cannot be undefined
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
-  }
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
@@ -158,11 +160,8 @@
     ],
   ];
 
-  let suggestions = [];
+  let suggestions = $state([]);
 
-  $: if ($event) {
-    updateSuggestions();
-  }
 
   function updateSuggestions() {
     const actions = $event.config;
@@ -180,6 +179,17 @@
       }
     });
   }
+  // config.script cannot be undefined
+  run(() => {
+    if (!$config.invalid) {
+      handleConfigChange($config);
+    }
+  });
+  run(() => {
+    if ($event) {
+      updateSuggestions();
+    }
+  });
 </script>
 
 <config-led-phase class="flex flex-col w-full p-2 pointer-events-auto">

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onDestroy } from "svelte";
   import { GridMIDIManager } from "../../../serialport/midi-port";
 
@@ -15,16 +17,16 @@
   const manager = new GridMIDIManager();
 
   const defaultOption = { title: "None", value: "none" };
-  let options = [defaultOption];
-  let selected = defaultOption.value;
+  let options = $state([defaultOption]);
+  let selected = $state(defaultOption.value);
   let disabled = true;
 
-  let channel = "0";
-  let command = "144";
-  let param1 = "60";
+  let channel = $state("0");
+  let command = $state("144");
+  let param1 = $state("60");
   let param2 = writable("127");
   let unsubParam2: Unsubscriber;
-  let interval = 250;
+  let interval = $state(250);
 
   enum TortureMode {
     DISABLED,
@@ -75,7 +77,6 @@
 
   let pingInterval: NodeJS.Timeout | undefined;
 
-  $: handleModeChange($mode);
 
   function handleModeChange(value: TortureMode) {
     const port = manager.getPort(selected);
@@ -127,6 +128,9 @@
   function stopMIDIPing() {
     if (pingInterval) clearInterval(pingInterval);
   }
+  run(() => {
+    handleModeChange($mode);
+  });
 </script>
 
 <container class="flex flex-col gap-4">

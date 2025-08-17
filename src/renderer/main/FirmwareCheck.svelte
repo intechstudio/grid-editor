@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { get } from "svelte/store";
   /*
 STATE 0 | No notification (Init state)
@@ -19,19 +21,19 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   const configuration = window.ctxProcess.configuration();
 
-  let fwMismatch = false;
+  let fwMismatch = $state(false);
 
-  let bootloader_path = undefined;
+  let bootloader_path = $state(undefined);
 
   // check for parsed modules
 
-  let runtime: GridRuntime;
-  $: {
+  let runtime: GridRuntime = $state();
+  run(() => {
     runtime = $runtime_manager.active.runtime;
     $appSettings.firmwareNotificationState = 0;
-  }
+  });
 
-  $: {
+  run(() => {
     let firmwareMismatchFound = false;
 
     // check modules for firmware mismatch
@@ -75,9 +77,9 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       }
       fwMismatch = false;
     }
-  }
+  });
 
-  let uploadProgressText = "";
+  let uploadProgressText = $state("");
 
   window.electron.firmware.onFirmwareUpdate((_event, value) => {
     if (value.code !== undefined) {
@@ -220,7 +222,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     </div>
     <div in:fade|global={{ delay: 8000 }}>
       <button
-        on:click={firmwareTroubleshooting}
+        onclick={firmwareTroubleshooting}
         class="bg-blue-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded"
       >
         <div>Troubleshooting Options</div>
@@ -244,14 +246,14 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     </div>
 
     <button
-      on:click={() => firmwareDownload(false)}
+      onclick={() => firmwareDownload(false)}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
     >
       Update Firmware
     </button>
 
     <button
-      on:click={() => firmwareDownload(true)}
+      onclick={() => firmwareDownload(true)}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
       class:hidden={!$appSettings.persistent.nightlyFirmware}
     >
@@ -296,7 +298,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     </div>
 
     <button
-      on:click={() => {
+      onclick={() => {
         $appSettings.firmwareNotificationState = 0;
       }}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
