@@ -14,6 +14,7 @@ import {
   GridProfileData,
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
+import { mount } from "svelte";
 
 export namespace ConfigTour {
   export function displayStep(node: HTMLElement, step: Step | undefined) {
@@ -41,14 +42,14 @@ export namespace ConfigTour {
       sibling = document.createElement("div");
       node.parentNode?.insertBefore(sibling, node.nextSibling);
 
-      tourStepInstance = new TourStep({
-        target: sibling,
-        props: {
-          text: step.content.text,
-          referenceElement: node,
-          updateTrigger, // pass the writable store
-        },
-      });
+      tourStepInstance = mount(TourStep, {
+              target: sibling,
+              props: {
+                text: step.content.text,
+                referenceElement: node,
+                updateTrigger, // pass the writable store
+              },
+            });
 
       observeReference();
     };

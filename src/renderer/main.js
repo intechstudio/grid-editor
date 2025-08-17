@@ -1,6 +1,7 @@
 import "./app.css";
 import App from "./App.svelte";
 import { init_config_block_library } from "./lib/_configs";
+import { mount } from "svelte";
 
 let app;
 
@@ -10,9 +11,9 @@ async function initApp() {
     await init_config_block_library();
 
     // Initialize the Svelte app after the configuration is ready
-    app = new App({
-      target: document.body,
-    });
+    app = mount(App, {
+          target: document.body,
+        });
   } catch (err) {}
 }
 

@@ -1,6 +1,7 @@
 import type { Action } from "svelte/action";
 import ContextMenu, { ContextMenuItem } from "./ContextMenu.svelte";
 import { Writable, writable, get } from "svelte/store";
+import { mount } from "svelte";
 
 interface ContextMenuOptions {
   items: ContextMenuItem[];
@@ -43,14 +44,14 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
     document.body.appendChild(menu);
     contextMenu.set({ component: menu, data: options.data });
 
-    new ContextMenu({
-      target: menu,
-      props: {
-        target: node,
-        items: options.items,
-        offset: { x: x, y: y },
-      },
-    });
+    mount(ContextMenu, {
+            target: menu,
+            props: {
+              target: node,
+              items: options.items,
+              offset: { x: x, y: y },
+            },
+          });
   };
 
   node.addEventListener("mouseup", (event) => handleMouseUp(event));
