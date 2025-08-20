@@ -33,7 +33,7 @@
       store.leftPanel = tab;
       return store;
     });
-    console.log(selectedLeftTab)
+    console.log(selectedLeftTab);
   }
 
   let leftSize = 0;
@@ -91,26 +91,22 @@
     />
   {/if}
   <div class="grow" />
- 
-    <NavTabsButton
-      {selectedLeftTab}
-      {leftSize}
-      tooltipKey="sidebar_packages_icon"
-      tabName="packages"
-      menuIcon="menu_packages"
-      clickHandler={changeLeftTab}
-    />
 
-  
+  <NavTabsButton
+    {selectedLeftTab}
+    {leftSize}
+    tooltipKey="sidebar_packages_icon"
+    tabName="packages"
+    menuIcon="menu_packages"
+    clickHandler={changeLeftTab}
+  />
 
-    <NavTabsButton
-      {selectedLeftTab}
-      {leftSize}
-      tooltipKey="sidebar_preferences_icon"
-      tabName="preferences"
-      menuIcon="menu_preferences"
-      clickHandler={changeLeftTab}
-    />
-
+  <NavTabsButton
+    {selectedLeftTab}
+    {leftSize}
+    tooltipKey="sidebar_preferences_icon"
+    tabName="preferences"
+    menuIcon="menu_preferences"
+    clickHandler={changeLeftTab}
+  />
 </nav-tab>
-
