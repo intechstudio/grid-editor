@@ -332,18 +332,19 @@
               />{/if}
           </div>
         </div>
+        {#if $element}
+          <div
+            class="flex flex-col gap-2 px-2 w-full text-sm items-start whitespace-nowrap"
+          >
+            <span>Element Name</span>
+            <MoltenInput bind:target={elementName} />
+          </div>
+        {/if}
+
         {#if !$appSettings.isMultiView}
           <EventPanel {element} />
         {/if}
 
-        {#if $element}
-          <div
-            class="flex flex-row gap-2 px-2 w-full items-center whitespace-nowrap"
-          >
-            <span>Element Name:</span>
-            <MoltenInput bind:target={elementName} />
-          </div>
-        {/if}
         <Toolbar {event} {element} targetPanel={container} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
