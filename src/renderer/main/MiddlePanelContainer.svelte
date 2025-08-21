@@ -164,7 +164,7 @@
     bind:size={$splitpanes.minimap.size}
     minSize={$splitpanes.minimap.default}
   >
-    <div class="flex w-full h-full">
+    <div class="flex w-full h-full p-2 bg-background">
       <MiniMap />
     </div>
   </Pane>
