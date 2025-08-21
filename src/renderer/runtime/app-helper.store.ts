@@ -59,6 +59,7 @@ const persistentDefaultValues = {
   lastActiveVersion: undefined,
   lightMode: false,
   userLevelMinimalist: true,
+  minimapToggled: false,
 };
 
 interface PaneData {

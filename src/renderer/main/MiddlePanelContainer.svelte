@@ -13,14 +13,24 @@
   import { GridRuntime } from "../runtime/runtime";
   import { Modal } from "./modals/modal.store";
   import MiniMap from "./grid-layout/MiniMap.svelte";
-  import { derived } from "svelte/store";
+  import { derived, get } from "svelte/store";
   import PanelToggleButton from "./PanelToggleButton.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { onMount } from "svelte";
 
   let logLength = 0;
   let trackerVisible = true;
   let stickyContainer: HTMLElement;
   let container: HTMLElement;
+
+  onMount(() => {
+    splitpanes.update((s) => {
+      s.minimap.size = get(appSettings).persistent.minimapToggled
+        ? $splitpanes.minimap.default
+        : 0;
+      return s;
+    });
+  });
 
   $: {
     trackerVisible = logLength === 0;
@@ -61,30 +71,6 @@
 
     handleResize();
   }
-
-  let showModuleHangingDialog = false;
-  let moduleHangingTimeout = undefined;
-
-  /*
-  const pendingActions = derived(writeBuffer, ($writeBuffer) => {
-    return $writeBuffer.filter((e) => e.descr.class_name !== "HEARTBEAT");
-  });
-
-  $: {
-    if (
-      $pendingActions.length > 0 &&
-      $runtime.modules.length > 0 &&
-      typeof moduleHangingTimeout === "undefined"
-    ) {
-      moduleHangingTimeout = setTimeout(() => {
-        showModuleHangingDialog = true;
-      }, 1000);
-    } else {
-      clearTimeout(moduleHangingTimeout);
-      showModuleHangingDialog = false;
-    }
-  }
-    */
 </script>
 
 <svelte:window on:resize={handleResize} />
@@ -102,9 +88,7 @@
       >
         <ControlSurface />
         {#if showFixedStickyContainer}
-          <StickyContainer
-            class="absolute z-[2] bottom-0 left-1/2 -translate-x-1/2 mb-5"
-          />
+          <StickyContainer />
         {/if}
 
         <div
@@ -156,13 +140,13 @@
             >
               <Tracker />
               <PanelToggleButton
-                value={false}
+                bind:value={$appSettings.persistent.minimapToggled}
                 direction={"down"}
                 on:toggle={(e) => {
                   const value = e.detail;
                   $splitpanes.minimap.size = value
-                    ? 0
-                    : $splitpanes.minimap.default;
+                    ? $splitpanes.minimap.default
+                    : 0;
                 }}
               />
             </div>
