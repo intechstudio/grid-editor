@@ -67,7 +67,7 @@
 
         <!-- Title Text + version -->
 
-        <div class="flex items-center text-gray-500 text-sm pt-1">
+        <div class="flex items-center text-gray-500 text-sm pt-1 truncate">
           Grid Editor {configuration?.EDITOR_VERSION}
           {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
             {import.meta.env.VITE_BRANCH_NAME}
