@@ -1,17 +1,32 @@
 <script lang="ts">
   import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { createEventDispatcher } from "svelte";
 
-  const dispatch = createEventDispatcher();
+  import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
-  export let value = false;
-  export let direction: "right" | "left" | "up" | "down";
+  export let target;
+
+  let value = $splitpanes[target].size > 0;
+
+  let direction = $splitpanes[target].direction;
 
   const rotationMap = { right: 0, left: 180, up: -90, down: 90 };
 
+  function handlePanelToggle(value, target) {
+    splitpanes.update((s) =>
+      Object({
+        ...s,
+        [target]: {
+          ...s[target],
+          size: value ? s[target].default : 0,
+        },
+      }),
+    );
+  }
+
   function handleClick() {
     value = !value;
-    dispatch("toggle", value);
+
+    handlePanelToggle(value, target);
   }
 </script>
 

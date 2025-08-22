@@ -155,16 +155,7 @@
               class="w-fit absolute right-0 bottom-0 mb-6 mr-4 flex flex-row items-center gap-2"
             >
               <Tracker />
-              <PanelToggleButton
-                value={false}
-                direction={"down"}
-                on:toggle={(e) => {
-                  const value = e.detail;
-                  $splitpanes.minimap.size = value
-                    ? 0
-                    : $splitpanes.minimap.default;
-                }}
-              />
+              <PanelToggleButton target={"minimap"} />
             </div>
           {/if}
 

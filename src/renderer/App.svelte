@@ -377,11 +377,7 @@
         <Pane class="overflow-clip w-full h-full">
           <div class="flex w-full h-full">
             <div class="absolute top-0 right-0 m-2 z-50">
-              <PanelToggleButton
-                value={$appSettings.rightPanelVisible}
-                direction={"right"}
-                on:toggle={handleRightPanelToggle}
-              />
+              <PanelToggleButton target={"right"} />
             </div>
             <MiddlePanelContainer />
           </div>

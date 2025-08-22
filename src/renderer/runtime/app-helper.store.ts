@@ -77,8 +77,8 @@ function createSplitPanes(): Writable<SplitPaneData> {
   const obj = {
     left: { size: 25, default: 25 },
     middle: { size: 50, default: 50 },
-    right: { size: 25, default: 25 },
-    minimap: { size: 20, default: 20 },
+    right: { size: 25, default: 25, direction: "right" },
+    minimap: { size: 20, default: 20, direction: "down" },
   };
 
   return writable(obj);
@@ -101,7 +101,6 @@ function createAppSettingsStore(persistent) {
     selectedDisplay: "",
     layoutMode: false,
     preferences: false,
-    rightPanelVisible: true,
     leftPanel: undefined,
     leftPanelVisible: true,
     isMultiView: false,
