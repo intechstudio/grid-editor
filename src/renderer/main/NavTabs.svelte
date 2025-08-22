@@ -36,7 +36,7 @@
 
 <nav-tab
   style="background-color: var(--background-soft)"
-  class=" flex px-1 flex-col items-center h-full overflow-y-auto overflow-x-hidden"
+  class=" flex px-1 flex-col items-center h-full overflow-y-auto overflow-x-hidden shrink-0"
 >
   <button
     data-testid="nav-profile-cloud"
