@@ -21,6 +21,7 @@ export namespace Grid {
       MIDI_CHANNEL,
       MIDI_COMMAND,
       MIDI_P1,
+      MIDI_P2,
       LED_RED,
       LED_GREEN,
       LED_BLUE,
@@ -28,7 +29,11 @@ export namespace Grid {
 
     export function getMidi(
       action: GridAction,
-      param: Value.MIDI_CHANNEL | Value.MIDI_COMMAND | Value.MIDI_P1,
+      param:
+        | Value.MIDI_CHANNEL
+        | Value.MIDI_COMMAND
+        | Value.MIDI_P1
+        | Value.MIDI_P2,
     ) {
       const event = action.parent as GridEvent;
       const element = event.parent as GridElement;
@@ -41,17 +46,17 @@ export namespace Grid {
             module.dy,
             page.pageNumber,
           ];
-          return (module_position_y * 4 + page_current) % 16;
+          return `CH-${(module_position_y * 4 + page_current) % 16}`;
         }
         case Value.MIDI_COMMAND: {
-          return event.type === EventTypeToNumber(EventType.BUTTON) ? 144 : 176;
+          return `${event.type === EventTypeToNumber(EventType.BUTTON) ? 144 : 176}`;
         }
         case Value.MIDI_P1: {
           const [module_position_x, element_index] = [
             module.dx,
             element.elementIndex,
           ];
-          return (32 + module_position_x * 16 + element_index) % 128;
+          return `CC-${(32 + module_position_x * 16 + element_index) % 128}`;
         }
       }
     }
