@@ -21,9 +21,10 @@
     updateAction,
     replaceAction,
     syncWithGrid,
+    removeActions,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
-  import { get } from "svelte/store";
+  import { contextTarget } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
@@ -147,6 +148,15 @@
       ctrlIsDown = false;
     }
   }
+
+  function handleDelete() {
+    removeActions(action.parent as GridEvent, action);
+  }
+
+  function handleResetToDefault() {
+    const data = new ActionData(action.short, action.information.defaultLua);
+    updateAction(action, data, true);
+  }
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
@@ -203,6 +213,20 @@
     $configTour.active
       ? $configTour.current
       : undefined}
+    use:contextTarget={{
+      items: [
+        {
+          text: [`Delete`],
+          handler: () => handleDelete(),
+          isDisabled: () => false,
+        },
+        {
+          text: [`Reset to Default`],
+          handler: () => handleResetToDefault(),
+          isDisabled: () => false,
+        },
+      ],
+    }}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
