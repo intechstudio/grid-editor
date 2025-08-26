@@ -71,12 +71,12 @@ export class SysExData {
 
 //Lookup table for command HEX values and getter functions
 
-function getCommandName(cmd_int) {
+export function getCommandName(cmd_int) {
   let cmd = getCommand(cmd_int);
   return cmd?.name;
 }
 
-function getParameterNames(cmd_int) {
+export function getParameterNames(cmd_int) {
   let cmd = getCommand(cmd_int);
   return cmd?.params;
 }
@@ -188,7 +188,7 @@ export class MusicalNotes {
 }
 
 //Retrieves an object with all the user friendly naming
-function getCommand(value: number) {
+export function getCommand(value: number) {
   try {
     if (!Number.isInteger(value)) throw value + " is not an integer.";
 
