@@ -6,7 +6,9 @@
 
   import CircularBar from "./user-interface/CircularBar.svelte";
 
-  $: selectedLeftTab = $appSettings.leftPanel ?? "profile-cloud";
+  let leftSize = 0;
+  $: leftSize = $splitpanes.left.size;
+  $: selectedLeftTab = $splitpanes.left.component ?? "profile-cloud";
   $: enabledPackages = $appSettings.persistent.enabledPackages;
   $: menuItems = $appSettings.packageList
     .sort((p1, p2) => p1.name.localeCompare(p2.name))
@@ -29,11 +31,7 @@
       store.left.component = tab;
       return store;
     });
-    console.log(selectedLeftTab);
   }
-
-  let leftSize = 0;
-  $: leftSize = $splitpanes.left.size;
 </script>
 
 <nav-tab
