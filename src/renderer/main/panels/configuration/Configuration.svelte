@@ -73,28 +73,32 @@
     }
 
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
-    const action = setup.actionAt(0);
 
-    if (action?.short === elementNameInformation.short) {
-      const regex = elementNameInformation.valueRegex;
-      const name = action.script.match(regex)[1];
-      if (value.length > 0) {
-        if (name !== value) {
-          const data = new ActionData(
-            elementNameInformation.short,
-            generateScript(value),
-          );
-          updateAction(action, data, true);
-        }
-      } else {
-        setup.remove(action);
-      }
-    } else {
+    if (setup.actionAt(0)?.short !== elementNameInformation.short) {
       const data = new ActionData(
         elementNameInformation.short,
         generateScript(value),
       );
       setup.insert(0, new GridAction(setup, data));
+      return;
+    }
+
+    const action = setup.actionAt(0);
+    const regex = elementNameInformation.valueRegex;
+    const name = action.script.match(regex)[1];
+
+    if (name !== value) {
+      const data = new ActionData(
+        elementNameInformation.short,
+        generateScript(value),
+      );
+      updateAction(action, data, true);
+      action.sendToGrid();
+    }
+
+    if (value.length === 0) {
+      setup.remove(action);
+      setup.sendToGrid();
     }
   }
 
