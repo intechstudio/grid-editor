@@ -64,19 +64,24 @@ const persistentDefaultValues = {
 interface PaneData {
   size: number;
   readonly default: number;
+  direction: number;
+  component: string;
 }
 
 interface SplitPaneData {
   left: PaneData;
-  middle: PaneData;
   right: PaneData;
   minimap: PaneData;
 }
 
 function createSplitPanes(): Writable<SplitPaneData> {
   const obj = {
-    left: { size: 25, default: 25 },
-    middle: { size: 50, default: 50 },
+    left: {
+      size: 25,
+      default: 25,
+      direction: "left",
+      component: "profile-cloud",
+    },
     right: { size: 25, default: 25, direction: "right" },
     minimap: { size: 20, default: 20, direction: "down" },
   };
