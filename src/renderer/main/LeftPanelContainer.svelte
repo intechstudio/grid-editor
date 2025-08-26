@@ -15,9 +15,9 @@
   style="background-color: var(--background); color: var(--foreground);"
   class="w-full h-full"
 >
-  {#if leftPanel == "Preferences"}
+  {#if leftPanel == "preferences"}
     <Preferences />
-  {:else if leftPanel == "Packages"}
+  {:else if leftPanel == "packages"}
     <Packages />
   {:else if leftPanel == "debug-monitor"}
     <DebugMonitor />
