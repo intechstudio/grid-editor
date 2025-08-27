@@ -43,8 +43,12 @@
         : scriptSegments[i],
     );
 
+    if (!isNaN(+segments[0])) {
+      segments[0] = +segments[0] + 1;
+    }
+
     if (!isNaN(+segments[1])) {
-      const commandName = getCommand(+segments[1]).short;
+      const commandName = getCommand(+segments[1]).name;
       const params = getParameterNames(+segments[1]);
       segments[1] = commandName;
 
