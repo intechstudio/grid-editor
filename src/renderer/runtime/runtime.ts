@@ -1114,6 +1114,14 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
+  public resetName() {
+    const page = this.parent as GridPage;
+    const module = page.parent as GridModule;
+
+    this.name = undefined;
+    module.execLUAImmediate(`ele[${this.elementIndex}]:gen("")`);
+  }
+
   public isPresetLoaded(preset: GridPresetData) {
     for (const event of preset.element.events) {
       const found = this.events.find((e) => e.type === event.type);
@@ -1589,6 +1597,20 @@ export class GridModule extends RuntimeNode<ModuleData> {
       dy: this.dy,
       type: this.type,
     };
+  }
+
+  public execLUAImmediate(script: string) {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.SendConfigImmediate(
+      this.dx,
+      this.dy,
+      script,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
   }
 
   findPage(index: number) {

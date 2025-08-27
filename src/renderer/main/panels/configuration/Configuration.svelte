@@ -93,7 +93,6 @@
         generateScript(value),
       );
       updateAction(action, data, true);
-      action.sendToGrid();
     }
 
     if (value.length === 0) {
@@ -115,7 +114,7 @@
       }
     } else {
       elementName = "";
-      element.name = undefined;
+      element.resetName();
     }
   }
 
