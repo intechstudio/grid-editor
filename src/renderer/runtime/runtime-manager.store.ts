@@ -119,16 +119,15 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       const index = store.data.findIndex((e) => e.runtime.id === runtime.id);
 
       if (this.active.runtime.id === runtime.id) {
+        if (this.data.length === 1) {
+          const virtual = this.createVirtual();
+          this.add(virtual);
+        }
         const next = Grid.findNearestNeighbour(store.data, index);
         store.active = next;
       }
 
       store.data.splice(index, 1);
-
-      if (typeof store.active === "undefined") {
-        const virtual = this.createVirtual();
-        this.add(virtual);
-      }
 
       return store;
     });

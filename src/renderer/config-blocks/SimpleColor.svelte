@@ -117,8 +117,7 @@
   }
 
   function handleAddLayer() {
-    const last = get(data).colors.at(-1);
-    data.addLayer(last);
+    data.addLayer();
     sendData(get(data));
     dispatch("sync");
   }
