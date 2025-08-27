@@ -1,8 +1,8 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
-  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
-  export const header = RegularActionBlockFace;
+  import SimpleColorFace from "./headers/SimpleColorFace.svelte";
+  export const header = SimpleColorFace;
 
   // config descriptor parameters
   export const information: ActionBlockInformation = {
