@@ -172,7 +172,7 @@
 
     <div
       use:tooltip={{
-        key: "configuration_header_clear",
+        key: "configuration_header_discard",
         placement: "top",
         class: "w-60 p-4 z-10",
         buttons: [
