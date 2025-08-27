@@ -90,22 +90,22 @@ const cmdLookup = new Map([
   [
     "8",
     {
-      name: "Note-off",
-      short: "Note-off",
+      name: "Note Off",
+      short: "Note Off",
       params: {
         p1: { name: "Note", short: "Note" },
-        p2: { name: "Velocity", short: "Vel." },
+        p2: { name: "Velocity", short: "Velo." },
       },
     },
   ],
   [
     "9",
     {
-      name: "Note-on",
-      short: "Note-on",
+      name: "Note On",
+      short: "Note On",
       params: {
         p1: { name: "Note", short: "Note" },
-        p2: { name: "Velocity", short: "Vel." },
+        p2: { name: "Velocity", short: "Velo." },
       },
     },
   ],
@@ -123,7 +123,7 @@ const cmdLookup = new Map([
   [
     "B",
     {
-      name: "Continous Control",
+      name: "Control Change",
       short: "CC",
       params: {
         p1: { name: "Controller Number", short: "Ctrl." },
@@ -134,8 +134,8 @@ const cmdLookup = new Map([
   [
     "C",
     {
-      name: "Patch Change",
-      short: "Patch",
+      name: "Program Change",
+      short: "PC",
       params: {
         p1: { name: "Instrument Number", short: "Inst." },
         p2: { name: "N/A", short: "N/A" },
@@ -161,6 +161,17 @@ const cmdLookup = new Map([
       params: {
         p1: { name: "LSB", short: "LSB" },
         p2: { name: "MSB", short: "MSB" },
+      },
+    },
+  ],
+  [
+    "F",
+    {
+      name: "System Exclusive",
+      short: "System",
+      params: {
+        p1: { name: "Manufacturer's ID", short: "Mfr." },
+        p2: { name: "Model ID", short: "MID" },
       },
     },
   ],
