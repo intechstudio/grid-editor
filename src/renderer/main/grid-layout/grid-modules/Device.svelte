@@ -68,14 +68,7 @@
 
     const page = target.parent as GridPage;
     const module = page.parent as GridModule;
-
-    user_input.set({
-      dx: module.dx,
-      dy: module.dy,
-      pagenumber: $user_input.pagenumber,
-      elementnumber: target.elementIndex,
-      eventtype: $user_input.eventtype,
-    });
+    Focus.trigger(`${module.id}-${target.elementIndex}`);
   }
 
   type SharedProps = {
