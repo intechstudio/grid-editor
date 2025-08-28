@@ -21,7 +21,7 @@ export const blocks = (page) => ({
       },
     },
     Global: {
-      block: page.getByText("Global"),
+      block: page.getByRole("button", { name: "G Global", exact: true }),
       elements: {
         name: page.getByTestId("variable-name"),
         value: page.getByTestId("variable-value"),
@@ -133,7 +133,9 @@ export const blocks = (page) => ({
     "GamePad Button": {
       block: page.getByText("GamePad Button"),
       elements: {
-        Button: page.getByRole("button", { name: "Button" }),
+        Button: page
+          .getByTestId("action-block")
+          .getByRole("button", { name: "Button" }),
         State: page.getByLabel("State"),
       },
     },
@@ -151,7 +153,9 @@ export const blocks = (page) => ({
     "Mouse Button": {
       block: page.getByText("Mouse Button"),
       elements: {
-        Button: page.getByRole("button", { name: "Button" }),
+        Button: page
+          .getByTestId("action-block")
+          .getByRole("button", { name: "Button" }),
         State: page.getByLabel("State"),
       },
     },
