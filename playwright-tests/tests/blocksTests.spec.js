@@ -392,3 +392,36 @@ test.describe("Code block closes Modal", () => {
     await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
   });
 });
+
+test.describe("Element naming", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
+  });
+  test("Element naming add 'element name' action block", async () => {
+    const name = "happy path";
+    await configPage.fillElementName(name);
+    await configPage.selectElementEvent("Setup");
+    await configPage.clickActionBlock(0);
+    expect(await configPage.getTextFromNameBlock()).toBe(name);
+  });
+  test("Element name entered in action block is displayed correctly", async () => {
+    const name = "happy path";
+    await configPage.selectElementEvent("Setup");
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("code", "Element Name");
+    await configPage.writeActionBlockField(
+      "code",
+      "Element Name",
+      "input",
+      name,
+    );
+    expect(await configPage.getElementNameFromMainTextbox()).toBe(name);
+  });
+});

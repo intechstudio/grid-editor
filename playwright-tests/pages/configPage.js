@@ -80,6 +80,7 @@ export class ConfigPage {
     this.elementMaxResolution14Bit = page.getByRole("option", {
       name: "14 bit MIDI",
     });
+    this.elementNametextbox = page.locator("configs").getByRole("textbox");
   }
 
   async turnOffMinimalistMode() {
@@ -114,10 +115,6 @@ export class ConfigPage {
 
   async writeActionBlockField(category, blockName, field, input) {
     await this.blocks[category][blockName]["elements"][field].fill(input);
-  }
-
-  async clickActionBlockElement(category, blockName, field) {
-    await this.blocks[category][blockName]["elements"][field].click();
   }
 
   async getActionBlockFieldValue(category, blockName, field) {
@@ -270,7 +267,7 @@ export class ConfigPage {
     ].textContent();
   }
 
-  async getTextFromName() {
+  async getTextFromNameBlock() {
     return await this.blocks["code"]["Element Name"]["elements"][
       "input"
     ].inputValue();
@@ -284,5 +281,13 @@ export class ConfigPage {
     const text = await this.characterCount.innerText();
     const match = text.match(/^(\d+)/);
     return match[1];
+  }
+
+  async fillElementName(name) {
+    await this.elementNametextbox.fill(name);
+  }
+
+  async getElementNameFromMainTextbox() {
+    return await this.elementNametextbox.inputValue();
   }
 }
