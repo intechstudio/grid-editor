@@ -203,7 +203,7 @@ export const blocks = (page) => ({
   },
   condition: {
     If: {
-      block: page.getByText("If"),
+      block: page.getByRole("button", { name: "If", exact: true }),
       elements: {
         input: page.locator(".view-line"),
         end: page.locator("#cfg-1"),
