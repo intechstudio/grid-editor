@@ -50,12 +50,14 @@
   }
 </script>
 
-<div class="w-full bg-primary h-full flex flex-col gap-4 justify-start">
+<div class="w-full bg-background h-full flex flex-col gap-4 justify-start">
   <div class="self-start flex flex-row justify-start items-center">
     <div class="font-medium">Login to profile cloud</div>
   </div>
-  <div class="w-full grid text-white">
-    <label class="pb-1 block font-light" for="email">e-mail</label>
+  <div class="w-full grid">
+    <label class="pb-1 block font-light text-foreground" for="email"
+      >e-mail</label
+    >
     <input
       type="text"
       placeholder="email@example.com"
@@ -70,12 +72,14 @@
           passwordField.focus();
         }
       }}
-      class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
+      class="w-full p-1 border rounded bg-white text-black dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
 
-  <div class="w-full grid text-white">
-    <label class="pb-1 block font-light" for="password">password</label>
+  <div class="w-full grid">
+    <label class="pb-1 block font-light text-foreground" for="password"
+      >password</label
+    >
     <input
       bind:this={passwordField}
       id="password"
@@ -91,7 +95,7 @@
           submitLogin();
         }
       }}
-      class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
+      class="w-full p-1 border rounded bg-white text-black dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
 

@@ -283,19 +283,26 @@ export namespace SimpleColor {
       });
     }
 
-    public addLayer(color: Color) {
+    public addLayer() {
       this.update((s) => {
         switch (s.colors.length) {
           case 1:
-            s.colors = [structuredClone(color), s.colors[0]];
-            s.previewColors = [structuredClone(color), s.previewColors[0]];
+            s.colors = [structuredClone(s.colors.at(-1)), s.colors[0]];
+            s.previewColors = [
+              structuredClone(s.previewColors.at(-1)),
+              s.previewColors[0],
+            ];
             this.selectLayer(0);
             break;
           case 2:
-            s.colors = [s.colors[0], structuredClone(color), s.colors[1]];
+            s.colors = [
+              s.colors[0],
+              structuredClone(s.colors.at(-1)),
+              s.colors[1],
+            ];
             s.previewColors = [
               s.previewColors[0],
-              structuredClone(color),
+              structuredClone(s.previewColors.at(-1)),
               s.previewColors[1],
             ];
             this.selectLayer(1);

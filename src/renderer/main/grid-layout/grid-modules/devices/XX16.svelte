@@ -88,10 +88,10 @@
 </script>
 
 <div
-  data-testid="{moduleType}_dx:{dx};dy:{dy}"
-  class="module-dimensions relative bg-primary"
-  style="background-color: var(--background);  --module-size: {moduleWidth +
-    'px'}; transform: rotate({device?.rot * -90}deg)"
+  {...$$restProps}
+  class="module-dimensions relative bg-background"
+  style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
+    -90}deg)"
 >
   <div class="module-underlay-container">
     <slot name="module-underlay" {device} />
