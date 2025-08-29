@@ -121,7 +121,7 @@ test.describe("Issues", () => {
 
   test("Nested action block should not prevent opening other actions", async () => {
     await configPage.addActionBlockToTop("condition", "If");
-    await configPage.clickActionBlock(3);
+    await configPage.clickActionBlock(4);
     const element = configPage.blocks["midi"]["MIDI"]["elements"]["Channel"];
     await expect(element).toBeVisible();
   });
