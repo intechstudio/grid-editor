@@ -5,15 +5,29 @@
   import { user_input } from "../../../../runtime/user-input.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
 
-  let selectedPage = undefined;
+  let selected = 1;
+  const options = [
+    { title: 1, value: 0 },
+    { title: 2, value: 1 },
+    { title: 3, value: 2 },
+    { title: 4, value: 3 },
+  ];
+
+  $: handleSelectPage(selected);
+
   function handleSelectPage(page) {
+    const currentPage = $user_input.pagenumber;
+
+    if (currentPage === page) {
+      return;
+    }
+
     const active = get(runtime_manager).active.runtime;
     active
       .change_page(page)
-      .then(() => {
-        selectedPage = page;
-      })
+      .then(() => {})
       .catch((e) => {
+        selected = currentPage;
         logger.set({
           type: "alert",
           classname: "pagechange",
@@ -26,21 +40,8 @@
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {
-    selectedPage = ui.pagenumber;
     selected = ui.pagenumber;
   }
-
-  $: handleSelectPage(selected);
-
-  const defaultOptions = Array.from(Array(4).keys()).map((i) => ({
-    title: i + 1,
-    value: i,
-  }));
-
-  const defaultSelected = 1;
-  let selected = defaultSelected;
-
-  let options = defaultOptions;
 </script>
 
 <div class="{$$props.class} flex flex-row gap-2 mt-3 items-center">
