@@ -340,7 +340,7 @@
             class="flex flex-col gap-2 px-2 w-full text-sm items-start whitespace-nowrap"
           >
             <span>Element Name</span>
-            <div class="flex w-full">
+            <div class="flex w-full" data-test-id="element-name-input-field">
               <MoltenInput bind:target={elementName} />
             </div>
           </div>
