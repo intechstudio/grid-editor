@@ -340,7 +340,9 @@
             class="flex flex-col gap-2 px-2 w-full text-sm items-start whitespace-nowrap"
           >
             <span>Element Name</span>
-            <MoltenInput bind:target={elementName} />
+            <div class="flex w-full">
+              <MoltenInput bind:target={elementName} />
+            </div>
           </div>
         {/if}
 

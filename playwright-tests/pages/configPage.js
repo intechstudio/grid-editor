@@ -80,7 +80,7 @@ export class ConfigPage {
     this.elementMaxResolution14Bit = page.getByRole("option", {
       name: "14 bit MIDI",
     });
-    this.elementNametextbox = page.locator("configs").getByRole("textbox");
+    this.elementNametextbox = page.getByTestId("element-name-input-field");
   }
 
   async turnOffMinimalistMode() {
