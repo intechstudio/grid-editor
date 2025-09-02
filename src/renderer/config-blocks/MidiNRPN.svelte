@@ -202,7 +202,7 @@
   const tabs = [
     { name: "MIDI", short: "gms" },
     { name: "14 bit MIDI", short: "gmsh" },
-    { name: "MIDI SysEX", short: "gmss" },
+    { name: "SysEX", short: "gmss" },
     { name: "NRPN MIDI", short: "gmnp" },
   ];
 

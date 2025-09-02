@@ -5,7 +5,7 @@
   import { user_input } from "../../../../runtime/user-input.store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
 
-  let selected = 1;
+  let selected = 0;
   const options = [
     { title: 1, value: 0 },
     { title: 2, value: 1 },

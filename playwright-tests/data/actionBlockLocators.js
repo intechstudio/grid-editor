@@ -103,8 +103,8 @@ export const blocks = (page) => ({
         "Controller Value": page.getByLabel("Controller Value"),
       },
     },
-    "MIDI SysEX": {
-      block: page.getByText("MIDI SysEX"),
+    SysEX: {
+      block: page.getByText("SysEX"),
       elements: {
         Commit: page.getByRole("button", { name: "Commit" }),
         message: page.getByText("0xF0, 0x41, 0x10, val, 0xF7", { exact: true }),

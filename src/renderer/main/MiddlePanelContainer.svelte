@@ -87,9 +87,12 @@
         class="relative flex flex-col w-full h-full overflow-hidden justify-center"
       >
         <ControlSurface />
-        {#if showFixedStickyContainer}
+        <div
+          class:invisible={!showFixedStickyContainer ||
+            $runtime.modules.length === 0}
+        >
           <StickyContainer />
-        {/if}
+        </div>
 
         <div
           style="background-color: var(--background); color: var(--foreground-muted);"

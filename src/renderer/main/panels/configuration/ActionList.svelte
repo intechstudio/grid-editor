@@ -168,7 +168,6 @@
       {:else}
         <SeparatorLine target={{ event: event, index: 0 }} />
       {/if}
-
       {#each $event?.config ?? [] as action, index (action.id)}
         {@const showHelper =
           typeof action.information.helperText !== "undefined" &&
