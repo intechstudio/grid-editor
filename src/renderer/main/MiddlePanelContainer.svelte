@@ -13,14 +13,24 @@
   import { GridRuntime } from "../runtime/runtime";
   import { Modal } from "./modals/modal.store";
   import MiniMap from "./grid-layout/MiniMap.svelte";
-  import { derived } from "svelte/store";
+  import { derived, get } from "svelte/store";
   import PanelToggleButton from "./PanelToggleButton.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { onMount } from "svelte";
 
   let logLength = 0;
   let trackerVisible = true;
   let stickyContainer: HTMLElement;
   let container: HTMLElement;
+
+  onMount(() => {
+    splitpanes.update((s) => {
+      s.minimap.size = get(appSettings).persistent.minimapToggled
+        ? $splitpanes.minimap.default
+        : 0;
+      return s;
+    });
+  });
 
   $: {
     trackerVisible = logLength === 0;
@@ -61,30 +71,6 @@
 
     handleResize();
   }
-
-  let showModuleHangingDialog = false;
-  let moduleHangingTimeout = undefined;
-
-  /*
-  const pendingActions = derived(writeBuffer, ($writeBuffer) => {
-    return $writeBuffer.filter((e) => e.descr.class_name !== "HEARTBEAT");
-  });
-
-  $: {
-    if (
-      $pendingActions.length > 0 &&
-      $runtime.modules.length > 0 &&
-      typeof moduleHangingTimeout === "undefined"
-    ) {
-      moduleHangingTimeout = setTimeout(() => {
-        showModuleHangingDialog = true;
-      }, 1000);
-    } else {
-      clearTimeout(moduleHangingTimeout);
-      showModuleHangingDialog = false;
-    }
-  }
-    */
 </script>
 
 <svelte:window on:resize={handleResize} />
@@ -101,11 +87,12 @@
         class="relative flex flex-col w-full h-full overflow-hidden justify-center"
       >
         <ControlSurface />
-        {#if showFixedStickyContainer}
-          <StickyContainer
-            class="absolute z-[2] bottom-0 left-1/2 -translate-x-1/2 mb-5"
-          />
-        {/if}
+        <div
+          class:invisible={!showFixedStickyContainer ||
+            $runtime.modules.length === 0}
+        >
+          <StickyContainer />
+        </div>
 
         <div
           style="background-color: var(--background); color: var(--foreground-muted);"
@@ -171,7 +158,7 @@
     bind:size={$splitpanes.minimap.size}
     minSize={$splitpanes.minimap.default}
   >
-    <div class="flex w-full h-full">
+    <div class="flex w-full h-full p-2 bg-background">
       <MiniMap />
     </div>
   </Pane>

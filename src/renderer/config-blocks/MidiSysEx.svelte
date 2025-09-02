@@ -10,7 +10,7 @@
     name: "MidiSysEx",
     rendering: "standard",
     category: "midi",
-    displayName: "MIDI SysEX",
+    displayName: "SysEX",
     color: "#DA4167",
     defaultLua: "gmss(0xF0, 0x41, 0x10, val, 0xF7)",
     icon: `
@@ -89,7 +89,7 @@
   const tabs = [
     { name: "MIDI", short: "gms" },
     { name: "14 bit MIDI", short: "gmsh" },
-    { name: "MIDI SysEX", short: "gmss" },
+    { name: "SysEX", short: "gmss" },
     { name: "NRPN MIDI", short: "gmnp" },
   ];
 

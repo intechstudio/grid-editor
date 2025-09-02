@@ -10,6 +10,7 @@ import { ModulePage } from "../pages/modulePage";
 import blocks from "../data/actionBlocks.json";
 import blockElements from "../data/actionBlockElements.json";
 import KeyboardActions from "../keyboardActions";
+import { NavbarPage } from "../pages/navbarPage";
 
 let configPage;
 let connectModulePage;
@@ -18,6 +19,7 @@ let browser;
 let context;
 let page;
 let keyboardActions;
+let navbarPage;
 
 async function setupModule(moduleName) {
   await connectModulePage.openVirtualModules();
