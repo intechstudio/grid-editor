@@ -127,11 +127,6 @@
   window.ResizeObserver = function (callback) {
     const wrappedCallback = (entries, observer) => {
       callback(entries, observer);
-      /*
-      window.requestAnimationFrame(() => {
-        callback(entries, observer);
-      });
-      */
     };
 
     // Create an instance of the original ResizeObserver

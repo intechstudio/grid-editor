@@ -80,10 +80,7 @@
 
   function handleSelectionChange(value: boolean) {
     if (value) {
-      //Wait module to be rendered
-      requestAnimationFrame(() => {
-        Focus.trigger(`${module.id}-${element.elementIndex}`);
-      });
+      Focus.trigger(`${module.id}-${element.elementIndex}`);
     }
   }
 </script>
