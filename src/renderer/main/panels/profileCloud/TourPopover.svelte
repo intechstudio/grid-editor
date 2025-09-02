@@ -1,7 +1,9 @@
 <script lang="ts" context="module">
-  export type TourStepContent = {
-    text: string;
-  };
+  export namespace TourPopover {
+    export interface Content {
+      markdown: string;
+    }
+  }
 </script>
 
 <script lang="ts">
@@ -16,7 +18,7 @@
   import { marked } from "marked";
   import { Writable } from "svelte/store";
 
-  export let text = "";
+  export let markdown = "";
   export let referenceElement: HTMLElement;
   export let updateTrigger: Writable<number>;
 
@@ -56,7 +58,7 @@
         </button>
       </div>
       <div class="bg-primary p-2 text-white mb-2">
-        <MarkdownContainer markdown={String(marked(text))} />
+        <MarkdownContainer markdown={String(marked(markdown))} />
       </div>
       <div class="flex flex-row gap-2 self-end">
         {#if $configTour && typeof configTour.previous() !== "undefined"}

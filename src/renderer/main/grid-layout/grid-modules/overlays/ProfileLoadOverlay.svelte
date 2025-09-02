@@ -12,10 +12,7 @@
   import { loadProfile } from "../../../../runtime/operations";
   import { user_input } from "../../../../runtime/user-input.store";
   import { derived, get } from "svelte/store";
-  import {
-    ConfigTour,
-    configTour,
-  } from "../../../panels/profileCloud/ConfigTour";
+  import { Tour, configTour } from "../../../panels/profileCloud/ConfigTour";
   import { moduleOverlay } from "../../../../runtime/moduleOverlay";
   import { Grid } from "../../../../lib/_utils";
 
@@ -26,7 +23,7 @@
   let page = derived([device, user_input], ([$device, $user_input]) =>
     $device.pages.find((e) => e.pageNumber === $user_input.pagenumber),
   );
-  let tour: ConfigTour.TourData | undefined;
+  let tour: Tour.ManagerData | undefined;
 
   $: {
     if (visible) {
@@ -125,7 +122,7 @@
       ),
     );
 
-    tour = ConfigTour.Tour.createTourFrom(profile, actions);
+    tour = Tour.Manager.createTourFrom(profile, actions);
 
     if (typeof tour === "undefined") {
       return false;

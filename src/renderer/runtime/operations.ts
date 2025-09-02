@@ -23,7 +23,7 @@ import {
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
-import { ConfigTour, configTour } from "../main/panels/profileCloud/ConfigTour";
+import { Tour, configTour } from "../main/panels/profileCloud/ConfigTour";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -389,8 +389,8 @@ export async function loadProfile(
         ),
       );
 
-      const tour = ConfigTour.Tour.createTourFrom(profile, actions);
-      configTour.set(tour ?? ConfigTour.Tour.defaultValue);
+      const tour = Tour.Manager.createTourFrom(profile, actions);
+      configTour.set(tour ?? Tour.Manager.defaultValue);
       return Promise.resolve();
     })
     .catch((e) => {

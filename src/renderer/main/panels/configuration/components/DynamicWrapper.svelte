@@ -23,7 +23,7 @@
     syncWithGrid,
     removeActions,
   } from "./../../../../runtime/operations";
-  import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
+  import { Tour, configTour } from "../../profileCloud/ConfigTour";
   import { contextTarget } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
@@ -209,10 +209,7 @@
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
-    use:ConfigTour.displayStep={$configTour.current?.action.id === action.id &&
-    $configTour.active
-      ? $configTour.current
-      : undefined}
+    use:Tour.Manager.manageActionTarget={$action}
     use:contextTarget={{
       items: [
         {
