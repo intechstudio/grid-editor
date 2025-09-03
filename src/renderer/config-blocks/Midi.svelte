@@ -151,8 +151,30 @@
   }
 
   function renderSuggestions() {
-    // removed ?. as terser didn't work
-    let selectedCommand = _suggestions[1].find(
+    suggestionsAuto = [
+      {
+        value: "-1",
+        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
+        key: "auto",
+      },
+      {
+        value: "-1",
+        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_COMMAND)})`,
+        key: "note_on_event",
+      },
+      {
+        value: "-1",
+        info: `Auto (${MusicalNotes.FromInt(Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1))})`,
+        key: "auto",
+      },
+      {
+        value: "-1",
+        info: `Auto`,
+        key: "auto",
+      },
+    ];
+
+    let selectedCommand = [suggestionsAuto[1], ..._suggestions[1]].find(
       (s) => s.value == scriptSegments[1],
     );
     if (selectedCommand) {
@@ -176,28 +198,6 @@
         });
       }
 
-      suggestionsAuto = [
-        {
-          value: "-1",
-          info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
-          key: "auto",
-        },
-        {
-          value: "-1",
-          info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_COMMAND)})`,
-          key: "auto",
-        },
-        {
-          value: "-1",
-          info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1)})`,
-          key: "auto",
-        },
-        {
-          value: "-1",
-          info: `Auto`,
-          key: "auto",
-        },
-      ];
       suggestions = [
         [..._suggestions[0]],
         [..._suggestions[1]],
