@@ -25,7 +25,7 @@
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { GridScript } from "@intechstudio/grid-protocol";
+  import { ElementType, GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
   import {
     MeltCheckbox,
@@ -126,7 +126,8 @@
   const suggestions: Array<MeltComboSuggestion[]> = [
     [
       ...Grid.Array.when<MeltComboSuggestion>(
-        [27, 91, 59, 123, 131, 67, 75].includes(module.hwcfg),
+        [27, 91, 59, 123, 131, 67, 75].includes(module.hwcfg) &&
+          element.type === ElementType.BUTTON,
         [
           { value: "-2", info: "Pressure" },
           { value: "-1", info: "Velocity" },
