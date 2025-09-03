@@ -46,21 +46,28 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
-  import { GridScript } from "@intechstudio/grid-protocol";
+  import {
+    ElementType,
+    EventType,
+    GridScript,
+    NumberToEventType,
+  } from "@intechstudio/grid-protocol";
   import { midiCC } from "./_midi.js";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
   import { Validator } from "./validators";
   import { valid } from "semver";
   import { Grid } from "../lib/_utils.js";
+  import ActionHelper from "../main/panels/configuration/components/ActionHelper.svelte";
 
   export let config: GridAction;
 
   let event = config.parent as GridEvent;
+  let element = event.parent as GridElement;
 
   const dispatch = createEventDispatcher();
 
@@ -117,109 +124,8 @@
     });
   }
 
-  const channels = (length) => {
-    let arr = [];
-    for (let i = 0; i < length; i++) {
-      arr[i] = { value: i, info: `Channel ${i + 1}` };
-    }
-    return arr;
-  };
-
-  const _suggestions = [
-    // channels
-    [...channels(16)],
-    // commands
-    [
-      { value: "176", info: "Control Change", key: "control_change_messages" },
-      { value: "144", info: "Note On", key: "note_on_event" },
-      { value: "128", info: "Note Off", key: "note_off_event" },
-      { value: "192", info: "Program Change", key: "program_change_messages" },
-    ],
-    // param 1
-    [],
-    // param 2
-    [
-      //{value: '', info: 'to do...'}
-    ],
-  ];
-
-  let suggestions = [];
-  let suggestionsAuto = [];
-
   $: if ($event) {
     renderSuggestions();
-  }
-
-  function renderSuggestions() {
-    suggestionsAuto = [
-      {
-        value: "-1",
-        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
-        key: "auto",
-      },
-      {
-        value: "-1",
-        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_COMMAND)})`,
-        key: "note_on_event",
-      },
-      {
-        value: "-1",
-        info: `Auto (${MusicalNotes.FromInt(Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1))})`,
-        key: "auto",
-      },
-      {
-        value: "-1",
-        info: `Auto`,
-        key: "auto",
-      },
-    ];
-
-    let selectedCommand = [suggestionsAuto[1], ..._suggestions[1]].find(
-      (s) => s.value == scriptSegments[1],
-    );
-    if (selectedCommand) {
-      selectedCommand = selectedCommand.key;
-    } else {
-      selectedCommand = "control_change_messages";
-    }
-
-    try {
-      let param_1: any[] = [];
-      if (selectedCommand === "control_change_messages") {
-        param_1 = Object.entries(midiCC).map(([value, info]) => ({
-          value: Number(value),
-          info,
-        }));
-      } else if (
-        ["note_on_event", "note_off_event"].includes(selectedCommand)
-      ) {
-        param_1 = [...Array(128).keys()].map((e) => {
-          return { value: String(e), info: MusicalNotes.FromInt(e) };
-        });
-      }
-
-      suggestions = [
-        [..._suggestions[0]],
-        [..._suggestions[1]],
-        [...param_1],
-        [..._suggestions[3]],
-      ];
-    } catch (error) {
-      console.warn("error while creating midi suggetions");
-      suggestions = _suggestions;
-    }
-
-    const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === config.id);
-    const localDefinitions = LocalDefinitions.getFrom({
-      configs: actions,
-      index: index,
-    });
-    suggestions = suggestions.map((s, index) => [
-      suggestionsAuto[index],
-      ...localDefinitions,
-      ...s,
-    ]);
   }
 
   const tabs = [
@@ -228,6 +134,129 @@
     { name: "SysEX", short: "gmss" },
     { name: "NRPN MIDI", short: "gmnp" },
   ];
+
+  type SuggestionValue = { value: string; info: string; key: string };
+
+  // --- helpers ---
+  const makeAuto = (info: string, key = "auto"): SuggestionValue => ({
+    value: "-1",
+    info,
+    key,
+  });
+
+  const makeChannels = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      value: String(i),
+      info: `Channel ${i + 1}`,
+      key: `ch_${i}`,
+    }));
+
+  const makeCCs = () =>
+    Object.entries(midiCC).map(([value, info]) => ({
+      value,
+      info,
+      key: `cc_${value}`,
+    }));
+
+  const makeNotes = () =>
+    Array.from({ length: 128 }, (_, i) => ({
+      value: String(i),
+      info: MusicalNotes.FromInt(i),
+      key: `note_${i}`,
+    }));
+
+  const baseSuggestions: Array<SuggestionValue[]> = [
+    [
+      makeAuto(
+        `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
+      ),
+      ...makeChannels(16),
+    ],
+    [
+      { value: "176", info: "Control Change", key: "control_change_messages" },
+      { value: "144", info: "Note On", key: "note_on_event" },
+      { value: "128", info: "Note Off", key: "note_off_event" },
+      { value: "192", info: "Program Change", key: "program_change_messages" },
+    ],
+    [], // param1 (dynamic)
+    [makeAuto("Auto")],
+  ];
+
+  let suggestions: SuggestionValue[][] = [];
+
+  function renderSuggestions() {
+    const currentCommand = Grid.Auto.getMidi(
+      config,
+      Grid.Auto.Value.MIDI_COMMAND,
+    );
+
+    // find corresponding command once
+    const commandEntry = baseSuggestions[1].find(
+      (e) => +e.value === currentCommand,
+    );
+    const autoCommand = makeAuto(
+      `Auto (${commandEntry?.info ?? "?"})`,
+      commandEntry?.key ?? "control_change_messages",
+    );
+
+    const selectedCommand =
+      [autoCommand, ...baseSuggestions[1]].find(
+        (s) => s.value == scriptSegments[1],
+      )?.key ?? "control_change_messages";
+
+    // param1 depends on selected command
+    let param1: SuggestionValue[];
+    switch (selectedCommand) {
+      case "control_change_messages":
+        param1 = [
+          makeAuto(
+            `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1)})`,
+          ),
+          ...makeCCs(),
+        ];
+        break;
+      case "note_on_event":
+      case "note_off_event":
+        const autoNote = Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1);
+        param1 = [
+          makeAuto(`Auto (${MusicalNotes.FromInt(autoNote)})`),
+          ...makeNotes(),
+        ];
+        break;
+      default:
+        param1 = [];
+    }
+
+    // fetch local definitions
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: actions,
+      index,
+    });
+
+    // assemble suggestions with "auto" always first
+    suggestions = [
+      [
+        baseSuggestions[0][0],
+        ...localDefinitions,
+        ...baseSuggestions[0].slice(1),
+      ], // channels
+      [autoCommand, ...localDefinitions, ...baseSuggestions[1]], // commands
+      param1.length > 0
+        ? [param1[0], ...localDefinitions, ...param1.slice(1)]
+        : [...localDefinitions], // param1
+      [
+        baseSuggestions[3][0],
+        ...localDefinitions,
+        ...baseSuggestions[3].slice(1),
+      ], // param2
+    ];
+  }
+
+  $: if ($event) {
+    renderSuggestions();
+  }
 
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
