@@ -337,7 +337,7 @@ export class MessageStream {
         class_descr.class_name === "ELEMENTNAME" &&
         class_descr.class_instr === "EXECUTE"
       ) {
-        this.update_element_name(class_descr);
+        //this.update_element_name(class_descr);
       }
 
       if (
