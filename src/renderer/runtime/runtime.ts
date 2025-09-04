@@ -296,6 +296,8 @@ export class ActionData extends NodeData {
   public name?: string;
   public synced: string;
   public invalid: boolean;
+  public toggled: boolean;
+  public element: HTMLElement;
 
   constructor(short: string, script: string, name?: string) {
     super();
@@ -304,6 +306,8 @@ export class ActionData extends NodeData {
     this.name = name;
     this.synced = script;
     this.invalid = false;
+    this.toggled = false;
+    this.element = null;
   }
 
   public toLua() {
@@ -502,7 +506,23 @@ export class GridAction extends RuntimeNode<ActionData> {
     return this.getField("name");
   }
 
+  public get toggled() {
+    return this.getField("toggled");
+  }
+
+  public get element() {
+    return this.getField("element");
+  }
+
   // Setters
+  public set element(value: HTMLElement) {
+    this.setField("element", value);
+  }
+
+  public set toggled(value: boolean) {
+    this.setField("toggled", value);
+  }
+
   public set invalid(value: boolean) {
     this.setField("invalid", value);
   }
@@ -604,6 +624,10 @@ export class EventData extends NodeData {
       module: { type: module?.type, dx: module?.dx, dy: module?.dy },
     };
   }
+
+  public getTourTargets() {
+    return this.config.filter((e) => e.isTourStep());
+  }
 }
 
 export class GridEvent extends RuntimeNode<EventData> {
@@ -630,6 +654,10 @@ export class GridEvent extends RuntimeNode<EventData> {
         type: GridOperationType.LOAD_SNIPPET,
       });
     }
+  }
+
+  public getTourTargets() {
+    return get(this._internal).getTourTargets();
   }
 
   public getInfo() {
@@ -1076,6 +1104,10 @@ export class ElementData extends NodeData {
     this.name = name;
   }
 
+  public getTourTargets() {
+    return this.events.flatMap((e) => e.getTourTargets());
+  }
+
   public isValid() {
     for (const event of this.events) {
       if (!event.isValid()) {
@@ -1111,6 +1143,10 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
+  }
+
+  public getTourTargets() {
+    return get(this._internal).getTourTargets();
   }
 
   public isPresetLoaded(preset: GridPresetData) {
@@ -1347,6 +1383,10 @@ export class PageData extends NodeData {
     this.pageNumber = index;
   }
 
+  public getTourTargets() {
+    return this.control_elements.flatMap((e) => e.getTourTargets());
+  }
+
   public isValid() {
     for (const element of this.control_elements) {
       if (!element.isValid()) {
@@ -1377,6 +1417,10 @@ export class GridPage extends RuntimeNode<PageData> {
         new GridElement(this, new ElementData(Number(index), element)),
       );
     }
+  }
+
+  public getTourTargets() {
+    return get(this._internal).getTourTargets();
   }
 
   public isProfileLoaded(profile: GridProfileData) {
@@ -1542,6 +1586,10 @@ export class ModuleData extends NodeData {
     this.pages = [];
   }
 
+  public getTourTargets() {
+    return this.pages.flatMap((e) => e.getTourTargets());
+  }
+
   public isValid() {
     for (const page of this.pages) {
       if (!page.isValid()) {
@@ -1567,6 +1615,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
       new GridPage(this, this.type, new PageData(2)),
       new GridPage(this, this.type, new PageData(3)),
     ];
+  }
+
+  public getTourTargets() {
+    return get(this._internal).getTourTargets();
   }
 
   public isValid() {

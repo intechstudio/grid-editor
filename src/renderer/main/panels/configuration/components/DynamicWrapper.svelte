@@ -10,11 +10,7 @@
     onMount,
     type SvelteComponent,
   } from "svelte";
-  import {
-    lastOpenedActionblocks,
-    lastOpenedActionblocksInsert,
-    lastOpenedActionblocksRemove,
-  } from "../Configuration";
+  import { toggledBlocks } from "../Configuration";
   import { draggable, draggedActions } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
   import {
@@ -23,7 +19,7 @@
     syncWithGrid,
     removeActions,
   } from "./../../../../runtime/operations";
-  import { Tour, configTour } from "../../profileCloud/ConfigTour";
+  import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
   import { contextTarget } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
@@ -35,18 +31,11 @@
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
   let ctrlIsDown = false;
-  let toggled = false;
 
   onMount(() => {
-    if (action.information.toggleable !== false) {
-      toggled =
-        -1 !==
-        $lastOpenedActionblocks.findIndex((e) => {
-          return e == action.short;
-        });
-    } else {
-      toggled = true;
-    }
+    action.toggled = action.information.toggleable
+      ? toggledBlocks.includes(action.short)
+      : true;
 
     const result = getComponentInformation(action.short);
     header = result.header;
@@ -61,18 +50,11 @@
 
     //Destroyed by getting out of scope: Revert to synced state
     revertToSynced();
+    action.toggled = false;
   });
 
-  $: if (!toggled) {
+  $: if (!$action.toggled) {
     revertToSynced();
-  }
-
-  $: {
-    const isActiveTourStep =
-      $configTour.current?.action.id === $action.id && $configTour.active;
-    if (!toggled && isActiveTourStep) {
-      toggled = true;
-    }
   }
 
   function revertToSynced() {
@@ -96,8 +78,8 @@
       new ActionData(short, GridAction.getInformation(short).defaultLua),
     );
     replaceAction(parent, oldAction, newAction);
-    toggled = true;
-    lastOpenedActionblocksInsert(newAction.short);
+    action.toggled = true;
+    toggledBlocks.add(newAction.short);
   }
 
   function handleUpdateAction(e) {
@@ -120,30 +102,30 @@
     if (action.information.toggleable == false) {
       return;
     }
-    toggled = !toggled;
-    if (toggled) {
-      lastOpenedActionblocksInsert(action.short);
+    action.toggled = !action.toggled;
+    if (action.toggled) {
+      toggledBlocks.add(action.short);
     } else {
-      lastOpenedActionblocksRemove(action.short);
+      toggledBlocks.remove(action.short);
     }
   }
 
-  function handleCarouselClicked(e) {
+  function handleCarouselClicked(e: KeyboardEvent) {
     if (e.ctrlKey) {
       selected = !selected;
       dispatch("select", { value: selected });
     } else {
-      handleToggle(e);
+      handleToggle();
     }
   }
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: KeyboardEvent) {
     if (e.key === "Control") {
       ctrlIsDown = true;
     }
   }
 
-  function handleKeyUp(e) {
+  function handleKeyUp(e: KeyboardEvent) {
     if (e.key === "Control") {
       ctrlIsDown = false;
     }
@@ -164,6 +146,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper
+  bind:this={$action.element}
   role="tabpanel"
   tabindex="0"
   on:keydown={(e) => {
@@ -209,7 +192,7 @@
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
-    use:Tour.Manager.manageActionTarget={$action}
+    use:configTour.manageActionTarget={action}
     use:contextTarget={{
       items: [
         {
@@ -244,11 +227,11 @@
       <!-- Body of the config block -->
       <div
         class="w-full flex flex-grow items-center"
-        class:cursor-auto={toggled}
-        class:bg-opacity-30={toggled}
+        class:cursor-auto={$action.toggled}
+        class:bg-opacity-30={$action.toggled}
       >
         <!-- Content of block -->
-        {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
+        {#if ($action.toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
           <div class="h-full w-full bg-background-mute">
             <svelte:component

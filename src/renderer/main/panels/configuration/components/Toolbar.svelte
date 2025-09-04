@@ -31,7 +31,6 @@
 
   export let element: GridElement;
   export let event: GridEvent;
-  export let targetPanel: HTMLElement;
 
   function handleOverwriteElement() {
     overwriteElement(element);

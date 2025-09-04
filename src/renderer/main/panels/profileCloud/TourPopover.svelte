@@ -23,15 +23,15 @@
   export let updateTrigger: Writable<number>;
 
   function handleClose() {
-    configTour.active = false;
+    $configTour.active = false;
   }
 
   function handleNextClicked() {
-    configTour.stepForward();
+    $configTour.stepForward();
   }
 
   function handlePreviousClicked() {
-    configTour.stepBackward();
+    $configTour.stepBackward();
   }
 </script>
 
@@ -61,7 +61,7 @@
         <MarkdownContainer markdown={String(marked(markdown))} />
       </div>
       <div class="flex flex-row gap-2 self-end">
-        {#if $configTour && typeof configTour.previous() !== "undefined"}
+        {#if $configTour && typeof $configTour.previous() !== "undefined"}
           <MoltenPushButton
             text={"Previous"}
             snap={"auto"}
@@ -70,7 +70,7 @@
           />
         {/if}
 
-        {#if $configTour && typeof configTour.next() !== "undefined"}
+        {#if $configTour && typeof $configTour.next() !== "undefined"}
           <MoltenPushButton
             text={"Next"}
             snap={"auto"}
@@ -79,7 +79,7 @@
           />
         {/if}
 
-        {#if $configTour && typeof configTour.next() === "undefined"}
+        {#if $configTour && typeof $configTour.next() === "undefined"}
           <MoltenPushButton
             text={"Quit Tour"}
             snap={"auto"}

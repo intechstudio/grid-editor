@@ -269,26 +269,18 @@
         {#if !$appSettings.isMultiView}
           <EventPanel {element} />
         {/if}
-        <Toolbar {event} {element} targetPanel={container} />
+        <Toolbar {event} {element} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
             {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
-              <ActionList
-                {event}
-                targetPanel={container}
-                focusTrigger={`action-list-${i}`}
-              />
+              <ActionList {event} focusTrigger={`action-list-${i}`} />
               <div
                 class="h-full flex border-r border-black"
                 class:hidden={i === $element.events.length - 1}
               />
             {/each}
           {:else}
-            <ActionList
-              {event}
-              targetPanel={container}
-              focusTrigger={"action-list-0"}
-            />
+            <ActionList {event} focusTrigger={"action-list-0"} />
           {/if}
         </div>
       </configs>

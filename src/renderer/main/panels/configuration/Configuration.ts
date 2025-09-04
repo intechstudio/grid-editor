@@ -1,28 +1,64 @@
-import { get, writable } from "svelte/store";
+import {
+  get,
+  Readable,
+  Subscriber,
+  Unsubscriber,
+  Updater,
+  Writable,
+  writable,
+} from "svelte/store";
 
 import { logger } from "../../../runtime/runtime.store";
 import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
-export let lastOpenedActionblocks = writable([]);
+class ToggledBlocks implements Readable<string[]> {
+  protected internal: Writable<string[]>;
+  protected unsubscribers: Unsubscriber[] = [];
 
-export function lastOpenedActionblocksInsert(short) {
-  // Get the current value of lastOpenedActionblocks
-  const currentList = get(lastOpenedActionblocks);
+  constructor(value: string[]) {
+    this.internal = writable(value);
+  }
 
-  // Update the store with the new value
-  lastOpenedActionblocks.set([
-    ...currentList.filter((e) => e !== short),
-    short,
-  ]);
+  public subscribe(
+    run: Subscriber<string[]>,
+    invalidate?: (value?: string[]) => void,
+  ): Unsubscriber {
+    return this.internal.subscribe(run, invalidate);
+  }
+
+  private set(value: string[]) {
+    this.internal.set(value);
+  }
+
+  private update(updater: Updater<string[]>) {
+    this.internal.update(updater);
+  }
+
+  public add(value: string) {
+    if (get(this.internal).includes(value)) {
+      return;
+    }
+
+    this.update((s) => [...s, value]);
+  }
+
+  public remove(value: string) {
+    this.update((s) => {
+      const index = s.indexOf(value);
+      if (index > -1) {
+        s.splice(index, 1);
+      }
+      return s;
+    });
+    return value;
+  }
+
+  public includes(value: string) {
+    return get(this.internal).includes(value);
+  }
 }
 
-export function lastOpenedActionblocksRemove(short) {
-  // Get the current value of lastOpenedActionblocks
-  const currentList = get(lastOpenedActionblocks);
-
-  // Update the store with the new value
-  lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
-}
+export const toggledBlocks = new ToggledBlocks([]);
 
 //Lua Error handling and display
 lua_error_store.subscribe((store) => {
