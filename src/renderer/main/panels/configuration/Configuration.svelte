@@ -9,6 +9,8 @@
   import EventPanel from "./EventPanel.svelte";
   import Toolbar from "./components/Toolbar.svelte";
   import {
+    ActionData,
+    GridAction,
     GridElement,
     GridEvent,
     GridPage,
@@ -16,7 +18,10 @@
   } from "../../../runtime/runtime";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy, onMount } from "svelte";
-  import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import {
+    GridRuntimeManagerData,
+    runtime_manager,
+  } from "../../../runtime/runtime-manager.store";
   import { selected_actions } from "./../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import {
@@ -29,9 +34,15 @@
     copyElement,
     clearElement,
     pasteActions,
+    updateAction,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
-  import { MeltRadio, Toggle } from "@intechstudio/grid-uikit";
+  import { MeltRadio, MoltenInput, Toggle } from "@intechstudio/grid-uikit";
+  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+  import {
+    information as elementNameInformation,
+    generateScript,
+  } from "../../../config-blocks/ElementName.svelte";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -39,6 +50,7 @@
   let page: GridPage;
 
   let container: HTMLElement;
+  let elementName: string = "";
 
   onDestroy(() => {
     appSettings.update((store) => {
@@ -47,13 +59,70 @@
     });
   });
 
-  $: runtime = $runtime_manager.active.runtime;
+  $: handleContextChange($user_input, $runtime_manager);
 
-  $: if ($runtime) {
-    handleUserInputChange($user_input);
+  $: handleElementNameChange(elementName);
+
+  $: if ($element) {
+    handleElementChange(element);
   }
 
-  function handleUserInputChange(ui: UserInputValue) {
+  function handleElementNameChange(value: string | undefined) {
+    if (typeof element === "undefined") {
+      return;
+    }
+
+    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
+
+    if (setup.actionAt(0)?.short !== elementNameInformation.short) {
+      const data = new ActionData(
+        elementNameInformation.short,
+        generateScript(value),
+      );
+      setup.insert(0, new GridAction(setup, data));
+      return;
+    }
+
+    const action = setup.actionAt(0);
+    const regex = elementNameInformation.valueRegex;
+    const name = action.script.match(regex)[1];
+
+    if (name !== value) {
+      const data = new ActionData(
+        elementNameInformation.short,
+        generateScript(value),
+      );
+      updateAction(action, data, true);
+    }
+
+    if (value.length === 0) {
+      setup.remove(action);
+      setup.sendToGrid();
+    }
+  }
+
+  function handleElementChange(element: GridElement) {
+    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
+    const action = setup.actionAt(0);
+
+    if (action?.short === elementNameInformation.short) {
+      const regex = elementNameInformation.valueRegex;
+      const value = action.script.match(regex)[1];
+      if (value !== elementName) {
+        elementName = value;
+        element.name = value;
+      }
+    } else {
+      elementName = "";
+      element.resetName();
+    }
+  }
+
+  function handleContextChange(
+    ui: UserInputValue,
+    rtm: GridRuntimeManagerData,
+  ) {
+    runtime = rtm.active.runtime;
     page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
 
     element = runtime.findElement(
@@ -76,19 +145,19 @@
         .load()
         .then((e) => {})
         .catch((err) => {
-          console.error("Failed to load event:", err);
+          console.error("Failed to load element:", err);
         });
     }
   }
 
   let containerWidth: number;
 
-  $: handleIsMultiViewAutoupdate(
+  $: handleIsMultiViewAutoUpdate(
     containerWidth,
     $appSettings.persistent.multiViewEnabled,
   );
 
-  function handleIsMultiViewAutoupdate(containerWidth, multiViewEnabled) {
+  function handleIsMultiViewAutoUpdate(containerWidth, multiViewEnabled) {
     if (!containerWidth) {
       return;
     }
@@ -266,9 +335,21 @@
               />{/if}
           </div>
         </div>
+        {#if $element}
+          <div
+            class="flex flex-col gap-2 px-2 w-full text-sm items-start whitespace-nowrap"
+          >
+            <span>Element Name</span>
+            <div class="flex w-full" data-testid="element-name-input-field">
+              <MoltenInput bind:target={elementName} />
+            </div>
+          </div>
+        {/if}
+
         {#if !$appSettings.isMultiView}
           <EventPanel {element} />
         {/if}
+
         <Toolbar {event} {element} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}

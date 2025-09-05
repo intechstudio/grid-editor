@@ -10,6 +10,8 @@ import {
 
 import { logger } from "../../../runtime/runtime.store";
 import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
+import { GridAction, GridElement } from "../../../runtime/runtime";
+import { EventType, NumberToEventType } from "@intechstudio/grid-protocol";
 
 class ToggledBlocks implements Readable<string[]> {
   protected internal: Writable<string[]>;

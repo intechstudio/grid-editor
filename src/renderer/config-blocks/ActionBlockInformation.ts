@@ -50,4 +50,5 @@ interface Information {
   helperText?: string;
   devOnly?: boolean;
   hiddenInMinimalist?: boolean;
+  valueRegex?: RegExp;
 }

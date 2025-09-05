@@ -18,7 +18,8 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="flex items-center flex-row w-full px-2 bg-background-muted"
+  class="flex items-center flex-row w-full pr-2"
+  style="background-color: {config.information.color}"
   on:click={handleClick}
 >
   <div class="grid grid-cols-[auto_1fr] items-center h-full w-full my-1">

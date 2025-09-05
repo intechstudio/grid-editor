@@ -881,7 +881,7 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
   let githubPackage = githubPackageList.get(githubPackageName);
   if (!githubPackage) return;
   const packageReleasesResponse = await fetch(
-    `https://api.github.com/repos/${githubPackage.gitHubRepositoryOwner}/${githubPackage.gitHubRepositoryName}/releases`,
+    `https://hq2.intech.studio/v1/github/package-releases?repositoryOwner=${encodeURIComponent(githubPackage.gitHubRepositoryOwner)}&repositoryName=${encodeURIComponent(githubPackage.gitHubRepositoryName)}`,
     {
       method: "GET",
       headers: {
@@ -889,6 +889,7 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
       },
     },
   );
+  console.log({ packageReleasesResponse });
   const packageReleases = await packageReleasesResponse.json();
   return (
     packageReleases?.find((e) => {
