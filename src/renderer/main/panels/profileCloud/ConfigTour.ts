@@ -9,28 +9,33 @@ import {
 import TourPopoverComponent, { TourPopover } from "./TourPopover.svelte";
 import { Subscriber } from "svelte/motion";
 import {
-  ActionData,
   GridAction,
   GridEvent,
   GridModule,
   GridProfileData,
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
-import { v4 as uuidv4 } from "uuid";
-import { runtime_manager } from "../../../runtime/runtime-manager.store";
+import { Grid } from "../../../lib/_utils";
 
 export namespace ConfigTour {
   export namespace Target {
     export enum Type {
-      ACTION_BLOCK,
-      STATIC_ELEMENT,
+      ACTION_BLOCK = "action-block",
+      STATIC_ELEMENT = "static-element",
+    }
+
+    export enum StaticElementIdentifier {
+      STORE = "store-button",
     }
 
     export interface AbstractTarget {
       type: Type;
+      position?: Grid.Position;
     }
 
-    export interface StaticElementTarget extends AbstractTarget {}
+    export interface StaticElementTarget extends AbstractTarget {
+      element: HTMLElement;
+    }
 
     export interface ActionBlockTarget extends AbstractTarget {
       action: GridAction;
@@ -49,15 +54,18 @@ export namespace ConfigTour {
       public target: Target.AbstractTarget,
     ) {}
 
-    public displayStep() {
+    public async displayStep() {
       switch (this.target.type) {
         case Target.Type.ACTION_BLOCK: {
           const target = this.target as Target.ActionBlockTarget;
+          const event = target.action.parent as GridEvent;
+          await user_input.displayEvent(event);
           this.node = target.action.element;
           break;
         }
         case Target.Type.STATIC_ELEMENT: {
           const target = this.target as Target.StaticElementTarget;
+          this.node = target.element;
           break;
         }
       }
@@ -74,6 +82,7 @@ export namespace ConfigTour {
           markdown: this.markdown,
           referenceElement: this.node,
           updateTrigger: this.updateTrigger,
+          position: this.target.position,
         },
       });
 
@@ -103,7 +112,6 @@ export namespace ConfigTour {
     constructor(
       public steps: Step[],
       public index: number,
-      public active: boolean,
     ) {}
 
     public next() {
@@ -115,49 +123,10 @@ export namespace ConfigTour {
       const { steps, index } = this;
       return steps[index - 1];
     }
-
-    public stepForward() {
-      const next = this.steps[++this.index];
-      const action = (next.target as Target.ActionBlockTarget).action;
-      const event = action.parent as GridEvent;
-
-      user_input.displayEvent(event).then(() => {
-        next.displayStep();
-      });
-    }
-
-    public stepBackward() {
-      const previous = this.steps[--this.index];
-      const action = (previous.target as Target.ActionBlockTarget).action;
-      const event = action.parent as GridEvent;
-
-      user_input.displayEvent(event).then(() => {
-        previous.displayStep();
-      });
-    }
-
-    public clear() {
-      this.set(Manager.defaultValue);
-    }
-
-    public reset() {
-      this.active = Manager.defaultValue.active;
-      this.index = Manager.defaultValue.index;
-    }
-
-    public async start() {
-      this.active = true;
-      const first = this.steps[this.index];
-      const action = (first.target as Target.ActionBlockTarget).action;
-      const event = action.parent as GridEvent;
-      user_input.displayEvent(event).then(() => {
-        first.displayStep();
-      });
-    }
   }
 
   export class Manager implements Readable<Tour> {
-    static readonly defaultValue = new Tour([], -1, false);
+    static readonly defaultValue = new Tour([], -1);
 
     private internal: Writable<Tour> = writable(Manager.defaultValue);
 
@@ -176,71 +145,126 @@ export namespace ConfigTour {
       this.internal.update(updater);
     }
 
-    private parseSteps(description: string): Step[] {
-      const stepRegex =
-        /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
-
-      const steps: Step[] = [];
-      let match: RegExpExecArray | null;
-
-      while ((match = stepRegex.exec(description)) !== null) {
-        const index = parseInt(match[1], 10);
-        const staticValue = match[2];
-        const rawText = match[3];
-
-        const current = new Step(
-          index,
-          rawText.trim().replace(/\r\n|\r/g, "\n"),
-          {
-            type:
-              typeof staticValue === "undefined"
-                ? Target.Type.ACTION_BLOCK
-                : Target.Type.STATIC_ELEMENT,
-          },
-        );
-
-        steps.push(current);
-      }
-
-      return steps;
+    public clear() {
+      const { steps, index } = get(this.internal);
+      const current = steps[index];
+      current.destroyStep();
+      this.set(Manager.defaultValue);
     }
 
-    public manageActionTarget(node: HTMLElement, action: GridAction) {
-      node.setAttribute("data-", "asd");
+    public registerStaticTarget(
+      node: HTMLElement,
+      id: Target.StaticElementIdentifier,
+    ) {
+      node.setAttribute("data-tour-static-target-id", String(id));
     }
 
     public async createTourFromProfile(
       profile: GridProfileData,
       module: GridModule,
-    ): Promise<Tour> {
-      const profileSteps = this.parseSteps(profile.description).sort(
-        (a, b) => a.index - b.index,
-      );
+    ): Promise<void> {
+      const stepRegex =
+        /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?(?:\s+position="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
 
       const actions = module.getTourTargets();
+
       const result: Step[] = [];
+      let match: RegExpExecArray | null;
 
-      for (const action of actions) {
-        const current = profileSteps.find(
-          (e) => action.getTourIndex() === e.index,
-        );
-        if (!current) {
-          throw new Error(
-            `Error creating tour. Action Block with index ${action.getTourIndex()} was not found.`,
-          );
+      while ((match = stepRegex.exec(profile.description)) !== null) {
+        const index = parseInt(match[1], 10);
+        const staticValue = match[2];
+        const position = match[3];
+        const rawText = match[4];
+        const text = rawText.trim().replace(/\r\n|\r/g, "\n");
+
+        const type =
+          typeof staticValue === "undefined"
+            ? Target.Type.ACTION_BLOCK
+            : Target.Type.STATIC_ELEMENT;
+
+        switch (type) {
+          case Target.Type.ACTION_BLOCK: {
+            const matchingActions = actions.filter(
+              (a) => a.getTourIndex() === index,
+            );
+            if (matchingActions.length === 0) {
+              throw new Error(
+                `Error creating tour: Action Block with step index ${index} not found.`,
+              );
+            }
+            for (const action of matchingActions) {
+              result.push(
+                new Step(index, text, {
+                  type: Target.Type.ACTION_BLOCK,
+                  position: position,
+                  action,
+                } as Target.ActionBlockTarget),
+              );
+            }
+            break;
+          }
+
+          case Target.Type.STATIC_ELEMENT: {
+            const element = document.querySelector<HTMLElement>(
+              `[data-tour-static-target-id="${staticValue}"]`,
+            );
+            if (!element) {
+              throw new Error(
+                `Error creating tour: Static Element with id "${staticValue}" not found.`,
+              );
+            }
+            result.push(
+              new Step(index, text, {
+                type: Target.Type.STATIC_ELEMENT,
+                position: position,
+                element,
+              } as Target.StaticElementTarget),
+            );
+            break;
+          }
         }
-
-        result.push(
-          new Step(current.index, current.markdown, {
-            type: Target.Type.ACTION_BLOCK,
-            action,
-          } as Target.ActionBlockTarget),
-        );
       }
 
-      this.internal.set(new Tour(result, 0, true));
+      // Keep steps ordered by index
+      result.sort((a, b) => a.index - b.index);
 
-      return Promise.resolve(get(this.internal));
+      this.internal.set(new Tour(result, 0));
+      return Promise.resolve();
+    }
+
+    public async stepForward() {
+      this.internal.update((s) => {
+        const { steps, index } = s;
+        const current = steps[index];
+        current.destroyStep();
+        s.index = s.index + 1;
+        return s;
+      });
+
+      const { steps, index } = get(this.internal);
+      const next = steps[index];
+      next.displayStep();
+    }
+
+    public async stepBackward() {
+      this.internal.update((s) => {
+        const { steps, index } = s;
+        const current = steps[index];
+        current.destroyStep();
+        s.index = s.index - 1;
+        return s;
+      });
+
+      const { steps, index } = get(this.internal);
+      const previous = steps[index];
+      previous.displayStep();
+    }
+
+    public async start() {
+      const { steps, index } = get(this.internal);
+      const first = steps[index];
+      first.displayStep();
     }
   }
 }

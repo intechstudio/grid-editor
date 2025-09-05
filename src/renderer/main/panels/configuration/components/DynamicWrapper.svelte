@@ -192,7 +192,6 @@
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
-    use:configTour.manageActionTarget={action}
     use:contextTarget={{
       items: [
         {

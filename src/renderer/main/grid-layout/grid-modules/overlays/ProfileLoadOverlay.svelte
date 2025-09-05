@@ -93,8 +93,8 @@
   function handleStartTour() {
     const data = get(selectedConfigStore);
     const profile = GridProfileData.createFromCloudData(data);
-    configTour.createTourFromProfile(profile, device).then((tour) => {
-      tour.start();
+    configTour.createTourFromProfile(profile, device).then(() => {
+      configTour.start();
       handleCloseOverlay();
     });
   }

@@ -17,31 +17,28 @@
   import { configTour } from "./ConfigTour";
   import { marked } from "marked";
   import { Writable } from "svelte/store";
+  import { Grid } from "../../../lib/_utils";
 
   export let markdown = "";
   export let referenceElement: HTMLElement;
   export let updateTrigger: Writable<number>;
+  export let position: Grid.Position = Grid.Position.LEFT;
 
   function handleClose() {
-    $configTour.active = false;
+    configTour.clear();
   }
 
   function handleNextClicked() {
-    $configTour.stepForward();
+    configTour.stepForward();
   }
 
   function handlePreviousClicked() {
-    $configTour.stepBackward();
+    configTour.stepBackward();
   }
 </script>
 
 {#key $updateTrigger}
-  <Popover
-    isOpen={$configTour.active}
-    {referenceElement}
-    placement={"left"}
-    spaceAway={10}
-  >
+  <Popover isOpen={true} {referenceElement} placement={position} spaceAway={10}>
     <div
       class="p-2 rounded bg-secondary flex flex-col border gap-1 border-white/30"
       transition:fade|global={{

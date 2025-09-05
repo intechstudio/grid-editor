@@ -13,6 +13,7 @@
   import { GridRuntime } from "../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
   import { WriteBuffer } from "../../runtime/engine.store";
+  import { ConfigTour, configTour } from "../panels/profileCloud/ConfigTour";
 
   let isChanges = false;
   let changes = 0;
@@ -189,6 +190,8 @@
         placement: "top",
         class: "w-60 p-4",
       }}
+      use:configTour.registerStaticTarget={ConfigTour.Target
+        .StaticElementIdentifier.STORE}
     >
       <MoltenPushButton
         click={handleStore}
