@@ -68,7 +68,7 @@ jobs:
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB_BACKUP }}"
-          projectId: grid-editor-web
+          projectId: grid-editor-web-backup
           target: playwright-preview
           channelId: ${{ steps.derive_channel.outputs.channel }}
           expires: 1d
@@ -82,7 +82,7 @@ jobs:
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB_BACKUP }}"
-          projectId: grid-editor-web
+          projectId: grid-editor-web-backup
           target: playwright-preview
           expires: 3d
 # # HEADED MODE
