@@ -3,7 +3,7 @@
     "default": "grid-editor-web-backup"
   },
   "targets": {
-    "grid-editor-web": {
+    "grid-editor-web-backup": {
       "hosting": {
         "grid-editor": ["grid-editor-web-backup"],
         "playwright-preview": ["grid-playwright-report-backup"]
