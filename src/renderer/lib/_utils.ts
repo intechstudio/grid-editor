@@ -287,7 +287,10 @@ export namespace Grid {
     export const scriptStart = "<?lua ";
     export const scriptEnd = " ?>";
     export const maxScriptLength =
-      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
+      grid.getProperty("CONFIG_LENGTH") +
+      500 -
+      scriptEnd.length -
+      scriptStart.length;
 
     export function getLayerSuggestions(type: ElementType) {
       switch (type) {
