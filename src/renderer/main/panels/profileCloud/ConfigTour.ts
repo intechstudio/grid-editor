@@ -155,8 +155,13 @@ export namespace ConfigTour {
     public registerStaticTarget(
       node: HTMLElement,
       id: Target.StaticElementIdentifier,
+      options: { position?: Grid.Position } = undefined,
     ) {
       node.setAttribute("data-tour-static-target-id", String(id));
+      node.setAttribute(
+        "data-tour-static-target-position",
+        String(options.position ?? Grid.Position.LEFT),
+      );
     }
 
     public async createTourFromProfile(
@@ -164,7 +169,7 @@ export namespace ConfigTour {
       module: GridModule,
     ): Promise<void> {
       const stepRegex =
-        /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?(?:\s+position="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
+        /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
 
       const actions = module.getTourTargets();
 
@@ -174,8 +179,7 @@ export namespace ConfigTour {
       while ((match = stepRegex.exec(profile.description)) !== null) {
         const index = parseInt(match[1], 10);
         const staticValue = match[2];
-        const position = match[3];
-        const rawText = match[4];
+        const rawText = match[3];
         const text = rawText.trim().replace(/\r\n|\r/g, "\n");
 
         const type =
@@ -197,7 +201,7 @@ export namespace ConfigTour {
               result.push(
                 new Step(index, text, {
                   type: Target.Type.ACTION_BLOCK,
-                  position: position,
+                  position: Grid.Position.LEFT,
                   action,
                 } as Target.ActionBlockTarget),
               );
@@ -214,10 +218,13 @@ export namespace ConfigTour {
                 `Error creating tour: Static Element with id "${staticValue}" not found.`,
               );
             }
+            const position = element.getAttribute(
+              "data-tour-static-target-position",
+            );
             result.push(
               new Step(index, text, {
                 type: Target.Type.STATIC_ELEMENT,
-                position: position,
+                position: position as Grid.Position,
                 element,
               } as Target.StaticElementTarget),
             );
