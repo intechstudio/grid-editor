@@ -8,7 +8,7 @@
   let runtime: GridRuntime;
 
   $: {
-    runtime = get(runtime_manager).active.runtime;
+    runtime = $runtime_manager.active.runtime;
   }
 
   let isActive = false;
