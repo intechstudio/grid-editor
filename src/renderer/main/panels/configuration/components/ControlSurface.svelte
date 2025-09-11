@@ -2,6 +2,14 @@
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { onMount } from "svelte";
+  import { runtime_manager } from "../../../../runtime/runtime-manager.store";
+  import { GridRuntime } from "../../../../runtime/runtime";
+
+  let runtime: GridRuntime;
+
+  $: {
+    runtime = get(runtime_manager).active.runtime;
+  }
 
   let isActive = false;
   let isDrag = false;
@@ -15,7 +23,7 @@
   let start: Point;
 
   onMount(() => {
-    currentShift = get(appSettings).gridLayoutShift;
+    currentShift = get(runtime).layoutOffset;
   });
 
   function handleKeyEvent(e: KeyboardEvent) {
@@ -47,7 +55,7 @@
 
     switch (type) {
       case "mousedown": {
-        currentShift = get(appSettings).gridLayoutShift;
+        currentShift = get(runtime).layoutOffset;
         start = { x: screenX, y: screenY };
         isDrag = true;
         break;
@@ -65,14 +73,11 @@
 
     const end = { x: screenX, y: screenY };
 
-    appSettings.update((s) => {
-      const [shiftX, shiftY] = [end.x - start.x, end.y - start.y];
-      s.gridLayoutShift = {
-        x: currentShift.x + shiftX,
-        y: currentShift.y + shiftY,
-      };
-      return s;
-    });
+    const [shiftX, shiftY] = [end.x - start.x, end.y - start.y];
+    runtime.layoutOffset = {
+      x: currentShift.x + shiftX,
+      y: currentShift.y + shiftY,
+    };
   }
 
   function handleMouseLeave(e: MouseEvent) {
