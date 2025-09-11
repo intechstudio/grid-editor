@@ -85,6 +85,7 @@ const config = {
         "popover-background": "var(--popover-background)",
         "popover-selection": "var(--popover-selection)",
         "popover-reference": "var(--popover-reference)",
+        "intech-yellow": "#e4ff68",
 
         primary: {
           DEFAULT: "#1e2628",
