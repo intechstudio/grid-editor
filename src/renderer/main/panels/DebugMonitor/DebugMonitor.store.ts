@@ -47,6 +47,7 @@ function createDebugLowlevel(maxLength: number) {
   const graph_step = function () {
     let in_rate_kbps = inbound_data_rate / graph_interval;
     let out_rate_kbps = outbound_data_rate / graph_interval;
+
     inbound_data_rate = 0;
     outbound_data_rate = 0;
 
