@@ -1,9 +1,7 @@
 <script lang="ts">
   import { authStore } from "$lib/auth.store";
+  import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
   import { createEventDispatcher } from "svelte";
-  import { Modal } from "../modal.store";
-
-  export let data: Modal.Instance;
 
   const dispatch = createEventDispatcher();
 
@@ -33,19 +31,19 @@
     </div>
     <div class="w-full grid text-white">
       <label class="pb-1 block font-light" for="email">e-mail</label>
-      <input
-        type="text"
+      <MoltenInput
         placeholder="email@example.com"
-        bind:value={email}
-        id="email"
-        on:input={(emailError = "")}
+        bind:target={email}
+        on:input={() => {
+          emailError = "";
+        }}
         on:keyup={(e) => {
-          if (e.key === "Enter") {
+          const { key } = e.detail;
+          if (key === "Enter") {
             e.preventDefault();
             forgottenPassword();
           }
         }}
-        class="w-full p-1 border rounded bg-white text-black dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
       />
     </div>
 
@@ -59,20 +57,15 @@
       Enter the email address associated with the account you are recovering!
     </div>
 
-    <div class="w-full flex flex-col justify-between">
-      <button
-        on:click|preventDefault={forgottenPassword}
-        class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-        >submit</button
-      >
-    </div>
+    <div class="w-full flex flex-col gap-2 justify-between">
+      <MoltenPushButton
+        text="Submit"
+        click={forgottenPassword}
+        snap="full"
+        style="accept"
+      />
 
-    <div class="w-full flex flex-col justify-between">
-      <button
-        on:click|preventDefault={navigateBack}
-        class="min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-        >back</button
-      >
+      <MoltenPushButton text="Back" click={navigateBack} snap="full" />
     </div>
   {:else}
     <div class="self-start flex flex-row justify-start items-center">
@@ -83,12 +76,6 @@
       if it is registered!
     </div>
 
-    <div class="pt-2 w-full flex flex-col justify-between">
-      <button
-        on:click|preventDefault={navigateBack}
-        class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-        >back</button
-      >
-    </div>
+    <MoltenPushButton text="Back" click={navigateBack} snap="full" />
   {/if}
 </div>
