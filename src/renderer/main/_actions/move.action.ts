@@ -108,11 +108,6 @@ export function draggable(node: HTMLElement, params: DragParameters) {
   }
 
   function handleMouseDown(e: MouseEvent) {
-    // Left button only
-    if (e.buttons !== 1 || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
-      return;
-    }
-
     const target = e.target as HTMLElement;
     if (target !== e.currentTarget) {
       return;
@@ -148,11 +143,6 @@ export function draggable(node: HTMLElement, params: DragParameters) {
   }
 
   function handleMouseMove(e: MouseEvent) {
-    // Left button only
-    if (e.buttons !== 1 || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
-      return;
-    }
-
     if (isDragged) {
       cursor.style.left = `${e.clientX}px`;
       cursor.style.top = `${e.clientY}px`;

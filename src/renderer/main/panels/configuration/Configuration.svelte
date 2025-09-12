@@ -305,10 +305,8 @@
         delay: 0,
       }}
     >
-      <configs
-        class="w-full h-full flex flex-col overflow-hidden text-left pt-4"
-      >
-        <div class="flex flex-row gap-2 items-center px-3">
+      <configs class="w-full h-full flex flex-col overflow-hidden text-left">
+        <div class="flex flex-row p-2 gap-2 items-center">
           <div class="flex flex-grow h-fit">
             <ElementSelectionPanel {page} />
           </div>
@@ -339,7 +337,7 @@
         </div>
         {#if $element}
           <div
-            class="flex flex-col gap-2 w-full text-sm items-start whitespace-nowrap p-3"
+            class="flex flex-col gap-2 px-2 w-full text-sm items-start whitespace-nowrap"
           >
             <span>Element Name</span>
             <div class="flex w-full" data-testid="element-name-input-field">
@@ -349,18 +347,18 @@
         {/if}
 
         {#if !$appSettings.isMultiView}
-          <div class="flex w-full px-3">
-            <EventPanel {element} />
-          </div>
+          <EventPanel {element} />
         {/if}
 
-        <div class="flex w-full px-3">
-          <Toolbar {event} {element} targetPanel={container} />
-        </div>
+        <Toolbar {event} {element} targetPanel={container} />
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
             {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
               <ActionList {event} focusTrigger={`action-list-${i}`} />
+              <div
+                class="h-full flex border-r border-black"
+                class:hidden={i === $element.events.length - 1}
+              />
             {/each}
           {:else}
             <ActionList {event} focusTrigger={"action-list-0"} />

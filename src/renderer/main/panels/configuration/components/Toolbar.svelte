@@ -107,7 +107,7 @@
       : ["Ctrl", "Alt"];
 </script>
 
-<div class="flex flex-col w-full">
+<div class="m-4 flex flex-col">
   <div class="grid grid-cols-[1fr_auto_auto] items-center">
     <!-- When any of the array elements is true -->
     <div class="flex flex-col truncate">

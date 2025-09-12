@@ -123,16 +123,31 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class=" pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
+    class="px-4 pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     {#if $appSettings.isMultiView}
-      <div class="flex flex-row gap-2 px-3 text-sm">
+      <div class="flex flex-row gap-2">
         {($event?.getName() ?? "No Device") + " Event"}
         <div style="color: var(--foreground-disabled);">
           {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
         </div>
       </div>
     {/if}
+    <!--- <Options
+
+    <div
+      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
+    >
+      testid="select_all"
+      selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
+          false}
+        halfSelected={$event?.config.some((e) =>
+          $selected_actions.includes(e),
+        ) ?? false}
+        disabled={($event?.config?.length ?? 0) === 0}
+        on:select={handleSelectAll}
+      />
+    </div> -->
 
     <ul
       bind:this={configList}
@@ -143,7 +158,7 @@
           return dragged && dragged.length > 0;
         },
       }}
-      class="overflow-y-scroll justify-start w-full h-full pl-2 pr-3"
+      class="overflow-y-scroll justify-start w-full h-full"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
         <ActionHelper
@@ -202,13 +217,11 @@
     </ul>
 
     {#if event}
-      <div class="flex w-full mt-2">
-        <BottomPanel
-          target={{ event: event, index: $event?.config.length }}
-          on:paste={handlePaste}
-          on:new-config={handleNewConfig}
-        />
-      </div>
+      <BottomPanel
+        target={{ event: event, index: $event?.config.length }}
+        on:paste={handlePaste}
+        on:new-config={handleNewConfig}
+      />
     {/if}
   </div>
 {/key}
