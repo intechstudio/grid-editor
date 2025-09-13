@@ -47,6 +47,9 @@
 
     authStore
       .signUpWithEmail(email, password)
+      .then(() => {
+        dispatch("back");
+      })
       .catch((e) => {
         if (e instanceof FirebaseError) {
           if (e.code === "auth/email-already-in-use") {
@@ -56,9 +59,6 @@
         }
         signUpError = "Error occured during signing up!";
         console.error(e);
-      })
-      .then(() => {
-        dispatch("back");
       });
   }
 
