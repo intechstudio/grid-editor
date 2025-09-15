@@ -24,12 +24,12 @@
   }
 </script>
 
-<div class="w-full bg-primary h-full flex flex-col gap-4 justify-start">
+<div class="w-full h-full flex flex-col gap-4 justify-start">
   {#if !showSuccess}
     <div class="self-start flex flex-row justify-start items-center">
       <div class="font-medium">Forgotten password</div>
     </div>
-    <div class="w-full grid text-white">
+    <div class="w-full grid">
       <label class="pb-1 block font-light" for="email">e-mail</label>
       <MoltenInput
         placeholder="email@example.com"
@@ -71,7 +71,7 @@
     <div class="self-start flex flex-row justify-start items-center">
       <div class="font-medium">Password reset email sent!</div>
     </div>
-    <div class="w-full flex text-white">
+    <div class="w-full flex">
       Password reset link has been successfully sent to the given email address
       if it is registered!
     </div>

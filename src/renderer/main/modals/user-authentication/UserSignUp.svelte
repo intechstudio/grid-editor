@@ -66,11 +66,11 @@
   }
 </script>
 
-<div class="w-full bg-primary h-full flex flex-col gap-4 justify-start">
+<div class="w-full h-full flex flex-col gap-4 justify-start">
   <div class="self-start flex flex-row justify-start items-center">
     <div class="font-medium">Sign up to profile cloud</div>
   </div>
-  <div class="w-full grid text-white">
+  <div class="w-full grid">
     <label class="pb-1 block font-light" for="email">e-mail</label>
     <MoltenInput
       placeholder="email@example.com"
@@ -88,7 +88,7 @@
     />
   </div>
 
-  <div class="w-full grid text-white">
+  <div class="w-full grid">
     <label class="pb-1 block font-light" for="password">password</label>
     <MoltenInput
       password={true}
@@ -108,7 +108,7 @@
     />
   </div>
 
-  <div class="w-full grid text-white">
+  <div class="w-full grid">
     <label class="pb-1 block font-light" for="repassword">password again</label>
     <MoltenInput
       password={true}

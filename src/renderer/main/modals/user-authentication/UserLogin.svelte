@@ -81,6 +81,7 @@
       bind:this={passwordField}
       placeholder="********"
       bind:target={password}
+      password={true}
       on:input={() => {
         loginError = "";
       }}
