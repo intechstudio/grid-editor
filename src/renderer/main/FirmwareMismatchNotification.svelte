@@ -17,13 +17,6 @@
   $: handleRuntimeChange($runtime);
 
   function handleRuntimeChange(data: RuntimeData) {
-    console.log(
-      "IN",
-      fwMismatch,
-      $appSettings.firmwareNotificationState,
-      data.modules.length,
-    );
-
     if (data.modules.length > 0) {
       modal?.close();
       modal = undefined;
@@ -32,7 +25,6 @@
         return s;
       });
       fwMismatch = data.modules.some((device) => device.fwMismatch);
-      console.log("RESET");
     }
 
     if (!fwMismatch) {
