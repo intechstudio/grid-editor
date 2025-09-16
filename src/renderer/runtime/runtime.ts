@@ -1161,6 +1161,7 @@ export class GridElement extends RuntimeNode<ElementData> {
 
   public async discardChanges(): Promise<DiscardElementResult> {
     try {
+      this.name = undefined;
       for (const event of this.events) {
         if (!event.hasChanges()) continue;
         const stored = GridAction.parse(event.stored);
