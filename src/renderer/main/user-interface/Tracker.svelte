@@ -3,10 +3,7 @@
   import { tooltip } from "./../_actions/tooltip.ts";
   import { appSettings } from "../../runtime/app-helper.store";
   import { MeltSelect, MoltenButton, Toggle } from "@intechstudio/grid-uikit";
-  import {
-    ModuleOverlayType,
-    moduleOverlay,
-  } from "../../runtime/moduleOverlay";
+  import { ModuleOverlay, moduleOverlay } from "../../runtime/moduleOverlay";
 
   const options = [
     {
@@ -35,9 +32,9 @@
   }
 
   function showControlElementNameOverlay() {
-    const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
+    const show = get(moduleOverlay) !== ModuleOverlay.Types.CONTROL_NAME;
     if (show) {
-      moduleOverlay.show(ModuleOverlayType.CONTROL_NAME);
+      moduleOverlay.show(ModuleOverlay.Types.CONTROL_NAME);
     } else {
       moduleOverlay.close();
     }
@@ -59,7 +56,7 @@
       <Toggle
         title="Name Overlay"
         on:change={showControlElementNameOverlay}
-        value={$moduleOverlay === "control-name-overlay"}
+        value={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
       />
     </div>
     <div

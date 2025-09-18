@@ -9,11 +9,9 @@ import {
   GridProfileData,
   GridSnippetData,
 } from "../../../runtime/runtime";
-import {
-  moduleOverlay,
-  ModuleOverlayType,
-} from "../../../runtime/moduleOverlay";
+import { moduleOverlay, ModuleOverlay } from "../../../runtime/moduleOverlay";
 import { runtime_manager } from "../../../runtime/runtime-manager.store";
+import { ProfileLoadOverlay } from "../../grid-layout/grid-modules/overlays/ProfileLoadOverlay.svelte";
 
 export const profileCloudConfigDrag: Writable<any> = writable(undefined);
 
@@ -41,12 +39,23 @@ export class ProfileCloudEvent {
     try {
       switch (drag) {
         case "start": {
+          switch (config.configType) {
+            case "profile": {
+              moduleOverlay.show(ModuleOverlay.Types.PROFILE_DRAG);
+              break;
+            }
+            case "preset": {
+              moduleOverlay.show(ModuleOverlay.Types.PRESET_DRAG);
+              break;
+            }
+          }
           profileCloudConfigDrag.set(config);
           break;
         }
         case "end": {
           profileCloudConfigDrag.set(undefined);
           if (target) {
+            selectedConfigStore.set(config);
             switch (config.configType) {
               case "profile": {
                 const page = active
@@ -54,8 +63,10 @@ export class ProfileCloudEvent {
                   .findPage(target.page);
 
                 const profile = GridProfileData.createFromCloudData(config);
-                loadProfile(profile, page).then(() => {
-                  moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
+                moduleOverlay.show(ModuleOverlay.Types.PROFILE_LOAD);
+                loadProfile(profile, page, (e) => {
+                  const model = ProfileLoadOverlay.viewModel;
+                  model.update((s) => ({ ...s, ...e }));
                 });
                 break;
               }
@@ -82,18 +93,27 @@ export class ProfileCloudEvent {
                 break;
               }
             }
+          } else {
+            moduleOverlay.close();
           }
         }
       }
     } catch (e) {}
   }
-
-  static async handleShowOverlay(event: any) {
-    const { value } = event.data;
-    if (value) {
-      moduleOverlay.show(ModuleOverlayType.CONFIGURATION_LOAD);
-    } else {
-      moduleOverlay.close();
-    }
-  }
 }
+
+export namespace ProfileCloudTypes {
+  export type EventData = any;
+  export type ProfileData = any;
+  export type PresetData = any;
+  export type SnippetData = any;
+}
+
+export type SelectedProfileCloudConfig =
+  | ProfileCloudTypes.ProfileData
+  | ProfileCloudTypes.PresetData
+  | ProfileCloudTypes.SnippetData
+  | undefined;
+
+export const selectedConfigStore: Writable<SelectedProfileCloudConfig> =
+  writable();

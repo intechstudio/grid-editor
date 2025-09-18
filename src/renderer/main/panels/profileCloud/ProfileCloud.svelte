@@ -4,7 +4,7 @@
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { moduleOverlay } from "../../../runtime/moduleOverlay";
+  import { ModuleOverlay, moduleOverlay } from "../../../runtime/moduleOverlay";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -21,13 +21,16 @@
   import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
-  import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { Modal } from "../../modals/modal.store";
   import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import "@intechstudio/profile-cloud-webcomponent";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
-  import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
+  import {
+    profile_cloud,
+    ProfileCloudEvent,
+    selectedConfigStore,
+  } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
 
   const configuration = window.ctxProcess.configuration();
@@ -157,8 +160,20 @@
     return;
   }
 
-  async function handleProvideSelectedConfigForEditor(event) {
+  async function handleProvideSelectedConfigForEditor(event: any) {
+    const { config } = event.data;
     selectedConfigStore.set(event.data.config);
+
+    switch (config.configType) {
+      case "profile": {
+        moduleOverlay.show(ModuleOverlay.Types.PROFILE_LOAD);
+        break;
+      }
+      case "preset": {
+        moduleOverlay.show(ModuleOverlay.Types.PRESET_LOAD);
+        break;
+      }
+    }
   }
 
   async function handleDeleteLocalConfig(event) {
@@ -363,7 +378,7 @@
           );
           break;
         case "showOverlay":
-          channelMessageWrapper(event, ProfileCloudEvent.handleShowOverlay);
+        //channelMessageWrapper(event, ProfileCloudEvent.handleShowOverlay);
       }
     }
   }
@@ -435,7 +450,12 @@
 
   onDestroy(() => {
     window.removeEventListener("message", initChannelCommunication);
-    if (get(moduleOverlay) === "configuration-load-overlay") {
+    if (
+      [
+        ModuleOverlay.Types.PROFILE_LOAD,
+        ModuleOverlay.Types.PRESET_LOAD,
+      ].includes(get(moduleOverlay))
+    ) {
       moduleOverlay.close();
     }
     selectedConfigStore.set(undefined);

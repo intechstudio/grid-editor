@@ -1,11 +1,6 @@
 <script lang="ts">
   import { get } from "svelte/store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
-  import {
-    ModuleOverlayType,
-    moduleOverlay,
-  } from "../../../runtime/moduleOverlay";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import { user_input } from "./../../../runtime/user-input.store";
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { GridPage, PageData } from "../../../runtime/runtime";
@@ -32,7 +27,7 @@
     });
   }
 
-  $: handlePageChange($page, $appSettings);
+  $: handlePageChange($page);
 
   function handlePageChange(page: PageData) {
     if (typeof page === "undefined") {

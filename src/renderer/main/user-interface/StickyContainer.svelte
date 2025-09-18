@@ -1,9 +1,8 @@
 <script lang="ts">
   import { Architecture } from "@intechstudio/grid-protocol";
-
   import { Modal } from "./../modals/modal.store";
   import Pages from "../panels/configuration/components/Pages.svelte";
-  import { selectedConfigStore } from "../../runtime/config-helper.store";
+  import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";

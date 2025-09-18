@@ -3,11 +3,10 @@
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
   import { user_input } from "./../../runtime/user-input.store";
-  import { selected_actions } from "./../../runtime/selected-actions.store";
-  import { moduleOverlay } from "../../runtime/moduleOverlay";
+  import { ModuleOverlay, moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
-  import { selectedConfigStore } from "../../runtime/config-helper.store";
+  import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
@@ -32,7 +31,12 @@
   }
 
   function clearOverlays() {
-    if (get(moduleOverlay) === "configuration-load-overlay") {
+    if (
+      [
+        ModuleOverlay.Types.PROFILE_LOAD,
+        ModuleOverlay.Types.PRESET_LOAD,
+      ].includes(get(moduleOverlay))
+    ) {
       moduleOverlay.close();
     }
     selectedConfigStore.set(undefined);

@@ -60,6 +60,7 @@ const persistentDefaultValues = {
   lightMode: false,
   userLevelMinimalist: true,
   minimapToggled: false,
+  eventsLoaded: false,
 };
 
 interface PaneData {

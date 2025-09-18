@@ -1,11 +1,9 @@
 <script lang="ts">
-  import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime.js";
 
   import Encoder from "../elements/Encoder.svelte";
   import Fader from "../elements/Fader.svelte";
-  import Led from "../elements/Led.svelte";
 
   export let moduleWidth;
   export let id = "EF44";
@@ -173,5 +171,4 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
-  <ModuleInfo {device} visible={true} />
 </div>

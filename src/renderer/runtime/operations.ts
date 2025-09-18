@@ -19,7 +19,7 @@ import {
   GridPresetData,
   GridSnippetData,
   SnippetLoadResult,
-  ProfileLoad,
+  ProfileCloudLoad,
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";
@@ -359,7 +359,7 @@ export async function replaceAction(
 export async function loadProfile(
   profile: GridProfileData,
   target: GridPage,
-  setStatus?: (status: ProfileLoad.Status) => void,
+  setStatus?: (status: ProfileCloudLoad.Status) => void,
 ) {
   Analytics.track({
     event: "Pro file Load Start",
