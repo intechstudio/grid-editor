@@ -1,28 +1,28 @@
 import { get } from "svelte/store";
-import { WriteBuffer } from "./engine.store";
-import { GridInstruction } from "../serialport/instructions";
-import {
-  GridElement,
-  GridEvent,
-  GridModule,
-  GridPage,
-  GridRuntime,
-} from "./runtime";
-import { user_input } from "./user-input.store";
+import { InstructionClassName } from "./engine.store";
+import { GridRuntime } from "./runtime";
 
 export namespace GridService {
+  enum ServiceType {
+    AUTO_EVENT_FETCHER = "auto-event-fetcher",
+  }
+
   export abstract class AbstractService {
     protected stopped = false;
-    constructor(protected readonly pingTime: number) {}
+
+    constructor(
+      protected readonly pingTime: number,
+      protected readonly type: ServiceType,
+    ) {}
 
     public async start() {
       while (!this.stopped) {
-        this.work();
+        this.worker();
         await this.delay(this.pingTime);
       }
     }
 
-    protected abstract work(): void;
+    protected abstract worker(): void;
 
     private delay(ms: number) {
       return new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,25 +33,26 @@ export namespace GridService {
     static readonly pingTime = 1000; // ms
 
     constructor(private runtime: GridRuntime) {
-      super(AutoEventFetcher.pingTime);
-
-      this.start();
+      super(AutoEventFetcher.pingTime, ServiceType.AUTO_EVENT_FETCHER);
     }
 
-    private tryLoadEvent(event: GridEvent) {
-      event.load();
-    }
-
-    protected work() {
-      const { pagenumber } = get(user_input);
+    protected worker() {
       for (const module of this.runtime.modules) {
-        const page = module.findPage(pagenumber);
-
-        for (const control of page.control_elements) {
-          for (const event of control.events) {
-            if (!event.isLoaded()) {
-              this.tryLoadEvent(event);
-              return;
+        for (const page of module.pages) {
+          for (const control of page.control_elements) {
+            for (const event of control.events) {
+              if (!event.isLoaded()) {
+                const buffer = get(this.runtime.connection.buffer);
+                const isIdle =
+                  buffer.array.filter(
+                    (e) =>
+                      e.descr.class_name !== InstructionClassName.HEARTBEAT,
+                  ).length === 0;
+                if (isIdle) {
+                  event.load();
+                }
+                return;
+              }
             }
           }
         }

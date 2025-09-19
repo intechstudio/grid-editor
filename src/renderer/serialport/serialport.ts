@@ -113,7 +113,8 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
           buffer.messageStream.bind(incoming);
           incoming.connection = current;
 
-          new GridService.AutoEventFetcher(incoming);
+          const eventFetcher = new GridService.AutoEventFetcher(incoming);
+          eventFetcher.start();
 
           runtime_manager.add(incoming);
           runtime_manager.setActive(incoming.id);
