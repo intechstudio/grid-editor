@@ -4,7 +4,6 @@
   import SimpleColorFace from "./headers/SimpleColorFace.svelte";
   export const header = SimpleColorFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "sglc",
     name: "SimpleColor",
@@ -26,7 +25,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    devOnly: false,
+    editName: true,
   };
 </script>
 
@@ -55,20 +54,20 @@
 
   const dispatch = createEventDispatcher();
 
-  export let config: GridAction;
+  export let action: GridAction;
 
-  const data = new SimpleColor.ViewModel(config);
+  const data = new SimpleColor.ViewModel(action);
 
   onDestroy(() => {
     data.destroy();
   });
 
-  $: if (!$config.invalid) {
-    handleConfigChange(config);
+  $: if (!$action.invalid) {
+    handleActionChange(action);
   }
 
-  function handleConfigChange(action: GridAction) {
-    if (config.script === buildScript($data)) {
+  function handleActionChange(action: GridAction) {
+    if (action.script === buildScript($data)) {
       return;
     }
 
@@ -110,7 +109,7 @@
     ];
 
     dispatch("update-action", {
-      short: config.short,
+      short: action.short,
       script: script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -246,7 +245,7 @@
               on:input={(e) => {
                 const { value, validationError } = e.detail;
                 data.updateRGBAChannelValue(
-                  config,
+                  action,
                   value,
                   validationError,
                   channel,
@@ -284,7 +283,7 @@
           on:input={(e) => {
             const { value, validationError } = e.detail;
             data.updateRGBAChannelValue(
-              config,
+              action,
               value,
               validationError,
               SimpleColor.Channel.ALPHA,

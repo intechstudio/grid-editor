@@ -1,4 +1,6 @@
+import { SvelteComponent } from "svelte";
 import { writable } from "svelte/store";
+import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 
 const componentKeyMap = new Map();
 export const latestComponentVersionKeys = writable(componentKeyMap);
@@ -37,17 +39,21 @@ export function getComponentInformation(short) {
 export function getAllComponents() {
   var configs = config_components?.map((c) => ({
     component: c.default,
-    information: c.information,
+    information: { ...c.information, external: false },
     header: c.header,
   }));
   for (let info of package_infos) {
     configs?.push({
       component: packageComponent.default,
       header: packageComponent.header,
-      information: info,
+      information: { ...info, external: true },
     });
   }
-  return configs;
+  return configs as Array<{
+    header: typeof SvelteComponent;
+    component: typeof SvelteComponent;
+    information: ActionBlockInformation;
+  }>;
 }
 
 export function addPackageAction(info) {

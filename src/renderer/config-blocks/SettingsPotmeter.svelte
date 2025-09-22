@@ -4,7 +4,6 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "spc",
     name: "SettingsPotmeter",
@@ -20,6 +19,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    editName: true,
   };
 </script>
 
@@ -27,16 +27,10 @@
   import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
-  import {
-    MeltCheckbox,
-    Block,
-    BlockBody,
-    BlockRow,
-    MeltCombo,
-  } from "@intechstudio/grid-uikit";
-  import { GridAction } from "../runtime/runtime.js";
+  import { Block, BlockRow, MeltCombo } from "@intechstudio/grid-uikit";
+  import { ActionData, GridAction } from "../runtime/runtime.js";
 
-  export let config: GridAction;
+  export let action: GridAction;
 
   const dispatch = createEventDispatcher();
 
@@ -68,12 +62,12 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
+  $: if (!$action.invalid) {
+    handleActionChange($action);
   }
 
-  function handleConfigChange(config) {
-    const arr = config.script.split("self:").slice(1);
+  function handleActionChange(data: ActionData) {
+    const arr = data.script.split("self:").slice(1);
     const parts = {
       pmo: null,
       pma: null,

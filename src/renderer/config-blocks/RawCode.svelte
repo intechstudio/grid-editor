@@ -8,7 +8,6 @@
   // Component for the untoggled "header" of the component
   export const header = undefined;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "raw",
     name: "CodeBlock",
@@ -34,6 +33,7 @@
     type: "single",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    editName: true,
   };
 </script>
 
@@ -46,16 +46,15 @@
   import { GridAction, GridEvent } from "../runtime/runtime";
   import { Analytics } from "../runtime/analytics.js";
 
-  export let config: GridAction;
+  export let action: GridAction;
 
-  $: config, $appSettings.packageList, checkConfig();
+  $: action, $appSettings.packageList, checkConfig();
 
   let targetPackage: string | undefined = undefined;
   let availablePackage: any | undefined = undefined;
 
   function checkConfig() {
-    console.log({ config });
-    const match = config.script.match(/gps\("([^"]+)/);
+    const match = action.script.match(/gps\("([^"]+)/);
     if (match === null) {
       return;
     }
@@ -66,7 +65,7 @@
   }
 
   function handleReplace() {
-    mergeActionsToCode(config.parent as GridEvent, false, config);
+    mergeActionsToCode(action.parent as GridEvent, false, action);
   }
 
   function handleEnablePackage() {
@@ -105,13 +104,13 @@
 >
   <div class="w-full flex flex-col items-center">
     <div class="flex items-center pb-2 w-full">
-      {#if config.short.startsWith("x")}
+      {#if action.short.startsWith("x")}
         <div class="text-gray-500 text-sm font-bold">
           Missing Package Action!
         </div>
         <div class="flex flex-row gap-1 ml-auto items-center">
           <span class="text-sm text-gray-500 justify-end"
-            >{availablePackage?.name ?? targetPackage ?? config.short}</span
+            >{availablePackage?.name ?? targetPackage ?? action.short}</span
           >
         </div>
       {:else}
@@ -150,7 +149,7 @@
       {/if}
     </div>
     <div class="mt-2">
-      <SendFeedback feedback_context={`RAW action block: ${config.script}`} />
+      <SendFeedback feedback_context={`RAW action block: ${action.script}`} />
     </div>
   </div>
 </code-block>
