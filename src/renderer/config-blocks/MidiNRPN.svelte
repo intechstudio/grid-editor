@@ -4,7 +4,6 @@
   import MidiFourteenBitFace from "./headers/MidiFourteenBitFace.svelte";
   export const header = MidiFourteenBitFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "gmnp",
     name: "MidiNRPN",
@@ -40,24 +39,25 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    editName: true,
   };
 </script>
 
 <script lang="ts">
-  import { onMount, createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { GridAction, GridEvent } from "./../runtime/runtime";
+  import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
 
-  export let config: GridAction;
+  export let action: GridAction;
 
   const dispatch = createEventDispatcher();
-  let event = config.parent as GridEvent;
+  let event = action.parent as GridEvent;
 
   const validators = [
     {
@@ -99,17 +99,17 @@
   let value: string;
   let hiRes: boolean;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
+  $: if (!$action.invalid) {
+    handleActionChange($action);
   }
 
-  function handleConfigChange(config) {
+  function handleActionChange(data: ActionData) {
     // Extract all contents
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
     let match;
-    while ((match = regex.exec(config.script)) !== null) {
+    while ((match = regex.exec(data.script)) !== null) {
       matches.push(`gms(${match[1].trim()})`); // trim to remove any extra spaces
     }
 
@@ -147,7 +147,7 @@
       script.push(`gms(${channel},176,38,(${value})%128)`);
     }
     dispatch("update-action", {
-      short: config.short,
+      short: action.short,
       script: script.join(" "),
       validationError: validators.some((e) => e.value === false),
     });
@@ -183,7 +183,7 @@
 
   function renderSuggestions() {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === config.id);
+    const index = actions.findIndex((e) => e.id === action.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,
@@ -234,7 +234,7 @@
       <div />
       {#each tabs as element}
         <TabButton
-          selected={config.information.short == element.short}
+          selected={action.information.short == element.short}
           text={element.name}
           on:click={() => handleTabButtonClicked(element)}
         />

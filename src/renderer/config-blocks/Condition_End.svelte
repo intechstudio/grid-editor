@@ -7,7 +7,6 @@
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "en",
     name: "Condition_End",
@@ -29,15 +28,6 @@
     type: "composite_close",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
+    editName: false,
   };
 </script>
-
-<script>
-  import { createEventDispatcher } from "svelte";
-
-  const dispatch = createEventDispatcher();
-</script>
-
-<endif-block class="text-white pointer-events-auto">
-  {information.displayName}
-</endif-block>

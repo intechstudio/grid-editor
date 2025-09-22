@@ -7,7 +7,6 @@
   import ConditionIfFace from "./headers/ConditionIfFace.svelte";
   export const header = ConditionIfFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "if",
     name: "Condition_If",
@@ -33,5 +32,6 @@
     helperText:
       "Actions here are triggered when the event runs, and the expression above is true.",
     hiddenInMinimalist: true,
+    editName: false,
   };
 </script>
