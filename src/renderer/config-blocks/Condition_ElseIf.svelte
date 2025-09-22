@@ -7,6 +7,7 @@
   import ConditionElseIfFace from "./headers/ConditionElseIfFace.svelte";
   export const header = ConditionElseIfFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "ei",
     name: "Condition_ElseIf",
@@ -29,6 +30,5 @@
     syntaxPreprocessor: new SyntaxPreprocessor("if true then $SCRIPT$ end"),
     helperText:
       "Actions here are triggered when the event runs, the expression above is true, and none of the others before were.",
-    editName: false,
   };
 </script>

@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "gtp",
     name: "TimerStop",
@@ -28,19 +29,18 @@
     type: "single",
     toggleable: true,
     hiddenInMinimalist: true,
-    editName: true,
   };
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { Validator } from "./validators";
-  import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
@@ -51,17 +51,17 @@
     },
   };
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
 
   const whatsInParenthesis = /gtp\(([^"]*)\)/;
   let scriptValue = "";
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    let param1 = whatsInParenthesis.exec(data.script);
+  function handleConfigChange(config) {
+    let param1 = whatsInParenthesis.exec(config.script);
     if (param1 !== null) {
       if (param1.length > 0) {
         scriptValue = param1[1];
@@ -87,7 +87,7 @@
 
   $: {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === action.id);
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,

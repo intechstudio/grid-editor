@@ -7,6 +7,7 @@
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "eprlre",
     name: "EncoderPushRotLeftRight_End",
@@ -32,6 +33,10 @@
     type: "composite_close",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
-    editName: false,
   };
 </script>
+
+<else-block
+  class="w-full h-fit flex flex-col text-white py-1 pointer-events-auto"
+  style="min-height: 2.5rem; background: {information.color};"
+/>

@@ -1,24 +1,25 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { ActionData, GridAction } from "../../runtime/runtime";
+  import { GridAction } from "../../runtime/runtime";
   import { InfoBox } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   let scriptSegments = ["", "", ""];
+  let labels = ["CH:", "CC:", "VAL:"];
 
   const whatsInParenthesis = /\(([^)]+)\)/;
   let midiLSB = ""; // local script part
   let midiMSB = "";
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    const arr = data.script.split(" gms");
+  function handleConfigChange(config) {
+    const arr = config.script.split(" gms");
 
     let lsb = whatsInParenthesis.exec(arr[0]);
 
@@ -63,14 +64,13 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
   class="flex items-center flex-row w-full pr-2"
-  style="background-color: {action.information.color}"
+  style="background-color: {config.information.color}"
   on:click={handleClick}
 >
-  <div
-    class="grid grid-cols-[auto_1fr_auto] gap-2 justify-center items-center h-full w-full my-1"
-  >
-    <slot name="name" />
+  <div class="grid grid-cols-[auto_1fr] items-center h-full w-full my-1">
+    <span class="mr-2 w-fit whitespace-nowrap"
+      >{config.information.displayName}</span
+    >
     <InfoBox value={`(${scriptSegments.join(", ")})`} />
-    <slot name="edit-name-trigger" />
   </div>
 </div>

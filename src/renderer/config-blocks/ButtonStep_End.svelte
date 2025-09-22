@@ -7,6 +7,7 @@
   import ButtonStepFace from "./headers/ButtonStepFace.svelte";
   export const header = ButtonStepFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "bste",
     name: "ButtonStep_End",
@@ -24,7 +25,6 @@
     type: "composite_close",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
-    editName: false,
   };
 </script>
 

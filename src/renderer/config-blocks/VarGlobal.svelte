@@ -20,41 +20,39 @@
     type: "single",
     toggleable: true,
     hiddenInMinimalist: true,
-    editName: true,
   };
 </script>
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { ActionData, GridAction, GridEvent } from "../runtime/runtime.js";
+  import { GridAction, GridEvent } from "../runtime/runtime.js";
   import VariableManager from "./components/VariableManager.svelte";
-  import { ElementType } from "@intechstudio/grid-protocol";
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
   let script: string;
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    script = data.script;
+  function handleConfigChange(config) {
+    script = config.script;
   }
 
   function handleUpdateAction(e: any) {
     const { value, validationError } = e.detail;
     dispatch("update-action", {
-      short: action.information.short,
+      short: config.information.short,
       script: value,
       validationError: validationError,
     });
   }
 
-  let elementType = event.getInfo().element.type as ElementType;
+  let elementType = config.parent.getInfo().element.type;
 </script>
 
 <container>

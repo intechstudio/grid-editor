@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "ggbs",
     name: "GamePadButton",
@@ -47,7 +48,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
@@ -58,11 +58,11 @@
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -84,14 +84,14 @@
 
   let scriptSegments = [];
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
+  function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
-      short: data.short,
-      script: data.script,
+      short: config.short,
+      script: config.script,
     });
   }
 
@@ -99,11 +99,11 @@
     scriptSegments[index] = value;
 
     const script = Script.toScript({
-      short: action.short,
+      short: config.short,
       array: scriptSegments,
     });
     dispatch("update-action", {
-      short: action.short,
+      short: config.short,
       script: script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -154,7 +154,7 @@
 
   $: {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === action.id);
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,

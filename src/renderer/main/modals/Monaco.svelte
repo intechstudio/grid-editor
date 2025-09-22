@@ -54,36 +54,36 @@
 
   $: handleActionChange($monaco_action);
 
-  function isDeleted(data: ActionData) {
-    const event = data?.parent as GridEvent;
+  function isDeleted(action: ActionData) {
+    const event = action?.parent as GridEvent;
     return typeof event === "undefined";
   }
 
-  function handleActionChange(data: ActionData) {
-    if (!data) return;
-    if (isDeleted(data)) {
+  function handleActionChange(action: ActionData) {
+    if (!action) return;
+    if (isDeleted(action)) {
       pathSnippets = ["Deleted Code Block"];
       return;
     }
 
-    const event = data.parent as GridEvent;
+    const event = action.parent as GridEvent;
     const element = event.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
 
     name =
-      typeof data.name !== "undefined"
-        ? data.name
-        : data.information.displayName;
+      typeof action.name !== "undefined"
+        ? action.name
+        : action.information.displayName;
 
     pathSnippets = [
       `${module.type} (${module.dx},${module.dy})`,
       `Page ${page.pageNumber + 1}`,
       `Element ${element.elementIndex} (${Grid.toFirstCase(element.type)})`,
       `${Grid.toFirstCase(NumberToEventType(event.type))} event`,
-      typeof data.name !== "undefined"
-        ? data.name
-        : `Block #${event.config.findIndex((e) => e.id === data.id) + 1}`,
+      typeof action.name !== "undefined"
+        ? action.name
+        : `Block #${event.config.findIndex((e) => e.id === action.id) + 1}`,
     ];
   }
 

@@ -7,6 +7,7 @@
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "bpre",
     name: "ButtonPressRelease_End",
@@ -32,6 +33,5 @@
     type: "composite_close",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
-    editName: false,
   };
 </script>

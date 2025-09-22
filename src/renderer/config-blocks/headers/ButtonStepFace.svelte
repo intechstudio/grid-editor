@@ -10,10 +10,10 @@
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   let step = 0;
-  const event = action.parent as GridEvent;
+  const event = config.parent as GridEvent;
 
   function handleClick(e) {
     dispatch("toggle");
@@ -35,15 +35,15 @@
 
       if (action.short === "bstn") {
         step = ++stack[stack.length - 1];
-        if (action.id === action.id) {
-          const defaultScript = action.information.defaultLua;
+        if (action.id === config.id) {
+          const defaultScript = config.information.defaultLua;
           const newScript = defaultScript.replace("N", String(step));
-          const oldScript = action.script;
+          const oldScript = config.script;
           if (newScript !== oldScript) {
-            action.updateData(
-              new ActionData(action.short, newScript, action.name),
+            config.updateData(
+              new ActionData(config.short, newScript, config.name),
             );
-            action.sendToGrid();
+            config.sendToGrid();
           }
           return;
         }
@@ -55,21 +55,21 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="px-2 w-full {action.information.rounding === 'top'
+  class="px-2 w-full {config.information.rounding === 'top'
     ? 'rounded-tr-xl'
-    : ''} {action.information.rounding === 'bottom'
+    : ''} {config.information.rounding === 'bottom'
     ? 'rounded-br-xl'
     : ''} text-white flex items-center"
-  style="background-color:{action.information.color}"
+  style="background-color:{config.information.color}"
   on:click={handleClick}
 >
-  {#if action.information.short === "bstn"}
+  {#if config.information.short === "bstn"}
     <span
       >{`Step ${
         toWords(step)[0].toUpperCase() + toWords(step).slice(1).toLowerCase()
       }`}</span
     >
   {:else}
-    <span>{action.information.displayName}</span>
+    <span>{config.information.displayName}</span>
   {/if}
 </div>

@@ -8,26 +8,26 @@
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
-  let event = action.parent as GridEvent;
+  export let config: GridAction;
+  let event = config.parent as GridEvent;
 
-  const data = new ForLoop.ViewModel(action);
+  const data = new ForLoop.ViewModel(config);
 
   onDestroy(() => {
     data.destroy();
   });
 
-  $: if (!$action.invalid) {
-    handleActionChange(action);
+  $: if (!$config.invalid) {
+    handleConfigChange(config);
   }
 
-  function handleActionChange(action: GridAction) {
+  function handleConfigChange(action: GridAction) {
     data.updateData(action);
   }
 
   function sendData() {
     const [short, script, error] = [
-      action.short,
+      config.short,
       data.buildScript(),
       data.isValidationError(),
     ];
@@ -38,7 +38,7 @@
 
 <container
   class="px-2 w-full rounded-tr-xl justify-center flex flex-col pointer-events-none"
-  style="background-color:{action.information.color}"
+  style="background-color:{config.information.color}"
 >
   <div class="flex flex-row flex-grow items-center gap-2 py-2 text-white">
     <span>Repeat</span>

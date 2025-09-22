@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "gks",
     name: "Macro",
@@ -31,7 +32,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
@@ -60,7 +60,6 @@
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import {
-    ActionData,
     GridAction,
     GridElement,
     GridEvent,
@@ -77,9 +76,9 @@
 
   let layout = layouts[0];
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
@@ -98,8 +97,8 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
   function change_layout() {
@@ -117,14 +116,14 @@
       $appSettings.persistent.keyboardLayout = selectedLayout;
     }
 
-    handleActionChange(action);
+    handleConfigChange(config);
   }
 
-  function handleActionChange(data: ActionData) {
+  function handleConfigChange(config) {
     let array = [];
     let _keys = [];
     try {
-      const text = data.script.split("gks(")[1].slice(0, -1);
+      const text = config.script.split("gks(")[1].slice(0, -1);
       array = text.split(",");
       defaultDelay = array[0] ? array[0] : defaultDelay;
       array = array.slice(1);
@@ -166,7 +165,7 @@
         keyDivList = colorize(_keys);
       }
     } catch (error) {
-      console.warn("gsk can't be turned to config", data.script, error);
+      console.warn("gsk can't be turned to config", config.script, error);
     }
   }
 

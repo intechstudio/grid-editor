@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "glp",
     name: "LedPhase",
@@ -43,7 +44,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
@@ -55,17 +55,13 @@
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./validators";
-  import {
-    ActionData,
-    GridAction,
-    GridElement,
-    GridEvent,
-  } from "./../runtime/runtime";
+  import { ElementType } from "@intechstudio/grid-protocol";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
   import { Grid } from "../lib/_utils.js";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -95,14 +91,14 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
+  function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
-      short: data.short,
-      script: data.script,
+      short: config.short,
+      script: config.script,
     });
   }
 
@@ -110,11 +106,11 @@
     scriptSegments[index] = e;
     // important to set the function name = human readable for now
     const script = Script.toScript({
-      short: action.short,
+      short: config.short,
       array: scriptSegments,
     });
     dispatch("update-action", {
-      short: action.short,
+      short: config.short,
       script: script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -142,7 +138,7 @@
 
   function updateSuggestions() {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === action.id);
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,

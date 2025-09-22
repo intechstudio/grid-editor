@@ -7,6 +7,7 @@
   import FunctionStartFace from "./headers/FunctionStartFace.svelte";
   export const header = FunctionStartFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "fst",
     name: "Function_Start",
@@ -30,6 +31,5 @@
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
     hiddenInMinimalist: true,
-    editName: false,
   };
 </script>

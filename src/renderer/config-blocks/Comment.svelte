@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "c",
     name: "Comment",
@@ -23,7 +24,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
@@ -32,9 +32,9 @@
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
-  import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
@@ -47,12 +47,12 @@
     },
   };
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    scriptValue = data.script.split("--[[")[1].split("]]")[0];
+  function handleConfigChange(config) {
+    scriptValue = config.script.split("--[[")[1].split("]]")[0];
   }
 
   function sendData(e) {

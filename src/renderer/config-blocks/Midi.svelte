@@ -4,6 +4,7 @@
   import MidiFace from "./headers/MidiFace.svelte";
   export const header = MidiFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "gms",
     name: "Midi",
@@ -39,27 +40,34 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
-  import { GridScript } from "@intechstudio/grid-protocol";
+  import {
+    ElementType,
+    EventType,
+    GridScript,
+    NumberToEventType,
+  } from "@intechstudio/grid-protocol";
   import { midiCC } from "./_midi.js";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
   import { Validator } from "./validators";
+  import { valid } from "semver";
   import { Grid } from "../lib/_utils.js";
+  import ActionHelper from "../main/panels/configuration/components/ActionHelper.svelte";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
+  let element = event.parent as GridElement;
 
   const dispatch = createEventDispatcher();
 
@@ -93,24 +101,24 @@
 
   let scriptSegments = [];
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
+  function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
-      short: data.short,
-      script: data.script,
+      short: config.short,
+      script: config.script,
     });
   }
 
   function sendData() {
     const script = Script.toScript({
-      short: action.short,
+      short: config.short,
       array: scriptSegments,
     }); // important to set the function name
     dispatch("update-action", {
-      short: action.short,
+      short: config.short,
       script: "self:" + script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -160,7 +168,7 @@
   const baseSuggestions: Array<SuggestionValue[]> = [
     [
       makeAuto(
-        `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_CHANNEL)})`,
+        `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
       ),
       ...makeChannels(16),
     ],
@@ -178,7 +186,7 @@
 
   function renderSuggestions() {
     const currentCommand = Grid.Auto.getMidi(
-      action,
+      config,
       Grid.Auto.Value.MIDI_COMMAND,
     );
 
@@ -202,14 +210,14 @@
       case "control_change_messages":
         param1 = [
           makeAuto(
-            `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1)})`,
+            `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1)})`,
           ),
           ...makeCCs(),
         ];
         break;
       case "note_on_event":
       case "note_off_event":
-        const autoNote = Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1);
+        const autoNote = Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1);
         param1 = [
           makeAuto(`Auto (${MusicalNotes.FromInt(autoNote)})`),
           ...makeNotes(),
@@ -221,7 +229,7 @@
 
     // fetch local definitions
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === action.id);
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index,
@@ -261,7 +269,7 @@
       <div />
       {#each tabs as element}
         <TabButton
-          selected={action.information.short == element.short}
+          selected={config.information.short == element.short}
           text={element.name}
           on:click={() => handleTabButtonClicked(element)}
         />

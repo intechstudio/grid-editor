@@ -7,6 +7,7 @@
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "eprlr",
     name: "EncoderPushRotLeftRight_If",
@@ -49,6 +50,5 @@
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     helperText:
       "Actions here are triggered by rotating the encoder left while it is pressed.",
-    editName: false,
   };
 </script>

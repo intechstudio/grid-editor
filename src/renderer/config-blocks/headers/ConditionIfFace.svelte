@@ -1,23 +1,21 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { ElementType, GridScript } from "@intechstudio/grid-protocol";
+  import { GridScript } from "@intechstudio/grid-protocol";
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
-  import { ActionData, GridAction, GridEvent } from "../../runtime/runtime";
+  import { GridAction } from "../../runtime/runtime";
+
+  export let config: GridAction;
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
-
-  let event = action.parent as GridEvent;
   let scriptSegment = ""; // local script part
-  let elementType = $event.getInfo().element.type as ElementType;
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    scriptSegment = GridScript.humanize(data.script.slice(3, -5));
+  function handleConfigChange(config) {
+    scriptSegment = GridScript.humanize(config.script.slice(3, -5));
   }
 
   function sendData(e) {
@@ -33,7 +31,7 @@
 
 <div
   class="px-2 w-full rounded-tr-xl flex text-white py-1 pointer-events-none"
-  style="background-color:{action.information.color}"
+  style="background-color:{config.information.color}"
 >
   <div class="flex flex-row items-center w-full">
     <span class="mr-4">If</span>
@@ -46,8 +44,8 @@
         }}
         on:change={() => dispatch("sync")}
         value={scriptSegment}
-        availableCharacters={$event.getAvailableChars()}
-        restrictScopeTo={elementType}
+        availableCharacters={$config.parent.getAvailableChars()}
+        restrictScopeTo={$config.parent.getInfo().element.type}
       />
     </div>
     <span class="mx-3">Then</span>

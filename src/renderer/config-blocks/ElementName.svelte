@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "sn",
     name: "ElementName",
@@ -24,7 +25,6 @@
     type: "single",
     toggleable: true,
     valueRegex: /self:gen\("([^"]*)"\)/,
-    editName: true,
   };
 
   export function generateScript(name: string) {
@@ -41,16 +41,11 @@
     NumberToEventType,
   } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
-  import {
-    ActionData,
-    GridAction,
-    GridElement,
-    GridEvent,
-  } from "../runtime/runtime.js";
+  import { GridAction, GridElement, GridEvent } from "../runtime/runtime.js";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
 
   const dispatch = createEventDispatcher();
@@ -64,17 +59,17 @@
 
   let scriptValue = ""; // local script part
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    const matches = data.script.match(information.valueRegex);
+  function handleConfigChange(config) {
+    const matches = config.script.match(information.valueRegex);
     scriptValue = matches[1];
   }
 
   $: {
-    const index = event.config.findIndex((e) => e.id === action.id);
+    const index = event.config.findIndex((e) => e.id === config.id);
     if (index === 0 && NumberToEventType(event.type) === EventType.SETUP) {
       element.name = scriptValue;
     }

@@ -32,7 +32,6 @@
     type: "single",
     toggleable: true,
     hiddenInMinimalist: true,
-    editName: true,
   };
 </script>
 
@@ -50,7 +49,7 @@
   import { Validator } from "./validators";
   import { Script } from "./_script_parsers.js";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   type Pair = {
     input: MeltComboData;
@@ -74,22 +73,22 @@
     },
   ];
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
 
   let lookupTable: { pairs: Pair[]; destination: string; source: string };
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    lookupTable = createLookupTable(data.script);
+  function handleConfigChange(config: ActionData) {
+    lookupTable = createLookupTable(config.script);
   }
 
   let suggestions = [];
   $: {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === action.id);
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,
@@ -99,7 +98,7 @@
 
   function sendData() {
     const script = Script.toScript({
-      short: action.short,
+      short: config.short,
       array: [
         lookupTable.source,
         lookupTable.pairs.reduce(
@@ -110,7 +109,7 @@
     });
 
     dispatch("update-action", {
-      short: action.short,
+      short: config.short,
       script: `${lookupTable.destination}=${script}`,
       validationError:
         validators.some((e) => e.value === false) ||

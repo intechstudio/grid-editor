@@ -5,7 +5,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -19,14 +19,13 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
   class="flex items-center flex-row w-full pr-2"
-  style="background-color: {action.information.color}"
+  style="background-color: {config.information.color}"
   on:click={handleClick}
 >
-  <div
-    class="grid grid-cols-[auto_1fr_auto] gap-2 justify-center items-center h-full w-full my-1"
-  >
-    <slot name="name" />
-    <InfoBox value={whatsInParenthesis.exec($action.script)[0]} />
-    <slot name="edit-name-trigger" />
+  <div class="grid grid-cols-[auto_1fr] items-center h-full w-full my-1">
+    <span class="mr-2 w-fit whitespace-nowrap"
+      >{config.information.displayName}</span
+    >
+    <InfoBox value={whatsInParenthesis.exec($config.script)[0]} />
   </div>
 </div>

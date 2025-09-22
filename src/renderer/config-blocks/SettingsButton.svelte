@@ -4,6 +4,7 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "sbc",
     name: "SettingsButton",
@@ -19,7 +20,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
@@ -28,13 +28,14 @@
   import { ElementType, GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
   import {
+    MeltCheckbox,
     Block,
+    BlockBody,
     BlockRow,
     MeltCombo,
     MeltComboSuggestion,
   } from "@intechstudio/grid-uikit";
   import {
-    ActionData,
     GridAction,
     GridElement,
     GridEvent,
@@ -44,8 +45,8 @@
   import { Grid } from "../lib/_utils.js";
   import { SettingsButton } from "./SettingsButton.js";
 
-  export let action: GridAction;
-  let event = action.parent as GridEvent;
+  export let config: GridAction;
+  let event = config.parent as GridEvent;
   let element = event.parent as GridElement;
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
@@ -78,12 +79,12 @@
   let bmi = "0";
   let bma = "127";
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    const arr = data.script.split("self:").slice(1);
+  function handleConfigChange(config) {
+    const arr = config.script.split("self:").slice(1);
     const parts = {
       bmo: null,
       bmi: null,

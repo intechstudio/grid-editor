@@ -4,6 +4,7 @@
   import MidiSysExFace from "./headers/MidiSysExFace.svelte";
   export const header = MidiSysExFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "gmss",
     name: "MidiSysEx",
@@ -39,7 +40,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
@@ -50,9 +50,9 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { GridAction } from "../runtime/runtime.js";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -62,12 +62,12 @@
 
   let value;
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
-    let textdata = whatsInParenthesis.exec(data.script);
+  function handleConfigChange(config) {
+    let textdata = whatsInParenthesis.exec(config.script);
 
     if (textdata !== null) {
       if (textdata.length > 0) {
@@ -79,7 +79,7 @@
   function sendData(e) {
     commitState = 0;
     dispatch("update-action", {
-      short: action.short,
+      short: config.short,
       script: "gmss(" + value + ")",
       validationError: false,
     });
@@ -104,7 +104,7 @@
       <div />
       {#each tabs as element}
         <TabButton
-          selected={action.information.short == element.short}
+          selected={config.information.short == element.short}
           text={element.name}
           on:click={() => handleTabButtonClicked(element)}
         />

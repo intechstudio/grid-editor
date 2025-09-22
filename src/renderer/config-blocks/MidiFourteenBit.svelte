@@ -5,6 +5,7 @@
   import MidiFourteenBitFace from "./headers/MidiFourteenBitFace.svelte";
   export const header = MidiFourteenBitFace;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "gmsh",
     name: "MidiFourteenBit",
@@ -40,25 +41,24 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    editName: true,
   };
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
+  import { GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
   import { Grid } from "../lib/_utils.js";
 
-  export let action: GridAction;
+  export let config: GridAction;
 
-  let event = action.parent as GridEvent;
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -92,16 +92,16 @@
 
   let scriptSegments = [];
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (!$config.invalid) {
+    handleConfigChange($config);
   }
 
-  function handleActionChange(data: ActionData) {
+  function handleConfigChange(config) {
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
     let match;
-    while ((match = regex.exec(data.script)) !== null) {
+    while ((match = regex.exec(config.script)) !== null) {
       matches.push(
         Script.toSegments({ short: "gms", script: `gms(${match[1].trim()})` }),
       );
@@ -129,7 +129,7 @@
 
     let script = `gms(${scriptSegments[0]},176,${scriptSegments[1]},${scriptSegments[2]}//128) gms(${scriptSegments[0]},176,${scriptSegments[1]}+32,${scriptSegments[2]}%128)`;
     dispatch("update-action", {
-      short: action.short,
+      short: config.short,
       script: script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -161,7 +161,7 @@
 
   function renderSuggestions() {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === action.id);
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,
@@ -170,7 +170,7 @@
     suggestions[0] = [
       {
         value: "-1",
-        info: `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_CHANNEL)})`,
+        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
         key: "auto",
       },
       ..._suggestions[0],
@@ -178,7 +178,7 @@
     suggestions[1] = [
       {
         value: "-1",
-        info: `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1)})`,
+        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1)})`,
         key: "auto",
       },
       ..._suggestions[1],
@@ -214,7 +214,7 @@
       <div />
       {#each tabs as element}
         <TabButton
-          selected={action.information.short == element.short}
+          selected={config.information.short == element.short}
           text={element.name}
           on:click={() => handleTabButtonClicked(element)}
         />

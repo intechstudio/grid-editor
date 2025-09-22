@@ -7,6 +7,7 @@
   import ForLoopHeader from "./headers/ForLoopHeader.svelte";
   export const header = ForLoopHeader;
 
+  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "for",
     name: "For_Loop",
@@ -27,6 +28,5 @@
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
     helperText: "Actions here are triggered each time the loop runs.",
     hiddenInMinimalist: true,
-    editName: false,
   };
 </script>

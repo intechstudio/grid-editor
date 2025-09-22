@@ -51,6 +51,4 @@ interface Information {
   devOnly?: boolean;
   hiddenInMinimalist?: boolean;
   valueRegex?: RegExp;
-  editName: boolean;
-  external?: boolean;
 }
