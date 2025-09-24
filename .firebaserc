@@ -1,12 +1,12 @@
 {
   "projects": {
-    "default": "grid-editor-web"
+    "default": "grid-editor-web-backup"
   },
   "targets": {
-    "grid-editor-web": {
+    "grid-editor-web-backup": {
       "hosting": {
-        "grid-editor": ["grid-editor-web"],
-        "playwright-preview": ["grid-playwright-report"]
+        "grid-editor": ["grid-editor-web-backup"],
+        "playwright-preview": ["grid-playwright-report-backup"]
       }
     }
   }

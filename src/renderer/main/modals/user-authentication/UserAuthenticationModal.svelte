@@ -27,14 +27,13 @@
       <UserLoggedIn {data} />
     {:else if currentNavigationTarget === "login"}
       <UserLogin
-        {data}
         on:to-forgotten={() => (currentNavigationTarget = "forgotten")}
         on:to-signup={() => (currentNavigationTarget = "signup")}
       />
     {:else if currentNavigationTarget === "forgotten"}
-      <UserForgottenPassword {data} on:back={resetNavigation} />
+      <UserForgottenPassword on:back={resetNavigation} />
     {:else if currentNavigationTarget === "signup"}
-      <UserSignUp {data} on:back={resetNavigation} />
+      <UserSignUp on:back={resetNavigation} />
     {/if}
   </div>
 </MoltenModal>
