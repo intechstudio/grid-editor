@@ -254,7 +254,8 @@
         {
           text: [`Delete`],
           handler: () => handleDelete(),
-          isDisabled: () => false,
+          isDisabled: () =>
+            ["single"].includes(action.information.type) === false,
         },
         {
           text: [`Rename`],
