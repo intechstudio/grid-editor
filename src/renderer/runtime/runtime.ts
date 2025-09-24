@@ -1759,11 +1759,13 @@ export class GridModule extends RuntimeNode<ModuleData> {
 export class RuntimeData extends NodeData {
   public modules: Array<GridModule>;
   public rotation: Grid.Rotation;
+  public layoutOffset: { x: number; y: number };
 
   constructor() {
     super();
     this.modules = [];
     this.rotation = Grid.Rotation.R0;
+    this.layoutOffset = { x: 0, y: 0 };
   }
 
   public isValid() {
@@ -1828,6 +1830,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     return this.getField("rotation");
   }
 
+  get layoutOffset() {
+    return this.getField("layoutOffset");
+  }
+
   // Setters
   set modules(value: Array<GridModule>) {
     this.setField("modules", value);
@@ -1835,6 +1841,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   set rotation(value: Grid.Rotation) {
     this.setField("rotation", value);
+  }
+
+  set layoutOffset(value: { x: number; y: number }) {
+    this.setField("layoutOffset", value);
   }
 
   findEvent(
@@ -2226,10 +2236,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     });
 
     if (this.modules.length === 0) {
-      appSettings.update((s) => {
-        s.gridLayoutShift = { x: 0, y: 0 };
-        return s;
-      });
+      this.layoutOffset = { x: 0, y: 0 };
     }
 
     if (removed.architecture === Architecture.VIRTUAL) {

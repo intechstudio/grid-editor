@@ -62,7 +62,7 @@
       stickyRect.right >= contRect.right + threshold;
   }
 
-  $: handleGridLayoutShift($appSettings.gridLayoutShift);
+  $: handleGridLayoutShift($runtime.layoutOffset);
 
   function handleGridLayoutShift(vector) {
     if (vector.x === 0 && vector.y === 0) {
@@ -111,8 +111,8 @@
           on:resize={handleResize}
           interactive={true}
           class="absolute z-[0] top-1/2 left-1/2 flex flex-col"
-          style="transform: translate(calc(-50% + {$appSettings.gridLayoutShift
-            .x}px), calc(-50% + {$appSettings.gridLayoutShift.y}px));"
+          style="transform: translate(calc(-50% + {$runtime.layoutOffset
+            .x}px), calc(-50% + {$runtime.layoutOffset.y}px));"
         >
           <div
             bind:this={stickyContainer}

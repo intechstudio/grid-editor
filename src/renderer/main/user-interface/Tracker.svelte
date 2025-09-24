@@ -1,9 +1,25 @@
-<script>
+<script lang="ts">
   import { get } from "svelte/store";
-  import { tooltip } from "./../_actions/tooltip.ts";
+  import { tooltip } from "./../_actions/tooltip";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { MeltSelect, MoltenButton, Toggle } from "@intechstudio/grid-uikit";
   import { ModuleOverlay, moduleOverlay } from "../../runtime/moduleOverlay";
+  import {
+    MeltSelect,
+    MoltenPushButton,
+    Toggle,
+  } from "@intechstudio/grid-uikit";
+  import {
+    ModuleOverlayType,
+    moduleOverlay,
+  } from "../../runtime/moduleOverlay";
+  import { runtime_manager } from "../../runtime/runtime-manager.store.js";
+  import { GridRuntime } from "../../runtime/runtime.js";
+
+  let runtime: GridRuntime;
+
+  $: {
+    runtime = $runtime_manager.active.runtime;
+  }
 
   const options = [
     {
@@ -24,8 +40,8 @@
   ];
 
   function handleGridLayoutResetClicked(e) {
+    runtime.layoutOffset = { x: 0, y: 0 };
     appSettings.update((s) => {
-      s.gridLayoutShift = { x: 0, y: 0 };
       s.persistent.size = s.defaultSize;
       return s;
     });
@@ -81,11 +97,11 @@
         key: "reset_grid_layout",
       }}
     >
-      <MoltenButton
-        title={"Reset View"}
+      <MoltenPushButton
+        text={"Reset View"}
         click={handleGridLayoutResetClicked}
-        disabled={$appSettings.gridLayoutShift.x == 0 &&
-          $appSettings.gridLayoutShift.y == 0 &&
+        disabled={$runtime.layoutOffset.x == 0 &&
+          $runtime.layoutOffset.y == 0 &&
           $appSettings.persistent.size == $appSettings.defaultSize}
       />
     </div>
