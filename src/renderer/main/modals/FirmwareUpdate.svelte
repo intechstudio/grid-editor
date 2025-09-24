@@ -235,9 +235,9 @@
           >Do not disconnect the module!</span
         >
       {/if}
-      {#if $appSettings.firmwareNotificationState === 5}
+      {#if [5, 6].includes($appSettings.firmwareNotificationState)}
         <div class="flex flex-row items-center">
-          <span class="text-lg">Update is successful!</span>
+          <span class="text-lg">Update completed!</span>
           <SvgIcon iconPath="tick" fill="#0BA484" width={20} height={20} />
         </div>
         <div class="relative w-32 h-20">
@@ -256,7 +256,9 @@
           >You will be redirected to Grid Editor in a few seconds...</span
         >
       {/if}
-      {#if $appSettings.firmwareNotificationState === 6}
+
+      <!-- Unused unsuccessful state. Reason: After update is complete, the state is always unsuccessful, since USB connection is dropped at the end of copy
+      
         <div class="flex flex-row gap-1 items-center">
           <span class="text-lg">Update was unsuccessful!</span>
           <SvgIcon iconPath="close" fill="#DC2626" width={10} height={10} />
@@ -277,7 +279,7 @@
             click={handleTroubleShoot}
           />
           <MoltenPushButton text={"Cancel"} click={handleDismiss} />
-        </div>{/if}
+        </div> -->
     </div>
   </MoltenModal>
 {/if}
