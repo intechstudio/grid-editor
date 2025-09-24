@@ -1988,11 +1988,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   public async change_page(new_page_number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (get(this.connection.buffer).array.length > 0) {
-        reject("Wait before all operations are finished.");
-        return;
-      }
-
       if (this.unsavedChangesCount() != 0) {
         reject(Runtime.ErrorText.PAGE_CHANGE_DISABLED);
         return;

@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { InstructionClassName } from "./engine.store";
 import { GridRuntime } from "./runtime";
+import { user_input } from "./user-input.store";
 
 export namespace GridService {
   enum ServiceType {
@@ -30,29 +31,28 @@ export namespace GridService {
   }
 
   export class AutoEventFetcher extends AbstractService {
-    static readonly pingTime = 1000; // ms
+    static readonly pingTime = 300; // ms
 
     constructor(private runtime: GridRuntime) {
       super(AutoEventFetcher.pingTime, ServiceType.AUTO_EVENT_FETCHER);
     }
 
     protected worker() {
+      const ui = get(user_input);
       for (const module of this.runtime.modules) {
-        for (const page of module.pages) {
-          for (const control of page.control_elements) {
-            for (const event of control.events) {
-              if (!event.isLoaded()) {
-                const buffer = get(this.runtime.connection.buffer);
-                const isIdle =
-                  buffer.array.filter(
-                    (e) =>
-                      e.descr.class_name !== InstructionClassName.HEARTBEAT,
-                  ).length === 0;
-                if (isIdle) {
-                  event.load();
-                }
-                return;
+        const page = module.findPage(ui.pagenumber);
+        for (const control of page.control_elements) {
+          for (const event of control.events) {
+            if (!event.isLoaded()) {
+              const buffer = get(this.runtime.connection.buffer);
+              const isIdle =
+                buffer.array.filter(
+                  (e) => e.descr.class_name !== InstructionClassName.HEARTBEAT,
+                ).length === 0;
+              if (isIdle) {
+                event.load();
               }
+              return;
             }
           }
         }
