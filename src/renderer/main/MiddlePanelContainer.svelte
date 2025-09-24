@@ -6,7 +6,6 @@
   import { fade, blur, fly } from "svelte/transition";
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
-  import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";

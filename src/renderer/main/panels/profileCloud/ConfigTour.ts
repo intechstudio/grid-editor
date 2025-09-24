@@ -157,11 +157,10 @@ export namespace ConfigTour {
       id: Target.StaticElementIdentifier,
       options: { position?: Grid.Position } = undefined,
     ) {
+      const position = options?.position ?? Grid.Position.LEFT;
       node.setAttribute("data-tour-static-target-id", String(id));
-      node.setAttribute(
-        "data-tour-static-target-position",
-        String(options.position ?? Grid.Position.LEFT),
-      );
+      node.setAttribute("data-tour-static-target-position", String(position));
+      return;
     }
 
     public async createTourFromProfile(

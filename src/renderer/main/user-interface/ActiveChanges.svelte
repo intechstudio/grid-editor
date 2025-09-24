@@ -3,7 +3,6 @@
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
   import { user_input } from "./../../runtime/user-input.store";
-  import { selected_actions } from "./../../runtime/selected-actions.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
