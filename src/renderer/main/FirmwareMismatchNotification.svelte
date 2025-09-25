@@ -5,7 +5,7 @@
   import { GridRuntime, RuntimeData } from "../runtime/runtime";
   import { Modal } from "./modals/modal.store";
   import FirmwareUpdate from "./modals/FirmwareUpdate.svelte";
-  import { tick } from "svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   let fwMismatch = false;
 
@@ -17,13 +17,14 @@
   $: handleRuntimeChange($runtime);
 
   function handleRuntimeChange(data: RuntimeData) {
+    appSettings.update((s) => {
+      s.firmwareNotificationState = 0;
+      return s;
+    });
+
     if (data.modules.length > 0) {
       modal?.close();
       modal = undefined;
-      appSettings.update((s) => {
-        s.firmwareNotificationState = 0;
-        return s;
-      });
       fwMismatch = data.modules.some((device) => device.fwMismatch);
     }
 
@@ -46,7 +47,9 @@
       });
 
       return;
-    } else {
+    }
+
+    if ($appSettings.firmwareNotificationState > 1) {
       appSettings.update((s) => {
         s.firmwareNotificationState = 2;
         return s;
@@ -61,14 +64,14 @@
       return;
     }
 
-    if (state === 3 && typeof modal === "undefined") {
-      showFirmwareUpdateModal();
-    }
-
     appSettings.update((s) => {
       s.firmwareNotificationState = value.code;
       return s;
     });
+
+    if (state === 3) {
+      showFirmwareUpdateModal();
+    }
 
     if ([5, 6].includes(state)) {
       modal = undefined;
@@ -87,13 +90,21 @@
       disableEscapeClose: true,
       showAsUnique: true,
     });
+    console.log("SHOW");
     modal.show();
+  }
+
+  function handleDismissClicked() {
+    appSettings.update((s) => {
+      s.firmwareNotificationState = 0;
+      return s;
+    });
   }
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1}
   <div
-    class="w-full bg-red-600 text-white justify-center flex items-center text-center p-4"
+    class="w-full bg-error text-white justify-center flex flex-row items-center text-center p-4 gap-2"
   >
     <div class="flex-col">
       <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
@@ -102,5 +113,6 @@
         while plugging in the USB cable!
       </div>
     </div>
+    <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
   </div>
 {/if}

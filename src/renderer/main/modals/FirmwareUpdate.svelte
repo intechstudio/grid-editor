@@ -28,7 +28,6 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { get } from "svelte/store";
-
   export let data: Modal.Instance;
 
   const logoURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logo)}")`;
@@ -36,7 +35,7 @@
 
   const configuration = window.ctxProcess.configuration();
 
-  function handleDismiss() {
+  function handleDismissClicked() {
     appSettings.update((s) => {
       s.firmwareNotificationState = 0;
       return s;
@@ -123,8 +122,8 @@
       return;
     }
 
-    if (state == 5) {
-      setTimeout(handleDismiss, 2000);
+    if ([5, 6].includes(state)) {
+      setTimeout(handleDismissClicked, 2000);
     }
   });
 
@@ -153,7 +152,7 @@
         <span class="text-lg">Waiting for module...</span>
         <!-- Masked container -->
         <div
-          class="relative w-32 h-20 inset-0 bg-white/10"
+          class="relative w-32 h-20 inset-0 bg-foreground-soft"
           style="
             mask: {logoURI} no-repeat center;
             -webkit-mask: {logoURI} no-repeat center;
@@ -163,13 +162,13 @@
         >
           <!-- Scrolling blurred band -->
           <div
-            class="absolute top-0 left-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-waiting"
+            class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-foreground to-transparent animate-waiting"
           />
         </div>
         <MoltenPushButton
           text={"Dismiss"}
           style="outlined"
-          click={handleDismiss}
+          click={handleDismissClicked}
         />
         <span class="text-foreground-soft text-sm text-center px-2"
           >If you want to update your device, reconnect your module in bootlader
@@ -183,7 +182,7 @@
         </div>
 
         <div
-          class="flex w-32 h-20 inset-0 bg-white/10"
+          class="flex w-32 h-20 inset-0 bg-foreground-soft"
           style="
             mask: {logoURI} no-repeat center;
             -webkit-mask: {logoURI} no-repeat center;
@@ -209,7 +208,7 @@
             <MoltenPushButton
               text={"Dismiss"}
               style="outlined"
-              click={handleDismiss}
+              click={handleDismissClicked}
             />
             <span class="text-foreground-soft text-sm text-center px-2"
               >Unplug your device</span
@@ -221,7 +220,7 @@
         <span class="text-lg">Update is in progress...</span>
 
         <div
-          class="flex w-32 h-20 inset-0 bg-white/10"
+          class="flex w-32 h-20 inset-0 bg-foreground-soft border"
           style="
           mask: {logoURI} no-repeat center;
           -webkit-mask: {logoURI} no-repeat center;
@@ -294,7 +293,7 @@
     }
   }
   .animate-waiting {
-    animation: waiting 2s linear infinite;
+    animation: waiting 3s linear infinite;
   }
 
   @keyframes loading {
