@@ -25,6 +25,7 @@
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     editName: false,
+    version: "2.0",
   };
 </script>
 

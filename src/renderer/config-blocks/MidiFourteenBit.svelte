@@ -41,6 +41,7 @@
     type: "single",
     toggleable: true,
     editName: true,
+    version: "2.0",
   };
 </script>
 

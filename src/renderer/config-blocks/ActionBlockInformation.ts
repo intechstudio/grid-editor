@@ -52,5 +52,5 @@ interface Information {
   hiddenInMinimalist?: boolean;
   valueRegex?: RegExp;
   editName: boolean;
-  external?: boolean;
+  version?: string;
 }

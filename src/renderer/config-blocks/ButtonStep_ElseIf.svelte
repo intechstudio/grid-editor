@@ -29,5 +29,6 @@
     helperText:
       "Actions here are triggered when the event runs, and button step above is active.",
     editName: false,
+    version: "2.0",
   };
 </script>

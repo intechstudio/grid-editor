@@ -34,6 +34,7 @@
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     editName: true,
+    version: "2.0",
   };
 </script>
 

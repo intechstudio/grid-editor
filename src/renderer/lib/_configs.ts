@@ -39,14 +39,14 @@ export function getComponentInformation(short) {
 export function getAllComponents() {
   var configs = config_components?.map((c) => ({
     component: c.default,
-    information: { ...c.information, external: false },
+    information: c.information,
     header: c.header,
   }));
   for (let info of package_infos) {
     configs?.push({
       component: packageComponent.default,
       header: packageComponent.header,
-      information: { ...info, external: true },
+      information: info,
     });
   }
   return configs as Array<{

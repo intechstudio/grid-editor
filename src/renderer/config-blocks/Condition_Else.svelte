@@ -30,5 +30,6 @@
     helperText:
       "Actions here are triggered when the event runs, and no others conditions were met.",
     editName: false,
+    version: "2.0",
   };
 </script>

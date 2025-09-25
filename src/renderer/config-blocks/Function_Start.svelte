@@ -31,5 +31,6 @@
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
     hiddenInMinimalist: true,
     editName: false,
+    version: "2.0",
   };
 </script>

@@ -25,6 +25,7 @@
     toggleable: true,
     valueRegex: /self:gen\("([^"]*)"\)/,
     editName: true,
+    version: "2.0",
   };
 
   export function generateScript(name: string) {

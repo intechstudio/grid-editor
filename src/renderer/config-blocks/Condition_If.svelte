@@ -33,5 +33,6 @@
       "Actions here are triggered when the event runs, and the expression above is true.",
     hiddenInMinimalist: true,
     editName: false,
+    version: "2.0",
   };
 </script>

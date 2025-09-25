@@ -103,5 +103,6 @@
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     helperText: "Actions here are triggered when the button is pressed.",
     editName: false,
+    version: "2.0",
   };
 </script>

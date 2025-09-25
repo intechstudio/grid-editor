@@ -63,9 +63,11 @@
 
     // TODO: Refactor this out. Reason: action block UI property config was renamed to action
     // See Grid Editor internal action blocks implementations
-    componentProps = result.information.external
-      ? { config: action }
-      : { action };
+    const [major, minor] = result.information.version?.split(".") ?? [
+      undefined,
+      undefined,
+    ];
+    componentProps = major && +major >= 2 ? { action } : { config: action };
   });
 
   onDestroy(() => {

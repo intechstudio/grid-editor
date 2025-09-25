@@ -33,5 +33,6 @@
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     helperText: "Actions here are triggered when the encoder is rotated.",
     editName: false,
+    version: "2.0",
   };
 </script>

@@ -50,5 +50,6 @@
     helperText:
       "Actions here are triggered by rotating the encoder left while it is pressed.",
     editName: false,
+    version: "2.0",
   };
 </script>

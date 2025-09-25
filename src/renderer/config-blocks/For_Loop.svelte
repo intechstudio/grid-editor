@@ -28,5 +28,6 @@
     helperText: "Actions here are triggered each time the loop runs.",
     hiddenInMinimalist: true,
     editName: false,
+    version: "2.0",
   };
 </script>
