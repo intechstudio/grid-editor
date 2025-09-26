@@ -157,14 +157,10 @@ export async function firmwareDownload(targetFolder, product, arch, url) {
     code: 4,
   });
 
-  await delay(1500);
-
   firmware.mainWindow.webContents.send("onFirmwareUpdate", {
     message: "Uploading firmware...",
     code: 4,
   });
-
-  await delay(1500);
 
   try {
     fs.copySync(
