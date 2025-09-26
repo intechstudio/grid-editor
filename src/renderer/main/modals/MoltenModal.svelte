@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { fade, fly, scale } from "svelte/transition";
+  import { scale } from "svelte/transition";
   import { Modal, modalManager } from "./modal.store";
   import { onMount } from "svelte";
 
   export let data: Modal.Instance;
   export let width: string = "600px";
+  export let style: "normal" | "success" | "error" = "normal";
 
   function close() {
     if (data.props.disableClickOutside) {
@@ -45,7 +46,7 @@
   >
     <div
       class="z-50 shadow-md
-      rounded max-h-screen bg-background text-foreground"
+      rounded-xl max-h-screen bg-background text-foreground {style}"
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
       transition:scale={{ duration: 500, start: 0.95 }}
@@ -70,5 +71,23 @@
 
   .snap-grid-layout {
     @apply absolute left-0 top-0 w-full h-full;
+  }
+
+  .normal {
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--background-soft);
+  }
+
+  .success {
+    border-style: solid;
+    border-width: 1px;
+    @apply border-commit;
+  }
+
+  .error {
+    border-style: solid;
+    border-width: 1px;
+    @apply border-error;
   }
 </style>

@@ -130,7 +130,6 @@ function createAppSettingsStore(persistent) {
     developerPackagesRequested: [],
     packageComponentKeys: {},
     packageDebugLogs: [],
-    gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
 

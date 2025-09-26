@@ -3,8 +3,7 @@
   import { createEventDispatcher } from "svelte";
   import { FirebaseError } from "firebase/app";
   import { Modal } from "../modal.store";
-
-  export let data: Modal.Instance;
+  import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
@@ -47,6 +46,9 @@
 
     authStore
       .signUpWithEmail(email, password)
+      .then(() => {
+        dispatch("back");
+      })
       .catch((e) => {
         if (e instanceof FirebaseError) {
           if (e.code === "auth/email-already-in-use") {
@@ -56,9 +58,6 @@
         }
         signUpError = "Error occured during signing up!";
         console.error(e);
-      })
-      .then(() => {
-        dispatch("back");
       });
   }
 
@@ -67,69 +66,65 @@
   }
 </script>
 
-<div class="w-full bg-primary h-full flex flex-col gap-4 justify-start">
+<div class="w-full h-full flex flex-col gap-4 justify-start">
   <div class="self-start flex flex-row justify-start items-center">
     <div class="font-medium">Sign up to profile cloud</div>
   </div>
-  <div class="w-full grid text-white">
+  <div class="w-full grid">
     <label class="pb-1 block font-light" for="email">e-mail</label>
-    <input
-      type="text"
+    <MoltenInput
       placeholder="email@example.com"
-      bind:value={email}
-      id="email"
+      bind:target={email}
       on:input={() => {
         signUpError = "";
       }}
       on:keyup={(e) => {
-        if (e.key === "Enter") {
+        const { key } = e.detail;
+        if (key === "Enter") {
           e.preventDefault();
           passwordField.focus();
         }
       }}
-      class="w-full p-1 border rounded bg-white text-black dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
 
-  <div class="w-full grid text-white">
+  <div class="w-full grid">
     <label class="pb-1 block font-light" for="password">password</label>
-    <input
-      id="password"
-      type="password"
+    <MoltenInput
+      password={true}
       placeholder="********"
       bind:this={passwordField}
-      bind:value={password}
+      bind:target={password}
       on:input={() => {
         signUpError = "";
       }}
       on:keyup={(e) => {
-        if (e.key === "Enter") {
+        const { key } = e.detail;
+        if (key === "Enter") {
           e.preventDefault();
           repasswordField.focus();
         }
       }}
-      class="w-full p-1 border rounded bg-white text-black dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
 
-  <div class="w-full grid text-white">
+  <div class="w-full grid">
     <label class="pb-1 block font-light" for="repassword">password again</label>
-    <input
-      id="repassword"
-      type="password"
+    <MoltenInput
+      password={true}
       placeholder="********"
       bind:this={repasswordField}
-      bind:value={repassword}
+      bind:target={repassword}
       on:input={() => {
         signUpError = "";
       }}
       on:keyup={(e) => {
-        if (e.key === "Enter") {
+        const { key } = e.detail;
+        if (key === "Enter") {
           e.preventDefault();
           submitSignup();
         }
       }}
-      class="w-full p-1 border rounded bg-white text-black dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
     />
   </div>
 
@@ -138,16 +133,13 @@
       <p>{signUpError}</p>
     </div>
   {/if}
-  <div class="pt-2 w-full flex flex-col justify-between">
-    <button
-      on:click|preventDefault={submitSignup}
-      class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-      >register</button
-    >
-    <button
-      on:click|preventDefault={navigateBack}
-      class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-      >back</button
-    >
+  <div class="pt-2 w-full flex flex-col justify-between gap-2">
+    <MoltenPushButton
+      text="Register"
+      snap="full"
+      style="accept"
+      click={submitSignup}
+    />
+    <MoltenPushButton text="Back" snap="full" click={navigateBack} />
   </div>
 </div>
