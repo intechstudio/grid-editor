@@ -126,7 +126,7 @@
 
         {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
           <div
-            in:fade|global={{ delay: 2000, duration: 1000 }}
+            in:fade|global={{ duration: 1000 }}
             out:blur|global={{ duration: 150 }}
             class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
           >
@@ -155,10 +155,7 @@
             </div>
           {/if}
 
-          <CursorLog
-            class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[2]"
-            on:content-change={handleContentChange}
-          />
+          <CursorLog on:content-change={handleContentChange} />
         </div>
       </div>
     </container>
