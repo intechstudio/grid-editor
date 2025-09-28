@@ -1172,6 +1172,7 @@ export class GridElement extends RuntimeNode<ElementData> {
         event.push(...stored);
         await event.sendToGrid();
       }
+      this.resetName();
     } catch (e) {
       return Promise.reject({
         value: false,
@@ -1289,6 +1290,7 @@ export class GridElement extends RuntimeNode<ElementData> {
       event.clear();
       event.push(...defaultActions);
     }
+    this.resetName();
     return Promise.resolve({
       value: true,
       text: "OK",
@@ -1316,6 +1318,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of this.events) {
       event.unload();
     }
+    this.resetName();
   }
 
   public isValid() {
