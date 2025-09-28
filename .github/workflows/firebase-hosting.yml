@@ -27,8 +27,8 @@ jobs:
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           channelId: live
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
-          projectId: grid-editor-web
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB_BACKUP }}"
+          projectId: grid-editor-web-backup
           target: grid-editor
 
       - name: Deploy to Firebase Hosting on pull request
@@ -36,7 +36,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
-          projectId: grid-editor-web
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB_BACKUP }}"
+          projectId: grid-editor-web-backup
           target: grid-editor
           expires: 30d

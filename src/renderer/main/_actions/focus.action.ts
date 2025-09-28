@@ -24,6 +24,12 @@ export namespace Focus {
       );
       return;
     }
+
+    if (document.activeElement === node) {
+      console.warn(`${identifier} is already in focus!`);
+      return;
+    }
+
     node.focus();
   }
 }

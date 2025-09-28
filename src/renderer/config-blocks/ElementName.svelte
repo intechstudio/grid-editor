@@ -24,17 +24,29 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    valueRegex: /self:gen\("([^"]*)"\)/,
   };
+
+  export function generateScript(name: string) {
+    return `self:gen("${name}")`;
+  }
 </script>
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
-  import { GridScript } from "@intechstudio/grid-protocol";
+  import {
+    EventType,
+    GridScript,
+    NumberToEventType,
+  } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
-  import { GridAction } from "../runtime/runtime.js";
+  import { GridAction, GridElement, GridEvent } from "../runtime/runtime.js";
 
   export let config: GridAction;
+
+  let event = config.parent as GridEvent;
+  let element = event.parent as GridElement;
 
   const dispatch = createEventDispatcher();
 
@@ -52,17 +64,21 @@
   }
 
   function handleConfigChange(config) {
-    const matches = config.script.match(/self:gen\("([^"]*)"\)/);
+    const matches = config.script.match(information.valueRegex);
     scriptValue = matches[1];
   }
 
   $: {
+    const index = event.config.findIndex((e) => e.id === config.id);
+    if (index === 0 && NumberToEventType(event.type) === EventType.SETUP) {
+      element.name = scriptValue;
+    }
     sendData(scriptValue);
   }
 
   function sendData(e) {
     dispatch("update-action", {
-      short: "sn",
+      short: information.short,
       script: `self:gen("${e}")`,
       validationError: validator.value === false,
     });
@@ -78,7 +94,6 @@
       scriptValue = value;
       validator.value = !validationError;
       dispatch("validation", { value: validationError });
-      sendData(value);
     }}
     on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}

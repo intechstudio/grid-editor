@@ -9,14 +9,19 @@
   import EventPanel from "./EventPanel.svelte";
   import Toolbar from "./components/Toolbar.svelte";
   import {
+    ActionData,
+    GridAction,
     GridElement,
     GridEvent,
     GridPage,
     GridRuntime,
   } from "../../../runtime/runtime";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { onDestroy, onMount } from "svelte";
-  import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { onDestroy } from "svelte";
+  import {
+    GridRuntimeManagerData,
+    runtime_manager,
+  } from "../../../runtime/runtime-manager.store";
   import { selected_actions } from "./../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
   import {
@@ -29,9 +34,15 @@
     copyElement,
     clearElement,
     pasteActions,
+    updateAction,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
-  import { MeltRadio, Toggle } from "@intechstudio/grid-uikit";
+  import { MeltRadio, MoltenInput, Toggle } from "@intechstudio/grid-uikit";
+  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+  import {
+    information as elementNameInformation,
+    generateScript,
+  } from "../../../config-blocks/ElementName.svelte";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -39,6 +50,7 @@
   let page: GridPage;
 
   let container: HTMLElement;
+  let elementName: string = "";
 
   onDestroy(() => {
     appSettings.update((store) => {
@@ -47,13 +59,73 @@
     });
   });
 
-  $: runtime = $runtime_manager.active.runtime;
+  $: handleContextChange($user_input, $runtime_manager);
 
-  $: if ($runtime) {
-    handleUserInputChange($user_input);
+  $: handleElementNameChange(elementName);
+
+  $: if ($element) {
+    handleElementChange(element);
   }
 
-  function handleUserInputChange(ui: UserInputValue) {
+  function handleElementNameChange(value: string | undefined) {
+    if (typeof element === "undefined") {
+      return;
+    }
+
+    element.name = value;
+
+    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
+
+    if (setup.actionAt(0)?.short !== elementNameInformation.short) {
+      const data = new ActionData(
+        elementNameInformation.short,
+        generateScript(value),
+      );
+      setup.insert(0, new GridAction(setup, data));
+      return;
+    }
+
+    const action = setup.actionAt(0);
+    const regex = elementNameInformation.valueRegex;
+    const name = action.script.match(regex)[1];
+
+    if (name !== value) {
+      const data = new ActionData(
+        elementNameInformation.short,
+        generateScript(value),
+      );
+
+      updateAction(action, data, true);
+    }
+
+    if (value.length === 0) {
+      setup.remove(action);
+      setup.sendToGrid();
+    }
+  }
+
+  function handleElementChange(element: GridElement) {
+    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
+    const action = setup.actionAt(0);
+
+    if (action?.short === elementNameInformation.short) {
+      const regex = elementNameInformation.valueRegex;
+      const value = action.script.match(regex)[1];
+      if (value !== elementName) {
+        elementName = value;
+        element.name = value;
+      }
+    } else {
+      elementName = "";
+      element.resetName();
+    }
+  }
+
+  function handleContextChange(
+    ui: UserInputValue,
+    rtm: GridRuntimeManagerData,
+  ) {
+    runtime = rtm.active.runtime;
     page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
 
     element = runtime.findElement(
@@ -76,19 +148,19 @@
         .load()
         .then((e) => {})
         .catch((err) => {
-          console.error("Failed to load event:", err);
+          console.error("Failed to load element:", err);
         });
     }
   }
 
   let containerWidth: number;
 
-  $: handleIsMultiViewAutoupdate(
+  $: handleIsMultiViewAutoUpdate(
     containerWidth,
     $appSettings.persistent.multiViewEnabled,
   );
 
-  function handleIsMultiViewAutoupdate(containerWidth, multiViewEnabled) {
+  function handleIsMultiViewAutoUpdate(containerWidth, multiViewEnabled) {
     if (!containerWidth) {
       return;
     }
@@ -236,8 +308,10 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col overflow-hidden text-left">
-        <div class="flex flex-row p-2 gap-2 items-center">
+      <configs
+        class="w-full h-full flex flex-col overflow-hidden text-left pt-4"
+      >
+        <div class="flex flex-row gap-2 items-center px-3">
           <div class="flex flex-grow h-fit">
             <ElementSelectionPanel {page} />
           </div>
@@ -266,29 +340,33 @@
               />{/if}
           </div>
         </div>
-        {#if !$appSettings.isMultiView}
-          <EventPanel {element} />
+        {#if $element}
+          <div
+            class="flex flex-col gap-2 w-full text-sm items-start whitespace-nowrap p-3"
+          >
+            <span>Element Name</span>
+            <div class="flex w-full" data-testid="element-name-input-field">
+              <MoltenInput bind:target={elementName} />
+            </div>
+          </div>
         {/if}
-        <Toolbar {event} {element} targetPanel={container} />
+
+        {#if !$appSettings.isMultiView}
+          <div class="flex w-full px-3">
+            <EventPanel {element} />
+          </div>
+        {/if}
+
+        <div class="flex w-full px-3">
+          <Toolbar {event} {element} targetPanel={container} />
+        </div>
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}
             {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
-              <ActionList
-                {event}
-                targetPanel={container}
-                focusTrigger={`action-list-${i}`}
-              />
-              <div
-                class="h-full flex border-r border-black"
-                class:hidden={i === $element.events.length - 1}
-              />
+              <ActionList {event} focusTrigger={`action-list-${i}`} />
             {/each}
           {:else}
-            <ActionList
-              {event}
-              targetPanel={container}
-              focusTrigger={"action-list-0"}
-            />
+            <ActionList {event} focusTrigger={"action-list-0"} />
           {/if}
         </div>
       </configs>

@@ -15,6 +15,8 @@ import { GridRuntime } from "../runtime/runtime.js";
 import { user_input } from "../runtime/user-input.store";
 import { runtime_manager } from "../runtime/runtime-manager.store.js";
 import { Runtime } from "../runtime/string-table.js";
+import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -84,20 +86,24 @@ export class MessageStream {
   }
 
   private update_element_name(descr) {
-    const [dx, dy, element, name] = [
-      Number(descr.brc_parameters.SX),
-      Number(descr.brc_parameters.SY),
-      Number(descr.class_parameters.NUM),
-      String(descr.class_parameters.NAME),
-    ];
+    const { SX, SY } = descr.brc_parameters;
+    const { ELEMENT, PAGE } = descr.class_parameters;
 
-    this.runtime.modules
-      .find((e) => e.dx === dx && e.dy === dy)
-      .pages.forEach(
-        (e) =>
-          (e.control_elements.find((e) => e.elementIndex === element).name =
-            name.length > 0 ? name : undefined),
-      );
+    const element = this.runtime
+      .findModule(SX, SY)
+      .findPage(PAGE)
+      .findElement(ELEMENT);
+
+    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
+    const action = setup.actionAt(0);
+
+    if (action?.short === elementNameInformation.short) {
+      const regex = elementNameInformation.valueRegex;
+      const value = action.script.match(regex)[1];
+      element.name = value;
+    } else {
+      element.resetName();
+    }
   }
 
   private update_elementPositionStore_fromPreview(descr) {
@@ -333,10 +339,7 @@ export class MessageStream {
         //user_input.process_incoming_event_from_grid(class_descr);
       }
 
-      if (
-        class_descr.class_name === "ELEMENTNAME" &&
-        class_descr.class_instr === "EXECUTE"
-      ) {
+      if (class_descr.class_name === "EVENTVIEW") {
         this.update_element_name(class_descr);
       }
 

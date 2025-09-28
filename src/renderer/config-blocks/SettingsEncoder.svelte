@@ -12,7 +12,8 @@
     category: "element settings",
     color: "#5F416D",
     displayName: "Encoder Mode",
-    defaultLua: "self:emo(0) self:ev0(50)",
+    defaultLua:
+      "self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
     selectable: true,
@@ -28,6 +29,7 @@
   import {
     MeltCheckbox,
     Block,
+    BlockRow,
     BlockBody,
     MeltCombo,
   } from "@intechstudio/grid-uikit";
@@ -106,15 +108,12 @@
     emo = parts.emo;
     ev0 = parts.ev0;
 
-    minMaxEnabled = !!parts.emi || !!parts.ema;
-
-    if (minMaxEnabled) {
+    if (!!parts.emi || !!parts.ema) {
       emi = parts.emi;
       ema = parts.ema;
     }
 
-    sensitivityEnabled = !!parts.ese;
-    if (sensitivityEnabled) {
+    if (!!parts.ese) {
       ese = parts.ese;
     }
   }
@@ -122,13 +121,9 @@
   function sendData() {
     const optional = [];
 
-    if (minMaxEnabled) {
-      optional.push(`self:emi(${emi}) self:ema(${ema})`);
-    }
+    optional.push(`self:emi(${emi}) self:ema(${ema})`);
 
-    if (sensitivityEnabled) {
-      optional.push(`self:ese(${ese})`);
-    }
+    optional.push(`self:ese(${ese})`);
 
     dispatch("update-action", {
       short: `sec`,
@@ -157,28 +152,13 @@
     ],
   ];
 
-  let minMaxEnabled = false;
-  let sensitivityEnabled = false;
-
-  $: handleMinMaxChange(minMaxEnabled);
-  function handleMinMaxChange(value) {
-    sendData();
-    syncWithGrid();
-  }
-
-  $: handleSensitivityChange(sensitivityEnabled);
-  function handleSensitivityChange(value) {
-    sendData();
-    syncWithGrid();
-  }
-
   function syncWithGrid() {
     dispatch("sync");
   }
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
-  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+  <BlockRow>
     <MeltCombo
       title={"Encoder Mode"}
       value={emo}
@@ -210,15 +190,12 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-  </div>
-
-  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+  </BlockRow>
 
   <Block>
-    <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+    <BlockRow>
       <MeltCombo
         title={"Min"}
-        disabled={!minMaxEnabled}
         value={emi}
         validator={validators[2].func}
         on:input={(e) => {
@@ -234,7 +211,6 @@
 
       <MeltCombo
         title={"Max"}
-        disabled={!minMaxEnabled}
         value={ema}
         validator={validators[3].func}
         suggestions={suggestions[2]}
@@ -248,15 +224,10 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-    </div>
+    </BlockRow>
 
-    <MeltCheckbox
-      bind:target={sensitivityEnabled}
-      title={"Enable Sensitivity"}
-    />
     <MeltCombo
       title={"Sensitivity"}
-      disabled={!sensitivityEnabled}
       value={ese}
       validator={validators[4].func}
       on:input={(e) => {
@@ -269,9 +240,5 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <BlockBody>
-      Note: When Min/Max or Sensitivity values are disabled, any changes to the
-      default values will only be reset after storing.
-    </BlockBody>
   </Block>
 </encoder-settings>

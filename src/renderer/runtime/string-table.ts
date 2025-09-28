@@ -5,6 +5,7 @@ export namespace Runtime {
     SYNTAX_ERROR = `Action blocks with syntax error(s) are not synced.`,
     UNCLOSED_PARENTHESIS = `Action(s) with unclosed parenthesis will not be synced with grid!`,
     PAGE_CHANGE_DISABLED = `Page change is disabled! Store or discard your unsaved change(s)!`,
+    SEND_IMMEDIATE_NO_ACTIVE_MODULE = `Executing LUA failed! No active module is connected!`,
   }
 }
 

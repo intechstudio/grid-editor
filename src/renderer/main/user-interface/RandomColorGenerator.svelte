@@ -1,15 +1,13 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { Grid } from "../../lib/_utils";
+  import { Color } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
-  export let color: Grid.HSL;
-
-  let preview: HTMLElement;
+  export let color: Color.HSL;
 
   function generateRandomColor() {
-    let hsl = Grid.RGB.getRandom().toHSL();
+    let hsl = Color.RGB.getRandom().toHSL();
     hsl.s = 100;
     hsl.l = 50;
     dispatch("generate", { color: hsl });
@@ -19,7 +17,6 @@
 <container>
   <button
     data-testid="random-color-generator"
-    bind:this={preview}
     on:click={generateRandomColor}
     class="group flex h-14 w-14 border border-black"
     style="background-color: {color.toCSS()};"

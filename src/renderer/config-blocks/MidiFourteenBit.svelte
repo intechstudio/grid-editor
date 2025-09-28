@@ -54,6 +54,7 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
+  import { Grid } from "../lib/_utils.js";
 
   export let config: GridAction;
 
@@ -166,9 +167,30 @@
       index: index,
     });
 
-    suggestions[0] = _suggestions[0];
-    suggestions[1] = _suggestions[1];
-    suggestions[2] = [...localDefinitions];
+    suggestions[0] = [
+      {
+        value: "-1",
+        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_CHANNEL)})`,
+        key: "auto",
+      },
+      ..._suggestions[0],
+    ];
+    suggestions[1] = [
+      {
+        value: "-1",
+        info: `Auto (${Grid.Auto.getMidi(config, Grid.Auto.Value.MIDI_P1)})`,
+        key: "auto",
+      },
+      ..._suggestions[1],
+    ];
+    suggestions[2] = [
+      {
+        value: "-1",
+        info: `Auto`,
+        key: "auto",
+      },
+      ...localDefinitions,
+    ];
   }
 
   $: if ($event) {
@@ -177,7 +199,7 @@
   const tabs = [
     { name: "MIDI", short: "gms" },
     { name: "14 bit MIDI", short: "gmsh" },
-    { name: "MIDI SysEX", short: "gmss" },
+    { name: "SysEX", short: "gmss" },
     { name: "NRPN MIDI", short: "gmnp" },
   ];
 

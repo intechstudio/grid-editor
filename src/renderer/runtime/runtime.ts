@@ -15,7 +15,6 @@ import {
   Updater,
 } from "svelte/store";
 import { GridInstruction } from "../serialport/instructions";
-import { connection_simulator } from "./virtual-engine";
 import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
@@ -30,6 +29,7 @@ import { Grid } from "../lib/_utils";
 import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
+import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
 
 type UUID = string;
 type LuaScript = string;
@@ -1017,9 +1017,8 @@ export class GridEvent extends RuntimeNode<EventData> {
       const descr = await instruction.executeOn(runtime.connection);
 
       const script = descr.class_parameters.ACTIONSTRING;
-      const actions = GridAction.parse(script);
+      this.push(...GridAction.parse(script));
 
-      this.push(...actions);
       this.store();
       this.state = GridNodeState.SYNCED;
       return Promise.resolve();
@@ -1114,6 +1113,14 @@ export class GridElement extends RuntimeNode<ElementData> {
     }
   }
 
+  public resetName() {
+    const page = this.parent as GridPage;
+    const module = page.parent as GridModule;
+
+    this.name = undefined;
+    module.execLUAImmediate(`ele[${this.elementIndex}]:gen("")`);
+  }
+
   public isPresetLoaded(preset: GridPresetData) {
     for (const event of preset.element.events) {
       const found = this.events.find((e) => e.type === event.type);
@@ -1161,6 +1168,7 @@ export class GridElement extends RuntimeNode<ElementData> {
         event.push(...stored);
         await event.sendToGrid();
       }
+      this.resetName();
     } catch (e) {
       return Promise.reject({
         value: false,
@@ -1260,6 +1268,7 @@ export class GridElement extends RuntimeNode<ElementData> {
       event.clear();
       event.push(...defaultActions);
     }
+    this.resetName();
     return Promise.resolve({
       value: true,
       text: "OK",
@@ -1287,6 +1296,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of this.events) {
       event.unload();
     }
+    this.resetName();
   }
 
   public isValid() {
@@ -1298,6 +1308,15 @@ export class GridElement extends RuntimeNode<ElementData> {
       for (const event of this.events) {
         await event.load();
       }
+
+      const setup = this.findEvent(0);
+      const action = setup.actionAt(0);
+      if (action?.short === elementNameInformation.short) {
+        const regex = elementNameInformation.valueRegex;
+        const name = action.script.match(regex)[1];
+        this.name = name;
+      }
+
       return Promise.resolve();
     } catch (e) {
       return Promise.reject(e);
@@ -1582,6 +1601,20 @@ export class GridModule extends RuntimeNode<ModuleData> {
     };
   }
 
+  public execLUAImmediate(script: string) {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.SendConfigImmediate(
+      this.dx,
+      this.dy,
+      script,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
   findPage(index: number) {
     const pages = this.pages;
     return pages.find((page) => page.pageNumber === index);
@@ -1692,10 +1725,14 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
 export class RuntimeData extends NodeData {
   public modules: Array<GridModule>;
+  public rotation: Grid.Rotation;
+  public layoutOffset: { x: number; y: number };
 
   constructor() {
     super();
     this.modules = [];
+    this.rotation = Grid.Rotation.R0;
+    this.layoutOffset = { x: 0, y: 0 };
   }
 
   public isValid() {
@@ -1751,13 +1788,30 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     return this.data.isValid();
   }
 
+  // Getters
   get modules() {
     return this.getField("modules");
+  }
+
+  get rotation() {
+    return this.getField("rotation");
+  }
+
+  get layoutOffset() {
+    return this.getField("layoutOffset");
   }
 
   // Setters
   set modules(value: Array<GridModule>) {
     this.setField("modules", value);
+  }
+
+  set rotation(value: Grid.Rotation) {
+    this.setField("rotation", value);
+  }
+
+  set layoutOffset(value: { x: number; y: number }) {
+    this.setField("layoutOffset", value);
   }
 
   findEvent(
@@ -1825,7 +1879,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     try {
       const [sx, sy] = [descr.brc_parameters.SX, descr.brc_parameters.SY];
 
-      let firstConnection = false;
       const module = this.findModule(sx, sy);
       if (module) {
         if (module.rot != descr.brc_parameters.ROT) {
@@ -2064,7 +2117,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       true,
     );
 
-    connection_simulator.createModule(dx, dy, moduleInfo.type);
+    this.connection.buffer.simulator.createModule(dx, dy, moduleInfo.type);
 
     this.modules = [...this.modules, controller];
   }
@@ -2150,14 +2203,11 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     });
 
     if (this.modules.length === 0) {
-      appSettings.update((s) => {
-        s.gridLayoutShift = { x: 0, y: 0 };
-        return s;
-      });
+      this.layoutOffset = { x: 0, y: 0 };
     }
 
     if (removed.architecture === Architecture.VIRTUAL) {
-      connection_simulator.destroyModule(dx, dy);
+      this.connection.buffer.simulator.destroyModule(dx, dy);
     } else {
       this.connection.buffer.module_destroy_handler(dx, dy);
     }

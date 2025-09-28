@@ -164,7 +164,12 @@ export namespace GridInstruction {
     public executeOn(connection: GridConnection): Promise<any> {
       const configLength =
         this.buffer_element.descr.class_parameters.ACTIONLENGTH;
-      if (configLength >= grid.getProperty("CONFIG_LENGTH")) {
+      if (
+        configLength >=
+        Grid.Protocol.maxScriptLength +
+          Grid.Protocol.scriptStart.length +
+          Grid.Protocol.scriptEnd.length
+      ) {
         logger.set({
           type: "alert",
           mode: 0,
@@ -209,7 +214,12 @@ export namespace GridInstruction {
     public executeOn(connection: GridConnection): Promise<any> {
       const configLength =
         this.buffer_element.descr.class_parameters.ACTIONLENGTH;
-      if (configLength >= grid.getProperty("CONFIG_LENGTH")) {
+      if (
+        configLength >=
+        Grid.Protocol.maxScriptLength +
+          Grid.Protocol.scriptStart.length +
+          Grid.Protocol.scriptEnd.length
+      ) {
         //TODO: Reject handling logging
         logger.set({
           type: "alert",

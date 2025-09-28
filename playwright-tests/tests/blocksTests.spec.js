@@ -115,13 +115,13 @@ test.describe("Issues", () => {
     await modulePage.selectModuleElement(2);
     await modulePage.selectModuleElement(0);
 
-    const actualValue = await configPage.getTextFromName();
+    const actualValue = await configPage.getTextFromNameBlock();
     await expect(actualValue).toBe("testwrite");
   });
 
   test("Nested action block should not prevent opening other actions", async () => {
     await configPage.addActionBlockToTop("condition", "If");
-    await configPage.clickActionBlock(3);
+    await configPage.clickActionBlock(4);
     const element = configPage.blocks["midi"]["MIDI"]["elements"]["Channel"];
     await expect(element).toBeVisible();
   });
@@ -135,6 +135,7 @@ test.describe("NRPN converting", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
   });
 
   test("MIDI NRPN convert Bits to CC", async () => {
@@ -214,6 +215,7 @@ test.describe("Element Mode MAX value", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EF44");
+    await configPage.turnOffMinimalistMode();
     await configPage.removeAllActions();
   });
 
@@ -221,11 +223,6 @@ test.describe("Element Mode MAX value", () => {
     const category = "element";
     const blockName = "Potmeter Mode";
     await configPage.openAndAddActionBlock(category, blockName);
-    await configPage.clickActionBlockElement(
-      category,
-      blockName,
-      "Enable Min/Max Value",
-    );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
@@ -234,11 +231,6 @@ test.describe("Element Mode MAX value", () => {
     const category = "element";
     const blockName = "Encoder Mode";
     await configPage.openAndAddActionBlock(category, blockName);
-    await configPage.clickActionBlockElement(
-      category,
-      blockName,
-      "Enable Min/Max Value",
-    );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
@@ -247,11 +239,6 @@ test.describe("Element Mode MAX value", () => {
     const category = "element";
     const blockName = "Endless Mode";
     await configPage.openAndAddActionBlock(category, blockName);
-    await configPage.clickActionBlockElement(
-      category,
-      blockName,
-      "Enable Min/Max Value",
-    );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
@@ -260,11 +247,6 @@ test.describe("Element Mode MAX value", () => {
     const category = "element";
     const blockName = "Button Mode";
     await configPage.openAndAddActionBlock(category, blockName);
-    await configPage.clickActionBlockElement(
-      category,
-      blockName,
-      "Enable Min/Max Value",
-    );
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
@@ -280,6 +262,7 @@ test.describe("Input field keyboard shortcuts", () => {
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.removeAllActions();
+    await configPage.turnOffMinimalistMode();
   });
   test("Monaco Field", async ({ page }) => {
     const category = "condition";
@@ -333,6 +316,7 @@ test.describe("Monaco Sugestion", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
     await configPage.removeAllActions();
   });
   test("correct suggestion is visible once", async ({ page }) => {
@@ -360,6 +344,7 @@ test.describe("Code block closes Modal", () => {
     await page.goto(PAGE_PATH);
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
     await configPage.removeAllActions();
   });
   test("Esc key closes Modal", async () => {
@@ -405,5 +390,38 @@ test.describe("Code block closes Modal", () => {
     await configPage.addAndEditCodeBlock(`print("hello")`);
     await configPage.closeCode();
     await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
+  });
+});
+
+test.describe("Element naming", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    keyboardActions = new KeyboardActions(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("BU16");
+    await configPage.turnOffMinimalistMode();
+  });
+  test("Element naming add 'element name' action block", async () => {
+    const name = "happy path";
+    await configPage.fillElementName(name);
+    await configPage.selectElementEvent("Setup");
+    await configPage.clickActionBlock(0);
+    expect(await configPage.getTextFromNameBlock()).toBe(name);
+  });
+  test("Element name entered in action block is displayed correctly", async () => {
+    const name = "happy path";
+    await configPage.selectElementEvent("Setup");
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("code", "Element Name");
+    await configPage.writeActionBlockField(
+      "code",
+      "Element Name",
+      "input",
+      name,
+    );
+    expect(await configPage.getElementNameFromMainTextbox()).toBe(name);
   });
 });

@@ -117,3 +117,18 @@ body {
   @apply select-none;
   @apply m-0 flex h-screen flex-col bg-secondary p-0 font-roboto;
 }
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+  background: var(--background-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #286787;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--background-soft);
+}
