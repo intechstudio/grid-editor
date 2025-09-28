@@ -1,8 +1,8 @@
 <script>
-  import LogMessage from "./LogMessage.svelte";
   import { logStreamStore } from "./LogStream.store";
   import { fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
+  import { LogMessage } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
@@ -33,7 +33,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
   id="cursor-log"
-  class={$$props.class}
+  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[2]"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >
@@ -47,7 +47,7 @@
         <LogMessage
           count={log.count}
           type={log.data.type}
-          message={log.data.message}
+          text={log.data.message}
           on:destroy={handleDestroy}
           on:creation={handleCreation}
           on:click={() => handleClick(i)}

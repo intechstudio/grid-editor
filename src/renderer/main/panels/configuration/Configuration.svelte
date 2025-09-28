@@ -17,7 +17,7 @@
     GridRuntime,
   } from "../../../runtime/runtime";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import {
     GridRuntimeManagerData,
     runtime_manager,
@@ -72,6 +72,8 @@
       return;
     }
 
+    element.name = value;
+
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
 
     if (setup.actionAt(0)?.short !== elementNameInformation.short) {
@@ -92,6 +94,7 @@
         elementNameInformation.short,
         generateScript(value),
       );
+
       updateAction(action, data, true);
     }
 
