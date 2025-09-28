@@ -18,6 +18,7 @@
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
 
+  import FirmwareMismatchNotification from "./main/FirmwareMismatchNotification.svelte";
   import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
@@ -359,8 +360,7 @@
   <NavTabs />
 
   <div class="flex flex-col w-full h-full">
-    <FirmwareCheck />
-
+    <FirmwareMismatchNotification />
     <ErrorConsole />
     <VersionUpdateBar />
     <div class="flex flex-grow overflow-hidden">

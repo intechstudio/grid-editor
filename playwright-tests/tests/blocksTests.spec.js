@@ -115,7 +115,7 @@ test.describe("Issues", () => {
     await modulePage.selectModuleElement(2);
     await modulePage.selectModuleElement(0);
 
-    const actualValue = await configPage.getTextFromName();
+    const actualValue = await configPage.getTextFromNameBlock();
     await expect(actualValue).toBe("testwrite");
   });
 
