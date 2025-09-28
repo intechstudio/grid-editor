@@ -12,7 +12,8 @@
     category: "element settings",
     color: "#5F416D",
     displayName: "Endless Mode",
-    defaultLua: "self:epmo(0) self:epv0(50)",
+    defaultLua:
+      "self:epmo(0) self:epv0(50) self:epmi(0) self:epma(16383) self:epse(50)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">EP</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EP</span>`,
     selectable: true,
@@ -31,6 +32,7 @@
     MeltCheckbox,
     Block,
     BlockBody,
+    BlockRow,
     MeltCombo,
   } from "@intechstudio/grid-uikit";
   import { GridAction } from "../runtime/runtime.js";
@@ -105,28 +107,14 @@
     epmo = parts.epmo;
     epv0 = parts.epv0;
 
-    minMaxEnabled = !!parts.epmi || !!parts.epma;
-    if (minMaxEnabled) {
+    if (!!parts.epmi || !!parts.epma) {
       epmi = parts.epmi;
       epma = parts.epma;
     }
 
-    sensitivityEnabled = !!parts.epse;
-    if (sensitivityEnabled) {
+    if (!!parts.epse) {
       epse = parts.epse;
     }
-  }
-
-  $: handleMinMaxChange(minMaxEnabled);
-  function handleMinMaxChange(value) {
-    sendData();
-    syncWithGrid();
-  }
-
-  $: handleSensitivityChange(sensitivityEnabled);
-  function handleSensitivityChange(value) {
-    sendData();
-    syncWithGrid();
   }
 
   function syncWithGrid() {
@@ -136,13 +124,9 @@
   function sendData() {
     const optional = [];
 
-    if (minMaxEnabled) {
-      optional.push(`self:epmi(${epmi}) self:epma(${epma})`);
-    }
+    optional.push(`self:epmi(${epmi}) self:epma(${epma})`);
 
-    if (sensitivityEnabled) {
-      optional.push(`self:epse(${epse})`);
-    }
+    optional.push(`self:epse(${epse})`);
 
     dispatch("update-action", {
       short: `sen`,
@@ -169,50 +153,46 @@
       { value: "16383", info: "14 bit MIDI (high res)" },
     ],
   ];
-
-  let minMaxEnabled = false;
-  let sensitivityEnabled = false;
 </script>
 
 <endless-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
-  <Block>
-    <MeltCombo
-      title={"Endless Mode"}
-      value={epmo}
-      suggestions={suggestions[0]}
-      validator={validators[0].func}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        epmo = value;
-        validators[0].value = !validationError;
-        sendData();
-      }}
-      on:change={syncWithGrid}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
+  <Block
+    ><BlockRow>
+      <MeltCombo
+        title={"Endless Mode"}
+        value={epmo}
+        suggestions={suggestions[0]}
+        validator={validators[0].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          epmo = value;
+          validators[0].value = !validationError;
+          sendData();
+        }}
+        on:change={syncWithGrid}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
 
-    <MeltCombo
-      title={"Endless Velocity"}
-      value={epv0}
-      suggestions={suggestions[1]}
-      validator={validators[1].func}
-      on:input={(e) => {
-        const { value, validationError } = e.detail;
-        epv0 = value;
-        validators[1].value = !validationError;
-        sendData();
-      }}
-      on:change={syncWithGrid}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
-
-    <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
-    <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+      <MeltCombo
+        title={"Endless Velocity"}
+        value={epv0}
+        suggestions={suggestions[1]}
+        validator={validators[1].func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          epv0 = value;
+          validators[1].value = !validationError;
+          sendData();
+        }}
+        on:change={syncWithGrid}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    </BlockRow>
+    <BlockRow>
       <MeltCombo
         title={"Min"}
-        disabled={!minMaxEnabled}
         value={epmi}
         validator={validators[2].func}
         on:input={(e) => {
@@ -228,7 +208,6 @@
 
       <MeltCombo
         title={"Max"}
-        disabled={!minMaxEnabled}
         value={epma}
         validator={validators[3].func}
         suggestions={suggestions[2]}
@@ -242,13 +221,10 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-    </div>
-
-    <MeltCheckbox bind:target={sensitivityEnabled} title="Enable Sensitivity" />
+    </BlockRow>
 
     <MeltCombo
       title={"Sensitivity"}
-      disabled={!sensitivityEnabled}
       value={epse}
       validator={validators[4].func}
       on:input={(e) => {
@@ -261,9 +237,5 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <BlockBody>
-      Note: When Min/Max or Sensitivity values are disabled, any changes to the
-      default values will only be reset after storing.
-    </BlockBody>
   </Block>
 </endless-settings>

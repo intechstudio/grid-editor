@@ -6,6 +6,7 @@ export namespace Focus {
       console.error(`Duplicate identifier '${identifier}' used in Focus.on()`);
       return;
     }
+
     focusMap.set(identifier, node);
 
     return {
@@ -23,6 +24,12 @@ export namespace Focus {
       );
       return;
     }
+
+    if (document.activeElement === node) {
+      console.warn(`${identifier} is already in focus!`);
+      return;
+    }
+
     node.focus();
   }
 }

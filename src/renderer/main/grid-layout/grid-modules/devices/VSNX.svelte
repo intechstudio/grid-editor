@@ -1,11 +1,14 @@
 <script lang="ts">
+  import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import { ModuleType, ElementType } from "@intechstudio/grid-protocol";
 
-  import Btn from "../elements/Btn.svelte";
+  import Button from "../elements/Button.svelte";
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
   import LcdAndMenuButtons from "../elements/LcdAndMenuButtons.svelte";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
+  import SquareButton from "../elements/SquareButton.svelte";
 
   export let moduleWidth;
   export let device: GridModule;
@@ -134,8 +137,8 @@
 </script>
 
 <div
-  data-testid="{moduleType}_dx:{dx};dy:{dy}"
-  class="module-dimensions relative"
+  {...$$restProps}
+  class="module-dimensions relative bg-background"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
 >
@@ -145,7 +148,7 @@
   <div
     class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
   >
-    {#each elementArray as elementDescriptor}
+    {#each elementArray as elementDescriptor, index}
       {#if elementDescriptor.type === ElementType.LCD}
         {@const elementNumberList = [
           elementDescriptor.index - 4,
@@ -214,9 +217,7 @@
               "
               >
                 <Led
-                  color={ledcolor_array[
-                    (elementNumber == 8 ? 8 : 9) + ledNumber * 2
-                  ]}
+                  color={ledcolor_array[index == 0 ? ledNumber : 5 + ledNumber]}
                   size={1.4}
                 />
               </div>
@@ -242,26 +243,42 @@
             <slot
               name="cell-underlay"
               {elementNumber}
-              isLeftCut={elementNumber == 6}
-              isRightCut={elementNumber == 5}
+              isLeftCut={elementNumber == 6 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 5 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
           <div class="normal-cell-ui-container">
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Btn {elementNumber} size={2.1} />
+            {#if [27, 59, 91, 123].includes(device.hwcfg)}
+              <SquareButton
+                {elementNumber}
+                size={4.2}
+                value={elementposition_array[elementNumber][1]}
+                color={ledcolor_array[10 + elementNumber]}
+              />
+            {:else}
+              <Button
+                {elementNumber}
+                size={2.1}
+                color={ledcolor_array[10 + elementNumber]}
+              />
+            {/if}
           </div>
           <div class="normal-cell-overlay-container">
             <slot
               name="cell-overlay"
               {elementNumber}
-              isLeftCut={elementNumber == 6}
-              isRightCut={elementNumber == 5}
+              isLeftCut={elementNumber == 6 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 5 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
         </cell>
       {/if}
 
-      {#if elementDescriptor.type === ElementType.SYSTEM}
+      {#if elementDescriptor.type === ElementType.SYSTEM && $appSettings.persistent.userLevelMinimalist === false}
         {@const elementNumber = 255}
         <div
           class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
@@ -279,4 +296,5 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
+  <ModuleInfo {device} visible={true} />
 </div>

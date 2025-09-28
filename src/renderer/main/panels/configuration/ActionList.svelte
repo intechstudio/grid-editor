@@ -3,7 +3,7 @@
   import SeparatorLine from "./components/SeparatorLine.svelte";
   import ActionHelper from "./components/ActionHelper.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
-  import { GridEvent } from "./../../../runtime/runtime";
+  import { GridEvent, GridRuntime } from "./../../../runtime/runtime";
   import { fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
@@ -21,11 +21,15 @@
   import { profileCloudConfigDrag } from "../profileCloud/ProfileCloud";
   import { autoScroll } from "../../_actions/autoscroll.action";
   import { Focus } from "../../_actions/focus.action";
+  import { runtime_manager } from "../../../runtime/runtime-manager.store";
 
   export let event: GridEvent;
   export let focusTrigger: string;
 
   let configList: HTMLElement;
+  let runtime: GridRuntime;
+
+  $: runtime = $runtime_manager.active.runtime;
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -92,7 +96,10 @@
 
     if (e.key === "Escape") {
       const { dx, dy, elementnumber } = get(user_input);
-      Focus.trigger(`element-${dx}-${dy}-${elementnumber}`);
+      const runtime = get(runtime_manager).active.runtime;
+      const module = runtime.findModule(dx, dy);
+
+      Focus.trigger(`${module.id}-${elementnumber}`);
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
@@ -116,31 +123,16 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class="p-4 flex flex-col h-full w-full overflow-hidden gap-2 actionlist activator-button"
+    class=" pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
-    <div
-      class="flex flex-row gap-2 justify-between items-center flex-none w-full"
-    >
-      <div class="flex flex-col">
-        <span class="text-white">{$event?.getName() ?? "No Device"}</span>
-        <div class="flex flex-row gap-2">
-          <span class="text-gray-500 text-sm">Script length:</span>
-          <span data-testid="charCount" class="text-white text-sm">
-            {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
-          </span>
+    {#if $appSettings.isMultiView}
+      <div class="flex flex-row gap-2 px-3 text-sm">
+        {($event?.getName() ?? "No Device") + " Event"}
+        <div style="color: var(--foreground-disabled);">
+          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
         </div>
       </div>
-      <Options
-        testid="select_all"
-        selected={$event?.config.every((e) => $selected_actions.includes(e)) ??
-          false}
-        halfSelected={$event?.config.some((e) =>
-          $selected_actions.includes(e),
-        ) ?? false}
-        disabled={($event?.config?.length ?? 0) === 0}
-        on:select={handleSelectAll}
-      />
-    </div>
+    {/if}
 
     <ul
       bind:this={configList}
@@ -151,7 +143,7 @@
           return dragged && dragged.length > 0;
         },
       }}
-      class="overflow-y-scroll justify-start w-full h-full"
+      class="overflow-y-scroll justify-start w-full h-full pl-2 pr-3"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
         <ActionHelper
@@ -161,7 +153,6 @@
       {:else}
         <SeparatorLine target={{ event: event, index: 0 }} />
       {/if}
-
       {#each $event?.config ?? [] as action, index (action.id)}
         {@const showHelper =
           typeof action.information.helperText !== "undefined" &&
@@ -211,28 +202,13 @@
     </ul>
 
     {#if event}
-      <BottomPanel
-        target={{ event: event, index: $event?.config.length }}
-        on:paste={handlePaste}
-        on:new-config={handleNewConfig}
-      />
+      <div class="flex w-full mt-2">
+        <BottomPanel
+          target={{ event: event, index: $event?.config.length }}
+          on:paste={handlePaste}
+          on:new-config={handleNewConfig}
+        />
+      </div>
     {/if}
   </div>
 {/key}
-
-<style global>
-  ::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-    background: #1e2628;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #286787;
-    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: #1e2628;
-  }
-</style>

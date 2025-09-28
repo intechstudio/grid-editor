@@ -1,8 +1,103 @@
 import convert from "color-convert";
-import { ElementType, grid, ModuleType } from "@intechstudio/grid-protocol";
+import {
+  ElementType,
+  EventType,
+  EventTypeToNumber,
+  grid,
+  ModuleType,
+} from "@intechstudio/grid-protocol";
 import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
+import {
+  GridAction,
+  GridElement,
+  GridEvent,
+  GridModule,
+  GridPage,
+} from "../runtime/runtime";
 
 export namespace Grid {
+  export namespace Auto {
+    export enum Value {
+      MIDI_CHANNEL,
+      MIDI_COMMAND,
+      MIDI_P1,
+      MIDI_P2,
+      LED_RED,
+      LED_GREEN,
+      LED_BLUE,
+    }
+
+    export function getMidi(
+      action: GridAction,
+      param:
+        | Value.MIDI_CHANNEL
+        | Value.MIDI_COMMAND
+        | Value.MIDI_P1
+        | Value.MIDI_P2,
+    ): number {
+      const event = action.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+      const module = page.parent as GridModule;
+
+      switch (param) {
+        case Value.MIDI_CHANNEL: {
+          const [module_position_y, page_current] = [
+            module.dy,
+            page.pageNumber,
+          ];
+          return (module_position_y * 4 + page_current) % 16;
+        }
+        case Value.MIDI_COMMAND: {
+          return event.type === EventTypeToNumber(EventType.BUTTON) ? 144 : 176;
+        }
+        case Value.MIDI_P1: {
+          const [module_position_x, element_index] = [
+            module.dx,
+            element.elementIndex,
+          ];
+          return (32 + module_position_x * 16 + element_index) % 128;
+        }
+      }
+    }
+
+    export function getRGB(
+      action: GridAction,
+      param: Value.LED_RED | Value.LED_GREEN | Value.LED_BLUE,
+    ) {
+      const event = action.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+
+      const defaultColors: Array<
+        Map<Value.LED_RED | Value.LED_GREEN | Value.LED_BLUE, number>
+      > = [
+        new Map([
+          [Value.LED_RED, 0],
+          [Value.LED_GREEN, 100],
+          [Value.LED_BLUE, 200],
+        ]),
+        new Map([
+          [Value.LED_RED, 200],
+          [Value.LED_GREEN, 100],
+          [Value.LED_BLUE, 0],
+        ]),
+        new Map([
+          [Value.LED_RED, 50],
+          [Value.LED_GREEN, 200],
+          [Value.LED_BLUE, 50],
+        ]),
+        new Map([
+          [Value.LED_RED, 100],
+          [Value.LED_GREEN, 0],
+          [Value.LED_BLUE, 200],
+        ]),
+      ];
+
+      return defaultColors[page.pageNumber].get(param);
+    }
+  }
+
   export function toFirstCase(value: string) {
     return value[0].toUpperCase() + value.slice(1, value.length);
   }
@@ -40,6 +135,13 @@ export namespace Grid {
     }
   }
 
+  export function addRotations(
+    a: Grid.Rotation,
+    b: Grid.Rotation,
+  ): Grid.Rotation {
+    return (a + b) % 360;
+  }
+
   export function rotateDirection(
     direction: Grid.Direction,
     rotation: Grid.Rotation,
@@ -53,6 +155,23 @@ export namespace Grid {
     const index = directions.indexOf(direction);
     const steps = (rotation / 90) % 4;
     return directions[(index - steps + 4) % 4];
+  }
+
+  export function findNearestNeighbour<T>(
+    arr: T[],
+    index: number,
+  ): T | undefined {
+    const len = arr.length;
+
+    for (let i = index + 1; i < len; i++) {
+      if (arr[i] !== undefined) return arr[i];
+    }
+
+    for (let i = index - 1; i >= 0; i--) {
+      if (arr[i] !== undefined) return arr[i];
+    }
+
+    return undefined;
   }
 
   export function parseBracketValues(value: string): string[] {
@@ -158,179 +277,10 @@ export namespace Grid {
     return closestEvent !== Infinity ? closestEvent : 0;
   }
 
-  export class RGB {
-    constructor(
-      public r: number,
-      public g: number,
-      public b: number,
-    ) {}
-
-    toCSS() {
-      return `rgb(${this.r ?? 0}, ${this.g ?? 0}, ${this.b ?? 0})`;
-    }
-
-    toHEX() {
-      return `#${convert.rgb.hex(this.r, this.g, this.b)}`;
-    }
-
-    toHSL() {
-      const hsl = convert.rgb.hsl(this.r, this.g, this.b);
-      return new HSL(hsl[0], hsl[1], hsl[2]);
-    }
-
-    toRGBA() {
-      return new RGBA(this.r, this.g, this.b, 1);
-    }
-
-    static getRandom() {
-      return new RGB(
-        Int.getRandom(0, 255),
-        Int.getRandom(0, 255),
-        Int.getRandom(0, 255),
-      );
-    }
-  }
-
-  export class RGBA {
-    constructor(
-      public r: number,
-      public g: number,
-      public b: number,
-      public a: number,
-    ) {
-      return undefined;
-    }
-
-    toCSS() {
-      return `rgba(${this.r ?? 0}, ${this.g ?? 0}, ${this.b ?? 0}, ${
-        this.a ?? 0
-      })`;
-    }
-
-    toHSLA() {
-      const hsl = convert.rgb.hsl(this.r, this.g, this.b);
-      return new HSLA(hsl[0], hsl[1], hsl[2], this.a);
-    }
-
-    reduceToRGB() {
-      return new RGB(this.r, this.g, this.b);
-    }
-
-    reduceToHSL() {
-      return this.reduceToRGB().toHSL();
-    }
-  }
-
-  export class HSLA {
-    constructor(
-      public h: number,
-      public s: number,
-      public l: number,
-      public a: number,
-    ) {}
-
-    toRGBA() {
-      const rgb = convert.hsl.rgb(this.h, this.s, this.l);
-      return new RGBA(rgb[0], rgb[1], rgb[2], this.a);
-    }
-
-    toCSS() {
-      return `hsla(${this.h}deg, ${this.s}%, ${this.l}%, ${this.a})`;
-    }
-
-    reduceToRGB() {
-      return this.reduceToHSL().toRGB();
-    }
-
-    reduceToHSL() {
-      return new HSL(this.h, this.s, this.l);
-    }
-  }
-
-  export enum HSLParam {
-    HUE,
-    SATURATION,
-    LIGHTNESS,
-  }
-
-  export class HSL {
-    constructor(
-      public h: number,
-      public s: number,
-      public l: number,
-    ) {}
-
-    getParam(param: HSLParam) {
-      switch (param) {
-        case HSLParam.HUE:
-          return this.h;
-        case HSLParam.SATURATION:
-          return this.s;
-        case HSLParam.LIGHTNESS:
-          return this.l;
-      }
-    }
-
-    setParam(param: HSLParam, value: number) {
-      switch (param) {
-        case HSLParam.HUE:
-          this.h = value;
-          break;
-        case HSLParam.SATURATION:
-          this.s = value;
-          break;
-        case HSLParam.LIGHTNESS:
-          this.l = value;
-          break;
-      }
-      return this;
-    }
-
-    static getMaxValue(param: HSLParam) {
-      switch (param) {
-        case HSLParam.HUE:
-          return 360;
-        case HSLParam.SATURATION:
-          return 100;
-        case HSLParam.LIGHTNESS:
-          return 100;
-      }
-    }
-
-    toRGB(): RGB {
-      const rgb = convert.hsl.rgb(this.h, this.s, this.l);
-      return new RGB(rgb[0], rgb[1], rgb[2]);
-    }
-
-    toHEX() {
-      return `#${convert.hsl.hex(this.h, this.s, this.l)}`;
-    }
-
-    toCSS() {
-      return `hsl(${this.h}deg, ${this.s}%, ${this.l}%)`;
-    }
-
-    toHSLA() {
-      return new HSLA(this.h, this.s, this.l, 1);
-    }
-
-    toRGBA() {
-      return this.toRGB().toRGBA();
-    }
-  }
-
   export class Int {
     static getRandom(start: number, end: number) {
       return Math.floor(Math.random() * end) + start;
     }
-  }
-
-  export function parseRGB(r: any, g: any, b: any): RGB | undefined {
-    if (![r, g, b].map((e) => parseInt(e)).every((e) => Number.isFinite(e))) {
-      return undefined;
-    }
-
-    return new RGB(parseInt(r), parseInt(g), parseInt(b));
   }
 
   export namespace Protocol {
@@ -408,6 +358,12 @@ export namespace Grid {
       } else {
         window.electron.openInBrowser(link);
       }
+    }
+  }
+
+  export namespace Array {
+    export function when<T = unknown>(condition: boolean, items: T[]): T[] {
+      return condition ? items : [];
     }
   }
 }

@@ -49,10 +49,10 @@
       r="5"
       fill="rgba({rgb[0]},{rgb[1]},{rgb[2]}, {alpha})"
     />
-    <circle cx="7" cy="7" r="4.5" stroke="rgba(255,255,255,0.2)" />
+    <circle cx="7" cy="7" r="4.5" stroke="var(--foreground-disabled)" />
   </g>
 
-  <circle cx="7" cy="7" r="4.5" stroke="rgba(255,255,255,0.2)" />
+  <circle cx="7" cy="7" r="4.5" stroke="var(--foreground-disabled)" />
   <circle
     cx="7"
     cy="7"

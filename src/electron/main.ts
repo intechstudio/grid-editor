@@ -320,18 +320,30 @@ function createWindow() {
     );
   }
 
-  mainWindow.on("close", (evt) => {
+  mainWindow.on("close", async (evt) => {
     // when quit is terminal under darwin
     if (app.quitting) {
       mainWindow = null;
     } else {
       evt.preventDefault();
       // only hide, keep in the background
-      if (store.get("alwaysRunInTheBackground") && !forceQuitForUpdate) {
+      if (forceQuitForUpdate) {
+        app.quit();
+      } else if (store.get("alwaysRunInTheBackground")) {
         mainWindow.hide();
+      } else if (packageManagerProcess) {
+        packageManagerProcess!.postMessage({ type: "query-running-packages" });
       } else {
         app.quit();
       }
+    }
+  });
+
+  ipcMain.on("quitDialogResult", (_event, value) => {
+    if (value === "quit") {
+      app.quit();
+    } else if (value === "tray") {
+      mainWindow.hide();
     }
   });
 
@@ -400,6 +412,7 @@ function createWindow() {
 let stopPackageManagerTimeout = undefined;
 let restartPackageManagerOnShutdown = true;
 let packageEditorPort = undefined;
+let packageManagerCachedData = undefined;
 function startPackageManager(
   updatePackageOnStartName: string | undefined = undefined,
 ) {
@@ -434,6 +447,14 @@ function startPackageManager(
         });
         packageManagerProcess!.kill();
         packageManagerProcess = undefined;
+      } else if (message.type === "running-packages-result") {
+        if (message.hasRunningPackage) {
+          mainWindow.webContents.send("showQuitDialog");
+        } else {
+          app.quit();
+        }
+      } else if (message.type === "cache-temp-data") {
+        packageManagerCachedData = message.data;
       } else {
         packageEditorPort?.postMessage(message);
       }
@@ -446,6 +467,7 @@ function startPackageManager(
       githubPackages: store.get("githubPackages"),
       localPackages: store.get("localPackages"),
       updatePackageOnStartName,
+      cachedData: packageManagerCachedData,
     });
 
     for (const _package of store.get("enabledPackages") ?? []) {
@@ -512,7 +534,7 @@ function handleDeveloperWebsocketMessage(data: any) {
 let openWindows: Map<String, BrowserWindow> = new Map();
 function createPackageWindow(args) {
   const windowId = args.windowId;
-  if (openWindows.has(windowId) && args.recreateIfExists) {
+  if (openWindows.has(windowId)) {
     if (args.recreateIfExists) {
       closePackageWindow(windowId);
     } else {
@@ -534,6 +556,7 @@ function createPackageWindow(args) {
     resizable: args.resizable,
     transparent: args.transparent,
     alwaysOnTop: args.alwaysOnTop,
+    title: args.title ?? `Grid Editor - ${windowId}`,
     x: args.x ?? 0,
     y: args.y ?? 0,
     webPreferences: {
@@ -566,8 +589,8 @@ function createPackageWindow(args) {
 function closePackageWindow(windowId) {
   let window = openWindows.get(windowId);
   if (window) {
-    window.close();
     openWindows.delete(windowId);
+    window.close();
   }
 }
 
@@ -732,6 +755,7 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
+  console.log(arg.url);
   return await shell.openExternal(arg.url);
 });
 

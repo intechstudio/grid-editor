@@ -1,7 +1,24 @@
-<script>
-  import { tooltip } from "./../_actions/tooltip.ts";
+<script lang="ts">
+  import { get } from "svelte/store";
+  import { tooltip } from "./../_actions/tooltip";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { MeltSelect, MoltenPushButton } from "@intechstudio/grid-uikit";
+  import {
+    MeltSelect,
+    MoltenPushButton,
+    Toggle,
+  } from "@intechstudio/grid-uikit";
+  import {
+    ModuleOverlayType,
+    moduleOverlay,
+  } from "../../runtime/moduleOverlay";
+  import { runtime_manager } from "../../runtime/runtime-manager.store.js";
+  import { GridRuntime } from "../../runtime/runtime.js";
+
+  let runtime: GridRuntime;
+
+  $: {
+    runtime = $runtime_manager.active.runtime;
+  }
 
   const options = [
     {
@@ -22,33 +39,57 @@
   ];
 
   function handleGridLayoutResetClicked(e) {
+    runtime.layoutOffset = { x: 0, y: 0 };
     appSettings.update((s) => {
-      s.gridLayoutShift = { x: 0, y: 0 };
       s.persistent.size = s.defaultSize;
       return s;
     });
   }
+
+  function showControlElementNameOverlay() {
+    const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
+    if (show) {
+      moduleOverlay.show(ModuleOverlayType.CONTROL_NAME);
+    } else {
+      moduleOverlay.close();
+    }
+  }
 </script>
 
 <container class={$$props.class}>
-  <div class="flex flex-row items-center gap-2 bg-primary py-2 px-3 rounded-lg">
-    <div class="flex flex-row gap-2 items-center">
-      <span class="text-white">Track:</span>
-      <div
-        use:tooltip={{
-          placement: "top",
-          class: "w-60 p-4 z-10",
-          key: "tracker_tooltip",
-        }}
-        class="w-24 h-fit text-white"
-      >
-        <MeltSelect
-          bind:target={$appSettings.persistent.changeOnEvent}
-          {options}
-        />
-      </div>
+  <div
+    style="background-color: var(--background); color: var(--foreground-muted)"
+    class="flex flex-row items-center p-2 gap-3 px-3 rounded-lg"
+  >
+    <div
+      use:tooltip={{
+        placement: "top",
+        class: "w-60 p-4 z-10",
+        key: "configuration_element_name",
+      }}
+    >
+      <Toggle
+        title="Name Overlay"
+        on:change={showControlElementNameOverlay}
+        value={$moduleOverlay === "control-name-overlay"}
+      />
     </div>
     <div
+      class="flex gap-2 items-center"
+      use:tooltip={{
+        placement: "top",
+        class: "w-60 p-4 z-10",
+        key: "tracker_tooltip",
+      }}
+    >
+      <span>Track:</span>
+      <MeltSelect
+        bind:target={$appSettings.persistent.changeOnEvent}
+        {options}
+      />
+    </div>
+    <div
+      class="flex"
       use:tooltip={{
         placement: "top",
         class: "w-60 p-4 z-10",
@@ -58,11 +99,10 @@
       <MoltenPushButton
         text={"Reset View"}
         click={handleGridLayoutResetClicked}
-        snap={"full"}
-        disabled={$appSettings.gridLayoutShift.x == 0 &&
-          $appSettings.gridLayoutShift.y == 0 &&
+        disabled={$runtime.layoutOffset.x == 0 &&
+          $runtime.layoutOffset.y == 0 &&
           $appSettings.persistent.size == $appSettings.defaultSize}
       />
     </div>
-  </div>
-</container>
+  </div></container
+>

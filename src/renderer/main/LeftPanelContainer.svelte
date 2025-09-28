@@ -7,14 +7,6 @@
   import Preferences from "./panels/preferences/Preferences.svelte";
   import { appSettings } from "../runtime/app-helper.store";
 
-  import { windowSize } from "../runtime/window-size";
-
-  import { watchResize } from "svelte-watch-resize";
-
-  function resize() {
-    $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
-  }
-
   $: leftPanel = $appSettings.leftPanel ?? "profile-cloud";
 </script>
 
@@ -22,11 +14,10 @@
 <div
   style="background-color: var(--background); color: var(--foreground);"
   class="w-full h-full"
-  use:watchResize={resize}
 >
-  {#if leftPanel == "Preferences"}
+  {#if leftPanel == "preferences"}
     <Preferences />
-  {:else if leftPanel == "Packages"}
+  {:else if leftPanel == "packages"}
     <Packages />
   {:else if leftPanel == "debug-monitor"}
     <DebugMonitor />
@@ -39,20 +30,23 @@
       (e) => e.id === leftPanel,
     )}
     {#if preference?.preferenceComponent}
-      <div class="w-full h-full overflow-y-auto flex flex-col">
-        {#key $appSettings.packageComponentKeys[leftPanel]}
+      {#key $appSettings.packageComponentKeys[leftPanel] ?? leftPanel}
+        <div class="w-full h-full overflow-y-auto flex flex-col">
           <svelte:element this={preference.preferenceComponent} class="m-2" />
-        {/key}
-        <textarea
-          class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono p-1 m-2 rounded text-white"
-        >
-          {JSON.stringify(
-            $appSettings.packageDebugLogs.filter(
-              (e) => e.packageId === preference.id,
-            ),
-          )}
-        </textarea>
-      </div>
+          {#if $appSettings.persistent.packageDeveloper}
+            <p class="m-2">Debug logs</p>
+            <textarea
+              class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono p-1 m-2 rounded text-white"
+            >
+              {JSON.stringify(
+                $appSettings.packageDebugLogs.filter(
+                  (e) => e.packageId === preference.id,
+                ),
+              )}
+            </textarea>
+          {/if}
+        </div>
+      {/key}
     {/if}
   {/if}
 

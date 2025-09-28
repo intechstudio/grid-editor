@@ -21,9 +21,10 @@
     updateAction,
     replaceAction,
     syncWithGrid,
+    removeActions,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
-  import { get } from "svelte/store";
+  import { contextTarget } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
@@ -147,6 +148,15 @@
       ctrlIsDown = false;
     }
   }
+
+  function handleDelete() {
+    removeActions(action.parent as GridEvent, action);
+  }
+
+  function handleResetToDefault() {
+    const data = new ActionData(action.short, action.information.defaultLua);
+    updateAction(action, data, true);
+  }
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
@@ -184,16 +194,16 @@
 >
   {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
-      <div class="w-3 h-3 rounded-full bg-secondary" />
+      <div class="w-3 h-3 rounded-full" />
     </div>
   {/each}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.isValid()
-      ? 'border-error'
-      : 'border-transparent'} cursor-pointer"
+    class="flex flex-grow h-auto min-h-[32px] {!$action.isValid()
+      ? 'border border-error'
+      : 'border border-background-soft'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
     class:opacity-20={$draggedActions.includes(action)}
@@ -203,6 +213,20 @@
     $configTour.active
       ? $configTour.current
       : undefined}
+    use:contextTarget={{
+      items: [
+        {
+          text: [`Delete`],
+          handler: () => handleDelete(),
+          isDisabled: () => false,
+        },
+        {
+          text: [`Reset to Default`],
+          handler: () => handleResetToDefault(),
+          isDisabled: () => false,
+        },
+      ],
+    }}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
@@ -229,7 +253,7 @@
         <!-- Content of block -->
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="bg-secondary h-full w-full">
+          <div class="h-full w-full bg-background-mute">
             <svelte:component
               this={component}
               config={action}

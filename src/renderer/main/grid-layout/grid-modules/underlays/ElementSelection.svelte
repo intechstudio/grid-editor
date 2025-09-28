@@ -5,13 +5,14 @@
     GridEvent,
     GridModule,
     GridPage,
+    GridRuntime,
   } from "../../../../runtime/runtime";
   import {
     user_input,
     UserInputValue,
   } from "../../../../runtime/user-input.store";
 
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { draggedActions } from "../../../_actions/move.action";
   import { Focus } from "../../../_actions/focus.action";
 
@@ -22,13 +23,22 @@
 
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
+  let runtime = module.parent as GridRuntime;
+
   let elementChangeTimeout: NodeJS.Timeout = undefined;
 
   const dispatch = createEventDispatcher();
 
   let isSelected = false;
+  let mounted = false;
   $: handleUserInputChange($user_input);
-  $: handleSelectionChange(isSelected);
+  $: if (mounted) {
+    handleSelectionChange(isSelected);
+  }
+
+  onMount(() => {
+    mounted = true;
+  });
 
   function handleUserInputChange(ui: UserInputValue) {
     isSelected =
@@ -70,9 +80,7 @@
 
   function handleSelectionChange(value: boolean) {
     if (value) {
-      Focus.trigger(
-        `element-${module.dx}-${module.dy}-${element.elementIndex}`,
-      );
+      Focus.trigger(`${module.id}-${element.elementIndex}`);
     }
   }
 </script>
@@ -110,11 +118,13 @@
   }
   div.selected-element::before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.2);
+    box-shadow: 0px 300px 0px 1000px
+      color-mix(in srgb, var(--foreground) 20%, var(--background));
   }
   div.selectable-element:hover:before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.1);
+    box-shadow: 0px 300px 0px 1000px
+      color-mix(in srgb, var(--foreground) 10%, var(--background));
   }
 
   div.corner-cut-l:before {

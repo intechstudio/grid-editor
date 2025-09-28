@@ -15,29 +15,60 @@
   import { runtime_manager } from "../../runtime/runtime-manager.store";
 
   let devices = [
-    { id: ModuleType.BU16, type: ModuleType.BU16, component: XX16 },
-    { id: ModuleType.EF44, type: ModuleType.EF44, component: EF44 },
-    { id: ModuleType.EN16, type: ModuleType.EN16, component: XX16 },
-    { id: ModuleType.PBF4, type: ModuleType.PBF4, component: PBF4 },
-    { id: ModuleType.PO16, type: ModuleType.PO16, component: XX16 },
-    { id: ModuleType.TEK2, type: ModuleType.TEK2, component: VSNX },
+    {
+      id: ModuleType.BU16,
+      type: ModuleType.BU16,
+      component: XX16,
+      hwcfg: 131,
+    },
+    {
+      id: ModuleType.EF44,
+      type: ModuleType.EF44,
+      component: EF44,
+      hwcfg: 35,
+    },
+    {
+      id: ModuleType.EN16,
+      type: ModuleType.EN16,
+      component: XX16,
+      hwcfg: 195,
+    },
+    {
+      id: ModuleType.PBF4,
+      type: ModuleType.PBF4,
+      component: PBF4,
+      hwcfg: 67,
+    },
+    {
+      id: ModuleType.PO16,
+      type: ModuleType.PO16,
+      component: XX16,
+      hwcfg: 3,
+    },
+    {
+      id: ModuleType.TEK2,
+      type: ModuleType.TEK2,
+      component: VSNX,
+      hwcfg: 27,
+    },
     {
       id: ModuleType.VSN1L,
       type: ModuleType.VSN1L,
       component: VSNX,
-      unrelease: true,
+      hwcfg: 59,
     },
     {
       id: ModuleType.VSN1R,
       type: ModuleType.VSN1R,
       component: VSNX,
-      unrelease: true,
+      hwcfg: 91,
     },
     {
       id: ModuleType.VSN2,
       type: ModuleType.VSN2,
       component: VSNX,
       unrelease: true,
+      hwcfg: 123,
     },
   ];
 
@@ -107,9 +138,7 @@
           {#if device.unrelease !== true || $appSettings.persistent.unreleasedVirtualModules}
             <div class="flex w-full h-full items-center justify-center">
               <div class="flex flex-col">
-                <span class="text-white text-opacity-75 font-mono"
-                  >{device.id}</span
-                >
+                <span class="font-mono">{device.id}</span>
                 <button
                   data-testid={device.id}
                   class="border"
@@ -127,9 +156,7 @@
                       transform: scale(0.5); 
                     "
                   >
-                    <div
-                      class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
-                    >
+                    <div class="w-fit h-fit rounded shadow-lg">
                       <svelte:component
                         this={device.component}
                         {device}

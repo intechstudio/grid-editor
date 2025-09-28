@@ -8,10 +8,10 @@
   on:click|preventDefault={() => {
     new Modal.Window(Export).show();
   }}
-  class="flex cursor-pointer focus:ring-1 w-9 justify-center focus:outline-none items-center hover:bg-select bg-secondary rounded"
+  class="flex cursor-pointer focus:ring-1 w-9 justify-center focus:outline-none items-center hover:bg-background-muted rounded"
 >
   <svg
-    class="w-6 h-6 p-1 pointer-events-none fill-current text-white"
+    class="w-6 h-6 p-1 pointer-events-none fill-foreground"
     viewBox="0 0 512 512"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

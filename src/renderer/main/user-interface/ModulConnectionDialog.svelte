@@ -34,18 +34,19 @@
 </script>
 
 <div class={$$props.class}>
-  <div class="flex flex-col bg-primary rounded-md shadow-xl w-64 p-4 relative">
+  <div
+    style="background-color: var(--background); color: var(--foreground)"
+    class="flex flex-col rounded-md shadow-xl w-64 p-4 relative"
+  >
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <div class="flex flex-col">
-        <span class="text-xl text-white text-center mb-4"
-          >Connect your modules!</span
-        >
+        <span class="text-xl text-center mb-4">Connect your modules!</span>
         <SvgIcon width={"100%"} height={25} fill={"#FFF"} iconPath="disabled" />
-        <span class="text-white text-sm mt-4">
+        <span class="text-sm mt-4">
           To connect modules, press Connect to enable Grid Editor access USB.
           Each module must be enabled separately.
         </span>
-        <span class="text-gray-500 text-sm"
+        <span style="color: (--foreground-muted)" lass="text-sm"
           >(Only supported in Edge, Opera and Google Chrome)</span
         >
       </div>
@@ -59,15 +60,15 @@
       </div>
     {:else}
       <div class="flex flex-col">
-        <span class="text-xl text-white text-center">No connected modules!</span
-        >
+        <span class="text-xl text-center">No connected modules!</span>
         <div class="flex flex-row items-center scale-75 gap-8 -my-12 -ml-3">
           <div class="w-32 test">
             <svg
+              style="color: var(--foreground-muted)"
               xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink"
               version="1.1"
-              class="text-white fill-current rotate-90 mt-2"
+              class="fill-current rotate-90 mt-2"
               viewBox="0 0 100 125"
               enable-background="new 0 0 100 100"
               xml:space="preserve"
@@ -104,10 +105,11 @@
           </div>
           <div class="w-12">
             <svg
+              style="color: var(--foreground-muted)"
               xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink"
               version="1.1"
-              class="text-white fill-current rotate-90"
+              class="fill-current rotate-90"
               viewBox="0 0 100 125"
               enable-background="new 0 0 100 100"
               xml:space="preserve"
@@ -121,14 +123,11 @@
             >
           </div>
         </div>
-        <span class="text-white text-sm">
+        <span class="text-sm">
           Try reconnecting your Grid module by unplugging it, then plugging it
           in.
         </span>
-        <SendFeedback
-          feedback_context="Module not responding"
-          class="self-start text-gray-500 text-sm"
-        />
+        <SendFeedback feedback_context="Module not responding" />
       </div>
       <div class="flex flex-col gap-2 mt-4">
         <MoltenPushButton

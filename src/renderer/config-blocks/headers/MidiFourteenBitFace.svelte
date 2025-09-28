@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { GridAction } from "../../runtime/runtime";
+  import { InfoBox } from "@intechstudio/grid-uikit";
 
   const dispatch = createEventDispatcher();
 
@@ -62,19 +63,14 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="bg-secondary text-white flex items-center flex-row w-full px-2 {false
-    ? 'group-hover/bg-color:bg-select-saturate-10'
-    : ''}"
+  class="flex items-center flex-row w-full pr-2"
+  style="background-color: {config.information.color}"
   on:click={handleClick}
 >
   <div class="grid grid-cols-[auto_1fr] items-center h-full w-full my-1">
     <span class="mr-2 w-fit whitespace-nowrap"
       >{config.information.displayName}</span
     >
-    <div class="bg-black/25 p-1 my-auto rounded truncate">
-      <span class="whitespace-nowrap text-white text-opacity-60">
-        {`(${scriptSegments.join(", ")})`}
-      </span>
-    </div>
+    <InfoBox value={`(${scriptSegments.join(", ")})`} />
   </div>
 </div>

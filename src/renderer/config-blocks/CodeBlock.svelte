@@ -31,6 +31,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    hiddenInMinimalist: true,
   };
 </script>
 
@@ -38,7 +39,7 @@
   import { GridAction, ActionData, GridEvent } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
@@ -47,6 +48,8 @@
   import { Modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { MonacoEditor } from "../lib/monaco";
+  import { appSettings } from "../runtime/app-helper.store";
+  import { get } from "svelte/store";
 
   export let config: GridAction;
 
@@ -87,13 +90,16 @@
     });
   });
 
-  function handleConfigChange(config: ActionData) {
+  function handleConfigChange(config: ActionData, theme: MonacoEditor.Theme) {
     codePreview.innerHTML = GridScript.expandScript(config.script);
-    MonacoEditor.colorize(codePreview);
+    MonacoEditor.colorize(codePreview, theme);
   }
 
   $: if (codePreview && !$config.invalid) {
-    handleConfigChange($config);
+    const theme = $appSettings.persistent.lightMode
+      ? MonacoEditor.Theme.LIGHT
+      : MonacoEditor.Theme.DARK;
+    handleConfigChange($config, theme);
   }
 
   async function open_monaco() {
@@ -126,10 +132,7 @@
   <div class="flex flex-row mt-4">
     <div class="w-full flex flex-col">
       <div class="text-gray-500 font-bold -mb-2">Powered by Lua</div>
-      <SendFeedback
-        feedback_context="CodeBlock"
-        class="mt-2 text-sm text-gray-500"
-      />
+      <SendFeedback feedback_context="CodeBlock" />
     </div>
 
     <div class="h-12 w-12">

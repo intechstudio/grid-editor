@@ -4,6 +4,9 @@
   import { onMount } from "svelte";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
+  import { get } from "svelte/store";
+  import { logger } from "../../../runtime/runtime.store";
+  import { Runtime } from "../../../runtime/string-table";
 
   let monacoElement: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor;
@@ -12,7 +15,9 @@
     editor = MonacoEditor.create(monacoElement, {
       value: "",
       language: "lua",
-      theme: "my-theme",
+      theme: $appSettings.persistent.lightMode
+        ? MonacoEditor.Theme.LIGHT
+        : MonacoEditor.Theme.DARK,
       fontSize: $appSettings.persistent.fontSize,
       folding: false,
       renderLineHighlight: "none",
@@ -31,9 +36,29 @@
     });
   });
 
+  $: if (editor) {
+    handleLightModeChange($appSettings.persistent.lightMode);
+  }
+
+  function handleLightModeChange(value: boolean) {
+    MonacoEditor.setTheme(
+      value ? MonacoEditor.Theme.LIGHT : MonacoEditor.Theme.DARK,
+    );
+  }
+
   function handleSendInmediateclicked() {
     const value = editor.getValue();
-    runtime_manager.LUAExecImmediate(0, 0, value);
+    const module = get(runtime_manager).active?.runtime.findModule(0, 0);
+    if (!module) {
+      logger.set({
+        type: "fail",
+        classname: "pagechange",
+        mode: 0,
+        message: Runtime.ErrorText.SEND_IMMEDIATE_NO_ACTIVE_MODULE,
+      });
+      return;
+    }
+    module.execLUAImmediate(value);
   }
 </script>
 

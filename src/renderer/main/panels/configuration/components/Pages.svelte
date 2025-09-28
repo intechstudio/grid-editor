@@ -3,16 +3,31 @@
   import { logger } from "../../../../runtime/runtime.store";
   import { runtime_manager } from "../../../../runtime/runtime-manager.store";
   import { user_input } from "../../../../runtime/user-input.store";
+  import { MeltRadio } from "@intechstudio/grid-uikit";
 
-  let selectedPage = undefined;
+  let selected = 0;
+  const options = [
+    { title: 1, value: 0 },
+    { title: 2, value: 1 },
+    { title: 3, value: 2 },
+    { title: 4, value: 3 },
+  ];
+
+  $: handleSelectPage(selected);
+
   function handleSelectPage(page) {
+    const currentPage = $user_input.pagenumber;
+
+    if (currentPage === page) {
+      return;
+    }
+
     const active = get(runtime_manager).active.runtime;
     active
       .change_page(page)
-      .then(() => {
-        selectedPage = page;
-      })
+      .then(() => {})
       .catch((e) => {
+        selected = currentPage;
         logger.set({
           type: "alert",
           classname: "pagechange",
@@ -25,29 +40,16 @@
   $: handleUserInputChange($user_input);
 
   function handleUserInputChange(ui) {
-    selectedPage = ui.pagenumber;
+    selected = ui.pagenumber;
   }
 </script>
 
 <div class="{$$props.class} flex flex-row gap-2 mt-3 items-center">
-  {#each Array(4).keys() as i}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <button
-      on:click={() => {
-        handleSelectPage(i);
-      }}
-      class="{selectedPage == i
-        ? 'w-9 h-9 text-xl'
-        : 'w-7 h-7 text-base'} bg-primary rounded font-bold border border-white border-opacity-30"
-    >
-      <div
-        class="w-full h-full {selectedPage == i
-          ? 'bg-white bg-opacity-10'
-          : 'hover:bg-white hover:bg-opacity-5'} flex items-center justify-center"
-      >
-        <span class="text-white text-opacity-75">{i + 1}</span>
-      </div>
-    </button>
-  {/each}
+  <MeltRadio
+    bind:target={selected}
+    style="button"
+    orientation="horizontal"
+    size="full"
+    {options}
+  />
 </div>

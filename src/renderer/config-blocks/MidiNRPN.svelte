@@ -202,7 +202,7 @@
   const tabs = [
     { name: "MIDI", short: "gms" },
     { name: "14 bit MIDI", short: "gmsh" },
-    { name: "MIDI SysEX", short: "gmss" },
+    { name: "SysEX", short: "gmss" },
     { name: "NRPN MIDI", short: "gmnp" },
   ];
 
@@ -357,8 +357,7 @@
     <MeltCheckbox bind:target={hiRes} title="14bit Resolution" />
   </div>
 
-  <SendFeedback
-    feedback_context="MidiFourteenBit"
-    class="text-sm text-gray-500"
-  />
+  <div class="mt-2">
+    <SendFeedback feedback_context="MidiFourteenBit" />
+  </div>
 </action-midi>

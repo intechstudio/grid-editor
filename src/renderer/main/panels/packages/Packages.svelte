@@ -6,6 +6,8 @@
   import { logger } from "../../../runtime/runtime.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
+  import PackageItem from "./PackageItem.svelte";
+  import RequestItem from "./RequestItem.svelte";
 
   onMount(async () => {
     refreshPackageList();
@@ -14,6 +16,12 @@
   $: $appSettings.persistent.enabledPackages,
     $appSettings.packageList,
     refreshPackagePreferences();
+
+  $: orderedPackageList = $appSettings.packageList.toSorted((p1, p2) =>
+    p1.name.localeCompare(p2.name),
+  );
+  $: installedPackages = orderedPackageList.filter((p) => p.isDownloaded);
+  $: availablePackages = orderedPackageList.filter((p) => !p.isDownloaded);
 
   let packagePreferenceComponents = [];
   let packagePathInput = "";
@@ -230,270 +238,74 @@
   }
 </script>
 
-<packages
-  class="bg-primary flex flex-col h-full w-full text-white overflow-y-auto"
->
-  <div class="flex flex-col h-full w-full p-4">
-    <div class="flex py-2 text-white items-center">
-      <div class="font-medium w-full">Packages</div>
-      <div class="mx-2">
-        <MoltenPushButton click={restartPackageManager} text="Force Restart" />
-      </div>
-      <div class="mx-2 font-medium text-base">
+<packages class="flex flex-col h-full w-full overflow-y-auto">
+  <div class="flex flex-col h-full w-full px-2">
+    <div class="flex py-2 items-center justify-between">
+      <div class=" text-base">
         <MoltenPushButton
           click={() => packageRepositoryDialog.show()}
-          text="+"
+          text="+    Add external package"
         />
       </div>
+      <div class="">
+        <MoltenPushButton click={restartPackageManager} text="Force Restart" />
+      </div>
     </div>
-
-    {#if !$appSettings.packageManagerRunning}
+    {#if import.meta.env.VITE_BUILD_TARGET === "web"}
+      <p>Package manager currently not available!</p>
+    {:else if !$appSettings.packageManagerRunning}
       <p class="loading">Restarting package manager</p>
     {/if}
     <div class="flex flex-col h-full w-full overflow-y-auto overflow-x-clip">
-      <!--https://github.com/WebOnWebOff/svelte-resizable-columns-->
-      <table>
-        <thead class="text-gray-500 border-b border-gray-500">
-          <tr>
-            <th>Activate</th>
-            <th>Name</th>
-            <th>Version</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each $appSettings.packageList as _package}
-            <tr class="h-20">
-              <td>
-                {#if (_package.status === "Downloaded" && _package.loadable) || _package.status === "Enabled"}
-                  <MeltCheckbox
-                    target={_package.status === "Enabled"}
-                    on:change={(e) =>
-                      changePackageStatus(_package.id, e.detail)}
-                    style="none"
-                  />
-                {/if}
-              </td>
-              <td>
-                <div class="mx-1">{_package.name}</div>
-              </td>
-              <td>
-                {#if _package.packageVersion}
-                  <div class="mx-1">{_package.packageVersion}</div>
-                {/if}
-              </td>
-              <td>
-                {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
-                  <div class="flex flex-row">
-                    <div class="mx-1">
-                      <MoltenPushButton
-                        click={() => {
-                          downloadPackage(_package.id);
-                        }}
-                        disabled={_package.status == "Downloading"}
-                        ratio="box"
-                        text=""
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          slot="content"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="lucide lucide-arrow-down-to-line"
-                          ><path d="M12 17V3" /><path d="m6 11 6 6 6-6" /><path
-                            d="M19 21H5"
-                          /></svg
-                        >
-                      </MoltenPushButton>
-                    </div>
-                    {#if _package.removable === true}
-                      <div class="mx-1">
-                        <MoltenPushButton
-                          click={() => {
-                            removePackage(_package.id);
-                          }}
-                          ratio="box"
-                          text=""
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            slot="content"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="lucide lucide-circle-minus"
-                            ><circle cx="12" cy="12" r="10" /><path
-                              d="M8 12h8"
-                            /></svg
-                          >
-                        </MoltenPushButton>
-                      </div>
-                    {/if}
-                  </div>
-                {:else if _package.canUpdate}
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        updatePackage(_package.id);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-refresh-ccw"
-                        ><path
-                          d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
-                        /><path d="M3 3v5h5" /><path
-                          d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
-                        /><path d="M16 16h5v5" /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                {:else if _package.uninstallable}
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        uninstallPackage(_package.id);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-trash"
-                        ><path d="M3 6h18" /><path
-                          d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
-                        /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                {:else if _package.removable}
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        removePackage(_package.id);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-circle-minus"
-                        ><circle cx="12" cy="12" r="10" /><path
-                          d="M8 12h8"
-                        /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                {/if}
-              </td>
-            </tr>
-          {/each}
-          {#each $appSettings.developerPackagesRequested as request}
-            <tr class="h-20">
-              <td />
-              <td>{request.name}</td>
-              <td />
-              <td>
-                <div class="flex flex-row">
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        approveRequest(request);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-check"
-                        ><path d="M20 6 9 17l-5-5" /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                  <div class="mx-1">
-                    <MoltenPushButton
-                      click={() => {
-                        removeRequest(request);
-                      }}
-                      ratio="box"
-                      text=""
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        slot="content"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-x"
-                        ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
-                      >
-                    </MoltenPushButton>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-      <textarea
-        class="bg-secondary min-h-[20rem] max-h-[20rem] font-mono w-full p-1 my-1 rounded"
-      >
-        {JSON.stringify($appSettings.packageDebugLogs)}
-      </textarea>
+      {#each $appSettings.developerPackagesRequested as request}
+        {#key request.name}
+          <RequestItem
+            {request}
+            on:accept={() => approveRequest(request)}
+            on:reject={() => removeRequest(request)}
+          />
+        {/key}
+      {/each}
+      {#if installedPackages.length > 0}
+        {#if availablePackages.length > 0}
+          <p class="py-2 font-medium text-gray-400">
+            Installed packages ({installedPackages.length})
+          </p>
+        {/if}
+        {#each installedPackages as _package}
+          {#key _package.id}
+            <PackageItem
+              data={_package}
+              on:enable={() => changePackageStatus(_package.id, true)}
+              on:disable={() => changePackageStatus(_package.id, false)}
+              on:download={() => downloadPackage(_package.id)}
+              on:update={() => updatePackage(_package.id)}
+              on:uninstall={() => uninstallPackage(_package.id)}
+              on:remove={() => removePackage(_package.id)}
+            />
+          {/key}
+        {/each}
+      {/if}
+      {#if availablePackages.length > 0}
+        {#if installedPackages.length > 0}
+          <p class="font-medium text-gray-400">
+            Available Packages ({availablePackages.length})
+          </p>
+        {/if}
+        {#each availablePackages as _package}
+          {#key _package.id}
+            <PackageItem
+              data={_package}
+              on:enable={() => changePackageStatus(_package.id, true)}
+              on:disable={() => changePackageStatus(_package.id, false)}
+              on:download={() => downloadPackage(_package.id)}
+              on:update={() => updatePackage(_package.id)}
+              on:uninstall={() => uninstallPackage(_package.id)}
+              on:remove={() => removePackage(_package.id)}
+            />
+          {/key}
+        {/each}
+      {/if}
     </div>
   </div>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -504,7 +316,8 @@
     on:click|self={() => packageRepositoryDialog.close()}
   >
     <div
-      class="flex flex-row bg-secondary text-gray-400 font-normal px-8 py-4 items-end"
+      style="background-color: var(--background-muted)"
+      class="flex flex-row text-gray-400 font-normal px-8 py-4 items-end"
     >
       <MeltCombo
         size="full"

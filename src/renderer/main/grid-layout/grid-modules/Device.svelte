@@ -26,7 +26,6 @@
 
   //Underlays
   import PortState from "./underlays/PortState.svelte";
-  import ModuleInfo from "./underlays/ModuleInfo.svelte";
   import ActiveChanges from "./underlays/ActiveChanges.svelte";
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
@@ -40,7 +39,12 @@
     profile_cloud,
     profileCloudConfigDrag,
   } from "../../panels/profileCloud/ProfileCloud.js";
-  import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
+  import {
+    GridElement,
+    GridModule,
+    GridPage,
+    GridRuntime,
+  } from "../../../runtime/runtime";
   import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
   import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
@@ -50,6 +54,8 @@
   export let width = 225;
   export let scale: number = 1.0;
   export let interactive: boolean;
+
+  let runtime = device.parent as GridRuntime;
 
   function selectNextNeighBour(
     element: GridElement,
@@ -62,13 +68,21 @@
 
     const page = target.parent as GridPage;
     const module = page.parent as GridModule;
-    Focus.trigger(`element-${module.dx}-${module.dy}-${target.elementIndex}`);
+
+    user_input.set({
+      dx: module.dx,
+      dy: module.dy,
+      pagenumber: $user_input.pagenumber,
+      elementnumber: target.elementIndex,
+      eventtype: $user_input.eventtype,
+    });
   }
 
   type SharedProps = {
     moduleWidth: any;
     device: GridModule;
     id?: ModuleType;
+    [key: string]: any;
   };
 
   type ModuleComponent = {
@@ -217,6 +231,7 @@
   class="module drop-shadow"
   class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
+  tabindex={interactive ? 0 : -1}
   on:focus={() => {
     selectModule();
   }}
@@ -263,6 +278,7 @@
 >
   <svelte:component
     this={component}
+    data-testid={`${interactive ? "" : `${device.id}_`}${device.type}_dx:${device.dx};dy:${device.dy}`}
     {device}
     moduleWidth={width}
     let:elementNumber
@@ -273,7 +289,7 @@
       <!-- Default Backdrop -->
 
       <div
-        class="absolute bg-primary w-full h-full"
+        class="absolute w-full h-full"
         style="border-radius: var(--grid-rounding);"
       />
       <PortState
@@ -384,7 +400,7 @@
               },
             ],
           }}
-          use:Focus.on={`element-${device.dx}-${device.dy}-${elementNumber}`}
+          use:Focus.on={`${device.id}-${elementNumber}`}
           use:KeyboardTarget.set={device
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}
@@ -413,7 +429,6 @@
                   $user_input.elementnumber === elementNumber))}
           />
         </button>
-        <ModuleInfo {device} visible={true} {elementNumber} />
       {/if}
     </svelte:fragment>
 
@@ -489,6 +504,27 @@
 </button>
 
 <style global>
+  .knob-element {
+    width: auto;
+    height: auto;
+    border-radius: 9999px; /* full rounding */
+    border-width: 1px;
+    border-style: solid;
+    border-color: #00000000; /* Tailwind gray-700 */
+  }
+
+  .knob-dent {
+    fill: var(--background-soft);
+    stroke: var(--background-soft);
+  }
+  .knob-face {
+    fill2: var(--background-muted);
+  }
+  .knob-edge {
+    fill: var(--background-muted);
+    stroke: var(--background-soft);
+  }
+
   .configpanel.activator-button:focus-within {
     border-color: gray;
   }
@@ -566,7 +602,6 @@
     justify-content: center;
     align-items: center;
     transition: filter 0.2s;
-    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
   }
   .normal-cell-overlay-container {
     pointer-events: none;

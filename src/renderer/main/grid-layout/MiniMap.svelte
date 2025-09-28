@@ -3,72 +3,104 @@
   import GridLayout from "./GridLayout.svelte";
   import { slide } from "svelte/transition";
   import { MiniMap } from "./MiniMap";
-  import { onMount } from "svelte";
-  import { get } from "svelte/store";
-
-  export let toggled = false;
-  export let visible = true;
+  import AddButton from "../user-interface/AddButton.svelte";
+  import MoltenIconButton from "../user-interface/MoltenIconButton.svelte";
+  import { GridRuntime } from "../../runtime/runtime";
+  import { Grid } from "../../lib/_utils";
+  import { writable } from "svelte/store";
+  import { appSettings } from "../../runtime/app-helper.store";
 
   let data = MiniMap.data;
-  let connectionCount = 0;
 
-  function handleToggle() {
-    toggled = !toggled;
+  function handleDestroyRuntime(runtime: GridRuntime) {
+    runtime_manager.destroy(runtime);
   }
 
-  onMount(() => {
-    connectionCount = get(data).length;
-  });
+  function handleAddRuntime() {
+    const virtual = runtime_manager.createVirtual();
+    runtime_manager.add(virtual);
+    runtime_manager.setActive(virtual.id);
+  }
 
-  $: if (connectionCount != $data.length) {
-    toggled = true;
+  function handleRotateRuntime(runtime: GridRuntime) {
+    runtime.rotation = Grid.addRotations(runtime.rotation, Grid.Rotation.R90);
+  }
+
+  const heights = writable(new Map<string, number>());
+
+  function observeHeight(node: HTMLElement, id: string) {
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        requestAnimationFrame(() => {
+          heights.update((h) => {
+            h.set(id, entry.contentRect.height);
+            return h;
+          });
+        });
+      }
+    });
+    observer.observe(node);
+    return { destroy: () => observer.disconnect() };
   }
 </script>
 
-{#if visible}
-  <container
-    class="relative flex flex-row w-full border-t-black border-t bg-primary"
-  >
-    <button
-      class="absolute top-0 right-0 bg-primary rotate -translate-y-full w-10 h-7 p-2 mx-2 rounded-t fill-gray-500 border-x border-x-black border-t border-t-black"
-      on:click={handleToggle}
-    >
-      <div class="flex w-full h-full" class:rotate-180={toggled}>
-        <svg
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 75 330 180"
-        >
-          <path
-            d="M325.606,229.393l-150.004-150C172.79,76.58,168.974,75,164.996,75c-3.979,0-7.794,1.581-10.607,4.394
-            l-149.996,150c-5.858,5.858-5.858,15.355,0,21.213c5.857,5.857,15.355,5.858,21.213,0l139.39-139.393l139.397,139.393
-            C307.322,253.536,311.161,255,315,255c3.839,0,7.678-1.464,10.607-4.394C331.464,244.748,331.464,235.251,325.606,229.393z"
-          />
-        </svg>
-      </div>
-    </button>
+<container
+  transition:slide={{ duration: 200 }}
+  class="flex h-full w-full overflow-x-scroll overflow-y-clip"
+>
+  <div class="flex h-full flex-row items-center gap-4 p-4">
+    {#each $data as entry (entry.runtime.id)}
+      <button
+        class="grid grid-rows-[auto_1fr] h-full shrink-0 gap-2 px-4 pb-4 pt-2 bg-black bg-opacity-25 cursor-pointer rounded border-2 {entry
+          .runtime.id === $runtime_manager.active.runtime.id
+          ? 'border-white/30'
+          : 'border-transparent'} "
+        on:click={() => MiniMap.selectRuntime(entry.runtime.id)}
+        style:min-width={"100px"}
+      >
+        <div class="flex flex-row justify-between items-center w-full">
+          <span class="text-white">{entry.label}</span>
+          <div class="flex flex-row ml-2">
+            <MoltenIconButton
+              on:click={() => {
+                handleRotateRuntime(entry.runtime);
+              }}
+              iconPath={"rotate"}
+            />
 
-    {#if toggled}
-      <div class="flex w-full" transition:slide={{ duration: 200 }}>
-        {#each $data as entry (entry.runtime.id)}
-          <button
-            class="flex flex-col gap-2 bg-black bg-opacity-25 px-4 pb-4 pt-2 m-4 cursor-pointer rounded border-2 {entry
-              .runtime.id === $runtime_manager.active.runtime.id
-              ? 'border-white/30'
-              : 'border-transparent'}"
-            on:click={() => MiniMap.selectRuntime(entry.runtime.id)}
-          >
-            <span class="text-white">{entry.label}</span>
-            <div class="pointer-events-none">
-              <GridLayout
-                runtime={entry.runtime}
-                scale={entry.scale}
-                interactive={false}
+            {#if entry.runtime.virtual && $data.length > 1}
+              <MoltenIconButton
+                on:click={() => {
+                  handleDestroyRuntime(entry.runtime);
+                }}
+                iconPath={"close"}
               />
-            </div>
-          </button>
-        {/each}
-      </div>
-    {/if}
-  </container>
-{/if}
+            {/if}
+          </div>
+        </div>
+        <div
+          class="pointer-events-none relative h-full"
+          style:width={`max(${MiniMap.calculateWidth(entry, $heights.get(entry.runtime.id), $appSettings.persistent.moduleRotation)}px, 100px)`}
+          use:observeHeight={entry.runtime.id}
+        >
+          <div
+            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          >
+            <GridLayout
+              runtime={entry.runtime}
+              scale={MiniMap.calculateScale(
+                entry,
+                $heights.get(entry.runtime.id),
+                $appSettings.persistent.moduleRotation,
+              )}
+              interactive={false}
+            />
+          </div>
+        </div>
+      </button>
+    {/each}
+    <div class="flex h-full w-fit">
+      <AddButton on:click={handleAddRuntime} />
+    </div>
+  </div>
+</container>

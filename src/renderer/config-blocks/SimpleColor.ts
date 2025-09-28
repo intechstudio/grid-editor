@@ -5,6 +5,7 @@ import {
   Unsubscriber,
   Updater,
   Readable,
+  get,
 } from "svelte/store";
 import { Grid } from "../lib/_utils";
 import {
@@ -16,7 +17,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-import { MeltComboData } from "@intechstudio/grid-uikit";
+import { MeltComboData, Color } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
   export enum Channel {
@@ -26,12 +27,25 @@ export namespace SimpleColor {
     ALPHA = "alpha",
   }
 
+  export function toChannel(value: string): Channel | undefined {
+    const values = Object.values(Channel) as string[];
+    return values.includes(value) ? (value as Channel) : undefined;
+  }
+
   export type Color = {
     red: string;
     green: string;
     blue: string;
     alpha: string;
   };
+
+  export function colorToCSS(color: Color) {
+    if (Object.values(color).some((e) => isNaN(Number(e)))) {
+      return "white";
+    } else {
+      return `rgba(${Object.values(color).join(",")})`;
+    }
+  }
 
   export class ParsedData {
     public colors: Array<{
@@ -89,7 +103,7 @@ export namespace SimpleColor {
     return Grid.Protocol.getLayerSuggestions(element.type);
   }
 
-  function getRGBASuggestions(action: GridAction) {
+  function getRGBASuggestions(action: GridAction, channel: Channel) {
     const event = action.parent as GridEvent;
     const actions = event.config;
     const index = actions.findIndex((e) => e.id === action.id);
@@ -97,15 +111,38 @@ export namespace SimpleColor {
       configs: actions,
       index: index,
     });
-    return localDefinitions;
+    const typeMap = new Map<
+      Channel,
+      | Grid.Auto.Value.LED_RED
+      | Grid.Auto.Value.LED_GREEN
+      | Grid.Auto.Value.LED_BLUE
+    >([
+      [Channel.RED, Grid.Auto.Value.LED_RED],
+      [Channel.GREEN, Grid.Auto.Value.LED_GREEN],
+      [Channel.BLUE, Grid.Auto.Value.LED_BLUE],
+    ]);
+
+    if (channel === Channel.ALPHA) {
+      return localDefinitions;
+    } else {
+      return [
+        {
+          value: "-1",
+          info: `Auto (${Grid.Auto.getRGB(action, typeMap.get(channel))})`,
+          key: "auto",
+        },
+        ...localDefinitions,
+      ];
+    }
   }
 
   export type ViewModelData = {
+    colors: Array<Color>;
     previewColors: Array<Color>;
     layer: MeltComboData;
     element: MeltComboData;
     selectedIndex: number;
-    pickerColor: Grid.HSL | undefined;
+    pickerColor: Color.HSL | undefined;
     alphaSliderValue: number | undefined;
     red: MeltComboData;
     green: MeltComboData;
@@ -153,7 +190,7 @@ export namespace SimpleColor {
       const { red, green, blue, alpha } = parsed.colors[selectedIndex];
       const pickerColor = [red, green, blue].some((e) => isNaN(parseFloat(e)))
         ? undefined
-        : new Grid.RGB(parseInt(red), parseInt(green), parseInt(blue)).toHSL();
+        : new Color.RGB(parseInt(red), parseInt(green), parseInt(blue)).toHSL();
       const alphaSliderValue = isNaN(parseFloat(alpha))
         ? undefined
         : parseFloat(alpha);
@@ -162,14 +199,39 @@ export namespace SimpleColor {
         func: (e: string) => new Validator(e).isLuaValue().Result(),
       });
 
-      const getColorData = (value: string) => ({
+      const getColorData = (value: string, channel: Channel) => ({
         value,
-        suggestions: getRGBASuggestions(action),
+        suggestions: getRGBASuggestions(action, channel),
         validator: getValidator(value),
       });
 
       this.set({
-        previewColors: parsed.colors,
+        colors: parsed.colors.map((e) =>
+          Object({
+            red: e.red,
+            green: e.green,
+            blue: e.blue,
+            alpha: e.alpha,
+          }),
+        ),
+        previewColors: parsed.colors.map((e) =>
+          Object({
+            ...e,
+            red:
+              e.red === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_RED))
+                : e.red,
+            green:
+              e.green === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_GREEN))
+                : e.green,
+            blue:
+              e.blue === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_BLUE))
+                : e.blue,
+            alpha: e.alpha,
+          }),
+        ),
         layer: {
           value: String(parsed.layer),
           suggestions: [
@@ -186,17 +248,17 @@ export namespace SimpleColor {
         selectedIndex,
         pickerColor,
         alphaSliderValue,
-        red: getColorData(red),
-        green: getColorData(green),
-        blue: getColorData(blue),
-        alpha: getColorData(alpha),
+        red: getColorData(red, Channel.RED),
+        green: getColorData(green, Channel.GREEN),
+        blue: getColorData(blue, Channel.BLUE),
+        alpha: getColorData(alpha, Channel.ALPHA),
         updateIntensity,
       });
 
       const unsubscribe = event.subscribe(() => {
         this.update((s) => {
           ["red", "green", "blue", "alpha"].forEach((color) => {
-            s[color].suggestions = getRGBASuggestions(action);
+            s[color].suggestions = getRGBASuggestions(action, toChannel(color));
           });
           return s;
         });
@@ -206,30 +268,41 @@ export namespace SimpleColor {
 
     public removeLayer(index: number) {
       this.update((s) => {
-        if (typeof s.previewColors[index] === "undefined") {
+        if (typeof s.colors[index] === "undefined") {
           throw "Layer can not be removed: Unknown layer.";
         }
+
+        s.colors = [...s.colors.slice(0, index), ...s.colors.slice(index + 1)];
 
         s.previewColors = [
           ...s.previewColors.slice(0, index),
           ...s.previewColors.slice(index + 1),
         ];
-        this.selectLayer(Math.min(s.previewColors.length - 1, index));
+        this.selectLayer(Math.min(s.colors.length - 1, index));
         return s;
       });
     }
 
-    public addLayer(color: Color) {
+    public addLayer() {
       this.update((s) => {
-        switch (s.previewColors.length) {
+        switch (s.colors.length) {
           case 1:
-            s.previewColors = [structuredClone(color), s.previewColors[0]];
+            s.colors = [structuredClone(s.colors.at(-1)), s.colors[0]];
+            s.previewColors = [
+              structuredClone(s.previewColors.at(-1)),
+              s.previewColors[0],
+            ];
             this.selectLayer(0);
             break;
           case 2:
+            s.colors = [
+              s.colors[0],
+              structuredClone(s.colors.at(-1)),
+              s.colors[1],
+            ];
             s.previewColors = [
               s.previewColors[0],
-              structuredClone(color),
+              structuredClone(s.previewColors.at(-1)),
               s.previewColors[1],
             ];
             this.selectLayer(1);
@@ -244,14 +317,14 @@ export namespace SimpleColor {
     public selectLayer(index: number) {
       this.update((s) => {
         s.selectedIndex = index;
-        const { red, green, blue, alpha } = s.previewColors[index];
+        const { red, green, blue, alpha } = s.colors[index];
         s.alphaSliderValue = isNaN(parseFloat(alpha))
           ? undefined
           : parseFloat(alpha);
 
         s.pickerColor = [red, green, blue].some((e) => isNaN(parseInt(e)))
           ? undefined
-          : new Grid.RGB(
+          : new Color.RGB(
               parseInt(red),
               parseInt(green),
               parseInt(blue),
@@ -269,6 +342,7 @@ export namespace SimpleColor {
       this.update((s) => {
         s.alphaSliderValue = value;
         s.alpha.value = String(value);
+        s.colors[s.selectedIndex].alpha = String(value);
         s.previewColors[s.selectedIndex].alpha = String(value);
         return s;
       });
@@ -281,7 +355,7 @@ export namespace SimpleColor {
       });
     }
 
-    public updatePickerColor(color: Grid.HSL) {
+    public updatePickerColor(color: Color.HSL) {
       this.update((s) => {
         const { r, g, b } = color.toRGB();
         s.pickerColor = color;
@@ -289,7 +363,14 @@ export namespace SimpleColor {
         s.green.value = String(g);
         s.blue.value = String(b);
 
-        const current = s.previewColors[s.selectedIndex];
+        const current = s.colors[s.selectedIndex];
+        s.colors[s.selectedIndex] = {
+          red: String(r),
+          green: String(g),
+          blue: String(b),
+          alpha: current.alpha,
+        };
+
         s.previewColors[s.selectedIndex] = {
           red: String(r),
           green: String(g),
@@ -301,6 +382,7 @@ export namespace SimpleColor {
     }
 
     public updateRGBAChannelValue(
+      action: GridAction,
       value: string,
       validationError: boolean,
       channel: Channel,
@@ -309,32 +391,46 @@ export namespace SimpleColor {
         s[channel].validator.value = !validationError;
         switch (channel) {
           case SimpleColor.Channel.RED: {
-            s.previewColors[s.selectedIndex].red = value;
+            s.colors[s.selectedIndex].red = value;
+            s.previewColors[s.selectedIndex].red =
+              value === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_RED))
+                : value;
             s.red.value = value;
             break;
           }
           case SimpleColor.Channel.GREEN: {
-            s.previewColors[s.selectedIndex].green = value;
+            s.colors[s.selectedIndex].green = value;
+            s.previewColors[s.selectedIndex].green =
+              value === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_GREEN))
+                : value;
             s.green.value = value;
             break;
           }
           case SimpleColor.Channel.BLUE: {
-            s.previewColors[s.selectedIndex].blue = value;
+            s.colors[s.selectedIndex].blue = value;
+            s.previewColors[s.selectedIndex].blue =
+              value === "-1"
+                ? String(Grid.Auto.getRGB(action, Grid.Auto.Value.LED_BLUE))
+                : value;
             s.blue.value = value;
             break;
           }
           case SimpleColor.Channel.ALPHA: {
             const alpha = parseFloat(value);
             s.alphaSliderValue = isNaN(alpha) ? 0 : alpha;
+            s.colors[s.selectedIndex].alpha = value;
             s.previewColors[s.selectedIndex].alpha = value;
             s.alpha.value = value;
             break;
           }
         }
+
         const { red, green, blue } = s.previewColors[s.selectedIndex];
         s.pickerColor = [red, green, blue].some((e) => isNaN(parseInt(e)))
           ? undefined
-          : new Grid.RGB(
+          : new Color.RGB(
               parseInt(red),
               parseInt(green),
               parseInt(blue),

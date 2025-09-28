@@ -12,42 +12,10 @@
 
   const configuration = window.ctxProcess.configuration();
 
-  function init() {
-    document
-      .getElementById("minimize-btn")
-      .addEventListener("click", function (e) {
-        browserWindow.minimize();
-      });
-
-    document
-      .getElementById("maximize-btn")
-      .addEventListener("click", function (e) {
-        isMaximized = true;
-        browserWindow.maximize();
-      });
-
-    document
-      .getElementById("restore-down-btn")
-      .addEventListener("click", function (e) {
-        isMaximized = false;
-        browserWindow.restore();
-      });
-
-    document
-      .getElementById("close-btn")
-      .addEventListener("click", function (e) {
-        browserWindow.close();
-      });
-  }
-
   let isMaximized;
 
   onMount(async () => {
-    if (platform() != "darwin") {
-      init();
-    }
-
-    browserWindow.isMaximized() ? (isMaximized = true) : false;
+    browserWindow.isMaximized() ? (isMaximized = true) : (isMaximized = false);
   });
 </script>
 
@@ -99,7 +67,7 @@
 
         <!-- Title Text + version -->
 
-        <div class="flex items-center text-gray-500 text-sm pt-1">
+        <div class="flex items-center text-gray-500 text-sm pt-1 truncate">
           Grid Editor {configuration?.EDITOR_VERSION}
           {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
             {import.meta.env.VITE_BRANCH_NAME}
@@ -124,6 +92,9 @@
 
           <div
             id="minimize-btn"
+            on:click={() => {
+              browserWindow.minimize();
+            }}
             class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary"
           >
             <svg
@@ -138,6 +109,10 @@
 
           <div
             id="maximize-btn"
+            on:click={() => {
+              isMaximized = true;
+              browserWindow.maximize();
+            }}
             class:hidden={isMaximized}
             class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary"
           >
@@ -157,6 +132,10 @@
 
           <div
             id="restore-down-btn"
+            on:click={() => {
+              isMaximized = false;
+              browserWindow.restore();
+            }}
             class:hidden={!isMaximized}
             class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary"
           >
@@ -177,6 +156,9 @@
 
           <div
             id="close-btn"
+            on:click={() => {
+              browserWindow.close();
+            }}
             class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary"
           >
             <svg

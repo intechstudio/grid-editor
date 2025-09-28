@@ -18,9 +18,12 @@
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
 
+  import FirmwareMismatchNotification from "./main/FirmwareMismatchNotification.svelte";
   import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
+
+  import QuitApp from "./main/modals/QuitApp.svelte";
 
   import { windowSize } from "./runtime/window-size";
 
@@ -33,7 +36,7 @@
   import { logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
-  import RightPanelToggleButton from "./main/RightPanelToggleButton.svelte";
+  import PanelToggleButton from "./main/PanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
   import {
@@ -92,6 +95,10 @@
   window.electron.configs.onExternalResponse((_event, value) => {
     // listening to this store on ProfileCloud.svelte
     configLinkStore.set({ id: value });
+  });
+
+  window.electron.showQuitDialog((_event, value) => {
+    new Modal.Window(QuitApp).show();
   });
 
   async function handlePackageManagerMessage(event) {
@@ -185,9 +192,7 @@
       }
       case "packages": {
         // refresh packagelist
-        const enabledPackages = data.packages.filter(
-          (e) => e.status == "Enabled",
-        );
+        const enabledPackages = data.packages.filter((e) => e.isEnabled);
         for (const _package of enabledPackages) {
           if (_package.componentsPath) {
             import(`package://${_package.componentsPath}`);
@@ -241,7 +246,7 @@
         break;
       }
       case "debug-error": {
-        console.log(`Package error: ${data.error}`);
+        console.log(`Package error: ${JSON.stringify(data)}`);
         break;
       }
       default: {
@@ -319,6 +324,20 @@
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
+
+  function handleRightPanelToggle(e: CustomEvent<any>) {
+    const value = e.detail;
+    appSettings.update((s) => Object({ ...s, rightPanelVisible: value }));
+    splitpanes.update((s) =>
+      Object({
+        ...s,
+        right: {
+          ...s.right,
+          size: $appSettings.rightPanelVisible ? s.right.default : 0,
+        },
+      }),
+    );
+  }
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -341,8 +360,7 @@
   <NavTabs />
 
   <div class="flex flex-col w-full h-full">
-    <FirmwareCheck />
-
+    <FirmwareMismatchNotification />
     <ErrorConsole />
     <VersionUpdateBar />
     <div class="flex flex-grow overflow-hidden">
@@ -357,8 +375,16 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          <RightPanelToggleButton />
-          <MiddlePanelContainer />
+          <div class="flex w-full h-full">
+            <div class="absolute top-0 right-0 m-2 z-50">
+              <PanelToggleButton
+                value={$appSettings.rightPanelVisible}
+                direction={"right"}
+                on:toggle={handleRightPanelToggle}
+              />
+            </div>
+            <MiddlePanelContainer />
+          </div>
         </Pane>
 
         <Pane
@@ -446,5 +472,8 @@
     height: 0.05rem;
     pointer-events: none;
     cursor: none;
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
   }
 </style>

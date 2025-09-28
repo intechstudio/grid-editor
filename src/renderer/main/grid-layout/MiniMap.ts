@@ -2,55 +2,61 @@ import { derived, get, writable, type Readable } from "svelte/store";
 import { runtime_manager } from "../../runtime/runtime-manager.store";
 import { LAYOUT_CELL_WIDTH } from "./GridLayout.svelte";
 import type { GridRuntime } from "../../runtime/runtime";
+import { Grid } from "../../lib/_utils";
 
 export namespace MiniMap {
   export type MinimapData = {
     runtime: GridRuntime;
-    scale: Readable<number>;
     label: string;
     moduleCount: number;
+    component: HTMLElement;
   };
 
-  // This only updates if runtime_managers managed connections change in terms of count
-  export const connectedRuntimes = (() => {
-    const { subscribe, set } = writable([] as GridRuntime[]);
-
-    let previous: number;
-
-    const update = () => {
-      const rm = get(runtime_manager);
-      const current = rm.data.length;
-      if (current !== previous) {
-        previous = current;
-        set(rm.data.map((e) => e.runtime));
-      }
-    };
-
-    const unsubscribe = runtime_manager.subscribe(update);
-
-    return {
-      subscribe,
-      destroy: () => unsubscribe(),
-    };
-  })();
+  export const connectedRuntimes: Readable<GridRuntime[]> = derived(
+    runtime_manager,
+    ($runtime_manager) => $runtime_manager.data.map((e) => e.runtime),
+  );
 
   function computeMinimapData(runtimes: GridRuntime[]): MinimapData[] {
     let virtual = 0;
     let physical = 0;
 
     return runtimes.map((runtime) => {
-      const countX = runtime.countX();
-      const countY = runtime.countY();
-      const scaleWidth = 300 / (countX * LAYOUT_CELL_WIDTH);
-      const scaleHeight = 100 / (countY * LAYOUT_CELL_WIDTH);
-
       return {
         runtime,
-        scale: writable(Math.min(scaleWidth, scaleHeight)),
         label: runtime.virtual ? `Virtual ${++virtual}` : `Port ${++physical}`,
         moduleCount: runtime.modules.length,
+        component: null,
       };
     });
+  }
+
+  export function calculateScale(
+    entry: MinimapData,
+    height: number,
+    rotation: Grid.Rotation,
+  ) {
+    const countY = [Grid.Rotation.R90, Grid.Rotation.R270].includes(
+      Grid.addRotations(rotation, entry.runtime.rotation),
+    )
+      ? entry.runtime.countX()
+      : entry.runtime.countY();
+    const scale = Math.min(height / (countY * LAYOUT_CELL_WIDTH), 0.5);
+    return writable(scale);
+  }
+
+  export function calculateWidth(
+    entry: MinimapData,
+    height: number,
+    rotation: Grid.Rotation,
+  ) {
+    const countX = [Grid.Rotation.R90, Grid.Rotation.R270].includes(
+      Grid.addRotations(rotation, entry.runtime.rotation),
+    )
+      ? entry.runtime.countY()
+      : entry.runtime.countX();
+    const scale = calculateScale(entry, height, rotation);
+    return countX * LAYOUT_CELL_WIDTH * get(scale);
   }
 
   export const data: Readable<MinimapData[]> = derived(

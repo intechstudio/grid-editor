@@ -72,6 +72,21 @@ const config = {
         purple: colors.purple,
         orange: colors.orange,
 
+        foreground: "var(--foreground)",
+        background: "var(--background)",
+        shadow: "var(--shadow)",
+        "foreground-muted": "var(--foreground-muted)",
+        "foreground-soft": "var(--foreground-soft)",
+        "foreground-disabled": "var(--foreground-disabled)",
+
+        "background-muted": "var(--background-muted)",
+        "background-soft": "var(--background-soft)",
+
+        "popover-background": "var(--popover-background)",
+        "popover-selection": "var(--popover-selection)",
+        "popover-reference": "var(--popover-reference)",
+        "intech-yellow": "#e4ff68",
+
         primary: {
           DEFAULT: "#1e2628",
           100: "#d3dcde",

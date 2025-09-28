@@ -113,6 +113,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
           incoming.connection = current;
 
           runtime_manager.add(incoming);
+          runtime_manager.setActive(incoming.id);
 
           this.update((store) => {
             console.log("Port connected:", current);

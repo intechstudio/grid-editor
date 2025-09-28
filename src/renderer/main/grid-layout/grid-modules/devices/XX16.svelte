@@ -1,12 +1,16 @@
 <script lang="ts">
+  import ModuleInfo from "../underlays/ModuleInfo.svelte";
+
   import { ModuleType } from "@intechstudio/grid-protocol";
 
-  import Btn from "../elements/Btn.svelte";
+  import Button from "../elements/Button.svelte";
   import Encoder from "../elements/Encoder.svelte";
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
 
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
+  import SquareButton from "../elements/SquareButton.svelte";
 
   export let moduleWidth;
   export let device: GridModule;
@@ -84,8 +88,8 @@
 </script>
 
 <div
-  data-testid="{moduleType}_dx:{dx};dy:{dy}"
-  class="module-dimensions relative"
+  {...$$restProps}
+  class="module-dimensions relative bg-background"
   style="--module-size: {moduleWidth + 'px'}; transform: rotate({device?.rot *
     -90}deg)"
 >
@@ -102,35 +106,56 @@
             <slot
               name="cell-underlay"
               {elementNumber}
-              isLeftCut={elementNumber == 14}
-              isRightCut={elementNumber == 13}
+              isLeftCut={elementNumber == 14 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 13 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
           <div class="normal-cell-ui-container">
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
             {#if moduleType === ModuleType.BU16}
-              <Btn {elementNumber} size={2.1} />
+              {#if [131, 195].includes(device.hwcfg)}
+                <SquareButton
+                  {elementNumber}
+                  size={4.2}
+                  value={elementposition_array[elementNumber][1]}
+                  color={ledcolor_array[elementNumber]}
+                />
+              {:else}
+                <Button
+                  {elementNumber}
+                  size={2.1}
+                  color={ledcolor_array[elementNumber]}
+                />
+              {/if}
             {:else if moduleType === ModuleType.PO16}
               <Potentiometer
                 {id}
                 {elementNumber}
                 position={elementposition_array[elementNumber][1]}
                 size={2.1}
+                color={ledcolor_array[elementNumber]}
               />
             {:else if moduleType === ModuleType.EN16}
-              <Encoder {elementNumber} size={2.1} />
+              <Encoder
+                {elementNumber}
+                size={2.1}
+                color={ledcolor_array[elementNumber]}
+              />
             {/if}
           </div>
           <div class="normal-cell-overlay-container">
             <slot
               name="cell-overlay"
               {elementNumber}
-              isLeftCut={elementNumber == 14}
-              isRightCut={elementNumber == 13}
+              isLeftCut={elementNumber == 14 &&
+                $appSettings.persistent.userLevelMinimalist === false}
+              isRightCut={elementNumber == 13 &&
+                $appSettings.persistent.userLevelMinimalist === false}
             />
           </div>
         </cell>
-      {:else}
+      {:else if $appSettings.persistent.userLevelMinimalist === false}
         <div
           class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
         >
@@ -147,4 +172,5 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
+  <ModuleInfo {device} visible={true} />
 </div>

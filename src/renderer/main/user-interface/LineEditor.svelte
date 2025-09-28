@@ -31,6 +31,16 @@
 
   $: handleFontSizechange($appSettings.persistent.fontSize);
 
+  $: if (editor) {
+    handleLightModeChange($appSettings.persistent.lightMode);
+  }
+
+  function handleLightModeChange(value: boolean) {
+    MonacoEditor.setTheme(
+      value ? MonacoEditor.Theme.LIGHT : MonacoEditor.Theme.DARK,
+    );
+  }
+
   function handleFontSizechange(fontSize) {
     editor?.updateOptions({ fontSize: fontSize });
   }
@@ -40,7 +50,9 @@
     editor = MonacoEditor.create(monaco_block, {
       value: value,
       language: "intech_lua",
-      theme: "my-theme",
+      theme: $appSettings.persistent.lightMode
+        ? MonacoEditor.Theme.LIGHT
+        : MonacoEditor.Theme.DARK,
       minimap: {
         enabled: false,
       },
@@ -115,11 +127,6 @@
   window.ResizeObserver = function (callback) {
     const wrappedCallback = (entries, observer) => {
       callback(entries, observer);
-      /*
-      window.requestAnimationFrame(() => {
-        callback(entries, observer);
-      });
-      */
     };
 
     // Create an instance of the original ResizeObserver
@@ -138,9 +145,10 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
+
 <div
   id="monaco_container"
-  class="grid grid-cols-1 w-full h-full items-center p-1"
+  class="grid grid-cols-1 w-full h-full items-center p-1 rounded bg-background"
 >
   <div
     id="line-editor"

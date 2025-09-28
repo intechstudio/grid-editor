@@ -13,10 +13,6 @@
   let textArea = undefined;
   let inputField = undefined;
 
-  onMount(() => {
-    textArea.focus();
-  });
-
   async function sendFeedback() {
     feedbackSubmitted = true;
     setTimeout(handleClose, 3000);
@@ -45,8 +41,10 @@
     <div class="flex flex-col gap-4 flex-grow">
       <div class="flex-row w-full flex justify-between">
         <div class="flex flex-col">
-          <span class="w-full text-4xl text-white">Send Feedback</span>
-          <span class="w-full text-2xl text-gray-300">Intech Studio</span>
+          <span class="w-full text-4xl">Send Feedback</span>
+          <span class="w-full text-2xl text-foreground-muted"
+            >Intech Studio</span
+          >
         </div>
 
         <button
@@ -56,7 +54,7 @@
         hover:bg-secondary w-7 h-7 p-1"
         >
           <svg
-            class="fill-current text-gray-300"
+            class="fill-current text-foreground-muted"
             viewBox="0 0 29 29"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -74,20 +72,20 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <div class="text-gray-500">Feedback Context:</div>
+        <div class="text-foreground-muted">Feedback Context:</div>
         <input
           bind:this={inputField}
-          class="bg-secondary p-2 text-white"
+          class="bg-background-muted p-2"
           type="text"
           value={feedback_context}
         />
       </div>
       <div class="flex flex-col gap-1 flex-grow">
-        <span class="text-gray-500">Text:</span>
+        <span class="text-foreground-muted">Text:</span>
         <div class="flex flex-grow relative">
           <textarea
             bind:this={textArea}
-            class="bg-secondary p-2 w-full h-32 text-white outline-none"
+            class="bg-background-muted p-2 w-full h-32 outline-none"
           />
           {#if feedbackSubmitted}
             <div

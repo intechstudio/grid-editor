@@ -160,11 +160,11 @@
 >
   <div class="flex flex-row justify-center items-center gap-2">
     <div class="flex flex-col">
-      <div class="mx-4 text-white font-medium">
+      <div class="mx-4 font-medium">
         {changes} active changes
       </div>
       {#if $appSettings.persistent.writeBufferDebugEnabled}
-        <div class="mx-4 text-white font-medium">
+        <div class="mx-4 font-medium">
           writeBuffer: {$buffer?.array.length}
         </div>
       {/if}
@@ -172,13 +172,21 @@
 
     <div
       use:tooltip={{
-        key: "configuration_header_clear",
+        key: "configuration_header_discard",
         placement: "top",
         class: "w-60 p-4 z-10",
+        buttons: [
+          {
+            label: "Cancel",
+            handler: undefined,
+          },
+          { label: "Confirm", handler: handleDiscard },
+        ],
+        triggerEvents: ["show-buttons", "hover"],
       }}
     >
       <MoltenPushButton
-        click={handleDiscard}
+        click={() => {}}
         disabled={!isChanges}
         text="Discard All"
       />
