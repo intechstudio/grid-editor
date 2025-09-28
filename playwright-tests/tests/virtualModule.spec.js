@@ -82,5 +82,6 @@ test("Discard module fetching config automatically", async ({ page }) => {
   await connectModulePage.addModule("EF44");
   await configPage.removeAllActions();
   await modulePage.discardConfig();
+  await page.getByRole("button", { name: "Confirm" }).first().click();
   await expect(page.locator("#cfg-2")).toBeVisible();
 });

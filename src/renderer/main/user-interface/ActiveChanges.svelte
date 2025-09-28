@@ -172,13 +172,21 @@
 
     <div
       use:tooltip={{
-        key: "configuration_header_clear",
+        key: "configuration_header_discard",
         placement: "top",
         class: "w-60 p-4 z-10",
+        buttons: [
+          {
+            label: "Cancel",
+            handler: undefined,
+          },
+          { label: "Confirm", handler: handleDiscard },
+        ],
+        triggerEvents: ["show-buttons", "hover"],
       }}
     >
       <MoltenPushButton
-        click={handleDiscard}
+        click={() => {}}
         disabled={!isChanges}
         text="Discard All"
       />

@@ -4,6 +4,9 @@
   import { onMount } from "svelte";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
+  import { get } from "svelte/store";
+  import { logger } from "../../../runtime/runtime.store";
+  import { Runtime } from "../../../runtime/string-table";
 
   let monacoElement: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor;
@@ -45,7 +48,17 @@
 
   function handleSendInmediateclicked() {
     const value = editor.getValue();
-    runtime_manager.LUAExecImmediate(0, 0, value);
+    const module = get(runtime_manager).active?.runtime.findModule(0, 0);
+    if (!module) {
+      logger.set({
+        type: "fail",
+        classname: "pagechange",
+        mode: 0,
+        message: Runtime.ErrorText.SEND_IMMEDIATE_NO_ACTIVE_MODULE,
+      });
+      return;
+    }
+    module.execLUAImmediate(value);
   }
 </script>
 
