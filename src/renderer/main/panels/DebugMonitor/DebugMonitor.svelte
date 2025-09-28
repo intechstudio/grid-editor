@@ -300,10 +300,7 @@
         class="outbound bigsvgtext"
         x="50%"
         y="50%"
-        >{Math.floor(
-          $outbound_data_rate_history[$inbound_data_rate_history.length - 1] *
-            100,
-        ) / 100}</text
+        >{Math.floor($outbound_data_rate_history.at(-1) * 100) / 100}</text
       >
       <text
         alignment-baseline="middle"
@@ -347,10 +344,7 @@
         class="inbound bigsvgtext"
         x="50%"
         y="50%"
-        >{Math.floor(
-          $inbound_data_rate_history[$inbound_data_rate_history.length - 1] *
-            100,
-        ) / 100}</text
+        >{Math.floor($inbound_data_rate_history.at(-1) * 100) / 100}</text
       >
       <text
         alignment-baseline="middle"
