@@ -89,21 +89,16 @@ export class MessageStream {
     const { SX, SY } = descr.brc_parameters;
     const { ELEMENT, PAGE } = descr.class_parameters;
 
+    let name = descr.class_parameters.NAME;
+
+    console.log(name, descr.raw);
+
     const element = this.runtime
       .findModule(SX, SY)
       .findPage(PAGE)
       .findElement(ELEMENT);
 
-    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
-    const action = setup.actionAt(0);
-
-    if (action?.short === elementNameInformation.short) {
-      const regex = elementNameInformation.valueRegex;
-      const value = action.script.match(regex)[1];
-      element.name = value;
-    } else {
-      element.resetName();
-    }
+    element.name = name;
   }
 
   private update_elementPositionStore_fromPreview(descr) {
