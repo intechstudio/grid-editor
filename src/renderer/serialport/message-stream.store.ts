@@ -91,8 +91,6 @@ export class MessageStream {
 
     let name = descr.class_parameters.NAME;
 
-    console.log(name, descr.raw);
-
     const element = this.runtime
       .findModule(SX, SY)
       .findPage(PAGE)
