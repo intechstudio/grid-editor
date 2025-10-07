@@ -418,7 +418,7 @@
           visible={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
         />
 
-        {#if $moduleOverlay === ModuleOverlay.Types.PRESET_DRAG &&   grid.is_element_compatible_with($profileCloudConfigDrag.type, element.type) }
+        {#if $moduleOverlay === ModuleOverlay.Types.PRESET_DRAG && grid.is_element_compatible_with($profileCloudConfigDrag.type, element.type)}
           <div class="absolute p-2 w-full h-full flex">
             <div
               role="region"

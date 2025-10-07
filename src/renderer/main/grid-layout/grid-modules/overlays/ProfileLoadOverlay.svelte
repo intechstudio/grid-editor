@@ -69,6 +69,15 @@
     });
   }
 
+  $: {
+    if ($selectedConfigStore) {
+      model.update((s) => {
+        s.step = ProfileCloudLoad.State.READY;
+        return s;
+      });
+    }
+  }
+
   $: handleViewModelChange($model);
 
   async function handleViewModelChange(data: ProfileLoadOverlay.ViewModel) {
@@ -162,6 +171,9 @@
     >
       {#if typeof $selectedConfigStore !== "undefined" && isCompatible(device.type, $selectedConfigStore.type)}
         {#if $page.isLoaded()}
+          {@const loaded = $page.isProfileLoaded(
+            GridProfileData.createFromCloudData($selectedConfigStore),
+          )}
           <div class="w-fit relative flex flex-col gap-2 items-center">
             <button
               on:click={handleProfileLoad}
@@ -170,25 +182,26 @@
                 ProfileCloudLoad.State.LOADED,
               ].includes($model.step) === false}
               class="flex flex-row px-4 py-2 rounded gap-2"
-              class:loaded-element={$model.step ==
-                ProfileCloudLoad.State.LOADED}
+              class:loaded-element={loaded}
               class:element={[
                 ProfileCloudLoad.State.READY,
                 ProfileCloudLoad.State.BUSY,
               ].includes($model.step)}
               class:error-element={$model.step == ProfileCloudLoad.State.ERROR}
             >
-              {#if $model.step === ProfileCloudLoad.State.READY}
-                <span class="text-white mr-2">Load Profile</span>
-                <SvgIcon fill="#FFF" iconPath={"download"} />
+              {#if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
+                {#if loaded}
+                  <span class="text-white mr-2">Re-Load Profile</span>
+                  <SvgIcon fill="#FFF" iconPath={"download"} />
+                {:else}
+                  <span class="text-white mr-2">Load Profile</span>
+                  <SvgIcon fill="#FFF" iconPath={"download"} />
+                {/if}
               {:else if $model.step === ProfileCloudLoad.State.BUSY}
                 <span
                   >{Math.round(($model.completed / $model.total) * 100)}%</span
                 >
                 <span class="text-white mr-2">Loading...</span>
-              {:else if $model.step === ProfileCloudLoad.State.LOADED}
-                <span class="text-white mr-2">Re-Load Profile</span>
-                <SvgIcon fill="#FFF" iconPath={"download"} />
               {:else if $model.step === ProfileCloudLoad.State.ERROR}
                 <span class="text-white">Error!</span>
               {/if}
