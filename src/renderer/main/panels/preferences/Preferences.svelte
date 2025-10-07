@@ -324,16 +324,6 @@
         bind:target={$appSettings.persistent.multiViewEnabled}
         title={"Enabled"}
       />
-      <BlockTitle>NVM Defrag</BlockTitle>
-      <BlockBody>
-        Defragment the NVM memory of the module. This will take some time.
-      </BlockBody>
-      <MoltenButton
-        title={"Defrag"}
-        click={() => {
-          runtime_manager.NVMDefrag();
-        }}
-      />
       <BlockTitle>NVM Erase</BlockTitle>
       <BlockBody>
         Erase the NVM memory of the module. This will take some time.
@@ -357,17 +347,6 @@
       <MeltCheckbox
         bind:target={$appSettings.persistent.allowDevBlocks}
         title={"Enabled"}
-      />
-
-      <BlockTitle>Websocket monitor</BlockTitle>
-      <BlockBody>
-        Enable/Disable the websocket monitor. This will show the websocket
-        messages in the console and add the websocket panel.
-      </BlockBody>
-
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.websocketMonitorEnabled}
-        title={"Activate websocket monitor"}
       />
 
       <BlockTitle>Port state overlay</BlockTitle>
@@ -454,6 +433,15 @@
       </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.packageDeveloper}
+        title={"Enabled"}
+      />
+
+      <BlockTitle>Midi Tester</BlockTitle>
+      <BlockBody>
+        Enables the WebMIDI based MIDI tester panel in MIDI Monitor.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.midiTesterEnabled}
         title={"Enabled"}
       />
     </Block>

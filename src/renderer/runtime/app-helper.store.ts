@@ -61,6 +61,7 @@ const persistentDefaultValues = {
   userLevelMinimalist: true,
   minimapToggled: false,
   eventsLoaded: false,
+  midiTesterEnabled: false,
 };
 
 interface PaneData {
