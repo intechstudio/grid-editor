@@ -128,8 +128,9 @@
   }
 
   function handleUpdateAction(e) {
-    const { short, script, name, validationError } = e.detail;
-    const data = new ActionData(short, script, name);
+    const { short, script, validationError } = e.detail;
+    const oldAction = action;
+    const data = new ActionData(short, script, oldAction.name);
     //TODO: Propose better solution
     data.invalid = validationError;
     updateAction(action, data, false);
