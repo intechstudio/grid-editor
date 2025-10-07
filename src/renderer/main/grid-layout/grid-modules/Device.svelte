@@ -38,7 +38,7 @@
     profileCloudConfigDrag,
   } from "../../panels/profileCloud/ProfileCloud.js";
   import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
-  import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
+  import { ElementType, ModuleType, grid } from "@intechstudio/grid-protocol";
   import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
   import { Focus } from "../../_actions/focus.action";
@@ -418,7 +418,7 @@
           visible={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
         />
 
-        {#if $moduleOverlay === ModuleOverlay.Types.PRESET_DRAG && $profileCloudConfigDrag.type === element.type}
+        {#if $moduleOverlay === ModuleOverlay.Types.PRESET_DRAG &&   grid.is_element_compatible_with($profileCloudConfigDrag.type, element.type) }
           <div class="absolute p-2 w-full h-full flex">
             <div
               role="region"
