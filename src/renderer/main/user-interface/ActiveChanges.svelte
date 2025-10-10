@@ -3,7 +3,6 @@
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
   import { user_input } from "./../../runtime/user-input.store";
-  import { selected_actions } from "./../../runtime/selected-actions.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
@@ -13,6 +12,7 @@
   import { GridRuntime } from "../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
   import { WriteBuffer } from "../../runtime/engine.store";
+  import { ConfigTour, configTour } from "../panels/profileCloud/ConfigTour";
 
   let isChanges = false;
   let changes = 0;
@@ -197,6 +197,8 @@
         placement: "top",
         class: "w-60 p-4",
       }}
+      use:configTour.registerStaticTarget={ConfigTour.Target
+        .StaticElementIdentifier.STORE}
     >
       <MoltenPushButton
         click={handleStore}

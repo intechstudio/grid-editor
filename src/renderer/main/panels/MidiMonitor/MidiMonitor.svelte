@@ -17,6 +17,7 @@
   import { MoltenPushButton, SvgIcon, Toggle } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { appSettings } from "../../../runtime/app-helper.store";
   import { Grid } from "../../../lib/_utils";
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
@@ -300,9 +301,11 @@
       <Pane size={debug ? 70 : 50}>
         <div class="flex flex-col overflow-hidden h-full">
           {#if debug}
-            <div class="m-4">
-              <MidiTester />
-            </div>
+            {#if $appSettings.persistent.midiTesterEnabled}
+              <div class="m-4">
+                <MidiTester />
+              </div>
+            {/if}
             <div class="flex w-full font-medium text-white pb-2 pt-8">
               MIDI Messages (RAW)
             </div>
