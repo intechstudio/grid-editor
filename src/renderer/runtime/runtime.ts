@@ -1118,7 +1118,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     const module = page.parent as GridModule;
 
     this.name = undefined;
-    module.execLUAImmediate(`ele[${this.elementIndex}]:gen("")`);
+    module.execLUAImmediate(`ele[${this.elementIndex}]:gen()`);
   }
 
   public isPresetLoaded(preset: GridPresetData) {
