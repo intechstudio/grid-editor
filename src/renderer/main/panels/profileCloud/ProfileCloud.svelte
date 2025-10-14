@@ -25,6 +25,7 @@
   import { Modal } from "../../modals/modal.store";
   import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { ElementType } from "@intechstudio/grid-protocol";
   import "@intechstudio/profile-cloud-webcomponent";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { profile_cloud, ProfileCloudEvent } from "./ProfileCloud";
@@ -51,11 +52,11 @@
       compatible.add(module.type);
       elements.forEach((e) => {
         compatible.add(e.type);
-        if (e.type === "encoder") {
-          compatible.add("button");
+        if (e.type == ElementType.ENCODER) {
+          compatible.add(ElementType.BUTTON);
         }
-        if (e.type === "endless") {
-          compatible.add("button");
+        if (e.type == ElementType.ENDLESS) {
+          compatible.add(ElementType.BUTTON);
         }
       });
     }
