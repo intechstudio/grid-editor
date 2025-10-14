@@ -253,6 +253,17 @@ test.describe("Character limit", () => {
     await configPage.addActionBlock("midi", "MIDI NRPN");
     await configPage.openActionBlockList();
     await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+
     await expect(await modulePage.characterLimitAddToast).toBeVisible();
   });
 
