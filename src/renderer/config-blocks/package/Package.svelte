@@ -8,6 +8,7 @@
   import { createEventDispatcher } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { GridAction } from "../../runtime/runtime";
+  import { appSettings } from "../../runtime/app-helper.store";
 
   export let config: GridAction;
 
@@ -16,17 +17,25 @@
   let actionElement;
   let updateActionWithConfig;
 
-  $: config, updateActionWithConfig, refreshActionConfig();
+  $: config,
+    updateActionWithConfig,
+    $appSettings.persistent.userLevelMinimalist,
+    refreshActionConfig();
 
   function refreshActionConfig() {
     if (updateActionWithConfig) {
-      updateActionWithConfig(config);
+      updateActionWithConfig(
+        config,
+        $appSettings.persistent.userLevelMinimalist,
+      );
     }
   }
 
   $: actionElement && addListeners();
 
   function addListeners() {
+    if (!actionElement) return;
+
     actionElement.addEventListener(
       "updateCode",
       (e) => {
