@@ -231,6 +231,11 @@ test.describe("Character limit", () => {
     await configPage.copyAction();
     await configPage.pasteAction();
     await configPage.pasteAction();
+    await configPage.pasteAction();
+    await configPage.pasteAction();
+    await configPage.pasteAction();
+    await configPage.pasteAction();
+    await configPage.pasteAction();
     await expect(await modulePage.characterLimitPasteToast).toBeVisible();
   });
 
@@ -242,10 +247,16 @@ test.describe("Character limit", () => {
     await configPage.addActionBlock("midi", "MIDI 14");
     await configPage.openActionBlockList();
     await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
+    await configPage.openActionBlockList();
+    await configPage.addActionBlock("midi", "MIDI NRPN");
     await expect(await modulePage.characterLimitAddToast).toBeVisible();
   });
 
-  const characterlimit = `print("It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway, so I simply don't have the time.")`;
+  const characterlimit = `print("It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway, It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway, It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway, It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway,It says I need to type at least ten characters, so here's this. Y'know what? I'm gonna type one hundred characters instead. Actually, I'm going to type five hundred characters. I'm definitely not going to type anywhere near one thousand characters, because that'd be ridiculous. Even if I wanted to type one thousand characters, I have to go to bed now anyway, so I simply don't have the time.")`;
   test("in comment", async () => {
     await configPage.removeAllActions();
     await configPage.addCommentBlock(characterlimit);
