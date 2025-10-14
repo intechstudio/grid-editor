@@ -134,7 +134,7 @@
         {/if}
 
         <div class="flex">
-          {#if trackerVisible}
+          {#if trackerVisible || true}
             <div
               in:fly|global={{ x: -10 }}
               out:fly|global={{ x: 10 }}
