@@ -6,224 +6,273 @@ import {
   Writable,
   get,
 } from "svelte/store";
-import TourStep, { TourStepContent } from "./TourStep.svelte";
+import TourPopoverComponent, { TourPopover } from "./TourPopover.svelte";
 import { Subscriber } from "svelte/motion";
 import {
   GridAction,
   GridEvent,
+  GridModule,
   GridProfileData,
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
+import { Grid } from "../../../lib/_utils";
 
 export namespace ConfigTour {
-  export function displayStep(node: HTMLElement, step: Step | undefined) {
-    let sibling: HTMLElement | null = null;
-    let tourStepInstance: TourStep | null = null;
-    const updateTrigger: Writable<number> = writable(0);
+  export namespace Target {
+    export enum Type {
+      ACTION_BLOCK = "action-block",
+      STATIC_ELEMENT = "static-element",
+    }
 
-    let resizeObserver: ResizeObserver | null = null;
+    export enum StaticElementIdentifier {
+      STORE = "store-button",
+    }
 
-    const observeReference = () => {
-      if (!node) return;
-      resizeObserver = new ResizeObserver(() => {
-        updateTrigger.update((n) => n + 1); // Signal update
-      });
-      resizeObserver.observe(node);
-    };
+    export interface AbstractTarget {
+      type: Type;
+      position?: Grid.Position;
+    }
 
-    const unobserveReference = () => {
-      resizeObserver?.disconnect();
-    };
+    export interface StaticElementTarget extends AbstractTarget {
+      element: HTMLElement;
+    }
 
-    const createTourStep = () => {
-      if (typeof step === "undefined") return;
+    export interface ActionBlockTarget extends AbstractTarget {
+      action: GridAction;
+    }
+  }
 
-      sibling = document.createElement("div");
-      node.parentNode?.insertBefore(sibling, node.nextSibling);
+  class Step implements TourPopover.Content {
+    private component: TourPopoverComponent | null = null;
+    private resizeObserver: ResizeObserver | null = null;
+    private node: HTMLElement | null = null;
+    private updateTrigger: Writable<number> = writable(0);
 
-      tourStepInstance = new TourStep({
-        target: sibling,
+    constructor(
+      public index: number,
+      public markdown: string,
+      public target: Target.AbstractTarget,
+    ) {}
+
+    public async displayStep() {
+      switch (this.target.type) {
+        case Target.Type.ACTION_BLOCK: {
+          const target = this.target as Target.ActionBlockTarget;
+          const event = target.action.parent as GridEvent;
+          await user_input.displayEvent(event);
+          this.node = target.action.element;
+          break;
+        }
+        case Target.Type.STATIC_ELEMENT: {
+          const target = this.target as Target.StaticElementTarget;
+          this.node = target.element;
+          break;
+        }
+      }
+
+      if (!this.node) {
+        console.warn("Step display failed: target node not found.");
+        return;
+      }
+
+      // Create the tour popover component
+      this.component = new TourPopoverComponent({
+        target: this.node,
         props: {
-          text: step.content.text,
-          referenceElement: node,
-          updateTrigger, // pass the writable store
+          markdown: this.markdown,
+          referenceElement: this.node,
+          updateTrigger: this.updateTrigger,
+          position: this.target.position,
         },
       });
 
-      observeReference();
-    };
-
-    createTourStep();
-
-    return {
-      update(newStep: Step | undefined) {
-        step = newStep;
-        if (tourStepInstance) tourStepInstance.$destroy();
-        unobserveReference();
-        createTourStep();
-      },
-      destroy() {
-        if (tourStepInstance) tourStepInstance.$destroy();
-        unobserveReference();
-        sibling?.remove();
-      },
-    };
-  }
-
-  export interface Step {
-    content: TourStepContent;
-    action: GridAction;
-  }
-
-  export interface TourData {
-    id: string | undefined;
-    current: Step | undefined;
-    steps: Step[];
-    index: number;
-    active: boolean;
-    profile: GridProfileData | undefined;
-  }
-
-  export class Tour implements Readable<TourData> {
-    static readonly defaultValue: TourData = {
-      id: undefined,
-      current: undefined,
-      steps: [],
-      index: -1,
-      active: false,
-      profile: undefined,
-    };
-    private internal: Writable<TourData> = writable(Tour.defaultValue);
-
-    public subscribe(
-      run: Subscriber<TourData>,
-      invalidate?: (value?: TourData) => void,
-    ): Unsubscriber {
-      return this.internal.subscribe(run, invalidate);
-    }
-
-    public set(value: TourData) {
-      this.internal.set(value);
-    }
-
-    private update(updater: Updater<TourData>) {
-      this.internal.update(updater);
-    }
-
-    private static parseSteps(
-      description: string,
-    ): Array<{ index: number; content: TourStepContent }> {
-      const stepRegex =
-        /<!--\s*tour\s+step=(\d+)\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
-
-      const steps: Array<{ index: number; content: TourStepContent }> = [];
-      let match: RegExpExecArray | null;
-
-      while ((match = stepRegex.exec(description)) !== null) {
-        const index = parseInt(match[1], 10);
-        const rawText = match[2];
-
-        const content: TourStepContent = {
-          text: rawText.trim().replace(/\r\n|\r/g, "\n"),
-        };
-
-        steps.push({ index, content });
-      }
-
-      return steps;
-    }
-
-    public static createTourFrom(
-      profile: GridProfileData,
-      targets: GridAction[],
-    ): TourData {
-      const steps = Tour.parseSteps(profile.description);
-      const mapped = targets.map((e) => {
-        const index = e.getTourIndex();
-        const step = steps.find((e) => e.index === index);
-        return typeof step === "undefined"
-          ? undefined
-          : {
-              index: index,
-              action: e,
-              content: step.content,
-            };
+      // Observe size changes
+      this.resizeObserver = new ResizeObserver(() => {
+        this.updateTrigger.update((n) => n + 1);
       });
-      const sorted = [...mapped]
-        .filter((e) => typeof e !== "undefined")
-        .sort((a, b) => a.index - b.index);
-      const first = sorted[0];
+      this.resizeObserver.observe(this.node);
+    }
 
-      if (typeof first === "undefined") {
-        return undefined;
+    public destroyStep() {
+      if (this.component) {
+        this.component.$destroy();
+        this.component = null;
       }
 
-      return {
-        current: undefined,
-        index: -1,
-        active: false,
-        id: profile.id,
-        steps: sorted,
-        profile: profile,
-      };
+      if (this.resizeObserver && this.node) {
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
+      }
+
+      this.node = null;
     }
+  }
+
+  export class Tour {
+    constructor(
+      public steps: Step[],
+      public index: number,
+    ) {}
 
     public next() {
-      const { steps, index } = get(this.internal);
+      const { steps, index } = this;
       return steps[index + 1];
     }
 
     public previous() {
-      const { steps, index } = get(this.internal);
+      const { steps, index } = this;
       return steps[index - 1];
     }
+  }
 
-    public stepForward() {
-      const next = this.next();
-      this.update((s) =>
-        Object({
-          ...s,
-          index: ++s.index,
-          current: next,
-        }),
-      );
+  export class Manager implements Readable<Tour> {
+    static readonly defaultValue = new Tour([], -1);
 
-      user_input.displayEvent(next.action.parent as GridEvent);
+    private internal: Writable<Tour> = writable(Manager.defaultValue);
+
+    public subscribe(
+      run: Subscriber<Tour>,
+      invalidate?: (value?: Tour) => void,
+    ): Unsubscriber {
+      return this.internal.subscribe(run, invalidate);
     }
 
-    public stepBackward() {
-      const previous = this.previous();
-      this.update((s) =>
-        Object({
-          ...s,
-          index: --s.index,
-          current: previous,
-        }),
-      );
-      user_input.displayEvent(previous.action.parent as GridEvent);
+    public set(value: Tour) {
+      this.internal.set(value);
+    }
+
+    private update(updater: Updater<Tour>) {
+      this.internal.update(updater);
     }
 
     public clear() {
-      this.set(Tour.defaultValue);
+      const { steps, index } = get(this.internal);
+      const current = steps[index];
+      current.destroyStep();
+      this.set(Manager.defaultValue);
     }
 
-    set active(value: boolean) {
-      this.update((s) => Object({ ...s, active: value }));
+    public registerStaticTarget(
+      node: HTMLElement,
+      id: Target.StaticElementIdentifier,
+      options: { position?: Grid.Position } = undefined,
+    ) {
+      const position = options?.position ?? Grid.Position.LEFT;
+      node.setAttribute("data-tour-static-target-id", String(id));
+      node.setAttribute("data-tour-static-target-position", String(position));
+      return;
     }
 
-    public reset() {
-      this.update((s) =>
-        Object({ ...s, active: false, index: 0, current: s.steps[0] }),
-      );
+    public async createTourFromProfile(
+      profile: GridProfileData,
+      module: GridModule,
+    ): Promise<void> {
+      const stepRegex =
+        /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
+
+      const actions = module.getTourTargets();
+
+      const result: Step[] = [];
+      let match: RegExpExecArray | null;
+
+      while ((match = stepRegex.exec(profile.description)) !== null) {
+        const index = parseInt(match[1], 10);
+        const staticValue = match[2];
+        const rawText = match[3];
+        const text = rawText.trim().replace(/\r\n|\r/g, "\n");
+
+        const type =
+          typeof staticValue === "undefined"
+            ? Target.Type.ACTION_BLOCK
+            : Target.Type.STATIC_ELEMENT;
+
+        switch (type) {
+          case Target.Type.ACTION_BLOCK: {
+            const matchingActions = actions.filter(
+              (a) => a.getTourIndex() === index,
+            );
+            if (matchingActions.length === 0) {
+              throw new Error(
+                `Error creating tour: Action Block with step index ${index} not found.`,
+              );
+            }
+            for (const action of matchingActions) {
+              result.push(
+                new Step(index, text, {
+                  type: Target.Type.ACTION_BLOCK,
+                  position: Grid.Position.LEFT,
+                  action,
+                } as Target.ActionBlockTarget),
+              );
+            }
+            break;
+          }
+
+          case Target.Type.STATIC_ELEMENT: {
+            const element = document.querySelector<HTMLElement>(
+              `[data-tour-static-target-id="${staticValue}"]`,
+            );
+            if (!element) {
+              throw new Error(
+                `Error creating tour: Static Element with id "${staticValue}" not found.`,
+              );
+            }
+            const position = element.getAttribute(
+              "data-tour-static-target-position",
+            );
+            result.push(
+              new Step(index, text, {
+                type: Target.Type.STATIC_ELEMENT,
+                position: position as Grid.Position,
+                element,
+              } as Target.StaticElementTarget),
+            );
+            break;
+          }
+        }
+      }
+
+      // Keep steps ordered by index
+      result.sort((a, b) => a.index - b.index);
+
+      this.internal.set(new Tour(result, 0));
+      return Promise.resolve();
     }
 
-    public start() {
-      this.reset();
-      this.update((s) => Object({ ...s, active: true }));
-      const { current } = get(this.internal);
-      user_input.displayEvent(current.action.parent as GridEvent);
+    public async stepForward() {
+      this.internal.update((s) => {
+        const { steps, index } = s;
+        const current = steps[index];
+        current.destroyStep();
+        s.index = s.index + 1;
+        return s;
+      });
+
+      const { steps, index } = get(this.internal);
+      const next = steps[index];
+      next.displayStep();
+    }
+
+    public async stepBackward() {
+      this.internal.update((s) => {
+        const { steps, index } = s;
+        const current = steps[index];
+        current.destroyStep();
+        s.index = s.index - 1;
+        return s;
+      });
+
+      const { steps, index } = get(this.internal);
+      const previous = steps[index];
+      previous.displayStep();
+    }
+
+    public async start() {
+      const { steps, index } = get(this.internal);
+      const first = steps[index];
+      first.displayStep();
     }
   }
 }
 
-export const configTour = new ConfigTour.Tour();
+export const configTour = new ConfigTour.Manager();

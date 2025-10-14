@@ -1,7 +1,9 @@
 <script lang="ts" context="module">
-  export type TourStepContent = {
-    text: string;
-  };
+  export namespace TourPopover {
+    export interface Content {
+      markdown: string;
+    }
+  }
 </script>
 
 <script lang="ts">
@@ -15,13 +17,15 @@
   import { configTour } from "./ConfigTour";
   import { marked } from "marked";
   import { Writable } from "svelte/store";
+  import { Grid } from "../../../lib/_utils";
 
-  export let text = "";
+  export let markdown = "";
   export let referenceElement: HTMLElement;
   export let updateTrigger: Writable<number>;
+  export let position: Grid.Position = Grid.Position.LEFT;
 
   function handleClose() {
-    configTour.active = false;
+    configTour.clear();
   }
 
   function handleNextClicked() {
@@ -34,12 +38,7 @@
 </script>
 
 {#key $updateTrigger}
-  <Popover
-    isOpen={$configTour.active}
-    {referenceElement}
-    placement={"left"}
-    spaceAway={10}
-  >
+  <Popover isOpen={true} {referenceElement} placement={position} spaceAway={10}>
     <div
       class="p-2 rounded bg-secondary flex flex-col border gap-1 border-white/30"
       transition:fade|global={{
@@ -56,10 +55,10 @@
         </button>
       </div>
       <div class="bg-primary p-2 text-white mb-2">
-        <MarkdownContainer markdown={String(marked(text))} />
+        <MarkdownContainer markdown={String(marked(markdown))} />
       </div>
       <div class="flex flex-row gap-2 self-end">
-        {#if $configTour && typeof configTour.previous() !== "undefined"}
+        {#if $configTour && typeof $configTour.previous() !== "undefined"}
           <MoltenPushButton
             text={"Previous"}
             snap={"auto"}
@@ -68,7 +67,7 @@
           />
         {/if}
 
-        {#if $configTour && typeof configTour.next() !== "undefined"}
+        {#if $configTour && typeof $configTour.next() !== "undefined"}
           <MoltenPushButton
             text={"Next"}
             snap={"auto"}
@@ -77,7 +76,7 @@
           />
         {/if}
 
-        {#if $configTour && typeof configTour.next() === "undefined"}
+        {#if $configTour && typeof $configTour.next() === "undefined"}
           <MoltenPushButton
             text={"Quit Tour"}
             snap={"auto"}

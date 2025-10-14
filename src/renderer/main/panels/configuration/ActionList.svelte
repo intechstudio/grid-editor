@@ -180,6 +180,7 @@
             {/key}
             <div class="flex items-center">
               <Option
+                testid={`action-checkbox-${index}`}
                 selected={typeof $selected_actions.find(
                   (e) => e.id === action.id,
                 ) !== "undefined"}

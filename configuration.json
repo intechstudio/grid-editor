@@ -72,6 +72,10 @@
     "package-image-stream": {
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-image-stream"
+    },
+    "package-touchdesigner-parhover": {
+      "gitHubRepositoryOwner": "function-store",
+      "gitHubRepositoryName": "TD_ParHoverMIDI_VSN1"
     }
   },
   "EDITOR_PACKAGES": {
