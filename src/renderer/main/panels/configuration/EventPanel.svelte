@@ -42,7 +42,9 @@
 
     const prefiltered = element.events.filter(
       (e) =>
-        (e.getName() !== "Setup" && e.getName() !== "Timer") ||
+        (e.getName() !== "Setup" &&
+          e.getName() !== "Timer" &&
+          e.getName() !== "Midi rx") ||
         $appSettings.persistent.userLevelMinimalist === false,
     );
 

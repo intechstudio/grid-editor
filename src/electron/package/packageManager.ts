@@ -771,6 +771,11 @@ function getAvailablePackages() {
         _package.packageVersion,
       );
 
+    let author = _package.author
+      ? _package.author
+      : (githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner ??
+        _package.author);
+
     packageList.push({
       id: _package.packageId,
       name: _package.packageName,
@@ -785,10 +790,7 @@ function getAvailablePackages() {
       uninstallable: !localPackages.has(_package.packageId),
       canUpdate,
       installProgress: packageInstallProgress.get(_package.packageId),
-      author: _package.author
-        ? _package.author
-        : (githubPackageList.get(_package.packageId)?.gitHubRepositoryOwner ??
-          _package.author),
+      author: author,
       description: canUpdate
         ? githubPackageDetails.get(_package.packageId).description
         : _package.description,
@@ -798,7 +800,9 @@ function getAvailablePackages() {
       menuIconPath: canUpdate
         ? githubPackageDetails.get(_package.packageId).menuIconPath
         : _package.menuIconPath,
-      isOfficial: recommendedGithubPackageList.has(_package.packageId),
+      isOfficial:
+        recommendedGithubPackageList.has(_package.packageId) &&
+        author == "intechstudio",
       isDownloaded: true,
     });
   }
@@ -819,7 +823,9 @@ function getAvailablePackages() {
       description: entry.description,
       packageVersion: entry.version,
       menuIconPath: entry.menuIconPath,
-      isOfficial: recommendedGithubPackageList.has(key),
+      isOfficial:
+        recommendedGithubPackageList.has(key) &&
+        entry.gitHubRepositoryOwner == "intechstudio",
       isDownloaded: updatingPackages.has(key),
       preferenceComponent: entry.preferenceComponent,
     });

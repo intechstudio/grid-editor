@@ -358,7 +358,7 @@
         {/if}
 
         <div class="flex w-full px-3">
-          <Toolbar {event} {element} targetPanel={container} />
+          <Toolbar {event} {element} />
         </div>
         <div class="flex flex-row h-full w-full max-h-full overflow-auto">
           {#if $appSettings.isMultiView}

@@ -6,7 +6,6 @@
   import { fade, blur, fly } from "svelte/transition";
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
-  import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
   import { runtime_manager } from "../runtime/runtime-manager.store";
@@ -135,23 +134,14 @@
         {/if}
 
         <div class="flex">
-          {#if trackerVisible}
+          {#if trackerVisible || true}
             <div
               in:fly|global={{ x: -10 }}
               out:fly|global={{ x: 10 }}
               class="w-fit absolute right-0 bottom-0 mb-6 mr-4 flex flex-row items-center gap-2"
             >
               <Tracker />
-              <PanelToggleButton
-                bind:value={$appSettings.persistent.minimapToggled}
-                direction={"down"}
-                on:toggle={(e) => {
-                  const value = e.detail;
-                  $splitpanes.minimap.size = value
-                    ? $splitpanes.minimap.default
-                    : 0;
-                }}
-              />
+              <PanelToggleButton target={"minimap"} />
             </div>
           {/if}
 

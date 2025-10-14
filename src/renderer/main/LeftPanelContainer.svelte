@@ -5,9 +5,9 @@
   import ProfileCloud from "./panels/profileCloud/ProfileCloud.svelte";
   import Packages from "./panels/packages/Packages.svelte";
   import Preferences from "./panels/preferences/Preferences.svelte";
-  import { appSettings } from "../runtime/app-helper.store";
+  import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
-  $: leftPanel = $appSettings.leftPanel ?? "profile-cloud";
+  $: leftPanel = $splitpanes.left.component ?? "profile-cloud";
 </script>
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
