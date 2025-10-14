@@ -48,7 +48,7 @@ function createLogStream() {
           last.count++;
           return ls;
         } else {
-          if (ls.length >= 3) {
+          if (ls.length >= 6) {
             ls.shift();
           }
 

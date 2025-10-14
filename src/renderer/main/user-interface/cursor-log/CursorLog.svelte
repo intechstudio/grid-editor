@@ -37,7 +37,7 @@
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >
-  <div class="flex flex-col w-[30rem] mb-[5rem]">
+  <div class="flex flex-col w-[30rem]">
     {#each $logStreamStore as log, i (log)}
       <div
         in:fly|global={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
