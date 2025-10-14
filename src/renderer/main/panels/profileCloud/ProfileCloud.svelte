@@ -49,7 +49,15 @@
     for (const module of rt.modules) {
       const elements = module.findPage(ui.pagenumber).control_elements;
       compatible.add(module.type);
-      elements.forEach((e) => compatible.add(e.type));
+      elements.forEach((e) => {
+        compatible.add(e.type);
+        if (e.type === "encoder") {
+          compatible.add("button");
+        }
+        if (e.type === "endless") {
+          compatible.add("button");
+        }
+      });
     }
     sendCompatibleTypes(Array.from(compatible));
   }
