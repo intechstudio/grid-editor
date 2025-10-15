@@ -289,7 +289,6 @@
   async function handleProfileCloudMounted(event) {
     profileCloudIsMounted = true;
     let authEnvironment = AuthEnvironment.PRODUCTION;
-    console.log("Profile Cloud mounted", event.data);
     if (event.data.environment !== "production") {
       authEnvironment = AuthEnvironment.DEVELOPMENT;
     }
