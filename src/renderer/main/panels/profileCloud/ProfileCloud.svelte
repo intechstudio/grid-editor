@@ -289,7 +289,7 @@
   async function handleProfileCloudMounted(event) {
     profileCloudIsMounted = true;
     let authEnvironment = AuthEnvironment.PRODUCTION;
-    if (event.data.environment && event.data.environment !== "production") {
+    if (event.data.environment !== "production") {
       authEnvironment = AuthEnvironment.DEVELOPMENT;
     }
     authStore.setCurrentAuthEnvironment(authEnvironment);

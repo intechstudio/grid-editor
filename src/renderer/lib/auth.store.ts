@@ -133,18 +133,18 @@ const createAuth = () => {
 
   async function setCurrentAuthEnvironment(environment: AuthEnvironment) {
     if (environment != currentAuthEnvironment) {
+      if (authUnsubscribe) {
+        authUnsubscribe();
+      }
       if (currentAuthEnvironment) {
         await logout();
       }
       currentAuthEnvironment = environment;
-      let currentUser = getCurrentCentralAuth().currentUser;
-      if (authUnsubscribe) {
-        authUnsubscribe();
-      }
       authUnsubscribe = getCurrentCentralAuth().onAuthStateChanged(
         handleAuthStateChanged,
       );
-      handleAuthStateChanged(getCurrentCentralAuth().currentUser);
+      let currentUser = getCurrentCentralAuth().currentUser;
+      handleAuthStateChanged(currentUser);
       console.log(`Current user: ${JSON.stringify(currentUser?.uid)}`);
     }
   }
