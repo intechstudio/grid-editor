@@ -6,7 +6,7 @@
     "grid-editor-web": {
       "hosting": {
         "grid-editor": ["grid-editor-web"],
-        "playwright-preview": ["grid-playwright-report"]
+        "playwright-preview": ["grid-playwright-result"]
       }
     }
   }
