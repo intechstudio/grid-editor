@@ -46,8 +46,8 @@ jobs:
         with:
           node-version: "24.10.0"
 
-      - name: Clean workspace
-        run: rm -rf node_modules
+      - name: Clear npm cache
+        run: npm cache clean --force
 
       - name: Install python setup-tools dependency
         run: pip install setuptools
