@@ -3,7 +3,7 @@
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
-  // config descriptor parameters
+
   export const information: ActionBlockInformation = {
     short: "cb",
     name: "CodeBlock",
@@ -32,11 +32,13 @@
     type: "single",
     toggleable: true,
     hiddenInMinimalist: true,
+    editName: true,
+    version: "2.0",
   };
 </script>
 
 <script lang="ts">
-  import { GridAction, ActionData, GridEvent } from "./../runtime/runtime";
+  import { GridAction, ActionData } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { onDestroy } from "svelte";
@@ -49,9 +51,8 @@
   import Monaco from "../main/modals/Monaco.svelte";
   import { MonacoEditor } from "../lib/monaco";
   import { appSettings } from "../runtime/app-helper.store";
-  import { get } from "svelte/store";
 
-  export let config: GridAction;
+  export let action: GridAction;
 
   let codePreview: HTMLElement;
 
@@ -90,16 +91,16 @@
     });
   });
 
-  function handleConfigChange(config: ActionData, theme: MonacoEditor.Theme) {
-    codePreview.innerHTML = GridScript.expandScript(config.script);
+  function handleActionChange(data: ActionData, theme: MonacoEditor.Theme) {
+    codePreview.innerHTML = GridScript.expandScript(data.script);
     MonacoEditor.colorize(codePreview, theme);
   }
 
-  $: if (codePreview && !$config.invalid) {
+  $: if (codePreview && !$action.invalid) {
     const theme = $appSettings.persistent.lightMode
       ? MonacoEditor.Theme.LIGHT
       : MonacoEditor.Theme.DARK;
-    handleConfigChange($config, theme);
+    handleActionChange($action, theme);
   }
 
   async function open_monaco() {
@@ -108,7 +109,7 @@
       disableEscapeClose: true,
       showAsUnique: true,
     }).show({
-      monaco_action: config,
+      monaco_action: action,
     });
   }
 </script>

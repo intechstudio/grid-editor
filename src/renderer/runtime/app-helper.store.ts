@@ -51,7 +51,6 @@ const persistentDefaultValues = {
   colorfulToolbar: false,
   packageDeveloper: false,
   actionHelperText: true,
-  editableBlockNames: false,
   unreleasedVirtualModules: false,
   multiViewEnabled: false,
   colorPicker: ColorPickerModel.Circle,

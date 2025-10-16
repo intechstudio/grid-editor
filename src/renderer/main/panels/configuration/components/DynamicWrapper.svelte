@@ -20,7 +20,13 @@
     removeActions,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
-  import { contextTarget } from "@intechstudio/grid-uikit";
+  import { contextTarget, SvgIcon } from "@intechstudio/grid-uikit";
+  import EditableName from "../../../../config-blocks/components/EditableName.svelte";
+  import { selected_actions } from "../../../../runtime/selected-actions.store";
+  import { get } from "svelte/store";
+  import { information } from "../../../../config-blocks/CodeBlock.svelte";
+  import { Modal } from "../../../modals/modal.store";
+  import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -31,6 +37,10 @@
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
   let ctrlIsDown = false;
+  let toggled = false;
+  let isEdit = false;
+  let event = action.parent as GridEvent;
+  let componentProps: Record<string, any> = {};
 
   onMount(() => {
     action.toggled = action.information.toggleable
@@ -40,6 +50,14 @@
     const result = getComponentInformation(action.short);
     header = result.header;
     component = result.component;
+
+    // TODO: Refactor this out. Reason: action block UI property config was renamed to action
+    // See Grid Editor internal action blocks implementations
+    const [major, minor] = result.information.version?.split(".") ?? [
+      undefined,
+      undefined,
+    ];
+    componentProps = major && +major >= 2 ? { action } : { config: action };
   });
 
   onDestroy(() => {
@@ -55,6 +73,24 @@
 
   $: if (!$action.toggled) {
     revertToSynced();
+  }
+
+  $: {
+    const isActiveTourStep =
+      $configTour.current?.action.id === $action.id && $configTour.active;
+    if (!toggled && isActiveTourStep) {
+      toggled = true;
+    }
+  }
+
+  function handleEditClicked() {
+    isEdit = !isEdit;
+  }
+
+  function handleNameChange(e: any) {
+    const { value } = e.detail;
+    const data = new ActionData(action.short, action.script, value);
+    updateAction(action, data, true);
   }
 
   function revertToSynced() {
@@ -83,8 +119,9 @@
   }
 
   function handleUpdateAction(e) {
-    const { short, script, name, validationError } = e.detail;
-    const data = new ActionData(short, script, name);
+    const { short, script, validationError } = e.detail;
+    const oldAction = action;
+    const data = new ActionData(short, script, oldAction.name);
     //TODO: Propose better solution
     data.invalid = validationError;
     updateAction(action, data, false);
@@ -120,8 +157,14 @@
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === "Control") {
+    const { key } = e;
+
+    if (key === "Control") {
       ctrlIsDown = true;
+    }
+
+    if (key === "F2" && get(selected_actions).includes(action)) {
+      isEdit = true;
     }
   }
 
@@ -138,6 +181,11 @@
   function handleResetToDefault() {
     const data = new ActionData(action.short, action.information.defaultLua);
     updateAction(action, data, true);
+  }
+
+  function handleRename() {
+    const availableCharacters = event.getAvailableChars();
+    new Modal.Window(RenameActionBlock).show({ availableCharacters, action });
   }
 </script>
 
@@ -197,7 +245,13 @@
         {
           text: [`Delete`],
           handler: () => handleDelete(),
-          isDisabled: () => false,
+          isDisabled: () =>
+            ["single"].includes(action.information.type) === false,
+        },
+        {
+          text: [`Rename`],
+          handler: () => handleRename(),
+          isDisabled: () => !action.information.editName,
         },
         {
           text: [`Reset to Default`],
@@ -235,7 +289,7 @@
           <div class="h-full w-full bg-background-mute">
             <svelte:component
               this={component}
-              config={action}
+              {...componentProps}
               on:replace={handleReplace}
               on:update-action={handleUpdateAction}
               on:sync={handleSendActionToGrid}
@@ -247,11 +301,29 @@
           <div class="min-h-10 w-full flex">
             <svelte:component
               this={header}
-              config={action}
+              {...componentProps}
               on:toggle={handleToggle}
               on:update-action={handleUpdateAction}
               on:sync={handleSendActionToGrid}
-            />
+            >
+              <div slot="name" class="flex h-full items-center">
+                <EditableName
+                  bind:isEdit
+                  value={$action.name}
+                  availableCharacters={$event.getAvailableChars()}
+                  defaultValue={action.information.displayName}
+                  on:name-change={handleNameChange}
+                />
+              </div>
+
+              <button
+                slot="edit-name-trigger"
+                on:click|stopPropagation={handleEditClicked}
+                class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded pointer-events-auto"
+              >
+                <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+              </button>
+            </svelte:component>
           </div>
         {/if}
       </div>

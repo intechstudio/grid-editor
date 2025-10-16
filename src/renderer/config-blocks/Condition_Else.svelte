@@ -7,7 +7,6 @@
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "el",
     name: "Condition_Else",
@@ -30,5 +29,7 @@
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     helperText:
       "Actions here are triggered when the event runs, and no others conditions were met.",
+    editName: false,
+    version: "2.0",
   };
 </script>
