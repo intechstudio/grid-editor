@@ -46,6 +46,9 @@ jobs:
         with:
           node-version: "24.10.0"
 
+      - name: Clean workspace
+        run: rm -rf node_modules
+
       - name: Install python setup-tools dependency
         run: pip install setuptools
         env:
