@@ -1154,6 +1154,9 @@ export class GridElement extends RuntimeNode<ElementData> {
     const module = page.parent as GridModule;
 
     this.name = undefined;
+    if (this.elementIndex === 255) {
+      return; // do not request name for system element
+    }
     module.execLUAImmediate(`ele[${this.elementIndex}]:gen()`);
   }
 
