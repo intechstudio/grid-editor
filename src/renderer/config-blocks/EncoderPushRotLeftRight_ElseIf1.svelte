@@ -7,7 +7,6 @@
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "eprlrei1",
     name: "Condition_ElseIf",
@@ -32,5 +31,7 @@
     syntaxPreprocessor: new SyntaxPreprocessor(""),
     helperText:
       "Actions here are triggered by rotating the encoder right while it is pressed.",
+    editName: false,
+    version: "2.0",
   };
 </script>

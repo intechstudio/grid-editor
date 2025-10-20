@@ -12,18 +12,18 @@
 
   const dispatch = createEventDispatcher();
 
-  export let config: GridAction;
+  export let action: GridAction;
 
   let scriptSegments: string[] = [];
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
+  $: if (!$action.invalid) {
+    handleActionChange($action);
   }
 
-  function handleConfigChange(config: ActionData) {
+  function handleActionChange(data: ActionData) {
     scriptSegments = Script.toSegments({
-      short: config.short,
-      script: config.script,
+      short: data.short,
+      script: data.script,
     });
   }
 
@@ -39,7 +39,7 @@
       ] as const
     ).map((e, i) =>
       scriptSegments[i] === "-1"
-        ? Grid.Auto.getMidi(config, e)
+        ? Grid.Auto.getMidi(action, e)
         : scriptSegments[i],
     );
 
@@ -67,13 +67,14 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
   class="flex items-center flex-row w-full pr-2"
-  style="background-color: {config.information.color}"
+  style="background-color: {action.information.color}"
   on:click={handleClick}
 >
-  <div class="grid grid-cols-[auto_1fr] items-center h-full w-full py-1">
-    <span class="mr-2 w-fit whitespace-nowrap"
-      >{config.information.displayName}</span
-    >
-    <InfoBox value={`${getDisplayValues($config)}`} />
+  <div
+    class="grid grid-cols-[auto_1fr_auto] gap-2 items-center justify-center h-full w-full py-1"
+  >
+    <slot name="name" />
+    <InfoBox value={`${getDisplayValues($action)}`} />
+    <slot name="edit-name-trigger" />
   </div>
 </div>

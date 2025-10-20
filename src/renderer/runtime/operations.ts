@@ -389,8 +389,8 @@ export async function loadProfile(
         ),
       );
 
-      const tour = ConfigTour.Tour.createTourFrom(profile, actions);
-      configTour.set(tour ?? ConfigTour.Tour.defaultValue);
+      const tour = ConfigTour.Manager.createTourFrom(profile, actions);
+      configTour.set(tour ?? ConfigTour.Manager.defaultValue);
       return Promise.resolve();
     })
     .catch((e) => {

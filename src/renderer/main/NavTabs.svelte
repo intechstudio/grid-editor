@@ -6,38 +6,32 @@
 
   import CircularBar from "./user-interface/CircularBar.svelte";
 
-  $: selectedLeftTab = $appSettings.leftPanel ?? "profile-cloud";
+  let leftSize = 0;
+  $: leftSize = $splitpanes.left.size;
+  $: selectedLeftTab = $splitpanes.left.component ?? "profile-cloud";
   $: enabledPackages = $appSettings.persistent.enabledPackages;
   $: menuItems = $appSettings.packageList
     .sort((p1, p2) => p1.name.localeCompare(p2.name))
     .filter((p) => p.installProgress !== undefined || p.isEnabled);
 
   function toggleLeftTab() {
-    // Update store and global variables
-    $appSettings.leftPanelVisible = !$appSettings.leftPanelVisible;
     splitpanes.update((store) => {
-      store.left.size =
-        $appSettings.leftPanelVisible == true ? store.left.default : 0;
+      store.left.size = store.left.size === 0 ? store.left.default : 0;
       return store;
     });
   }
   function changeLeftTab(tab) {
     // When same tab is clicked, toggle the visibility of the panel
     // Untoggle  when a new selection happened
-    if (selectedLeftTab == tab || $appSettings.leftPanelVisible == false) {
+    if ($splitpanes.left.component == tab || $splitpanes.left.size == false) {
       toggleLeftTab();
     }
-    // update local leftPanel
-    selectedLeftTab = tab;
-    appSettings.update((store) => {
-      store.leftPanel = tab;
+
+    splitpanes.update((store) => {
+      store.left.component = tab;
       return store;
     });
-    console.log(selectedLeftTab);
   }
-
-  let leftSize = 0;
-  $: leftSize = $splitpanes.left.size;
 </script>
 
 <nav-tab

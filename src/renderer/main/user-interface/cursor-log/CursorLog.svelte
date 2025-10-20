@@ -56,3 +56,9 @@
     {/each}
   </div>
 </container>
+
+<style>
+  div.log-message:last-child {
+    margin-bottom: 5rem;
+  }
+</style>

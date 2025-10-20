@@ -92,7 +92,9 @@
     {/if}
   </div>
   <div class="flex grow flex-col px-1">
-    <p class="line-clamp-1 overflow-hidden text-ellipsis">{data.name}</p>
+    <p class="line-clamp-1 overflow-hidden text-ellipsis">
+      {data.name}{data.packageVersion ? ` - ${data.packageVersion}` : ""}
+    </p>
     <p
       class="text-gray-500 text-sm line-clamp-1 overflow-hidden text-ellipsis grow"
     >

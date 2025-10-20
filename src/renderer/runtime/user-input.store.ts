@@ -31,7 +31,7 @@ export class UserInput implements Writable<UserInputValue> {
     this._internal = writable(UserInput.defaultValue);
   }
 
-  public displayEvent(value: GridEvent) {
+  public async displayEvent(value: GridEvent) {
     const element = value.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
@@ -42,6 +42,11 @@ export class UserInput implements Writable<UserInputValue> {
       elementnumber: element.elementIndex,
       eventtype: value.type,
     });
+
+    // Wait for next re-render
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
   }
 
   // Subscribe to the entire object

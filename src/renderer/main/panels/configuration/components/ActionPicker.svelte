@@ -15,7 +15,7 @@
   import { clickOutside } from "../../../_actions/click-outside.action";
   import { Analytics } from "../../../../runtime/analytics.js";
   import { getAllComponents } from "../../../../lib/_configs";
-  import { lastOpenedActionblocksInsert } from "../Configuration";
+  import { toggledBlocks } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
   import { onMount, onDestroy } from "svelte";
   import {
@@ -216,7 +216,7 @@
     }
     if (eventString !== "button") {
       comp = comp.filter(
-        (e) => !["bprel", "bpre", "bpr"].includes(e.information.short),
+        (e) => !["bprel", "bpre", "bpr", "bst0"].includes(e.information.short),
       );
     }
 
@@ -319,7 +319,7 @@
       ),
     ];
 
-    lastOpenedActionblocksInsert(configs[0].short);
+    toggledBlocks.add(configs[0].short);
 
     const compositeLua = configs[0].information.compositeLua;
     if (typeof compositeLua !== "undefined") {

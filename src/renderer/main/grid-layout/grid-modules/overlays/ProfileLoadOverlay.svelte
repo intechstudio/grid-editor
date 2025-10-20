@@ -49,11 +49,11 @@
     device.findPage($user_input.pagenumber),
   );
 
-  let tour: ConfigTour.TourData | undefined;
   const totalEventCount = get(page).control_elements.reduce(
     (a, c) => a + c.events.length,
     0,
   );
+
   const loadedEventCount = derived(page, ($page) =>
     $page.control_elements.reduce(
       (a, c) => a + c.events.reduce((a, c) => a + (c.isLoaded() ? 1 : 0), 0),
@@ -116,9 +116,12 @@
   }
 
   function handleStartTour() {
-    configTour.set(tour);
-    configTour.start();
-    handleCloseOverlay();
+    const data = get(selectedConfigStore);
+    const profile = GridProfileData.createFromCloudData(data);
+    configTour.createTourFromProfile(profile, device).then(() => {
+      configTour.start();
+      handleCloseOverlay();
+    });
   }
 
   function handleCloseOverlay() {
@@ -128,35 +131,37 @@
 
   function isTourAvailable(page: GridPage, config: any) {
     const module = page.parent as GridModule;
-    if (config.configType !== "profile") {
-      return false;
-    }
 
-    if (module.type !== config.type) {
-      return false;
-    }
-
-    if (!page.isLoaded()) {
-      return false;
-    }
+    if (config.configType !== "profile") return false;
+    if (module.type !== config.type) return false;
+    if (!page.isLoaded()) return false;
 
     const profile = GridProfileData.createFromCloudData(config);
 
-    const actions = page.control_elements.flatMap((e) =>
-      e.events.flatMap((e) =>
-        e.config.filter((e) => {
-          return e.isTourStep();
-        }),
-      ),
-    );
-
-    tour = ConfigTour.Tour.createTourFrom(profile, actions);
-
-    if (typeof tour === "undefined") {
-      return false;
+    // Build a Set of all available step names from profile
+    const profileStepNames = new Set<string>();
+    for (const preset of profile.presets) {
+      for (const event of preset.element.events) {
+        for (const action of event.config) {
+          if (action.name) {
+            profileStepNames.add(action.name);
+          }
+        }
+      }
     }
 
-    return true;
+    // Collect all required tour actions
+    const currentStepNames = page.control_elements
+      .flatMap((e) =>
+        e.events.flatMap((e) => e.config.filter((e) => e.isTourStep())),
+      )
+      .map((e) => e.name);
+
+    // Check if all action names exist in profileStepNames
+    return (
+      currentStepNames.length > 0 &&
+      currentStepNames.every((e) => profileStepNames.has(e))
+    );
   }
 </script>
 

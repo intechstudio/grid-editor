@@ -18,8 +18,8 @@ export namespace GridService {
 
     public async start() {
       while (!this.stopped) {
-        this.worker();
         await this.delay(this.pingTime);
+        this.worker();
       }
     }
 

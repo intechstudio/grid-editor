@@ -116,6 +116,13 @@ export namespace Grid {
     DOWN = "down",
   }
 
+  export enum Position {
+    LEFT = "left",
+    RIGHT = "right",
+    TOP = "top",
+    BOTTOM = "bottom",
+  }
+
   export enum Rotation {
     R0 = 0,
     R90 = 90,

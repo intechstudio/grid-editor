@@ -4,18 +4,12 @@ export interface ShortcutParameter {
   control?: boolean;
   callback?: (...args: any) => void;
   code: string;
-  targetPanel: HTMLElement;
 }
 
 export function shortcut(node: HTMLElement, params?: ShortcutParameter) {
   let handler: any;
 
-  const removeHandler = () =>
-    params.targetPanel.removeEventListener("keydown", handler);
-
   const setHandler = () => {
-    removeHandler();
-
     if (!params) return;
 
     handler = (e: KeyboardEvent) => {
@@ -42,14 +36,11 @@ export function shortcut(node: HTMLElement, params?: ShortcutParameter) {
       e.preventDefault();
       params.callback ? params.callback() : node.click();
     };
-
-    params.targetPanel.addEventListener("keydown", handler);
   };
 
   setHandler();
 
   return {
     update: setHandler,
-    destroy: removeHandler,
   };
 }

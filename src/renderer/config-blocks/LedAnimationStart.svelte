@@ -4,7 +4,6 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "glat",
     name: "LedAnimationStart",
@@ -44,11 +43,13 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    editName: true,
+    version: "2.0",
   };
 </script>
 
 <script lang="ts">
-  import { onMount, createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
 
@@ -56,12 +57,17 @@
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./validators";
-  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import {
+    ActionData,
+    GridAction,
+    GridElement,
+    GridEvent,
+  } from "./../runtime/runtime";
   import { Grid } from "../lib/_utils.js";
 
-  export let config: GridAction;
+  export let action: GridAction;
 
-  let event = config.parent as GridEvent;
+  let event = action.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
@@ -101,18 +107,16 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
+  $: if (!$action.invalid) {
+    handleActionChange($action);
   }
 
-  function handleConfigChange(config) {
+  function handleActionChange(data: ActionData) {
     scriptSegments = Script.toSegments({
       short: "glpfs",
-      script: config.script,
+      script: data.script,
     });
   }
-
-  let suggestionPlaceMove = false;
 
   function sendData(e, index) {
     scriptSegments[index] = e;
@@ -122,7 +126,7 @@
       array: scriptSegments,
     });
     dispatch("update-action", {
-      short: config.short,
+      short: action.short,
       script: script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -166,7 +170,7 @@
 
   function updateSuggestions() {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === config.id);
+    const index = actions.findIndex((e) => e.id === action.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,

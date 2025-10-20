@@ -4,7 +4,6 @@
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
-  // config descriptor parameters
   export const information: ActionBlockInformation = {
     short: "glc",
     name: "LedColor",
@@ -26,6 +25,8 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    editName: true,
+    version: "2.0",
   };
 </script>
 
@@ -53,9 +54,9 @@
   import { Grid } from "../lib/_utils.js";
   import RandomColorGenerator from "../main/user-interface/RandomColorGenerator.svelte";
 
-  export let config: GridAction;
+  export let action: GridAction;
 
-  let event = config.parent as GridEvent;
+  let event = action.parent as GridEvent;
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Red", "Green", "Blue"];
@@ -100,8 +101,8 @@
   const defaultColor = new Color.RGB(255, 255, 255).toHSL();
   let color: Color.HSL = defaultColor;
 
-  $: if (!$config.invalid) {
-    handleConfigChange($config);
+  $: if (!$action.invalid) {
+    handleActionChange($action);
   }
 
   function parseRGB(r: any, g: any, b: any): Color.RGB | undefined {
@@ -112,10 +113,10 @@
     return new Color.RGB(parseInt(r), parseInt(g), parseInt(b));
   }
 
-  function handleConfigChange(config: ActionData) {
+  function handleActionChange(data: ActionData) {
     const _segments = Script.toSegments({
-      short: config.short,
-      script: config.script,
+      short: data.short,
+      script: data.script,
     });
 
     // handle legacy and new beautify command
@@ -146,12 +147,12 @@
       scriptSegments[index] = e;
     }
     const script = Script.toScript({
-      short: config.short,
+      short: action.short,
       array: [...scriptSegments, beautyMode],
     });
 
     dispatch("update-action", {
-      short: config.short,
+      short: action.short,
       script: script,
       validationError: validators.some((e) => e.value === false),
     });
@@ -176,7 +177,7 @@
 
   function updateSuggestions() {
     const actions = $event.config;
-    const index = actions.findIndex((e) => e.id === config.id);
+    const index = actions.findIndex((e) => e.id === action.id);
     const localDefinitions = LocalDefinitions.getFrom({
       configs: actions,
       index: index,
