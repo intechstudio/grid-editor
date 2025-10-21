@@ -184,7 +184,7 @@
         break;
       }
       default: {
-        moduleOverlay.close()
+        moduleOverlay.close();
         break;
       }
     }

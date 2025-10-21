@@ -381,7 +381,7 @@ export async function loadProfile(
         });
       }
 
-      configTour.createTourFromProfile(profile, module)
+      configTour.createTourFromProfile(profile, module);
       return Promise.resolve();
     })
     .catch((e) => {

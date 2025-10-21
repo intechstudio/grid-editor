@@ -149,7 +149,7 @@ export namespace ConfigTour {
       const { steps, index } = get(this.internal);
       const current = steps[index];
       this.set(Manager.defaultValue);
-      if(!current) return
+      if (!current) return;
       current.destroyStep();
     }
 
