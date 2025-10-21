@@ -5,7 +5,7 @@
     GridPage,
     GridPresetData,
   } from "./../../../../runtime/runtime";
-  import { selectedConfigStore } from "../../../../runtime/config-helper.store";
+  import { selectedConfigStore } from "../../../panels/profileCloud/ProfileCloud";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { loadPreset } from "../../../../runtime/operations";

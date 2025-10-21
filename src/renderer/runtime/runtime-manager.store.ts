@@ -20,6 +20,7 @@ import {
 } from "set-interval-async";
 import { modalManager } from "../main/modals/modal.store";
 import { Grid } from "../lib/_utils";
+import { GridService } from "./services";
 
 type ManagedConnection = {
   runtime: GridRuntime;
@@ -142,7 +143,11 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       virtual: true,
     };
 
-    return new GridRuntime(virtual_connection, true);
+    const virtual = new GridRuntime(virtual_connection, true);
+    const eventFetcher = new GridService.AutoEventFetcher(virtual);
+    eventFetcher.start();
+
+    return virtual;
   }
 
   public NVMErase() {

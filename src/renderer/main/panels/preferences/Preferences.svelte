@@ -296,6 +296,15 @@
         bind:target={$appSettings.persistent.lightMode}
         title={"Enabled"}
       />
+      <BlockTitle>Enable events loaded</BlockTitle>
+      <BlockBody
+        >Display on modules the number of events that are loaded and synced with
+        editor.</BlockBody
+      >
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.eventsLoaded}
+        title={"Enabled"}
+      />
       <BlockTitle>Multi Event View</BlockTitle>
       <BlockBody
         >This feature allows editing all events of a Grid control element. Once

@@ -30,27 +30,27 @@ import { GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
 import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
+import { ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
 
-type UUID = string;
-type LuaScript = string;
-type RawEventData = any;
 class NodeData {
-  id?: UUID;
-  parent?: RuntimeNode<any>;
+  id?: Grid.UUID;
+  parent?: RuntimeNode<unknown>;
 }
 
-export namespace ProfileLoad {
+export namespace ProfileCloudLoad {
   export enum State {
-    READY,
-    BUSY,
-    LOADED,
-    ERROR,
+    READY = "ready",
+    BUSY = "busy",
+    LOADED = "loaded",
+    ERROR = "error",
   }
 
   export interface Status {
     step: State;
     message?: string;
     error?: string;
+    total?: number;
+    completed?: number;
   }
 }
 
@@ -73,7 +73,7 @@ export class GridProfileData {
   public id: string;
   public readonly type = ConfigurationType.PROFILE;
 
-  static createFromCloudData(cloudProfile: any) {
+  static createFromCloudData(cloudProfile: ProfileCloudTypes.ProfileData) {
     const data = cloudProfile.configs;
     const profile = new GridProfileData();
 
@@ -103,7 +103,11 @@ export class GridPresetData {
   public id: string;
   public readonly type = ConfigurationType.PRESET;
 
-  constructor(type: ElementType, index: number, array: RawEventData[]) {
+  constructor(
+    type: ElementType,
+    index: number,
+    array: ProfileCloudTypes.EventData[],
+  ) {
     const element = new GridElement(undefined, new ElementData(index, type));
     for (const data of array) {
       const type = Number(data.event);
@@ -118,7 +122,7 @@ export class GridPresetData {
     return grid.is_element_compatible_with(this.element.type, type);
   }
 
-  static createFromCloudData(cloudPreset: any) {
+  static createFromCloudData(cloudPreset: ProfileCloudTypes.PresetData) {
     const preset = new GridPresetData(
       cloudPreset.type,
       -1,
@@ -136,11 +140,11 @@ export class GridSnippetData {
   public id: string;
   public readonly type = ConfigurationType.SNIPPET;
 
-  constructor(array: RawEventData) {
+  constructor(array: ProfileCloudTypes.EventData) {
     this.actions = GridAction.parse(array);
   }
 
-  static createFromCloudData(cloudPreset: any) {
+  static createFromCloudData(cloudPreset: ProfileCloudTypes.SnippetData) {
     const snippet = new GridSnippetData(cloudPreset.configs);
     snippet.description = cloudPreset.description;
     snippet.id = cloudPreset.id;
@@ -222,7 +226,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
     this.notifyParent();
   }
 
-  constructor(parent: RuntimeNode<any>, value?: T) {
+  constructor(parent: RuntimeNode<unknown>, value?: T) {
     value.parent = parent;
     value.id = uuidv4();
     this._internal = writable(value);
@@ -237,11 +241,11 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
     this.notifyParent();
   }
 
-  public get parent(): RuntimeNode<any> {
+  public get parent(): RuntimeNode<unknown> {
     return this.getField("parent");
   }
 
-  protected set parent(value: RuntimeNode<any>) {
+  protected set parent(value: RuntimeNode<unknown>) {
     this.setField("parent", value);
   }
 
@@ -249,7 +253,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
     return this.getField("id");
   }
 
-  protected set id(value: UUID) {
+  protected set id(value: Grid.UUID) {
     this.setField("id", value);
   }
 
@@ -375,7 +379,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     super(parent, data);
   }
 
-  static parse(script: LuaScript) {
+  static parse(script: Grid.LuaScript) {
     const result: GridAction[] = [];
 
     let actionString = script.replace(/[\n\r]+/g, "").replace(/\s{2,10}/g, " ");
@@ -555,7 +559,7 @@ export type EventInfo = {
 export class EventData extends NodeData {
   public config: Array<GridAction>;
   public type: number;
-  public stored: LuaScript;
+  public stored: Grid.LuaScript;
   public state: GridNodeState;
 
   constructor(type: number) {
@@ -1274,16 +1278,34 @@ export class GridElement extends RuntimeNode<ElementData> {
     return this.data.isCompatible(type);
   }
 
-  public async loadPreset(preset: GridPresetData): Promise<PresetLoadResult> {
+  public async loadPreset(
+    preset: GridPresetData,
+    setStatus?: (status: ProfileCloudLoad.Status) => void,
+  ): Promise<PresetLoadResult> {
+    let completed = 0;
+    const total = this.events.length;
+    setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed });
+
     try {
       await this.overwrite(preset.element.data);
-      await this.sendToGrid();
+      for (const event of this.events) {
+        await event.sendToGrid();
+        ++completed;
+        setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed });
+      }
+
+      setStatus?.({
+        step: ProfileCloudLoad.State.LOADED,
+        total,
+        completed: total,
+      });
       return Promise.resolve({
         value: true,
         text: "OK",
         type: GridOperationType.LOAD_PRESET,
       });
     } catch (e) {
+      setStatus?.({ step: ProfileCloudLoad.State.ERROR });
       return Promise.reject({
         value: false,
         text: e.text,
@@ -1477,10 +1499,14 @@ export class GridPage extends RuntimeNode<PageData> {
 
   public async loadProfile(
     profile: GridProfileData,
-    setStatus?: (status: ProfileLoad.Status) => void,
+    setStatus?: (status: ProfileCloudLoad.Status) => void,
   ): Promise<ProfileLoadResult> {
     try {
-      setStatus?.({ step: ProfileLoad.State.BUSY });
+      const total = profile.presets.reduce((acc, preset) => {
+        return acc + preset.element.events.length;
+      }, 0);
+
+      setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed: 0 });
       await this.load();
 
       const presets = profile.presets;
@@ -1495,20 +1521,30 @@ export class GridPage extends RuntimeNode<PageData> {
         presets.unshift(objectToMove);
       }
 
-      // PROFILE LOAD
+      let completed = 0;
       for (const preset of presets) {
         const element = this.findElement(preset.element.elementIndex);
-        await element.loadPreset(preset);
+        await element.overwrite(preset.element.data);
+
+        for (const event of element.events) {
+          await event.sendToGrid();
+          ++completed;
+          setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed });
+        }
       }
 
-      setStatus?.({ step: ProfileLoad.State.LOADED });
+      setStatus?.({
+        step: ProfileCloudLoad.State.LOADED,
+        total,
+        completed: total,
+      });
       return {
         value: true,
         text: "OK",
         type: GridOperationType.LOAD_PROFILE,
       };
     } catch (error) {
-      setStatus?.({ step: ProfileLoad.State.ERROR });
+      setStatus?.({ step: ProfileCloudLoad.State.ERROR });
       return Promise.reject({
         value: false,
         text: error instanceof Error ? error.message : String(error),
@@ -1817,7 +1853,7 @@ export class RuntimeData extends NodeData {
 export class GridRuntime extends RuntimeNode<RuntimeData> {
   public connection: GridConnection;
   public readonly virtual: boolean;
-  private aliveModules: Writable<Array<{ id: UUID; last: number }>>;
+  private aliveModules: Writable<Array<{ id: Grid.UUID; last: number }>>;
   public elementPositionStore: Writable<any> = writable({});
   public ledColorStore: Writable<any> = writable({});
 
@@ -2010,11 +2046,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   public async change_page(new_page_number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (get(this.connection.buffer).array.length > 0) {
-        reject("Wait before all operations are finished.");
-        return;
-      }
-
       if (this.unsavedChangesCount() != 0) {
         reject(Runtime.ErrorText.PAGE_CHANGE_DISABLED);
         return;

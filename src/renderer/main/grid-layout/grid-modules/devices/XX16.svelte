@@ -1,12 +1,9 @@
 <script lang="ts">
-  import ModuleInfo from "../underlays/ModuleInfo.svelte";
-
   import { ModuleType } from "@intechstudio/grid-protocol";
 
   import Button from "../elements/Button.svelte";
   import Encoder from "../elements/Encoder.svelte";
   import Potentiometer from "../elements/Potentiometer.svelte";
-  import Led from "../elements/Led.svelte";
 
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
@@ -168,5 +165,4 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
-  <ModuleInfo {device} visible={true} />
 </div>

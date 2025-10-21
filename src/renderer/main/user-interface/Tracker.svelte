@@ -2,6 +2,7 @@
   import { get } from "svelte/store";
   import { tooltip } from "./../_actions/tooltip";
   import { appSettings } from "../../runtime/app-helper.store";
+  import { ModuleOverlay, moduleOverlay } from "../../runtime/moduleOverlay";
   import {
     MeltSelect,
     MoltenPushButton,
@@ -47,9 +48,9 @@
   }
 
   function showControlElementNameOverlay() {
-    const show = get(moduleOverlay) !== ModuleOverlayType.CONTROL_NAME;
+    const show = get(moduleOverlay) !== ModuleOverlay.Types.CONTROL_NAME;
     if (show) {
-      moduleOverlay.show(ModuleOverlayType.CONTROL_NAME);
+      moduleOverlay.show(ModuleOverlay.Types.CONTROL_NAME);
     } else {
       moduleOverlay.close();
     }
@@ -71,7 +72,7 @@
       <Toggle
         title="Name Overlay"
         on:change={showControlElementNameOverlay}
-        value={$moduleOverlay === "control-name-overlay"}
+        value={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
       />
     </div>
     <div

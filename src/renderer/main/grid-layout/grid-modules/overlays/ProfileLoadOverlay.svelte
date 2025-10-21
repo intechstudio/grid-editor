@@ -1,5 +1,23 @@
+<script lang="ts" context="module">
+  export namespace ProfileLoadOverlay {
+    export interface ViewModel extends ProfileCloudLoad.Status {
+      target: GridPage | undefined;
+      config: SelectedProfileCloudConfig;
+    }
+
+    export const viewModel: Writable<ViewModel> = writable({
+      step: ProfileCloudLoad.State.READY,
+      target: undefined,
+      config: undefined,
+    });
+  }
+</script>
+
 <script lang="ts">
-  import { selectedConfigStore } from "../../../../runtime/config-helper.store";
+  import {
+    selectedConfigStore,
+    SelectedProfileCloudConfig,
+  } from "../../../panels/profileCloud/ProfileCloud";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { ModuleType } from "@intechstudio/grid-protocol";
@@ -7,60 +25,82 @@
     GridModule,
     GridPage,
     GridProfileData,
-    ProfileLoad,
+    ProfileCloudLoad,
   } from "../../../../runtime/runtime.js";
   import { loadProfile } from "../../../../runtime/operations";
   import { user_input } from "../../../../runtime/user-input.store";
-  import { derived, get } from "svelte/store";
+  import { derived, get, writable, Writable } from "svelte/store";
   import {
     ConfigTour,
     configTour,
   } from "../../../panels/profileCloud/ConfigTour";
   import { moduleOverlay } from "../../../../runtime/moduleOverlay";
   import { Grid } from "../../../../lib/_utils";
+  import { createEventDispatcher } from "svelte";
+
+  const dispatch = createEventDispatcher();
+
+  const model = ProfileLoadOverlay.viewModel;
 
   export let device: GridModule;
   export let visible = false;
 
-  let state = ProfileLoad.State.READY;
   let page = derived([device, user_input], ([$device, $user_input]) =>
-    $device.pages.find((e) => e.pageNumber === $user_input.pagenumber),
+    device.findPage($user_input.pagenumber),
   );
-  let tour: ConfigTour.Tour | undefined;
+
+  const totalEventCount = get(page).control_elements.reduce(
+    (a, c) => a + c.events.length,
+    0,
+  );
+
+  const loadedEventCount = derived(page, ($page) =>
+    $page.control_elements.reduce(
+      (a, c) => a + c.events.reduce((a, c) => a + (c.isLoaded() ? 1 : 0), 0),
+      0,
+    ),
+  );
 
   $: {
-    if (visible) {
-      updateState($page, $selectedConfigStore);
+    model.update((s) => {
+      s.target = $page;
+      s.config = $selectedConfigStore;
+      return s;
+    });
+  }
+
+  $: {
+    if ($selectedConfigStore) {
+      model.update((s) => {
+        s.step = ProfileCloudLoad.State.READY;
+        return s;
+      });
     }
   }
 
-  $: fetchPage($page, $selectedConfigStore);
+  $: handleViewModelChange($model);
 
-  function updateState(page: GridPage, selected: any) {
-    if ($selectedConfigStore?.configType !== "profile") {
+  async function handleViewModelChange(data: ProfileLoadOverlay.ViewModel) {
+    const { config, target } = data;
+    if (typeof config === "undefined") {
       return;
     }
 
-    if (state === ProfileLoad.State.BUSY) {
+    const module = target.parent as GridModule;
+    if (!isCompatible(module.type, config.type)) {
       return;
     }
 
-    if (typeof selected === "undefined") {
-      state = ProfileLoad.State.ERROR;
-      return;
+    if (!target.isLoaded()) {
+      await target.load();
     }
-
-    const profile = GridProfileData.createFromCloudData(selected);
-    const loaded = page.isProfileLoaded(profile);
-
-    state = loaded ? ProfileLoad.State.LOADED : ProfileLoad.State.READY;
   }
 
-  function handleProfileLoad(e) {
+  function handleProfileLoad() {
     const page = device.findPage(get(user_input).pagenumber);
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
-    loadProfile(profile, page, (status) => {
-      state = status.step;
+    loadProfile(profile, page, (e) => {
+      ProfileLoadOverlay.viewModel.update((s) => ({ ...s, ...e }));
     }).catch((e) => {
       console.warn(e);
     });
@@ -72,21 +112,6 @@
       return vsn1Modules.includes(b);
     } else {
       return a === b;
-    }
-  }
-
-  async function fetchPage(page: GridPage, config: any) {
-    if (typeof config === "undefined") {
-      return;
-    }
-
-    const module = page.parent as GridModule;
-    if (!isCompatible(module.type, config.type)) {
-      return;
-    }
-
-    if (!page.isLoaded()) {
-      await page.load();
     }
   }
 
@@ -144,42 +169,50 @@
   {#if visible}
     <div
       class="text-white w-full flex flex-col
-    items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
+  items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
       style="transform: rotate({-$appSettings.persistent.moduleRotation +
         Grid.Rotation.R90 *
           device?.rot}deg); border-radius: var(--grid-rounding);"
     >
       {#if typeof $selectedConfigStore !== "undefined" && isCompatible(device.type, $selectedConfigStore.type)}
         {#if $page.isLoaded()}
+          {@const loaded = $page.isProfileLoaded(
+            GridProfileData.createFromCloudData($selectedConfigStore),
+          )}
           <div class="w-fit relative flex flex-col gap-2 items-center">
             <button
               on:click={handleProfileLoad}
               disabled={[
-                ProfileLoad.State.READY,
-                ProfileLoad.State.LOADED,
-              ].includes(state) === false}
-              class="flex flex-row px-4 py-2 rounded"
-              class:loaded-element={state == ProfileLoad.State.LOADED}
+                ProfileCloudLoad.State.READY,
+                ProfileCloudLoad.State.LOADED,
+              ].includes($model.step) === false}
+              class="flex flex-row px-4 py-2 rounded gap-2"
+              class:loaded-element={loaded}
               class:element={[
-                ProfileLoad.State.READY,
-                ProfileLoad.State.BUSY,
-              ].includes(state)}
-              class:error-element={state == ProfileLoad.State.ERROR}
+                ProfileCloudLoad.State.READY,
+                ProfileCloudLoad.State.BUSY,
+              ].includes($model.step)}
+              class:error-element={$model.step == ProfileCloudLoad.State.ERROR}
             >
-              {#if state === ProfileLoad.State.READY}
-                <span class="text-white mr-2">Load Profile</span>
-                <SvgIcon fill="#FFF" iconPath={"download"} />
-              {:else if state === ProfileLoad.State.BUSY}
+              {#if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
+                {#if loaded}
+                  <span class="text-white mr-2">Re-Load Profile</span>
+                  <SvgIcon fill="#FFF" iconPath={"download"} />
+                {:else}
+                  <span class="text-white mr-2">Load Profile</span>
+                  <SvgIcon fill="#FFF" iconPath={"download"} />
+                {/if}
+              {:else if $model.step === ProfileCloudLoad.State.BUSY}
+                <span
+                  >{Math.round(($model.completed / $model.total) * 100)}%</span
+                >
                 <span class="text-white mr-2">Loading...</span>
-              {:else if state === ProfileLoad.State.LOADED}
-                <span class="text-white mr-2">Re-Load Profile</span>
-                <SvgIcon fill="#FFF" iconPath={"download"} />
-              {:else if state === ProfileLoad.State.ERROR}
+              {:else if $model.step === ProfileCloudLoad.State.ERROR}
                 <span class="text-white">Error!</span>
               {/if}
             </button>
 
-            {#if state !== ProfileLoad.State.BUSY && isTourAvailable($page, $selectedConfigStore)}
+            {#if isTourAvailable($page, $selectedConfigStore) && $model.step !== ProfileCloudLoad.State.BUSY}
               <MoltenPushButton
                 text="Start Tour!"
                 style="accept"
@@ -190,7 +223,13 @@
         {:else}
           <div class="flex flex-row gap-2 items-center">
             <span class="text-white">Fetching</span>
-
+            <div class="flex flex-row">
+              <span
+                >{Math.round(
+                  ($loadedEventCount / totalEventCount) * 100,
+                )}%</span
+              >
+            </div>
             <div class="fill-white opacity-75 animate-spin h-5 w-5">
               <svg
                 fill="none"

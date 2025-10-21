@@ -1,14 +1,19 @@
 import { writable, Writable } from "svelte/store";
 
-export enum ModuleOverlayType {
-  CONFIGURATION_LOAD = "configuration-load-overlay",
-  CONTROL_NAME = "control-name-overlay",
+export namespace ModuleOverlay {
+  export enum Types {
+    CONTROL_NAME = "control-name-overlay",
+    PROFILE_LOAD = "profile-load-overlay",
+    PRESET_LOAD = "preset-load-overlay",
+    PROFILE_DRAG = "profile-drag-overlay",
+    PRESET_DRAG = "preset-drag-overlay",
+  }
 }
 
 function create_module_overlay_store() {
-  const store: Writable<undefined | ModuleOverlayType> = writable(undefined);
+  const store: Writable<undefined | ModuleOverlay.Types> = writable(undefined);
 
-  function show(type: ModuleOverlayType) {
+  function show(type: ModuleOverlay.Types) {
     store.set(type);
   }
 
