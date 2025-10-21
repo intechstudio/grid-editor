@@ -381,16 +381,7 @@ export async function loadProfile(
         });
       }
 
-      const actions = (target as GridPage).control_elements.flatMap((e) =>
-        e.events.flatMap((e) =>
-          e.config.filter((e) => {
-            return e.isTourStep();
-          }),
-        ),
-      );
-
-      const tour = ConfigTour.Manager.createTourFrom(profile, actions);
-      configTour.set(tour ?? ConfigTour.Manager.defaultValue);
+      configTour.createTourFromProfile(profile, module)
       return Promise.resolve();
     })
     .catch((e) => {

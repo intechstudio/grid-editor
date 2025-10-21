@@ -171,15 +171,20 @@
 
   async function handleProvideSelectedConfigForEditor(event: any) {
     const { config } = event.data;
-    selectedConfigStore.set(event.data.config);
 
-    switch (config.configType) {
+    selectedConfigStore.set(config);
+
+    switch (config?.configType) {
       case "profile": {
         moduleOverlay.show(ModuleOverlay.Types.PROFILE_LOAD);
         break;
       }
       case "preset": {
         moduleOverlay.show(ModuleOverlay.Types.PRESET_LOAD);
+        break;
+      }
+      default: {
+        moduleOverlay.close()
         break;
       }
     }

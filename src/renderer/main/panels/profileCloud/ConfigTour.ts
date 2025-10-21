@@ -148,8 +148,9 @@ export namespace ConfigTour {
     public clear() {
       const { steps, index } = get(this.internal);
       const current = steps[index];
-      current.destroyStep();
       this.set(Manager.defaultValue);
+      if(!current) return
+      current.destroyStep();
     }
 
     public registerStaticTarget(
