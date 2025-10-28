@@ -61,6 +61,10 @@
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-discord"
     },
+    "package-deej": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-deej"
+    },
     "package-active-win": {
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-active-win"
