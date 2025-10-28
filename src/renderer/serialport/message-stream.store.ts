@@ -85,7 +85,7 @@ export class MessageStream {
     this.runtime.elementPositionStore.set(eps);
   }
 
-  private update_element_name(descr) {
+  private update_element_name_from_eventview(descr) {
     const { SX, SY } = descr.brc_parameters;
     const { ELEMENT, PAGE } = descr.class_parameters;
 
@@ -95,6 +95,28 @@ export class MessageStream {
       .findModule(SX, SY)
       .findPage(PAGE)
       .findElement(ELEMENT);
+
+    if (name == "") {
+      return;
+    }
+
+    element.name = name;
+  }
+
+  private update_element_name_from_elementname(descr) {
+    const { SX, SY } = descr.brc_parameters;
+    const { NUM } = descr.class_parameters;
+
+    let name = descr.class_parameters.NAME;
+
+    const element = this.runtime
+      .findModule(SX, SY)
+      .findPage(get(user_input).pagenumber)
+      .findElement(NUM);
+
+    if (name == "") {
+      return;
+    }
 
     element.name = name;
   }
@@ -333,7 +355,11 @@ export class MessageStream {
       }
 
       if (class_descr.class_name === "EVENTVIEW") {
-        this.update_element_name(class_descr);
+        this.update_element_name_from_eventview(class_descr);
+      }
+
+      if (class_descr.class_name === "ELEMENTNAME") {
+        this.update_element_name_from_elementname(class_descr);
       }
 
       if (
