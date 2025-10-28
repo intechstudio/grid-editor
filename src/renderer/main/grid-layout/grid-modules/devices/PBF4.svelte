@@ -1,7 +1,5 @@
 <script lang="ts">
-  import ModuleInfo from "../underlays/ModuleInfo.svelte";
   import Potentiometer from "../elements/Potentiometer.svelte";
-  import Led from "../elements/Led.svelte";
   import Fader from "../elements/Fader.svelte";
   import Button from "../elements/Button.svelte";
   import { appSettings } from "../../../../runtime/app-helper.store";
@@ -193,5 +191,4 @@
   <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
-  <ModuleInfo {device} visible={true} />
 </div>
