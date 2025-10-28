@@ -105,8 +105,6 @@
   }
 
   function handleElementChange(element: GridElement) {
-   
-    console.log("Change")
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
     const action = setup.actionAt(0);
 

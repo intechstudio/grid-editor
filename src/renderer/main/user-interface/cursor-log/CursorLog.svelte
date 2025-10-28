@@ -33,7 +33,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
   id="cursor-log"
-  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[2]"
+  class="absolute bottom-[5rem] left-1/2 -translate-x-1/2 mb-4 z-[2]"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >
@@ -42,7 +42,6 @@
       <div
         in:fly|global={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
         out:fly|global={{ x: 10, delay: 400 * i, duration: 500 }}
-        class="log-message"
       >
         <LogMessage
           count={log.count}
@@ -58,7 +57,7 @@
 </container>
 
 <style>
-  div.log-message:last-child {
-    margin-bottom: 5rem;
+  container {
+    border: 0px solid red;
   }
 </style>
