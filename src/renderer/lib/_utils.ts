@@ -1,4 +1,3 @@
-import convert from "color-convert";
 import {
   ElementType,
   EventType,
@@ -6,7 +5,6 @@ import {
   grid,
   ModuleType,
 } from "@intechstudio/grid-protocol";
-import { MeltComboSuggestion } from "@intechstudio/grid-uikit";
 import {
   GridAction,
   GridElement,
@@ -16,6 +14,9 @@ import {
 } from "../runtime/runtime";
 
 export namespace Grid {
+  export type UUID = string;
+  export type LuaScript = string;
+
   export namespace Auto {
     export enum Value {
       MIDI_CHANNEL,

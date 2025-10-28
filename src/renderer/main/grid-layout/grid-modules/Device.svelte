@@ -21,7 +21,6 @@
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
-  import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
   //Underlays
@@ -30,8 +29,7 @@
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { moduleOverlay } from "../../../runtime/moduleOverlay";
-  import { selectedConfigStore } from "../../../runtime/config-helper.store";
+  import { ModuleOverlay, moduleOverlay } from "../../../runtime/moduleOverlay";
   import { onMount, SvelteComponent } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
@@ -39,23 +37,18 @@
     profile_cloud,
     profileCloudConfigDrag,
   } from "../../panels/profileCloud/ProfileCloud.js";
-  import {
-    GridElement,
-    GridModule,
-    GridPage,
-    GridRuntime,
-  } from "../../../runtime/runtime";
-  import { ElementType, ModuleType } from "@intechstudio/grid-protocol";
+  import { GridElement, GridModule, GridPage } from "../../../runtime/runtime";
+  import { ElementType, ModuleType, grid } from "@intechstudio/grid-protocol";
   import { getNeighbour, KeyboardTarget } from "../Device";
   import { Grid } from "../../../lib/_utils";
   import { Focus } from "../../_actions/focus.action";
+  import ModuleInfo from "./underlays/ModuleInfo.svelte";
+  import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
 
   export let device: GridModule = undefined;
   export let width = 225;
   export let scale: number = 1.0;
   export let interactive: boolean;
-
-  let runtime = device.parent as GridRuntime;
 
   function selectNextNeighBour(
     element: GridElement,
@@ -194,36 +187,6 @@
     };
 
     profile_cloud.sendMessage(message);
-  }
-
-  let isDrag = false;
-  let dragged: {
-    configType: "profile" | "preset";
-    targetType: ModuleType | ElementType;
-  } = undefined;
-
-  $: {
-    isDrag = typeof $profileCloudConfigDrag !== "undefined";
-    if (isDrag) {
-      switch ($profileCloudConfigDrag.configType) {
-        case "profile": {
-          dragged = {
-            configType: "profile",
-            targetType: $profileCloudConfigDrag.type as ModuleType,
-          };
-          break;
-        }
-        case "preset": {
-          dragged = {
-            configType: "preset",
-            targetType: $profileCloudConfigDrag.type as ElementType,
-          };
-          break;
-        }
-      }
-    } else {
-      dragged = undefined;
-    }
   }
 </script>
 
@@ -411,13 +374,7 @@
             e.stopPropagation();
           }}
         >
-          <ActiveChanges
-            {element}
-            {isLeftCut}
-            {isRightCut}
-            visible={typeof $moduleOverlay === "undefined" ||
-              $moduleOverlay === "configuration-load-overlay"}
-          />
+          <ActiveChanges {element} {isLeftCut} {isRightCut} visible={true} />
           <ElementSelection
             {element}
             {isLeftCut}
@@ -453,16 +410,14 @@
             {element}
             {isLeftCut}
             {isRightCut}
-            visible={$moduleOverlay === "configuration-load-overlay" &&
-              $selectedConfigStore?.configType === "preset"}
+            visible={$moduleOverlay === ModuleOverlay.Types.PRESET_LOAD}
           />
         </div>
         <ControlNameOverlay
           {element}
-          visible={$moduleOverlay === "control-name-overlay"}
+          visible={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
         />
-
-        {#if isDrag && dragged?.configType === "preset" && dragged?.targetType === element.type}
+        {#if $moduleOverlay === ModuleOverlay.Types.PRESET_DRAG && $profileCloudConfigDrag && grid.is_element_compatible_with($profileCloudConfigDrag.type, element.type)}
           <div class="absolute p-2 w-full h-full flex">
             <div
               role="region"
@@ -479,13 +434,13 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay">
+      <ModuleInfo {device} visible={true} />
       {#if interactive}
         <ProfileLoadOverlay
           {device}
-          visible={$moduleOverlay === "configuration-load-overlay" &&
-            $selectedConfigStore?.configType === "profile"}
+          visible={$moduleOverlay === ModuleOverlay.Types.PROFILE_LOAD}
         />
-        {#if isDrag && dragged?.configType === "profile" && dragged?.targetType === device.type}
+        {#if $moduleOverlay === ModuleOverlay.Types.PROFILE_DRAG && $profileCloudConfigDrag.type === device.type}
           <div class="absolute p-2 w-full h-full flex">
             <div
               role="region"
