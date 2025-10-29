@@ -122,6 +122,8 @@ export class MessageStream {
   }
 
   private update_elementPositionStore_fromPreview(descr) {
+    console.log("EVENTPREVIEW", descr);
+
     let eps = get(this.runtime.elementPositionStore);
 
     if (eps[descr.brc_parameters.SX] === undefined) {
@@ -131,28 +133,34 @@ export class MessageStream {
       eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
     }
 
-    for (let i = 1; i < descr.class_parameters.LENGTH / 4; i++) {
+    console.log("ARRAY LENGTH", descr.class_parameters.LENGTH / 6);
+
+    for (let i = 0; i < descr.class_parameters.LENGTH / 6; i++) {
       const num = parseInt(
         "0x" +
-          String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
-          String.fromCharCode(descr.raw[4 + i * 4 + 1]),
+          String.fromCharCode(descr.raw[8 + i * 6 + 0]) +
+          String.fromCharCode(descr.raw[8 + i * 6 + 1]),
       );
-      const val = parseInt(
+      const val_1 = parseInt(
         "0x" +
-          String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
-          String.fromCharCode(descr.raw[4 + i * 4 + 3]),
+          String.fromCharCode(descr.raw[8 + i * 6 + 2]) +
+          String.fromCharCode(descr.raw[8 + i * 6 + 3]),
+      );
+      const val_2 = parseInt(
+        "0x" +
+          String.fromCharCode(descr.raw[8 + i * 6 + 4]) +
+          String.fromCharCode(descr.raw[8 + i * 6 + 5]),
       );
 
-      if (
-        eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] === undefined
-      ) {
-        eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = -1;
-      }
+      console.log("Num, val_1, val_2", num, val_1, val_2);
 
-      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = val;
-
-      this.runtime.elementPositionStore.set(eps);
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = [
+        val_1,
+        val_2,
+      ];
     }
+
+    this.runtime.elementPositionStore.set(eps);
   }
 
   private update_ledColorStore(descr) {
