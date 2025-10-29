@@ -258,6 +258,71 @@ export namespace GridInstruction {
     }
   }
 
+  export class FetchEventpreview extends AbstractInstruction {
+    constructor(virtual: boolean = false) {
+      super(virtual);
+      this.buffer_element = {
+        id: uuidv4(),
+        virtual: virtual,
+        descr: {
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+          },
+          class_name: InstructionClassName.EVENTPREVIEW,
+          class_instr: InstructionClass.FETCH,
+          class_parameters: {},
+        },
+      };
+    }
+    public executeOn(connection: GridConnection): Promise<any> {
+      return connection.buffer.add_last(this.buffer_element);
+    }
+  }
+  export class FetchLedpreview extends AbstractInstruction {
+    constructor(virtual: boolean = false) {
+      super(virtual);
+      this.buffer_element = {
+        id: uuidv4(),
+        virtual: virtual,
+        descr: {
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+          },
+          class_name: InstructionClassName.LEDPREVIEW,
+          class_instr: InstructionClass.FETCH,
+          class_parameters: {},
+        },
+      };
+    }
+    public executeOn(connection: GridConnection): Promise<any> {
+      return connection.buffer.add_last(this.buffer_element);
+    }
+  }
+
+  export class FetchNamepreview extends AbstractInstruction {
+    constructor(virtual: boolean = false) {
+      super(virtual);
+      this.buffer_element = {
+        id: uuidv4(),
+        virtual: virtual,
+        descr: {
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+          },
+          class_name: InstructionClassName.NAMEPREVIEW,
+          class_instr: InstructionClass.FETCH,
+          class_parameters: {},
+        },
+      };
+    }
+    public executeOn(connection: GridConnection): Promise<any> {
+      return connection.buffer.add_last(this.buffer_element);
+    }
+  }
+
   export class FetchPageCount extends AbstractInstruction {
     constructor({ brc }, virtual: boolean = false) {
       super(virtual);
