@@ -148,8 +148,6 @@ export class MessageStream {
           String.fromCharCode(descr.raw[8 + i * 6 + 5]),
       );
 
-      console.log("Num, val_1, val_2", num, val_1, val_2);
-
       eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = [
         val_1,
         val_2,
