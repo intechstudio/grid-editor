@@ -122,8 +122,6 @@ export class MessageStream {
   }
 
   private update_elementPositionStore_fromPreview(descr) {
-    console.log("EVENTPREVIEW", descr);
-
     let eps = get(this.runtime.elementPositionStore);
 
     if (eps[descr.brc_parameters.SX] === undefined) {
@@ -132,8 +130,6 @@ export class MessageStream {
     if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined) {
       eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
     }
-
-    console.log("ARRAY LENGTH", descr.class_parameters.LENGTH / 6);
 
     for (let i = 0; i < descr.class_parameters.LENGTH / 6; i++) {
       const num = parseInt(

@@ -259,15 +259,15 @@ export namespace GridInstruction {
   }
 
   export class FetchEventpreview extends AbstractInstruction {
-    constructor(virtual: boolean = false) {
+    constructor(dx: number, dy: number, virtual: boolean = false) {
       super(virtual);
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
         descr: {
           brc_parameters: {
-            DX: -127,
-            DY: -127,
+            DX: dx,
+            DY: dy,
           },
           class_name: InstructionClassName.EVENTPREVIEW,
           class_instr: InstructionClass.FETCH,
@@ -280,15 +280,15 @@ export namespace GridInstruction {
     }
   }
   export class FetchLedpreview extends AbstractInstruction {
-    constructor(virtual: boolean = false) {
+    constructor(dx: number, dy: number, virtual: boolean = false) {
       super(virtual);
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
         descr: {
           brc_parameters: {
-            DX: -127,
-            DY: -127,
+            DX: dx,
+            DY: dy,
           },
           class_name: InstructionClassName.LEDPREVIEW,
           class_instr: InstructionClass.FETCH,
@@ -302,15 +302,15 @@ export namespace GridInstruction {
   }
 
   export class FetchNamepreview extends AbstractInstruction {
-    constructor(virtual: boolean = false) {
+    constructor(dx: number, dy: number, virtual: boolean = false) {
       super(virtual);
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
         descr: {
           brc_parameters: {
-            DX: -127,
-            DY: -127,
+            DX: dx,
+            DY: dy,
           },
           class_name: InstructionClassName.NAMEPREVIEW,
           class_instr: InstructionClass.FETCH,

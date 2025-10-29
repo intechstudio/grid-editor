@@ -1692,6 +1692,45 @@ export class GridModule extends RuntimeNode<ModuleData> {
     };
   }
 
+  public requestEventReport() {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.FetchEventpreview(
+      this.dx,
+      this.dy,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
+  public requestLedReport() {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.FetchLedpreview(
+      this.dx,
+      this.dy,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
+  public requestNameReport() {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.FetchNamepreview(
+      this.dx,
+      this.dy,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
   public execLUAImmediate(script: string) {
     const runtime = this.parent as GridRuntime;
     const instruction = new GridInstruction.SendConfigImmediate(
@@ -2028,6 +2067,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           s.push({ id: controller.id, last: Date.now() });
           return s;
         });
+
+        controller.requestLedReport();
+        controller.requestNameReport();
+        controller.requestEventReport();
 
         Analytics.track({
           event: "Connect Module",

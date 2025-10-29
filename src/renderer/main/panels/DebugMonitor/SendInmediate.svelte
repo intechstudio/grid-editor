@@ -47,33 +47,6 @@
     );
   }
 
-  function handleEventReport() {
-    const runtime = get(runtime_manager).active?.runtime;
-    const instruction = new GridInstruction.FetchEventpreview(runtime.virtual);
-
-    instruction.executeOn(runtime.connection).catch((e) => {
-      console.warn(e);
-    });
-  }
-
-  function handleLedReport() {
-    const runtime = get(runtime_manager).active?.runtime;
-    const instruction = new GridInstruction.FetchLedpreview(runtime.virtual);
-
-    instruction.executeOn(runtime.connection).catch((e) => {
-      console.warn(e);
-    });
-  }
-
-  function handleNameReport() {
-    const runtime = get(runtime_manager).active?.runtime;
-    const instruction = new GridInstruction.FetchNamepreview(runtime.virtual);
-
-    instruction.executeOn(runtime.connection).catch((e) => {
-      console.warn(e);
-    });
-  }
-
   function handleSendImmediateclicked() {
     const value = editor.getValue();
     const module = get(runtime_manager).active?.runtime.findModule(0, 0);
@@ -96,7 +69,4 @@
     class="flex w-full h-full border border-black"
   />
   <MoltenPushButton click={handleSendImmediateclicked} text="Immediate" />
-  <MoltenPushButton click={handleNameReport} text="NamePreview" />
-  <MoltenPushButton click={handleLedReport} text="LedPreview" />
-  <MoltenPushButton click={handleEventReport} text="EventPreview" />
 </div>
