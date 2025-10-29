@@ -17,6 +17,17 @@
 
   let bgHelper = 0;
 
+  function doNotDisplayError(errorMessage, stack, url, line) {
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        message: generateErrorDisplayText(errorMessage, stack, url, line),
+        stack: stack,
+      },
+      mandatory: true,
+    });
+  }
+
   function displayError(errorMessage, stack, url, line) {
     if (logtext.length > 4) {
       //logtext.shift();
@@ -92,18 +103,12 @@
       // Supress unhandled but not harmful errors
       if (errorMsg.startsWith("ResizeObserver loop completed")) {
         console.warn("Supressed notification: ", errorMsg);
-        Analytics.track({
-          event: "ErrorConsole",
-          payload: {
-            message: generateErrorDisplayText(
-              "Supressed: " + errorMsg,
-              url,
-              lineNumber,
-            ),
-            stack: Error().stack,
-          },
-          mandatory: true,
-        });
+        doNotDisplayError(
+          "Suppressed: " + errorMsg,
+          Error().stack,
+          url,
+          lineNumber,
+        );
         return;
       }
 
@@ -113,6 +118,12 @@
 
     window.onunhandledrejection = (e) => {
       console.log("we got exception, but the app has crashed 2", e);
+
+      if (e.reason.startsWith("Serial Write Error 3")) {
+        console.warn("Supressed notification: ", e.reason);
+        doNotDisplayError("Suppressed: " + e.reason, e.stack);
+        return;
+      }
 
       displayError(e.reason, e.stack);
     };
