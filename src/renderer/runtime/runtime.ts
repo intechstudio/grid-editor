@@ -1640,6 +1640,7 @@ export class ModuleData extends NodeData {
     public map: DirectionMap,
     public revision: string,
     public hwcfg: number,
+    public memorystat: number,
   ) {
     super();
     this.pages = [];
@@ -1791,6 +1792,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
     return this.getField("portstate");
   }
 
+  get memorystat() {
+    return this.getField("memorystat");
+  }
+
   get rot() {
     return this.getField("rot");
   }
@@ -1838,6 +1843,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   set portstate(value: any) {
     this.setField("portstate", value);
+  }
+
+  set memorystat(value: any) {
+    this.setField("memorystat", value);
   }
 
   set rot(value: number) {
@@ -2017,6 +2026,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
         if (module.portstate != descr.class_parameters.PORTSTATE) {
           module.portstate = descr.class_parameters.PORTSTATE;
+        }
+
+        if (module.memorystat != descr.class_parameters.GCCOUNT) {
+          module.memorystat = descr.class_parameters.GCCOUNT;
         }
 
         this.aliveModules.update((store) => {
