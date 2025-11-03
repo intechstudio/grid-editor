@@ -85,7 +85,7 @@ function createSplitPanes(): Writable<SplitPaneData> {
       component: "profile-cloud",
     },
     right: { size: 25, default: 25, direction: "right" },
-    minimap: { size: 20, default: 20, direction: "down" },
+    minimap: { size: 0, default: 20, direction: "down" },
   };
 
   return writable(obj);
