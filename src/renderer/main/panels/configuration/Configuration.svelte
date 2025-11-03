@@ -238,6 +238,7 @@
     }
 
     cutActions(selected[0].parent as GridEvent, ...selected);
+    selected_actions.set([]);
   }
 
   function handlePaste(e: CustomEvent) {
