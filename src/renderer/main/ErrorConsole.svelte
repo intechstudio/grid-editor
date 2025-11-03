@@ -119,13 +119,13 @@
     window.onunhandledrejection = (e) => {
       console.log("we got exception, but the app has crashed 2", e);
 
-      if (e.reason.startsWith("Serial Write Error 3")) {
-        console.warn("Supressed notification: ", e.reason);
-        doNotDisplayError("Suppressed: " + e.reason, e.stack);
+      if (e.reason.text.startsWith("Serial Write Error 3")) {
+        console.warn("Supressed notification: ", e.reason.text);
+        doNotDisplayError("Suppressed: " + e.reason.text, e.stack);
         return;
       }
 
-      displayError(e.reason, e.stack);
+      displayError(e.reason.text, e.stack);
     };
 
     if (ctxProcess.platform() == "darwin") {
