@@ -53,6 +53,10 @@
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-lightroom-classic"
     },
+    "package-ableton-js": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-ableton-js"
+    },
     "package-spotify": {
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-spotify"
