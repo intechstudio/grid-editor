@@ -14,7 +14,7 @@
   "devDependencies": {
     "@melt-ui/pp": "^0.3.2",
     "@melt-ui/svelte": "^0.84.0",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.56.1",
     "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "@types/node": "^20.11.21",
     "autoprefixer": "^10.4.12",
