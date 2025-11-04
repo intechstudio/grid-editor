@@ -9,6 +9,8 @@
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
   import SquareButton from "../elements/SquareButton.svelte";
 
+  import { grid } from "@intechstudio/grid-protocol";
+
   export let moduleWidth;
   export let device: GridModule;
   export let id = device.type;
@@ -109,7 +111,7 @@
           </div>
           <div class="normal-cell-ui-container">
             {#if moduleType === ModuleType.BU16}
-              {#if [131, 195].includes(device.hwcfg)}
+              {#if device.hwcfg === grid.getProperty("HWCFG").BU16_RevH}
                 <SquareButton
                   {elementNumber}
                   size={4.2}

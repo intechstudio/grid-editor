@@ -5,6 +5,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
   import SquareButton from "../elements/SquareButton.svelte";
+  import { grid } from "@intechstudio/grid-protocol";
 
   export let id = "PBF4";
   export let rotation = 0;
@@ -150,7 +151,7 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            {#if device.hwcfg === 67}
+            {#if device.hwcfg === grid.getProperty("HWCFG").PBF4_RevH || device.hwcfg === grid.getProperty("HWCFG").PBF4_CD_RevH}
               <SquareButton
                 {elementNumber}
                 size={4.2}
