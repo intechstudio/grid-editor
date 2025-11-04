@@ -24,6 +24,9 @@ export enum InstructionClassName {
   NVMDEFRAG = "NVMDEFRAG",
   PAGEDISCARD = "PAGEDISCARD",
   PAGECLEAR = "PAGECLEAR",
+  LEDPREVIEW = "LEDPREVIEW",
+  EVENTPREVIEW = "EVENTPREVIEW",
+  NAMEPREVIEW = "NAMEPREVIEW",
 }
 
 export enum InstructionClass {

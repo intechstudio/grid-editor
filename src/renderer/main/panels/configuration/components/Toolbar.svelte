@@ -72,7 +72,6 @@
 
     removeActions(selected[0].parent as GridEvent, ...selected);
   }
-
   function handleCut() {
     const selected = get(selected_actions);
     if (selected.length === 0) return;
@@ -82,6 +81,7 @@
     }
 
     cutActions(selected[0].parent as GridEvent, ...selected);
+    selected_actions.set([]);
   }
 
   function handlePaste(e: CustomEvent) {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import { GridInstruction } from "../../../serialport/instructions";
   import { onMount } from "svelte";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -46,7 +47,7 @@
     );
   }
 
-  function handleSendInmediateclicked() {
+  function handleSendImmediateclicked() {
     const value = editor.getValue();
     const module = get(runtime_manager).active?.runtime.findModule(0, 0);
     if (!module) {
@@ -67,5 +68,5 @@
     bind:this={monacoElement}
     class="flex w-full h-full border border-black"
   />
-  <MoltenPushButton click={handleSendInmediateclicked} text="Immediate" />
+  <MoltenPushButton click={handleSendImmediateclicked} text="Immediate" />
 </div>

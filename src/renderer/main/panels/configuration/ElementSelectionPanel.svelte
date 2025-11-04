@@ -37,7 +37,8 @@
     }
 
     const elements = page.control_elements;
-    options = elements.map((e) => {
+
+    let newOptions = elements.map((e) => {
       const stringName = e.name;
       if (typeof stringName !== "undefined") {
         return {
@@ -53,10 +54,14 @@
         };
       }
     });
+
+    if (JSON.stringify(options) !== JSON.stringify(newOptions)) {
+      options = newOptions;
+    }
     selectedElementNumber = get(user_input).elementnumber;
   }
 </script>
 
-{#key $page}
+{#key options}
   <MeltSelect bind:target={selectedElementNumber} {options} disabled={false} />
 {/key}

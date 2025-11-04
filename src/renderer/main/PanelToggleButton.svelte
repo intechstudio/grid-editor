@@ -31,9 +31,14 @@
 </script>
 
 <button
-  class="p-2 w-10 h-10 flex items-center justify-center bg-primary rounded-lg rotate-90"
-  style="transform: rotate({rotationMap[direction]}deg);"
+  class="p-2 w-10 h-10 flex items-center justify-center rounded-lg rotate-90"
+  style="transform: rotate({rotationMap[
+    direction
+  ]}deg); background-color: var(--background);"
   on:click={handleClick}
 >
-  <SvgIcon fill="#FFF" iconPath={value ? "arrow_right" : "arrow_left"} />
+  <SvgIcon
+    fill="var(--foreground-muted)"
+    iconPath={value ? "arrow_right" : "arrow_left"}
+  />
 </button>

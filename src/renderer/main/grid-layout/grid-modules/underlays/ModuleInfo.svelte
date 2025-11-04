@@ -32,6 +32,13 @@
         <span>{$loadedEventCount}/{totalEventCount}</span>
       </div>
     {/if}
+    {#if device?.architecture !== Architecture.VIRTUAL}
+      <span
+        style={device?.memorystat > 110
+          ? "color: color-mix(in srgb, orange 75%, var(--foreground));"
+          : ""}>{device?.memorystat}k</span
+      >
+    {/if}
     {#if device?.architecture === Architecture.VIRTUAL}
       <span>VIRTUAL</span>
     {:else if device?.architecture === "esp32"}

@@ -1640,6 +1640,7 @@ export class ModuleData extends NodeData {
     public map: DirectionMap,
     public revision: string,
     public hwcfg: number,
+    public memorystat: number,
   ) {
     super();
     this.pages = [];
@@ -1690,6 +1691,45 @@ export class GridModule extends RuntimeNode<ModuleData> {
       dy: this.dy,
       type: this.type,
     };
+  }
+
+  public requestEventReport() {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.FetchEventpreview(
+      this.dx,
+      this.dy,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
+  public requestLedReport() {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.FetchLedpreview(
+      this.dx,
+      this.dy,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
+  }
+
+  public requestNameReport() {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.FetchNamepreview(
+      this.dx,
+      this.dy,
+      runtime.virtual,
+    );
+
+    instruction.executeOn(runtime.connection).catch((e) => {
+      console.warn(e);
+    });
   }
 
   public execLUAImmediate(script: string) {
@@ -1752,6 +1792,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
     return this.getField("portstate");
   }
 
+  get memorystat() {
+    return this.getField("memorystat");
+  }
+
   get rot() {
     return this.getField("rot");
   }
@@ -1799,6 +1843,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
 
   set portstate(value: any) {
     this.setField("portstate", value);
+  }
+
+  set memorystat(value: any) {
+    this.setField("memorystat", value);
   }
 
   set rot(value: number) {
@@ -1980,6 +2028,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           module.portstate = descr.class_parameters.PORTSTATE;
         }
 
+        if (module.memorystat != descr.class_parameters.GCCOUNT) {
+          module.memorystat = descr.class_parameters.GCCOUNT;
+        }
+
         this.aliveModules.update((store) => {
           const obj = store.find((e) => e.id === module.id);
           const lastDate = obj.last;
@@ -2028,6 +2080,10 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           s.push({ id: controller.id, last: Date.now() });
           return s;
         });
+
+        controller.requestLedReport();
+        controller.requestNameReport();
+        controller.requestEventReport();
 
         Analytics.track({
           event: "Connect Module",
