@@ -328,6 +328,7 @@
               />
             {:else}
               <Toggle
+                testid="minimalist_toggle"
                 title="Minimalist mode"
                 on:change={() => {
                   if ($appSettings.persistent.userLevelMinimalist === true) {

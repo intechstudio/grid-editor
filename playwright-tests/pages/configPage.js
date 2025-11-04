@@ -16,7 +16,9 @@ export class ConfigPage {
     this.addActionBlockButton = page.getByText("Add action block...");
     this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
-    this.minimalistCheckbox = page.locator("configs").getByRole("checkbox");
+    this.minimalistCheckbox = page
+      .locator("configs")
+      .getByTestId("minimalist_toggle");
 
     this.firstActionBlock = page.locator("#cfg-0");
 
