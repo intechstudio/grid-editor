@@ -35,7 +35,9 @@
   {disabled}
 >
   {#if selected}
-    <SvgIcon iconPath={"tick"} />
+    <span class="text-xl font-bold" style="color: var(--foreground-muted)"
+      >x</span
+    >
   {:else if halfSelected}
     <!-- TODO: Make half selected with proper SVG icon -->
     <div />
