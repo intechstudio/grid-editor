@@ -148,6 +148,40 @@ function create_tray() {
 
 const gotTheLock = app.requestSingleInstanceLock();
 
+// Set up global handler for all web contents to open external links in browser
+app.on('web-contents-created', (event, contents) => {
+  // Handle window.open() and target="_blank" links
+  contents.setWindowOpenHandler(({ url }) => {
+    // Open http/https links in external browser
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+    }
+    // Deny opening new windows within the app
+    return { action: 'deny' };
+  });
+
+  // Handle regular <a> tag clicks and navigation attempts
+  contents.on('will-navigate', (event, navigationUrl) => {
+    const url = new URL(navigationUrl);
+    
+    // Allow file:// protocol (for production builds)
+    if (url.protocol === 'file:') {
+      return;
+    }
+    
+    // Allow localhost (for development)
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return;
+    }
+    
+    // Block and open external http/https links in browser
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      event.preventDefault();
+      shell.openExternal(navigationUrl);
+    }
+  });
+});
+
 function handleDeeplinkReturnData(returnData: string) {
   const url = new URL(returnData);
   if (url.searchParams.get("credential") !== null) {
