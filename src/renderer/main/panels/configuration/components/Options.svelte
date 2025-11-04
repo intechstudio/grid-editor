@@ -36,7 +36,7 @@
 >
   {#if selected}
     <span class="text-xl font-bold" style="color: var(--foreground-muted)"
-      >x</span
+      >&#9632;</span
     >
   {:else if halfSelected}
     <!-- TODO: Make half selected with proper SVG icon -->

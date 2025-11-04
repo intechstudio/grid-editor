@@ -237,7 +237,6 @@
       {#if [5, 6].includes($appSettings.firmwareNotificationState)}
         <div class="flex flex-row items-center">
           <span class="text-lg">Update completed!</span>
-          <SvgIcon iconPath="tick" fill="#0BA484" width={20} height={20} />
         </div>
         <div class="relative w-32 h-20">
           <!-- Masked container -->
