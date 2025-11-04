@@ -118,14 +118,23 @@
 
     window.onunhandledrejection = (e) => {
       console.log("we got exception, but the app has crashed 2", e);
+      const reason = e.reason;
 
-      if (e.reason.text.startsWith("Serial Write Error 3")) {
-        console.warn("Supressed notification: ", e.reason.text);
-        doNotDisplayError("Suppressed: " + e.reason.text, e.stack);
+      const message =
+        reason?.message || // Error objects
+        reason?.text || // Custom error objects with .text
+        reason || // Strings or other primitive values
+        "Unknown Promise rejection";
+
+      const stack = reason?.stack || e.stack;
+
+      if (message.startsWith("Serial Write Error 3")) {
+        console.warn("Supressed notification: ", message);
+        doNotDisplayError("Suppressed: " + message, stack);
         return;
       }
 
-      displayError(e.reason.text, e.stack);
+      displayError(message, stack);
     };
 
     if (ctxProcess.platform() == "darwin") {
