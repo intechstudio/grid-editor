@@ -98,9 +98,11 @@
 
   function handleProfileLoad() {
     const page = device.findPage(get(user_input).pagenumber);
+    console.log("Page", page);
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
     loadProfile(profile, page, (e) => {
       ProfileLoadOverlay.viewModel.update((s) => ({ ...s, ...e }));
+      console.log("Model", e, ProfileLoadOverlay.viewModel);
     }).catch((e) => {
       console.warn(e);
     });
@@ -185,16 +187,20 @@
               disabled={[
                 ProfileCloudLoad.State.READY,
                 ProfileCloudLoad.State.LOADED,
-              ].includes($model.step) === false}
+              ].includes($model.step) === false ||
+                $model.step === ProfileCloudLoad.State.BUSY}
               class="flex flex-row px-4 py-2 rounded gap-2"
               class:loaded-element={loaded}
-              class:element={[
-                ProfileCloudLoad.State.READY,
-                ProfileCloudLoad.State.BUSY,
-              ].includes($model.step)}
               class:error-element={$model.step == ProfileCloudLoad.State.ERROR}
             >
-              {#if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
+              {#if $model.step === ProfileCloudLoad.State.BUSY && device.dx == $model.target.parent.dx && device.dy == $model.target.parent.dy}
+                <span
+                  >{Math.round(($model.completed / $model.total) * 100)}%</span
+                >
+                <span class="text-white mr-2">Loading...</span>
+              {:else if $model.step === ProfileCloudLoad.State.ERROR}
+                <span class="text-white">Error!</span>
+              {:else if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
                 {#if loaded}
                   <span class="text-white mr-2">Re-Load Profile</span>
                   <SvgIcon fill="#FFF" iconPath={"download"} />
@@ -202,13 +208,8 @@
                   <span class="text-white mr-2">Load Profile</span>
                   <SvgIcon fill="#FFF" iconPath={"download"} />
                 {/if}
-              {:else if $model.step === ProfileCloudLoad.State.BUSY}
-                <span
-                  >{Math.round(($model.completed / $model.total) * 100)}%</span
-                >
-                <span class="text-white mr-2">Loading...</span>
-              {:else if $model.step === ProfileCloudLoad.State.ERROR}
-                <span class="text-white">Error!</span>
+              {:else}
+                System is busy...
               {/if}
             </button>
 
@@ -264,19 +265,19 @@
     --profile-load-error-color: #dc2626;
   }
 
-  .element {
+  button {
     background-color: var(--profile-load-color);
   }
 
-  .element:hover {
+  button:not(:disabled):hover {
     background-color: var(--profile-load-hover-color);
   }
 
-  .loaded-element {
+  button.loaded-element {
     background-color: var(--profile-load-success-color);
   }
 
-  .error-element {
+  button.error-element {
     background-color: var(--profile-load-error-color);
   }
 </style>
