@@ -204,6 +204,13 @@
         title={"Show welcome screen"}
       />
 
+      <BlockTitle>Automatic update check</BlockTitle>
+      <BlockBody>Disable update checks on startup.</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.disableAutoUpdate}
+        title={"Disable automatic update checks"}
+      />
+
       <BlockTitle>Run application in background</BlockTitle>
       <BlockBody>
         Change what happens when you close the application window. Some
