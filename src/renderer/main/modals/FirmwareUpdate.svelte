@@ -28,6 +28,7 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { get } from "svelte/store";
+  import { getGridRecommendedFirmwareUrl } from "../firmware_update.ts";
   export let data: Modal.Instance;
 
   const logoURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logo)}")`;
@@ -64,39 +65,13 @@
     switch (product) {
       case "grid":
         if (nightly) {
-          switch (architecture) {
-            case "esp32":
-              link = configuration.FIRMWARE_GRID_NIGHTLY_ESP32_URL;
-              break;
-            case "d51":
-              link = configuration.FIRMWARE_GRID_NIGHTLY_D51_URL;
-              break;
-          }
+          link = configuration.FIRMWARE_GRID_NIGHTLY_URL;
         } else {
-          const as = get(appSettings);
-          let version = undefined;
-          switch (architecture) {
-            case "esp32":
-              version = `v${Object.values(as.firmware_esp32_required).join(
-                ".",
-              )}`;
-              break;
-            case "d51":
-              version = `v${Object.values(as.firmware_d51_required).join(".")}`;
-              break;
-          }
-          if (typeof version !== "undefined") {
-            link =
-              configuration.FIRMWARE_GRID_URL_BEGINING +
-              version +
-              configuration.FIRMWARE_GRID_URL_END;
-          }
+          link = getGridRecommendedFirmwareUrl(architecture);
         }
         break;
       case "knot":
-        link =
-          configuration.FIRMWARE_KNOT_URL_BEGINING +
-          configuration.FIRMWARE_KNOT_URL_END;
+        link = configuration.FIRMWARE_KNOT_RELEASE_URL;
         break;
     }
 

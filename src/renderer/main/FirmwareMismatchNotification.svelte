@@ -12,6 +12,7 @@
     BlockTitle,
   } from "@intechstudio/grid-uikit";
   import FirmwareDownloadOption from "./components/FirmwareDownloadOption.svelte";
+  import { getGridRecommendedFirmwareUrl, getGridRecommendedVersion } from "./firmware_update.ts";
   const configuration = window.ctxProcess.configuration();
 
   let fwMismatch = false;
@@ -108,20 +109,6 @@
     });
   }
 
-  const grid_e32_recommended_version =
-    "v" +
-    configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR +
-    "." +
-    configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR +
-    "." +
-    (configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH - 1);
-  const grid_d51_recommended_version =
-    "v" +
-    configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR +
-    "." +
-    configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR +
-    "." +
-    (configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH - 1);
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1 || true}
@@ -139,39 +126,39 @@
 
     <Block>
       <FirmwareDownloadOption
-        title={`Grid D51 Recommended (${grid_d51_recommended_version})`}
-        downloadUrl={`https://github.com/intechstudio/grid-fw/releases/download/${grid_d51_recommended_version}/grid_release.zip`}
+        title={`Grid D51 Recommended (${getGridRecommendedVersion('d51')})`}
+        downloadUrl={getGridRecommendedFirmwareUrl('d51')}
         fileFilter={(file) => file.filename.startsWith("grid_d51")}
       />
 
       <FirmwareDownloadOption
-        title={`Grid ESP32 Recommended (${grid_e32_recommended_version})`}
-        downloadUrl={`https://github.com/intechstudio/grid-fw/releases/download/${grid_e32_recommended_version}/grid_release.zip`}
+        title={`Grid ESP32 Recommended (${getGridRecommendedVersion('esp32')})`}
+        downloadUrl={getGridRecommendedFirmwareUrl('esp32')}
         fileFilter={(file) => file.filename.startsWith("grid_esp32")}
       />
 
       <FirmwareDownloadOption
         title="Grid Release (Latest)"
-        downloadUrl="https://github.com/intechstudio/grid-fw/releases/latest/download/grid_release.zip"
+        downloadUrl={configuration.FIRMWARE_GRID_RELEASE_URL}
         fileLabel={(filename) =>
           filename.startsWith("grid_d51") ? filename + " (Legacy)" : filename}
       />
 
       <FirmwareDownloadOption
         title="Grid Nightly (Latest)"
-        downloadUrl="https://github.com/intechstudio/grid-fw/releases/download/nightly/grid_nightly.zip"
+        downloadUrl={configuration.FIRMWARE_GRID_NIGHTLY_URL}
         fileLabel={(filename) =>
           filename.startsWith("grid_d51") ? filename + " (Legacy)" : filename}
       />
 
       <FirmwareDownloadOption
         title="Knot Release (Latest)"
-        downloadUrl={`${configuration.FIRMWARE_KNOT_URL_BEGINING}${configuration.FIRMWARE_KNOT_URL_END}`}
+        downloadUrl={configuration.FIRMWARE_KNOT_RELEASE_URL}
       />
 
       <FirmwareDownloadOption
         title="Knot Nightly (Latest)"
-        downloadUrl={`${configuration.FIRMWARE_KNOT_NIGHTLY_URL_BEGINING}${configuration.FIRMWARE_KNOT_NIGHTLY_URL_END}`}
+        downloadUrl={configuration.FIRMWARE_KNOT_NIGHTLY_URL}
       />
     </Block>
   </div>
