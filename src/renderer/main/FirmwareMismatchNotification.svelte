@@ -11,8 +11,7 @@
     BlockRow,
     BlockTitle,
   } from "@intechstudio/grid-uikit";
-
-  import { fetchAndExtract, saveFile } from "./firmware_update.ts";
+  import FirmwareDownloadOption from "./components/FirmwareDownloadOption.svelte";
   const configuration = window.ctxProcess.configuration();
 
   let fwMismatch = false;
@@ -123,13 +122,6 @@
     configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR +
     "." +
     (configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH - 1);
-
-  let grid_release_uf2_files = [];
-  let grid_nightly_uf2_files = [];
-  let grid_release_d51_recommended_uf2_files = [];
-  let grid_release_e32_recommended_uf2_files = [];
-  let knot_release_uf2_files = [];
-  let knot_nightly_uf2_files = [];
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1 || true}
@@ -146,154 +138,41 @@
     </BlockRow>
 
     <Block>
-      <BlockRow>
-        <BlockTitle
-          >Grid D51 Recommended ({grid_d51_recommended_version})</BlockTitle
-        >
+      <FirmwareDownloadOption
+        title={`Grid D51 Recommended (${grid_d51_recommended_version})`}
+        downloadUrl={`https://github.com/intechstudio/grid-fw/releases/download/${grid_d51_recommended_version}/grid_release.zip`}
+        fileFilter={(file) => file.filename.startsWith("grid_d51")}
+      />
 
-        {#if grid_release_d51_recommended_uf2_files.length === 0}
-          <MoltenPushButton
-            text="Download and Extract"
-            click={async () => {
-              grid_release_d51_recommended_uf2_files = await fetchAndExtract(
-                "https://github.com/intechstudio/grid-fw/releases/download/" +
-                  grid_d51_recommended_version +
-                  "/grid_release.zip",
-              );
-            }}
-          />
-        {/if}
-        {#each grid_release_d51_recommended_uf2_files.filter( (file) => file.filename.startsWith("grid_d51"), ) as file}
-          <MoltenPushButton
-            text={file.filename}
-            click={() => {
-              saveFile(file.data, file.filename);
-            }}
-          />
-        {/each}
-      </BlockRow>
-      <BlockRow>
-        <BlockTitle
-          >Grid ESP32 Recommended ({grid_e32_recommended_version})</BlockTitle
-        >
+      <FirmwareDownloadOption
+        title={`Grid ESP32 Recommended (${grid_e32_recommended_version})`}
+        downloadUrl={`https://github.com/intechstudio/grid-fw/releases/download/${grid_e32_recommended_version}/grid_release.zip`}
+        fileFilter={(file) => file.filename.startsWith("grid_esp32")}
+      />
 
-        {#if grid_release_e32_recommended_uf2_files.length === 0}
-          <MoltenPushButton
-            text="Download and Extract"
-            click={async () => {
-              grid_release_e32_recommended_uf2_files = await fetchAndExtract(
-                "https://github.com/intechstudio/grid-fw/releases/download/" +
-                  grid_e32_recommended_version +
-                  "/grid_release.zip",
-              );
-            }}
-          />
-        {/if}
-        {#each grid_release_e32_recommended_uf2_files.filter( (file) => file.filename.startsWith("grid_esp32"), ) as file}
-          <MoltenPushButton
-            text={file.filename}
-            click={() => {
-              saveFile(file.data, file.filename);
-            }}
-          />
-        {/each}
-      </BlockRow>
-      <BlockRow>
-        <BlockTitle>Grid Release (Latest)</BlockTitle>
+      <FirmwareDownloadOption
+        title="Grid Release (Latest)"
+        downloadUrl="https://github.com/intechstudio/grid-fw/releases/latest/download/grid_release.zip"
+        fileLabel={(filename) =>
+          filename.startsWith("grid_d51") ? filename + " (Legacy)" : filename}
+      />
 
-        {#if grid_release_uf2_files.length === 0}
-          <MoltenPushButton
-            text="Download and Extract"
-            click={async () => {
-              grid_release_uf2_files = await fetchAndExtract(
-                "https://github.com/intechstudio/grid-fw/releases/latest/download/grid_release.zip",
-              );
-            }}
-          />
-        {/if}
+      <FirmwareDownloadOption
+        title="Grid Nightly (Latest)"
+        downloadUrl="https://github.com/intechstudio/grid-fw/releases/download/nightly/grid_nightly.zip"
+        fileLabel={(filename) =>
+          filename.startsWith("grid_d51") ? filename + " (Legacy)" : filename}
+      />
 
-        {#each grid_release_uf2_files as file}
-          <MoltenPushButton
-            text={file.filename.startsWith("grid_d51")
-              ? file.filename + " (Legacy)"
-              : file.filename}
-            click={() => {
-              saveFile(file.data, file.filename);
-            }}
-          />
-        {/each}
-      </BlockRow>
-      <BlockRow>
-        <BlockTitle>Grid Nightly (Latest)</BlockTitle>
+      <FirmwareDownloadOption
+        title="Knot Release (Latest)"
+        downloadUrl={`${configuration.FIRMWARE_KNOT_URL_BEGINING}${configuration.FIRMWARE_KNOT_URL_END}`}
+      />
 
-        {#if grid_nightly_uf2_files.length === 0}
-          <MoltenPushButton
-            text="Download and Extract"
-            click={async () => {
-              grid_nightly_uf2_files = await fetchAndExtract(
-                "https://github.com/intechstudio/grid-fw/releases/download/nightly/grid_nightly.zip",
-              );
-            }}
-          />
-        {/if}
-
-        {#each grid_nightly_uf2_files as file}
-          <MoltenPushButton
-            text={file.filename.startsWith("grid_d51")
-              ? file.filename + " (Legacy)"
-              : file.filename}
-            click={() => {
-              saveFile(file.data, file.filename);
-            }}
-          />
-        {/each}
-      </BlockRow>
-      <BlockRow>
-        <BlockTitle>Knot Release (Latest)</BlockTitle>
-
-        {#if knot_release_uf2_files.length === 0}
-          <MoltenPushButton
-            text="Download and Extract"
-            click={async () => {
-              knot_release_uf2_files = await fetchAndExtract(
-                configuration.FIRMWARE_KNOT_URL_BEGINING +
-                  configuration.FIRMWARE_KNOT_URL_END,
-              );
-            }}
-          />
-        {:else}
-          {@const file = knot_release_uf2_files[0]}
-          <MoltenPushButton
-            text={file.filename}
-            click={() => {
-              saveFile(file.data, file.filename);
-            }}
-          />
-        {/if}
-      </BlockRow>
-      <BlockRow>
-        <BlockTitle>Knot Nightly (Latest)</BlockTitle>
-
-        {#if knot_nightly_uf2_files.length === 0}
-          <MoltenPushButton
-            text="Download and Extract"
-            click={async () => {
-              knot_nightly_uf2_files = await fetchAndExtract(
-                configuration.FIRMWARE_KNOT_NIGHTLY_URL_BEGINING +
-                  configuration.FIRMWARE_KNOT_NIGHTLY_URL_END,
-              );
-            }}
-          />
-        {:else}
-          {@const file = knot_nightly_uf2_files[0]}
-          <MoltenPushButton
-            text={file.filename}
-            click={() => {
-              saveFile(file.data, file.filename);
-            }}
-          />
-        {/if}
-      </BlockRow>
+      <FirmwareDownloadOption
+        title="Knot Nightly (Latest)"
+        downloadUrl={`${configuration.FIRMWARE_KNOT_NIGHTLY_URL_BEGINING}${configuration.FIRMWARE_KNOT_NIGHTLY_URL_END}`}
+      />
     </Block>
   </div>
 {/if}
