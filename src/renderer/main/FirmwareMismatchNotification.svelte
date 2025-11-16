@@ -109,6 +109,12 @@
     });
   }
 
+  let showManualOptions = false;
+
+  function toggleManualOptions() {
+    showManualOptions = !showManualOptions;
+  }
+
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1 || true}
@@ -121,10 +127,15 @@
           while plugging in the USB cable!
         </div>
       </div>
+      <MoltenPushButton
+        text={showManualOptions ? "Hide manual options" : "Show manual options"}
+        click={toggleManualOptions}
+      />
       <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
     </BlockRow>
 
-    <Block>
+    {#if showManualOptions}
+      <Block>
       <FirmwareDownloadOption
         title={`Grid D51 Recommended (${getGridRecommendedVersion('d51')})`}
         downloadUrl={getGridRecommendedFirmwareUrl('d51')}
@@ -161,5 +172,6 @@
         downloadUrl={configuration.FIRMWARE_KNOT_NIGHTLY_URL}
       />
     </Block>
+    {/if}
   </div>
 {/if}
