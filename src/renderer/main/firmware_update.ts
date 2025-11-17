@@ -9,11 +9,13 @@ let status = "";
  * @param architecture - 'esp32' or 'd51'
  * @returns URL string for the recommended firmware version
  */
-export function getGridRecommendedFirmwareUrl(architecture: 'esp32' | 'd51'): string {
+export function getGridRecommendedFirmwareUrl(
+  architecture: "esp32" | "d51",
+): string {
   const configuration = window.ctxProcess.configuration();
 
   let version: string;
-  if (architecture === 'esp32') {
+  if (architecture === "esp32") {
     version = `v${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH}`;
   } else {
     version = `v${configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH}`;
@@ -27,10 +29,12 @@ export function getGridRecommendedFirmwareUrl(architecture: 'esp32' | 'd51'): st
  * @param architecture - 'esp32' or 'd51'
  * @returns Version string (e.g., "v1.4.1")
  */
-export function getGridRecommendedVersion(architecture: 'esp32' | 'd51'): string {
+export function getGridRecommendedVersion(
+  architecture: "esp32" | "d51",
+): string {
   const configuration = window.ctxProcess.configuration();
 
-  if (architecture === 'esp32') {
+  if (architecture === "esp32") {
     return `v${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH}`;
   } else {
     return `v${configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH}`;
@@ -53,32 +57,25 @@ export async function fetchAndExtract(zipUrl) {
     status = "Unzipping...";
     const zip = await JSZip.loadAsync(arrayBuffer);
 
-    // Extract ESP32 and D51 files using pattern matching
-
+    // Extract all .uf2 files from the ZIP
     for (const [path, file] of Object.entries(zip.files)) {
       if (!file.dir) {
         const filename = path.split("/").pop(); // Get just the filename
         if (filename.endsWith(".uf2")) {
-          uf2_files.push({ data: file, filename: filename });
+          const data = await file.async("uint8array");
+          uf2_files.push({ data, filename });
         }
       }
     }
 
-    if (!esp32File && !d51File) {
-      throw new Error("Neither grid_esp32_*.uf2 nor grid_d51_*.uf2 found");
+    if (uf2_files.length === 0) {
+      return;
     }
 
-    if (esp32File) {
-      esp32Data = await esp32File.async("uint8array");
-    }
-
-    if (d51File) {
-      d51Data = await d51File.async("uint8array");
-    }
-
-    status = `Success! Found ${esp32File ? esp32FileName : ""}${esp32File && d51File ? " and " : ""}${d51File ? d51FileName : ""}`;
+    status = `Success! Found ${uf2_files.length} firmware file(s)`;
   } catch (error) {
     status = `Error: ${error.message}`;
+    return;
   }
 
   return uf2_files;

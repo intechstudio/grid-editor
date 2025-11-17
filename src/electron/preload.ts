@@ -27,13 +27,12 @@ contextBridge.exposeInMainWorld("electron", {
   firmware: {
     onFirmwareUpdate: (callback) =>
       ipcRenderer.on("onFirmwareUpdate", callback),
-    findBootloaderPath: () => ipcRenderer.invoke("findBootloaderPath"),
-    firmwareDownload: (targetFolder, product, arch, url) =>
-      ipcRenderer.invoke("firmwareDownload", {
-        targetFolder,
-        product,
-        arch,
-        url,
+    findBootloaderPathNative: () =>
+      ipcRenderer.invoke("findBootloaderPathNative"),
+    writeFirmwareToBootloader: (firmwareData, filename) =>
+      ipcRenderer.invoke("writeFirmwareToBootloader", {
+        firmwareData,
+        filename,
       }),
   },
   serial: {

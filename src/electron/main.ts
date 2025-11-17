@@ -36,7 +36,7 @@ import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
-import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
+import { firmware, findBootloaderPathNative, writeFirmwareToBootloader } from "./src/firmware";
 import { updater, restartAfterUpdate, forceQuitForUpdate } from "./src/updater";
 import {
   libraryDownload,
@@ -60,7 +60,7 @@ usb.on("attach", () => {
   let delay = 1000;
   let totalDelay = 0;
   async function retryFind() {
-    let result = await findBootloaderPath();
+    let result = await findBootloaderPathNative();
     if (result) return;
 
     totalDelay += delay;
@@ -69,7 +69,7 @@ usb.on("attach", () => {
   }
   setTimeout(retryFind, delay);
 });
-setTimeout(findBootloaderPath, 10000); //Initial check
+setTimeout(findBootloaderPathNative, 10000); //Initial check
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -757,17 +757,14 @@ ipcMain.handle("deleteConfig", async (event, arg) => {
 });
 
 // this is needed for the functions to have the mainWindow for communication
-ipcMain.handle("firmwareDownload", async (event, arg) => {
-  return await firmwareDownload(
-    arg.targetFolder,
-    arg.product,
-    arg.arch,
-    arg.url,
-  );
+ipcMain.handle("findBootloaderPathNative", async (event, arg) => {
+  return await findBootloaderPathNative();
 });
 
-ipcMain.handle("findBootloaderPath", async (event, arg) => {
-  return await findBootloaderPath();
+ipcMain.handle("writeFirmwareToBootloader", async (event, arg) => {
+  // Convert the array back to Buffer
+  const firmwareBuffer = Buffer.from(arg.firmwareData);
+  return await writeFirmwareToBootloader(firmwareBuffer, arg.filename);
 });
 
 ipcMain.handle("restartSerialCheckInterval", (event, arg) => {

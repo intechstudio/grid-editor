@@ -28,7 +28,10 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { get } from "svelte/store";
-  import { getGridRecommendedFirmwareUrl } from "../firmware_update.ts";
+  import {
+    getGridRecommendedFirmwareUrl,
+    fetchAndExtract,
+  } from "../firmware_update.ts";
   export let data: Modal.Instance;
 
   const logoURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logo)}")`;
@@ -45,50 +48,107 @@
   }
 
   async function handleFirmwareDownload(nightly: boolean = false) {
-    const folder = $appSettings.persistent.profileFolder;
-    let result = await window.electron.firmware.findBootloaderPath();
-    if (result === undefined) {
-      $appSettings.firmwareNotificationState = 6;
-      return;
-    }
-    const { product, architecture } = result;
+    try {
+      // Set state to downloading immediately
+      $appSettings.firmwareNotificationState = 4;
 
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Firmware Download Start",
-      },
-      mandatory: false,
-    });
+      // Check if bootloader is connected
+      let result = await window.electron.firmware.findBootloaderPathNative();
+      if (result === undefined) {
+        $appSettings.firmwareNotificationState = 6;
+        return;
+      }
+      const { product, architecture } = result;
 
-    let link = undefined;
-    switch (product) {
-      case "grid":
-        if (nightly) {
-          link = configuration.FIRMWARE_GRID_NIGHTLY_URL;
-        } else {
-          link = getGridRecommendedFirmwareUrl(architecture);
+      Analytics.track({
+        event: "FirmwareCheck",
+        payload: {
+          message: "Firmware Download Start",
+        },
+        mandatory: false,
+      });
+
+      // Determine the firmware URL
+      let link = undefined;
+      switch (product) {
+        case "grid":
+          if (nightly) {
+            link = configuration.FIRMWARE_GRID_NIGHTLY_URL;
+          } else {
+            link = getGridRecommendedFirmwareUrl(architecture);
+          }
+          break;
+        case "knot":
+          link = configuration.FIRMWARE_KNOT_RELEASE_URL;
+          break;
+      }
+
+      if (!link) {
+        $appSettings.firmwareNotificationState = 6;
+        return;
+      }
+
+      // Download and extract firmware in the frontend
+      const uf2Files = await fetchAndExtract(link);
+
+      // Find the correct firmware file based on product and architecture
+      let firmwareFile = null;
+      for (const file of uf2Files) {
+        const filename = file.filename.toLowerCase();
+
+        if (product === "grid") {
+          // Look for grid firmware matching the architecture
+          if (
+            architecture === "esp32" &&
+            filename.includes("esp32") &&
+            filename.includes("grid")
+          ) {
+            firmwareFile = file;
+            break;
+          } else if (
+            architecture === "d51" &&
+            filename.includes("d51") &&
+            filename.includes("grid")
+          ) {
+            firmwareFile = file;
+            break;
+          }
+        } else if (product === "knot") {
+          // Look for knot firmware
+          if (filename.includes("knot")) {
+            firmwareFile = file;
+            break;
+          }
         }
-        break;
-      case "knot":
-        link = configuration.FIRMWARE_KNOT_RELEASE_URL;
-        break;
+      }
+
+      if (!firmwareFile) {
+        console.error("Could not find matching firmware file", {
+          product,
+          architecture,
+          uf2Files,
+        });
+        $appSettings.firmwareNotificationState = 6;
+        return;
+      }
+
+      // Send firmware data to backend for writing to bootloader
+      await window.electron.firmware.writeFirmwareToBootloader(
+        Array.from(firmwareFile.data),
+        firmwareFile.filename,
+      );
+
+      Analytics.track({
+        event: "FirmwareCheck",
+        payload: {
+          message: "Firmware Download Finished",
+        },
+        mandatory: false,
+      });
+    } catch (error) {
+      console.error("Firmware download error:", error);
+      $appSettings.firmwareNotificationState = 6;
     }
-
-    await window.electron.firmware.firmwareDownload(
-      folder,
-      product,
-      architecture,
-      link,
-    );
-
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Firmware Download Finished",
-      },
-      mandatory: false,
-    });
   }
 
   window.electron.firmware.onFirmwareUpdate((_event, value) => {

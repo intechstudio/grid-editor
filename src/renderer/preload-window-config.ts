@@ -91,7 +91,8 @@ if (import.meta.env.VITE_BUILD_TARGET == "web") {
     },
     firmware: {
       onFirmwareUpdate: async () => {},
-      findBootloaderPath: async () => {},
+      findBootloaderPathNative: async () => {},
+      writeFirmwareToBootloader: async () => {},
     },
     fetchUrlJSON: async () => {
       return [];
