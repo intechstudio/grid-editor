@@ -767,6 +767,26 @@ ipcMain.handle("writeFirmwareToBootloader", async (event, arg) => {
   return await writeFirmwareToBootloader(firmwareBuffer, arg.filename);
 });
 
+ipcMain.handle("fetchBinaryFile", async (event, url) => {
+  try {
+    log.info(`Fetching file from: ${url}`);
+    const response = await net.fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    log.info(`Successfully fetched ${arrayBuffer.byteLength} bytes`);
+
+    // Convert to array for IPC transfer
+    return Array.from(new Uint8Array(arrayBuffer));
+  } catch (error) {
+    log.error("Failed to fetch file:", error);
+    throw error;
+  }
+});
+
 ipcMain.handle("restartSerialCheckInterval", (event, arg) => {
   return restartSerialCheckInterval();
 });

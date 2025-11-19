@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld("electron", {
         filename,
       }),
   },
+  fetchBinaryFile: (url) => ipcRenderer.invoke("fetchBinaryFile", url),
   serial: {
     restartSerialCheckInterval: () =>
       ipcRenderer.invoke("restartSerialCheckInterval"),

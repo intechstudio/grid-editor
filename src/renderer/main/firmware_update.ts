@@ -1,8 +1,66 @@
 import JSZip from "jszip";
+import { Analytics } from "../runtime/analytics.js";
 
 const CORS_PROXY = "https://api.cors.lol/?url=";
 
 let status = "";
+
+/**
+ * Fetch wrapper that uses different implementations based on build target
+ * - Electron build: Uses native fetch via IPC (no CORS issues)
+ * - Web build: Uses CORS proxy for browser-based fetch
+ * @param url - The URL to fetch
+ * @returns ArrayBuffer of the fetched data
+ */
+async function fetchBinaryFile(url: string): Promise<ArrayBuffer> {
+  const startTime = Date.now();
+
+  try {
+    let arrayBuffer: ArrayBuffer;
+
+    if (import.meta.env.VITE_BUILD_TARGET === "web") {
+      // Web build: Use CORS proxy
+      const proxyUrl = CORS_PROXY + encodeURIComponent(url);
+      const response = await fetch(proxyUrl);
+      arrayBuffer = await response.arrayBuffer();
+    } else {
+      // Electron build: Use native fetch via IPC
+      const uint8Array = await window.electron.fetchBinaryFile(url);
+      arrayBuffer = new Uint8Array(uint8Array).buffer;
+    }
+
+    const duration = Date.now() - startTime;
+    const sizeKB = Math.round(arrayBuffer.byteLength / 1024);
+
+    Analytics.track({
+      event: "File Download Success",
+      payload: {
+        VITE_BUILD_TARGET: import.meta.env.VITE_BUILD_TARGET,
+        url,
+        sizeKB,
+        durationMs: duration,
+      },
+      mandatory: false,
+    });
+
+    return arrayBuffer;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+
+    Analytics.track({
+      event: "File Download Failed",
+      payload: {
+        VITE_BUILD_TARGET: import.meta.env.VITE_BUILD_TARGET,
+        url,
+        error: error.message,
+        durationMs: duration,
+      },
+      mandatory: false,
+    });
+
+    throw error;
+  }
+}
 
 /**
  * Get the recommended Grid firmware URL for a specific architecture
@@ -50,9 +108,7 @@ export async function fetchAndExtract(zipUrl) {
 
   try {
     status = "Fetching...";
-    const proxyUrl = CORS_PROXY + encodeURIComponent(zipUrl);
-    const response = await fetch(proxyUrl);
-    const arrayBuffer = await response.arrayBuffer();
+    const arrayBuffer = await fetchBinaryFile(zipUrl);
 
     status = "Unzipping...";
     const zip = await JSZip.loadAsync(arrayBuffer);
