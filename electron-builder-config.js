@@ -48,7 +48,6 @@ const config = {
         repo: "grid-editor",
       },
     ],
-    executableName: "grid-editor-nightly",
     artifactName: "${name}-windows-${version}-x64.${ext}",
     target: ["nsis"],
     icon: "build-assets/icon.png",
