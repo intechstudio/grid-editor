@@ -49,7 +49,7 @@
 
   export let action: GridAction;
 
-  $: action, $appSettings.packageList, checkConfig();
+  $: (action, $appSettings.packageList, checkConfig());
 
   let targetPackage: string | undefined = undefined;
   let availablePackage: any | undefined = undefined;
