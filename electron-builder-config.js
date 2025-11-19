@@ -3,7 +3,7 @@ dotenv.config();
 
 function productNameByWorkflow() {
   if (process.env.VITE_BUILD_ENV == "nightly") {
-    return `grid-editor-nightly`;
+    return `grid-editor-nightly-${process.env.VITE_BRANCH_NAME}`;
   } else if (process.env.VITE_BUILD_ENV == "alpha") {
     return `grid-editor-alpha-${process.env.RELEASE_VERSION}`;
   } else {
