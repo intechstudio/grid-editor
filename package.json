@@ -4,7 +4,7 @@
   "description": "Powerful Editor software for Intech Studio products.",
   "version": "1.6.1",
   "engines": {
-    "node": ">=18.16.1"
+    "node": ">=22.0.0"
   },
   "main": "dist/main/index.js",
   "repository": {

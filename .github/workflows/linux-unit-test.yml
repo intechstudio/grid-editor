@@ -16,7 +16,7 @@ jobs:
       - name: Setup nodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: "18.16.1"
+          node-version: "22"
 
       - name: Install libudev-dev
         if: runner.os == 'Linux'
