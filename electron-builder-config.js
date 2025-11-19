@@ -33,7 +33,11 @@ const config = {
       to: "assets",
     },
   ],
-  files: ["**/*"],
+  files: [
+    "**/*",
+    "!node_modules/@esbuild/**/*",
+    "!node_modules/esbuild/**/*",
+  ],
   win: {
     azureSignOptions: {
       publisherName: "Intech Studio LLC",
