@@ -24,7 +24,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "18.16.1"
+          node-version: "24.10.0"
       - name: Install libudev-dev
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libudev-dev

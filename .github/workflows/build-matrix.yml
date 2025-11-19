@@ -44,7 +44,10 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "18.16.1"
+          node-version: "24.10.0"
+
+      - name: Clear npm cache
+        run: npm cache clean --force
 
       - name: Install python setup-tools dependency
         run: pip install setuptools
