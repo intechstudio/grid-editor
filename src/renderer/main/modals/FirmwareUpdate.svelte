@@ -32,12 +32,19 @@
     getGridRecommendedFirmwareUrl,
     fetchAndExtract,
   } from "../firmware_update.ts";
+  import ManualFirmwareOptions from "../components/ManualFirmwareOptions.svelte";
   export let data: Modal.Instance;
 
   const logoURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logo)}")`;
   const logoBrokenURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logoBroken)}")`;
 
   const configuration = window.ctxProcess.configuration();
+
+  let showManualOptions = false;
+
+  function toggleManualOptions() {
+    showManualOptions = !showManualOptions;
+  }
 
   function handleDismissClicked() {
     appSettings.update((s) => {
@@ -225,13 +232,13 @@
             -webkit-mask-size: contain;
           "
         />
-        <div class="flex flex-row -mr-5">
-          <MoltenPushButton
-            text={"Release"}
-            style="accept"
-            click={handleFirmwareDownload}
-          />
-          <div class=" ml-5">
+        <div class="flex flex-col gap-2 w-full items-center">
+          <div class="flex flex-row gap-2">
+            <MoltenPushButton
+              text={"Release"}
+              style="accept"
+              click={handleFirmwareDownload}
+            />
             <MoltenPushButton
               text={"Nightly"}
               click={() => {
@@ -239,17 +246,26 @@
               }}
             />
           </div>
+          <MoltenPushButton
+            text={showManualOptions
+              ? "Hide manual options"
+              : "Show manual options"}
+            click={toggleManualOptions}
+          />
           <div class="flex flex-col items-center">
             <MoltenPushButton
               text={"Dismiss"}
               style="outlined"
               click={handleDismissClicked}
             />
-            <span class="text-foreground-soft text-sm text-center px-2"
-              >Unplug your device</span
-            >
           </div>
         </div>
+
+        {#if showManualOptions}
+          <div class="flex flex-col gap-2 w-full px-4">
+            <ManualFirmwareOptions />
+          </div>
+        {/if}
       {/if}
       {#if $appSettings.firmwareNotificationState === 4}
         <span class="text-lg">Update is in progress...</span>

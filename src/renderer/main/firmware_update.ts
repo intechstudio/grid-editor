@@ -144,24 +144,41 @@ export async function saveFile(data, filename) {
   }
 
   try {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: filename,
-      types: [
-        {
-          description: "Binary",
-          accept: { "application/octet-stream": [".uf2", ".bin"] },
-        },
-      ],
-    });
+    // Create blob for the binary data
+    const blob = new Blob([data], { type: "application/octet-stream" });
 
-    const writable = await handle.createWritable();
-    await writable.write(data);
-    await writable.close();
+    // Check if File System Access API is available (Chrome/Edge)
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [
+          {
+            description: "Binary",
+            accept: { "application/octet-stream": [".uf2", ".bin"] },
+          },
+        ],
+      });
+
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+    } else {
+      // Fallback for browsers without File System Access API
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
 
     status = `Saved ${filename}!`;
   } catch (error) {
     if (error.name !== "AbortError") {
       status = `Save error: ${error.message}`;
+      console.error("Save file error:", error);
     }
   }
 }

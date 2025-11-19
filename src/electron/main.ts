@@ -51,29 +51,115 @@ import {
 } from "./src/profiles";
 import { fetchReleaseNotes, fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { usb } from "usb";
 
 log.info("App starting...");
 log.info("BUILD ENVS:", import.meta.env);
 
-usb.on("attach", () => {
-  let delay = 1000;
-  let totalDelay = 0;
-  async function retryFind() {
-    let result = await findBootloaderPathNative();
-    if (result) return;
-
-    totalDelay += delay;
-    if (totalDelay > 8000) return;
-    setTimeout(retryFind, delay);
-  }
-  setTimeout(retryFind, delay);
-});
-setTimeout(findBootloaderPathNative, 10000); //Initial check
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+
+// Bootloader detection service state
+let bootloaderDetectionTimeout: NodeJS.Timeout | null = null;
+let bootloaderDetectionRunning = false;
+
+/**
+ * Get bootloader VID/PID pairs from configuration
+ * @returns Array of bootloader device definitions
+ */
+function getBootloaderPairs() {
+  return [
+    {
+      vid: parseInt(configuration.BOOTLOADER_GRID_D51_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_GRID_D51_PID, 16),
+      name: "Grid D51",
+    },
+    {
+      vid: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID, 16),
+      name: "Grid ESP32",
+    },
+    {
+      vid: parseInt(configuration.BOOTLOADER_KNOT_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_KNOT_PID, 16),
+      name: "Knot",
+    },
+  ];
+}
+
+/**
+ * Check if a serial port is a bootloader device
+ * @param port - Serial port to check
+ * @returns Bootloader info if match found, undefined otherwise
+ */
+function isBootloaderPort(port: Electron.SerialPort) {
+  const bootloaderPairs = getBootloaderPairs();
+
+  // Port VID/PID are decimal strings, convert to numbers for comparison
+  const portVid = parseInt(port.vendorId, 10);
+  const portPid = parseInt(port.productId, 10);
+
+  return bootloaderPairs.find((pair) => {
+    return portVid === pair.vid && portPid === pair.pid;
+  });
+}
+
+/**
+ * Start the bootloader detection service
+ * Checks for bootloader drive repeatedly until found or timeout
+ */
+function startBootloaderDetectionService() {
+  if (bootloaderDetectionRunning) {
+    log.info("Bootloader detection service already running");
+    return;
+  }
+
+  log.info("Starting bootloader detection service...");
+  bootloaderDetectionRunning = true;
+
+  let delay = 1000;
+  let totalDelay = 0;
+
+  async function retryFind() {
+    if (!bootloaderDetectionRunning) return;
+
+    let result = await findBootloaderPathNative();
+
+    if (result) {
+      log.info("Bootloader drive detected successfully, stopping service");
+      stopBootloaderDetectionService();
+      return;
+    }
+
+    totalDelay += delay;
+    if (totalDelay > 8000) {
+      log.info("Bootloader detection timeout reached");
+      stopBootloaderDetectionService();
+      return;
+    }
+
+    bootloaderDetectionTimeout = setTimeout(retryFind, delay);
+  }
+
+  bootloaderDetectionTimeout = setTimeout(retryFind, delay);
+}
+
+/**
+ * Stop the bootloader detection service
+ */
+function stopBootloaderDetectionService() {
+  if (!bootloaderDetectionRunning) {
+    return;
+  }
+
+  log.info("Stopping bootloader detection service");
+  bootloaderDetectionRunning = false;
+
+  if (bootloaderDetectionTimeout) {
+    clearTimeout(bootloaderDetectionTimeout);
+    bootloaderDetectionTimeout = null;
+  }
+}
 
 // To avoid context aware flag.
 //app.allowRendererProcessReuse = false;
@@ -325,6 +411,25 @@ function createWindow() {
   updater.mainWindow = mainWindow;
   updater.init(store.get("nightlyEditor"));
 
+  // Check for bootloader and trigger detection
+  mainWindow.webContents.session.on("serial-port-added", (event, port) => {
+    log.info("Serial port added:", port);
+
+    // Check if this port is a bootloader
+    const bootloaderInfo = isBootloaderPort(port);
+
+    if (bootloaderInfo) {
+      log.info(`Found ${bootloaderInfo.name} bootloader`);
+      startBootloaderDetectionService();
+    }
+  });
+
+  mainWindow.webContents.session.on("serial-port-removed", (event, port) => {
+    log.info("Serial port removed:", port);
+  });
+
+  setTimeout(findBootloaderPathNative, 10000); // Initial check
+
   ipcMain.on("restartAfterUpdate", () => {
     log.info('Calling "restartAfterUpdate" from main.ts');
     restartAfterUpdate();
@@ -398,14 +503,6 @@ function createWindow() {
       }
     },
   );
-
-  mainWindow.webContents.session.on("serial-port-added", (event, port) => {
-    log.info("serial-port-added FIRED WITH", port);
-  });
-
-  mainWindow.webContents.session.on("serial-port-removed", (event, port) => {
-    log.info("serial-port-removed FIRED WITH", port);
-  });
 
   mainWindow.webContents.session.setPermissionCheckHandler(
     (webContents, permission, requestingOrigin, details) => {

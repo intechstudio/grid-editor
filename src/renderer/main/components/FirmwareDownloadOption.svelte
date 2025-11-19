@@ -14,8 +14,10 @@
   export let fileLabel: ((filename: string) => string) | undefined = undefined;
 
   let files: { filename: string; data: any }[] = [];
+  let error = false;
 
-  $: filteredFiles = fileFilter ? files.filter(fileFilter) : files;
+  $: filteredFiles =
+    fileFilter && files ? files.filter(fileFilter) : files || [];
 </script>
 
 <BlockRow>
@@ -23,11 +25,30 @@
 
   {#if files.length === 0}
     <MoltenPushButton
-      text="Download and Extract"
+      text={error ? "Retry Download" : "Download and Extract"}
       click={async () => {
-        files = await fetchAndExtract(downloadUrl);
+        try {
+          error = false;
+          const result = await fetchAndExtract(downloadUrl);
+          if (result && result.length > 0) {
+            files = result;
+          } else {
+            error = true;
+            files = [];
+          }
+        } catch (e) {
+          console.error("Download failed:", e);
+          error = true;
+          files = [];
+        }
       }}
     />
+  {/if}
+
+  {#if error}
+    <span class="text-error text-sm"
+      >Download failed. Please check the URL and try again.</span
+    >
   {/if}
 
   {#each filteredFiles as file}
