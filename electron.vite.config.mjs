@@ -7,7 +7,11 @@ import { rendererConfig } from "./renderer.vite.config.mjs";
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ["@esbuild/**", "esbuild"],
+      }),
+    ],
     define: {
       "process.env": "process.env",
     },
@@ -29,7 +33,11 @@ export default defineConfig({
     envPrefix: "VITE_",
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ["@esbuild/**", "esbuild"],
+      }),
+    ],
     define: {
       "process.env": "process.env",
     },
