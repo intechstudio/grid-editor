@@ -870,16 +870,18 @@ ipcMain.handle("fetchBinaryFile", async (event, url) => {
     const response = await net.fetch(url);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorMsg = `HTTP error! status: ${response.status} - URL: ${url}`;
+      log.error(errorMsg);
+      throw new Error(errorMsg);
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    log.info(`Successfully fetched ${arrayBuffer.byteLength} bytes`);
+    log.info(`Successfully fetched ${arrayBuffer.byteLength} bytes from ${url}`);
 
     // Convert to array for IPC transfer
     return Array.from(new Uint8Array(arrayBuffer));
   } catch (error) {
-    log.error("Failed to fetch file:", error);
+    log.error(`Failed to fetch file from ${url}:`, error);
     throw error;
   }
 });
