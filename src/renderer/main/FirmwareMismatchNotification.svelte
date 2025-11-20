@@ -114,7 +114,7 @@
   }
 </script>
 
-{#if $appSettings.firmwareNotificationState === 1 || true}
+{#if $appSettings.firmwareNotificationState === 1}
   <div class="w-full bg-error text-white">
     <BlockRow>
       <div class="flex-col">
