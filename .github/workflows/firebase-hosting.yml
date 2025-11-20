@@ -21,10 +21,6 @@ jobs:
           node-version: "22"
           cache: "npm"
 
-      - name: Install libudev-dev
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev
-
       - run: npm ci && npm run web-build
 
       - name: Deploy to Firebase Hosting Live channel on push

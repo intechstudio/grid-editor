@@ -25,9 +25,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "22"
-      - name: Install libudev-dev
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev
       - run: npm ci
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
