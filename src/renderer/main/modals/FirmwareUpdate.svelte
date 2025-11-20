@@ -252,6 +252,11 @@
               : "Show manual options"}
             click={toggleManualOptions}
           />
+          {#if showManualOptions}
+            <div class="flex flex-col gap-2 w-full px-4 py-8">
+              <ManualFirmwareOptions />
+            </div>
+          {/if}
           <div class="flex flex-col items-center">
             <MoltenPushButton
               text={"Dismiss"}
@@ -260,12 +265,6 @@
             />
           </div>
         </div>
-
-        {#if showManualOptions}
-          <div class="flex flex-col gap-2 w-full px-4">
-            <ManualFirmwareOptions />
-          </div>
-        {/if}
       {/if}
       {#if $appSettings.firmwareNotificationState === 4}
         <span class="text-lg">Update is in progress...</span>
