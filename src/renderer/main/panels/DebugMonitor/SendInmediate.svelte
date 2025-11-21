@@ -4,6 +4,7 @@
     MeltSelect,
     Block,
     BlockRow,
+    BlockTitle,
   } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { GridInstruction } from "../../../serialport/instructions";
@@ -14,6 +15,7 @@
   import { logger } from "../../../runtime/runtime.store";
   import { Runtime } from "../../../runtime/string-table";
   import type { ModuleType } from "@intechstudio/grid-protocol";
+  import CalibrationButton from "./CalibrationButton.svelte";
 
   let monacoElement: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor;
@@ -90,8 +92,7 @@
     return String(type);
   }
 
-  function handleSendImmediateclicked() {
-    const value = editor.getValue();
+  function sendLuaCode(code: string) {
     const runtime = get(runtime_manager).active?.runtime;
 
     if (!runtime) {
@@ -117,7 +118,7 @@
         return;
       }
       modules.forEach((module) => {
-        module.execLUAImmediate(value);
+        module.execLUAImmediate(code);
       });
     } else {
       // Send to specific module
@@ -134,8 +135,13 @@
         });
         return;
       }
-      module.execLUAImmediate(value);
+      module.execLUAImmediate(code);
     }
+  }
+
+  function handleSendImmediateclicked() {
+    const value = editor.getValue();
+    sendLuaCode(value);
   }
 </script>
 
@@ -155,6 +161,29 @@
     <MoltenPushButton
       click={handleSendImmediateclicked}
       text="Send Immediate"
+    />
+  </BlockRow>
+  <BlockTitle>Calibration</BlockTitle>
+  <BlockRow>
+    <CalibrationButton
+      text="Center"
+      code="local caldata = gpcg() gpcs(caldata) print(table.unpack(caldata))"
+      onClick={sendLuaCode}
+    />
+    <CalibrationButton
+      text="Range"
+      code="local caldata = grcg() grcs(caldata) print(table.unpack(caldata))"
+      onClick={sendLuaCode}
+    />
+    <CalibrationButton
+      text="Detent Low"
+      code="local caldata = gpcg() gpds(caldata, false) print(table.unpack(caldata))"
+      onClick={sendLuaCode}
+    />
+    <CalibrationButton
+      text="Detent High"
+      code="local caldata = gpcg() gpds(caldata, true) print(table.unpack(caldata))"
+      onClick={sendLuaCode}
     />
   </BlockRow>
 </Block>
