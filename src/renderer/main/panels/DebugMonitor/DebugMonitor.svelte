@@ -20,7 +20,11 @@
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MoltenInput,
+    MeltRadio,
+  } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
   import DebugTextList from "./DebugTextList.svelte";
@@ -198,33 +202,6 @@
   </div>
   <SendInmediate />
 
-  <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
-    <MoltenPushButton click={clearDebugtext} text="Clear" />
-    <MoltenPushButton
-      click={() => {
-        display = "DEC";
-      }}
-      text="DEC"
-    />
-    <MoltenPushButton
-      click={() => {
-        display = "HEX";
-      }}
-      text="HEX"
-    />
-    <MoltenPushButton
-      click={() => {
-        display = "CHAR";
-      }}
-      text="CHAR"
-    />
-
-    {#if frozen == false}
-      <MoltenPushButton text="Freeze" click={freezeDebugtext} />
-    {:else}
-      <MoltenPushButton text="Unfreeze" click={unfreezeDebugtext} />
-    {/if}
-  </div>
   <Splitpanes
     theme="modern-theme"
     class="w-full overflow-hidden"
@@ -236,6 +213,29 @@
     <Pane class="overflow-hidden">
       {#if $debug_lowlevel_store.length != 0}
         <div class="flex flex-col w-full h-full">
+          <div class="flex flex-row gap-2 text-white items-center my-2">
+            <div class="inline-flex">
+              <MeltRadio
+                bind:target={display}
+                style="button"
+                orientation="horizontal"
+                options={[
+                  { title: "DEC", value: "DEC" },
+                  { title: "HEX", value: "HEX" },
+                  { title: "CHAR", value: "CHAR" },
+                ]}
+              />
+            </div>
+            <div class="flex-grow"></div>
+            <div class="flex gap-4">
+              {#if frozen == false}
+                <MoltenPushButton text="Freeze" click={freezeDebugtext} />
+              {:else}
+                <MoltenPushButton text="Unfreeze" click={unfreezeDebugtext} />
+              {/if}
+              <MoltenPushButton click={clearDebugtext} text="Clear" />
+            </div>
+          </div>
           <div class="text-white mt-2">Raw Packet:</div>
           <div
             class="flex flex-grow w-full selectable overflow-y-auto p-1"
