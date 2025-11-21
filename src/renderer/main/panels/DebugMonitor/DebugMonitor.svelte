@@ -29,7 +29,7 @@
   import { Grid } from "../../../lib/_utils";
   import DebugTextList from "./DebugTextList.svelte";
   import { scrollToBottom } from "../../_actions/scroll.move";
-  import SendInmediate from "./SendInmediate.svelte";
+  import SendImmediate from "./SendImmediate.svelte";
 
   let event: GridEvent;
 
@@ -200,7 +200,7 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
-  <SendInmediate />
+  <SendImmediate />
 
   <Splitpanes
     theme="modern-theme"

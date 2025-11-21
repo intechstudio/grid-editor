@@ -208,7 +208,7 @@
     />
   </BlockRow>
   <BlockTitle>Calibration options</BlockTitle>
-  <BlockRow>
+  <div class="flex flex-row flex-wrap gap-1">
     <CalibrationButton
       text="Center"
       code="local caldata = gpcg() gpcs(caldata) print(table.unpack(caldata))"
@@ -237,11 +237,12 @@
       text="Reset"
       code="gcr()"
       onClick={sendLuaCode}
+      style={"outlined"}
       disabled={!(
         hasCenterCalibration ||
         hasRangeCalibration ||
         hasDetentCalibration
       )}
     />
-  </BlockRow>
+  </div>
 </Block>
