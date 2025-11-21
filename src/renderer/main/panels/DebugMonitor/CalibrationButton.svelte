@@ -5,6 +5,7 @@
   export let text: string;
   export let code: string;
   export let onClick: (code: string) => void;
+  export let disabled: boolean = false;
 
   function handleClick() {
     onClick(code);
@@ -17,5 +18,5 @@
     placement: "top",
   }}
 >
-  <MoltenPushButton click={handleClick} {text} />
+  <MoltenPushButton click={handleClick} {text} {disabled} />
 </div>
