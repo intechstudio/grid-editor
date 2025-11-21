@@ -37,8 +37,8 @@ function setupRendererLogTransport() {
                            logLevel === 'debug' ? 'debug' :
                            'log';
       
-      // Format the message with [MAIN] prefix to distinguish from renderer logs
-      const prefix = `%c[MAIN]%c ${scope}`;
+      // Format the message with [ELECTRON] prefix to distinguish from renderer logs
+      const prefix = `%c[ELECTRON]%c ${scope}`;
       const prefixStyle = 'color: #ff6b6b; font-weight: bold;';
       const scopeStyle = scope ? 'color: #a78bfa;' : '';
       
