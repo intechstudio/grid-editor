@@ -207,7 +207,7 @@
       text="Send Immediate"
     />
   </BlockRow>
-  <BlockTitle>Generate Calibration</BlockTitle>
+  <BlockTitle>Calibration options</BlockTitle>
   <BlockRow>
     <CalibrationButton
       text="Center"
@@ -233,32 +233,15 @@
       onClick={sendLuaCode}
       disabled={!hasDetentCalibration}
     />
-  </BlockRow>
-  <BlockTitle>Clear Calibration</BlockTitle>
-  <BlockRow>
     <CalibrationButton
-      text="Center"
-      code="gpcs(nil)"
+      text="Reset"
+      code="gcr()"
       onClick={sendLuaCode}
-      disabled={!hasCenterCalibration}
-    />
-    <CalibrationButton
-      text="Range"
-      code="grcs(nil)"
-      onClick={sendLuaCode}
-      disabled={!hasRangeCalibration}
-    />
-    <CalibrationButton
-      text="Detent Low"
-      code="gpds(nil, false)"
-      onClick={sendLuaCode}
-      disabled={!hasDetentCalibration}
-    />
-    <CalibrationButton
-      text="Detent High"
-      code="gpds(nil, true)"
-      onClick={sendLuaCode}
-      disabled={!hasDetentCalibration}
+      disabled={!(
+        hasCenterCalibration ||
+        hasRangeCalibration ||
+        hasDetentCalibration
+      )}
     />
   </BlockRow>
 </Block>
