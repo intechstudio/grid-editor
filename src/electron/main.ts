@@ -323,7 +323,7 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
-  updater.init(store.get("nightlyEditor"));
+  updater.init(store.get("nightlyEditor"), store.get("disableAutoUpdate"));
 
   ipcMain.on("restartAfterUpdate", () => {
     log.info('Calling "restartAfterUpdate" from main.ts');
@@ -650,7 +650,11 @@ store.onDidChange("packageDeveloper", (newValue) => {
 });
 
 store.onDidChange("nightlyEditor", (newValue) => {
-  updater.setNightlyAllowed(newValue);
+  updater.setUpdateSettings({ nightlyAllowed: newValue });
+});
+
+store.onDidChange("disableAutoUpdate", (newValue) => {
+  updater.setUpdateSettings({ disableAutoUpdate: newValue });
 });
 
 // This method will be called when Electron has finished
