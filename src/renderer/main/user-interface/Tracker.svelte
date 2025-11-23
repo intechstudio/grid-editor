@@ -55,6 +55,15 @@
       moduleOverlay.close();
     }
   }
+
+  function showCalibrationOverlay() {
+    const show = get(moduleOverlay) !== ModuleOverlay.Types.CALIBRATION;
+    if (show) {
+      moduleOverlay.show(ModuleOverlay.Types.CALIBRATION);
+    } else {
+      moduleOverlay.close();
+    }
+  }
 </script>
 
 <container class={$$props.class}>
@@ -73,6 +82,19 @@
         title="Name Overlay"
         on:change={showControlElementNameOverlay}
         value={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
+      />
+    </div>
+    <div
+      use:tooltip={{
+        placement: "top",
+        class: "w-60 p-4 z-10",
+        key: "configuration_calibration",
+      }}
+    >
+      <Toggle
+        title="Calibration Overlay"
+        on:change={showCalibrationOverlay}
+        value={$moduleOverlay === ModuleOverlay.Types.CALIBRATION}
       />
     </div>
     <div

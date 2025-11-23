@@ -21,6 +21,7 @@
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
+  import CalibrationOverlay from "./overlays/CalibrationOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
   //Underlays
@@ -439,6 +440,10 @@
         <ProfileLoadOverlay
           {device}
           visible={$moduleOverlay === ModuleOverlay.Types.PROFILE_LOAD}
+        />
+        <CalibrationOverlay
+          {device}
+          visible={$moduleOverlay === ModuleOverlay.Types.CALIBRATION}
         />
         {#if $moduleOverlay === ModuleOverlay.Types.PROFILE_DRAG && $profileCloudConfigDrag.type === device.type}
           <div class="absolute p-2 w-full h-full flex">

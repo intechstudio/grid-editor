@@ -35,6 +35,8 @@ export const tooltip_content = {
     "System Events are shared by all Grid modules and Each System Event serves a specific purpose (see the specific system event descriptions).",
   configuration_element_name:
     'Name your control element, by adding an "Element Name" field in Actions.',
+  configuration_calibration:
+    "Enable the calibration overlay to view and manage calibration settings for control elements.",
   configuration_selected_element:
     "A Control Element represents each individual button, knob or fader on a Grid module and are referred to by number from 0 to 15 from topdown left-to-right fashion.",
   configuration_selected_events:
