@@ -4,6 +4,7 @@
     GridModule,
     GridPage,
     GridPresetData,
+    GridRuntime,
   } from "./../../../../runtime/runtime";
   import { selectedConfigStore } from "../../../panels/profileCloud/ProfileCloud";
   import { appSettings } from "../../../../runtime/app-helper.store";
@@ -19,6 +20,12 @@
 
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
+  $: runtime = module?.parent as GridRuntime;
+
+  $: totalRotation = Grid.addRotations(
+    $appSettings.persistent.moduleRotation,
+    $runtime?.rotation ?? 0
+  );
 
   let loaded = false;
 
@@ -81,7 +88,7 @@
       >
         <div
           class="flex w-full h-full items-center justify-center"
-          style="transform: rotate({-$appSettings.persistent.moduleRotation +
+          style="transform: rotate({-totalRotation +
             $module?.rot * Grid.Rotation.R90}deg);"
         >
           {#if !loaded}
