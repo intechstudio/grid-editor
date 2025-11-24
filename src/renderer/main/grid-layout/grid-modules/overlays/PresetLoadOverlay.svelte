@@ -24,7 +24,7 @@
 
   $: totalRotation = Grid.addRotations(
     $appSettings.persistent.moduleRotation,
-    $runtime?.rotation ?? 0
+    $runtime?.rotation ?? 0,
   );
 
   let loaded = false;

@@ -292,12 +292,16 @@ export class WriteBuffer implements Readable<WriteBufferData> {
               case ResponseStatus.ERROR: {
                 // Handle "interrupted" errors gracefully - these occur when modules disconnect during operations
                 if (response.error === "Waiting for response was interrupted") {
-                  console.log("Operation interrupted (module disconnected):", response.error);
+                  console.log(
+                    "Operation interrupted (module disconnected):",
+                    response.error,
+                  );
                   logger.set({
                     type: "info",
                     classname: "engine",
                     mode: 0,
-                    message: "Operation interrupted: module disconnected during operation",
+                    message:
+                      "Operation interrupted: module disconnected during operation",
                   });
                   resolve(null); // Resolve gracefully instead of rejecting
                 } else {

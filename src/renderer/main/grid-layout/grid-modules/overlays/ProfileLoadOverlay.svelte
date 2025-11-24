@@ -54,7 +54,7 @@
   $: deviceRotationDeg = deviceRotValue * -90;
   $: totalRotation = Grid.addRotations(
     $appSettings.persistent.moduleRotation,
-    $runtime?.rotation ?? 0
+    $runtime?.rotation ?? 0,
   );
   $: counterRotation = -deviceRotationDeg - totalRotation;
 

@@ -16,15 +16,14 @@
   import { Runtime } from "../../../runtime/string-table";
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import { grid } from "@intechstudio/grid-protocol";
-  import CalibrationButton from "./CalibrationButton.svelte";
+  import type { GridModule } from "../../../runtime/runtime";
+  import CalibrationButtons from "./CalibrationButtons.svelte";
 
   let monacoElement: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor;
   let selectedModule: string = "all";
   let moduleOptions: Array<{ title: string; value: string }> = [];
-  let hasCenterCalibration: boolean = false;
-  let hasRangeCalibration: boolean = false;
-  let hasDetentCalibration: boolean = false;
+  let currentModule: GridModule | undefined = undefined;
 
   onMount(() => {
     editor = MonacoEditor.create(monacoElement, {
@@ -148,42 +147,19 @@
     sendLuaCode(value);
   }
 
-  // Check what calibrations the selected module supports
-  // - Potmeters: Center, Range, Detent Low, Detent High
-  // - Buttons: Range only (RevH revision only)
-  // - Other elements: no calibration
+  // Get the current module for calibration
   $: {
     if (selectedModule === "all") {
-      hasCenterCalibration = false;
-      hasRangeCalibration = false;
-      hasDetentCalibration = false;
+      currentModule = undefined;
     } else {
       const runtime = get(runtime_manager)?.active?.runtime;
       if (runtime) {
         const [dxStr, dyStr] = selectedModule.split(",");
         const dxNum = parseInt(dxStr) || 0;
         const dyNum = parseInt(dyStr) || 0;
-        const module = runtime.findModule(dxNum, dyNum);
-        if (module) {
-          const elementList = grid.get_module_element_list(module.type);
-          const hasPotmeter = elementList.some(
-            (element) => element === "potmeter",
-          );
-          const hasButton = elementList.some((element) => element === "button");
-          const isRevH = module.revision === "RevH";
-
-          hasCenterCalibration = hasPotmeter;
-          hasRangeCalibration = hasPotmeter || (hasButton && isRevH);
-          hasDetentCalibration = hasPotmeter;
-        } else {
-          hasCenterCalibration = false;
-          hasRangeCalibration = false;
-          hasDetentCalibration = false;
-        }
+        currentModule = runtime.findModule(dxNum, dyNum);
       } else {
-        hasCenterCalibration = false;
-        hasRangeCalibration = false;
-        hasDetentCalibration = false;
+        currentModule = undefined;
       }
     }
   }
@@ -208,41 +184,5 @@
     />
   </BlockRow>
   <BlockTitle>Calibration options</BlockTitle>
-  <div class="flex flex-row flex-wrap gap-1">
-    <CalibrationButton
-      text="Center"
-      code="local caldata = gpcg() gpcs(caldata) print(table.unpack(caldata))"
-      onClick={sendLuaCode}
-      disabled={!hasCenterCalibration}
-    />
-    <CalibrationButton
-      text="Range"
-      code="local caldata = grcg() grcs(caldata) print(table.unpack(caldata))"
-      onClick={sendLuaCode}
-      disabled={!hasRangeCalibration}
-    />
-    <CalibrationButton
-      text="Detent Low"
-      code="local caldata = gpcg() gpds(caldata, false) print(table.unpack(caldata))"
-      onClick={sendLuaCode}
-      disabled={!hasDetentCalibration}
-    />
-    <CalibrationButton
-      text="Detent High"
-      code="local caldata = gpcg() gpds(caldata, true) print(table.unpack(caldata))"
-      onClick={sendLuaCode}
-      disabled={!hasDetentCalibration}
-    />
-    <CalibrationButton
-      text="Reset"
-      code="gcr()"
-      onClick={sendLuaCode}
-      style={"outlined"}
-      disabled={!(
-        hasCenterCalibration ||
-        hasRangeCalibration ||
-        hasDetentCalibration
-      )}
-    />
-  </div>
+  <CalibrationButtons module={currentModule} onCalibrate={sendLuaCode} />
 </Block>

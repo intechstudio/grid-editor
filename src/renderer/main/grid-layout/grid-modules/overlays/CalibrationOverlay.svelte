@@ -2,6 +2,7 @@
   import { GridModule, GridRuntime } from "./../../../../runtime/runtime";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { Grid } from "../../../../lib/_utils";
+  import CalibrationButtons from "../../../panels/DebugMonitor/CalibrationButtons.svelte";
 
   export let visible = false;
   export let device: GridModule;
@@ -14,9 +15,13 @@
   $: deviceRotationDeg = deviceRotValue * -90;
   $: totalRotation = Grid.addRotations(
     $appSettings.persistent.moduleRotation,
-    $runtime?.rotation ?? 0
+    $runtime?.rotation ?? 0,
   );
   $: counterRotation = -deviceRotationDeg - totalRotation;
+
+  function handleCalibrate(code: string) {
+    device?.execLUAImmediate(code);
+  }
 </script>
 
 {#if visible}
@@ -25,7 +30,7 @@
       class="text-white w-full flex flex-col items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
       style="transform: rotate({counterRotation}deg); border-radius: var(--grid-rounding);"
     >
-      <p class="text-white text-center">calibration</p>
+      <CalibrationButtons module={device} onCalibrate={handleCalibrate} />
     </div>
   </container>
 {/if}
