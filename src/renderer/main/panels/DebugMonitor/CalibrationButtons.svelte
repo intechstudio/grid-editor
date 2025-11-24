@@ -9,12 +9,14 @@
 
   // Check what calibrations the selected module supports
   // - Potmeters: Center, Range, Detent Low, Detent High
+  // - Faders: Range only
   // - Buttons: Range only (RevH revision only)
   // - Other elements: no calibration
 
   // Cache element list to avoid multiple lookups
   $: elementList = module ? grid.get_module_element_list(module.type) : [];
   $: hasPotmeter = elementList.some((element) => element === "potmeter");
+  $: hasFader = elementList.some((element) => element === "fader");
   $: hasButton = elementList.some((element) => element === "button");
   $: isRevH = module?.revision === "RevH";
 
@@ -22,8 +24,8 @@
   $: hasCenterCalibration = hasPotmeter;
   $: hasDetentCalibration = hasPotmeter;
 
-  // Range calibration is for potmeters or RevH buttons
-  $: hasRangeCalibration = hasPotmeter || (hasButton && isRevH);
+  // Range calibration is for potmeters, faders, or RevH buttons
+  $: hasRangeCalibration = hasPotmeter || hasFader || (hasButton && isRevH);
 
   // Button configurations
   $: buttons = [

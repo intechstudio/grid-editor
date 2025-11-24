@@ -92,7 +92,7 @@
       }}
     >
       <Toggle
-        title="Calibration Overlay"
+        title="Calibration"
         on:change={showCalibrationOverlay}
         value={$moduleOverlay === ModuleOverlay.Types.CALIBRATION}
       />
