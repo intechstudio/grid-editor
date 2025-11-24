@@ -310,6 +310,12 @@
     document.addEventListener("contextmenu", preventContextMenuEvent);
     loaded = true;
     window.electron.appLoaded();
+    // We keep the stream open just long enough to enumerate
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // 2. Enumerate Devices (Labels should now be visible)
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      console.log("APP2", devices)
   });
 
   onDestroy(() => {

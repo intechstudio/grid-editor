@@ -12,6 +12,8 @@ import {
   screen,
   protocol,
   net,
+  session,
+  desktopCapturer,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -456,6 +458,19 @@ function createWindow() {
       ) {
         return true;
       }
+      if (permission === "media") {
+        return true;
+      }
+    },
+  );
+
+  mainWindow.webContents.session.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      if (permission === "media") {
+        callback(true);
+        return;
+      }
+      callback(false);
     },
   );
 
@@ -469,6 +484,7 @@ function createWindow() {
       return true;
     }
   });
+
   // Handle package configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
     const { port1, port2 } = new MessageChannelMain();

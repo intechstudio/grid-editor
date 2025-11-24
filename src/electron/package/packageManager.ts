@@ -895,7 +895,7 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
       },
     },
   );
-  console.log({ packageReleasesResponse });
+  //console.log({ packageReleasesResponse });
   const packageReleases = await packageReleasesResponse.json();
   return (
     packageReleases?.find((e) => {
