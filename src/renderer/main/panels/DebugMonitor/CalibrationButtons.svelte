@@ -52,12 +52,11 @@
       enabled: hasDetentCalibration,
     },
     {
-      text: "Reset",
+      text: "Delete Calibration",
       code: "gcr()",
       tooltipKey: "calibration_reset",
       enabled:
         hasCenterCalibration || hasRangeCalibration || hasDetentCalibration,
-      style: "outlined",
       confirm: true,
     },
   ];
