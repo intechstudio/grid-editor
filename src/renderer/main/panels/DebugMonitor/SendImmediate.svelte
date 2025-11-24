@@ -27,7 +27,7 @@
 
   onMount(() => {
     editor = MonacoEditor.create(monacoElement, {
-      value: 'print("hello")',
+      value: 'print("INFO: hello")',
       language: "lua",
       theme: $appSettings.persistent.lightMode
         ? MonacoEditor.Theme.LIGHT

@@ -29,25 +29,25 @@
   $: buttons = [
     {
       text: "Center",
-      code: "local caldata = gpcg() gpcs(caldata) print(table.unpack(caldata))",
+      code: "local caldata = gpcg() gpcs(caldata) print('INFO: Calibration Center', table.unpack(caldata))",
       tooltipKey: "calibration_center",
       enabled: hasCenterCalibration,
     },
     {
       text: "Range",
-      code: "local caldata = grcg() grcs(caldata) print(table.unpack(caldata))",
+      code: "local caldata = grcg() grcs(caldata) print('INFO: Calibration Range', table.unpack(caldata))",
       tooltipKey: "calibration_range",
       enabled: hasRangeCalibration,
     },
     {
       text: "Detent Low",
-      code: "local caldata = gpcg() gpds(caldata, false) print(table.unpack(caldata))",
+      code: "local caldata = gpcg() gpds(caldata, false) print('INFO: Calibration Detent Low', table.unpack(caldata))",
       tooltipKey: "calibration_detent_low",
       enabled: hasDetentCalibration,
     },
     {
       text: "Detent High",
-      code: "local caldata = gpcg() gpds(caldata, true) print(table.unpack(caldata))",
+      code: "local caldata = gpcg() gpds(caldata, true) print('INFO: Calibration Detent High', table.unpack(caldata))",
       tooltipKey: "calibration_detent_high",
       enabled: hasDetentCalibration,
     },
