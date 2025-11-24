@@ -177,4 +177,10 @@ export const tooltip_content = {
     "The displayed modules can be repositioned by click and dragging the mouse while holding the control key.",
   tracker_tooltip:
     "When changing a control element, the tracking option determines selection scope.",
+
+  calibration_center: "Move all of the potentiometers on this module to the center position then store the calibration!",
+  calibration_range: "Move all of the analog inputs to the minimum and maximum endpoints before storing the calibration!",
+  calibration_detent_low: "Only use on center-detent potmeters! Slowly rotate the potmeter from the minimum position into the center detent before storing the calibration!",
+  calibration_detent_high: "Only use on center-detent potmeters! Slowly rotate the potmeter from the maximum position into the center detent before storing the calibration!",
+  calibration_reset: "Clear all calibration data on the current module!",
 };

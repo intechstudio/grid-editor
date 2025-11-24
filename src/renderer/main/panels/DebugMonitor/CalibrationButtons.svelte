@@ -5,68 +5,86 @@
 
   export let module: GridModule | undefined = undefined;
   export let onCalibrate: (code: string) => void;
+  export let compact: boolean = true;
 
   // Check what calibrations the selected module supports
   // - Potmeters: Center, Range, Detent Low, Detent High
   // - Buttons: Range only (RevH revision only)
   // - Other elements: no calibration
-  $: hasCenterCalibration = module ? checkCenterCalibration(module) : false;
-  $: hasRangeCalibration = module ? checkRangeCalibration(module) : false;
-  $: hasDetentCalibration = module ? checkDetentCalibration(module) : false;
 
-  function checkCenterCalibration(module: GridModule): boolean {
-    const elementList = grid.get_module_element_list(module.type);
-    return elementList.some((element) => element === "potmeter");
-  }
+  // Cache element list to avoid multiple lookups
+  $: elementList = module ? grid.get_module_element_list(module.type) : [];
+  $: hasPotmeter = elementList.some((element) => element === "potmeter");
+  $: hasButton = elementList.some((element) => element === "button");
+  $: isRevH = module?.revision === "RevH";
 
-  function checkRangeCalibration(module: GridModule): boolean {
-    const elementList = grid.get_module_element_list(module.type);
-    const hasPotmeter = elementList.some((element) => element === "potmeter");
-    const hasButton = elementList.some((element) => element === "button");
-    const isRevH = module.revision === "RevH";
-    return hasPotmeter || (hasButton && isRevH);
-  }
+  // Center and Detent calibrations are only for potmeters
+  $: hasCenterCalibration = hasPotmeter;
+  $: hasDetentCalibration = hasPotmeter;
 
-  function checkDetentCalibration(module: GridModule): boolean {
-    const elementList = grid.get_module_element_list(module.type);
-    return elementList.some((element) => element === "potmeter");
-  }
+  // Range calibration is for potmeters or RevH buttons
+  $: hasRangeCalibration = hasPotmeter || (hasButton && isRevH);
+
+  // Button configurations
+  $: buttons = [
+    {
+      text: "Center",
+      code: "local caldata = gpcg() gpcs(caldata) print(table.unpack(caldata))",
+      tooltipKey: "calibration_center",
+      enabled: hasCenterCalibration,
+    },
+    {
+      text: "Range",
+      code: "local caldata = grcg() grcs(caldata) print(table.unpack(caldata))",
+      tooltipKey: "calibration_range",
+      enabled: hasRangeCalibration,
+    },
+    {
+      text: "Detent Low",
+      code: "local caldata = gpcg() gpds(caldata, false) print(table.unpack(caldata))",
+      tooltipKey: "calibration_detent_low",
+      enabled: hasDetentCalibration,
+    },
+    {
+      text: "Detent High",
+      code: "local caldata = gpcg() gpds(caldata, true) print(table.unpack(caldata))",
+      tooltipKey: "calibration_detent_high",
+      enabled: hasDetentCalibration,
+    },
+    {
+      text: "Reset",
+      code: "gcr()",
+      tooltipKey: "calibration_reset",
+      enabled:
+        hasCenterCalibration || hasRangeCalibration || hasDetentCalibration,
+      style: "outlined",
+      confirm: true,
+    },
+  ];
+
+  $: hasAnyCalibration = buttons.some((btn) => btn.enabled);
 </script>
 
-<div class="flex flex-row flex-wrap gap-1">
-  <CalibrationButton
-    text="Center"
-    code="local caldata = gpcg() gpcs(caldata) print(table.unpack(caldata))"
-    onClick={onCalibrate}
-    disabled={!hasCenterCalibration}
-  />
-  <CalibrationButton
-    text="Range"
-    code="local caldata = grcg() grcs(caldata) print(table.unpack(caldata))"
-    onClick={onCalibrate}
-    disabled={!hasRangeCalibration}
-  />
-  <CalibrationButton
-    text="Detent Low"
-    code="local caldata = gpcg() gpds(caldata, false) print(table.unpack(caldata))"
-    onClick={onCalibrate}
-    disabled={!hasDetentCalibration}
-  />
-  <CalibrationButton
-    text="Detent High"
-    code="local caldata = gpcg() gpds(caldata, true) print(table.unpack(caldata))"
-    onClick={onCalibrate}
-    disabled={!hasDetentCalibration}
-  />
-  <CalibrationButton
-    text="Reset"
-    code="gcr()"
-    onClick={onCalibrate}
-    style={"outlined"}
-    disabled={!(
-      hasCenterCalibration ||
-      hasRangeCalibration ||
-      hasDetentCalibration
-    )}
-  />
-</div>
+{#if !compact && !hasAnyCalibration}
+  <div class="text-white text-center py-2">
+    No calibration is available for this module type!
+  </div>
+{:else}
+  <div
+    class="flex gap-1 {compact
+      ? 'flex-row flex-wrap'
+      : 'flex-col items-center'}"
+  >
+    {#each buttons.filter((btn) => compact || btn.enabled) as button (button.text)}
+      <CalibrationButton
+        text={button.text}
+        code={button.code}
+        tooltipKey={compact ? undefined : button.tooltipKey}
+        onClick={onCalibrate}
+        style={button.style}
+        confirm={!compact && button.confirm}
+        disabled={!button.enabled}
+      />
+    {/each}
+  </div>
+{/if}

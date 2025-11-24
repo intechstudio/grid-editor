@@ -27,10 +27,20 @@
 {#if visible}
   <container>
     <div
-      class="text-white w-full flex flex-col items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
+      class="calibration-overlay-bg text-white w-full flex flex-col items-center justify-center rounded h-full absolute pointer-events-auto"
       style="transform: rotate({counterRotation}deg); border-radius: var(--grid-rounding);"
     >
-      <CalibrationButtons module={device} onCalibrate={handleCalibrate} />
+      <CalibrationButtons
+        module={device}
+        onCalibrate={handleCalibrate}
+        compact={false}
+      />
     </div>
   </container>
 {/if}
+
+<style>
+  .calibration-overlay-bg {
+    background-color: color-mix(in srgb, var(--background) 90%, transparent);
+  }
+</style>
