@@ -66,9 +66,7 @@
 </script>
 
 {#if !compact && !hasAnyCalibration}
-  <div class="text-white text-center py-2">
-    No calibration is available for this module type!
-  </div>
+  <div class="text-white text-center py-2">No calibration is available!</div>
 {:else}
   <div
     class="flex gap-1 {compact
