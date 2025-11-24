@@ -177,7 +177,6 @@
 
   .icon-corner-cut-l:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     left: -35px;
     width: 46px;
@@ -186,7 +185,6 @@
   }
   .icon-corner-cut-r:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     right: -35px;
     width: 46px;
@@ -196,7 +194,6 @@
 
   .corner-cut-l:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     left: -35px;
     width: 60px;
@@ -205,7 +202,6 @@
   }
   .corner-cut-r:before {
     position: absolute;
-    z-index: -1;
     bottom: -35px;
     right: -35px;
     width: 60px;

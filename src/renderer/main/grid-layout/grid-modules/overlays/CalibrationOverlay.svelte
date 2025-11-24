@@ -52,6 +52,6 @@
 
 <style>
   .calibration-overlay-bg {
-    background-color: color-mix(in srgb, var(--background) 90%, transparent);
+    background-color: var(--overlay-bg);
   }
 </style>

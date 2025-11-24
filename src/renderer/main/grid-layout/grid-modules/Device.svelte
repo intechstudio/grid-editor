@@ -192,7 +192,7 @@
 </script>
 
 <button
-  class="module drop-shadow"
+  class="module"
   class:activator-button={interactive}
   style="transform-origin: top left; transform: scale({scale})"
   tabindex={interactive ? 0 : -1}
@@ -435,8 +435,10 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay">
-      <ModuleInfo {device} visible={true} />
       {#if interactive}
+        {#if typeof $moduleOverlay === "undefined"}
+          <ModuleInfo {device} visible={true} />
+        {/if}
         <ProfileLoadOverlay
           {device}
           visible={$moduleOverlay === ModuleOverlay.Types.PROFILE_LOAD}
@@ -507,7 +509,6 @@
   }
 
   .module.activator-button {
-    /*border: 1px solid red;*/
   }
 
   .module.activator-button:focus-within {
@@ -528,6 +529,7 @@
   :root {
     --element-margin: 5px;
     --grid-rounding: 5px;
+    --overlay-bg: color-mix(in srgb, var(--background) 80%, transparent);
   }
   .module-dimensions {
     width: var(--module-size);
@@ -536,11 +538,11 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    border-radius: 6px;
+    border-radius: 4px;
   }
 
   .bg-overlay {
-    background-color: rgba(30, 30, 30, 0.5);
+    background-color: var(--overlay-bg);
   }
 
   .normal-cell-underlay-container {

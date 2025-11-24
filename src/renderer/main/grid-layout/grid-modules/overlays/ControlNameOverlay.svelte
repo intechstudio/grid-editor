@@ -23,10 +23,12 @@
 
 {#if visible && $element.elementIndex !== 255}
   <container class="pointer-events-auto">
-    <div class="flex w-full h-full items-center text-center p-1 bg-overlay">
+    <div
+      class="control-name-overlay-bg flex w-full h-full items-center text-center p-1"
+    >
       <p
-        class="max-w-md mx-auto break-words whitespace-normal truncate text-white"
-        style="transform: rotate({-totalRotation +
+        class="max-w-md mx-auto break-words whitespace-normal truncate"
+        style="color: var(--foreground); transform: rotate({-totalRotation +
           $module?.rot * Grid.Rotation.R90}deg);"
       >
         {typeof $element.name === "undefined" ? "" : $element.name}
@@ -34,3 +36,9 @@
     </div>
   </container>
 {/if}
+
+<style>
+  .control-name-overlay-bg {
+    background-color: var(--overlay-bg);
+  }
+</style>
