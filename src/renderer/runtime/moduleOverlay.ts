@@ -3,6 +3,7 @@ import { writable, Writable } from "svelte/store";
 export namespace ModuleOverlay {
   export enum Types {
     CONTROL_NAME = "control-name-overlay",
+    CALIBRATION = "calibration-overlay",
     PROFILE_LOAD = "profile-load-overlay",
     PRESET_LOAD = "preset-load-overlay",
     PROFILE_DRAG = "profile-drag-overlay",

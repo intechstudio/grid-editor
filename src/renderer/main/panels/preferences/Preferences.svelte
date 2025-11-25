@@ -90,6 +90,12 @@
   </Block>
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
+      <BlockTitle>Light Color Theme</BlockTitle>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.lightMode}
+        title={"Light Mode Enabled"}
+      />
+
       <BlockTitle>Control surface rotation</BlockTitle>
       <BlockBody>
         Changes how the controllers are rotated in Grid Editor. Useful when the
@@ -295,14 +301,6 @@
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
-      <BlockTitle>Enable light mode</BlockTitle>
-      <BlockBody
-        >An experimental mode to set the color scheme to light mode.</BlockBody
-      >
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.lightMode}
-        title={"Enabled"}
-      />
       <BlockTitle>Enable events loaded</BlockTitle>
       <BlockBody
         >Display on modules the number of events that are loaded and synced with

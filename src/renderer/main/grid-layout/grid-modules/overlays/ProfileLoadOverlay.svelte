@@ -25,6 +25,7 @@
     GridModule,
     GridPage,
     GridProfileData,
+    GridRuntime,
     ProfileCloudLoad,
   } from "../../../../runtime/runtime.js";
   import { loadProfile } from "../../../../runtime/operations";
@@ -44,6 +45,18 @@
 
   export let device: GridModule;
   export let visible = false;
+
+  $: runtime = device?.parent as GridRuntime;
+
+  // Match the device component's rotation: device?.rot * -90
+  // Then counter-rotate with TOTAL rotation (moduleRotation + runtime.rotation)
+  $: deviceRotValue = device?.rot ?? 0;
+  $: deviceRotationDeg = deviceRotValue * -90;
+  $: totalRotation = Grid.addRotations(
+    $appSettings.persistent.moduleRotation,
+    $runtime?.rotation ?? 0,
+  );
+  $: counterRotation = -deviceRotationDeg - totalRotation;
 
   let page = derived([device, user_input], ([$device, $user_input]) =>
     device.findPage($user_input.pagenumber),
@@ -172,9 +185,7 @@
     <div
       class="text-white w-full flex flex-col
   items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
-      style="transform: rotate({-$appSettings.persistent.moduleRotation +
-        Grid.Rotation.R90 *
-          device?.rot}deg); border-radius: var(--grid-rounding);"
+      style="transform: rotate({counterRotation}deg); border-radius: var(--grid-rounding);"
     >
       {#if typeof $selectedConfigStore !== "undefined" && isCompatible(device.type, $selectedConfigStore.type)}
         {#if $page.isLoaded()}

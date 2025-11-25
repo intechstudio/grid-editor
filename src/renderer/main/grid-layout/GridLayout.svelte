@@ -1,7 +1,8 @@
 <script lang="ts" context="module">
-  export const DEVICE_GAP = 5;
+  export const DEVICE_GAP = 0;
   export const DEVICE_WIDTH = 225;
   export const LAYOUT_CELL_WIDTH = DEVICE_WIDTH + DEVICE_GAP + 1;
+  export const GRID_GAP = 4; // 0.25rem gap between modules (4px)
 </script>
 
 <script lang="ts">
@@ -63,8 +64,11 @@
     const dim = getGridDimensions();
     rows = dim.rows;
     columns = dim.columns;
-    width = columns * LAYOUT_CELL_WIDTH * scale;
-    height = rows * LAYOUT_CELL_WIDTH * scale;
+    // Account for gaps between modules (N modules = N-1 gaps)
+    const gapWidth = Math.max(0, columns - 1) * GRID_GAP * scale;
+    const gapHeight = Math.max(0, rows - 1) * GRID_GAP * scale;
+    width = columns * LAYOUT_CELL_WIDTH * scale + gapWidth;
+    height = rows * LAYOUT_CELL_WIDTH * scale + gapHeight;
     layoutWidth = rotation == 0 || rotation == 180 ? width : height;
     layoutHeight = rotation == 90 || rotation == 270 ? width : height;
     shiftX = rotation == 90 || rotation == 180 ? layoutWidth : 0;
@@ -190,8 +194,9 @@
       >
         <div
           class="grid"
-          style="grid-template-columns: repeat({columns}, auto); 
+          style="grid-template-columns: repeat({columns}, auto);
           grid-template-rows: repeat({rows}, auto);
+            gap: {GRID_GAP * $scale}px;
             width: {width}px;  height: {height}px;"
         >
           {#each $runtime.modules as device (device.id)}

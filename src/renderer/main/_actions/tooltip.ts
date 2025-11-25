@@ -1,5 +1,5 @@
 import { MoltenTooltip } from "@intechstudio/grid-uikit";
-import { tooltip_content } from "../user-interface/tooltip/tooltip-content.json";
+import { tooltip_content } from "../user-interface/tooltip/tooltip-content.json.js";
 import type { Action } from "svelte/action";
 
 export const tooltip: Action<HTMLElement, any> = (
