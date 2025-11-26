@@ -2,6 +2,7 @@
   import CalibrationButton from "./CalibrationButton.svelte";
   import { grid } from "@intechstudio/grid-protocol";
   import type { GridModule } from "../../../runtime/runtime";
+  import { Analytics } from "../../../runtime/analytics";
 
   export let module: GridModule | undefined = undefined;
   export let onCalibrate: (code: string) => void;
@@ -31,31 +32,31 @@
   $: buttons = [
     {
       text: "Center",
-      code: "local caldata = gpcg() gpcs(caldata) print('INFO: Calibration Center', table.unpack(caldata))",
+      code: "local caldata = gpcg() gpcs(caldata) print('INFO: Center Calibration Stored!')",
       tooltipKey: "calibration_center",
       enabled: hasCenterCalibration,
     },
     {
       text: "Range",
-      code: "local caldata = grcg() grcs(caldata) print('INFO: Calibration Range', table.unpack(caldata))",
+      code: "local caldata = grcg() grcs(caldata) print('INFO: Range Calibration Stored!')",
       tooltipKey: "calibration_range",
       enabled: hasRangeCalibration,
     },
     {
       text: "Detent Low",
-      code: "local caldata = gpcg() gpds(caldata, false) print('INFO: Calibration Detent Low', table.unpack(caldata))",
+      code: "local caldata = gpcg() gpds(caldata, false) print('INFO: Detent-Low Calibration Stored!')",
       tooltipKey: "calibration_detent_low",
       enabled: hasDetentCalibration,
     },
     {
       text: "Detent High",
-      code: "local caldata = gpcg() gpds(caldata, true) print('INFO: Calibration Detent High', table.unpack(caldata))",
+      code: "local caldata = gpcg() gpds(caldata, true) print('INFO: Detent-High Calibration Stored!')",
       tooltipKey: "calibration_detent_high",
       enabled: hasDetentCalibration,
     },
     {
       text: "Delete Calibration",
-      code: "gcr()",
+      code: "gcr() print('INFO: Calibration Deleted!')",
       tooltipKey: "calibration_reset",
       enabled:
         hasCenterCalibration || hasRangeCalibration || hasDetentCalibration,
@@ -64,6 +65,22 @@
   ];
 
   $: hasAnyCalibration = buttons.some((btn) => btn.enabled);
+
+  function handleCalibrate(code: string, type: string) {
+    // Track calibration event
+    Analytics.track({
+      event: "Calibration",
+      payload: {
+        type: type,
+        moduleType: module?.type,
+        moduleRevision: module?.revision,
+      },
+      mandatory: false,
+    });
+
+    // Execute calibration
+    onCalibrate(code);
+  }
 </script>
 
 {#if !compact && !hasAnyCalibration}
@@ -81,7 +98,7 @@
         text={button.text}
         code={button.code}
         tooltipKey={compact ? undefined : button.tooltipKey}
-        onClick={onCalibrate}
+        onClick={(code) => handleCalibrate(code, button.text)}
         style={button.style}
         confirm={!compact && button.confirm}
         disabled={!button.enabled}

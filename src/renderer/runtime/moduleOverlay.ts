@@ -1,4 +1,5 @@
 import { writable, Writable } from "svelte/store";
+import { Analytics } from "./analytics";
 
 export namespace ModuleOverlay {
   export enum Types {
@@ -15,6 +16,15 @@ function create_module_overlay_store() {
   const store: Writable<undefined | ModuleOverlay.Types> = writable(undefined);
 
   function show(type: ModuleOverlay.Types) {
+    // Track all overlay opens
+    Analytics.track({
+      event: "Overlay Opened",
+      payload: {
+        overlayType: type,
+      },
+      mandatory: false,
+    });
+
     store.set(type);
   }
 
