@@ -1,7 +1,7 @@
 export const blocks = (page) => ({
   Function: {
     Function: {
-      block: page.getByText("Function").nth(1),
+      block: page.locator("#action-menu").getByText("Function").nth(1),
       elements: {
         Function: page.locator("#cfg-0"),
         input: page.locator(".view-line"),
@@ -11,7 +11,7 @@ export const blocks = (page) => ({
   },
   variables: {
     Lookup: {
-      block: page.getByText("Lookup"),
+      block: page.locator("#action-menu").getByText("Lookup"),
       elements: {
         source: page.getByPlaceholder("Incoming value to match"),
         input: page.getByPlaceholder("input").first(),
@@ -21,7 +21,9 @@ export const blocks = (page) => ({
       },
     },
     Global: {
-      block: page.getByRole("button", { name: "G Global", exact: true }),
+      block: page
+        .locator("#action-menu")
+        .getByRole("button", { name: "G Global", exact: true }),
       elements: {
         name: page.getByTestId("variable-name"),
         value: page.getByTestId("variable-value"),
@@ -29,7 +31,7 @@ export const blocks = (page) => ({
       },
     },
     Locals: {
-      block: page.getByText("Locals"),
+      block: page.locator("#action-menu").getByText("Locals"),
       elements: {
         name: page.getByTestId("variable-name"),
         value: page.getByTestId("variable-value"),
@@ -37,7 +39,7 @@ export const blocks = (page) => ({
       },
     },
     Self: {
-      block: page.getByText("Self"),
+      block: page.locator("#action-menu").getByText("Self"),
       elements: {
         name: page.getByTestId("variable-name"),
         value: page.getByTestId("variable-value"),
@@ -47,7 +49,7 @@ export const blocks = (page) => ({
   },
   led: {
     "Start Animation": {
-      block: page.getByText("Start Animation"),
+      block: page.locator("#action-menu").getByText("Start Animation"),
       elements: {
         ledNumber: page.getByLabel("LED Number"),
         Layer: page.getByLabel("Layer"),
@@ -57,14 +59,14 @@ export const blocks = (page) => ({
       },
     },
     "Stop Animation": {
-      block: page.getByText("Stop Animation"),
+      block: page.locator("#action-menu").getByText("Stop Animation"),
       elements: {
         ledNumber: page.getByLabel("LED Number"),
         Layer: page.getByLabel("Layer"),
       },
     },
     Color: {
-      block: page.getByText("Color", { exact: true }),
+      block: page.locator("#action-menu").getByText("Color", { exact: true }),
       elements: {
         ledNumber: page.getByLabel("LED Number"),
         Layer: page.getByLabel("Layer"),
@@ -77,7 +79,7 @@ export const blocks = (page) => ({
       },
     },
     Intensity: {
-      block: page.getByText("Intensity"),
+      block: page.locator("#action-menu").getByText("Intensity"),
       elements: {
         "LED Number": page.getByLabel("LED Number"),
         Layer: page.getByLabel("Layer"),
@@ -87,7 +89,7 @@ export const blocks = (page) => ({
   },
   midi: {
     MIDI: {
-      block: page.getByText("MIDI", { exact: true }),
+      block: page.locator("#action-menu").getByText("MIDI", { exact: true }),
       elements: {
         Channel: page.getByLabel("Channel"),
         Command: page.getByLabel("Command"),
@@ -96,7 +98,7 @@ export const blocks = (page) => ({
       },
     },
     "MIDI 14": {
-      block: page.getByText("MIDI 14"),
+      block: page.locator("#action-menu").getByText("MIDI 14"),
       elements: {
         Channel: page.getByLabel("Channel"),
         CC: page.getByLabel("CC Number"),
@@ -104,14 +106,14 @@ export const blocks = (page) => ({
       },
     },
     SysEX: {
-      block: page.getByText("SysEX"),
+      block: page.locator("#action-menu").getByText("SysEX"),
       elements: {
         Commit: page.getByRole("button", { name: "Commit" }),
         message: page.getByText("0xF0, 0x41, 0x10, val, 0xF7", { exact: true }),
       },
     },
     "MIDI NRPN": {
-      block: page.getByText("MIDI NRPN"),
+      block: page.locator("#action-menu").getByText("MIDI NRPN"),
       elements: {
         Channel: page.getByLabel("Channel"),
         MSB: page.getByLabel("MSB"),
@@ -124,14 +126,14 @@ export const blocks = (page) => ({
   },
   hid: {
     "GamePad Axis": {
-      block: page.getByText("GamePad Axis"),
+      block: page.locator("#action-menu").getByText("GamePad Axis"),
       elements: {
         Axis: page.getByLabel("Axis"),
         Position: page.getByLabel("Position"),
       },
     },
     "GamePad Button": {
-      block: page.getByText("GamePad Button"),
+      block: page.locator("#action-menu").getByText("GamePad Button"),
       elements: {
         Button: page
           .getByTestId("action-block")
@@ -140,7 +142,7 @@ export const blocks = (page) => ({
       },
     },
     Keyboard: {
-      block: page.getByText("Keyboard"),
+      block: page.locator("#action-menu").getByText("Keyboard"),
       elements: {
         Macro: page.locator(".focus\\:border-select-desaturate-20"),
         "Add Key": page.getByRole("combobox").nth(3),
@@ -151,7 +153,7 @@ export const blocks = (page) => ({
       },
     },
     "Mouse Button": {
-      block: page.getByText("Mouse Button"),
+      block: page.locator("#action-menu").getByText("Mouse Button"),
       elements: {
         Button: page
           .getByTestId("action-block")
@@ -160,7 +162,7 @@ export const blocks = (page) => ({
       },
     },
     "Mouse Move": {
-      block: page.getByText("Mouse Move"),
+      block: page.locator("#action-menu").getByText("Mouse Move"),
       elements: {
         Axis: page.getByLabel("Axis"),
         Position: page.getByLabel("Position"),
@@ -169,7 +171,7 @@ export const blocks = (page) => ({
   },
   element: {
     "Button Mode": {
-      block: page.getByText("Button Mode"),
+      block: page.locator("#action-menu").getByText("Button Mode"),
       elements: {
         Mode: page.getByLabel("Mode"),
         Min: page.getByLabel("Min", { exact: true }),
@@ -177,7 +179,7 @@ export const blocks = (page) => ({
       },
     },
     "Encoder Mode": {
-      block: page.getByText("Encoder Mode"),
+      block: page.locator("#action-menu").getByText("Encoder Mode"),
       elements: {
         Mode: page.getByLabel("Mode"),
         Velocity: page.getByLabel("Velocity"),
@@ -187,7 +189,7 @@ export const blocks = (page) => ({
       },
     },
     "Potmeter Mode": {
-      block: page.getByText("Potmeter Mode"),
+      block: page.locator("#action-menu").getByText("Potmeter Mode"),
       elements: {
         Bit: page.getByLabel("Bit"),
         Min: page.getByLabel("Min", { exact: true }),
@@ -195,7 +197,7 @@ export const blocks = (page) => ({
       },
     },
     "Endless Mode": {
-      block: page.getByText("Endless Mode"),
+      block: page.locator("#action-menu").getByText("Endless Mode"),
       elements: {
         Mode: page.getByLabel("Mode"),
         Velocity: page.getByLabel("Velocity"),
@@ -207,20 +209,25 @@ export const blocks = (page) => ({
   },
   condition: {
     If: {
-      block: page.getByRole("button", { name: "If", exact: true }),
+      block: page
+        .locator("#action-menu")
+        .getByRole("button", { name: "If", exact: true }),
       elements: {
         input: page.locator(".view-line"),
         end: page.locator("#cfg-1"),
       },
     },
     Else: {
-      block: page.getByText("Else", { exact: true }).first(),
+      block: page
+        .locator("#action-menu")
+        .getByText("Else", { exact: true })
+        .first(),
       elements: {
         else: page.locator("#cfg-1"),
       },
     },
     "Else if": {
-      block: page.getByText("Else If"),
+      block: page.locator("#action-menu").getByText("Else If"),
       elements: {
         input: page.locator("#cfg-1 #monaco_container"),
       },
@@ -237,7 +244,7 @@ export const blocks = (page) => ({
   },
   specialButton: {
     "Press/Release": {
-      block: page.getByText("Press/Release"),
+      block: page.locator("#action-menu").getByText("Press/Release"),
       elements: {
         press: page.locator("#cfg-0"),
         release: page.locator("#cfg-1"),
@@ -245,7 +252,7 @@ export const blocks = (page) => ({
       },
     },
     "Button Step": {
-      block: page.getByText("Button Step"),
+      block: page.locator("#action-menu").getByText("Button Step"),
       elements: {
         "Button Off": page.locator("#cfg-0"),
         "Step One": page.locator("#cfg-1"),
@@ -254,7 +261,7 @@ export const blocks = (page) => ({
   },
   specialEncoder: {
     "Left/Right Rotate": {
-      block: page.getByText("Left/Right Rotate"),
+      block: page.locator("#action-menu").getByText("Left/Right Rotate"),
       elements: {
         left: page.locator("#cfg-0"),
         right: page.locator("#cfg-1"),
@@ -262,7 +269,7 @@ export const blocks = (page) => ({
       },
     },
     "Push & Rotate L R": {
-      block: page.getByText("Push & Rotate L R"),
+      block: page.locator("#action-menu").getByText("Push & Rotate L R"),
       elements: {
         "push left": page.locator("#cfg-0"),
         "push right": page.locator("#cfg-1"),
@@ -272,7 +279,9 @@ export const blocks = (page) => ({
       },
     },
     "Push & Rotate": {
-      block: page.getByText("Push & Rotate", { exact: true }),
+      block: page
+        .locator("#action-menu")
+        .getByText("Push & Rotate", { exact: true }),
       elements: {
         "push rotate": page.locator("#cfg-0"),
         "just rotate": page.locator("#cfg-1"),
@@ -282,20 +291,20 @@ export const blocks = (page) => ({
   },
   code: {
     "Code Block": {
-      block: page.getByText("Code Block"),
+      block: page.locator("#action-menu").getByText("Code Block"),
       elements: {
         input: page.locator("pre"),
         "Edit Code": page.getByRole("button", { name: "Edit Code" }),
       },
     },
     "Comment Block": {
-      block: page.getByText("Comment Block"),
+      block: page.locator("#action-menu").getByText("Comment Block"),
       elements: {
         input: page.getByLabel("Comment"),
       },
     },
     "Element Name": {
-      block: page.getByText("N Element Name"),
+      block: page.locator("#action-menu").getByText("N Element Name"),
       elements: {
         input: page.getByLabel("Element Name"),
       },
@@ -303,21 +312,21 @@ export const blocks = (page) => ({
   },
   timer: {
     "Clock Source": {
-      block: page.getByText("Clock Source"),
+      block: page.locator("#action-menu").getByText("Clock Source"),
       elements: {
         "Element Number": page.getByLabel("Element Number"),
         Source: page.getByLabel("Source"),
       },
     },
     Start: {
-      block: page.getByText("Start", { exact: true }),
+      block: page.locator("#action-menu").getByText("Start", { exact: true }),
       elements: {
         "Element Number": page.getByLabel("Element Number"),
         Time: page.getByLabel("Time", { exact: true }),
       },
     },
     Stop: {
-      block: page.getByText("Stop", { exact: true }),
+      block: page.locator("#action-menu").getByText("Stop", { exact: true }),
       elements: {
         "Element Number": page.getByLabel("Element Number"),
       },
