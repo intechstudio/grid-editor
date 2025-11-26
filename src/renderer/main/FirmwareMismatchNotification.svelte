@@ -109,9 +109,14 @@
     <div class="flex-col">
       <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
       <div class="mx-2">
-        <p>Please Save your configuration to the Profile Cloud before updating to prevent loss of data.</p>
-        <p>Reconnect your module in bootloader mode by holding the utility button
-        while plugging in the USB cable!</p>
+        <p>
+          Please Save your configuration to the Profile Cloud before updating to
+          prevent loss of data.
+        </p>
+        <p>
+          Reconnect your module in bootloader mode by holding the utility button
+          while plugging in the USB cable!
+        </p>
       </div>
     </div>
     <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
