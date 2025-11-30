@@ -312,12 +312,20 @@
           key: "configuration_header_clear",
           placement: "top",
           class: "w-60 p-4",
+          buttons: [
+            {
+              label: "Cancel",
+              handler: undefined,
+            },
+            { label: "Confirm", handler: handleLoadGettingStarted },
+          ],
+          triggerEvents: ["show-buttons", "hover"],
         }}
       >
         <MoltenPushButton
           text=""
           style="normal"
-          click={handleLoadGettingStarted}
+          click={() => {}}
           bind:target={$selectedProfileType}
           options={profileTypeOptions}
         />
