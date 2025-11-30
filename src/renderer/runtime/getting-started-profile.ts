@@ -145,6 +145,16 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime, profileTy
     let loadedCount = 0;
     let skippedCount = 0;
 
+    // Clear the page before loading profiles
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: CLASSNAME,
+      message: `Clearing page ${ui.pagenumber}...`,
+    });
+
+    await runtime.clearPage(ui.pagenumber);
+
     logger.set({
       type: "progress",
       mode: 0,
@@ -207,6 +217,23 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime, profileTy
       mode: 0,
       classname: CLASSNAME,
       message: `Getting started profiles complete! ${resultMessages.join(", ")}`,
+    });
+
+    // Store the configurations to the modules
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: CLASSNAME,
+      message: `Storing configurations to modules...`,
+    });
+
+    await runtime.storePage(ui.pagenumber);
+
+    logger.set({
+      type: "success",
+      mode: 0,
+      classname: CLASSNAME,
+      message: `Store complete!`,
     });
 
     Analytics.track({
