@@ -7,12 +7,17 @@
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
   import { WriteBuffer } from "../../runtime/engine.store";
   import { ConfigTour, configTour } from "../panels/profileCloud/ConfigTour";
+  import {
+    selectedProfileType,
+    availableProfileTypes,
+    formatProfileTypeTitle
+  } from "../../runtime/getting-started-profile";
 
   let isChanges = false;
   let changes = 0;
@@ -23,6 +28,12 @@
     runtime = $runtime_manager.active.runtime;
     buffer = runtime.connection.buffer;
   }
+
+  // Create options for profile type dropdown
+  $: profileTypeOptions = availableProfileTypes.map(type => ({
+    value: type,
+    title: formatProfileTypeTitle(type)
+  }));
 
   $: {
     if ($runtime) {
@@ -157,6 +168,11 @@
       });
     });
   }
+
+  async function handleLoadGettingStarted() {
+    const { loadGettingStartedProfiles } = await import("../../runtime/getting-started-profile");
+    await loadGettingStartedProfiles(runtime);
+  }
 </script>
 
 <container
@@ -230,6 +246,27 @@
     >
       <MoltenPushButton text="Clear" click={() => {}} />
     </div>
+    {#if profileTypeOptions.length > 0}
+      <div class="flex flex-row gap-2 items-center">
+        <MeltSelect
+          bind:target={$selectedProfileType}
+          options={profileTypeOptions}
+        />
+        <div
+          use:tooltip={{
+            key: "configuration_header_getting_started",
+            placement: "top",
+            class: "w-60 p-4",
+          }}
+        >
+          <MoltenPushButton
+            text="Load Profile"
+            style="outlined"
+            click={handleLoadGettingStarted}
+          />
+        </div>
+      </div>
+    {/if}
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
         text="Connect"
