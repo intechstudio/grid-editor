@@ -18,68 +18,105 @@ import type { GridRuntime } from "./runtime";
 const PROFILE_PATTERN = '../../content/*.json';
 const CLASSNAME = 'gettingstarted';
 
-/**
- * Formats a profile type string for display
- * @example formatProfileTypeTitle("getting-started") => "Getting Started"
- */
-export function formatProfileTypeTitle(type: string): string {
-  return type.split('-').map(word =>
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+// Types
+interface RegisteredProfile {
+  data: any;
+  displayName: string;
+  categoryName: string;
 }
 
-// Dynamically import all profile JSON files using Vite's glob import
-const profileModules = import.meta.glob('../../content/*.json', {
-  eager: true,
-  import: 'default'
-});
+// Internal storage: { ModuleType: { displayName: RegisteredProfile } }
+const PROFILES: Record<string, Record<string, RegisteredProfile>> = {};
 
-// Build a nested map: { ModuleType: { profileType: profileData } }
-const PROFILES: Record<string, Record<string, any>> = {};
-const profileTypes = new Set<string>();
-
-for (const path in profileModules) {
-  // Extract module type and profile type from filename
-  // Example: "../../content/bu16-getting-started.json" -> moduleType: "BU16", profileType: "getting-started"
-  const match = path.match(/\/([a-z0-9]+)-(.+)\.json$/i);
-  if (match) {
-    const moduleType = match[1].toUpperCase();
-    const profileType = match[2]; // e.g., "getting-started", "advanced", etc.
+/**
+ * Register a profile for a specific module type
+ * @param moduleType - The module type (e.g., "BU16", "EN16")
+ * @param displayName - The display name shown in dropdown (e.g., "getting-started", "advanced")
+ * @param categoryName - Category for grouping (e.g., "file", "custom")
+ * @param jsonString - JSON string of the profile data
+ */
+export function register_getting_started_profile(
+  moduleType: string,
+  displayName: string,
+  categoryName: string,
+  jsonString: string
+): void {
+  try {
+    const data = JSON.parse(jsonString);
 
     if (!PROFILES[moduleType]) {
       PROFILES[moduleType] = {};
     }
-    PROFILES[moduleType][profileType] = profileModules[path];
-    profileTypes.add(profileType);
+
+    PROFILES[moduleType][displayName] = {
+      data,
+      displayName,
+      categoryName
+    };
+
+    // Update available profile types
+    updateAvailableProfileTypes();
+  } catch (error) {
+    console.error(`Failed to register profile "${displayName}" for ${moduleType}:`, error);
   }
 }
 
-const availableProfileTypes = Array.from(profileTypes);
+/**
+ * Unregister all profiles from a specific category
+ * @param categoryName - The category to unregister (e.g., "file", "custom")
+ */
+export function unregister_getting_started_category(categoryName: string): void {
+  for (const moduleType in PROFILES) {
+    for (const displayName in PROFILES[moduleType]) {
+      if (PROFILES[moduleType][displayName].categoryName === categoryName) {
+        delete PROFILES[moduleType][displayName];
+      }
+    }
+    // Clean up empty module types
+    if (Object.keys(PROFILES[moduleType]).length === 0) {
+      delete PROFILES[moduleType];
+    }
+  }
 
-// Print summary of available profiles grouped by profile type
-console.log('[Getting Started] Available profiles:');
-for (const profileType of availableProfileTypes.sort()) {
-  const modules = Object.keys(PROFILES)
-    .filter(moduleType => PROFILES[moduleType][profileType])
-    .sort();
-  console.log(`  ${profileType}: ${modules.join(', ')}`);
+  // Update available profile types
+  updateAvailableProfileTypes();
 }
 
-// Store for selected profile type
-export const selectedProfileType = writable<string>(
-  availableProfileTypes.length > 0 ? availableProfileTypes[0] : ''
-);
+// Available profile types (reactive)
+let availableProfileTypes: string[] = [];
 
-// Export available profile types for the dropdown
+function updateAvailableProfileTypes() {
+  const profileTypeSet = new Set<string>();
+
+  for (const moduleType in PROFILES) {
+    for (const displayName in PROFILES[moduleType]) {
+      profileTypeSet.add(displayName);
+    }
+  }
+
+  availableProfileTypes = Array.from(profileTypeSet).sort();
+
+  // Print summary of available profiles grouped by profile type
+  console.log('[Getting Started] Available profiles:');
+  for (const profileType of availableProfileTypes) {
+    const modules = Object.keys(PROFILES)
+      .filter(moduleType => PROFILES[moduleType][profileType])
+      .sort();
+    console.log(`  ${profileType}: ${modules.join(', ')}`);
+  }
+}
+
+// Export available profile types
 export { availableProfileTypes };
 
 /**
  * Loads getting started profiles to all connected modules
+ * @param runtime - The GridRuntime instance
+ * @param profileType - The profile type to load (e.g., "getting-started", "advanced")
  */
-export async function loadGettingStartedProfiles(runtime: GridRuntime) {
+export async function loadGettingStartedProfiles(runtime: GridRuntime, profileType: string) {
   const ui = get(user_input);
   const modules = runtime.modules;
-  const profileType = get(selectedProfileType);
 
   if (!modules || modules.length === 0) {
     logger.set({
@@ -121,8 +158,8 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime) {
       const moduleType = module.type;
 
       // Check if we have this profile type for this module type
-      const profileData = PROFILES[moduleType]?.[profileType];
-      if (!profileData) {
+      const registeredProfile = PROFILES[moduleType]?.[profileType];
+      if (!registeredProfile) {
         console.warn(`No "${profileType}" profile for ${moduleType}, skipping...`);
         skippedCount++;
         continue;
@@ -137,7 +174,7 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime) {
       });
 
       // Convert to GridProfileData
-      const profile = GridProfileData.createFromCloudData(profileData);
+      const profile = GridProfileData.createFromCloudData(registeredProfile.data);
 
       // Get the current page for this module
       const page = module.pages[ui.pagenumber];

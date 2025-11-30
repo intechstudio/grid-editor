@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tooltip } from "./../_actions/tooltip";
-  import { get } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store";
   import { user_input } from "./../../runtime/user-input.store";
   import { ModuleOverlay, moduleOverlay } from "../../runtime/moduleOverlay";
@@ -14,10 +14,49 @@
   import { WriteBuffer } from "../../runtime/engine.store";
   import { ConfigTour, configTour } from "../panels/profileCloud/ConfigTour";
   import {
-    selectedProfileType,
     availableProfileTypes,
-    formatProfileTypeTitle
+    register_getting_started_profile
   } from "../../runtime/getting-started-profile";
+
+  /**
+   * Formats a profile type string for display
+   * @example "getting-started" => "Getting Started"
+   */
+  function formatProfileTypeTitle(type: string): string {
+    return type.split('-').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  }
+
+  // Load profiles from JSON files on component initialization
+  const profileModules = import.meta.glob('../../../content/*.json', {
+    eager: true,
+    import: 'default'
+  });
+
+  for (const path in profileModules) {
+    // Extract module type and profile type from filename
+    // Example: "../../../content/bu16-getting-started.json" -> moduleType: "BU16", profileType: "getting-started"
+    const match = path.match(/\/([a-z0-9]+)-(.+)\.json$/i);
+    if (match) {
+      const moduleType = match[1].toUpperCase();
+      const profileType = match[2]; // e.g., "getting-started", "advanced", etc.
+      const profileData = profileModules[path];
+
+      // Register using the registration mechanism
+      register_getting_started_profile(
+        moduleType,
+        profileType,
+        "file",
+        JSON.stringify(profileData)
+      );
+    }
+  }
+
+  // Local state for selected profile type
+  const selectedProfileType = writable<string>(
+    availableProfileTypes.length > 0 ? availableProfileTypes[0] : ''
+  );
 
   let isChanges = false;
   let changes = 0;
@@ -171,7 +210,7 @@
 
   async function handleLoadGettingStarted() {
     const { loadGettingStartedProfiles } = await import("../../runtime/getting-started-profile");
-    await loadGettingStartedProfiles(runtime);
+    await loadGettingStartedProfiles(runtime, $selectedProfileType);
   }
 </script>
 
