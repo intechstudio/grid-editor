@@ -1,0 +1,278 @@
+{
+  "id": "81946cb4-aa4f-4c7a-af10-15304af04ee4",
+  "modifiedAt": "2025-11-30T15:27:31.151Z",
+  "name": "vsn1-getting-started",
+  "description": "Click here to add description",
+  "type": "VSN1L",
+  "version": {
+    "major": "1",
+    "minor": "6",
+    "patch": "2"
+  },
+  "configType": "profile",
+  "configs": [
+    {
+      "controlElementNumber": 0,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 1,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 2,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 3,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 4,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 5,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 6,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 7,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 8,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Endless Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 7,
+          "config": "--[[@sen]] self:epmo(0) self:epv0(50) self:epmi(0) self:epma(127) self:epse(50)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 9,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 10,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 11,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 12,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 13,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] glsb(255)pi,s,c,self.f,self.v,self.id=math.pi,64,{{0,0,0},{255,255,255},{glr(),glg(),glb()}},1,{27,0,100},'VSN1'd={[1]='Linear',[2]='Encoder',[3]='Button',[7]='Endless'}xc,yc,p=160,120,s*5/8;self.eventrx_cb=function(self,hdr,e,v,n)self.v=v;if#n==0 then n=d[e[3]]..e[2]end;self.id=string.sub(n,1,(self:lsw()/(s/2)-1)//1)self.f=1 end;self:ldaf(0,0,319,239,c[1])self:ldrr(3,3,317,237,10,c[2])"
+        },
+        {
+          "event": 8,
+          "config": "--[[@cb]] if self.f>0 then self.f=self.f-1;local a,xo=gmaps(self.v[1],self.v[2],self.v[3],0.1,1),#tostring(self.v[1])/2*s/2-#tostring(self.v[1])-s//32;self:ldaf(10,10,310,230,c[1])self:ldrr(xc-p//1-1,yc-p//1-1,xc+p//1+1,yc+p//1+1,s,c[2])self:ldrrf(xc-p*a//1,yc-p*a//1,xc+p*a//1,yc+p*a//1,s,c[3])self:ldft(self.v[1],xc-xo,yc+s,s/2,c[2])local xn=(#self.id*(s/2))/2-s//32;self:ldft(self.id,xc-xn,yc-1.5*s,s/2,c[2])self:ldsw()end"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 255,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[page init]]"
+        },
+        {
+          "event": 4,
+          "config": "--[[@cb]] gpl(gpn())"
+        },
+        {
+          "event": 5,
+          "config": "--[[@l]] local ch,cmd,param1,param2=midi.ch,midi.cmd,midi.p1,midi.p2"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    }
+  ],
+  "createdAt": "2025-11-30T15:27:31.151Z",
+  "virtualPath": "",
+  "cloudId": "wD3tJVF27EcAbkMirp9I",
+  "owner": "hLIZijz6PxRnxEjTA9Jb0OYSFt83"
+}

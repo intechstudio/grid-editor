@@ -7,7 +7,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
-  import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -15,7 +15,7 @@
   import { ConfigTour, configTour } from "../panels/profileCloud/ConfigTour";
   import {
     availableProfileTypes,
-    register_getting_started_profile
+    register_getting_started_profile,
   } from "../../runtime/getting-started-profile";
 
   /**
@@ -23,15 +23,16 @@
    * @example "getting-started" => "Getting Started"
    */
   function formatProfileTypeTitle(type: string): string {
-    return type.split('-').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    return type
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   }
 
   // Load profiles from JSON files on component initialization
-  const profileModules = import.meta.glob('../../../content/*.json', {
+  const profileModules = import.meta.glob("../../../content/*.json", {
     eager: true,
-    import: 'default'
+    import: "default",
   });
 
   for (const path in profileModules) {
@@ -48,15 +49,13 @@
         moduleType,
         profileType,
         "file",
-        JSON.stringify(profileData)
+        JSON.stringify(profileData),
       );
     }
   }
 
   // Local state for selected profile type
-  const selectedProfileType = writable<string>(
-    availableProfileTypes.length > 0 ? availableProfileTypes[0] : ''
-  );
+  const selectedProfileType = writable<string>("clear");
 
   let isChanges = false;
   let changes = 0;
@@ -69,10 +68,15 @@
   }
 
   // Create options for profile type dropdown
-  $: profileTypeOptions = availableProfileTypes.map(type => ({
-    value: type,
-    title: formatProfileTypeTitle(type)
-  }));
+  // Note: onclick must be a function (even if no-op) due to bug in MoltenPushButton check
+  $: profileTypeOptions = [
+    { value: "clear", title: "Clear", onclick: () => {} },
+    ...availableProfileTypes.map((type) => ({
+      value: type,
+      title: formatProfileTypeTitle(type),
+      onclick: () => {},
+    })),
+  ];
 
   $: {
     if ($runtime) {
@@ -209,7 +213,41 @@
   }
 
   async function handleLoadGettingStarted() {
-    const { loadGettingStartedProfiles } = await import("../../runtime/getting-started-profile");
+    // Handle "Clear Only" option
+    if ($selectedProfileType === "clear") {
+      const ui = get(user_input);
+      try {
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "pageclear",
+          message: `Clearing page ${ui.pagenumber}...`,
+        });
+
+        await runtime.clearPage(ui.pagenumber);
+
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pageclear",
+          message: `Page clear complete!`,
+        });
+      } catch (e) {
+        console.warn(e);
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "pageclear",
+          message: `Failed to clear page!`,
+        });
+      }
+      return;
+    }
+
+    // Normal profile loading
+    const { loadGettingStartedProfiles } = await import(
+      "../../runtime/getting-started-profile"
+    );
     await loadGettingStartedProfiles(runtime, $selectedProfileType);
   }
 </script>
@@ -268,42 +306,21 @@
       />
     </div>
 
-    <div
-      use:tooltip={{
-        key: "configuration_header_clear",
-        placement: "top",
-        class: "w-60 p-4",
-        buttons: [
-          {
-            label: "Cancel",
-            handler: undefined,
-          },
-          { label: "Confirm", handler: handleClear },
-        ],
-        triggerEvents: ["show-buttons", "hover"],
-      }}
-    >
-      <MoltenPushButton text="Clear" click={() => {}} />
-    </div>
     {#if profileTypeOptions.length > 0}
-      <div class="flex flex-row gap-2 items-center">
-        <MeltSelect
+      <div
+        use:tooltip={{
+          key: "configuration_header_clear",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
+      >
+        <MoltenPushButton
+          text=""
+          style="normal"
+          click={handleLoadGettingStarted}
           bind:target={$selectedProfileType}
           options={profileTypeOptions}
         />
-        <div
-          use:tooltip={{
-            key: "configuration_header_getting_started",
-            placement: "top",
-            class: "w-60 p-4",
-          }}
-        >
-          <MoltenPushButton
-            text="Load Profile"
-            style="outlined"
-            click={handleLoadGettingStarted}
-          />
-        </div>
       </div>
     {/if}
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}

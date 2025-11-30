@@ -15,8 +15,8 @@ import { Analytics } from "./analytics";
 import type { GridRuntime } from "./runtime";
 
 // Constants
-const PROFILE_PATTERN = '../../content/*.json';
-const CLASSNAME = 'gettingstarted';
+const PROFILE_PATTERN = "../../content/*.json";
+const CLASSNAME = "gettingstarted";
 
 // Types
 interface RegisteredProfile {
@@ -39,7 +39,7 @@ export function register_getting_started_profile(
   moduleType: string,
   displayName: string,
   categoryName: string,
-  jsonString: string
+  jsonString: string,
 ): void {
   try {
     const data = JSON.parse(jsonString);
@@ -51,13 +51,16 @@ export function register_getting_started_profile(
     PROFILES[moduleType][displayName] = {
       data,
       displayName,
-      categoryName
+      categoryName,
     };
 
     // Update available profile types
     updateAvailableProfileTypes();
   } catch (error) {
-    console.error(`Failed to register profile "${displayName}" for ${moduleType}:`, error);
+    console.error(
+      `Failed to register profile "${displayName}" for ${moduleType}:`,
+      error,
+    );
   }
 }
 
@@ -65,7 +68,9 @@ export function register_getting_started_profile(
  * Unregister all profiles from a specific category
  * @param categoryName - The category to unregister (e.g., "file", "custom")
  */
-export function unregister_getting_started_category(categoryName: string): void {
+export function unregister_getting_started_category(
+  categoryName: string,
+): void {
   for (const moduleType in PROFILES) {
     for (const displayName in PROFILES[moduleType]) {
       if (PROFILES[moduleType][displayName].categoryName === categoryName) {
@@ -97,12 +102,12 @@ function updateAvailableProfileTypes() {
   availableProfileTypes = Array.from(profileTypeSet).sort();
 
   // Print summary of available profiles grouped by profile type
-  console.log('[Getting Started] Available profiles:');
+  console.log("[Getting Started] Available profiles:");
   for (const profileType of availableProfileTypes) {
     const modules = Object.keys(PROFILES)
-      .filter(moduleType => PROFILES[moduleType][profileType])
+      .filter((moduleType) => PROFILES[moduleType][profileType])
       .sort();
-    console.log(`  ${profileType}: ${modules.join(', ')}`);
+    console.log(`  ${profileType}: ${modules.join(", ")}`);
   }
 }
 
@@ -114,7 +119,10 @@ export { availableProfileTypes };
  * @param runtime - The GridRuntime instance
  * @param profileType - The profile type to load (e.g., "getting-started", "advanced")
  */
-export async function loadGettingStartedProfiles(runtime: GridRuntime, profileType: string) {
+export async function loadGettingStartedProfiles(
+  runtime: GridRuntime,
+  profileType: string,
+) {
   const ui = get(user_input);
   const modules = runtime.modules;
 
@@ -170,7 +178,9 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime, profileTy
       // Check if we have this profile type for this module type
       const registeredProfile = PROFILES[moduleType]?.[profileType];
       if (!registeredProfile) {
-        console.warn(`No "${profileType}" profile for ${moduleType}, skipping...`);
+        console.warn(
+          `No "${profileType}" profile for ${moduleType}, skipping...`,
+        );
         skippedCount++;
         continue;
       }
@@ -184,7 +194,9 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime, profileTy
       });
 
       // Convert to GridProfileData
-      const profile = GridProfileData.createFromCloudData(registeredProfile.data);
+      const profile = GridProfileData.createFromCloudData(
+        registeredProfile.data,
+      );
 
       // Get the current page for this module
       const page = module.pages[ui.pagenumber];
@@ -244,7 +256,6 @@ export async function loadGettingStartedProfiles(runtime: GridRuntime, profileTy
       },
       mandatory: false,
     });
-
   } catch (error) {
     console.error("Failed to load getting started profiles:", error);
     logger.set({
