@@ -24,6 +24,8 @@ export const tooltip_content = {
 
   configuration_header_clear:
     "Clear all configurations of the currently active Page from Grid module memory.",
+  configuration_header_clear_dropdown:
+    "Select the profile template to be loaded.",
   configuration_header_store:
     "Store the configuration of the currently active Page into Grid module memory.",
   configuration_header_discard:

@@ -7,7 +7,11 @@
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MoltenPushButtonGroup,
+    MoltenPushButtonDropdown,
+  } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -59,6 +63,7 @@
 
   let isChanges = false;
   let changes = 0;
+  let clearButtonWidth = 0;
 
   let runtime: GridRuntime;
   let buffer: WriteBuffer;
@@ -307,29 +312,48 @@
     </div>
 
     {#if profileTypeOptions.length > 0}
-      <div
-        use:tooltip={{
-          key: "configuration_header_clear",
-          placement: "top",
-          class: "w-60 p-4",
-          buttons: [
-            {
-              label: "Cancel",
-              handler: undefined,
-            },
-            { label: "Confirm", handler: handleLoadGettingStarted },
-          ],
-          triggerEvents: ["show-buttons", "hover"],
-        }}
-      >
-        <MoltenPushButton
-          text=""
-          style="normal"
-          click={() => {}}
-          bind:target={$selectedProfileType}
-          options={profileTypeOptions}
-        />
-      </div>
+      <MoltenPushButtonGroup>
+        <div
+          use:tooltip={{
+            key: "configuration_header_clear",
+            placement: "top",
+            class: "w-60 p-4",
+            buttons: [
+              {
+                label: "Cancel",
+                handler: undefined,
+              },
+              { label: "Confirm", handler: handleLoadGettingStarted },
+            ],
+            triggerEvents: ["show-buttons", "hover"],
+          }}
+        >
+          <MoltenPushButton
+            text=""
+            style="normal"
+            click={() => {}}
+            bind:target={$selectedProfileType}
+            options={profileTypeOptions}
+            bind:width={clearButtonWidth}
+            decorations={["", ""]}
+            grouped={true}
+          />
+        </div>
+        <div
+          use:tooltip={{
+            key: "configuration_header_clear_dropdown",
+            placement: "top",
+            class: "w-60 p-4",
+          }}
+        >
+          <MoltenPushButtonDropdown
+            style="normal"
+            options={profileTypeOptions}
+            bind:target={$selectedProfileType}
+            menuWidth={clearButtonWidth}
+          />
+        </div>
+      </MoltenPushButtonGroup>
     {/if}
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
