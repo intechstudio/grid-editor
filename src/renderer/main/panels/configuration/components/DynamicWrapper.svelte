@@ -3,6 +3,7 @@
     GridAction,
     ActionData,
     GridEvent,
+    GridElement,
   } from "./../../../../runtime/runtime";
   import {
     createEventDispatcher,
@@ -27,6 +28,9 @@
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
+  import { ElementSettingsHelper } from "../../../../config-blocks/element-settings-helper";
+  import { tooltip } from "../../../_actions/tooltip";
+  import SuggestedSettingsTooltip from "../../../user-interface/tooltip/SuggestedSettingsTooltip.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -41,6 +45,37 @@
   let isEdit = false;
   let event = action.parent as GridEvent;
   let componentProps: Record<string, any> = {};
+
+  // Extract element settings for suggested settings tooltip
+  let element: GridElement | undefined;
+  let elementSettings: ElementSettingsHelper.ElementSettings | null = null;
+
+  $: {
+    element = event?.parent as GridElement;
+    elementSettings = element
+      ? ElementSettingsHelper.getElementSettings(element)
+      : null;
+  }
+
+  // Check if action has suggested settings (use $action for reactivity)
+  $: hasSuggestedSettings = $action?.suggestedElementSettings !== undefined;
+
+  // Tooltip options for suggested settings
+  $: suggestedSettingsTooltipOptions = hasSuggestedSettings
+    ? {
+        placement: "left",
+        class: "z-50",
+        component: {
+          object: SuggestedSettingsTooltip,
+          props: {
+            suggestedSettings: $action.suggestedElementSettings,
+            elementSettings: elementSettings,
+            elementType: element?.type,
+          },
+        },
+        triggerEvents: ["click"]
+      }
+    : undefined;
 
   onMount(() => {
     action.toggled = action.information.toggleable
@@ -223,6 +258,15 @@
   class="dynamicWrapper activator-button flex flex-grow outline-none"
   class:cursor-pointer={ctrlIsDown}
 >
+  <!-- Suggested Settings Icon (left side) -->
+  {#if hasSuggestedSettings && suggestedSettingsTooltipOptions}
+    <div
+      use:tooltip={suggestedSettingsTooltipOptions}
+      class="flex items-center px-1 cursor-help"
+    >
+      <SvgIcon iconPath="info" fill="#FFA500" width={14} height={14} />
+    </div>
+  {/if}
   {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full" />
@@ -264,7 +308,7 @@
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
-    <div class="w-full flex flex-row pointer-events-none">
+    <div class="w-full flex flex-row pointer-events-none relative">
       <!-- Icon -->
       {#if $action.information.hideIcon !== true}
         <div

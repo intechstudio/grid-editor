@@ -303,6 +303,12 @@ export class ActionData extends NodeData {
   public invalid: boolean;
   public toggled: boolean;
   public element: HTMLElement;
+  public suggestedElementSettings?: {
+    mode?: string;
+    min?: string;
+    max?: string;
+    reason?: string;
+  };
 
   constructor(short: string, script: string, name?: string) {
     super();
@@ -313,6 +319,7 @@ export class ActionData extends NodeData {
     this.invalid = false;
     this.toggled = false;
     this.element = null;
+    this.suggestedElementSettings = undefined;
   }
 
   public toLua() {

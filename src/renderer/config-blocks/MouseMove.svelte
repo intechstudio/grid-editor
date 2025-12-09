@@ -116,6 +116,17 @@
 
   onMount(() => {
     suggestions = _suggestions;
+
+    // Update through the store's update method to trigger reactivity
+    action.update((a) => {
+      a.suggestedElementSettings = {
+        mode: "0",
+        min: "0",
+        max: "127",
+        reason: "MIDI works best with standard 0-127 range",
+      };
+      return a;
+    });
   });
 </script>
 
