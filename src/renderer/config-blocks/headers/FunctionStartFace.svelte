@@ -15,8 +15,14 @@
 
   const suggestions = [
     { value: "foo(bar)", info: "Example function with parameter" },
-    { value: "self.midirx_cb(self, event, header)", info: "MIDI RX callback handler" },
-    { value: "self.sysexrx_cb(self, sysex, header)", info: "SysEx RX callback handler" },
+    {
+      value: "self.midirx_cb(self, event, header)",
+      info: "MIDI RX callback handler",
+    },
+    {
+      value: "self.sysexrx_cb(self, sysex, header)",
+      info: "SysEx RX callback handler",
+    },
   ];
 
   const validator = {
@@ -78,7 +84,7 @@
       <MeltCombo
         title={"Function"}
         value={scriptSegment}
-        suggestions={suggestions}
+        {suggestions}
         validator={validator.func}
         on:input={async (e) => {
           const { value, validationError } = e.detail;
