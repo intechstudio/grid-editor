@@ -21,6 +21,42 @@ import chokidar from "chokidar";
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 
+// Add custom transport to forward logs to renderer DevTools console
+function setupRendererLogTransport() {
+  // @ts-ignore - custom transport
+  log.transports.renderer = (message) => {
+    // Only send if mainWindow exists and is not destroyed
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const logLevel = message.level;
+      const logData = message.data;
+      const scope = message.scope ? `[${message.scope}]` : "";
+      
+      // Map electron-log levels to console methods
+      const consoleMethod = logLevel === 'error' ? 'error' :
+                           logLevel === 'warn' ? 'warn' :
+                           logLevel === 'debug' ? 'debug' :
+                           'log';
+      
+      // Format the message with [ELECTRON] prefix to distinguish from renderer logs
+      const prefix = `%c[ELECTRON]%c ${scope}`;
+      const prefixStyle = 'color: #ff6b6b; font-weight: bold;';
+      const scopeStyle = scope ? 'color: #a78bfa;' : '';
+      
+      // Execute console log in the renderer's DevTools
+      const args = logData.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+      
+      // Inject the log into renderer's console
+      mainWindow.webContents.executeJavaScript(
+        `console.${consoleMethod}("${prefix}", "${prefixStyle}", "${scopeStyle}", ${JSON.stringify(args)})`
+      ).catch(() => {
+        // Silently fail if window is closing
+      });
+    }
+  };
+}
+
 configuration.EDITOR_VERSION = app.getVersion();
 configuration.EDITOR_NAME = app.getName();
 
@@ -409,7 +445,10 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
-  updater.init(store.get("nightlyEditor"));
+  updater.init(store.get("nightlyEditor"), store.get("disableAutoUpdate"));
+
+  // Setup custom log transport to forward logs to renderer
+  setupRendererLogTransport();
 
   // Check for bootloader and trigger detection
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -747,7 +786,11 @@ store.onDidChange("packageDeveloper", (newValue) => {
 });
 
 store.onDidChange("nightlyEditor", (newValue) => {
-  updater.setNightlyAllowed(newValue);
+  updater.setUpdateSettings({ nightlyAllowed: newValue });
+});
+
+store.onDidChange("disableAutoUpdate", (newValue) => {
+  updater.setUpdateSettings({ disableAutoUpdate: newValue });
 });
 
 // This method will be called when Electron has finished

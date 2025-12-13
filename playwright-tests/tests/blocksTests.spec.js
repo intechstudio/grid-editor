@@ -275,6 +275,7 @@ test.describe("Input field keyboard shortcuts", () => {
     await keyboardActions.type("Test");
     await keyboardActions.selectAll();
     await keyboardActions.cut();
+    await page.waitForTimeout(10);
     await keyboardActions.paste();
     await keyboardActions.paste();
     await configPage.clickActionBlockElement(category, blockName, field); // make sure expected value is loaded

@@ -12,6 +12,7 @@ import { appSettings } from "./app-helper.store";
 import { Subscriber } from "svelte/motion";
 import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
+import { logger } from "./runtime.store";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -289,7 +290,23 @@ export class WriteBuffer implements Readable<WriteBufferData> {
                 break;
               }
               case ResponseStatus.ERROR: {
-                reject(response.error);
+                // Handle "interrupted" errors gracefully - these occur when modules disconnect during operations
+                if (response.error === "Waiting for response was interrupted") {
+                  console.log(
+                    "Operation interrupted (module disconnected):",
+                    response.error,
+                  );
+                  logger.set({
+                    type: "info",
+                    classname: "engine",
+                    mode: 0,
+                    message:
+                      "Operation interrupted: module disconnected during operation",
+                  });
+                  resolve(null); // Resolve gracefully instead of rejecting
+                } else {
+                  reject(response.error);
+                }
                 break;
               }
               case ResponseStatus.TIMEOUT: {

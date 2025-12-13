@@ -45,6 +45,7 @@ const persistentDefaultValues = {
   showPCB: false,
   nightlyFirmware: false,
   nightlyEditor: false,
+  disableAutoUpdate: false,
   changeOnEvent: "event",
   sendHeartbeatImmediate: false,
   disableAnimations: false,
