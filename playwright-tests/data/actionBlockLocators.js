@@ -4,7 +4,7 @@ export const blocks = (page) => ({
       block: page.locator("#action-menu").getByText("Function").nth(1),
       elements: {
         Function: page.locator("#cfg-0"),
-        input: page.locator(".view-line"),
+        input: page.locator("#cfg-0 input"),
         End: page.locator("#cfg-1"),
       },
     },
