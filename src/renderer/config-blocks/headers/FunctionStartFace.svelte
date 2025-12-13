@@ -17,17 +17,40 @@
   }
 
   function handleActionChange(data: ActionData) {
-    scriptSegment = GridScript.humanize(data.script.slice(9));
+    // Extract "name(params)" from "name = function(params)"
+    const match = data.script.match(/^(.+?)\s*=\s*function\((.*?)\)/);
+    if (match) {
+      const [, name, params] = match;
+      scriptSegment = params.trim()
+        ? GridScript.humanize(`${name.trim()}(${params.trim()})`)
+        : GridScript.humanize(name.trim());
+    } else {
+      scriptSegment = GridScript.humanize(data.script);
+    }
   }
 
   function sendData(e) {
     const script = GridScript.shortify(e);
 
-    dispatch("update-action", {
-      short: `fst`,
-      script: `function ${script}`,
-      validationError: false,
-    });
+    // Check if user included parameters like "myFunc(a, b)"
+    const match = script.match(/^(.+?)\((.*?)\)$/);
+
+    if (match) {
+      // Has parameters: "name(params)" → "name = function(params)"
+      const [, name, params] = match;
+      dispatch("update-action", {
+        short: `fst`,
+        script: `${name} = function(${params})`,
+        validationError: false,
+      });
+    } else {
+      // No parameters: "name" → "name = function()"
+      dispatch("update-action", {
+        short: `fst`,
+        script: `${script} = function()`,
+        validationError: false,
+      });
+    }
   }
 </script>
 
