@@ -36,7 +36,8 @@
       <span
         style={device?.memorystat > 110
           ? "color: color-mix(in srgb, orange 75%, var(--foreground));"
-          : ""}>{device?.memorystat}k</span
+          : ""}
+        >{device?.memorystat == undefined ? "" : device?.memorystat + "k"}</span
       >
     {/if}
     {#if device?.architecture === Architecture.VIRTUAL}

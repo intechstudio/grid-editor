@@ -7,7 +7,6 @@
 ```
 sudo apt-get install -y nodejs
 sudo apt-get install -y npm
-sudo apt-get install -y libudev-dev
 git clone https://github.com/intechstudio/grid-editor.git
 cd grid-editor
 npm i

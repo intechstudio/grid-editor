@@ -65,6 +65,18 @@ const filter: SerialPortInfo[] = [
     usbVendorId: parseInt(configuration.USB_VID_2),
     usbProductId: parseInt(configuration.USB_PID_2),
   },
+  {
+    usbVendorId: parseInt(configuration.BOOTLOADER_GRID_D51_VID),
+    usbProductId: parseInt(configuration.BOOTLOADER_GRID_D51_PID),
+  },
+  {
+    usbVendorId: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID),
+    usbProductId: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID),
+  },
+  {
+    usbVendorId: parseInt(configuration.BOOTLOADER_KNOT_VID),
+    usbProductId: parseInt(configuration.BOOTLOADER_KNOT_PID),
+  },
 ];
 
 export type GridConnection = {

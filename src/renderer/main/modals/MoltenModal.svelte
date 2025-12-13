@@ -64,7 +64,7 @@
 <style>
   .snap-full {
     @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
-    width: var(--width);
+    min-width: var(--width);
     max-width: calc(100% - 80px);
     box-sizing: border-box;
   }

@@ -17,10 +17,10 @@
   let actionElement;
   let updateActionWithConfig;
 
-  $: config,
+  $: (config,
     updateActionWithConfig,
     $appSettings.persistent.userLevelMinimalist,
-    refreshActionConfig();
+    refreshActionConfig());
 
   function refreshActionConfig() {
     if (updateActionWithConfig) {
