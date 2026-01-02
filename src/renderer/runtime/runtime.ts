@@ -584,9 +584,7 @@ export class EventData extends NodeData {
   }
 
   public toLua(): string {
-    return `${this.config
-      .map((e) => e.toLua())
-      .join("")}`;
+    return `${this.config.map((e) => e.toLua()).join("")}`;
   }
 
   public getAvailableChars(): number {
