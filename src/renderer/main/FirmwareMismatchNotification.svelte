@@ -5,7 +5,13 @@
   import { GridRuntime, RuntimeData } from "../runtime/runtime";
   import { Modal } from "./modals/modal.store";
   import FirmwareUpdate from "./modals/FirmwareUpdate.svelte";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    Block,
+    BlockRow,
+    BlockTitle,
+  } from "@intechstudio/grid-uikit";
+  import ManualFirmwareOptions from "./components/ManualFirmwareOptions.svelte";
 
   let fwMismatch = false;
 
@@ -100,19 +106,41 @@
       return s;
     });
   }
+
+  let showManualOptions = false;
+
+  function toggleManualOptions() {
+    showManualOptions = !showManualOptions;
+  }
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1}
-  <div
-    class="w-full bg-error text-white justify-center flex flex-row items-center text-center p-4 gap-2"
-  >
-    <div class="flex-col">
-      <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
-      <div class="mx-2">
-        Reconnect your module in bootloader mode by holding the utility button
-        while plugging in the USB cable!
+  <div class="w-full bg-error text-white">
+    <BlockRow>
+      <div class="flex-col">
+        <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
+        <div class="mx-2">
+          <p>
+            Please Save your configuration to the Profile Cloud before updating
+            to prevent loss of data.
+          </p>
+          <p>
+            Reconnect your module in bootloader mode by holding the utility
+            button while plugging in the USB cable!
+          </p>
+        </div>
       </div>
-    </div>
-    <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
+      <MoltenPushButton
+        text={showManualOptions ? "Hide manual options" : "Show manual options"}
+        click={toggleManualOptions}
+      />
+      <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
+    </BlockRow>
+
+    {#if showManualOptions}
+      <Block>
+        <ManualFirmwareOptions />
+      </Block>
+    {/if}
   </div>
 {/if}

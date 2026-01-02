@@ -21,6 +21,42 @@ import chokidar from "chokidar";
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 
+// Add custom transport to forward logs to renderer DevTools console
+function setupRendererLogTransport() {
+  // @ts-ignore - custom transport
+  log.transports.renderer = (message) => {
+    // Only send if mainWindow exists and is not destroyed
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const logLevel = message.level;
+      const logData = message.data;
+      const scope = message.scope ? `[${message.scope}]` : "";
+      
+      // Map electron-log levels to console methods
+      const consoleMethod = logLevel === 'error' ? 'error' :
+                           logLevel === 'warn' ? 'warn' :
+                           logLevel === 'debug' ? 'debug' :
+                           'log';
+      
+      // Format the message with [ELECTRON] prefix to distinguish from renderer logs
+      const prefix = `%c[ELECTRON]%c ${scope}`;
+      const prefixStyle = 'color: #ff6b6b; font-weight: bold;';
+      const scopeStyle = scope ? 'color: #a78bfa;' : '';
+      
+      // Execute console log in the renderer's DevTools
+      const args = logData.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+      
+      // Inject the log into renderer's console
+      mainWindow.webContents.executeJavaScript(
+        `console.${consoleMethod}("${prefix}", "${prefixStyle}", "${scopeStyle}", ${JSON.stringify(args)})`
+      ).catch(() => {
+        // Silently fail if window is closing
+      });
+    }
+  };
+}
+
 configuration.EDITOR_VERSION = app.getVersion();
 configuration.EDITOR_NAME = app.getName();
 
@@ -36,7 +72,7 @@ import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
-import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
+import { firmware, findBootloaderPathNative, writeFirmwareToBootloader } from "./src/firmware";
 import { updater, restartAfterUpdate, forceQuitForUpdate } from "./src/updater";
 import {
   libraryDownload,
@@ -51,29 +87,115 @@ import {
 } from "./src/profiles";
 import { fetchReleaseNotes, fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { usb } from "usb";
 
 log.info("App starting...");
 log.info("BUILD ENVS:", import.meta.env);
 
-usb.on("attach", () => {
-  let delay = 1000;
-  let totalDelay = 0;
-  async function retryFind() {
-    let result = await findBootloaderPath();
-    if (result) return;
-
-    totalDelay += delay;
-    if (totalDelay > 8000) return;
-    setTimeout(retryFind, delay);
-  }
-  setTimeout(retryFind, delay);
-});
-setTimeout(findBootloaderPath, 10000); //Initial check
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+
+// Bootloader detection service state
+let bootloaderDetectionTimeout: NodeJS.Timeout | null = null;
+let bootloaderDetectionRunning = false;
+
+/**
+ * Get bootloader VID/PID pairs from configuration
+ * @returns Array of bootloader device definitions
+ */
+function getBootloaderPairs() {
+  return [
+    {
+      vid: parseInt(configuration.BOOTLOADER_GRID_D51_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_GRID_D51_PID, 16),
+      name: "Grid D51",
+    },
+    {
+      vid: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID, 16),
+      name: "Grid ESP32",
+    },
+    {
+      vid: parseInt(configuration.BOOTLOADER_KNOT_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_KNOT_PID, 16),
+      name: "Knot",
+    },
+  ];
+}
+
+/**
+ * Check if a serial port is a bootloader device
+ * @param port - Serial port to check
+ * @returns Bootloader info if match found, undefined otherwise
+ */
+function isBootloaderPort(port: Electron.SerialPort) {
+  const bootloaderPairs = getBootloaderPairs();
+
+  // Port VID/PID are decimal strings, convert to numbers for comparison
+  const portVid = parseInt(port.vendorId, 10);
+  const portPid = parseInt(port.productId, 10);
+
+  return bootloaderPairs.find((pair) => {
+    return portVid === pair.vid && portPid === pair.pid;
+  });
+}
+
+/**
+ * Start the bootloader detection service
+ * Checks for bootloader drive repeatedly until found or timeout
+ */
+function startBootloaderDetectionService() {
+  if (bootloaderDetectionRunning) {
+    log.info("Bootloader detection service already running");
+    return;
+  }
+
+  log.info("Starting bootloader detection service...");
+  bootloaderDetectionRunning = true;
+
+  let delay = 1000;
+  let totalDelay = 0;
+
+  async function retryFind() {
+    if (!bootloaderDetectionRunning) return;
+
+    let result = await findBootloaderPathNative();
+
+    if (result) {
+      log.info("Bootloader drive detected successfully, stopping service");
+      stopBootloaderDetectionService();
+      return;
+    }
+
+    totalDelay += delay;
+    if (totalDelay > 8000) {
+      log.info("Bootloader detection timeout reached");
+      stopBootloaderDetectionService();
+      return;
+    }
+
+    bootloaderDetectionTimeout = setTimeout(retryFind, delay);
+  }
+
+  bootloaderDetectionTimeout = setTimeout(retryFind, delay);
+}
+
+/**
+ * Stop the bootloader detection service
+ */
+function stopBootloaderDetectionService() {
+  if (!bootloaderDetectionRunning) {
+    return;
+  }
+
+  log.info("Stopping bootloader detection service");
+  bootloaderDetectionRunning = false;
+
+  if (bootloaderDetectionTimeout) {
+    clearTimeout(bootloaderDetectionTimeout);
+    bootloaderDetectionTimeout = null;
+  }
+}
 
 // To avoid context aware flag.
 //app.allowRendererProcessReuse = false;
@@ -323,7 +445,29 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
-  updater.init(store.get("nightlyEditor"));
+  updater.init(store.get("nightlyEditor"), store.get("disableAutoUpdate"));
+
+  // Setup custom log transport to forward logs to renderer
+  setupRendererLogTransport();
+
+  // Check for bootloader and trigger detection
+  mainWindow.webContents.session.on("serial-port-added", (event, port) => {
+    log.info("Serial port added:", port);
+
+    // Check if this port is a bootloader
+    const bootloaderInfo = isBootloaderPort(port);
+
+    if (bootloaderInfo) {
+      log.info(`Found ${bootloaderInfo.name} bootloader`);
+      startBootloaderDetectionService();
+    }
+  });
+
+  mainWindow.webContents.session.on("serial-port-removed", (event, port) => {
+    log.info("Serial port removed:", port);
+  });
+
+  setTimeout(findBootloaderPathNative, 10000); // Initial check
 
   ipcMain.on("restartAfterUpdate", () => {
     log.info('Calling "restartAfterUpdate" from main.ts');
@@ -398,14 +542,6 @@ function createWindow() {
       }
     },
   );
-
-  mainWindow.webContents.session.on("serial-port-added", (event, port) => {
-    log.info("serial-port-added FIRED WITH", port);
-  });
-
-  mainWindow.webContents.session.on("serial-port-removed", (event, port) => {
-    log.info("serial-port-removed FIRED WITH", port);
-  });
 
   mainWindow.webContents.session.setPermissionCheckHandler(
     (webContents, permission, requestingOrigin, details) => {
@@ -650,7 +786,11 @@ store.onDidChange("packageDeveloper", (newValue) => {
 });
 
 store.onDidChange("nightlyEditor", (newValue) => {
-  updater.setNightlyAllowed(newValue);
+  updater.setUpdateSettings({ nightlyAllowed: newValue });
+});
+
+store.onDidChange("disableAutoUpdate", (newValue) => {
+  updater.setUpdateSettings({ disableAutoUpdate: newValue });
 });
 
 // This method will be called when Electron has finished
@@ -757,17 +897,36 @@ ipcMain.handle("deleteConfig", async (event, arg) => {
 });
 
 // this is needed for the functions to have the mainWindow for communication
-ipcMain.handle("firmwareDownload", async (event, arg) => {
-  return await firmwareDownload(
-    arg.targetFolder,
-    arg.product,
-    arg.arch,
-    arg.url,
-  );
+ipcMain.handle("findBootloaderPathNative", async (event, arg) => {
+  return await findBootloaderPathNative();
 });
 
-ipcMain.handle("findBootloaderPath", async (event, arg) => {
-  return await findBootloaderPath();
+ipcMain.handle("writeFirmwareToBootloader", async (event, arg) => {
+  // Convert the array back to Buffer
+  const firmwareBuffer = Buffer.from(arg.firmwareData);
+  return await writeFirmwareToBootloader(firmwareBuffer, arg.filename);
+});
+
+ipcMain.handle("fetchBinaryFile", async (event, url) => {
+  try {
+    log.info(`Fetching file from: ${url}`);
+    const response = await net.fetch(url);
+
+    if (!response.ok) {
+      const errorMsg = `HTTP error! status: ${response.status} - URL: ${url}`;
+      log.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    log.info(`Successfully fetched ${arrayBuffer.byteLength} bytes from ${url}`);
+
+    // Convert to array for IPC transfer
+    return Array.from(new Uint8Array(arrayBuffer));
+  } catch (error) {
+    log.error(`Failed to fetch file from ${url}:`, error);
+    throw error;
+  }
 });
 
 ipcMain.handle("restartSerialCheckInterval", (event, arg) => {

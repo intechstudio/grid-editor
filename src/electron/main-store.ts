@@ -9,5 +9,6 @@ export const store = new Store({
     profiles_folder: "",
     packageDeveloper: false,
     nightlyEditor: false,
+    disableAutoUpdate: false,
   },
 });

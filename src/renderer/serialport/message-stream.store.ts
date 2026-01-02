@@ -288,6 +288,13 @@ export class MessageStream {
             mode: 0,
             message: Runtime.ErrorText.PAGE_CHANGE_DISABLED,
           });
+        } else if (text.startsWith("INFO:")) {
+          logger.set({
+            type: "info",
+            classname: "debugtext",
+            mode: 0,
+            message: text.substring(5).trim(), // Remove "INFO:" prefix
+          });
         }
       }
 

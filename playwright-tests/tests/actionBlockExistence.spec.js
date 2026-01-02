@@ -37,7 +37,7 @@ async function changeModuleIfNeeded(category) {
 }
 
 async function prepareForBlockTest(category, blockName) {
-  await changeModuleIfNeeded(blockName);
+  await changeModuleIfNeeded(category);
   await configPage.removeAllActions();
   await configPage.noActionAddActionButton.isVisible();
   await configPage.turnOffMinimalistMode();

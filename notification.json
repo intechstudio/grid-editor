@@ -1,5 +1,14 @@
 [
   {
+    "type": "notificationBAK",
+    "delay": 5000,
+    "class": "bg-blue-500 text-white",
+    "dismissable": true,
+    "link": "https://intech.studio/support-and-downloads",
+    "message": "New Firmware version is available, please Save your configuration to the Profile Cloud before updating to prevent loss of data.",
+    "version": "1.6.1"
+  },
+  {
     "type": "notification",
     "delay": 5000,
     "class": "bg-blue-500 text-white",
