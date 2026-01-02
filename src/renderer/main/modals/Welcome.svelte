@@ -4,9 +4,6 @@
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import init from "@johnnymorganz/stylua/web";
-
-  //let ready = init(); // start loading WASM (don't block)
 
   export let data: Modal.Instance;
 

@@ -60,7 +60,9 @@
 
     <textarea
       value={$event.toLua()}
-      class="min-h-200 font-mono w-full p-1 my-1 rounded bg-background-muted"
+      readonly
+      rows="12"
+      class="min-h-200 font-mono w-full p-1 my-1 rounded bg-background-muted whitespace-pre-wrap resize"
     />
 
     <MoltenPushButton click={handleCopy} text="Copy" style="accept">

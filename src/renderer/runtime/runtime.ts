@@ -586,8 +586,7 @@ export class EventData extends NodeData {
   public toLua(): string {
     return `${this.config
       .map((e) => e.toLua())
-      .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")}`;
+      .join("")}`;
   }
 
   public getAvailableChars(): number {
