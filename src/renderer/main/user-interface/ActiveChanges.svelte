@@ -323,7 +323,11 @@
                 label: "Cancel",
                 handler: undefined,
               },
-              { label: "Confirm", handler: handleLoadGettingStarted },
+              {
+                label: "Selected Module",
+                handler: handleLoadGettingStarted,
+              },
+              { label: "Clear All Modules", handler: handleLoadGettingStarted },
             ],
             triggerEvents: ["show-buttons", "hover"],
           }}
