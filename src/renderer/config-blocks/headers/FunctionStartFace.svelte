@@ -20,7 +20,7 @@
       info: "MIDI RX callback handler",
     },
     {
-      value: "self.sysexrx_cb(self, sysex, header)",
+      value: "self.sysexrx_cb(self, header, sysex)",
       info: "SysEx RX callback handler",
     },
     {
