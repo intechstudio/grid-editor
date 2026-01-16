@@ -382,7 +382,7 @@ export class GridAction extends RuntimeNode<ActionData> {
   static parse(script: Grid.LuaScript) {
     const result: GridAction[] = [];
 
-    let actionString = script.replace(/[\n\r]+/g, "").replace(/\s{2,10}/g, " ");
+    let actionString = script.replace(/\s{2,10}/g, " ");
 
     if (actionString.startsWith(Grid.Protocol.scriptStart)) {
       actionString = actionString
