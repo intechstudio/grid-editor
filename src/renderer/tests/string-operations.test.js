@@ -1,4 +1,8 @@
-import { grid, ModuleType, initLuaFormatter } from "@intechstudio/grid-protocol";
+import {
+  grid,
+  ModuleType,
+  initLuaFormatter,
+} from "@intechstudio/grid-protocol";
 import { GridScript } from "@intechstudio/grid-protocol";
 import { test, expect, beforeAll } from "vitest";
 
