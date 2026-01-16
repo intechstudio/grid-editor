@@ -104,10 +104,12 @@
 </script>
 
 <function-start-block
-  class="px-2 w-full rounded-tr-xl flex text-white py-1 pointer-events-none"
-  style="background-color:{action.information.color}"
+  class="px-1 w-full rounded-tr-xl flex pointer-events-none text-sm"
+  style="border: 3px solid {action.information
+    .color}; background-color: color-mix(in srgb, {action.information
+    .color} 20%, var(--background))"
 >
-  <div class="flex flex-row items-center w-full gap-2">
+  <div class="flex flex-row items-center w-full gap-1">
     <div class="pointer-events-auto flex-grow">
       <MeltCombo
         title={"Function"}
