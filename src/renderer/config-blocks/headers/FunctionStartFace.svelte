@@ -112,7 +112,6 @@
   <div class="flex flex-row items-center w-full gap-1">
     <div class="pointer-events-auto flex-grow">
       <MeltCombo
-        title={"Function"}
         value={scriptSegment}
         {suggestions}
         validator={validator.func}
@@ -131,7 +130,6 @@
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
-        valueInfoEnabled={false}
       />
     </div>
   </div>

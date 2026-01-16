@@ -33,6 +33,9 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import {
+    Block,
+    BlockRow,
+    BlockColumn,
     MeltCombo,
     MeltSelect,
     MeltCheckbox,
@@ -42,7 +45,6 @@
     CircleColorPicker,
     ColorLayerSelector,
     type LayerClickDetail,
-    ControlGroup,
   } from "@intechstudio/grid-uikit";
 
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -170,8 +172,14 @@
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
+  <MeltSelect
+    bind:target={$appSettings.persistent.colorPicker}
+    {options}
+    disabled={false}
+    size={"full"}
+  />
   {#if $appSettings.persistent.userLevelMinimalist == false}
-    <div class="flex flex-row w-full gap-2">
+    <BlockRow>
       <MeltCombo
         title={"Element"}
         value={$data.element.value}
@@ -203,7 +211,7 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-    </div>
+    </BlockRow>
   {/if}
   <ColorLayerSelector
     colors={$data.previewColors}
@@ -212,108 +220,80 @@
     on:remove-layer={handleRemoveLayer}
     on:layer-click={handleLayerClicked}
   />
-
-  <div class="flex w-full">
-    <MeltSelect
-      bind:target={$appSettings.persistent.colorPicker}
-      {options}
-      disabled={false}
-      size={"full"}
-    />
-  </div>
-
-  <ControlGroup>
-    <div slot="header" class="flex flex-row justify-between">
-      <span class="text-lg">Mixer</span>
-      <div
-        class="flex rounded-full w-1/3 h-6"
-        style="background-color: {getMixerPreviewColor($data)};"
+  <BlockRow>
+    <div class="flex flex-grow min-w-28 h-28 items-center justify-center">
+      <svelte:component
+        this={colorPickerComponent.get($appSettings.persistent.colorPicker)}
+        color={$data.pickerColor}
+        on:input={(e) => {
+          const { color } = e.detail;
+          data.updatePickerColor(color);
+          sendData($data);
+        }}
+        on:change={(e) => {
+          dispatch("sync");
+        }}
       />
     </div>
-    <div
-      slot="content"
-      class="grid grid-cols-[1fr_max-content] w-full gap-2 items-center justify-center bg-background p-2 rounded-xl"
-    >
-      <div class="flex flex-col">
-        {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
-          <div class="flex flex-row flex-grow items-center gap-2">
-            <span>{channel[0].toLocaleUpperCase()}</span>
-            <MeltCombo
-              title={" "}
-              value={$data[channel].value}
-              validator={$data[channel].validator.func}
-              suggestions={$data[channel].suggestions}
-              on:input={(e) => {
-                const { value, validationError } = e.detail;
-                data.updateRGBAChannelValue(
-                  action,
-                  value,
-                  validationError,
-                  channel,
-                );
-                sendData($data);
-              }}
-              on:change={() => dispatch("sync")}
-              postProcessor={GridScript.shortify}
-              preProcessor={GridScript.humanize}
-            />
-          </div>
-        {/each}
-      </div>
-      <div class="flex w-32 h-32 items-center justify-center">
-        <svelte:component
-          this={colorPickerComponent.get($appSettings.persistent.colorPicker)}
-          color={$data.pickerColor}
-          on:input={(e) => {
-            const { color } = e.detail;
-            data.updatePickerColor(color);
-            sendData($data);
-          }}
-          on:change={(e) => {
-            dispatch("sync");
-          }}
-        />
-      </div>
-      <div class="flex flex-row items-center gap-2 flex-grow">
-        <span>{SimpleColor.Channel.ALPHA[0].toLocaleUpperCase()}</span>
-        <MeltCombo
-          title={" "}
-          value={$data[SimpleColor.Channel.ALPHA].value}
-          validator={$data[SimpleColor.Channel.ALPHA].validator.func}
-          suggestions={$data[SimpleColor.Channel.ALPHA].suggestions}
-          on:input={(e) => {
-            const { value, validationError } = e.detail;
-            data.updateRGBAChannelValue(
-              action,
-              value,
-              validationError,
-              SimpleColor.Channel.ALPHA,
-            );
-            sendData($data);
-          }}
-          on:change={() => dispatch("sync")}
-          postProcessor={GridScript.shortify}
-          preProcessor={GridScript.humanize}
-        />
-      </div>
-      <div class="flex flex-grow">
-        <MeltSlider
-          target={$data.alphaSliderValue}
-          min={0}
-          max={1}
-          step={0.01}
-          on:change={(e) => {
-            const { value } = e.detail;
-            data.updateAlphaSliderValue(value);
-            sendData($data);
-          }}
-          on:commit={() => {
-            dispatch("sync");
-          }}
-        />
-      </div>
-    </div>
-  </ControlGroup>
+
+    <BlockColumn>
+      <MeltCombo
+        title="Alpha"
+        value={$data[SimpleColor.Channel.ALPHA].value}
+        validator={$data[SimpleColor.Channel.ALPHA].validator.func}
+        suggestions={[
+          ...$data[SimpleColor.Channel.ALPHA].suggestions,
+          { value: "1", info: "Default" },
+          { value: "0", info: "Transparent" },
+        ]}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          data.updateRGBAChannelValue(
+            action,
+            value,
+            validationError,
+            SimpleColor.Channel.ALPHA,
+          );
+          sendData($data);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+      <MeltSlider
+        target={$data.alphaSliderValue}
+        min={0}
+        max={1}
+        step={0.01}
+        on:change={(e) => {
+          const { value } = e.detail;
+          data.updateAlphaSliderValue(value);
+          sendData($data);
+        }}
+        on:commit={() => {
+          dispatch("sync");
+        }}
+      />
+    </BlockColumn>
+  </BlockRow>
+  <BlockRow>
+    {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
+      <MeltCombo
+        title={channel.charAt(0).toUpperCase() + channel.slice(1)}
+        value={$data[channel].value}
+        validator={$data[channel].validator.func}
+        suggestions={$data[channel].suggestions}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          data.updateRGBAChannelValue(action, value, validationError, channel);
+          sendData($data);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    {/each}
+  </BlockRow>
 
   {#if $appSettings.persistent.userLevelMinimalist == false}
     <MeltCheckbox

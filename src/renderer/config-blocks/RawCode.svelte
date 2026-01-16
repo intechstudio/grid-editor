@@ -129,19 +129,22 @@
     <div class="text-white">
       {#if availablePackage?.isDownloaded === true}
         <MoltenPushButton
-          text={"Enable Package"}
+          text="Enable Package"
+          style="outlined"
           click={handleEnablePackage}
         />
       {:else if availablePackage?.installProgress !== undefined}
         <p class="text-white">Installing package...</p>
       {:else if availablePackage?.isDownloaded === false}
         <MoltenPushButton
-          text={"Install Package"}
+          text="Install Package"
+          style="outlined"
           click={handleInstallPackage}
         />
       {:else}
         <MoltenPushButton
-          text={"To Code"}
+          text="To Code"
+          style="outlined"
           click={handleReplace}
         />
       {/if}

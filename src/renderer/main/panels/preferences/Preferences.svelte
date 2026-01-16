@@ -122,7 +122,8 @@
           step={$appSettings.stepSize}
         />
         <MoltenPushButton
-          text={"Reset"}
+          text="Reset"
+          style="normal"
           click={() => {
             $appSettings.persistent.size = $appSettings.defaultSize;
           }}
@@ -159,7 +160,8 @@
           step={0.1}
         />
         <MoltenPushButton
-          text={"Reset"}
+          text="Reset"
+          style="normal"
           click={() => {
             $appSettings.persistent.fontSize = 12;
           }}
@@ -244,7 +246,8 @@
         affect your profiles or other data.
       </BlockBody>
       <MoltenPushButton
-        text={"Reset application settings"}
+        text="Reset application settings"
+        style="outlined"
         click={resetAppSettings}
       />
     </Block>
@@ -269,7 +272,8 @@
         title={"Track interaction with the Editor application"}
       />
       <MoltenPushButton
-        text={"Open Privacy Policy"}
+        text="Open Privacy Policy"
+        style="normal"
         click={handleOpenPolicyClicked}
       />
     </Block>
@@ -288,13 +292,25 @@
           disabled={true}
           bind:target={$appSettings.persistent.profileFolder}
         />
-        <MoltenPushButton text={"Select Folder"} click={selectDirectory} />
+        <MoltenPushButton
+          text="Select Folder"
+          style="normal"
+          click={selectDirectory}
+        />
       </BlockRow>
       <BlockBody>Open user folder to view the contents</BlockBody>
-      <MoltenPushButton text={"Open grid-userdata"} click={viewDirectory} />
+      <MoltenPushButton
+        text="Open grid-userdata"
+        style="normal"
+        click={viewDirectory}
+      />
 
       <BlockBody>Reset folder selection to default</BlockBody>
-      <MoltenPushButton text={"Reset to default"} click={resetDirectory} />
+      <MoltenPushButton
+        text="Reset to default"
+        style="normal"
+        click={resetDirectory}
+      />
     </Block>
   {/if}
 
@@ -324,7 +340,8 @@
         Erase the NVM memory of the module. This will take some time.
       </BlockBody>
       <MoltenPushButton
-        text={"Erase"}
+        text="Erase"
+        style="normal"
         click={() => {
           runtime_manager.NVMErase();
         }}
