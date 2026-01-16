@@ -858,7 +858,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     const runtime = module.parent as GridRuntime;
 
     try {
-      const script = this.toLua();
+      const script = GridScript.compressScript(this.toLua());
       const simulate = module.architecture === Architecture.VIRTUAL;
       const instruction = new GridInstruction.SendConfig(
         module.dx,
@@ -1734,7 +1734,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
     const instruction = new GridInstruction.SendConfigImmediate(
       this.dx,
       this.dy,
-      script,
+      GridScript.compressScript(script),
       runtime.virtual,
     );
 
