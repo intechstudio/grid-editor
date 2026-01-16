@@ -61,6 +61,7 @@
     </div>
     <div class="pointer-events-auto">
       <MeltCombo
+        MeltCombo
         title={"Times"}
         bind:value={$data.increment.value}
         suggestions={$data.increment.suggestions}
