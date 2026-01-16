@@ -11,7 +11,7 @@
     MeltRadio,
     MeltSlider,
     MeltSelect,
-    MoltenButton,
+    MoltenPushButton,
     MoltenInput,
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
@@ -121,8 +121,8 @@
           max={$appSettings.maxSize}
           step={$appSettings.stepSize}
         />
-        <MoltenButton
-          title={"Reset"}
+        <MoltenPushButton
+          text={"Reset"}
           click={() => {
             $appSettings.persistent.size = $appSettings.defaultSize;
           }}
@@ -158,8 +158,8 @@
           max={36}
           step={0.1}
         />
-        <MoltenButton
-          title={"Reset"}
+        <MoltenPushButton
+          text={"Reset"}
           click={() => {
             $appSettings.persistent.fontSize = 12;
           }}
@@ -243,9 +243,8 @@
         Reset all preferences settings to their default values. This will not
         affect your profiles or other data.
       </BlockBody>
-      <MoltenButton
-        title={"Reset application settings"}
-        border={"yellow-500"}
+      <MoltenPushButton
+        text={"Reset application settings"}
         click={resetAppSettings}
       />
     </Block>
@@ -269,8 +268,8 @@
         bind:target={$appSettings.persistent.analyticsEnabled}
         title={"Track interaction with the Editor application"}
       />
-      <MoltenButton
-        title={"Open Privacy Policy"}
+      <MoltenPushButton
+        text={"Open Privacy Policy"}
         click={handleOpenPolicyClicked}
       />
     </Block>
@@ -289,13 +288,13 @@
           disabled={true}
           bind:target={$appSettings.persistent.profileFolder}
         />
-        <MoltenButton title={"Select Folder"} click={selectDirectory} />
+        <MoltenPushButton text={"Select Folder"} click={selectDirectory} />
       </BlockRow>
       <BlockBody>Open user folder to view the contents</BlockBody>
-      <MoltenButton title={"Open grid-userdata"} click={viewDirectory} />
+      <MoltenPushButton text={"Open grid-userdata"} click={viewDirectory} />
 
       <BlockBody>Reset folder selection to default</BlockBody>
-      <MoltenButton title={"Reset to default"} click={resetDirectory} />
+      <MoltenPushButton text={"Reset to default"} click={resetDirectory} />
     </Block>
   {/if}
 
@@ -324,8 +323,8 @@
       <BlockBody>
         Erase the NVM memory of the module. This will take some time.
       </BlockBody>
-      <MoltenButton
-        title={"Erase"}
+      <MoltenPushButton
+        text={"Erase"}
         click={() => {
           runtime_manager.NVMErase();
         }}
