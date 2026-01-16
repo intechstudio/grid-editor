@@ -34,7 +34,7 @@
   let monaco_block;
   let editor;
   let commitEnabled = false;
-  let errorMesssage = "";
+  let errorMessage = "";
   let commited = { script: "", name: "" };
   let scriptLength = undefined;
   let pathSnippets = [];
@@ -139,7 +139,7 @@
       if (scriptLength >= Grid.Protocol.maxScriptLength) {
         throw new LengthError("Config limit reached.");
       }
-      errorMesssage = "";
+      errorMessage = "";
       commitEnabled =
         $monaco_action.script !== commited.script ||
         commited.name !== $monaco_action.name;
@@ -148,7 +148,7 @@
         scriptLength = undefined;
       }
       commitEnabled = false;
-      errorMesssage = e;
+      errorMessage = String(e);
     }
     $monaco_action.name = commited.name;
     $monaco_action.script = commited.script;
@@ -175,7 +175,7 @@
   });
 
   function handleClose() {
-    if (errorMesssage || commitEnabled) {
+    if (errorMessage || commitEnabled) {
       const confirmModal = new Modal.Window(ConfirmModal, Modal.Snap.Full, {
         showAsUnique: true,
       });
@@ -263,8 +263,8 @@
     class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
     use:watchResize={handleResize}
   >
-    <div class="flex flex-row w-full items-center">
-      <div class="flex flex-col">
+    <div class="flex flex-col w-full gap-2">
+      <div class="flex flex-row w-full items-center gap-4">
         <div class="flex flex-row gap-2 items-center">
           <span>Name:</span>
           <div
@@ -284,41 +284,43 @@
             <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
           </button>
         </div>
+
         <span class:invisible={isDeleted($monaco_action)}>
           {`Character Count: ${typeof scriptLength === "undefined" ? "?" : scriptLength}/${
             Grid.Protocol.maxScriptLength - 1
           } (max)`}
         </span>
+
+        <div class="flex-grow"></div>
+
+        {#if isDeleted($monaco_action)}
+          <div class="text-right text-sm">Deleted Action</div>
+        {:else}
+          <div
+            class="text-right text-sm {commitEnabled
+              ? 'text-yellow-600'
+              : 'text-green-500'}"
+          >
+            {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
+          </div>
+        {/if}
+
+        <MoltenPushButton
+          click={handleCommitClicked}
+          disabled={!commitEnabled || isDeleted($monaco_action)}
+          text="Commit"
+          style="accept"
+        />
+        <MoltenPushButton click={handleClose} text="Close" style="normal" />
       </div>
 
-      <div
-        class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
-      >
-        <div class="flex flex-col">
-          {#if isDeleted($monaco_action)}
-            <div class="text-right text-sm">Deleted Action</div>
-          {:else}
-            <div
-              class="text-right text-sm {commitEnabled
-                ? 'text-yellow-600'
-                : 'text-green-500'}"
-            >
-              {commitEnabled ? "Unsaved changes!" : "Synced with Grid!"}
-            </div>
-            <div class="text-right text-sm text-error">{errorMesssage}</div>
-          {/if}
+      {#if errorMessage}
+        <div
+          class="text-left text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto"
+        >
+          {errorMessage}
         </div>
-
-        <div class="flex flex-row flex-wrap gap-2 justify-end">
-          <MoltenPushButton
-            click={handleCommitClicked}
-            disabled={!commitEnabled || isDeleted($monaco_action)}
-            text="Commit"
-            style="accept"
-          />
-          <MoltenPushButton click={handleClose} text="Close" style="normal" />
-        </div>
-      </div>
+      {/if}
     </div>
 
     <div
