@@ -148,7 +148,7 @@
         scriptLength = undefined;
       }
       commitEnabled = false;
-      errorMessage = String(e);
+      errorMessage = String(e).replace(/^error parsing: ?\n?/i, "");
     }
     $monaco_action.name = commited.name;
     $monaco_action.script = commited.script;
@@ -314,13 +314,11 @@
         <MoltenPushButton click={handleClose} text="Close" style="normal" />
       </div>
 
-      {#if errorMessage}
-        <div
-          class="text-left text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto"
-        >
-          {errorMessage}
-        </div>
-      {/if}
+      <div
+        class="text-left text-sm text-error whitespace-pre-line min-h-10 max-h-24 overflow-y-auto"
+      >
+        {errorMessage}
+      </div>
     </div>
 
     <div
