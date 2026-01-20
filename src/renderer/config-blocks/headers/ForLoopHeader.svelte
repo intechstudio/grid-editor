@@ -1,15 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { MeltCombo, MoltenInput } from "@intechstudio/grid-uikit";
-  import { GridAction, GridEvent } from "../../runtime/runtime";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
+  import { GridAction } from "../../runtime/runtime";
   import { ForLoop } from "../For_Loop";
   import { DynamicWrapper } from "../../main/panels/configuration/components/DynamicWrapper";
 
   const dispatch = createEventDispatcher();
 
   export let action: GridAction;
-  let event = action.parent as GridEvent;
 
   const data = new ForLoop.ViewModel(action);
 
@@ -37,13 +36,15 @@
 </script>
 
 <container
-  class="px-2 w-full rounded-tr-xl justify-center flex flex-col pointer-events-none"
-  style="background-color:{action.information.color}"
+  class="px-1 w-full rounded-tr-xl justify-center flex flex-col pointer-events-none text-sm"
+  style="border: 3px solid {action.information
+    .color}; background-color: color-mix(in srgb, {action.information
+    .color} 20%, var(--background))"
 >
-  <div class="flex flex-row flex-grow items-center gap-2 py-2 text-white">
-    <span>Repeat</span>
+  <div class="flex flex-row flex-grow items-center gap-1">
     <div class="pointer-events-auto">
       <MeltCombo
+        title={"Repeat"}
         bind:value={$data.variable.value}
         suggestions={$data.variable.suggestions}
         validator={$data.variable.validator.func}
@@ -58,15 +59,23 @@
         valueInfoEnabled={false}
       />
     </div>
-    <span>for</span>
     <div class="pointer-events-auto">
-      <MoltenInput
-        bind:target={$data.increment}
-        on:input={sendData}
+      <MeltCombo
+        MeltCombo
+        title={"Times"}
+        bind:value={$data.increment.value}
+        suggestions={$data.increment.suggestions}
+        validator={$data.increment.validator.func}
+        on:input={(e) => {
+          const { value, validationError } = e.detail;
+          $data.increment.validator.value = !validationError;
+          sendData();
+        }}
         on:change={() => dispatch("sync")}
-        availableCharacters={$event.getAvailableChars()}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+        valueInfoEnabled={false}
       />
     </div>
-    <span class="mr-10">times</span>
   </div>
 </container>
