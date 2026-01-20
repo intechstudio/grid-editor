@@ -42,7 +42,7 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
-  import { MoltenButton } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { mergeActionsToCode } from "../runtime/operations";
   import { GridAction, GridEvent } from "../runtime/runtime";
   import { Analytics } from "../runtime/analytics.js";
@@ -128,23 +128,23 @@
 
     <div class="text-white">
       {#if availablePackage?.isDownloaded === true}
-        <MoltenButton
-          title={"Enable Package"}
-          border={"yellow-500"}
+        <MoltenPushButton
+          text="Enable Package"
+          style="outlined"
           click={handleEnablePackage}
         />
       {:else if availablePackage?.installProgress !== undefined}
         <p class="text-white">Installing package...</p>
       {:else if availablePackage?.isDownloaded === false}
-        <MoltenButton
-          title={"Install Package"}
-          border={"yellow-500"}
+        <MoltenPushButton
+          text="Install Package"
+          style="outlined"
           click={handleInstallPackage}
         />
       {:else}
-        <MoltenButton
-          title={"To Code"}
-          border={"yellow-500"}
+        <MoltenPushButton
+          text="To Code"
+          style="outlined"
           click={handleReplace}
         />
       {/if}
