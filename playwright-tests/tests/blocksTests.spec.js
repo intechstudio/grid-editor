@@ -50,7 +50,7 @@ test.describe("Issues", () => {
 
   // https://github.com/intechstudio/grid-editor/issues/1022
   test("Code block saving the stored changes", async ({ page }) => {
-    const storedInput = "print('stored codeblock')";
+    const storedInput = 'print("stored codeblock")';
     await configPage.removeAllActions();
     await configPage.addAndEditCodeBlock(storedInput);
     await configPage.commitCode();

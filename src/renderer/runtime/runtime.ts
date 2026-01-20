@@ -382,7 +382,7 @@ export class GridAction extends RuntimeNode<ActionData> {
   static parse(script: Grid.LuaScript) {
     const result: GridAction[] = [];
 
-    let actionString = script.replace(/[\n\r]+/g, "").replace(/\s{2,10}/g, " ");
+    let actionString = script.replace(/\s{2,10}/g, " ");
 
     if (actionString.startsWith(Grid.Protocol.scriptStart)) {
       actionString = actionString
@@ -584,10 +584,7 @@ export class EventData extends NodeData {
   }
 
   public toLua(): string {
-    return `${this.config
-      .map((e) => e.toLua())
-      .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")}`;
+    return `${this.config.map((e) => e.toLua()).join("")}`;
   }
 
   public getAvailableChars(): number {
@@ -861,7 +858,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     const runtime = module.parent as GridRuntime;
 
     try {
-      const script = this.toLua();
+      const script = GridScript.compressScript(this.toLua());
       const simulate = module.architecture === Architecture.VIRTUAL;
       const instruction = new GridInstruction.SendConfig(
         module.dx,
@@ -1737,7 +1734,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
     const instruction = new GridInstruction.SendConfigImmediate(
       this.dx,
       this.dy,
-      script,
+      GridScript.compressScript(script),
       runtime.virtual,
     );
 

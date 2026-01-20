@@ -63,8 +63,23 @@ export namespace SimpleColor {
 
       this.updateIntenstiy = actionstring.includes("glp");
       if (this.updateIntenstiy) {
-        // remove glp call from the end
-        actionstring = actionstring.split(" ")[0];
+        // Extract just the glc(...) call with balanced parens
+        const glcIndex = actionstring.indexOf("glc(");
+        if (glcIndex !== -1) {
+          let depth = 0;
+          let end = glcIndex;
+          for (let i = glcIndex; i < actionstring.length; i++) {
+            if (actionstring[i] === "(") depth++;
+            else if (actionstring[i] === ")") {
+              depth--;
+              if (depth === 0) {
+                end = i + 1;
+                break;
+              }
+            }
+          }
+          actionstring = actionstring.slice(0, end);
+        }
       }
 
       const segments = Script.toSegments({

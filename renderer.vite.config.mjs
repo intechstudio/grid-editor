@@ -36,5 +36,8 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     },
     target: "chrome104",
     envPrefix: "VITE_",
+    optimizeDeps: {
+      exclude: ["@intechstudio/grid-protocol"],
+    },
   };
 };

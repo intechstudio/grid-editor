@@ -11,7 +11,7 @@ import { GridRuntime } from "./runtime";
 import { GridInstruction } from "../serialport/instructions";
 import { GridConnection } from "../serialport/serialport";
 import { WriteBuffer } from "./engine.store";
-import { Architecture } from "@intechstudio/grid-protocol";
+import { Architecture, GridScript } from "@intechstudio/grid-protocol";
 import { logger } from "./runtime.store";
 import {
   clearIntervalAsync,
@@ -229,7 +229,7 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
     const instruction = new GridInstruction.SendConfigImmediate(
       dx,
       dy,
-      script,
+      GridScript.compressScript(script),
       target.runtime.virtual,
     );
     instruction.executeOn(target.runtime.connection).catch((e) => {
