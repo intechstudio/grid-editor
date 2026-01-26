@@ -18,6 +18,19 @@
     "disconnected";
   let errorMessage = "";
 
+  const unsubscribe = connection_manager.subscribe((connections) => {
+    console.log("[WebSocket] Store update:", {
+      ourConnection: connection?.id,
+      storeIds: connections.map((c) => c.id),
+    });
+    if (connection && !connections.some((c) => c.id === connection.id)) {
+      console.log("[WebSocket] Connection removed from manager");
+      status = "disconnected";
+      transport = null;
+      connection = null;
+    }
+  });
+
   function connect() {
     if (transport) {
       disconnect();
@@ -59,6 +72,7 @@
 
   onDestroy(() => {
     console.log("[WebSocket] Notification bar disabled, cleaning up");
+    unsubscribe();
     disconnect();
   });
 </script>
