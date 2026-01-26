@@ -9,8 +9,11 @@ import {
 } from "svelte/store";
 import { GridRuntime } from "./runtime";
 import { GridInstruction } from "../serialport/instructions";
+// Side-effect import to force serialport module to load and set up navigator.tryConnectGrid
+import "../serialport/serialport.js";
 import { GridConnection } from "../serialport/serialport";
 import { WriteBuffer } from "./engine.store";
+import { VirtualTransport } from "../serialport/virtual-transport.js";
 import { Architecture, GridScript } from "@intechstudio/grid-protocol";
 import { logger } from "./runtime.store";
 import {
@@ -135,11 +138,12 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
   }
 
   public createVirtual(): GridRuntime {
-    const buffer = new WriteBuffer(undefined);
+    const transport = new VirtualTransport();
+    const buffer = new WriteBuffer(transport);
     const virtual_connection: GridConnection = {
       id: undefined,
       buffer: buffer,
-      port: undefined,
+      transport: transport,
       virtual: true,
     };
 

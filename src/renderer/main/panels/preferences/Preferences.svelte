@@ -456,6 +456,16 @@
         bind:target={$appSettings.persistent.midiTesterEnabled}
         title={"Enabled"}
       />
+
+      <BlockTitle>WebSocket Notification Bar</BlockTitle>
+      <BlockBody>
+        Enables the WebSocket notification bar for connecting to external
+        devices.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.websocketNotificationEnabled}
+        title={"Enabled"}
+      />
     </Block>
   {/if}
 </div>

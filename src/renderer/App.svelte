@@ -19,6 +19,7 @@
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
 
   import FirmwareMismatchNotification from "./main/FirmwareMismatchNotification.svelte";
+  import WebSocketNotification from "./main/WebSocketNotification.svelte";
   import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
@@ -361,6 +362,9 @@
 
   <div class="flex flex-col w-full h-full">
     <FirmwareMismatchNotification />
+    {#if $appSettings.persistent.websocketNotificationEnabled}
+      <WebSocketNotification />
+    {/if}
     <ErrorConsole />
     <VersionUpdateBar />
     <div class="flex flex-grow overflow-hidden">

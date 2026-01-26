@@ -7,12 +7,13 @@ import {
   writable,
 } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
-import { connection_manager, GridPort } from "../serialport/serialport";
+import { GridTransport } from "../serialport/transport.js";
 import { appSettings } from "./app-helper.store";
 import { Subscriber } from "svelte/motion";
 import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 import { logger } from "./runtime.store";
+import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -178,13 +179,13 @@ export type WriteBufferData = {
 
 export class WriteBuffer implements Readable<WriteBufferData> {
   private _internal: Writable<WriteBufferData>;
-  private _port: GridPort;
+  private _transport: GridTransport;
   public readonly simulator = new ConnectionSimulator();
 
   public readonly messageStream: MessageStream;
 
-  constructor(port: GridPort) {
-    this._port = port;
+  constructor(transport: GridTransport) {
+    this._transport = transport;
     this.messageStream = new MessageStream(this);
     this._internal = writable({
       array: [],
@@ -237,8 +238,16 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     return new Promise((resolve, reject) => {
       let retval: any = grid.encode_packet(descr);
 
-      connection_manager
-        .serialWrite(retval.serial, this._port)
+      // Add newline terminator for Grid protocol framing
+      retval.serial.push(10);
+
+      // Debug logging
+      debug_lowlevel_store.push_outbound(retval.serial);
+
+      const data = new Uint8Array(retval.serial);
+
+      this._transport
+        .write(data)
         .then(() => {
           // debugger for message ASCII frames
           let str = "";
@@ -331,7 +340,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
         get(appSettings).persistent.sendHeartbeatImmediate;
 
       while (
-        connection_manager.isSerialWriteLocked(this._port) ||
+        this._transport.isWriteLocked() ||
         get(this._internal).array[0] !== current ||
         (typeof waiter !== "undefined" && !sendImmediate)
       ) {
