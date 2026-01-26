@@ -90,6 +90,10 @@
     "package-touchdesigner-parhover": {
       "gitHubRepositoryOwner": "function-store",
       "gitHubRepositoryName": "TD_ParHoverMIDI_VSN1"
+    },
+    "package-ableton-mixer-and-launch-control": {
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-ableton-mixer-and-launch-control"
     }
   },
   "EDITOR_PACKAGES": {
