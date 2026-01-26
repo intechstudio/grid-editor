@@ -493,20 +493,34 @@ export async function dropActions(
   }
 
   const removed: Array<{ index: number; action: GridAction }> = [];
+  const sourceEvents = new Set<GridEvent>();
+
+  // Remove all actions first without sending intermediate states
   for (const action of actions) {
     const parent = action.parent as GridEvent;
     removed.push(...(await parent.remove(action)).removed);
-    parent.sendToGrid();
+    sourceEvents.add(parent);
   }
 
   try {
     await target.insert(index, ...actions);
+
+    // Send all updates only after successful insert
+    for (const sourceEvent of sourceEvents) {
+      if (sourceEvent !== target) {
+        sourceEvent.sendToGrid();
+      }
+    }
     target.sendToGrid();
   } catch (e) {
+    // Restore all removed actions
     for (const obj of removed) {
       const parent = obj.action.parent as GridEvent;
       parent.insert(obj.index, obj.action);
-      parent.sendToGrid();
+    }
+    // Send restored state for all affected events
+    for (const sourceEvent of sourceEvents) {
+      sourceEvent.sendToGrid();
     }
     handleError(e);
   }

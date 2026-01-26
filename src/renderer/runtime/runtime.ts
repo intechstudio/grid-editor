@@ -876,9 +876,11 @@ export class GridEvent extends RuntimeNode<EventData> {
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     } catch (e) {
+      const text =
+        e?.text || e?.message || (typeof e === "string" ? e : undefined);
       return Promise.reject({
         value: false,
-        text: e.text,
+        text,
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     }
