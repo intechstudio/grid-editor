@@ -146,10 +146,12 @@
       class="overflow-y-scroll justify-start w-full h-full pl-2 pr-3"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+        <SeparatorLine target={{ event: event, index: 0 }} />
         <ActionHelper
           target={{ event: event, index: 0 }}
           text={"There are no actions configured on this event."}
         />
+        <SeparatorLine target={{ event: event, index: 0 }} />
       {:else}
         <SeparatorLine target={{ event: event, index: 0 }} />
       {/if}
@@ -191,10 +193,13 @@
           </div>
 
           {#if showHelper && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
+            <SeparatorLine target={{ event: event, index: index + 1 }} />
             <ActionHelper
               target={{ event: event, index: index + 1 }}
               text={action.information.helperText}
+              indentation={action.indentation + 1}
             />
+            <SeparatorLine target={{ event: event, index: index + 1 }} />
           {:else}
             <SeparatorLine target={{ event: event, index: index + 1 }} />
           {/if}
