@@ -5,50 +5,50 @@
     MoltenInput,
     BlockRow,
   } from "@intechstudio/grid-uikit";
+  import { WebSocketTransport } from "../serialport/websocket-transport.js";
+  import {
+    connection_manager,
+    type GridConnection,
+  } from "../serialport/serialport.js";
 
   let websocketUrl = "ws://192.168.7.1/ws";
-  let socket: WebSocket | null = null;
+  let transport: WebSocketTransport | null = null;
+  let connection: GridConnection | null = null;
   let status: "disconnected" | "connecting" | "connected" | "error" =
     "disconnected";
   let errorMessage = "";
 
   function connect() {
-    if (socket) {
-      socket.close();
+    if (transport) {
+      disconnect();
     }
 
     status = "connecting";
     errorMessage = "";
 
-    socket = new WebSocket(websocketUrl);
+    transport = new WebSocketTransport(websocketUrl);
 
-    socket.onopen = (event) => {
-      status = "connected";
-      console.log("[WebSocket] Connection opened:", event);
-    };
-
-    socket.onclose = (event) => {
-      status = "disconnected";
-      console.log("[WebSocket] Connection closed:", event.code, event.reason);
-      socket = null;
-    };
-
-    socket.onerror = (event) => {
-      status = "error";
-      errorMessage = "Connection failed";
-      console.error("[WebSocket] Error:", event);
-    };
-
-    socket.onmessage = (event) => {
-      console.log("[WebSocket] Message received:", event.data);
-    };
+    connection_manager
+      .openTransport(transport)
+      .then((conn) => {
+        connection = conn;
+        status = "connected";
+        console.log("[WebSocket] Connected via transport");
+      })
+      .catch((error) => {
+        status = "error";
+        errorMessage = error.message || "Connection failed";
+        console.error("[WebSocket] Connection error:", error);
+        transport = null;
+      });
   }
 
   function disconnect() {
-    if (socket) {
-      socket.close();
-      socket = null;
+    if (transport) {
+      transport.close();
+      transport = null;
     }
+    connection = null;
     status = "disconnected";
     errorMessage = "";
   }
