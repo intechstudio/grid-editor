@@ -39,7 +39,7 @@ async function changeModuleIfNeeded(category) {
 async function prepareForBlockTest(category, blockName) {
   await changeModuleIfNeeded(category);
   await configPage.removeAllActions();
-  await configPage.noActionAddActionButton.isVisible();
+  await expect(configPage.noActionAddActionButton).toBeVisible();
   await configPage.turnOffMinimalistMode();
   await configPage.openAndAddActionBlock(category, blockName);
 }
@@ -177,7 +177,7 @@ test("should find Else If Actions", async () => {
   const Else = "Else";
   await configPage.turnOffMinimalistMode();
   await configPage.removeAllActions();
-  await configPage.noActionAddActionButton.isVisible();
+  await expect(configPage.noActionAddActionButton).toBeVisible();
   await configPage.openAndAddActionBlock(category, "If");
   await configPage.openActionsInIf();
   await configPage.addActionBlock(category, ElseIf);
