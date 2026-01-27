@@ -17,6 +17,7 @@ export class ConfigPage {
     this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", {
       name: "Add Action",
+      exact: true,
     });
     this.minimalistCheckbox = page
       .locator("configs")
@@ -156,11 +157,17 @@ export class ConfigPage {
   }
 
   async openActionsInElseIf() {
-    await this.page.getByRole("button", { name: "Add Action" }).nth(1).click();
+    await this.page
+      .getByRole("button", { name: "Add Action", exact: true })
+      .nth(1)
+      .click();
   }
 
   async openActionsInElse() {
-    await this.page.getByRole("button", { name: "Add Action" }).nth(2).click();
+    await this.page
+      .getByRole("button", { name: "Add Action", exact: true })
+      .nth(2)
+      .click();
   }
 
   async searchBlock(search) {
