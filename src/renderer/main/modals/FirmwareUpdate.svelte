@@ -27,6 +27,7 @@
   import logoBroken from "../../assets/svgs/logo-broken.svg?raw";
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
+  import { onDestroy } from "svelte";
   import { get } from "svelte/store";
   import {
     getGridRecommendedFirmwareUrl,
@@ -57,12 +58,18 @@
   async function handleFirmwareDownload(nightly: boolean = false) {
     try {
       // Set state to downloading immediately
-      $appSettings.firmwareNotificationState = 4;
+      appSettings.update((s) => {
+        s.firmwareNotificationState = 4;
+        return s;
+      });
 
       // Check if bootloader is connected
       let result = await window.electron.firmware.findBootloaderPathNative();
       if (result === undefined) {
-        $appSettings.firmwareNotificationState = 6;
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 6;
+          return s;
+        });
         return;
       }
       const { product, architecture } = result;
@@ -91,7 +98,10 @@
       }
 
       if (!link) {
-        $appSettings.firmwareNotificationState = 6;
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 6;
+          return s;
+        });
         return;
       }
 
@@ -135,7 +145,10 @@
           architecture,
           uf2Files,
         });
-        $appSettings.firmwareNotificationState = 6;
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 6;
+          return s;
+        });
         return;
       }
 
@@ -154,19 +167,28 @@
       });
     } catch (error) {
       console.error("Firmware download error:", error);
-      $appSettings.firmwareNotificationState = 6;
+      appSettings.update((s) => {
+        s.firmwareNotificationState = 6;
+        return s;
+      });
     }
   }
 
-  window.electron.firmware.onFirmwareUpdate((_event, value) => {
-    const state = value.code;
-    if (typeof state === "undefined") {
-      return;
-    }
+  const unsubscribeFirmwareUpdate = window.electron.firmware.onFirmwareUpdate(
+    (_event, value) => {
+      const state = value.code;
+      if (typeof state === "undefined") {
+        return;
+      }
 
-    if ([5, 6].includes(state)) {
-      setTimeout(handleDismissClicked, 2000);
-    }
+      if ([5, 6].includes(state)) {
+        setTimeout(handleDismissClicked, 2000);
+      }
+    },
+  );
+
+  onDestroy(() => {
+    unsubscribeFirmwareUpdate?.();
   });
 
   async function handleTroubleShoot() {
@@ -239,12 +261,14 @@
               style="accept"
               click={handleFirmwareDownload}
             />
-            <MoltenPushButton
-              text={"Nightly"}
-              click={() => {
-                handleFirmwareDownload(true);
-              }}
-            />
+            {#if $appSettings.persistent.nightlyFirmware}
+              <MoltenPushButton
+                text={"Nightly"}
+                click={() => {
+                  handleFirmwareDownload(true);
+                }}
+              />
+            {/if}
           </div>
           <MoltenPushButton
             text={showManualOptions
