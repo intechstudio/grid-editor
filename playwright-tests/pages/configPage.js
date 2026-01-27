@@ -15,7 +15,9 @@ export class ConfigPage {
     this.selectAllCheckbox = page.getByTestId("select_all");
     this.addActionBlockButton = page.getByText("Add action block...");
     this.addActionLineFirst = page.locator("add-line").first();
-    this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
+    this.noActionAddActionButton = page.getByRole("button", {
+      name: "Add Action",
+    });
     this.minimalistCheckbox = page
       .locator("configs")
       .getByTestId("minimalist_toggle");
@@ -154,11 +156,11 @@ export class ConfigPage {
   }
 
   async openActionsInElseIf() {
-    await this.page.getByRole("button", { name: "Add +" }).nth(1).click();
+    await this.page.getByRole("button", { name: "Add Action" }).nth(1).click();
   }
 
   async openActionsInElse() {
-    await this.page.getByRole("button", { name: "Add +" }).nth(2).click();
+    await this.page.getByRole("button", { name: "Add Action" }).nth(2).click();
   }
 
   async searchBlock(search) {
