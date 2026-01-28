@@ -23,6 +23,12 @@
   $: handleRuntimeChange($runtime);
 
   function handleRuntimeChange(data: RuntimeData) {
+    // Don't reset state if firmware update is in progress or completed
+    const currentState = $appSettings.firmwareNotificationState;
+    if (currentState >= 4) {
+      return;
+    }
+
     appSettings.update((s) => {
       s.firmwareNotificationState = 0;
       return s;
@@ -66,7 +72,13 @@
 
   window.electron.firmware.onFirmwareUpdate((_event, value) => {
     const state = value.code;
+    const currentState = $appSettings.firmwareNotificationState;
     if (typeof state === "undefined") {
+      return;
+    }
+
+    // Don't allow IPC events to set state backwards (e.g., from 4 back to 3)
+    if (state < currentState) {
       return;
     }
 
@@ -96,7 +108,6 @@
       disableEscapeClose: true,
       showAsUnique: true,
     });
-    console.log("SHOW");
     modal.show();
   }
 

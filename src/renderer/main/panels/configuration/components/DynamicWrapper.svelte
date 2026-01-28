@@ -21,6 +21,7 @@
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
   import { contextTarget, SvgIcon } from "@intechstudio/grid-uikit";
+  import Indentation from "./Indentation.svelte";
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
   import { selected_actions } from "../../../../runtime/selected-actions.store";
   import { get } from "svelte/store";
@@ -223,11 +224,7 @@
   class="dynamicWrapper activator-button flex flex-grow outline-none"
   class:cursor-pointer={ctrlIsDown}
 >
-  {#each Array($action?.indentation ?? 0) as _}
-    <div style="width: 15px" class="flex items-center mx-1">
-      <div class="w-3 h-3 rounded-full" />
-    </div>
-  {/each}
+  <Indentation level={$action?.indentation ?? 0} />
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel

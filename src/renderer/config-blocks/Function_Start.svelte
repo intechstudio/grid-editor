@@ -27,6 +27,7 @@
     movable: true,
     hideIcon: false,
     type: "composite_open",
+    helperText: "Actions here are triggered when this function is called.",
     toggleable: false,
     syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
     hiddenInMinimalist: true,

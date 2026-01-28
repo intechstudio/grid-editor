@@ -15,44 +15,18 @@ import { GridRuntime } from "../runtime/runtime.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
 import { runtime_manager } from "../runtime/runtime-manager.store.js";
 import { GridService } from "../runtime/services.js";
+import { appSettings } from "../runtime/app-helper.store.js";
+import { GridTransport } from "./transport.js";
+import { SerialTransport } from "./serial-transport.js";
 
 const configuration = window.ctxProcess.configuration();
 
-interface WebSerialPort {
-  open(options: SerialOptions): Promise<void>;
-  close(): Promise<void>;
-  readable: ReadableStream<any> | null;
-  writable: WritableStream<any> | null;
-  addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions,
-  ): void;
-  removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions,
-  ): void;
-  getInfo(): SerialPortInfo;
-}
-
-interface SerialOptions {
-  baudRate: number;
-  dataBits?: number;
-  stopBits?: number;
-  parity?: "none" | "even" | "odd";
-  bufferSize?: number;
-  flowControl?: "none" | "hardware";
-}
-
-interface SerialPortInfo {
+interface SerialPortFilter {
   usbVendorId?: number;
   usbProductId?: number;
 }
 
-export type GridPort = WebSerialPort;
-
-const filter: SerialPortInfo[] = [
+const filter: SerialPortFilter[] = [
   {
     usbVendorId: parseInt(configuration.USB_VID_0),
     usbProductId: parseInt(configuration.USB_PID_0),
@@ -82,7 +56,7 @@ const filter: SerialPortInfo[] = [
 export type GridConnection = {
   id: string;
   buffer: WriteBuffer;
-  port: GridPort;
+  transport: GridTransport;
   virtual: boolean;
 };
 
@@ -108,15 +82,19 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
     return this._internal;
   }
 
-  openPort(port: GridPort): Promise<GridConnection> {
+  /**
+   * Open a connection using a GridTransport.
+   * This is the preferred method for establishing connections.
+   */
+  openTransport(transport: GridTransport): Promise<GridConnection> {
     return new Promise((resolve, reject) => {
-      port
-        .open({ baudRate: 2000000 })
+      transport
+        .open()
         .then(() => {
-          const buffer = new WriteBuffer(port);
-          const current = {
+          const buffer = new WriteBuffer(transport);
+          const current: GridConnection = {
             id: uuidv4(),
-            port: port,
+            transport: transport,
             buffer: buffer,
             virtual: false,
           };
@@ -132,18 +110,22 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
           runtime_manager.setActive(incoming.id);
 
           this.update((store) => {
-            console.log("Port connected:", current);
+            console.log("Transport connected:", transport.getInfo());
             store.push(current);
             return store;
           });
 
-          port.addEventListener("disconnect", (e) => {
-            console.log("Port disconnected:", current);
+          // Set up disconnect handler
+          transport.onDisconnect(() => {
+            console.log("Transport disconnected:", transport.getInfo());
             this.update((store) => {
               return store.filter((e) => e.id !== current.id);
             });
             runtime_manager.destroy(incoming);
           });
+
+          // Set up data handler with framing logic
+          this.setupFrameHandler(transport, current);
 
           resolve(current);
         })
@@ -153,141 +135,71 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
     });
   }
 
-  isSerialWriteLocked(port: GridPort) {
-    if (port === undefined || port === null) {
-      return true;
-    }
+  /**
+   * Set up the frame detection handler for incoming data.
+   * This handles the Grid protocol framing (EOT+LF markers) for all transport types.
+   */
+  private setupFrameHandler(
+    transport: GridTransport,
+    connection: GridConnection,
+  ): void {
+    let rxBuffer: number[] = [];
 
-    if (port.writable === undefined || port.writable === null) {
-      return true;
-    }
-
-    if (port.writable.locked === true) {
-      return false;
-    }
-  }
-
-  serialWrite(param: any, port: GridPort) {
-    if (param === undefined) {
-      return Promise.reject("Serial Write Error 1.");
-    }
-
-    if (port === undefined || port === null) {
-      return Promise.reject("Serial Write Error 2.");
-    }
-
-    if (port.writable === undefined || port.writable === null) {
-      return Promise.reject("Serial Write Error 3.");
-    }
-
-    return new Promise((resolve, reject) => {
-      param.push(10);
-
-      debug_lowlevel_store.push_outbound(param);
-
-      if (port.writable.locked === true) {
-        reject("SORRY it's locked");
-        return;
+    transport.onData((chunk: Uint8Array) => {
+      // Accumulate incoming bytes
+      const buffer = Array.from(chunk);
+      for (let i = 0; i < buffer.length; i++) {
+        rxBuffer.push(buffer[i]);
       }
 
-      const writer = port.writable.getWriter();
+      // Detect and process complete frames
+      let messageStartIndex = 0;
+      let messageStopIndex = 0;
 
-      const data = new Uint8Array(param);
+      for (let i = 0; i < rxBuffer.length; i++) {
+        if (rxBuffer[i] === 10 && rxBuffer[i - 3] === 4) {
+          // newline character found and end-of-transmission character found
+          messageStopIndex = i;
+          const currentMessage = rxBuffer.slice(
+            messageStartIndex,
+            messageStopIndex,
+          );
+          messageStartIndex = i + 1;
 
-      writer
-        .write(data)
-        .then((e) => {
-          // Allow the serial port to be closed later.
-          writer.releaseLock();
-          resolve("Port released");
-        })
-        .catch((e) => {
-          console.warn(e);
-          reject(e);
-        });
-    });
-  }
+          // Decode the message
+          debug_lowlevel_store.push_inbound(currentMessage);
+          const class_array = grid.decode_packet_frame(currentMessage);
+          grid.decode_packet_classes(class_array);
 
-  async fetchStream(connection: GridConnection) {
-    const port = connection.port;
-    if (!port || !port.readable) {
-      console.warn("Invalid port: ", port);
-      return;
-    }
-
-    const reader = port.readable.getReader();
-    let charsReceived = 0;
-    let rxBuffer = [];
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (
-          done ||
-          !get(this._internal)
-            .map((e) => e.port)
-            .includes(port)
-        ) {
-          console.log("Stream complete");
-          break;
-        }
-
-        charsReceived += value.length;
-        const chunk = value;
-
-        let buffer = Array.from(chunk);
-
-        for (let i = 0; i < buffer.length; i++) {
-          rxBuffer.push(buffer[i]);
-        }
-
-        let messageStartIndex = 0;
-        let messageStopIndex = 0;
-
-        for (let i = 0; i < rxBuffer.length; i++) {
-          if (rxBuffer[i] === 10 && rxBuffer[i - 3] === 4) {
-            // newline character found and end-of-transmission character found
-            messageStopIndex = i;
-            let currentMessage = rxBuffer.slice(
-              messageStartIndex,
-              messageStopIndex,
-            );
-            messageStartIndex = i + 1;
-
-            // Decode the message
-            debug_lowlevel_store.push_inbound(currentMessage);
-            let class_array = grid.decode_packet_frame(currentMessage);
-            grid.decode_packet_classes(class_array);
-
-            if (class_array !== false) {
-              try {
-                connection.buffer.messageStream.deliver_inbound(class_array);
-              } catch (e) {
-                //TODO: Serialize properly messageStream
-                console.error("MessageStrem works to fast (TODO):", e);
-              }
+          if (class_array !== false) {
+            try {
+              connection.buffer.messageStream.deliver_inbound(class_array);
+            } catch (e) {
+              console.error("MessageStream works too fast (TODO):", e);
             }
           }
         }
-
-        rxBuffer = rxBuffer.slice(messageStartIndex);
       }
-    } catch (error) {
-      console.warn("Error reading from serial port:", error);
-    } finally {
-      reader.releaseLock();
-    }
+
+      rxBuffer = rxBuffer.slice(messageStartIndex);
+    });
   }
 
   static async tryConnectGrid() {
+    if (get(appSettings).persistent.websocketNotificationEnabled) {
+      return GridConnectionManager.tryConnectWebSocket();
+    } else {
+      return GridConnectionManager.tryConnectSerial();
+    }
+  }
+
+  static async tryConnectSerial() {
     try {
       let ports: any[];
       if (import.meta.env.VITE_BUILD_TARGET == "web") {
         const port = await navigator.serial.requestPort({ filters: filter });
-        ports = [port]; // Add the newly requested port to the list
+        ports = [port];
       } else {
-        // Retrieve all available ports. Must requestPort before getPort to allow MACOS to open D51
         const port = await navigator.serial.requestPort({ filters: filter });
         if (navigator.debugSerial) {
           console.warn("port:", port);
@@ -295,7 +207,6 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
         ports = await navigator.serial.getPorts();
       }
 
-      // Filter ports based on the provided filter criteria
       const matchingPorts = ports.filter((port) => {
         const { usbVendorId, usbProductId } = port.getInfo();
         return filter.some(
@@ -304,26 +215,29 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
         );
       });
 
-      // Attempt to open each matching port
       for (const port of matchingPorts) {
+        const transport = new SerialTransport(port);
         connection_manager
-          .openPort(port as GridPort)
+          .openTransport(transport)
           .then((connection) => {
-            connection_manager.fetchStream(connection);
+            // Connection established
           })
           .catch((openError) => {
-            // Handle any errors that occur when opening the port
             if (navigator.debugSerial) {
               console.warn("Failed to open port:", openError);
             }
           });
       }
     } catch (listPortsError) {
-      // Handle any errors that occur when listing the ports
       if (navigator.debugSerial) {
         console.warn("Failed to list ports:", listPortsError);
       }
     }
+  }
+
+  static async tryConnectWebSocket() {
+    // WebSocket auto-connect not implemented yet
+    // Manual connection is handled by WebSocketNotification component
   }
 }
 

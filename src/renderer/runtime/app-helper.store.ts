@@ -62,6 +62,7 @@ const persistentDefaultValues = {
   minimapToggled: false,
   eventsLoaded: false,
   midiTesterEnabled: false,
+  websocketNotificationEnabled: false,
 };
 
 interface PaneData {

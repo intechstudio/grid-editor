@@ -123,7 +123,7 @@
       const message =
         reason?.message || // Error objects
         reason?.text || // Custom error objects with .text
-        reason || // Strings or other primitive values
+        (typeof reason === "object" ? JSON.stringify(reason) : reason) || // Objects or primitives
         "Unknown Promise rejection";
 
       const stack = reason?.stack || e.stack;

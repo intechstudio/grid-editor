@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { InstructionClassName } from "./engine.store";
 import { GridRuntime } from "./runtime";
+import { logger } from "./runtime.store";
 import { user_input } from "./user-input.store";
 
 export namespace GridService {
@@ -50,7 +51,15 @@ export namespace GridService {
                   (e) => e.descr.class_name !== InstructionClassName.HEARTBEAT,
                 ).length === 0;
               if (isIdle) {
-                event.load();
+                event.load().catch((e) => {
+                  console.warn("Event load interrupted:", e);
+                  logger.set({
+                    type: "info",
+                    classname: "service",
+                    mode: 0,
+                    message: `Event load interrupted: ${e}`,
+                  });
+                });
               }
               return;
             }

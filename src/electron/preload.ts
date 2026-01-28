@@ -25,8 +25,10 @@ contextBridge.exposeInMainWorld("electron", {
     defaultDirectory: () => ipcRenderer.invoke("defaultDirectory"),
   },
   firmware: {
-    onFirmwareUpdate: (callback) =>
-      ipcRenderer.on("onFirmwareUpdate", callback),
+    onFirmwareUpdate: (callback) => {
+      ipcRenderer.on("onFirmwareUpdate", callback);
+      return () => ipcRenderer.removeListener("onFirmwareUpdate", callback);
+    },
     findBootloaderPathNative: () =>
       ipcRenderer.invoke("findBootloaderPathNative"),
     writeFirmwareToBootloader: (firmwareData, filename) =>
