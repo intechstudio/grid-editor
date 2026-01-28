@@ -48,7 +48,6 @@ export class ConfigPage {
       Setup: page.getByLabel("Setup"),
       Timer: page.getByLabel("Timer"),
       Utility: page.getByLabel("Utility"),
-      "Midi rx": page.getByLabel("Midi rx"),
       Button: page.getByLabel("Button"),
       Endless: page.getByLabel("Endless"),
       Potmeter: page.getByLabel("Potmeter"),

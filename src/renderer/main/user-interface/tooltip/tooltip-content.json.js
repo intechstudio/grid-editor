@@ -66,7 +66,6 @@ export const tooltip_content = {
     "When a Potentiometer knob or fader is moved, a Potentiometer Event will take place on each value change.",
   event_timer: "When a Timer action is triggered, this event runs.",
   event_utility: "The utility side button event.",
-  "event_midi rx": "MIDI received from software.",
 
   action_local_variables:
     "Declare and set the value of a Local Variables. | Local variables can be accessed only on the currenly active action chain.",
