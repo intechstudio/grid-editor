@@ -13,9 +13,9 @@
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
-    "link": "https://intech.studio/support-and-downloads",
-    "message": "New Editor version is available, but AutoUpdate is broken :( Please downloading manually from https://intech.studio/",
-    "version": "1.3.8"
+    "link": "https://intech.studio/software-downloads",
+    "message": "New Editor version is available, but AutoUpdate is broken :( Please download manually from https://intech.studio/",
+    "version": "1.6.2"
   },
   {
     "type": "notificationBAK",
