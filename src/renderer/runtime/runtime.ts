@@ -112,6 +112,10 @@ export class GridPresetData {
     for (const data of array) {
       const type = Number(data.event);
       const event = element.findEvent(type);
+      if (typeof event === "undefined") {
+        // Event not found. Possible malformed profile but more likely depricated event (MIDIRX on system)
+        continue;
+      }
       const actions = GridAction.parse(data.config);
       event.push(...actions);
     }
