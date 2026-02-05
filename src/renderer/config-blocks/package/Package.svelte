@@ -8,7 +8,6 @@
   import { createEventDispatcher } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { GridAction } from "../../runtime/runtime";
-  import { appSettings } from "../../runtime/app-helper.store";
 
   export let config: GridAction;
 

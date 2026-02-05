@@ -1,16 +1,13 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
 
-  const dispatch = createEventDispatcher();
+  let {onclick} = $props()  
 
-  function handleClick(e) {
-    dispatch("click");
-  }
 </script>
 
 <button
   class="flex h-full w-full items-center justify-center group"
-  on:click={handleClick}
+  aria-label="add-button"
+  {onclick}
 >
   <div
     class="rounded-full fill-foreground-muted h-10 w-10 p-3 opacity-50 group-hover:opacity-100"

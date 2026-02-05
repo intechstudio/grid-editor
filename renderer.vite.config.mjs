@@ -7,11 +7,11 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
   return {
     plugins: [
       svelte({
-        compilerOptions: {
-          compatibility: {
-            componentApi: 4
-          }
-        },
+        // compilerOptions: {
+        //   compatibility: {
+        //     componentApi: 4
+        //   }
+        // },
         preprocess: [
           sveltePreprocess({postcss:true})
         ]

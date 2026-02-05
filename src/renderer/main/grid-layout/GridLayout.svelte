@@ -227,7 +227,7 @@
                     class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 h-full"
                   >
                     <AddButton
-                      on:click={() =>
+                      onclick={() =>
                         handleAddModuleButtonClicked(device.dx - 1, device.dy)}
                     />
                   </div>
@@ -239,7 +239,7 @@
                     class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2 h-full"
                   >
                     <AddButton
-                      on:click={() =>
+                      onclick={() =>
                         handleAddModuleButtonClicked(device.dx + 1, device.dy)}
                     />
                   </div>
@@ -251,7 +251,7 @@
                     class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2 w-full"
                   >
                     <AddButton
-                      on:click={() =>
+                      onclick={() =>
                         handleAddModuleButtonClicked(device.dx, device.dy - 1)}
                     />
                   </div>
@@ -263,8 +263,8 @@
                     class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >
                     <AddButton
-                      on:click={() =>
-                        handleAddModuleButtonClicked(device.dx, device.dy + 1)}
+                      onclick={() =>
+                        {handleAddModuleButtonClicked(device.dx, device.dy + 1)}}
                     />
                   </div>
                 {/if}

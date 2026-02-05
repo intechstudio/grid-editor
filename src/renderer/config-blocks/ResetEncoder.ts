@@ -1,10 +1,10 @@
 import {
   writable,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
 } from "svelte/store";
 import { Grid } from "../lib/_utils";
 import {
@@ -16,7 +16,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-import { MeltComboData } from "@intechstudio/grid-uikit";
+import { type MeltComboData } from "@intechstudio/grid-uikit";
 
 export namespace ResetEncoder {
   export class ParsedData {
