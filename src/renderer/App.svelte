@@ -26,7 +26,7 @@
 
   import QuitApp from "./main/modals/QuitApp.svelte";
 
-  import { windowSize } from "./runtime/window-size";
+  import { windowSize } from "./runtime/window-size.svelte";
 
   import { authStore } from "$lib/auth.store";
   import { configLinkStore } from "$lib/configlink.store";
@@ -40,17 +40,12 @@
   import PanelToggleButton from "./main/PanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
-  import {
-    setDocumentAnimationsEnabled,
-    reduced_motion_store,
-  } from "../renderer/runtime/animations";
+  import AnimationToggle from "./main/AnimationToggle.svelte";
 
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
   import "redefine-custom-elements";
   import { runtime_manager } from "./runtime/runtime-manager.store";
   import { get } from "svelte/store";
-
-  console.log(import.meta.env);
 
   let shapeSelected;
   let colorSelected;
@@ -77,7 +72,7 @@
   }
 
   function resize() {
-    $windowSize.window = $windowSize.window + 1;
+    windowSize.window = windowSize.window + 1;
   }
 
   // websocket rx tx from main for debug
@@ -287,23 +282,6 @@
     }
   };
 
-  function handleDisableAnimationsChange(settingValue, reducedValue) {
-    switch (settingValue) {
-      case "auto": {
-        setDocumentAnimationsEnabled(!reducedValue);
-        break;
-      }
-      case "enabled": {
-        setDocumentAnimationsEnabled(true);
-        break;
-      }
-      case "disabled": {
-        setDocumentAnimationsEnabled(false);
-        break;
-      }
-    }
-  }
-
   let loaded = false;
 
   //Disable Context Menu
@@ -320,11 +298,6 @@
   function preventContextMenuEvent(e) {
     e.preventDefault();
   }
-
-  $: handleDisableAnimationsChange(
-    $appSettings.persistent.disableAnimations,
-    $reduced_motion_store,
-  );
 
   function handleRightPanelToggle(e: CustomEvent<any>) {
     const value = e.detail;
@@ -344,6 +317,8 @@
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
   <Titlebar />
 {/if}
+
+<AnimationToggle />
 
 <main
   use:watchResize={resize}

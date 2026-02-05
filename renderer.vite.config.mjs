@@ -1,5 +1,5 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import preprocess from "svelte-preprocess";
+import { sveltePreprocess } from 'svelte-preprocess';
 import path, { resolve } from "path";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
 
@@ -8,7 +8,7 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     plugins: [
       svelte({
         preprocess: [
-          preprocess({postcss:true})
+          sveltePreprocess({postcss:true})
         ]
       }),
       monacoEditorPlugin,
