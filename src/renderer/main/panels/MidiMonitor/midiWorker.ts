@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import {
   MidiData,
-  MidiStreamItem,
+  type MidiStreamItem,
   MidiType,
   MusicalNotes,
 } from "./MidiMonitor.store";

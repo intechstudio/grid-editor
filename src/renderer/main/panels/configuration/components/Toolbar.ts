@@ -1,8 +1,8 @@
 import { derived } from "svelte/store";
 import {
   appClipboard,
-  ClipboardData,
   ClipboardKey,
+  type ClipboardData
 } from "../../../../runtime/clipboard.store";
 import { ElementData } from "../../../../runtime/runtime";
 import { runtime_manager } from "../../../../runtime/runtime-manager.store";

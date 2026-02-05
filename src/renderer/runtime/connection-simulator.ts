@@ -1,17 +1,17 @@
 import {
   get,
-  Readable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Writable,
+  type Readable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Writable,
   writable,
 } from "svelte/store";
 import { grid, ModuleType, ElementType } from "@intechstudio/grid-protocol";
 import {
   InstructionClass,
   InstructionClassName,
-  BufferElement,
+  type BufferElement,
 } from "./engine.store";
 
 export class VirtualModule {

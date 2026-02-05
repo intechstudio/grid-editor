@@ -5,7 +5,7 @@
  * so this transport should never actually be used for I/O operations.
  */
 
-import { GridTransport, TransportInfo } from "./transport.js";
+import { type GridTransport, type TransportInfo } from "./transport.js";
 
 export class VirtualTransport implements GridTransport {
   private _connected = false;

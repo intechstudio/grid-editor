@@ -1,13 +1,12 @@
 import {
   writable,
-  Readable,
-  Updater,
-  Unsubscriber,
-  Writable,
+  type Readable,
+  type Updater,
+  type Unsubscriber,
+  type Writable,
   get,
 } from "svelte/store";
-import TourPopoverComponent, { TourPopover } from "./TourPopover.svelte";
-import { Subscriber } from "svelte/motion";
+import TourPopoverComponent, { type TourPopover } from "./TourPopover.svelte";
 import {
   GridAction,
   GridEvent,

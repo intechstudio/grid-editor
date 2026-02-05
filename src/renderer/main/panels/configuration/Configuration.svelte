@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "./../../../runtime/user-input.store";
   import ActionList from "./ActionList.svelte";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
@@ -19,7 +19,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
   import {
-    GridRuntimeManagerData,
+    type GridRuntimeManagerData,
     runtime_manager,
   } from "../../../runtime/runtime-manager.store";
   import { selected_actions } from "./../../../runtime/selected-actions.store";

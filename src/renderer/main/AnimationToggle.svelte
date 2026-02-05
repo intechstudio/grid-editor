@@ -6,10 +6,10 @@
   } from "../runtime/animations";
 
   // Track user preference and OS reduced-motion signal.
-  const disablePreference = $state<
+  let disablePreference = $state<
     "auto" | "enabled" | "disabled" | boolean | undefined
   >();
-  const prefersReducedMotion = $state(false);
+  let prefersReducedMotion = $state(false);
 
   const stopSettings = appSettings.subscribe((value) => {
     disablePreference = value.persistent.disableAnimations;
@@ -36,12 +36,6 @@
       default: {
         // Keep current animation state for unrecognized values (existing behavior).
       }
-    }
-
-    // instead of onDestroy, return from $effecct for cleanup.
-    return {
-        stopSettings?.();
-        stopReducedMotion?.();
     }
   });
 </script>

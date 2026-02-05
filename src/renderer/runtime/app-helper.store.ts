@@ -1,5 +1,4 @@
-import { writable, get, readable, Writable } from "svelte/store";
-import { Modal } from "../main/modals/modal.store";
+import { writable, get, readable, type Writable } from "svelte/store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
 import { mount } from "svelte";

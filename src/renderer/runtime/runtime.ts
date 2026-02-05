@@ -9,10 +9,10 @@ import {
 import {
   writable,
   get,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
 } from "svelte/store";
 import { GridInstruction } from "../serialport/instructions";
 import { Analytics } from "./analytics.js";
@@ -23,14 +23,14 @@ import { v4 as uuidv4 } from "uuid";
 import { getComponentInformation } from "../lib/_configs";
 import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
-import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
+import { type ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
-import { GridConnection } from "../serialport/serialport";
+import { type GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
 import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
-import { ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
+import { type ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
 
 class NodeData {
   id?: Grid.UUID;

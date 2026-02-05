@@ -10,8 +10,6 @@
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
-  import "./runtime/analytics.js";
-
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
 
@@ -20,7 +18,6 @@
 
   import FirmwareMismatchNotification from "./main/FirmwareMismatchNotification.svelte";
   import WebSocketNotification from "./main/WebSocketNotification.svelte";
-  import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
 
@@ -41,6 +38,7 @@
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
   import AnimationToggle from "./main/AnimationToggle.svelte";
+  import Analytics from "./main/Analytics.svelte";
 
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
   import "redefine-custom-elements";
@@ -319,6 +317,7 @@
 {/if}
 
 <AnimationToggle />
+<Analytics />
 
 <main
   use:watchResize={resize}

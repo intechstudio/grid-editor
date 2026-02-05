@@ -4,22 +4,21 @@ import { logger } from "./runtime.store";
 import { selected_actions } from "./selected-actions.store";
 
 import {
-  GridOperationResult,
   ElementData,
   ActionData,
   GridAction,
   GridElement,
   GridEvent,
-  SendToGridResult,
   GridOperationType,
-  InsertActionsResult,
   GridPage,
   GridProfileData,
   GridModule,
   GridPresetData,
   GridSnippetData,
-  SnippetLoadResult,
   ProfileCloudLoad,
+  type SnippetLoadResult,
+  type InsertActionsResult,
+  type GridOperationResult
 } from "./runtime";
 import { get } from "svelte/store";
 import { user_input } from "./user-input.store";

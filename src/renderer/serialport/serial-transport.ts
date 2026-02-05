@@ -4,7 +4,7 @@
  * Wraps the WebSerialPort API to provide a unified transport interface.
  */
 
-import { GridTransport, TransportInfo } from "./transport.js";
+import { type GridTransport, type TransportInfo } from "./transport";
 
 interface WebSerialPort {
   open(options: SerialOptions): Promise<void>;

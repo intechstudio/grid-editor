@@ -527,7 +527,7 @@ export namespace MonacoEditor {
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
 
-  export const fontSize = writable(get(appSettings).persistent.fontSize);
+  //export const fontSize = writable(get(appSettings).persistent.fontSize);
 
   export type CustomOptions = {
     restrictScope?: ElementType;

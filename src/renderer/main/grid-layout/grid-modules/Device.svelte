@@ -31,7 +31,7 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
   import { ModuleOverlay, moduleOverlay } from "../../../runtime/moduleOverlay";
-  import { onMount, SvelteComponent } from "svelte";
+  import { onMount, type SvelteComponent } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
   import {

@@ -1,6 +1,6 @@
 import type { Action } from "svelte/action";
 import ContextMenu, { ContextMenuItem } from "./ContextMenu.svelte";
-import { Writable, writable, get } from "svelte/store";
+import { type Writable, writable, get } from "svelte/store";
 import { mount } from "svelte";
 
 interface ContextMenuOptions {

@@ -1,7 +1,7 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { sveltePreprocess } from 'svelte-preprocess';
+import monacoEditorEsmPlugin from 'vite-plugin-monaco-editor-esm';
 import path, { resolve } from "path";
-import monacoEditorPlugin from "vite-plugin-monaco-editor";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
   return {
@@ -11,7 +11,11 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
           sveltePreprocess({postcss:true})
         ]
       }),
-      monacoEditorPlugin,
+      monacoEditorEsmPlugin({
+        languageWorkers: [],
+        customWorkers: [],
+        languages: ['lua']
+      }),
       ...additionalPlugins,
     ],
     publicDir: "assets", // needed, to copy assets to dist during build
@@ -27,12 +31,25 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     resolve: {
       alias: {
         $lib: path.resolve("src/renderer/lib"),
+        "$app/environment": path.resolve("src/renderer/lib/app-environment-shim.ts"),
       },
     },
     target: "chrome104",
     envPrefix: "VITE_",
     optimizeDeps: {
       exclude: ["@intechstudio/grid-protocol"],
+      esbuildOptions: {
+        plugins: [
+          {
+            name: "resolve-app-environment",
+            setup(build) {
+              build.onResolve({ filter: /^\$app\/environment$/ }, () => ({
+                path: path.resolve("src/renderer/lib/app-environment-shim.ts"),
+              }));
+            },
+          },
+        ],
+      },
     },
   };
 };

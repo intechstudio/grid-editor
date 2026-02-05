@@ -1,6 +1,6 @@
-import { SvelteComponent } from "svelte";
+import { type SvelteComponent } from "svelte";
 import { writable } from "svelte/store";
-import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
+import { type ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 
 const componentKeyMap = new Map();
 export const latestComponentVersionKeys = writable(componentKeyMap);

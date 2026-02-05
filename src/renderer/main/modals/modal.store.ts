@@ -3,9 +3,9 @@ import {
   writable,
   type Readable,
   type Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
   get,
 } from "svelte/store";
 import { TargetManager as _TargetManager } from "../../runtime/string-table";
