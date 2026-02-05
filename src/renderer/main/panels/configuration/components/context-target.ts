@@ -45,13 +45,13 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
     contextMenu.set({ component: menu, data: options.data });
 
     mount(ContextMenu, {
-            target: menu,
-            props: {
-              target: node,
-              items: options.items,
-              offset: { x: x, y: y },
-            },
-          });
+      target: menu,
+      props: {
+        target: node,
+        items: options.items,
+        offset: { x: x, y: y },
+      },
+    });
   };
 
   node.addEventListener("mouseup", (event) => handleMouseUp(event));

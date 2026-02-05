@@ -5,7 +5,10 @@
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
-  import { user_input, type UserInputValue } from "./../../runtime/user-input.store";
+  import {
+    user_input,
+    type UserInputValue,
+  } from "./../../runtime/user-input.store";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import MoltenIconButton from "../user-interface/MoltenIconButton.svelte";
 

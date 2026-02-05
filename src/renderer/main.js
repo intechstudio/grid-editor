@@ -16,8 +16,8 @@ async function initApp() {
 
     // Initialize the Svelte app after the configuration is ready
     app = mount(App, {
-          target: document.body,
-        });
+      target: document.body,
+    });
   } catch (err) {}
 }
 

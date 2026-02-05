@@ -263,8 +263,9 @@
                     class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >
                     <AddButton
-                      onclick={() =>
-                        {handleAddModuleButtonClicked(device.dx, device.dy + 1)}}
+                      onclick={() => {
+                        handleAddModuleButtonClicked(device.dx, device.dy + 1);
+                      }}
                     />
                   </div>
                 {/if}

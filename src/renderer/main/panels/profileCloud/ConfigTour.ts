@@ -77,14 +77,14 @@ export namespace ConfigTour {
 
       // Create the tour popover component
       this.component = mount(TourPopoverComponent, {
-              target: this.node,
-              props: {
-                markdown: this.markdown,
-                referenceElement: this.node,
-                updateTrigger: this.updateTrigger,
-                position: this.target.position,
-              },
-            });
+        target: this.node,
+        props: {
+          markdown: this.markdown,
+          referenceElement: this.node,
+          updateTrigger: this.updateTrigger,
+          position: this.target.position,
+        },
+      });
 
       // Observe size changes
       this.resizeObserver = new ResizeObserver(() => {

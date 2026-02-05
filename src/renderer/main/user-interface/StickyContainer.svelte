@@ -8,7 +8,10 @@
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
-  import { user_input, type UserInputValue } from "../../runtime/user-input.store";
+  import {
+    user_input,
+    type UserInputValue,
+  } from "../../runtime/user-input.store";
 
   let selectedModule: any = undefined;
 

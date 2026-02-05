@@ -1,5 +1,3 @@
-
-
 <script lang="ts">
   import {
     selectedConfigStore,

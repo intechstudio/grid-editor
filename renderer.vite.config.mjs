@@ -1,6 +1,6 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { sveltePreprocess } from 'svelte-preprocess';
-import monacoEditorEsmPlugin from 'vite-plugin-monaco-editor-esm';
+import { sveltePreprocess } from "svelte-preprocess";
+import monacoEditorEsmPlugin from "vite-plugin-monaco-editor-esm";
 import path, { resolve } from "path";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
@@ -12,14 +12,12 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
         //     componentApi: 4
         //   }
         // },
-        preprocess: [
-          sveltePreprocess({postcss:true})
-        ]
+        preprocess: [sveltePreprocess({ postcss: true })],
       }),
       monacoEditorEsmPlugin({
         languageWorkers: [],
         customWorkers: [],
-        languages: ['lua']
+        languages: ["lua"],
       }),
       ...additionalPlugins,
     ],
@@ -36,7 +34,9 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     resolve: {
       alias: {
         $lib: path.resolve("src/renderer/lib"),
-        "$app/environment": path.resolve("src/renderer/lib/app-environment-shim.ts"),
+        "$app/environment": path.resolve(
+          "src/renderer/lib/app-environment-shim.ts",
+        ),
       },
     },
     target: "chrome104",

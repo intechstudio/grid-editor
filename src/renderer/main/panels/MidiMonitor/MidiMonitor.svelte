@@ -22,7 +22,10 @@
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
   import { onDestroy, onMount, tick } from "svelte";
-  import { type MidiWorkerCommand, type MidiWorkerResponse } from "./midiWorker";
+  import {
+    type MidiWorkerCommand,
+    type MidiWorkerResponse,
+  } from "./midiWorker";
   import VirtualList from "svelte-tiny-virtual-list";
 
   //Defines
