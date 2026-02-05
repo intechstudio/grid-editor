@@ -8,4 +8,7 @@
 - started to add "type" wherever the new tsconfig change had issues
 APP loaded with gray screen! Still has errors.
 - in runtime manager, had to make sure its lazily loaded because of appsettings
-- had to remove the appSetting fontsize from monaco editor
+- had to remove the appSetting fontsize from monaco editor (circular dependency? load order?)
+- had to make sure on specific package, that only types are imported (builder-util-runtime)
+APP loaded with actual UI! Still has errors.
+- added svelte 4 component API compatibility, to ensure the app actually starts with the exports from intechstudio uikit 
