@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: "22"
       - run: npm ci
-        - name: Ensure Rollup native optional dependency (Linux)
+      - name: Ensure Rollup native optional dependency (Linux)
           if: ${{ runner.os == 'Linux' }}
           run: |
             ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
