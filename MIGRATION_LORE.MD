@@ -18,4 +18,6 @@
 - updated AddButton used on the layout to new svelte 5 props syntax - not sure why its not from uikit though
   APP now loads with a single MIDI midiWorker error
 - updated monaco editor to latest version and removed unnecessary monaco vite plugins
--
+- changed how midi store and midi types are imported to avoid circular dependencies
+- updated grid-uikit LOCALLY to support svelte 5 syntax on contextMenu
+- changed how \_configs are loaded because build failed at vite-import-meta
