@@ -1,3 +1,6 @@
+// Worker setup — must be imported before any monaco-editor usage
+import "./monaco-workers";
+
 import {
   editor as monaco_editor,
   languages as monaco_languages,
@@ -5,15 +8,13 @@ import {
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
-import { writable, get } from "svelte/store";
-import { appSettings } from "../runtime/app-helper.store";
 
 let hoverTips = {};
 
-const language_config = {
+const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
     lineComment: "--",
-    blockComment: ["--[[", "]]"],
+    blockComment: ["--[[", "]]"] as [string, string],
   },
   brackets: [
     ["{", "}"],
@@ -402,7 +403,11 @@ function initialize_autocomplete() {
         proposalItem.insertText = `${value}()`;
       }
 
-      proposalList.push(proposalItem);
+      // Only push items that were actually populated — Monaco 0.55+
+      // rejects completion items with empty labels.
+      if (proposalItem.label !== "") {
+        proposalList.push(proposalItem);
+      }
 
       const helperText = grid.get_lua_function_helper(key);
       if (typeof helperText !== "undefined") {

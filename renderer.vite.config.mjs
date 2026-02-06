@@ -1,6 +1,5 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { sveltePreprocess } from "svelte-preprocess";
-import monacoEditorEsmPlugin from "vite-plugin-monaco-editor-esm";
 import path, { resolve } from "path";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
@@ -13,11 +12,6 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
         //   }
         // },
         preprocess: [sveltePreprocess({ postcss: true })],
-      }),
-      monacoEditorEsmPlugin({
-        languageWorkers: [],
-        customWorkers: [],
-        languages: ["lua"],
       }),
       ...additionalPlugins,
     ],
