@@ -1,42 +1,50 @@
 import { type SvelteComponent } from "svelte";
 import { writable } from "svelte/store";
 import { type ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
+import {
+  registerComponentProvider,
+  getComponentInformation,
+  getAllComponents,
+} from "./_config-registry";
+
+// Re-export for backward compatibility with existing consumers
+export { getComponentInformation, getAllComponents };
 
 const componentKeyMap = new Map();
 export const latestComponentVersionKeys = writable(componentKeyMap);
 let setVersionKeysTimeout;
 
-let config_components = [];
+// Eagerly import all built-in config block components at build time
+const importedModules = import.meta.glob("../config-blocks/*.svelte", {
+  eager: true,
+}) as Record<
+  string,
+  {
+    default: typeof SvelteComponent;
+    information: ActionBlockInformation;
+    header: typeof SvelteComponent;
+  }
+>;
+const config_components = Object.values(importedModules);
 let package_infos = [];
-
-let packageComponent;
+let packageComponent: any;
 
 export async function init_config_block_library() {
-  console.info("Init config block library!");
+  // Package component must be loaded lazily to avoid being traced by the
+  // vite:worker-import-meta-url plugin (which cannot parse .svelte files).
+  packageComponent = await import("../config-blocks/package/Package.svelte");
 
-  let importModules = import.meta.glob("../config-blocks/*.svelte");
+  // Register the component provider with the lightweight registry so that
+  // runtime.ts (and anything in the worker dependency chain) can look up
+  // components without directly importing this file and its .svelte glob.
+  registerComponentProvider(_getAllComponents);
 
-  try {
-    config_components = await Promise.all(
-      Object.values(importModules).map((importModule) => importModule()),
-    );
-    packageComponent = await import("../config-blocks/package/Package.svelte");
-    console.info("Config blocks imported!");
-  } catch (err) {
-    console.warn("Failed to import!", err);
-  }
+  console.info(
+    `Config block library initialized with ${config_components.length} built-in blocks.`,
+  );
 }
 
-export function getComponentInformation(short) {
-  const comps = getAllComponents();
-  let result = comps?.find((c) => c.information.short == short);
-  if (!result) {
-    result = comps?.find((c) => c.information.short == "raw");
-  }
-  return result;
-}
-
-export function getAllComponents() {
+function _getAllComponents() {
   var configs = config_components?.map((c) => ({
     component: c.default,
     information: c.information,
@@ -44,8 +52,8 @@ export function getAllComponents() {
   }));
   for (let info of package_infos) {
     configs?.push({
-      component: packageComponent.default,
-      header: packageComponent.header,
+      component: packageComponent?.default,
+      header: packageComponent?.header,
       information: info,
     });
   }

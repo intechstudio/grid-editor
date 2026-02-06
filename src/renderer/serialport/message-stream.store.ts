@@ -16,7 +16,6 @@ import { user_input } from "../runtime/user-input.store";
 import { runtime_manager } from "../runtime/runtime-manager.store.js";
 import { Runtime } from "../runtime/string-table.js";
 import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
-import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {

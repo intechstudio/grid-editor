@@ -4,7 +4,7 @@ import {
   type MidiStreamItem,
   MidiType,
   MusicalNotes,
-} from "./MidiMonitor.store";
+} from "./midi-types";
 
 const NRPNCC = [99, 98, 38, 6];
 

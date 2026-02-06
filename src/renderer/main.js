@@ -11,7 +11,7 @@ async function initApp() {
     // Initialize the Lua formatter WASM module
     await initLuaFormatter();
 
-    // Wait for the configuration to load before initializing the app
+    // Initialize the config block registry (built-in blocks are eager, package component is lazy)
     await init_config_block_library();
 
     // Initialize the Svelte app after the configuration is ready
