@@ -1,18 +1,16 @@
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import preprocess from "svelte-preprocess";
-import path, { resolve } from "path";
+import { defineConfig } from "electron-vite";
+import { resolve } from "path";
 import { rendererConfig } from "./renderer.vite.config.mjs";
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
     define: {
       "process.env": "process.env",
     },
     optimizeDeps: {
       include: ["esm-dep > cjs-dep"],
     },
+
     build: {
       rollupOptions: {
         input: {
@@ -24,11 +22,11 @@ export default defineConfig({
         },
       },
       outDir: "dist/main",
+      externalizeDeps: true
     },
     envPrefix: "VITE_",
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
     define: {
       "process.env": "process.env",
     },
@@ -40,6 +38,7 @@ export default defineConfig({
         },
       },
       outDir: "dist/preload",
+      externalizeDeps: true
     },
   },
   renderer: {
