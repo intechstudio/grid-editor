@@ -22,7 +22,7 @@ export default defineConfig({
         },
       },
       outDir: "dist/main",
-      externalizeDeps: true
+      externalizeDeps: true,
     },
     envPrefix: "VITE_",
   },
@@ -38,7 +38,7 @@ export default defineConfig({
         },
       },
       outDir: "dist/preload",
-      externalizeDeps: true
+      externalizeDeps: true,
     },
   },
   renderer: {
