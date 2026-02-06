@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20260128.1453",
-    "@intechstudio/grid-uikit": "^1.20260126.1638",
+    "@intechstudio/grid-uikit": "^1.20260206.1447",
     "@intechstudio/profile-cloud-webcomponent": "1.20251107.1414",
     "adm-zip": "^0.5.10",
     "axios": "^1.9.0",
