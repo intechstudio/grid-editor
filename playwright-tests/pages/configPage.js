@@ -11,7 +11,7 @@ export class ConfigPage {
       "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
     );
 
-    this.eventPanel = page.getByTestId('event-panel');
+    this.eventPanel = page.getByTestId("event-panel");
 
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
