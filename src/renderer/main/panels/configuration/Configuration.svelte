@@ -353,7 +353,7 @@
         {/if}
 
         {#if !$appSettings.isMultiView}
-          <div class="flex w-full px-3">
+          <div class="flex w-full px-3" data-testid="event-panel">
             <EventPanel {element} />
           </div>
         {/if}
