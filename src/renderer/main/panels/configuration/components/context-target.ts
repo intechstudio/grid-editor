@@ -1,6 +1,7 @@
 import type { Action } from "svelte/action";
 import ContextMenu, { ContextMenuItem } from "./ContextMenu.svelte";
-import { Writable, writable, get } from "svelte/store";
+import { type Writable, writable, get } from "svelte/store";
+import { mount } from "svelte";
 
 interface ContextMenuOptions {
   items: ContextMenuItem[];
@@ -43,7 +44,7 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
     document.body.appendChild(menu);
     contextMenu.set({ component: menu, data: options.data });
 
-    new ContextMenu({
+    mount(ContextMenu, {
       target: menu,
       props: {
         target: node,

@@ -105,7 +105,7 @@ test.describe("Interactable input field", () => {
     test.describe(`${category} category`, () => {
       for (const blockName of blockList) {
         test(`${blockName} block`, async () => {
-          if (blockName == "Press/Release") {
+          if (category == "specialButton") {
             await configPage.selectElementEvent("Button");
           }
           await configPage.turnOffMinimalistMode();

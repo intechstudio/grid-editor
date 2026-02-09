@@ -1,7 +1,7 @@
-import { writable, get, readable, Writable } from "svelte/store";
-import { Modal } from "../main/modals/modal.store";
+import { writable, get, readable, type Writable } from "svelte/store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
+import { mount } from "svelte";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -215,7 +215,7 @@ async function init_appsettings() {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
           if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-            new Modal.Window(Welcome).show();
+            mount(Welcome, Welcome).show();
           }
           return s;
         });

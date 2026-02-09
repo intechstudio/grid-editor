@@ -4,19 +4,18 @@ import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.s
 import { v4 as uuidv4 } from "uuid";
 import {
   get,
-  Readable,
-  Unsubscriber,
-  Updater,
+  type Readable,
+  type Unsubscriber,
+  type Updater,
   type Writable,
   writable,
 } from "svelte/store";
-import { Subscriber } from "svelte/motion";
 import { GridRuntime } from "../runtime/runtime.js";
 import { WriteBuffer } from "../runtime/engine.store.js";
 import { runtime_manager } from "../runtime/runtime-manager.store.js";
 import { GridService } from "../runtime/services.js";
 import { appSettings } from "../runtime/app-helper.store.js";
-import { GridTransport } from "./transport.js";
+import { type GridTransport } from "./transport.js";
 import { SerialTransport } from "./serial-transport.js";
 
 const configuration = window.ctxProcess.configuration();

@@ -1,4 +1,4 @@
-import { Readable, writable } from "svelte/store";
+import { type Readable, writable } from "svelte/store";
 
 export function createDebouncedStore<T>(initialValue: T, debounceTime: number) {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;

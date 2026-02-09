@@ -4,15 +4,20 @@ import { appSettings } from "./app-helper.store";
 
 const configuration = window.ctxProcess.configuration();
 
-mixpanel.init(configuration.MIXPANEL_TOKEN, { debug: true });
+let _initialized = false;
 
-// Set this to a unique identifier for the user performing the event.
-// eg: their ID in your database or their email address.
-mixpanel.identify(get(appSettings).persistent.userId);
+function ensureInitialized() {
+  if (_initialized) return;
+  _initialized = true;
+  mixpanel.init(configuration.MIXPANEL_TOKEN, { debug: true });
+  mixpanel.identify(get(appSettings).persistent.userId);
+}
 
 export class Analytics {
   static track({ event, payload, mandatory }) {
     try {
+      ensureInitialized();
+
       if (typeof event === "undefined") {
         throw "Event must be provided";
       }
@@ -32,14 +37,17 @@ export class Analytics {
       console.warn(e);
     }
   }
-}
 
-Analytics.track({
-  event: "App Start",
-  payload: {
-    Version: get(appSettings).version,
-    AnalyticsEnabled: get(appSettings).persistent.analyticsEnabled,
-    ...import.meta.env,
-  },
-  mandatory: true,
-});
+  static init() {
+    ensureInitialized();
+    Analytics.track({
+      event: "App Start",
+      payload: {
+        Version: get(appSettings).version,
+        AnalyticsEnabled: get(appSettings).persistent.analyticsEnabled,
+        ...import.meta.env,
+      },
+      mandatory: true,
+    });
+  }
+}

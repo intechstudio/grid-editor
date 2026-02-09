@@ -152,11 +152,15 @@
 >
   <div
     id="line-editor"
-    on:click|preventDefault={() => {}}
-    on:mousedown|preventDefault={() => {}}
     bind:this={monaco_block}
+    onclick={(e) => {
+      e.preventDefault();
+    }}
+    onmousedown={(e) => {
+      e.preventDefault();
+    }}
     class="line-editor pointer-events-auto flex w-full h-full"
-  />
+  ></div>
 </div>
 
 <style global>

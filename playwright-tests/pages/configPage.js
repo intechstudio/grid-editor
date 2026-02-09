@@ -11,6 +11,8 @@ export class ConfigPage {
       "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
     );
 
+    this.eventPanel = page.getByTestId("event-panel");
+
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
     this.addActionBlockButton = page.getByText("Add action block...");
@@ -45,13 +47,13 @@ export class ConfigPage {
     };
 
     this.elementEvent = {
-      Setup: page.getByLabel("Setup"),
-      Timer: page.getByLabel("Timer"),
-      Utility: page.getByLabel("Utility"),
-      Button: page.getByLabel("Button"),
-      Endless: page.getByLabel("Endless"),
-      Potmeter: page.getByLabel("Potmeter"),
-      Encoder: page.getByLabel("Encoder"),
+      Setup: this.eventPanel.getByLabel("Setup"),
+      Timer: this.eventPanel.getByLabel("Timer"),
+      Utility: this.eventPanel.getByLabel("Utility"),
+      Button: this.eventPanel.getByLabel("Button"),
+      Endless: this.eventPanel.getByLabel("Endless"),
+      Potmeter: this.eventPanel.getByLabel("Potmeter"),
+      Encoder: this.eventPanel.getByLabel("Encoder"),
     };
 
     // Blocks Data

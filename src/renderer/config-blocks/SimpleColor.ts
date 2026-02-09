@@ -1,10 +1,10 @@
 import {
   writable,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
   get,
 } from "svelte/store";
 import { Grid } from "../lib/_utils";
@@ -17,7 +17,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-import { MeltComboData, Color } from "@intechstudio/grid-uikit";
+import { type MeltComboData, Color } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
   export enum Channel {

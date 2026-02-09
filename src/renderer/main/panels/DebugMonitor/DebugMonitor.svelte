@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "./../../../runtime/user-input.store";
   import { GridEvent } from "./../../../runtime/runtime";
   import { Modal } from "./../../modals/modal.store";

@@ -1,8 +1,8 @@
 import {
   get,
-  Subscriber,
-  Unsubscriber,
-  Updater,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
   writable,
   type Writable,
 } from "svelte/store";

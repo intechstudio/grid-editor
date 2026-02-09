@@ -13,7 +13,7 @@
   import { logger } from "../../../runtime/runtime.store";
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "./../../../runtime/user-input.store";
 
   import { selected_actions } from "./../../../runtime/selected-actions.store";
