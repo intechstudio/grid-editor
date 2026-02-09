@@ -212,7 +212,8 @@
     if (
       e.key === " " &&
       e.target.tagName !== "INPUT" &&
-      e.target.tagName !== "TEXTAREA"
+      e.target.tagName !== "TEXTAREA" &&
+      !(e.target instanceof Element && e.target.closest(".monaco-editor"))
     ) {
       e.preventDefault();
       const carousel = e.currentTarget.querySelector("carousel");
