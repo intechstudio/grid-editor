@@ -146,17 +146,19 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 
+    <!-- onclick={(e) => {e.preventDefault()}}
+    onmousedown={(e) => {e.preventDefault()}} -->
+
 <div
   id="monaco_container"
   class="grid grid-cols-1 w-full h-full items-center p-1 rounded bg-background"
 >
   <div
     id="line-editor"
-    on:click|preventDefault={() => {}}
-    on:mousedown|preventDefault={() => {}}
+
     bind:this={monaco_block}
     class="line-editor pointer-events-auto flex w-full h-full"
-  />
+  ></div>
 </div>
 
 <style global>

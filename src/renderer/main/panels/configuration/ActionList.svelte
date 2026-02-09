@@ -89,7 +89,8 @@
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement ||
       e.target instanceof HTMLSelectElement ||
-      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+      (e.target instanceof Element && e.target.hasAttribute("contenteditable")) || 
+      (e.target instanceof Element && e.target.closest('.monaco-editor'))
     ) {
       return;
     }
