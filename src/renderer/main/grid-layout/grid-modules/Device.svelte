@@ -18,6 +18,7 @@
   import PBF4 from "./devices/PBF4.svelte";
   import EF44 from "./devices/EF44.svelte";
   import VSNX from "./devices/VSNX.svelte";
+  import OCTV from "./devices/OCTV.svelte";
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
@@ -101,6 +102,7 @@
       { type: "VSN1L", component: VSNX },
       { type: "VSN1R", component: VSNX },
       { type: "VSN2", component: VSNX },
+      { type: "OCTV", component: OCTV },
     ];
     component = components.find((e) => e.type === device?.type).component;
   });

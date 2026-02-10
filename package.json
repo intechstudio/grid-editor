@@ -38,7 +38,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@intechstudio/grid-protocol": "1.20260128.1453",
+    "@intechstudio/grid-protocol": "1.20260131.1058",
     "@intechstudio/grid-uikit": "^1.20260206.1447",
     "@intechstudio/profile-cloud-webcomponent": "1.20251107.1414",
     "adm-zip": "^0.5.10",
