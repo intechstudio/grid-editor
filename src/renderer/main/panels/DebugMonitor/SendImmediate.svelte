@@ -149,7 +149,7 @@
 
   // Get the current module for calibration
   $: {
-    if (selectedModule === "all") {
+    if (!selectedModule || selectedModule === "all") {
       currentModule = undefined;
     } else {
       const runtime = get(runtime_manager)?.active?.runtime;

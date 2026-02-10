@@ -167,6 +167,10 @@ let done = true;
 
 self.onmessage = (event: MessageEvent<MidiWorkerCommand>) => {
   const { item } = event.data;
+  // guard after svelte 5 migration
+  if (!item || typeof item.type === "undefined") {
+    return;
+  }
   process(structuredClone(item));
 };
 

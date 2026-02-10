@@ -1,7 +1,7 @@
 import { writable, get, readable, type Writable } from "svelte/store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
-import { mount } from "svelte";
+import { Modal } from "../main/modals/modal.store";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -214,11 +214,12 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-            mount(Welcome, Welcome).show();
-          }
           return s;
         });
+        // updated Modal call to match rest of codebase, moved out of store callback as it is not valid in svelte-5
+        if (import.meta.env.VITE_BUILD_TARGET !== "web") {
+          new Modal.Window(Welcome).show();
+        }
       }
 
       //TODO
