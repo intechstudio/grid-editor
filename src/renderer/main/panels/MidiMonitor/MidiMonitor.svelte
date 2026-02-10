@@ -74,7 +74,7 @@
 
     for (const item of $midi_stream.buffer) {
       // guard after svelte 5 migration
-      if(item){
+      if (item) {
         worker.postMessage({ item: item } as MidiWorkerCommand);
       }
     }
