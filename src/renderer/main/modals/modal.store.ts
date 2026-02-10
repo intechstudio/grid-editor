@@ -1,11 +1,12 @@
-import type { SvelteComponent, ComponentType } from "svelte";
+import type { Component, SvelteComponent } from "svelte";
+import { mount, unmount } from "svelte";
 import {
   writable,
   type Readable,
   type Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
   get,
 } from "svelte/store";
 import { TargetManager as _TargetManager } from "../../runtime/string-table";
@@ -45,7 +46,7 @@ export namespace Modal {
   };
 
   // Strict type to enforce component must accept `data` prop.
-  export type ComponentWithData<TData, TExtraProps = {}> = ComponentType<
+  export type ComponentWithData<TData, TExtraProps = {}> = Component<
     SvelteComponent<{ data: Window<TData, TExtraProps> } & TExtraProps>
   >;
 
@@ -99,20 +100,20 @@ export namespace Modal {
         targetElement.appendChild(this.targetNode);
       }
 
-      this.instance = new this.componentType({
+      this.instance = mount(this.componentType, {
         target: this.targetNode,
         props: {
           ...(extraProps as TExtraProps),
           data: this,
         },
-      });
+      }) as SvelteComponent<any>;
 
       modalManager.add(this);
     }
 
     public close(): void {
       if (this.instance) {
-        this.instance.$destroy();
+        unmount(this.instance);
         this.instance = null;
       }
 

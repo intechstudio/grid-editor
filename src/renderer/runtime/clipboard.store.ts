@@ -2,9 +2,9 @@ import {
   writable,
   type Readable,
   type Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
 } from "svelte/store";
 import { ActionData, ElementData, GridAction, GridElement } from "./runtime";
 import { logger } from "./runtime.store";

@@ -5,7 +5,7 @@
  * for Grid device communication over network.
  */
 
-import { GridTransport, TransportInfo } from "./transport.js";
+import { type GridTransport, type TransportInfo } from "./transport.js";
 
 export class WebSocketTransport implements GridTransport {
   private url: string;

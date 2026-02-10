@@ -1,13 +1,12 @@
 import {
   writable,
-  Readable,
-  Updater,
-  Unsubscriber,
-  Writable,
+  type Readable,
+  type Updater,
+  type Unsubscriber,
+  type Writable,
   get,
 } from "svelte/store";
-import TourPopoverComponent, { TourPopover } from "./TourPopover.svelte";
-import { Subscriber } from "svelte/motion";
+import TourPopoverComponent, { type TourPopover } from "./TourPopover.svelte";
 import {
   GridAction,
   GridEvent,
@@ -16,6 +15,7 @@ import {
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
 import { Grid } from "../../../lib/_utils";
+import { mount } from "svelte";
 
 export namespace ConfigTour {
   export namespace Target {
@@ -76,7 +76,7 @@ export namespace ConfigTour {
       }
 
       // Create the tour popover component
-      this.component = new TourPopoverComponent({
+      this.component = mount(TourPopoverComponent, {
         target: this.node,
         props: {
           markdown: this.markdown,

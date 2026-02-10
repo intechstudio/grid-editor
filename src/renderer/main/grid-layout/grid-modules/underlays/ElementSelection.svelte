@@ -9,7 +9,7 @@
   } from "../../../../runtime/runtime";
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "../../../../runtime/user-input.store";
 
   import { createEventDispatcher, onMount } from "svelte";

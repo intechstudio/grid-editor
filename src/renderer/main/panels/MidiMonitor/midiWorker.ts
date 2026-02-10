@@ -1,10 +1,10 @@
 /// <reference lib="webworker" />
 import {
   MidiData,
-  MidiStreamItem,
+  type MidiStreamItem,
   MidiType,
   MusicalNotes,
-} from "./MidiMonitor.store";
+} from "./midi-types";
 
 const NRPNCC = [99, 98, 38, 6];
 

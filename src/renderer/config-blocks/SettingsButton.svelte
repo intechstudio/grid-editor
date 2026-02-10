@@ -33,7 +33,7 @@
     Block,
     BlockRow,
     MeltCombo,
-    MeltComboSuggestion,
+    type MeltComboSuggestion,
   } from "@intechstudio/grid-uikit";
   import {
     ActionData,

@@ -1,17 +1,17 @@
 <script lang="ts">
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "./../../../runtime/user-input.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { get, Writable, writable } from "svelte/store";
+  import { get, writable, type Writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
     midi_stream,
     MidiData,
-    MidiStreamData,
-    MidiStreamItem,
-    MidiType,
+    type MidiStreamData,
+    type MidiStreamItem,
+    type MidiType,
     SysExData,
   } from "./MidiMonitor.store";
   import { MoltenPushButton, SvgIcon, Toggle } from "@intechstudio/grid-uikit";
@@ -22,7 +22,10 @@
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
   import { onDestroy, onMount, tick } from "svelte";
-  import { MidiWorkerCommand, MidiWorkerResponse } from "./midiWorker";
+  import {
+    type MidiWorkerCommand,
+    type MidiWorkerResponse,
+  } from "./midiWorker";
   import VirtualList from "svelte-tiny-virtual-list";
 
   //Defines

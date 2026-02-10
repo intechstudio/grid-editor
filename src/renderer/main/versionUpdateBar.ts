@@ -7,7 +7,7 @@ import {
   type Updater,
 } from "svelte/store";
 import { Analytics } from "../runtime/analytics";
-import { UpdateInfo } from "builder-util-runtime";
+import type { UpdateInfo } from "builder-util-runtime";
 
 export namespace AppUpdater {
   export enum State {

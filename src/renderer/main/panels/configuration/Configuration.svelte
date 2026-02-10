@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "./../../../runtime/user-input.store";
   import ActionList from "./ActionList.svelte";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
@@ -19,7 +19,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
   import {
-    GridRuntimeManagerData,
+    type GridRuntimeManagerData,
     runtime_manager,
   } from "../../../runtime/runtime-manager.store";
   import { selected_actions } from "./../../../runtime/selected-actions.store";
@@ -258,7 +258,9 @@
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement ||
       e.target instanceof HTMLSelectElement ||
-      (e.target instanceof Element && e.target.hasAttribute("contenteditable"))
+      (e.target instanceof Element &&
+        e.target.hasAttribute("contenteditable")) ||
+      (e.target instanceof Element && e.target.closest(".monaco-editor"))
     ) {
       e.stopPropagation();
       return;
@@ -353,7 +355,7 @@
         {/if}
 
         {#if !$appSettings.isMultiView}
-          <div class="flex w-full px-3">
+          <div class="flex w-full px-3" data-testid="event-panel">
             <EventPanel {element} />
           </div>
         {/if}

@@ -1,19 +1,20 @@
-import { writable } from "svelte/store";
+import { readable } from "svelte/store";
 
-export const reduced_motion_store = create_reduced_motion_store();
-
-function create_reduced_motion_store() {
-  // Grab the prefers reduced media query.
+export const reduced_motion_store = readable(false, (set) => {
   const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const reduced = !mediaQuery || mediaQuery.matches; //true if reduced
-  const store = writable(reduced);
 
-  // Ads an event listener to check for changes in the media query's value.
-  mediaQuery.addEventListener("change", () => {
-    store.set(mediaQuery.matches);
-  });
-  return store;
-}
+  set(Boolean(mediaQuery?.matches));
+
+  const handleChange = (event: MediaQueryListEvent) => {
+    set(event.matches);
+  };
+
+  mediaQuery.addEventListener("change", handleChange);
+
+  return () => {
+    mediaQuery.removeEventListener("change", handleChange);
+  };
+});
 
 export function setDocumentAnimationsEnabled(value: boolean) {
   if (value) {

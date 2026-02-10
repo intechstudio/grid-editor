@@ -4,14 +4,13 @@ import { appSettings } from "../runtime/app-helper.store";
 import { grid } from "@intechstudio/grid-protocol";
 
 import {
-  BufferElement,
+  type BufferElement,
   InstructionClass,
   InstructionClassName,
 } from "../runtime/engine.store";
 import { logger } from "../runtime/runtime.store";
 import { v4 as uuidv4 } from "uuid";
-import { GridConnection } from "./serialport.js";
-import { GridRuntime } from "../runtime/runtime.js";
+import { type GridConnection } from "./serialport.js";
 import { Grid } from "../lib/_utils.js";
 
 export namespace GridInstruction {

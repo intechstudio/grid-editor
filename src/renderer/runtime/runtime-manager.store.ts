@@ -2,16 +2,16 @@ import {
   writable,
   get,
   type Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
 } from "svelte/store";
 import { GridRuntime } from "./runtime";
 import { GridInstruction } from "../serialport/instructions";
 // Side-effect import to force serialport module to load and set up navigator.tryConnectGrid
 import "../serialport/serialport.js";
-import { GridConnection } from "../serialport/serialport";
+import { type GridConnection } from "../serialport/serialport";
 import { WriteBuffer } from "./engine.store";
 import { VirtualTransport } from "../serialport/virtual-transport.js";
 import { Architecture, GridScript } from "@intechstudio/grid-protocol";
@@ -19,7 +19,7 @@ import { logger } from "./runtime.store";
 import {
   clearIntervalAsync,
   setIntervalAsync,
-  SetIntervalAsyncTimer,
+  type SetIntervalAsyncTimer,
 } from "set-interval-async";
 import { modalManager } from "../main/modals/modal.store";
 import { Grid } from "../lib/_utils";
@@ -312,4 +312,25 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
   }
 }
 
-export const runtime_manager = new GridRuntimeManager();
+// Lazy singleton to avoid circular dependency issues at module load time
+let _runtime_manager: GridRuntimeManager | undefined;
+export function getRuntimeManager(): GridRuntimeManager {
+  if (!_runtime_manager) {
+    _runtime_manager = new GridRuntimeManager();
+  }
+  return _runtime_manager;
+}
+
+// For backward compatibility - access triggers lazy init
+export const runtime_manager = new Proxy({} as GridRuntimeManager, {
+  get(_target, prop) {
+    const instance = getRuntimeManager();
+    const value = (instance as any)[prop];
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
+  set(_target, prop, value) {
+    const instance = getRuntimeManager();
+    (instance as any)[prop] = value;
+    return true;
+  },
+});

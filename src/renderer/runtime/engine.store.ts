@@ -1,15 +1,14 @@
 import {
   get,
-  Readable,
-  Unsubscriber,
-  Updater,
-  Writable,
+  type Readable,
+  type Unsubscriber,
+  type Updater,
+  type Writable,
   writable,
 } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
-import { GridTransport } from "../serialport/transport.js";
+import { type GridTransport } from "../serialport/transport.js";
 import { appSettings } from "./app-helper.store";
-import { Subscriber } from "svelte/motion";
 import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 import { logger } from "./runtime.store";

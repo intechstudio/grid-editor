@@ -1,10 +1,10 @@
 import {
   writable,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
   get,
 } from "svelte/store";
 import { type MeltComboData } from "@intechstudio/grid-uikit";
