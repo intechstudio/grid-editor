@@ -11,7 +11,7 @@
     MidiData,
     type MidiStreamData,
     type MidiStreamItem,
-    type MidiType,
+    MidiType,
     SysExData,
   } from "./MidiMonitor.store";
   import { MoltenPushButton, SvgIcon, Toggle } from "@intechstudio/grid-uikit";
