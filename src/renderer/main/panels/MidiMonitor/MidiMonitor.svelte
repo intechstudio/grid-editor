@@ -73,7 +73,10 @@
     });
 
     for (const item of $midi_stream.buffer) {
-      worker.postMessage({ item: item } as MidiWorkerCommand);
+      // guard after svelte 5 migration
+      if(item){
+        worker.postMessage({ item: item } as MidiWorkerCommand);
+      }
     }
     mounted = true;
   });
