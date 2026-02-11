@@ -1,12 +1,5 @@
 <script lang="ts">
   import {
-    user_input,
-    type UserInputValue,
-  } from "./../../../runtime/user-input.store";
-  import { GridEvent } from "./../../../runtime/runtime";
-  import { Modal } from "./../../modals/modal.store";
-  import Export from "./../../modals/Export.svelte";
-  import {
     debug_monitor_store,
     debug_lowlevel_store,
     inbound_data_rate_points,
@@ -14,46 +7,18 @@
     inbound_data_rate_history,
     outbound_data_rate_history,
   } from "./DebugMonitor.store";
-  import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
   import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import {
-    MoltenPushButton,
-    MoltenInput,
-    MeltRadio,
-  } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton, MeltRadio } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
-  import { Grid } from "../../../lib/_utils";
   import DebugTextList from "./DebugTextList.svelte";
   import { scrollToBottom } from "../../_actions/scroll.move";
   import SendImmediate from "./SendImmediate.svelte";
 
-  let event: GridEvent;
-
-  $: handleUserInputChange($user_input);
-
-  function handleUserInputChange(ui: UserInputValue) {
-    const active = get(runtime_manager).active.runtime;
-    event = active.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype,
-    );
-  }
-
-  let configScriptLength = 0;
-  let syntaxError = false;
   const incoming_messages_stores = writable([]);
-
-  $: {
-    configScriptLength = $event?.toLua().length ?? 0;
-    syntaxError = $event?.isValid() === false;
-  }
 
   $: if (typeof $incoming_messages !== "undefined") {
     handleIncomingMessage($incoming_messages);
@@ -163,43 +128,12 @@
     });
     return s;
   }
-
-  function handleShowCode() {
-    new Modal.Window(Export).show();
-  }
-
-  let immediateCommand = "print(0,1,2,3)";
 </script>
 
 <config-debug
   transition:fade|global={{ duration: 150 }}
   class="w-full h-full flex flex-col p-4 z-10"
 >
-  <div class="text-white">
-    Editor v{$appSettings.version.major}.{$appSettings.version
-      .minor}.{$appSettings.version.patch}
-  </div>
-
-  <div class="grid grid-cols-[auto_1fr] w-full">
-    <div class="flex flex-col">
-      <div class="text-white">Syntax: {syntaxError}</div>
-      <div class="flex flex-row">
-        <div class="pr-2 text-white">Char Count:</div>
-        <div class="text-white">
-          <span
-            class:text-error={configScriptLength >=
-              Grid.Protocol.maxScriptLength}
-            class:text-yellow-400={configScriptLength >
-              (Grid.Protocol.maxScriptLength / 3) * 2}
-            >{configScriptLength}
-          </span>
-        </div>
-      </div>
-    </div>
-    <div class="flex items-center justify-end">
-      <MoltenPushButton text="Show Code" click={handleShowCode} />
-    </div>
-  </div>
   <SendImmediate />
 
   <Splitpanes
