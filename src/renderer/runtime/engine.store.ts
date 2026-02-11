@@ -260,6 +260,14 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     });
   }
 
+  public async sendRawToTransport(data: Uint8Array): Promise<void> {
+    while (this._transport.isWriteLocked()) {
+      await this.sleep(1);
+    }
+    debug_lowlevel_store.push_outbound(Array.from(data));
+    await this._transport.write(data);
+  }
+
   public async waitResponseFromGrid(
     bufferElement: any,
     timeout: number,
