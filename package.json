@@ -4,7 +4,8 @@
   "description": "Powerful Editor software for Intech Studio products.",
   "version": "1.6.5",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
   },
   "main": "dist/main/index.js",
   "repository": {
@@ -23,7 +24,7 @@
     "cross-env": "^7.0.2",
     "dotenv": "^14.2.0",
     "electron": "^35.7.5",
-    "electron-builder": "^26.0.20",
+    "electron-builder": "^26.7.0",
     "electron-vite": "^5.0.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
@@ -31,7 +32,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-svelte": "^3.3.3",
     "rollup-plugin-copy": "^3.4.0",
-    "svelte": "^5.49.2",
+    "svelte": "^5.53.2",
     "svelte-preprocess": "^6.0.0",
     "tailwindcss": "^3.4.17",
     "vite-plugin-commonjs": "^0.6.0",
@@ -42,7 +43,7 @@
     "@intechstudio/grid-uikit": "^1.20260206.1447",
     "@intechstudio/profile-cloud-webcomponent": "1.20251107.1414",
     "adm-zip": "^0.5.10",
-    "axios": "^1.9.0",
+    "axios": "^1.13.5",
     "cheerio": "^1.0.0",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",
