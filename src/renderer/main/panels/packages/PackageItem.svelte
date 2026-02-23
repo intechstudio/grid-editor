@@ -11,7 +11,7 @@
   export let data;
 
   let contextItems = [];
-  $: data, refreshContextItems();
+  $: (data, refreshContextItems());
   function refreshContextItems() {
     while (contextItems.length > 0) {
       contextItems.pop();

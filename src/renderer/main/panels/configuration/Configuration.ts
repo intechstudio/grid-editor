@@ -1,17 +1,15 @@
 import {
   get,
-  Readable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Writable,
   writable,
+  type Readable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Writable,
 } from "svelte/store";
 
 import { logger } from "../../../runtime/runtime.store";
 import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
-import { GridAction, GridElement } from "../../../runtime/runtime";
-import { EventType, NumberToEventType } from "@intechstudio/grid-protocol";
 
 class ToggledBlocks implements Readable<string[]> {
   protected internal: Writable<string[]>;

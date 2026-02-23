@@ -2,14 +2,14 @@
   import { get } from "svelte/store";
   import { tooltip } from "./../_actions/tooltip";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { ModuleOverlay, moduleOverlay } from "../../runtime/moduleOverlay";
   import {
     MeltSelect,
     MoltenPushButton,
     Toggle,
   } from "@intechstudio/grid-uikit";
   import {
-    ModuleOverlayType,
+    ModuleOverlay,
+    type ModuleOverlayType,
     moduleOverlay,
   } from "../../runtime/moduleOverlay";
   import { runtime_manager } from "../../runtime/runtime-manager.store.js";

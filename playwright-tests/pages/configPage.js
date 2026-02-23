@@ -11,11 +11,16 @@ export class ConfigPage {
       "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
     );
 
+    this.eventPanel = page.getByTestId("event-panel");
+
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
     this.addActionBlockButton = page.getByText("Add action block...");
     this.addActionLineFirst = page.locator("add-line").first();
-    this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
+    this.noActionAddActionButton = page.getByRole("button", {
+      name: "Add Action",
+      exact: true,
+    });
     this.minimalistCheckbox = page
       .locator("configs")
       .getByTestId("minimalist_toggle");
@@ -42,14 +47,13 @@ export class ConfigPage {
     };
 
     this.elementEvent = {
-      Setup: page.getByLabel("Setup"),
-      Timer: page.getByLabel("Timer"),
-      Utility: page.getByLabel("Utility"),
-      "Midi rx": page.getByLabel("Midi rx"),
-      Button: page.getByLabel("Button"),
-      Endless: page.getByLabel("Endless"),
-      Potmeter: page.getByLabel("Potmeter"),
-      Encoder: page.getByLabel("Encoder"),
+      Setup: this.eventPanel.getByLabel("Setup"),
+      Timer: this.eventPanel.getByLabel("Timer"),
+      Utility: this.eventPanel.getByLabel("Utility"),
+      Button: this.eventPanel.getByLabel("Button"),
+      Endless: this.eventPanel.getByLabel("Endless"),
+      Potmeter: this.eventPanel.getByLabel("Potmeter"),
+      Encoder: this.eventPanel.getByLabel("Encoder"),
     };
 
     // Blocks Data
@@ -154,11 +158,17 @@ export class ConfigPage {
   }
 
   async openActionsInElseIf() {
-    await this.page.getByRole("button", { name: "Add +" }).nth(1).click();
+    await this.page
+      .getByRole("button", { name: "Add Action", exact: true })
+      .nth(1)
+      .click();
   }
 
   async openActionsInElse() {
-    await this.page.getByRole("button", { name: "Add +" }).nth(2).click();
+    await this.page
+      .getByRole("button", { name: "Add Action", exact: true })
+      .nth(2)
+      .click();
   }
 
   async searchBlock(search) {

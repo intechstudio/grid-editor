@@ -4,13 +4,13 @@
 
   import { appSettings } from "../runtime/app-helper.store";
 
-  import { windowSize } from "../runtime/window-size";
+  import { windowSize } from "../runtime/window-size.svelte";
 
   import { watchResize } from "svelte-watch-resize";
   import { onMount } from "svelte";
 
   function resize() {
-    $windowSize.rightSidebarWidth = $windowSize.rightSidebarWidth + 1;
+    windowSize.rightSidebarWidth = windowSize.rightSidebarWidth + 1;
   }
 
   onMount(() => {});

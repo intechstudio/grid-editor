@@ -1,10 +1,10 @@
 /// <reference lib="webworker" />
 import {
   MidiData,
-  MidiStreamItem,
+  type MidiStreamItem,
   MidiType,
   MusicalNotes,
-} from "./MidiMonitor.store";
+} from "./midi-types";
 
 const NRPNCC = [99, 98, 38, 6];
 
@@ -167,6 +167,10 @@ let done = true;
 
 self.onmessage = (event: MessageEvent<MidiWorkerCommand>) => {
   const { item } = event.data;
+  // guard after svelte 5 migration
+  if (!item || typeof item.type === "undefined") {
+    return;
+  }
   process(structuredClone(item));
 };
 

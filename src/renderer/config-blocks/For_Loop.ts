@@ -1,10 +1,10 @@
 import {
   writable,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
   get,
 } from "svelte/store";
 import { type MeltComboData } from "@intechstudio/grid-uikit";
@@ -27,7 +27,7 @@ export namespace ForLoop {
 
   export type ViewModelData = {
     variable: MeltComboData;
-    increment: string;
+    increment: MeltComboData;
   };
 
   export class ViewModel implements Readable<ViewModelData> {
@@ -73,17 +73,28 @@ export namespace ForLoop {
             { value: "k", info: "k" },
           ],
         },
-        increment: parsed.increment,
+        increment: {
+          value: parsed.increment,
+          validator: {
+            value: true,
+            func: (e) => new Validator(e).NotEmpty().Result(),
+          },
+          suggestions: [],
+        },
       });
     }
 
     public buildScript() {
       const data = get(this._internal);
-      return `for ${data.variable.value}=1,${data.increment} do`;
+      return `for ${data.variable.value}=1,${data.increment.value} do`;
     }
 
     public isValidationError() {
-      return get(this._internal).variable.validator.value === false;
+      const data = get(this._internal);
+      return (
+        data.variable.validator.value === false ||
+        data.increment.validator.value === false
+      );
     }
   }
 }

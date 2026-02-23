@@ -1,10 +1,10 @@
 import {
   writable,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
 } from "svelte/store";
 import { Grid } from "../lib/_utils";
 import {
@@ -16,7 +16,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-import { MeltComboData } from "@intechstudio/grid-uikit";
+import { type MeltComboData } from "@intechstudio/grid-uikit";
 
 export namespace ResetEncoder {
   export class ParsedData {
@@ -26,8 +26,23 @@ export namespace ResetEncoder {
     constructor(action: GridAction) {
       let actionstring = action.script;
 
-      // remove self:get(2) call from the end
-      actionstring = actionstring.split(" ")[0];
+      // Extract just the eva(...) call with balanced parens
+      const evaIndex = actionstring.indexOf("eva(");
+      if (evaIndex !== -1) {
+        let depth = 0;
+        let end = evaIndex;
+        for (let i = evaIndex; i < actionstring.length; i++) {
+          if (actionstring[i] === "(") depth++;
+          else if (actionstring[i] === ")") {
+            depth--;
+            if (depth === 0) {
+              end = i + 1;
+              break;
+            }
+          }
+        }
+        actionstring = actionstring.slice(0, end);
+      }
 
       this.rotationValue = actionstring.match(/eva\(([^)]*)\)$/)[1];
       this.element = actionstring.match(/(.*?)eva/)[1].slice(0, -1);

@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { grid } from "@intechstudio/grid-protocol";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -32,7 +33,7 @@
     Block,
     BlockRow,
     MeltCombo,
-    MeltComboSuggestion,
+    type MeltComboSuggestion,
   } from "@intechstudio/grid-uikit";
   import {
     ActionData,
@@ -126,8 +127,15 @@
   const suggestions: Array<MeltComboSuggestion[]> = [
     [
       ...Grid.Array.when<MeltComboSuggestion>(
-        [27, 91, 59, 123, 131, 67, 75].includes(module.hwcfg) &&
-          element.type === ElementType.BUTTON,
+        [
+          grid.getProperty("HWCFG").TEK2_RevH,
+          grid.getProperty("HWCFG").VSN1L_RevH,
+          grid.getProperty("HWCFG").VSN1R_RevH,
+          grid.getProperty("HWCFG").VSN2_RevH,
+          grid.getProperty("HWCFG").BU16_RevH,
+          grid.getProperty("HWCFG").PBF4_RevH,
+          grid.getProperty("HWCFG").OCTV_RevH,
+        ].includes(module.hwcfg) && element.type === ElementType.BUTTON,
         [
           { value: "-2", info: "Pressure" },
           { value: "-1", info: "Velocity" },

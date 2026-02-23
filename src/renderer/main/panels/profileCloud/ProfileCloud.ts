@@ -1,4 +1,4 @@
-import { get, writable, Writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 import {
   loadPreset,
   loadProfile,
@@ -11,7 +11,7 @@ import {
 } from "../../../runtime/runtime";
 import { moduleOverlay, ModuleOverlay } from "../../../runtime/moduleOverlay";
 import { runtime_manager } from "../../../runtime/runtime-manager.store";
-import { ProfileLoadOverlay } from "../../grid-layout/grid-modules/overlays/ProfileLoadOverlay.svelte";
+import { type ProfileLoadOverlay } from "../../grid-layout/grid-modules/overlays/ProfileLoadOverlay.svelte";
 
 export const profileCloudConfigDrag: Writable<any> = writable(undefined);
 

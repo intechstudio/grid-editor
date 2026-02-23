@@ -1,22 +1,18 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import preprocess from "svelte-preprocess";
+import { sveltePreprocess } from "svelte-preprocess";
 import path, { resolve } from "path";
-import monacoEditorPlugin from "vite-plugin-monaco-editor";
-import copy from "rollup-plugin-copy";
-import { preprocessMeltUI, sequence } from "@melt-ui/pp";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
   return {
     plugins: [
       svelte({
-        preprocess: sequence([
-          preprocess({
-            postcss: true,
-          }),
-          preprocessMeltUI(), // add to the end!
-        ]),
+        // compilerOptions: {
+        //   compatibility: {
+        //     componentApi: 4
+        //   }
+        // },
+        preprocess: [sveltePreprocess({ postcss: true })],
       }),
-      monacoEditorPlugin,
       ...additionalPlugins,
     ],
     publicDir: "assets", // needed, to copy assets to dist during build
@@ -32,9 +28,27 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     resolve: {
       alias: {
         $lib: path.resolve("src/renderer/lib"),
+        "$app/environment": path.resolve(
+          "src/renderer/lib/app-environment-shim.ts",
+        ),
       },
     },
     target: "chrome104",
     envPrefix: "VITE_",
+    optimizeDeps: {
+      exclude: ["@intechstudio/grid-protocol"],
+      esbuildOptions: {
+        plugins: [
+          {
+            name: "resolve-app-environment",
+            setup(build) {
+              build.onResolve({ filter: /^\$app\/environment$/ }, () => ({
+                path: path.resolve("src/renderer/lib/app-environment-shim.ts"),
+              }));
+            },
+          },
+        ],
+      },
+    },
   };
 };

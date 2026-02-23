@@ -1,6 +1,14 @@
-import { grid, ModuleType } from "@intechstudio/grid-protocol";
+import {
+  grid,
+  ModuleType,
+  initLuaFormatter,
+} from "@intechstudio/grid-protocol";
 import { GridScript } from "@intechstudio/grid-protocol";
-import { test, expect } from "vitest";
+import { test, expect, beforeAll } from "vitest";
+
+beforeAll(async () => {
+  await initLuaFormatter();
+});
 
 test("Default configuration compression/expansion", function () {
   const elements = grid.get_module_element_list(ModuleType.BU16);
@@ -13,7 +21,9 @@ test("Default configuration compression/expansion", function () {
           .split(" ?>")[0];
         const expanded = GridScript.expandScript(defaultConfig);
         const compressed = GridScript.compressScript(expanded);
-        expect(compressed).toMatch(defaultConfig);
+        // Compare compressed versions since minification normalizes whitespace
+        const originalCompressed = GridScript.compressScript(defaultConfig);
+        expect(compressed).toMatch(originalCompressed);
       });
     }
   });

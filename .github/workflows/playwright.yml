@@ -24,11 +24,14 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "18.16.1"
-      - name: Install libudev-dev
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev
-      - run: npm ci
+          node-version: "24"
+      - name: Install dependencies
+        run: npm ci
+      - name: Ensure Rollup native optional dependency (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+          npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests

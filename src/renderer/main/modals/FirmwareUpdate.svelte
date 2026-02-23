@@ -27,13 +27,25 @@
   import logoBroken from "../../assets/svgs/logo-broken.svg?raw";
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
+  import { onDestroy } from "svelte";
   import { get } from "svelte/store";
+  import {
+    getGridRecommendedFirmwareUrl,
+    fetchAndExtract,
+  } from "../firmware_update.ts";
+  import ManualFirmwareOptions from "../components/ManualFirmwareOptions.svelte";
   export let data: Modal.Instance;
 
   const logoURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logo)}")`;
   const logoBrokenURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logoBroken)}")`;
 
   const configuration = window.ctxProcess.configuration();
+
+  let showManualOptions = false;
+
+  function toggleManualOptions() {
+    showManualOptions = !showManualOptions;
+  }
 
   function handleDismissClicked() {
     appSettings.update((s) => {
@@ -44,87 +56,139 @@
   }
 
   async function handleFirmwareDownload(nightly: boolean = false) {
-    const folder = $appSettings.persistent.profileFolder;
-    let result = await window.electron.firmware.findBootloaderPath();
-    if (result === undefined) {
-      $appSettings.firmwareNotificationState = 6;
-      return;
-    }
-    const { product, architecture } = result;
+    try {
+      // Set state to downloading immediately
+      appSettings.update((s) => {
+        s.firmwareNotificationState = 4;
+        return s;
+      });
 
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Firmware Download Start",
-      },
-      mandatory: false,
-    });
+      // Check if bootloader is connected
+      let result = await window.electron.firmware.findBootloaderPathNative();
+      if (result === undefined) {
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 6;
+          return s;
+        });
+        return;
+      }
+      const { product, architecture } = result;
 
-    let link = undefined;
-    switch (product) {
-      case "grid":
-        if (nightly) {
-          switch (architecture) {
-            case "esp32":
-              link = configuration.FIRMWARE_GRID_NIGHTLY_ESP32_URL;
-              break;
-            case "d51":
-              link = configuration.FIRMWARE_GRID_NIGHTLY_D51_URL;
-              break;
+      Analytics.track({
+        event: "FirmwareCheck",
+        payload: {
+          message: "Firmware Download Start",
+        },
+        mandatory: false,
+      });
+
+      // Determine the firmware URL
+      let link = undefined;
+      switch (product) {
+        case "grid":
+          if (nightly) {
+            link = configuration.FIRMWARE_GRID_NIGHTLY_URL;
+          } else {
+            link = getGridRecommendedFirmwareUrl(architecture);
           }
-        } else {
-          const as = get(appSettings);
-          let version = undefined;
-          switch (architecture) {
-            case "esp32":
-              version = `v${Object.values(as.firmware_esp32_required).join(
-                ".",
-              )}`;
-              break;
-            case "d51":
-              version = `v${Object.values(as.firmware_d51_required).join(".")}`;
-              break;
+          break;
+        case "knot":
+          link = configuration.FIRMWARE_KNOT_RELEASE_URL;
+          break;
+      }
+
+      if (!link) {
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 6;
+          return s;
+        });
+        return;
+      }
+
+      // Download and extract firmware in the frontend
+      const uf2Files = await fetchAndExtract(link);
+
+      // Find the correct firmware file based on product and architecture
+      let firmwareFile = null;
+      for (const file of uf2Files) {
+        const filename = file.filename.toLowerCase();
+
+        if (product === "grid") {
+          // Look for grid firmware matching the architecture
+          if (
+            architecture === "esp32" &&
+            filename.includes("esp32") &&
+            filename.includes("grid")
+          ) {
+            firmwareFile = file;
+            break;
+          } else if (
+            architecture === "d51" &&
+            filename.includes("d51") &&
+            filename.includes("grid")
+          ) {
+            firmwareFile = file;
+            break;
           }
-          if (typeof version !== "undefined") {
-            link =
-              configuration.FIRMWARE_GRID_URL_BEGINING +
-              version +
-              configuration.FIRMWARE_GRID_URL_END;
+        } else if (product === "knot") {
+          // Look for knot firmware
+          if (filename.includes("knot")) {
+            firmwareFile = file;
+            break;
           }
         }
-        break;
-      case "knot":
-        link =
-          configuration.FIRMWARE_KNOT_URL_BEGINING +
-          configuration.FIRMWARE_KNOT_URL_END;
-        break;
+      }
+
+      if (!firmwareFile) {
+        console.error("Could not find matching firmware file", {
+          product,
+          architecture,
+          uf2Files,
+        });
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 6;
+          return s;
+        });
+        return;
+      }
+
+      // Send firmware data to backend for writing to bootloader
+      await window.electron.firmware.writeFirmwareToBootloader(
+        Array.from(firmwareFile.data),
+        firmwareFile.filename,
+      );
+
+      Analytics.track({
+        event: "FirmwareCheck",
+        payload: {
+          message: "Firmware Download Finished",
+        },
+        mandatory: false,
+      });
+    } catch (error) {
+      console.error("Firmware download error:", error);
+      appSettings.update((s) => {
+        s.firmwareNotificationState = 6;
+        return s;
+      });
     }
-
-    await window.electron.firmware.firmwareDownload(
-      folder,
-      product,
-      architecture,
-      link,
-    );
-
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Firmware Download Finished",
-      },
-      mandatory: false,
-    });
   }
 
-  window.electron.firmware.onFirmwareUpdate((_event, value) => {
-    const state = value.code;
-    if (typeof state === "undefined") {
-      return;
-    }
+  const unsubscribeFirmwareUpdate = window.electron.firmware.onFirmwareUpdate(
+    (_event, value) => {
+      const state = value.code;
+      if (typeof state === "undefined") {
+        return;
+      }
 
-    if ([5, 6].includes(state)) {
-      setTimeout(handleDismissClicked, 2000);
-    }
+      if ([5, 6].includes(state)) {
+        setTimeout(handleDismissClicked, 2000);
+      }
+    },
+  );
+
+  onDestroy(() => {
+    unsubscribeFirmwareUpdate?.();
   });
 
   async function handleTroubleShoot() {
@@ -190,29 +254,39 @@
             -webkit-mask-size: contain;
           "
         />
-        <div class="flex flex-row -mr-5">
-          <MoltenPushButton
-            text={"Release"}
-            style="accept"
-            click={handleFirmwareDownload}
-          />
-          <div class=" ml-5">
+        <div class="flex flex-col gap-2 w-full items-center">
+          <div class="flex flex-row gap-2">
             <MoltenPushButton
-              text={"Nightly"}
-              click={() => {
-                handleFirmwareDownload(true);
-              }}
+              text={"Release"}
+              style="accept"
+              click={handleFirmwareDownload}
             />
+            {#if $appSettings.persistent.nightlyFirmware}
+              <MoltenPushButton
+                text={"Nightly"}
+                click={() => {
+                  handleFirmwareDownload(true);
+                }}
+              />
+            {/if}
           </div>
+          <MoltenPushButton
+            text={showManualOptions
+              ? "Hide manual options"
+              : "Show manual options"}
+            click={toggleManualOptions}
+          />
+          {#if showManualOptions}
+            <div class="flex flex-col gap-2 w-full px-4 py-8">
+              <ManualFirmwareOptions />
+            </div>
+          {/if}
           <div class="flex flex-col items-center">
             <MoltenPushButton
               text={"Dismiss"}
               style="outlined"
               click={handleDismissClicked}
             />
-            <span class="text-foreground-soft text-sm text-center px-2"
-              >Unplug your device</span
-            >
           </div>
         </div>
       {/if}

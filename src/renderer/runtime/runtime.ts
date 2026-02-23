@@ -9,10 +9,10 @@ import {
 import {
   writable,
   get,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
 } from "svelte/store";
 import { GridInstruction } from "../serialport/instructions";
 import { Analytics } from "./analytics.js";
@@ -20,17 +20,15 @@ import { appSettings } from "./app-helper.store";
 import { add_datapoint } from "../serialport/message-stream.store.js";
 import { logger } from "./runtime.store";
 import { v4 as uuidv4 } from "uuid";
-import { getComponentInformation } from "../lib/_configs";
-import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
+import { getComponentInformation } from "../lib/_config-registry";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
-import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
+import { type ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
-import { GridConnection } from "../serialport/serialport";
+import { type GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
-import { information as elementNameInformation } from "../config-blocks/ElementName.svelte";
-import { ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
+import { type ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
 
 class NodeData {
   id?: Grid.UUID;
@@ -112,6 +110,10 @@ export class GridPresetData {
     for (const data of array) {
       const type = Number(data.event);
       const event = element.findEvent(type);
+      if (typeof event === "undefined") {
+        // Event not found. Possible malformed profile but more likely depricated event (MIDIRX on system)
+        continue;
+      }
       const actions = GridAction.parse(data.config);
       event.push(...actions);
     }
@@ -382,7 +384,7 @@ export class GridAction extends RuntimeNode<ActionData> {
   static parse(script: Grid.LuaScript) {
     const result: GridAction[] = [];
 
-    let actionString = script.replace(/[\n\r]+/g, "").replace(/\s{2,10}/g, " ");
+    let actionString = script.replace(/\s{2,10}/g, " ");
 
     if (actionString.startsWith(Grid.Protocol.scriptStart)) {
       actionString = actionString
@@ -584,10 +586,7 @@ export class EventData extends NodeData {
   }
 
   public toLua(): string {
-    return `${this.config
-      .map((e) => e.toLua())
-      .join("")
-      .replace(/(\r\n|\n|\r)/gm, "")}`;
+    return `${this.config.map((e) => e.toLua()).join("")}`;
   }
 
   public getAvailableChars(): number {
@@ -861,7 +860,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     const runtime = module.parent as GridRuntime;
 
     try {
-      const script = this.toLua();
+      const script = GridScript.compressScript(this.toLua());
       const simulate = module.architecture === Architecture.VIRTUAL;
       const instruction = new GridInstruction.SendConfig(
         module.dx,
@@ -879,9 +878,11 @@ export class GridEvent extends RuntimeNode<EventData> {
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     } catch (e) {
+      const text =
+        e?.text || e?.message || (typeof e === "string" ? e : undefined);
       return Promise.reject({
         value: false,
-        text: e.text,
+        text,
         type: GridOperationType.SEND_EVENT_TO_GRID,
       });
     }
@@ -948,10 +949,7 @@ export class GridEvent extends RuntimeNode<EventData> {
 
     const codeBlock = new GridAction(
       undefined,
-      new ActionData(
-        CodeBlock.information.short,
-        actions.map((action) => action.script).join(" "),
-      ),
+      new ActionData("cb", actions.map((action) => action.script).join(" ")),
     );
 
     if (!codeBlock.isValid()) {
@@ -1372,8 +1370,8 @@ export class GridElement extends RuntimeNode<ElementData> {
 
       const setup = this.findEvent(0);
       const action = setup.actionAt(0);
-      if (action?.short === elementNameInformation.short) {
-        const regex = elementNameInformation.valueRegex;
+      if (action?.short === "sn") {
+        const regex = /self:gen\("([^"]*)"\)/;
         const name = action.script.match(regex)[1];
         this.name = name;
       }
@@ -1737,7 +1735,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
     const instruction = new GridInstruction.SendConfigImmediate(
       this.dx,
       this.dy,
-      script,
+      GridScript.compressScript(script),
       runtime.virtual,
     );
 

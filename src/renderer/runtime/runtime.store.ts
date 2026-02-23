@@ -21,6 +21,7 @@ export class LocalDefinitions {
 
     let arr: Array<{ info: string; value: string }> = [];
     list.forEach((c) => {
+      // Extract from Locals block
       if (c.short == "l" && c.script !== "") {
         let _variable_array = c.script.split("=")[0];
         _variable_array = _variable_array.split("local")[1];
@@ -28,6 +29,21 @@ export class LocalDefinitions {
         _variable_array.forEach((val, i) => {
           arr.push({ info: `local - ${val.trim()}`, value: val.trim() });
         });
+      }
+
+      // Extract from Function block parameters
+      if (c.short == "fst" && c.script !== "") {
+        // Parse: "name = function(param1, param2, param3)"
+        const match = c.script.match(/=\s*function\s*\((.*?)\)/);
+        if (match && match[1].trim()) {
+          const params = match[1].split(",");
+          params.forEach((param) => {
+            const trimmed = param.trim();
+            if (trimmed) {
+              arr.push({ info: `parameter - ${trimmed}`, value: trimmed });
+            }
+          });
+        }
       }
     });
     return arr;

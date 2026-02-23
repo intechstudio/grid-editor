@@ -10,8 +10,6 @@
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
-  import "./runtime/analytics.js";
-
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
 
@@ -19,13 +17,13 @@
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
 
   import FirmwareMismatchNotification from "./main/FirmwareMismatchNotification.svelte";
-  import FirmwareCheck from "./main/FirmwareCheck.svelte";
+  import WebSocketNotification from "./main/WebSocketNotification.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
 
   import QuitApp from "./main/modals/QuitApp.svelte";
 
-  import { windowSize } from "./runtime/window-size";
+  import { windowSize } from "./runtime/window-size.svelte";
 
   import { authStore } from "$lib/auth.store";
   import { configLinkStore } from "$lib/configlink.store";
@@ -39,17 +37,13 @@
   import PanelToggleButton from "./main/PanelToggleButton.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
   import { onDestroy, onMount } from "svelte";
-  import {
-    setDocumentAnimationsEnabled,
-    reduced_motion_store,
-  } from "../renderer/runtime/animations";
+  import AnimationToggle from "./main/AnimationToggle.svelte";
+  import Analytics from "./main/Analytics.svelte";
 
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
   import "redefine-custom-elements";
   import { runtime_manager } from "./runtime/runtime-manager.store";
   import { get } from "svelte/store";
-
-  console.log(import.meta.env);
 
   let shapeSelected;
   let colorSelected;
@@ -76,7 +70,7 @@
   }
 
   function resize() {
-    $windowSize.window = $windowSize.window + 1;
+    windowSize.window = windowSize.window + 1;
   }
 
   // websocket rx tx from main for debug
@@ -286,23 +280,6 @@
     }
   };
 
-  function handleDisableAnimationsChange(settingValue, reducedValue) {
-    switch (settingValue) {
-      case "auto": {
-        setDocumentAnimationsEnabled(!reducedValue);
-        break;
-      }
-      case "enabled": {
-        setDocumentAnimationsEnabled(true);
-        break;
-      }
-      case "disabled": {
-        setDocumentAnimationsEnabled(false);
-        break;
-      }
-    }
-  }
-
   let loaded = false;
 
   //Disable Context Menu
@@ -319,11 +296,6 @@
   function preventContextMenuEvent(e) {
     e.preventDefault();
   }
-
-  $: handleDisableAnimationsChange(
-    $appSettings.persistent.disableAnimations,
-    $reduced_motion_store,
-  );
 
   function handleRightPanelToggle(e: CustomEvent<any>) {
     const value = e.detail;
@@ -344,6 +316,9 @@
   <Titlebar />
 {/if}
 
+<AnimationToggle />
+<Analytics />
+
 <main
   use:watchResize={resize}
   on:mousewheel={(e) => {
@@ -361,6 +336,9 @@
 
   <div class="flex flex-col w-full h-full">
     <FirmwareMismatchNotification />
+    {#if $appSettings.persistent.websocketNotificationEnabled}
+      <WebSocketNotification />
+    {/if}
     <ErrorConsole />
     <VersionUpdateBar />
     <div class="flex flex-grow overflow-hidden">

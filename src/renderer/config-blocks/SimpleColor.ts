@@ -1,10 +1,10 @@
 import {
   writable,
-  Writable,
-  Subscriber,
-  Unsubscriber,
-  Updater,
-  Readable,
+  type Writable,
+  type Subscriber,
+  type Unsubscriber,
+  type Updater,
+  type Readable,
   get,
 } from "svelte/store";
 import { Grid } from "../lib/_utils";
@@ -17,7 +17,7 @@ import {
 import { Script } from "./_script_parsers";
 import { Validator } from "./validators";
 import { LocalDefinitions } from "../runtime/runtime.store";
-import { MeltComboData, Color } from "@intechstudio/grid-uikit";
+import { type MeltComboData, Color } from "@intechstudio/grid-uikit";
 
 export namespace SimpleColor {
   export enum Channel {
@@ -63,8 +63,23 @@ export namespace SimpleColor {
 
       this.updateIntenstiy = actionstring.includes("glp");
       if (this.updateIntenstiy) {
-        // remove glp call from the end
-        actionstring = actionstring.split(" ")[0];
+        // Extract just the glc(...) call with balanced parens
+        const glcIndex = actionstring.indexOf("glc(");
+        if (glcIndex !== -1) {
+          let depth = 0;
+          let end = glcIndex;
+          for (let i = glcIndex; i < actionstring.length; i++) {
+            if (actionstring[i] === "(") depth++;
+            else if (actionstring[i] === ")") {
+              depth--;
+              if (depth === 0) {
+                end = i + 1;
+                break;
+              }
+            }
+          }
+          actionstring = actionstring.slice(0, end);
+        }
       }
 
       const segments = Script.toSegments({

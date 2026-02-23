@@ -1,16 +1,16 @@
 <script lang="ts">
   import {
     user_input,
-    UserInputValue,
+    type UserInputValue,
   } from "./../../../runtime/user-input.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { get, Writable, writable } from "svelte/store";
+  import { get, writable, type Writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
     midi_stream,
     MidiData,
-    MidiStreamData,
-    MidiStreamItem,
+    type MidiStreamData,
+    type MidiStreamItem,
     MidiType,
     SysExData,
   } from "./MidiMonitor.store";
@@ -22,7 +22,10 @@
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
   import { onDestroy, onMount, tick } from "svelte";
-  import { MidiWorkerCommand, MidiWorkerResponse } from "./midiWorker";
+  import {
+    type MidiWorkerCommand,
+    type MidiWorkerResponse,
+  } from "./midiWorker";
   import VirtualList from "svelte-tiny-virtual-list";
 
   //Defines
@@ -70,7 +73,10 @@
     });
 
     for (const item of $midi_stream.buffer) {
-      worker.postMessage({ item: item } as MidiWorkerCommand);
+      // guard after svelte 5 migration
+      if (item) {
+        worker.postMessage({ item: item } as MidiWorkerCommand);
+      }
     }
     mounted = true;
   });

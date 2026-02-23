@@ -1,18 +1,18 @@
 import {
   get,
-  Readable,
-  Unsubscriber,
-  Updater,
-  Writable,
+  type Readable,
+  type Unsubscriber,
+  type Updater,
+  type Writable,
   writable,
 } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
-import { connection_manager, GridPort } from "../serialport/serialport";
+import { type GridTransport } from "../serialport/transport.js";
 import { appSettings } from "./app-helper.store";
-import { Subscriber } from "svelte/motion";
 import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 import { logger } from "./runtime.store";
+import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -178,13 +178,13 @@ export type WriteBufferData = {
 
 export class WriteBuffer implements Readable<WriteBufferData> {
   private _internal: Writable<WriteBufferData>;
-  private _port: GridPort;
+  private _transport: GridTransport;
   public readonly simulator = new ConnectionSimulator();
 
   public readonly messageStream: MessageStream;
 
-  constructor(port: GridPort) {
-    this._port = port;
+  constructor(transport: GridTransport) {
+    this._transport = transport;
     this.messageStream = new MessageStream(this);
     this._internal = writable({
       array: [],
@@ -237,8 +237,16 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     return new Promise((resolve, reject) => {
       let retval: any = grid.encode_packet(descr);
 
-      connection_manager
-        .serialWrite(retval.serial, this._port)
+      // Add newline terminator for Grid protocol framing
+      retval.serial.push(10);
+
+      // Debug logging
+      debug_lowlevel_store.push_outbound(retval.serial);
+
+      const data = new Uint8Array(retval.serial);
+
+      this._transport
+        .write(data)
         .then(() => {
           // debugger for message ASCII frames
           let str = "";
@@ -250,6 +258,14 @@ export class WriteBuffer implements Readable<WriteBufferData> {
         })
         .catch((e) => reject(e));
     });
+  }
+
+  public async sendRawToTransport(data: Uint8Array): Promise<void> {
+    while (this._transport.isWriteLocked()) {
+      await this.sleep(1);
+    }
+    debug_lowlevel_store.push_outbound(Array.from(data));
+    await this._transport.write(data);
   }
 
   public async waitResponseFromGrid(
@@ -290,23 +306,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
                 break;
               }
               case ResponseStatus.ERROR: {
-                // Handle "interrupted" errors gracefully - these occur when modules disconnect during operations
-                if (response.error === "Waiting for response was interrupted") {
-                  console.log(
-                    "Operation interrupted (module disconnected):",
-                    response.error,
-                  );
-                  logger.set({
-                    type: "info",
-                    classname: "engine",
-                    mode: 0,
-                    message:
-                      "Operation interrupted: module disconnected during operation",
-                  });
-                  resolve(null); // Resolve gracefully instead of rejecting
-                } else {
-                  reject(response.error);
-                }
+                reject(response.error);
                 break;
               }
               case ResponseStatus.TIMEOUT: {
@@ -331,7 +331,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
         get(appSettings).persistent.sendHeartbeatImmediate;
 
       while (
-        connection_manager.isSerialWriteLocked(this._port) ||
+        this._transport.isWriteLocked() ||
         get(this._internal).array[0] !== current ||
         (typeof waiter !== "undefined" && !sendImmediate)
       ) {

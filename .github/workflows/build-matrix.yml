@@ -44,16 +44,13 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "18.16.1"
+          node-version: "24"
+          cache: "npm"
 
       - name: Install python setup-tools dependency
         run: pip install setuptools
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
-
-      - name: Install libudev-dev (Linux only)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev
 
       - name: Install dependencies
         run: npm ci

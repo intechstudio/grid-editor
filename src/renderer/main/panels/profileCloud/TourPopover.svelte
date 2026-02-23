@@ -16,7 +16,7 @@
   } from "@intechstudio/grid-uikit";
   import { configTour } from "./ConfigTour";
   import { marked } from "marked";
-  import { Writable } from "svelte/store";
+  import { type Writable } from "svelte/store";
   import { Grid } from "../../../lib/_utils";
 
   export let markdown = "";

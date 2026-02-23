@@ -5,15 +5,23 @@
   } from "./../../../../runtime/clipboard.store";
   import { fade } from "svelte/transition";
   import ActionPicker from "./ActionPicker.svelte";
-  import { GridEvent } from "../../../../runtime/runtime";
+  import {
+    GridEvent,
+    GridAction,
+    ActionData,
+  } from "../../../../runtime/runtime";
   import { addActions, pasteActions } from "../../../../runtime/operations";
   import { isPasteActionsEnabled } from "./Toolbar";
+  import { appSettings } from "../../../../runtime/app-helper.store";
+  import Indentation from "./Indentation.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   let showActionPicker = false;
   let referenceElement = undefined;
 
   export let text: string;
   export let target: { event: GridEvent; index: number };
+  export let indentation: number = 0;
 
   function handleShowActionPicker(e) {
     showActionPicker = true;
@@ -32,31 +40,45 @@
     const { index } = e?.detail ?? { index: undefined };
     pasteActions(target.event, index);
   }
+
+  function handleAddCodeBlock() {
+    const codeBlock = new GridAction(
+      undefined,
+      new ActionData("cb", 'print("hello")'),
+    );
+    addActions(target.event, target.index, codeBlock);
+  }
 </script>
 
-<container bind:this={referenceElement} class="relativ flex w-full">
+<container
+  bind:this={referenceElement}
+  class="relativ flex w-full"
+  class:pr-8={indentation > 0}
+>
+  <Indentation level={indentation} />
   <div
-    class="w-full grid grid-cols-[1fr_auto] py-2 my-4 px-5 justify-between items-center gap-2 bg-background-muted"
+    class="w-full grid grid-cols-[1fr_auto] py-2 px-5 justify-between items-center gap-2 bg-background-muted"
   >
     <span class="text-start line-clamp-3 flex-grow">{text}</span>
     <div class="flex flex-row gap-2">
-      <button
-        class="flex rounded px-3 py-1 bg-commit items-center"
-        class:opacity-50={!$isPasteActionsEnabled}
-        on:click={(e) => handlePaste({ detail: { index: target.index } })}
+      <MoltenPushButton
+        text="Paste"
+        style="accept"
         disabled={!$isPasteActionsEnabled}
-      >
-        <span> Paste </span>
-      </button>
-      <button
-        class="rounded px-2 py-1 border border-pick group-hover:bg-pick/40"
-        on:click={handleShowActionPicker}
-      >
-        <div class="flex flex-row items-center gap-2">
-          <span> Add </span>
-          <span class="text-2xl">+</span>
-        </div>
-      </button>
+        click={() => handlePaste({ detail: { index: target.index } })}
+      />
+      {#if !$appSettings.persistent.userLevelMinimalist}
+        <MoltenPushButton
+          text="Add Code"
+          style="normal"
+          click={handleAddCodeBlock}
+        />
+      {/if}
+      <MoltenPushButton
+        text="Add Action"
+        style="normal"
+        click={handleShowActionPicker}
+      />
     </div>
   </div>
 

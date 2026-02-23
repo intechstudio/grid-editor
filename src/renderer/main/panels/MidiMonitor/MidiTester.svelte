@@ -2,7 +2,12 @@
   import { onDestroy } from "svelte";
   import { GridMIDIManager } from "../../../serialport/midi-port";
 
-  import { get, Unsubscriber, Writable, writable } from "svelte/store";
+  import {
+    get,
+    type Unsubscriber,
+    type Writable,
+    type writable,
+  } from "svelte/store";
   import {
     MeltSelect,
     MeltSlider,

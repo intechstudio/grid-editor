@@ -1,4 +1,4 @@
-import { User, getAuth, onAuthStateChanged } from "firebase/auth";
+import { type User, onAuthStateChanged } from "firebase/auth";
 import { readable } from "svelte/store";
 import { prodCentralAuth, devCentralAuth } from "./firebase";
 

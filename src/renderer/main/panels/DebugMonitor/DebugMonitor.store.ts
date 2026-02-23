@@ -105,30 +105,27 @@ function createDebugLowlevel(maxLength: number) {
     },
     push_inbound: (arr) => {
       inbound_data_rate += arr.length;
+      if (freeze) return;
       store.update((d) => {
-        if (freeze == false) {
-          const obj = { data: arr, direction: "IN" };
+        const obj = { data: arr, direction: "IN" };
 
-          if (d.length >= 15) {
-            d.pop();
-          }
-          d = [obj, ...d];
+        if (d.length >= 15) {
+          d.pop();
         }
+        d = [obj, ...d];
         return d;
       });
     },
     push_outbound: (arr) => {
       outbound_data_rate += arr.length;
-
+      if (freeze) return;
       store.update((d) => {
-        if (freeze == false) {
-          let obj = { data: arr, direction: "OUT" };
+        let obj = { data: arr, direction: "OUT" };
 
-          if (d.length >= 15) {
-            d.pop();
-          }
-          d = [obj, ...d];
+        if (d.length >= 15) {
+          d.pop();
         }
+        d = [obj, ...d];
         return d;
       });
     },
