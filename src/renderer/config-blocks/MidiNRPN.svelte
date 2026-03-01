@@ -105,14 +105,16 @@
   }
 
   function handleActionChange(data: ActionData) {
-    // Extract all contents
+    // Extract all gms commands - improved regex to handle nested parentheses
     const matches = [];
-    const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
+    const regex = /gms\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g;
 
     let match;
     while ((match = regex.exec(data.script)) !== null) {
-      matches.push(`gms(${match[1].trim()})`); // trim to remove any extra spaces
+      matches.push(`gms(${match[1].trim()})`);
     }
+
+    if (matches.length < 3) return; // Need at least 3 gms commands
 
     let midiLSB = [];
     let midiMSB = [];
@@ -120,9 +122,9 @@
     for (let i = 0; i < matches.length; ++i) {
       let part = Script.toSegments({ short: "gms", script: matches[i] });
       if (i % 2 === 0) {
-        midiMSB.push(part[3]);
+        midiMSB.push(part[3] ?? "");
       } else {
-        midiLSB.push(part[3]);
+        midiLSB.push(part[3] ?? "");
       }
     }
 
@@ -131,10 +133,10 @@
       value = value.slice(1, -1);
     }
 
-    channel = Script.toSegments({ short: "gms", script: matches[0] })[0];
-    msb = midiMSB[0];
-    lsb = midiLSB[0];
-    nrpnCC = calculateNRPNCC(midiMSB[0], midiLSB[0]);
+    channel = Script.toSegments({ short: "gms", script: matches[0] })[0] ?? "0";
+    msb = midiMSB[0] ?? "";
+    lsb = midiLSB[0] ?? "";
+    nrpnCC = calculateNRPNCC(msb, lsb);
     hiRes = midiLSB.length > 1 ? true : false;
   }
 
