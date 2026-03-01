@@ -93,15 +93,31 @@
     },
   ];
 
-  let channel: string;
-  let msb: string;
-  let lsb: string;
-  let nrpnCC: string;
-  let value: string;
-  let hiRes: boolean;
+  let channel: string = "";
+  let msb: string = "";
+  let lsb: string = "";
+  let nrpnCC: string = "";
+  let value: string = "";
+  let hiRes: boolean = false;
+  let lastParsedScript: string = "";
+  let isInitialized: boolean = false;
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (action.short === 'gmnp') {
+    if (!$action.invalid && $action.script !== lastParsedScript) {
+      handleActionChange($action);
+    }
+  } else {
+    // Reset state when this component instance is used for a non-MidiNRPN action
+    if (lastParsedScript !== "") {
+      channel = "";
+      msb = "";
+      lsb = "";
+      nrpnCC = "";
+      value = "";
+      hiRes = false;
+      lastParsedScript = "";
+      isInitialized = false;
+    }
   }
 
   function handleActionChange(data: ActionData) {
@@ -136,6 +152,8 @@
     lsb = midiLSB[0];
     nrpnCC = calculateNRPNCC(midiMSB[0], midiLSB[0]);
     hiRes = midiLSB.length > 1 ? true : false;
+    lastParsedScript = data.script;
+    isInitialized = true;
   }
 
   function sendData() {
@@ -154,9 +172,7 @@
     });
   }
 
-  $: handleHighResValueChange(hiRes);
-
-  function handleHighResValueChange(hiRes: boolean) {
+  function handleHighResChange() {
     sendData();
     dispatch("sync");
   }
@@ -196,7 +212,7 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if ($event) {
+  $: if (action.short === 'gmnp' && $event) {
     renderSuggestions();
   }
 
@@ -355,7 +371,7 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <MeltCheckbox bind:target={hiRes} title="14bit Resolution" />
+    <MeltCheckbox bind:target={hiRes} title="14bit Resolution" on:change={handleHighResChange} />
   </div>
 
   <div class="mt-2">

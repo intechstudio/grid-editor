@@ -64,17 +64,34 @@
   };
 
   let scriptValue = ""; // local script part
+  let lastParsedScript = "";
+  let isActiveForCurrentAction = false;
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  $: if (action.short === 'sn') {
+    if (!$action.invalid && $action.script !== lastParsedScript) {
+      console.log('[ElementName] Parsing action:', action.id, 'script:', $action.script);
+      handleActionChange($action);
+      isActiveForCurrentAction = true;
+    }
+  } else {
+    // Reset state when this component instance is used for a non-ElementName action
+    if (lastParsedScript !== "") {
+      console.log('[ElementName] Resetting state, action type:', action.short);
+      scriptValue = "";
+      lastParsedScript = "";
+      isActiveForCurrentAction = false;
+    }
   }
 
   function handleActionChange(data: ActionData) {
     const matches = data.script.match(information.valueRegex);
-    scriptValue = matches[1];
+    if (matches && matches[1] !== undefined) {
+      scriptValue = matches[1];
+      lastParsedScript = data.script;
+    }
   }
 
-  $: {
+  $: if (action.short === 'sn' && isActiveForCurrentAction) {
     const index = event.config.findIndex((e) => e.id === action.id);
     if (index === 0 && NumberToEventType(event.type) === EventType.SETUP) {
       element.name = scriptValue;
@@ -83,6 +100,18 @@
   }
 
   function sendData(e) {
+    console.log('[ElementName] sendData called:', {
+      actionId: action.id,
+      actionShort: action.short,
+      isActive: isActiveForCurrentAction,
+      value: e
+    });
+    // Safety check: only dispatch if this is actually an ElementName action
+    if (action.short !== 'sn' || !isActiveForCurrentAction) {
+      console.log('[ElementName] sendData blocked - not active for current action');
+      return;
+    }
+    console.log('[ElementName] Dispatching update-action');
     dispatch("update-action", {
       short: information.short,
       script: `self:gen("${e}")`,
@@ -99,6 +128,7 @@
       const { value, validationError } = e.detail;
       scriptValue = value;
       validator.value = !validationError;
+      isActiveForCurrentAction = true;
       dispatch("validation", { value: validationError });
     }}
     on:change={() => dispatch("sync")}
