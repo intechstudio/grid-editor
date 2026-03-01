@@ -77,6 +77,11 @@
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
 
     if (setup.actionAt(0)?.short !== elementNameInformation.short) {
+      // Don't create ElementName action if value is empty/undefined
+      // (this happens when switching to an element without ElementName)
+      if (!value || value.length === 0) {
+        return;
+      }
       const data = new ActionData(
         elementNameInformation.short,
         generateScript(value),
