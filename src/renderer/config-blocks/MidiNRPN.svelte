@@ -58,7 +58,7 @@
   export let action: GridAction;
 
   const dispatch = createEventDispatcher();
-  let event = action.parent as GridEvent;
+  let event: GridEvent;
 
   const validators = [
     {
@@ -93,49 +93,101 @@
     },
   ];
 
-  let channel: string;
-  let msb: string;
-  let lsb: string;
-  let nrpnCC: string;
-  let value: string;
-  let hiRes: boolean;
+  let channel: string = "";
+  let msb: string = "";
+  let lsb: string = "";
+  let nrpnCC: string = "";
+  let value: string = "";
+  let hiRes: boolean = false;
+  let lastParsedScript: string = "";
+  let isInitialized: boolean = false;
 
-  $: if (!$action.invalid) {
-    handleActionChange($action);
+  // Keep the parent event reference in sync with the current action
+  $: event = action.parent as GridEvent;
+
+  $: if (action.short === "gmnp") {
+    if (!$action.invalid && $action.script !== lastParsedScript) {
+      handleActionChange($action);
+    }
+  } else {
+    // Reset state when this component instance is used for a non-MidiNRPN action
+    if (lastParsedScript !== "") {
+      channel = "";
+      msb = "";
+      lsb = "";
+      nrpnCC = "";
+      value = "";
+      hiRes = false;
+      lastParsedScript = "";
+      isInitialized = false;
+    }
+  }
+
+  function resetLocalState() {
+    channel = "";
+    msb = "";
+    lsb = "";
+    nrpnCC = "";
+    value = "";
+    hiRes = false;
   }
 
   function handleActionChange(data: ActionData) {
-    // Extract all contents
-    const matches = [];
-    const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
-
-    let match;
-    while ((match = regex.exec(data.script)) !== null) {
-      matches.push(`gms(${match[1].trim()})`); // trim to remove any extra spaces
+    if (!data?.script) {
+      resetLocalState();
+      lastParsedScript = "";
+      isInitialized = false;
+      return;
     }
 
-    let midiLSB = [];
-    let midiMSB = [];
+    try {
+      // Extract all gms(...) calls (allowing no spaces between them)
+      const matches: string[] = [];
+      const regex = /gms\((.*?)\)/g;
 
-    for (let i = 0; i < matches.length; ++i) {
-      let part = Script.toSegments({ short: "gms", script: matches[i] });
-      if (i % 2 === 0) {
-        midiMSB.push(part[3]);
-      } else {
-        midiLSB.push(part[3]);
+      let match;
+      while ((match = regex.exec(data.script)) !== null) {
+        matches.push(`gms(${match[1].trim()})`); // trim to remove any extra spaces
       }
-    }
 
-    value = midiMSB[1].split("//")[0];
-    if (value.startsWith("(") && value.endsWith(")")) {
-      value = value.slice(1, -1);
-    }
+      const midiLSB: string[] = [];
+      const midiMSB: string[] = [];
 
-    channel = Script.toSegments({ short: "gms", script: matches[0] })[0];
-    msb = midiMSB[0];
-    lsb = midiLSB[0];
-    nrpnCC = calculateNRPNCC(midiMSB[0], midiLSB[0]);
-    hiRes = midiLSB.length > 1 ? true : false;
+      for (let i = 0; i < matches.length; ++i) {
+        const part = Script.toSegments({ short: "gms", script: matches[i] });
+        if (i % 2 === 0) {
+          midiMSB.push(part[3]);
+        } else {
+          midiLSB.push(part[3]);
+        }
+      }
+
+      // Original parsing logic: value comes from the second MSB entry
+      let parsedValue = midiMSB[1].split("//")[0];
+      if (parsedValue.startsWith("(") && parsedValue.endsWith(")")) {
+        parsedValue = parsedValue.slice(1, -1);
+      }
+
+      const channelSegments = Script.toSegments({
+        short: "gms",
+        script: matches[0],
+      });
+
+      channel = channelSegments[0];
+      msb = midiMSB[0];
+      lsb = midiLSB[0];
+      value = parsedValue;
+      nrpnCC = calculateNRPNCC(midiMSB[0], midiLSB[0]);
+      hiRes = midiLSB.length > 1 ? true : false;
+
+      lastParsedScript = data.script;
+      isInitialized = true;
+    } catch (err) {
+      // If parsing fails for any reason, fall back to a safe empty state
+      console.error("[MidiNRPN] Failed to parse script", err, data?.script);
+      resetLocalState();
+      isInitialized = false;
+    }
   }
 
   function sendData() {
@@ -154,9 +206,7 @@
     });
   }
 
-  $: handleHighResValueChange(hiRes);
-
-  function handleHighResValueChange(hiRes: boolean) {
+  function handleHighResChange() {
     sendData();
     dispatch("sync");
   }
@@ -196,7 +246,7 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if ($event) {
+  $: if (action.short === 'gmnp' && $event) {
     renderSuggestions();
   }
 
@@ -355,7 +405,7 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <MeltCheckbox bind:target={hiRes} title="14bit Resolution" />
+    <MeltCheckbox bind:target={hiRes} title="14bit Resolution" on:change={handleHighResChange} />
   </div>
 
   <div class="mt-2">
