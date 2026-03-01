@@ -126,7 +126,7 @@
       }
     }
 
-    value = midiMSB[1].split("//")[0];
+    value = midiMSB[1]?.split("//")[0] ?? "";
     if (value.startsWith("(") && value.endsWith(")")) {
       value = value.slice(1, -1);
     }
