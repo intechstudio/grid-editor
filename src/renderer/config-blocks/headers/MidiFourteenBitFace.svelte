@@ -18,7 +18,22 @@
   }
 
   function handleActionChange(data: ActionData) {
+    if (!data?.script) {
+      scriptSegments = ["", "", ""];
+      midiLSB = "";
+      midiMSB = "";
+      return;
+    }
+
     const arr = data.script.split(" gms");
+
+    // Expect at least two gms segments for a valid 14-bit style script
+    if (arr.length < 2) {
+      scriptSegments = ["", "", ""];
+      midiLSB = "";
+      midiMSB = "";
+      return;
+    }
 
     let lsb = whatsInParenthesis.exec(arr[0]);
 
@@ -36,7 +51,19 @@
       }
     }
 
+    // If we failed to extract LSB parameters, bail out safely
+    if (!midiLSB) {
+      scriptSegments = ["", "", ""];
+      return;
+    }
+
     let param_array = midiLSB.split(",").map((c) => c.trim());
+
+    // Require at least 4 parameters: channel, status, base, value
+    if (param_array.length < 4 || !param_array[3]) {
+      scriptSegments = ["", "", ""];
+      return;
+    }
 
     let value = param_array[3].split("//").slice(0, -1).join("//");
 
