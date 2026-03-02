@@ -13,6 +13,7 @@ import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 import { logger } from "./runtime.store";
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store";
+import { runtime_manager } from "./runtime-manager.store";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -261,6 +262,8 @@ export class WriteBuffer implements Readable<WriteBufferData> {
   public sendRawDataToGrid(
     data: Uint8Array,
     options?: {
+      dx?: number;
+      dy?: number;
       responseRequired?: boolean;
       filter?: any;
       responseTimeout?: number;
@@ -271,7 +274,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
       virtual: false,
       rawBytes: data,
       descr: {
-        brc_parameters: { DX: -1, DY: -1 },
+        brc_parameters: { DX: options?.dx ?? -127, DY: options?.dy ?? -127 },
         class_name: InstructionClassName.IMMEDIATE,
         class_instr: InstructionClass.EXECUTE,
         class_parameters: {},
@@ -408,6 +411,15 @@ export class WriteBuffer implements Readable<WriteBufferData> {
   public validateBufferElement(obj: BufferElement) {
     if (obj.responseRequired && obj.sendImmediate) {
       throw "Response required and send immediate can not be used together!";
+    }
+    const { DX, DY } = obj.descr.brc_parameters;
+    const modules = get(runtime_manager).active?.runtime?.modules ?? [];
+    const available =
+      DX === -127 && DY === -127
+        ? modules.length > 0
+        : modules.some((m) => m.dx === DX && m.dy === DY);
+    if (!available) {
+      throw `Module [${DX}, ${DY}] is not connected`;
     }
   }
 

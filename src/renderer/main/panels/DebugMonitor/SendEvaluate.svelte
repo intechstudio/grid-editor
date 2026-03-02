@@ -97,6 +97,8 @@
       const descr = await runtime.connection.buffer.sendRawDataToGrid(
         new Uint8Array(messageArray),
         {
+          dx: target.dx,
+          dy: target.dy,
           responseRequired: true,
           filter: {
             class_name: "EVALUATE",
