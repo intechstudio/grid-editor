@@ -16,6 +16,7 @@ import { user_input } from "../runtime/user-input.store";
 import { runtime_manager } from "../runtime/runtime-manager.store.js";
 import { Runtime } from "../runtime/string-table.js";
 import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+import { parseEvaluateResponse } from "./evaluate-parser";
 
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
@@ -332,6 +333,10 @@ export class MessageStream {
         ];
         const device = this.runtime.findModule(sx, sy);
         midi_stream.update(class_descr, device);
+      }
+
+      if (class_descr.class_name === "EVALUATE") {
+        console.log("[EVALUATE]", parseEvaluateResponse(class_descr));
       }
 
       if (class_descr.class_name === "CONFIG") {

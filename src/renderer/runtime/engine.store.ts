@@ -86,7 +86,7 @@ export type BufferElement = {
   };
 };
 
-enum ResponseStatus {
+export enum ResponseStatus {
   OK = 0,
   TIMEOUT = 1,
   ERROR = 2,
