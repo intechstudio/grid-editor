@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { MoltenPushButton, MoltenInput, Block, BlockRow } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MoltenInput,
+    Block,
+    BlockRow,
+  } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { get } from "svelte/store";
   import { grid } from "@intechstudio/grid-protocol";
@@ -53,7 +58,7 @@
     messageArray.push(10);
 
     try {
-      await runtime.connection.buffer.sendRawToTransport(
+      await runtime.connection.buffer.sendRawDataToGrid(
         new Uint8Array(messageArray),
       );
     } catch (e) {

@@ -13,7 +13,11 @@
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { MoltenPushButton, MeltRadio, MeltSelect } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MeltRadio,
+    MeltSelect,
+  } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import DebugTextList from "./DebugTextList.svelte";
@@ -58,7 +62,7 @@
   }
 
   let display = "CHAR";
-  let selectedSend = "immediate";
+  let selectedSend = "evaluate";
 
   let selectedModule: string = "all";
   let moduleOptions: Array<{ title: string; value: string }> = [];
@@ -198,8 +202,8 @@
       style="button"
       orientation="horizontal"
       options={[
-        { title: "Immediate", value: "immediate" },
         { title: "Evaluate", value: "evaluate" },
+        { title: "Immediate", value: "immediate" },
         { title: "Raw", value: "raw" },
       ]}
     />

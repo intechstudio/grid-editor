@@ -60,6 +60,9 @@
 <Block>
   <div class="flex w-full h-28 border border-black" bind:this={monacoElement} />
   <BlockRow>
-    <MoltenPushButton click={handleSendImmediateclicked} text="Send Immediate" />
+    <MoltenPushButton
+      click={handleSendImmediateclicked}
+      text="Send Immediate"
+    />
   </BlockRow>
 </Block>

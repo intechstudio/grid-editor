@@ -9,7 +9,6 @@
   import {
     InstructionClassName,
     InstructionClass,
-    ResponseStatus,
   } from "../../../runtime/engine.store";
   import {
     parseEvaluateResponse,
@@ -22,7 +21,7 @@
   let editor: MonacoEditor.CustomCodeEditor;
 
   let pending = false;
-  let status: "ACK" | "NACK" | "TIMEOUT" | null = null;
+  let status: "ACK" | "NACK" | null = null;
   let messageId: string | null = null;
   let responseValues: LuaValue[] | null = null;
 
@@ -95,23 +94,21 @@
     responseValues = null;
 
     try {
-      await runtime.connection.buffer.sendRawToTransport(
+      const descr = await runtime.connection.buffer.sendRawDataToGrid(
         new Uint8Array(messageArray),
+        {
+          responseRequired: true,
+          filter: {
+            class_name: "EVALUATE",
+            brc_parameters: {},
+            class_parameters: {},
+          },
+          responseTimeout: 2000,
+        },
       );
-
-      const response = await runtime.connection.buffer.waitResponseFromGrid(
-        { filter: { class_name: "EVALUATE", brc_parameters: {}, class_parameters: {} } },
-        2000,
-      );
-
-      if (response.status === ResponseStatus.TIMEOUT) {
-        status = "TIMEOUT";
-      } else if (response.status === ResponseStatus.OK) {
-        const descr = response.data;
-        status = descr.class_instr === "REPORT" ? "ACK" : "NACK";
-        messageId = descr.class_parameters.LASTHEADER;
-        responseValues = parseEvaluateResponse(descr);
-      }
+      status = descr.class_instr === "REPORT" ? "ACK" : "NACK";
+      messageId = descr.class_parameters.LASTHEADER;
+      responseValues = parseEvaluateResponse(descr);
     } catch (e) {
       console.warn("Evaluate failed:", e);
     } finally {
@@ -138,9 +135,7 @@
             ? "text-green-400"
             : status === "NACK"
               ? "text-red-400"
-              : status === "TIMEOUT"
-                ? "text-yellow-400"
-                : "text-gray-400"}
+              : "text-gray-400"}
         >
           {pending ? "pending" : status}
         </span>
@@ -149,7 +144,11 @@
         {/if}
       </div>
       {#if responseValues !== null}
-        <pre class="text-white whitespace-pre-wrap break-all">{JSON.stringify(responseValues, null, 2)}</pre>
+        <pre class="text-white whitespace-pre-wrap break-all">{JSON.stringify(
+            responseValues,
+            null,
+            2,
+          )}</pre>
       {/if}
     </div>
   {/if}

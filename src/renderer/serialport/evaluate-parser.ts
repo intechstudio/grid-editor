@@ -31,7 +31,7 @@ function readStr(raw: number[], pos: number, length: number): string {
 // Decode the \xNN escape sequences the firmware uses for non-printable chars
 function decodeString(s: string): string {
   return s.replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) =>
-    String.fromCharCode(parseInt(hex, 16))
+    String.fromCharCode(parseInt(hex, 16)),
   );
 }
 
@@ -40,7 +40,7 @@ function decodeString(s: string): string {
 function parseElements(
   raw: number[],
   pos: number,
-  count: number
+  count: number,
 ): [LuaValue[], number] {
   const results: LuaValue[] = [];
 

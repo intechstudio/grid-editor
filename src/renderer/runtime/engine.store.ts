@@ -70,6 +70,8 @@ export type BufferElement = {
   responseTimeout?: number;
   // Response required and send immediate can not be used together
   sendImmediate?: boolean;
+  // If set, these bytes are sent as-is instead of encoding via grid.encode_packet.
+  rawBytes?: Uint8Array;
   filter?: {
     PAGEDISCARD_ACKNOWLEDGE?: {
       LASTHEADER: unknown;
@@ -233,39 +235,52 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     waiter = undefined;
   }
 
-  public sendDataToGrid(descr: any): Promise<any> {
+  public sendDataToGrid(descr: any, rawBytes?: Uint8Array): Promise<any> {
     return new Promise((resolve, reject) => {
-      let retval: any = grid.encode_packet(descr);
+      let serial: number[];
+      let id: any = null;
 
-      // Add newline terminator for Grid protocol framing
-      retval.serial.push(10);
+      if (rawBytes) {
+        serial = Array.from(rawBytes);
+      } else {
+        const retval: any = grid.encode_packet(descr);
+        retval.serial.push(10);
+        serial = retval.serial;
+        id = retval.id;
+      }
 
-      // Debug logging
-      debug_lowlevel_store.push_outbound(retval.serial);
-
-      const data = new Uint8Array(retval.serial);
+      debug_lowlevel_store.push_outbound(serial);
 
       this._transport
-        .write(data)
-        .then(() => {
-          // debugger for message ASCII frames
-          let str = "";
-          for (let i = 0; i < retval.serial.length; i++) {
-            str += String.fromCharCode(retval.serial[i]);
-          }
-
-          resolve({ id: retval.id });
-        })
+        .write(new Uint8Array(serial))
+        .then(() => resolve({ id }))
         .catch((e) => reject(e));
     });
   }
 
-  public async sendRawToTransport(data: Uint8Array): Promise<void> {
-    while (this._transport.isWriteLocked()) {
-      await this.sleep(1);
-    }
-    debug_lowlevel_store.push_outbound(Array.from(data));
-    await this._transport.write(data);
+  public sendRawDataToGrid(
+    data: Uint8Array,
+    options?: {
+      responseRequired?: boolean;
+      filter?: any;
+      responseTimeout?: number;
+    },
+  ): Promise<any> {
+    const bufferElement: BufferElement = {
+      id: 0,
+      virtual: false,
+      rawBytes: data,
+      descr: {
+        brc_parameters: { DX: -1, DY: -1 },
+        class_name: InstructionClassName.IMMEDIATE,
+        class_instr: InstructionClass.EXECUTE,
+        class_parameters: {},
+      },
+      responseRequired: options?.responseRequired,
+      filter: options?.filter,
+      responseTimeout: options?.responseTimeout,
+    };
+    return this.add_last(bufferElement);
   }
 
   public async waitResponseFromGrid(
@@ -287,7 +302,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     sendImmediate: boolean = false,
   ) {
     return new Promise((resolve, reject) => {
-      this.sendDataToGrid(bufferElement.descr)
+      this.sendDataToGrid(bufferElement.descr, bufferElement.rawBytes)
         .then(async (result) => {
           const { id } = result;
           if (bufferElement.responseRequired === true && !sendImmediate) {
