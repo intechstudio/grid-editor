@@ -131,10 +131,17 @@
     </div>
 
     <div class="flex flex-row gap-2">
-      <MoltenPushButton click={open_monaco} text={"Edit Code"} style={"accept"} />
+      <MoltenPushButton
+        click={open_monaco}
+        text={"Edit Code"}
+        style={"accept"}
+      />
       <div class="flex-grow" />
       <MoltenPushButton
-        click={() => navigator.clipboard.writeText(GridScript.expandScript($action.script))}
+        click={() =>
+          navigator.clipboard.writeText(
+            GridScript.expandScript($action.script),
+          )}
         text={"Copy Code"}
       >
         <MoltenPopup slot="popup" text="Copied to clipboard!" />

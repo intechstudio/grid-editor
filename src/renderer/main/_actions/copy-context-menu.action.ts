@@ -1,4 +1,13 @@
-const INLINE_TAGS = new Set(["span", "a", "em", "strong", "b", "i", "u", "code"]);
+const INLINE_TAGS = new Set([
+  "span",
+  "a",
+  "em",
+  "strong",
+  "b",
+  "i",
+  "u",
+  "code",
+]);
 
 function getTextFromNode(node: Node): string {
   if (node.nodeType === Node.TEXT_NODE) {
