@@ -1,6 +1,7 @@
 <script lang="ts">
   import { debug_monitor_store } from "./DebugMonitor.store";
   import { scrollToBottom } from "../../_actions/scroll.move";
+  import { copyContextMenu } from "../../_actions/copy-context-menu.action";
 </script>
 
 <container
@@ -9,7 +10,8 @@
 >
   <div
     use:scrollToBottom={debug_monitor_store}
-    class="flex flex-col font-mono text-white bg-secondary p-2 flex-grow overflow-y-auto"
+    use:copyContextMenu
+    class="flex flex-col font-mono text-white bg-secondary p-2 flex-grow overflow-y-auto select-text"
   >
     {#each $debug_monitor_store as message}
       {#each message.split("\n") as part}
