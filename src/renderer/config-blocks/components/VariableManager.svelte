@@ -152,14 +152,14 @@
   }
 
   function addVariable() {
-    const obj = { name: "", value: "" };
-    segments.push(obj);
-    validators.push({
-      value: false,
-      func: (e) => new Validator(e).isLuaVariable().Result(),
-    });
-    handleInput();
-    handleChange();
+    segments = [...segments, { name: "", value: "" }];
+    validators = [
+      ...validators,
+      {
+        value: false,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
+      },
+    ];
   }
 
   function removeVariable(index: number) {
