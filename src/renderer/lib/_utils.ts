@@ -47,7 +47,8 @@ export namespace Grid {
             module.dy,
             page.pageNumber,
           ];
-          return (module_position_y * 4 + page_current) % 16;
+          const ch = module_position_y * 4 + page_current;
+          return ((ch % 16) + 16) % 16;
         }
         case Value.MIDI_COMMAND: {
           return event.type === EventTypeToNumber(EventType.BUTTON) ? 144 : 176;
@@ -57,7 +58,8 @@ export namespace Grid {
             module.dx,
             element.elementIndex,
           ];
-          return (32 + module_position_x * 16 + element_index) % 128;
+          const p1 = 32 + module_position_x * 16 + element_index;
+          return ((p1 % 128) + 128) % 128;
         }
       }
     }
