@@ -17,6 +17,22 @@ function splitExpression(expression) {
   return res;
 }
 
+export function extractParam(script, key) {
+  const prefix = `self:${key}(`;
+  const start = script.indexOf(prefix);
+  if (start === -1) return null;
+  let depth = 0;
+  const contentStart = start + prefix.length;
+  for (let i = contentStart - 1; i < script.length; i++) {
+    if (script[i] === "(") depth++;
+    else if (script[i] === ")") {
+      depth--;
+      if (depth === 0) return script.slice(contentStart, i);
+    }
+  }
+  return null;
+}
+
 export class Script {
   static toSegments({ script, short }) {
     const expressions = [
