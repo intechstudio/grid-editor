@@ -11,17 +11,8 @@
   "led": {
     "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],
     "Stop Animation": ["ledNumber", "Layer"],
-    "Color": [
-      "ledNumber",
-      "Layer",
-      "Red",
-      "Green",
-      "Blue",
-      "Canva",
-      "Random",
-      "Beauty"
-    ],
-    "Intensity": ["LED Number", "Layer", "Intensity"]
+    "Simple Color": ["ledNumber", "Layer", "Red", "Green", "Blue"],
+    "Simple Intensity": ["Element", "Layer", "Intensity"]
   },
   "midi": {
     "MIDI": ["Channel", "Command", "Parameter1", "Parameter2"],

@@ -26,9 +26,9 @@ test.describe("Action Block Operations", () => {
 
   test("Add Action Block to empty element", async () => {
     await configPage.openActionsOnEmptyElement();
-    await configPage.addActionBlock("led", "Color");
+    await configPage.addActionBlock("led", "Simple Color");
     await expect(
-      configPage.blocks["led"]["Color"]["elements"]["Blue"],
+      configPage.blocks["led"]["Simple Color"]["elements"]["Blue"],
     ).toBeVisible();
   });
 
