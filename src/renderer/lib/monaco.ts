@@ -5,11 +5,10 @@ import {
   editor as monaco_editor,
   languages as monaco_languages,
   Position,
+  Range,
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
-
-let hoverTips = {};
 
 const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
@@ -37,7 +36,7 @@ const language_config: monaco_languages.LanguageConfiguration = {
   ],
 };
 
-const [lua, intech_lua] = Array(2).fill({
+const createLangDef = () => ({
   defaultToken: "",
   tokenPostfix: ".lua",
   keywords: [
@@ -207,6 +206,12 @@ const [lua, intech_lua] = Array(2).fill({
   },
 });
 
+const lua = createLangDef();
+const intech_lua = createLangDef();
+
+// Module-level luadocs from grid-protocol
+const luadocs = grid.get_luadocs();
+
 function initialize_language() {
   monaco_languages.register({ id: "intech_lua" });
   monaco_languages.register({ id: "lua" });
@@ -249,13 +254,6 @@ function initialize_theme() {
     },
   });
 }
-
-type Range = {
-  startLineNumber: number;
-  endLineNumber: number;
-  startColumn: number;
-  endColumn: number;
-};
 
 function initialize_autocomplete() {
   function createLuaProposals(range: Range) {
@@ -311,161 +309,6 @@ function initialize_autocomplete() {
     return proposalList;
   }
 
-  function createIntechLuaProposals(
-    range: Range,
-    model: monaco_editor.ITextModel,
-    position: Position,
-    prefix: string,
-  ) {
-    const instance: MonacoEditor.CustomCodeEditor = monaco_editor
-      .getEditors()
-      .find((e) => e.getModel().uri === model.uri);
-
-    const scope =
-      instance.restrictScope === ElementType.FADER
-        ? ElementType.POTMETER
-        : instance.restrictScope;
-
-    let proposalList = [];
-    intech_lua.functions = ["print"];
-
-    // Handle other general cases (mathfunctions, keywords, etc.)
-    for (const element of intech_lua.mathfunctions) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      proposalItem.label = "math." + element;
-      proposalItem.insertText = "math." + element;
-      proposalList.push(proposalItem);
-    }
-
-    for (const element of intech_lua.keywords) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Keyword,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      proposalItem.label = element;
-      proposalItem.insertText = element;
-
-      proposalList.push(proposalItem);
-    }
-
-    for (const item of grid.lua_function_to_human_map()) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      const key = item[0];
-      const value = item[1];
-      const elementTypeMapping = {
-        GRID_LUA_FNC_EP: "endless",
-        GRID_LUA_FNC_E: "encoder",
-        GRID_LUA_FNC_B: "button",
-        GRID_LUA_FNC_P: "potmeter",
-        GRID_LUA_FNC_L: "lcd",
-      };
-
-      const lineContent = model.getLineContent(range.startLineNumber);
-      const isInsideSelfOrElement =
-        lineContent.includes("self:") || lineContent.includes("element[");
-      const keyPrefix = Object.keys(elementTypeMapping).find((prefix) =>
-        key.startsWith(prefix),
-      );
-
-      if (
-        keyPrefix &&
-        (scope === elementTypeMapping[keyPrefix] || scope === undefined)
-      ) {
-        proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
-        proposalItem.insertText = `${proposalItem.label}()`;
-      } else if (scope === ElementType.SYSTEM || !scope) {
-        if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
-          proposalItem.label = isInsideSelfOrElement
-            ? value
-            : `element[0]:${value}`;
-          proposalItem.insertText = `${proposalItem.label}()`;
-        }
-      } else if (!keyPrefix) {
-        proposalItem.label = value;
-        proposalItem.insertText = `${value}()`;
-      }
-
-      // Only push items that were actually populated — Monaco 0.55+
-      // rejects completion items with empty labels.
-      if (proposalItem.label !== "") {
-        proposalList.push(proposalItem);
-      }
-
-      const helperText = grid.get_lua_function_helper(key);
-      if (typeof helperText !== "undefined") {
-        hoverTips[value] = helperText;
-      }
-    }
-
-    for (const element of intech_lua.functions) {
-      if (proposalList.find((e) => e.label === element)) {
-        continue;
-      }
-
-      let proposalItem = {
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        range: range,
-        label: element,
-        insertText: element + "()",
-      };
-
-      proposalList.push(proposalItem);
-    }
-
-    return proposalList;
-  }
-
-  monaco_languages.registerCompletionItemProvider("intech_lua", {
-    provideCompletionItems: function (model, position) {
-      const word = model.getWordUntilPosition(position);
-      const lineContent = model.getLineContent(position.lineNumber);
-      const range: Range = {
-        startLineNumber: position.lineNumber,
-        endLineNumber: position.lineNumber,
-        startColumn: word.startColumn,
-        endColumn: word.endColumn,
-      };
-
-      // Check for 'self:' or 'element[x]:'
-      const selfIndex = lineContent.lastIndexOf("self:", position.column - 1);
-      const elementIndex = lineContent.lastIndexOf(
-        "element[",
-        position.column - 1,
-      );
-
-      // If 'self:' or 'element[x]:' is found, adjust the prefix
-      let prefix = "";
-      if (selfIndex !== -1 && selfIndex + 5 <= word.startColumn) {
-        prefix = "self:";
-      } else if (elementIndex !== -1 && elementIndex + 8 <= word.startColumn) {
-        prefix = lineContent.slice(elementIndex, position.column); // 'element[x]:'
-      }
-
-      return {
-        suggestions: createIntechLuaProposals(range, model, position, prefix),
-      };
-    },
-  });
-
   monaco_languages.registerCompletionItemProvider("lua", {
     provideCompletionItems: function (model, position) {
       const word = model.getWordUntilPosition(position);
@@ -479,6 +322,136 @@ function initialize_autocomplete() {
       return {
         suggestions: createLuaProposals(range),
       };
+    },
+  });
+
+  // Register luadocs-based completion provider for intech_lua
+  monaco_languages.registerCompletionItemProvider("intech_lua", {
+    triggerCharacters: [":"],
+    provideCompletionItems(model, position) {
+      const word = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn,
+      };
+
+      // Detect if the user typed "self:" or "element[x]:" before the current word
+      const lineContent = model.getLineContent(position.lineNumber);
+      const textBeforeWord = lineContent.substring(0, word.startColumn - 1);
+      const isMemberAccess = /\b(self|element(\[\d+\])?)\s*:\s*$/.test(textBeforeWord);
+
+      // Find the editor's restrictScope (element type) for context-aware suggestions
+      let elementType: string | undefined;
+      const editors = monaco_editor.getEditors();
+      for (const ed of editors) {
+        if (ed.getModel() === model) {
+          elementType = (ed as MonacoEditor.CustomCodeEditor).restrictScope;
+          break;
+        }
+      }
+
+      // Map fader to potmeter since luadocs has no separate fader category
+      const resolvedType =
+        elementType === ElementType.FADER ? ElementType.POTMETER : elementType;
+
+      const suggestions = [];
+
+      if (isMemberAccess) {
+        // After "self:" or "element[x]:", only show element methods for the current element type
+        const categories = resolvedType
+          ? { [resolvedType]: (luadocs.elements ?? {})[resolvedType] ?? [] }
+          : (luadocs.elements ?? {});
+
+        for (const [cat, fns] of Object.entries(categories)) {
+          for (const fn of fns as any[]) {
+            const label = fn.name || fn.short;
+            suggestions.push({
+              label,
+              kind: monaco_languages.CompletionItemKind.Method,
+              insertText: label + "()",
+              detail: `[${cat}]${fn.short ? ` short: ${fn.short}` : ""}`,
+              documentation: fn.usage || "",
+              filterText: `${fn.name} ${fn.short}`,
+              range,
+            });
+          }
+        }
+      } else {
+        // Include Lua keywords
+        for (const kw of intech_lua.keywords) {
+          suggestions.push({
+            label: kw,
+            kind: monaco_languages.CompletionItemKind.Keyword,
+            insertText: kw,
+            range,
+          });
+        }
+
+        // Include math functions
+        for (const mf of intech_lua.mathfunctions) {
+          suggestions.push({
+            label: "math." + mf,
+            kind: monaco_languages.CompletionItemKind.Function,
+            insertText: "math." + mf,
+            range,
+          });
+        }
+
+        // Global functions from luadocs
+        for (const fn of luadocs.globals ?? []) {
+          const label = fn.name || fn.short;
+          suggestions.push({
+            label,
+            kind: monaco_languages.CompletionItemKind.Function,
+            insertText: label + "()",
+            detail: fn.short ? `short: ${fn.short}` : "",
+            documentation: fn.usage || "",
+            filterText: `${fn.name} ${fn.short}`,
+            range,
+          });
+        }
+
+        // Element methods (prefixed with self: when not in member access context)
+        const elemCategories = resolvedType
+          ? { [resolvedType]: (luadocs.elements ?? {})[resolvedType] ?? [] }
+          : (luadocs.elements ?? {});
+
+        for (const [cat, fns] of Object.entries(elemCategories)) {
+          for (const fn of fns as any[]) {
+            const funcName = fn.name || fn.short;
+            const label =
+              resolvedType === ElementType.SYSTEM || !resolvedType
+                ? `element[0]:${funcName}`
+                : `self:${funcName}`;
+            suggestions.push({
+              label,
+              kind: monaco_languages.CompletionItemKind.Method,
+              insertText: label + "()",
+              detail: `[${cat}]${fn.short ? ` short: ${fn.short}` : ""}`,
+              documentation: fn.usage || "",
+              filterText: `${fn.name} ${fn.short} ${label}`,
+              range,
+            });
+          }
+        }
+
+        // Additional functions from intech_lua highlight (includes human-mapped names)
+        for (const funcName of intech_lua.functions) {
+          if (suggestions.some((s) => s.label === funcName || s.label === `self:${funcName}`)) {
+            continue;
+          }
+          suggestions.push({
+            label: funcName,
+            kind: monaco_languages.CompletionItemKind.Function,
+            insertText: funcName + "()",
+            range,
+          });
+        }
+      }
+
+      return { suggestions };
     },
   });
 }
@@ -496,19 +469,35 @@ function initialize_highlight() {
 }
 
 function initialize_hover() {
+  // Register hover provider for intech_lua using luadocs from grid-protocol
   monaco_languages.registerHoverProvider("intech_lua", {
-    provideHover: function (model, position) {
-      if (model.getWordAtPosition(position) !== null) {
-        const word = model.getWordAtPosition(position).word;
+    provideHover(model, position) {
+      const word = model.getWordAtPosition(position);
+      if (!word) return null;
 
-        if (hoverTips[word] !== undefined)
-          return {
-            contents: [
-              { value: "**SOURCE**" },
-              { value: "```html\n" + hoverTips[word] + "\n```" },
-            ],
-          };
-      }
+      const allFns = [
+        ...(luadocs.globals ?? []),
+        ...Object.values(luadocs.elements ?? {}).flat(),
+      ];
+
+      const match = allFns.find(
+        (fn: any) => fn.name === word.word || fn.short === word.word
+      );
+
+      if (!match) return null;
+
+      return {
+        range: new Range(
+          position.lineNumber,
+          word.startColumn,
+          position.lineNumber,
+          word.endColumn
+        ),
+        contents: [
+          { value: `**${match.name}** (\`${match.short}\`)` },
+          { value: match.usage || "No documentation available." },
+        ],
+      };
     },
   });
 }

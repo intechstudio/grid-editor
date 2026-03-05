@@ -37,7 +37,11 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     },
     root: resolve(__dirname, "src/renderer"),
     resolve: {
+      preserveSymlinks: false,
+      dedupe: ["@intechstudio/grid-protocol"],
       alias: {
+        // Redirect @wasm-fmt/lua_fmt to the Vite-compatible entry that uses ?url for WASM
+        "@wasm-fmt/lua_fmt": "@wasm-fmt/lua_fmt/vite",
         $lib: path.resolve("src/renderer/lib"),
         "$app/environment": path.resolve(
           "src/renderer/lib/app-environment-shim.ts",
@@ -57,7 +61,6 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     target: "chrome104",
     envPrefix: "VITE_",
     optimizeDeps: {
-      exclude: ["@intechstudio/grid-protocol"],
       esbuildOptions: {
         plugins: [
           {
