@@ -340,7 +340,9 @@ function initialize_autocomplete() {
       // Detect if the user typed "self:" or "element[x]:" before the current word
       const lineContent = model.getLineContent(position.lineNumber);
       const textBeforeWord = lineContent.substring(0, word.startColumn - 1);
-      const isMemberAccess = /\b(self|element(\[\d+\])?)\s*:\s*$/.test(textBeforeWord);
+      const isMemberAccess = /\b(self|element(\[\d+\])?)\s*:\s*$/.test(
+        textBeforeWord,
+      );
 
       // Find the editor's restrictScope (element type) for context-aware suggestions
       let elementType: string | undefined;
@@ -439,7 +441,11 @@ function initialize_autocomplete() {
 
         // Additional functions from intech_lua highlight (includes human-mapped names)
         for (const funcName of intech_lua.functions) {
-          if (suggestions.some((s) => s.label === funcName || s.label === `self:${funcName}`)) {
+          if (
+            suggestions.some(
+              (s) => s.label === funcName || s.label === `self:${funcName}`,
+            )
+          ) {
             continue;
           }
           suggestions.push({
@@ -481,7 +487,7 @@ function initialize_hover() {
       ];
 
       const match = allFns.find(
-        (fn: any) => fn.name === word.word || fn.short === word.word
+        (fn: any) => fn.name === word.word || fn.short === word.word,
       );
 
       if (!match) return null;
@@ -491,7 +497,7 @@ function initialize_hover() {
           position.lineNumber,
           word.startColumn,
           position.lineNumber,
-          word.endColumn
+          word.endColumn,
         ),
         contents: [
           { value: `**${match.name}** (\`${match.short}\`)` },
