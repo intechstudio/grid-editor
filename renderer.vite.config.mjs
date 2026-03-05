@@ -1,8 +1,19 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { sveltePreprocess } from "svelte-preprocess";
 import path, { resolve } from "path";
+import { realpathSync } from "fs";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
+  // Resolve symlinked packages (e.g. npm link) so Vite can serve their files
+  let gridProtocolRealPath;
+  try {
+    gridProtocolRealPath = realpathSync(
+      resolve(__dirname, "node_modules/@intechstudio/grid-protocol"),
+    );
+  } catch {
+    // Package not linked, no extra fs.allow needed
+  }
+
   return {
     plugins: [
       svelte({
@@ -31,6 +42,16 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
         "$app/environment": path.resolve(
           "src/renderer/lib/app-environment-shim.ts",
         ),
+      },
+    },
+    server: {
+      fs: {
+        allow: [
+          // Allow serving files from the project root
+          resolve(__dirname),
+          // Allow serving files from symlinked packages (npm link)
+          ...(gridProtocolRealPath ? [gridProtocolRealPath] : []),
+        ],
       },
     },
     target: "chrome104",
