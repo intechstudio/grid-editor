@@ -68,7 +68,7 @@ export const blocks = (page) => ({
     "Simple Color": {
       block: page.locator("#action-menu").getByText("Simple Color"),
       elements: {
-        ledNumber: page.getByLabel("LED Number"),
+        ledNumber: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),
         Red: page.getByLabel("Red"),
         Green: page.getByLabel("Green"),
