@@ -246,7 +246,7 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if (action.short === 'gmnp' && $event) {
+  $: if (action.short === "gmnp" && $event) {
     renderSuggestions();
   }
 
@@ -405,7 +405,11 @@
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <MeltCheckbox bind:target={hiRes} title="14bit Resolution" on:change={handleHighResChange} />
+    <MeltCheckbox
+      bind:target={hiRes}
+      title="14bit Resolution"
+      on:change={handleHighResChange}
+    />
   </div>
 
   <div class="mt-2">

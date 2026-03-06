@@ -67,7 +67,7 @@
   let lastParsedScript = "";
   let isActiveForCurrentAction = false;
 
-  $: if (action.short === 'sn') {
+  $: if (action.short === "sn") {
     if (!$action.invalid && $action.script !== lastParsedScript) {
       handleActionChange($action);
     }
@@ -89,7 +89,7 @@
     }
   }
 
-  $: if (action.short === 'sn' && isActiveForCurrentAction) {
+  $: if (action.short === "sn" && isActiveForCurrentAction) {
     const index = event.config.findIndex((e) => e.id === action.id);
     if (index === 0 && NumberToEventType(event.type) === EventType.SETUP) {
       element.name = scriptValue;
@@ -99,7 +99,7 @@
 
   function sendData(e) {
     // Safety check: only dispatch if this is actually an ElementName action
-    if (action.short !== 'sn' || !isActiveForCurrentAction) {
+    if (action.short !== "sn" || !isActiveForCurrentAction) {
       return;
     }
     dispatch("update-action", {
