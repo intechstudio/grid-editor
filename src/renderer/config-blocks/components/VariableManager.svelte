@@ -98,8 +98,12 @@
   ): ScriptSegment[] | undefined {
     const processed = preProcessor(statement);
     const assignments: ScriptSegment[] = [];
-    const variableNames = splitParts(processed.split("=")[0]);
-    const variableValues = splitParts(processed.split("=")[1]);
+    const variableNames = splitParts(processed.split("=")[0]).map((s) =>
+      s.trim(),
+    );
+    const variableValues = splitParts(processed.split("=")[1]).map((s) =>
+      s.trim(),
+    );
 
     if (variableNames.length !== variableValues.length) {
       throw new Error("Error parsing variables: mismatched names and values!");
@@ -148,14 +152,14 @@
   }
 
   function addVariable() {
-    const obj = { name: "", value: "" };
-    segments.push(obj);
-    validators.push({
-      value: false,
-      func: (e) => new Validator(e).isLuaVariable().Result(),
-    });
-    handleInput();
-    handleChange();
+    segments = [...segments, { name: "", value: "" }];
+    validators = [
+      ...validators,
+      {
+        value: false,
+        func: (e) => new Validator(e).isLuaVariable().Result(),
+      },
+    ];
   }
 
   function removeVariable(index: number) {
@@ -202,7 +206,7 @@
         </div>
 
         <button
-          class:invisible={i === 0}
+          class:invisible={segments.length === 1}
           on:click={() => {
             removeVariable(i);
           }}

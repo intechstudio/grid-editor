@@ -24,6 +24,7 @@
   import Indentation from "./Indentation.svelte";
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
   import { selected_actions } from "../../../../runtime/selected-actions.store";
+  import { logger } from "../../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
   import { Modal } from "../../../modals/modal.store";
@@ -99,10 +100,17 @@
       return;
     }
 
+    logger.set({
+      type: "alert",
+      mode: 0,
+      classname: "luanotok",
+      message: `Invalid edit discarded. Action block reverted to last valid state.`,
+    });
+
     updateAction(
       action,
       new ActionData(action.short, action.synced, action.name),
-      action.isValid(),
+      true,
     );
   }
 
