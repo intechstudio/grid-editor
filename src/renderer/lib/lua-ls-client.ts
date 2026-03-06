@@ -280,15 +280,15 @@ export class LuaLsClient {
   // ── Message dispatch ────────────────────────────────────────────────────────
 
   private handleMessage(msg: JsonRpcMessage): void {
-    if ("id" in msg && "result" in msg) {
-      // Response to a request we sent
+    if ("id" in msg && !("method" in msg)) {
+      // Response to a request we sent (success or error)
       const pending = this.pendingRequests.get(msg.id as number);
       if (pending) {
         this.pendingRequests.delete(msg.id as number);
-        if (msg.error) {
-          pending.reject(new Error(msg.error.message));
+        if ((msg as JsonRpcResponse).error) {
+          pending.reject(new Error((msg as JsonRpcResponse).error!.message));
         } else {
-          pending.resolve(msg.result);
+          pending.resolve((msg as JsonRpcResponse).result);
         }
       }
     } else if ("method" in msg && !("id" in msg)) {
@@ -558,7 +558,6 @@ export class LuaLsClient {
 
       const id = this.nextId++;
       const msg: JsonRpcRequest = { jsonrpc: "2.0", id, method, params };
-      this.pendingRequests.set(id, { resolve, reject });
 
       // Timeout after 5 s to avoid hanging promises
       const timer = setTimeout(() => {
