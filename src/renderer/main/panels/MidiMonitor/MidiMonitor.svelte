@@ -21,6 +21,7 @@
   import { Grid } from "../../../lib/_utils";
   import MidiTester from "./MidiTester.svelte";
   import DebugTextList from "../DebugMonitor/DebugTextList.svelte";
+  import { copyContextMenu } from "../../_actions/copy-context-menu.action";
   import { onDestroy, onMount, tick } from "svelte";
   import {
     type MidiWorkerCommand,
@@ -325,7 +326,8 @@
             </div>
 
             <div
-              class="flex flex-col flex-grow bg-secondary w-full overflow-clip"
+              class="flex flex-col flex-grow bg-secondary w-full overflow-clip select-text"
+              use:copyContextMenu
               bind:clientHeight={debugMessageListHeight}
             >
               {#if lastMidiMessageIndex > 0}
@@ -386,7 +388,8 @@
           {:else}
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
-              class="flex h-full bg-secondary w-full overflow-clip"
+              class="flex h-full bg-secondary w-full overflow-clip select-text"
+              use:copyContextMenu
               bind:clientHeight={midiMessageListHeight}
             >
               {#if lastMidiMessageIndex > 0}
@@ -492,7 +495,8 @@
               System Exclusive Messages
             </div>
             <div
-              class="flex h-full bg-secondary w-full overflow-clip"
+              class="flex h-full bg-secondary w-full overflow-clip select-text"
+              use:copyContextMenu
               bind:clientHeight={sysExMessageListHeight}
             >
               {#if lastSysExMessageIndex > 0}
