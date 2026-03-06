@@ -32,6 +32,15 @@ const config = {
       from: "src/renderer/assets/**/*",
       to: "assets",
     },
+    {
+      // lua-language-server binary — downloaded by `node build-scripts/download-lua-ls.js`
+      // before running electron-builder. The directory is only included when it exists
+      // (i.e. the download script has been run); builds without it still work but LuaLS
+      // features will be unavailable at runtime.
+      from: "resources/lua-language-server",
+      to: "lua-language-server",
+      filter: ["**/*"],
+    },
   ],
   files: ["**/*"],
   win: {

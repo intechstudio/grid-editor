@@ -86,6 +86,7 @@ import {
 } from "./src/profiles";
 import { fetchReleaseNotes, fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
+import { getLuaLanguageServer } from "./src/lua-language-server";
 
 log.info("App starting...");
 log.info("BUILD ENVS:", import.meta.env);
@@ -93,6 +94,9 @@ log.info("BUILD ENVS:", import.meta.env);
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+
+// LuaLS WebSocket proxy port (0 = not started / binary not found)
+let luaLsPort = 0;
 
 // Bootloader detection service state
 let bootloaderDetectionTimeout: NodeJS.Timeout | null = null;
@@ -356,6 +360,28 @@ if (!gotTheLock) {
       create_tray();
     }
     createWindow();
+
+    // Start the LuaLS proxy server. The port is exposed to the renderer via
+    // the "getLuaLsPort" IPC channel (see preload.ts).
+    const annotationsDir = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "renderer",
+      "assets",
+      "lua",
+      "annotations",
+    );
+    getLuaLanguageServer()
+      .start({ annotationsDir })
+      .then((port) => {
+        luaLsPort = port;
+        log.info(`[LuaLS] Proxy started on port ${port}`);
+      })
+      .catch((err) => {
+        log.warn("[LuaLS] Failed to start proxy:", err);
+      });
+
     protocol.handle("package", (req) => {
       let requestPath = req.url.substring("package://".length);
 
@@ -1001,6 +1027,10 @@ ipcMain.on("get-app-path", (event) => {
   event.returnValue = app.getAppPath();
 });
 
+ipcMain.on("getLuaLsPort", (event) => {
+  event.returnValue = luaLsPort;
+});
+
 ipcMain.on("analytics_uuid", (event) => {
   event.returnValue = store.get("userId");
 });
@@ -1085,4 +1115,5 @@ app.on("activate", () => {
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
   app.quitting = true;
+  getLuaLanguageServer().stop();
 });

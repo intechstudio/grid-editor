@@ -78,13 +78,14 @@
     "yauzl": "^3.2.0"
   },
   "scripts": {
+    "download-lua-ls": "node build-scripts/download-lua-ls.js",
     "e:builder": "cross-env VITE_BUILD_TARGET=electron NOTARIZE=true electron-builder --config electron-builder-config.js --publish onTagOrDraft",
     "e:builder:nightly": "cross-env VITE_BUILD_ENV=nightly VITE_BUILD_TARGET=electron NOTARIZE=true DEBUG=electron-notarize* electron-builder --config electron-builder-config.js --publish never",
     "e:builder:local": "cross-env VITE_BUILD_ENV=nightly VITE_BUILD_TARGET=electron DEBUG=electron-builder DEBUG=electron-notarize* electron-builder --config electron-builder-config.js --publish never",
-    "export": "cross-env VITE_BUILD_ENV=production run-s s:build e:builder",
-    "export:nightly": "run-s s:build e:builder:nightly",
-    "export:alpha": "cross-env VITE_BUILD_ENV=alpha run-s s:build e:builder",
-    "export:local": "run-s clean-up s:build e:builder:local",
+    "export": "cross-env VITE_BUILD_ENV=production run-s download-lua-ls s:build e:builder",
+    "export:nightly": "run-s download-lua-ls s:build e:builder:nightly",
+    "export:alpha": "cross-env VITE_BUILD_ENV=alpha run-s download-lua-ls s:build e:builder",
+    "export:local": "run-s clean-up download-lua-ls s:build e:builder:local",
     "clean-up": "rm -rf dist && rm -rf dist-web && rm -rf build",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "s:build": "electron-vite build",

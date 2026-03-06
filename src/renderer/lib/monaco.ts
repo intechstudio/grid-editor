@@ -8,6 +8,7 @@ import {
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
+import { initLuaLsClient } from "./lua-ls-client";
 
 let hoverTips = {};
 
@@ -529,6 +530,18 @@ export namespace MonacoEditor {
   initialize_autocomplete();
   initialize_hover();
   initialize_grammar();
+
+  // Start the LuaLS client when running inside Electron.
+  // Falls back silently in the web build (port = 0 / API unavailable).
+  const luaLsPort: number =
+    typeof window !== "undefined" &&
+    (window as any).electron?.luaLanguageServer?.getPort
+      ? (window as any).electron.luaLanguageServer.getPort()
+      : 0;
+
+  initLuaLsClient(luaLsPort).catch((err) => {
+    console.warn("[MonacoEditor] LuaLS init failed:", err);
+  });
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
 

@@ -113,6 +113,9 @@ contextBridge.exposeInMainWorld("electron", {
   appLoaded: () => appLoadedPromiseResolve(undefined),
   showQuitDialog: (callback) => ipcRenderer.on("showQuitDialog", callback),
   quitDialogResult: (result) => ipcRenderer.send("quitDialogResult", result),
+  luaLanguageServer: {
+    getPort: () => ipcRenderer.sendSync("getLuaLsPort") as number,
+  },
 });
 
 let appLoadedPromiseResolve: (any) => any;
