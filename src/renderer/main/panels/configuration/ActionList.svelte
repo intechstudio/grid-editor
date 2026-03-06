@@ -170,7 +170,7 @@
           in:fade|global={{ delay: 0 }}
         >
           <div class="flex flex-row gap-2">
-            {#key $latestComponentVersionKeys.get(action.short)}
+            {#key `${$latestComponentVersionKeys.get(action.short)}-${action.short}`}
               <DynamicWrapper
                 {index}
                 {action}

@@ -64,32 +64,19 @@
   };
 
   let scriptValue = ""; // local script part
-  let lastParsedScript = "";
-  let isActiveForCurrentAction = false;
 
-  $: if (action.short === "sn") {
-    if (!$action.invalid && $action.script !== lastParsedScript) {
-      handleActionChange($action);
-    }
-  } else {
-    // Reset state when this component instance is used for a non-ElementName action
-    if (lastParsedScript !== "") {
-      scriptValue = "";
-      lastParsedScript = "";
-      isActiveForCurrentAction = false;
-    }
+  $: if (!$action.invalid) {
+    handleActionChange($action);
   }
 
   function handleActionChange(data: ActionData) {
     const matches = data.script.match(information.valueRegex);
     if (matches && matches[1] !== undefined) {
       scriptValue = matches[1];
-      lastParsedScript = data.script;
-      isActiveForCurrentAction = true;
     }
   }
 
-  $: if (action.short === "sn" && isActiveForCurrentAction) {
+  $: {
     const index = event.config.findIndex((e) => e.id === action.id);
     if (index === 0 && NumberToEventType(event.type) === EventType.SETUP) {
       element.name = scriptValue;
@@ -98,10 +85,6 @@
   }
 
   function sendData(e) {
-    // Safety check: only dispatch if this is actually an ElementName action
-    if (action.short !== "sn" || !isActiveForCurrentAction) {
-      return;
-    }
     dispatch("update-action", {
       short: information.short,
       script: `self:gen("${e}")`,
@@ -118,7 +101,6 @@
       const { value, validationError } = e.detail;
       scriptValue = value;
       validator.value = !validationError;
-      isActiveForCurrentAction = true;
       dispatch("validation", { value: validationError });
     }}
     on:change={() => dispatch("sync")}
