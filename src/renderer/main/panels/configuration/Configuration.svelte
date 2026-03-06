@@ -77,9 +77,7 @@
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
 
     if (setup.actionAt(0)?.short !== elementNameInformation.short) {
-      // Don't create ElementName action if value is empty/undefined
-      // (this happens when switching to an element without ElementName)
-      if (!value || value.length === 0) {
+      if (typeof value === "undefined" || value.length === 0) {
         return;
       }
       const data = new ActionData(
@@ -91,12 +89,8 @@
     }
 
     const action = setup.actionAt(0);
-    const regex = elementNameInformation.valueRegex;
-    const match = action.script.match(regex);
-    const name = match?.[1];
+    const name = action.script.match(elementNameInformation.valueRegex)?.[1];
 
-    // If the existing ElementName action's script does not match the expected pattern,
-    // do not attempt to update or remove it to avoid runtime errors.
     if (typeof name === "undefined") {
       return;
     }
@@ -120,18 +114,15 @@
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
     const action = setup.actionAt(0);
 
-    if (action?.short === elementNameInformation.short) {
-      const regex = elementNameInformation.valueRegex;
-      const match = action.script.match(regex);
-      const value = match?.[1];
-      if (typeof value !== "undefined") {
-        if (value !== elementName) {
-          elementName = value;
-          element.name = value;
-        }
-      }
-    } else {
+    if (action?.short !== elementNameInformation.short) {
       elementName = "";
+      return;
+    }
+
+    const value = action.script.match(elementNameInformation.valueRegex)?.[1];
+    if (typeof value !== "undefined" && value !== elementName) {
+      elementName = value;
+      element.name = value;
     }
   }
 
