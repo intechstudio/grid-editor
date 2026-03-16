@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Architecture } from "@intechstudio/grid-protocol";
+  import { Architecture, grid } from "@intechstudio/grid-protocol";
   import { GridModule } from "../../../../runtime/runtime";
   import { user_input } from "../../../../runtime/user-input.store";
   import { appSettings } from "../../../../runtime/app-helper.store";
@@ -7,6 +7,14 @@
 
   export let visible = true;
   export let device: GridModule = undefined;
+
+  const HWCFG = grid.getProperty("HWCFG");
+  const cdHwcfgs = Object.entries(HWCFG)
+    .filter(([key]) => key.includes("_CD_"))
+    .map(([, val]) => Number(val));
+  const ndHwcfgs = Object.entries(HWCFG)
+    .filter(([key]) => key.includes("_ND_"))
+    .map(([, val]) => Number(val));
 
   const page = derived([device, user_input], ([$device, $user_input]) =>
     device.findPage($user_input.pagenumber),
@@ -56,6 +64,15 @@
           "." +
           device?.fwVersion?.patch}</span
       >
+    {/if}
+    {#if $appSettings.persistent.variantLabelEnabled}
+      {#if cdHwcfgs.includes(device?.hwcfg)}
+        <span class="text-red-500">Center</span>
+      {:else if ndHwcfgs.includes(device?.hwcfg)}
+        <span class="text-red-500">Smooth</span>
+      {:else}
+        <span class="text-green-500">Normal</span>
+      {/if}
     {/if}
   </div>
 {/if}
