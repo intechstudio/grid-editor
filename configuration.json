@@ -111,6 +111,11 @@
       "name": "Websocket Monitor (Legacy)",
       "svgIcon": "menu_websocket_monitor",
       "description": "Watch communication coming from the Editor websocket port"
+    },
+    "file-manager": {
+      "name": "File Manager",
+      "svgIcon": "menu_file_manager",
+      "description": "Browse and manage files on connected Grid modules"
     }
   }
 }

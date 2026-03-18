@@ -5,6 +5,7 @@ import menu_websocket_monitor from "../assets/menu/menu_websocket_monitor.svg?ra
 import menu_package_general from "../assets/menu/menu_package_general.svg?raw";
 import menu_preferences from "../assets/menu/menu_preferences.svg?raw";
 import menu_packages from "../assets/menu/menu_packages.svg?raw";
+import menu_file_manager from "../assets/menu/menu_file_manager.svg?raw";
 
 type MenuIconMap = {
   [key: string]: string;
@@ -18,6 +19,7 @@ const menuIconMap: MenuIconMap = {
   menu_package_general,
   menu_preferences,
   menu_packages,
+  menu_file_manager,
 };
 
 export default menuIconMap;
