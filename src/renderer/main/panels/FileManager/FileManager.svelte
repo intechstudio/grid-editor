@@ -38,7 +38,10 @@
 
     moduleOptions = newOptions;
 
-    if (newOptions.length > 0 && !newOptions.some((o) => o.value === selectedModule)) {
+    if (
+      newOptions.length > 0 &&
+      !newOptions.some((o) => o.value === selectedModule)
+    ) {
       selectedModule = newOptions[0].value;
       currentPath = "/";
     }
@@ -53,7 +56,12 @@
 
   // ── Lua evaluate helper ────────────────────────────────────────────────────
 
-  async function sendLua(code: string, dx: number, dy: number, compress = true): Promise<LuaValue[]> {
+  async function sendLua(
+    code: string,
+    dx: number,
+    dy: number,
+    compress = true,
+  ): Promise<LuaValue[]> {
     const runtime = get(runtime_manager).active?.runtime;
     if (!runtime) throw new Error("No runtime");
 
@@ -92,7 +100,11 @@
         dx,
         dy,
         responseRequired: true,
-        filter: { class_name: "EVALUATE", brc_parameters: {}, class_parameters: {} },
+        filter: {
+          class_name: "EVALUATE",
+          brc_parameters: {},
+          class_parameters: {},
+        },
         responseTimeout: 5000,
       },
     );
@@ -109,9 +121,10 @@
 
   // Breadcrumb segments derived from currentPath, e.g. "/" → ["/"]
   // "/00/foo/" → ["/", "00", "foo"]
-  $: breadcrumbs = currentPath === "/"
-    ? ["/"]
-    : ["/", ...currentPath.replace(/^\/|\/$/g, "").split("/")];
+  $: breadcrumbs =
+    currentPath === "/"
+      ? ["/"]
+      : ["/", ...currentPath.replace(/^\/|\/$/g, "").split("/")];
 
   function navigateTo(path: string) {
     currentPath = path;
@@ -137,7 +150,10 @@
   let clickTimer: ReturnType<typeof setTimeout> | null = null;
 
   function navigateUp() {
-    const segments = currentPath.replace(/^\/|\/$/g, "").split("/").filter(Boolean);
+    const segments = currentPath
+      .replace(/^\/|\/$/g, "")
+      .split("/")
+      .filter(Boolean);
     segments.pop();
     navigateTo(segments.length === 0 ? "/" : "/" + segments.join("/") + "/");
   }
@@ -189,9 +205,10 @@
     if (!fileContent || !selectedEntry) return null;
     try {
       const path = currentPath + selectedEntry;
-      const content = selectedLanguage === "lua"
-        ? GridScript.compressScript(fileContent)
-        : fileContent;
+      const content =
+        selectedLanguage === "lua"
+          ? GridScript.compressScript(fileContent)
+          : fileContent;
       luaSyntaxError = null;
       const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:write("${luaEscape(content)}") f:close() return true`;
       return `<?lua ${lua} ?>`.length;
@@ -206,12 +223,12 @@
 
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
-    { title: "Lua",        value: "lua" },
-    { title: "TOML",       value: "ini" },
+    { title: "Lua", value: "lua" },
+    { title: "TOML", value: "ini" },
   ];
 
   const extLanguageMap: Record<string, string> = {
-    lua:  "lua",
+    lua: "lua",
     toml: "ini",
   };
 
@@ -227,9 +244,10 @@
     if (model) monaco.editor.setModelLanguage(model, selectedLanguage);
     if (rawContent !== null) {
       try {
-        const recalculated = selectedLanguage === "lua"
-          ? GridScript.expandScript(rawContent)
-          : rawContent;
+        const recalculated =
+          selectedLanguage === "lua"
+            ? GridScript.expandScript(rawContent)
+            : rawContent;
         fileContent = recalculated;
         savedContent = recalculated;
         editor.setValue(recalculated);
@@ -290,12 +308,12 @@
       const result = await sendLua(lua, target.dx, target.dy);
       rawContent = result[0] != null ? String(result[0]) : null;
       selectedLanguage = detectLanguage(entry);
-      fileContent = rawContent !== null && selectedLanguage === "lua"
-        ? GridScript.expandScript(rawContent)
-        : rawContent;
+      fileContent =
+        rawContent !== null && selectedLanguage === "lua"
+          ? GridScript.expandScript(rawContent)
+          : rawContent;
       savedContent = fileContent;
       editor?.setValue(fileContent ?? "");
-
     } catch (e) {
       fileContent = null;
       savedContent = null;
@@ -312,9 +330,10 @@
       const path = currentPath + selectedEntry;
       let content: string;
       try {
-        content = selectedLanguage === "lua"
-          ? GridScript.compressScript(fileContent)
-          : fileContent;
+        content =
+          selectedLanguage === "lua"
+            ? GridScript.compressScript(fileContent)
+            : fileContent;
       } catch (e) {
         error = `Syntax error: ${e}`;
         return;
@@ -326,7 +345,11 @@
         // Invalidate Lua require() cache so the updated module is picked up next call
         const moduleName = selectedEntry.replace(/\.lua$/i, "");
         if (selectedEntry.toLowerCase().endsWith(".lua")) {
-          await sendLua(`package.loaded[${JSON.stringify(moduleName)}] = nil`, target.dx, target.dy);
+          await sendLua(
+            `package.loaded[${JSON.stringify(moduleName)}] = nil`,
+            target.dx,
+            target.dy,
+          );
         }
       } else {
         error = `Save failed: ${JSON.stringify(result)}`;
@@ -359,7 +382,12 @@
   }
 
   async function confirmRename() {
-    if (!target || !selectedEntry || !renameValue.trim() || renameValue === selectedEntry) {
+    if (
+      !target ||
+      !selectedEntry ||
+      !renameValue.trim() ||
+      renameValue === selectedEntry
+    ) {
       cancelRename();
       return;
     }
@@ -446,7 +474,10 @@
       if (table && typeof table === "object") {
         entries = Object.values(table).map((v) => {
           const row = v as LuaTable;
-return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file" } as DirEntry;
+          return {
+            name: String(row["name"]),
+            type: row["type"] === "dir" ? "dir" : "file",
+          } as DirEntry;
         });
       } else {
         entries = [];
@@ -475,7 +506,6 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
 </script>
 
 <div class="w-full h-full flex flex-col p-4 gap-2 overflow-hidden">
-
   <!-- Module selector -->
   <div class="flex flex-row gap-2">
     <div class="flex-grow">
@@ -493,28 +523,38 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
   {#if target}
     <!-- Path breadcrumb + actions -->
     <div class="flex flex-row items-center gap-2">
-      <div class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap flex-grow">
-      {#each breadcrumbs as segment, i}
-        {#if i > 0}
-          <span class="opacity-40">/</span>
-        {/if}
-        <button
-          class="hover:opacity-100 hover:underline px-0.5 rounded {i === breadcrumbs.length - 1 ? 'opacity-100' : 'opacity-60'}"
-          onclick={() => onBreadcrumbClick(i)}
-        >
-          {segment}
-        </button>
-      {/each}
+      <div
+        class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap flex-grow"
+      >
+        {#each breadcrumbs as segment, i}
+          {#if i > 0}
+            <span class="opacity-40">/</span>
+          {/if}
+          <button
+            class="hover:opacity-100 hover:underline px-0.5 rounded {i ===
+            breadcrumbs.length - 1
+              ? 'opacity-100'
+              : 'opacity-60'}"
+            onclick={() => onBreadcrumbClick(i)}
+          >
+            {segment}
+          </button>
+        {/each}
       </div>
       <MoltenPushButton
         click={startRename}
         text="Rename"
-        disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".." || renaming}
+        disabled={!selectedEntry ||
+          selectedEntry === "." ||
+          selectedEntry === ".." ||
+          renaming}
       />
       <MoltenPushButton
         click={deleteSelected}
         text="Delete"
-        disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
+        disabled={!selectedEntry ||
+          selectedEntry === "." ||
+          selectedEntry === ".."}
       />
     </div>
 
@@ -523,9 +563,16 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
         <input
           class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
           bind:value={renameValue}
-          onkeydown={(e) => { if (e.key === "Enter") confirmRename(); else if (e.key === "Escape") cancelRename(); }}
+          onkeydown={(e) => {
+            if (e.key === "Enter") confirmRename();
+            else if (e.key === "Escape") cancelRename();
+          }}
         />
-        <MoltenPushButton click={confirmRename} text="OK" disabled={!renameValue.trim()} />
+        <MoltenPushButton
+          click={confirmRename}
+          text="OK"
+          disabled={!renameValue.trim()}
+        />
         <MoltenPushButton click={cancelRename} text="Cancel" />
       </div>
     {/if}
@@ -541,10 +588,15 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
       <div class="flex flex-col overflow-y-auto gap-0.5 font-mono text-sm">
         {#each entries as entry}
           <button
-            class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry === entry.name ? 'bg-white/20' : 'hover:bg-white/10'}"
+            class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
+            entry.name
+              ? 'bg-white/20'
+              : 'hover:bg-white/10'}"
             onclick={() => onEntryClick(entry)}
           >
-            <span class="opacity-50 shrink-0">{entry.type === "dir" ? "📁" : "📄"}</span>
+            <span class="opacity-50 shrink-0"
+              >{entry.type === "dir" ? "📁" : "📄"}</span
+            >
             <span class="truncate">{entry.name}</span>
           </button>
         {/each}
@@ -554,17 +606,21 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
     <p class="text-sm opacity-50">No modules connected.</p>
   {/if}
 
-  <div class="border-t border-white/10 pt-2 flex flex-col gap-1 {fileContent === null && !readingFile ? 'hidden' : ''}">
+  <div
+    class="border-t border-white/10 pt-2 flex flex-col gap-1 {fileContent ===
+      null && !readingFile
+      ? 'hidden'
+      : ''}"
+  >
     <div class="flex items-center gap-2">
-      <p class="text-xs opacity-50 font-mono flex-grow">{selectedEntry ?? ""}{fileDirty ? " •" : ""}</p>
+      <p class="text-xs opacity-50 font-mono flex-grow">
+        {selectedEntry ?? ""}{fileDirty ? " •" : ""}
+      </p>
       {#if savePacketSize !== null}
         <span class="text-xs font-mono opacity-50">{savePacketSize} B</span>
       {/if}
       <div class="w-28">
-        <MeltSelect
-          bind:target={selectedLanguage}
-          options={languageOptions}
-        />
+        <MeltSelect bind:target={selectedLanguage} options={languageOptions} />
       </div>
       <MoltenPushButton
         click={saveFile}
@@ -580,7 +636,9 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
     {/if}
     <div
       bind:this={monacoElement}
-      class="w-full h-48 border border-white/20 rounded {readingFile ? 'hidden' : ''}"
+      class="w-full h-48 border border-white/20 rounded {readingFile
+        ? 'hidden'
+        : ''}"
     />
   </div>
 
@@ -613,5 +671,4 @@ return { name: String(row["name"]), type: row["type"] === "dir" ? "dir" : "file"
       <SendEvaluate {target} />
     </div>
   {/if}
-
 </div>
