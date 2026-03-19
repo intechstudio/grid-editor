@@ -9,6 +9,7 @@ import {
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
+import { initLuaLSP } from "./monaco-luals-client";
 
 const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
@@ -524,6 +525,11 @@ export namespace MonacoEditor {
   initialize_autocomplete();
   initialize_hover();
   initialize_grammar();
+
+  // Connect to LuaLS via WebSocket (non-blocking, logs on failure)
+  initLuaLSP().catch((err) =>
+    console.warn("[LuaLS] Init failed (server may not be running):", err),
+  );
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
 

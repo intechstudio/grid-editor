@@ -70,6 +70,7 @@ log.info(
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
+import { startLuaLSServer, stopLuaLSServer } from "./ipcmain_luals";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, findBootloaderPathNative, writeFirmwareToBootloader } from "./src/firmware";
@@ -446,6 +447,9 @@ function createWindow() {
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
   updater.init(store.get("nightlyEditor"), store.get("disableAutoUpdate"));
+
+  // Start LuaLS WebSocket bridge for Monaco LSP
+  startLuaLSServer();
 
   // Setup custom log transport to forward logs to renderer
   setupRendererLogTransport();
@@ -1090,5 +1094,6 @@ app.on("activate", () => {
 // termination of application, closing the windows, used for macOS hide flag
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
+  stopLuaLSServer();
   app.quitting = true;
 });
