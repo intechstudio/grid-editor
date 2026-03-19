@@ -546,6 +546,9 @@ export namespace MonacoEditor {
   ) {
     const editor: CustomCodeEditor = monaco_editor.create(node, {
       ...options,
+      // Enable semantic highlighting so LuaLS semantic tokens (function colors,
+      // global variable colors, etc.) are applied on top of Monarch tokenizer.
+      "semanticHighlighting.enabled": true,
     });
 
     editor.restrictScope = options.restrictScope;

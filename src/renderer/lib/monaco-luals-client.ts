@@ -113,30 +113,68 @@ const openDocuments = new Set<string>();
 let connection: JsonRpcConnection | null = null;
 let disposables: IDisposable[] = [];
 
+// Filled from the server's initialize response so our semantic tokens
+// provider uses the exact same legend LuaLS encodes against.
+let serverTokenLegend: { tokenTypes: string[]; tokenModifiers: string[] } | null = null;
+
 export async function initLuaLSP() {
   if (connection) return;
 
   try {
     connection = new JsonRpcConnection(LUALS_URI);
 
-    // Safety net: respond to any workspace/configuration pulls with empty
-    // config — actual config comes from --configpath on the electron side.
+    // Respond to workspace/configuration pulls with settings that match
+    // our .luarc.json. The callSnippet setting is especially important:
+    // it tells LuaLS to insert function calls as snippets with parameter
+    // placeholders (e.g. `spawnEntity(${1:name}, ${2:pos})`).
     connection.onRequest("workspace/configuration", (params) =>
-      (params?.items ?? []).map(() => ({})),
+      (params?.items ?? []).map(() => ({
+        completion: { callSnippet: "Replace" },
+      })),
     );
 
-    await connection.sendRequest("initialize", {
+    const initResult = await connection.sendRequest("initialize", {
       processId: null,
       rootUri: "file:///grid-editor",
       capabilities: {
         textDocument: {
-          completion: { completionItem: { snippetSupport: true } },
+          completion: {
+            completionItem: {
+              snippetSupport: true,
+              insertReplaceSupport: true,
+            },
+          },
           hover: {},
+          signatureHelp: {
+            signatureInformation: {
+              parameterInformation: { labelOffsetSupport: true },
+              documentationFormat: ["markdown", "plaintext"],
+            },
+          },
           publishDiagnostics: {},
+          semanticTokens: {
+            dynamicRegistration: false,
+            tokenTypes: SEMANTIC_TOKEN_TYPES,
+            tokenModifiers: SEMANTIC_TOKEN_MODIFIERS,
+            formats: ["relative"],
+            requests: { full: true, range: false },
+            multilineTokenSupport: false,
+            overlappingTokenSupport: false,
+          },
         },
         workspace: { configuration: true },
       },
     });
+
+    // Capture the server's semantic token legend so we decode correctly.
+    const stProvider = initResult?.capabilities?.semanticTokensProvider;
+    if (stProvider?.legend) {
+      serverTokenLegend = {
+        tokenTypes: stProvider.legend.tokenTypes ?? SEMANTIC_TOKEN_TYPES,
+        tokenModifiers: stProvider.legend.tokenModifiers ?? SEMANTIC_TOKEN_MODIFIERS,
+      };
+      console.log("[LuaLS] Semantic tokens legend:", serverTokenLegend.tokenTypes.length, "types,", serverTokenLegend.tokenModifiers.length, "modifiers");
+    }
 
     await connection.sendNotification("initialized", {});
 
@@ -147,6 +185,10 @@ export async function initLuaLSP() {
 
     disposables.push(registerCompletionProvider());
     disposables.push(registerHoverProvider());
+    disposables.push(registerSignatureHelpProvider());
+    if (serverTokenLegend) {
+      disposables.push(registerSemanticTokensProvider());
+    }
     console.log("[LuaLS] Ready");
   } catch (err) {
     console.error("[LuaLS] Init failed:", err);
@@ -190,7 +232,7 @@ export async function closeDocument() {
 
 function registerCompletionProvider(): IDisposable {
   return monaco_languages.registerCompletionItemProvider("intech_lua", {
-    triggerCharacters: [".", ":"],
+    triggerCharacters: [".", ":", "\"", "'", "(", ","],
 
     provideCompletionItems: async (model, position) => {
       if (!connection) return { suggestions: [] };
@@ -207,7 +249,7 @@ function registerCompletionProvider(): IDisposable {
 
         const items = Array.isArray(result) ? result : result?.items ?? [];
         const word = model.getWordUntilPosition(position);
-        const range = new Range(
+        const defaultRange = new Range(
           position.lineNumber,
           word.startColumn,
           position.lineNumber,
@@ -215,19 +257,37 @@ function registerCompletionProvider(): IDisposable {
         );
 
         return {
-          suggestions: items.map((item: any) => ({
-            label: item.label,
-            kind: mapCompletionKind(item.kind),
-            insertText: item.textEdit?.newText ?? item.insertText ?? item.label,
-            insertTextRules:
-              item.insertTextFormat === 2
-                ? monaco_languages.CompletionItemInsertTextRule.InsertAsSnippet
-                : undefined,
-            detail: item.detail ?? "",
-            documentation: item.documentation?.value ?? item.documentation ?? "",
-            range,
-            _lspItem: item,
-          })),
+          suggestions: items.map((item: any) => {
+            // Use the server's textEdit range if available (important for
+            // string/enum completions where the replace range differs).
+            let range = defaultRange;
+            if (item.textEdit?.range) {
+              const r = item.textEdit.range;
+              range = new Range(
+                r.start.line + 1,
+                r.start.character + 1,
+                r.end.line + 1,
+                r.end.character + 1,
+              );
+            }
+
+            return {
+              label: item.label,
+              kind: mapCompletionKind(item.kind),
+              insertText: item.textEdit?.newText ?? item.insertText ?? item.label,
+              insertTextRules:
+                item.insertTextFormat === 2
+                  ? monaco_languages.CompletionItemInsertTextRule.InsertAsSnippet
+                  : undefined,
+              detail: item.detail ?? "",
+              documentation: item.documentation?.value ?? item.documentation ?? "",
+              range,
+              sortText: item.sortText,
+              filterText: item.filterText,
+              preselect: item.preselect,
+              _lspItem: item,
+            };
+          }),
         };
       } catch (err) {
         console.error("[LuaLS] Completion error:", err);
@@ -256,6 +316,54 @@ function registerCompletionProvider(): IDisposable {
         console.error("[LuaLS] Resolve error:", err);
       }
       return item;
+    },
+  });
+}
+
+// --- Signature help provider -------------------------------------------------
+
+function registerSignatureHelpProvider(): IDisposable {
+  return monaco_languages.registerSignatureHelpProvider("intech_lua", {
+    signatureHelpTriggerCharacters: ["(", ","],
+    signatureHelpRetriggerCharacters: [",", ")"],
+
+    provideSignatureHelp: async (model, position) => {
+      if (!connection) return null;
+      await syncDocument(model.getValue());
+
+      try {
+        const result = await connection.sendRequest(
+          "textDocument/signatureHelp",
+          {
+            textDocument: { uri: DOC_URI },
+            position: {
+              line: position.lineNumber - 1,
+              character: position.column - 1,
+            },
+          },
+        );
+
+        if (!result?.signatures?.length) return null;
+
+        return {
+          value: {
+            signatures: result.signatures.map((sig: any) => ({
+              label: sig.label,
+              documentation: sig.documentation?.value ?? sig.documentation ?? "",
+              parameters: (sig.parameters ?? []).map((p: any) => ({
+                label: p.label,
+                documentation: p.documentation?.value ?? p.documentation ?? "",
+              })),
+            })),
+            activeSignature: result.activeSignature ?? 0,
+            activeParameter: result.activeParameter ?? 0,
+          },
+          dispose: () => {},
+        };
+      } catch (err) {
+        console.error("[LuaLS] Signature help error:", err);
+        return null;
+      }
     },
   });
 }
@@ -311,6 +419,87 @@ function registerHoverProvider(): IDisposable {
   });
 }
 
+// --- Semantic tokens provider ------------------------------------------------
+
+// LSP standard token types — order matters, indices map to the encoded data.
+const SEMANTIC_TOKEN_TYPES = [
+  "namespace",
+  "type",
+  "class",
+  "enum",
+  "interface",
+  "struct",
+  "typeParameter",
+  "parameter",
+  "variable",
+  "property",
+  "enumMember",
+  "event",
+  "function",
+  "method",
+  "macro",
+  "keyword",
+  "modifier",
+  "comment",
+  "string",
+  "number",
+  "regexp",
+  "operator",
+  "decorator",
+];
+
+const SEMANTIC_TOKEN_MODIFIERS = [
+  "declaration",
+  "definition",
+  "readonly",
+  "static",
+  "deprecated",
+  "abstract",
+  "async",
+  "modification",
+  "documentation",
+  "defaultLibrary",
+  "global",
+];
+
+function registerSemanticTokensProvider(): IDisposable {
+  const legend: monaco_languages.SemanticTokensLegend = {
+    tokenTypes: serverTokenLegend!.tokenTypes,
+    tokenModifiers: serverTokenLegend!.tokenModifiers,
+  };
+
+  return monaco_languages.registerDocumentSemanticTokensProvider(
+    "intech_lua",
+    {
+      getLegend: () => legend,
+
+      provideDocumentSemanticTokens: async (model) => {
+        if (!connection) return null;
+        await syncDocument(model.getValue());
+
+        try {
+          const result = await connection.sendRequest(
+            "textDocument/semanticTokens/full",
+            { textDocument: { uri: DOC_URI } },
+          );
+
+          if (!result?.data?.length) return null;
+
+          return {
+            data: new Uint32Array(result.data),
+            resultId: result.resultId,
+          };
+        } catch (err) {
+          console.error("[LuaLS] Semantic tokens error:", err);
+          return null;
+        }
+      },
+
+      releaseDocumentSemanticTokens: () => {},
+    },
+  );
+}
+
 // --- Helpers -----------------------------------------------------------------
 
 function mapCompletionKind(lspKind?: number): monaco_languages.CompletionItemKind {
@@ -332,7 +521,14 @@ function mapCompletionKind(lspKind?: number): monaco_languages.CompletionItemKin
     15: monaco_languages.CompletionItemKind.Snippet,
     16: monaco_languages.CompletionItemKind.Color,
     17: monaco_languages.CompletionItemKind.File,
+    18: monaco_languages.CompletionItemKind.Reference,
+    19: monaco_languages.CompletionItemKind.Folder,
+    20: monaco_languages.CompletionItemKind.EnumMember,
     21: monaco_languages.CompletionItemKind.Constant,
+    22: monaco_languages.CompletionItemKind.Struct,
+    23: monaco_languages.CompletionItemKind.Event,
+    24: monaco_languages.CompletionItemKind.Operator,
+    25: monaco_languages.CompletionItemKind.TypeParameter,
   };
   return map[lspKind ?? 1] ?? monaco_languages.CompletionItemKind.Text;
 }

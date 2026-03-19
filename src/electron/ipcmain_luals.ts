@@ -47,6 +47,7 @@ function writeLuaRcConfig(): string {
       runtime: { version: "Lua 5.4" },
       diagnostics: { globals: ["self", "element"] },
       workspace: { library: [resolveAnnotationsPath()] },
+      completion: { callSnippet: "Replace" },
     }),
   );
   return configPath;
