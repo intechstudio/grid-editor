@@ -49,6 +49,7 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
       },
     },
     server: {
+      port: 5273,
       fs: {
         allow: [
           // Allow serving files from the project root

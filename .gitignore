@@ -19,3 +19,4 @@ buildVariables.json
 screenshot*
 src/electron/main.ts
 .vscode/settings.json
+build-assets/lua-language-server*

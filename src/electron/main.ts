@@ -485,7 +485,7 @@ function createWindow() {
   console.log(`here what is VITE_BUILD_ENV: ${import.meta.env.VITE_BUILD_ENV}`);
   if (import.meta.env.VITE_BUILD_ENV === "development") {
     log.info("Development Mode!");
-    mainWindow.loadURL("http://localhost:5173/");
+    mainWindow.loadURL("http://localhost:5273/");
     mainWindow.webContents.openDevTools();
   } else {
     // this is applicable for any non development environment, like production or test
@@ -549,7 +549,7 @@ function createWindow() {
       if (
         permission === "serial" &&
         (details.securityOrigin == "file:///" ||
-          details.securityOrigin == "http://localhost:5173/")
+          details.securityOrigin == "http://localhost:5273/")
       ) {
         return true;
       }
@@ -561,7 +561,7 @@ function createWindow() {
     if (
       details.deviceType === "serial" &&
       (details.origin === "file://" ||
-        details.origin === "http://localhost:5173")
+        details.origin === "http://localhost:5273")
     ) {
       return true;
     }
