@@ -110,7 +110,7 @@
       automaticLayout: true,
       wordWrap: "on",
       suggest: {
-        showIcons: false,
+        showIcons: true,
         showWords: true,
       },
       minimap: { enabled: false },

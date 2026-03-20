@@ -42,6 +42,9 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
       alias: {
         // Redirect @wasm-fmt/lua_fmt to the Vite-compatible entry that uses ?url for WASM
         "@wasm-fmt/lua_fmt": "@wasm-fmt/lua_fmt/vite",
+        // Route all monaco-editor imports through @codingame/monaco-vscode-editor-api
+        // so the VSCode service-backed API is used (required by monaco-languageclient).
+        "monaco-editor": "@codingame/monaco-vscode-editor-api",
         $lib: path.resolve("src/renderer/lib"),
         "$app/environment": path.resolve(
           "src/renderer/lib/app-environment-shim.ts",
@@ -61,6 +64,9 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     },
     target: "chrome104",
     envPrefix: "VITE_",
+    worker: {
+      format: "es", // Required for @codingame/monaco-vscode-* workers (code-splitting)
+    },
     optimizeDeps: {
       esbuildOptions: {
         plugins: [

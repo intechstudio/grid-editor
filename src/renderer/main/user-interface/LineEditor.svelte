@@ -76,7 +76,7 @@
       scrollPredominantAxis: false,
       scrollBeyondLastLine: false,
       suggest: {
-        showIcons: false,
+        showIcons: true,
         showWords: true,
       },
       automaticLayout: true,

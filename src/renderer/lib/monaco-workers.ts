@@ -1,18 +1,21 @@
 /**
- * Monaco Editor worker setup for Vite (no plugin required).
+ * Monaco Editor worker setup for @codingame/monaco-vscode-api.
  *
- * Uses Vite's built-in `?worker` import to bundle the base editor worker.
- * Only the generic editor worker is needed — Lua/intech_lua use Monarch
- * tokenizers which run on the main thread.
- *
- * When migrating to LuaLS + monaco-languageclient in the future,
- * the language server will communicate via WebSocket/IPC,
- * not through Monaco's built-in worker system.
+ * Uses useWorkerFactory from monaco-languageclient to configure the
+ * editor worker service. This must be called before initialize()
+ * from @codingame/monaco-vscode-api.
  */
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import { useWorkerFactory, Worker as MCWorker } from "monaco-languageclient/workerFactory";
 
-self.MonacoEnvironment = {
-  getWorker() {
-    return new editorWorker();
+useWorkerFactory({
+  workerLoaders: {
+    editorWorkerService: () =>
+      new MCWorker(
+        new URL(
+          "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.js",
+          import.meta.url,
+        ),
+        { type: "module" },
+      ),
   },
-};
+});

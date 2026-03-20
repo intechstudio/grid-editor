@@ -45,7 +45,12 @@ function writeLuaRcConfig(): string {
     configPath,
     JSON.stringify({
       runtime: { version: "Lua 5.4" },
-      diagnostics: { globals: ["self", "element"] },
+      diagnostics: {
+        globals: ["self", "element"],
+        severity: {
+          "undefined-global": "Warning",
+        },
+      },
       workspace: { library: [resolveAnnotationsPath()] },
       completion: { callSnippet: "Replace" },
     }),
