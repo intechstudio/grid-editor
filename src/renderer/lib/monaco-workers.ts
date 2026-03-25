@@ -18,6 +18,7 @@ useWorkerFactory({
           "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.js",
           import.meta.url,
         ),
+        { type: "module" },
       ),
   },
 });

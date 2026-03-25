@@ -65,7 +65,15 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     target: "chrome104",
     envPrefix: "VITE_",
     worker: {
-      format: "iife", // IIFE avoids bare-specifier resolution failures under Electron file:// protocol
+      format: "es",
+      rollupOptions: {
+        output: {
+          // Inline all dynamic imports so the worker is a single self-contained
+          // ES file. Without this, code-split chunks use bare specifiers that
+          // fail under Electron's file:// protocol.
+          inlineDynamicImports: true,
+        },
+      },
     },
     optimizeDeps: {
       esbuildOptions: {
