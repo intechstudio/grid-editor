@@ -8,7 +8,7 @@
  * - languages.setMonarchTokensProvider()
  *
  * It sets up the VSCode service layer that monaco-languageclient requires,
- * using "classic" mode (Monarch tokenizer, not TextMate).
+ * using "classic" mode using Monarch tokenizer.
  */
 
 // Worker factory must be configured before initialize()

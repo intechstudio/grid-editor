@@ -1,6 +1,5 @@
-# LuaLS + Monaco Integration — Status & Journey
+# LuaLS + Monaco Integration
 
-**Date:** 2026-03-19  
 **Branch:** `kkerti-luaLS`
 
 ---
@@ -54,151 +53,163 @@
 └─────────────────────────────────────────────────────┘
 ```
 
-### Why the renderer?
-
-LuaLS itself runs as a child process on the **main thread** (spawned by `ipcmain_luals.ts`). The LSP client lives in the **renderer** because that's where Monaco is — Monaco providers must be registered in the same JS context as the editor. The WebSocket bridge is the thinnest possible pipe between the two: it adds no interception or transformation, just shuttles JSON-RPC bytes between the renderer's WS client and LuaLS's stdio.
-
-This is the right split. The renderer doesn't "run" LuaLS; it only talks to it.
+LuaLS runs as a child process on the **main thread**. The LSP client lives in the **renderer** because Monaco providers must be registered in the same JS context as the editor. The WebSocket bridge is a dumb pipe — no interception, just JSON-RPC bytes between the renderer's WS client and LuaLS's stdio.
 
 ---
 
 ## What's Working
 
-### 1. Annotation-driven intelligence
+### Annotation-driven intelligence
 
 The single most impactful piece: `build-assets/lua-annotations/grid-api.lua`.
 
-Once LuaLS reads this `---@meta` file (via `workspace.library` in `.luarc.json`), everything else flows naturally:
-- **Completions** — global functions like `spawnEntity()` appear in the suggestion list
-- **Snippets** — accepting a function completion inserts `spawnEntity(name, pos)` with tab-stop placeholders (enabled by `completion.callSnippet: "Replace"` in both `.luarc.json` and `workspace/configuration` response)
+Once LuaLS reads this `---@meta` file (via `workspace.library` in `.luarc.json`), everything flows naturally:
+
+- **Completions** — global functions appear in the suggestion list
+- **Snippets** — accepting a function completion inserts params with tab-stop placeholders
 - **Hover** — full signature + `@param` / `@return` docs rendered as markdown
-- **Signature help** — typing `(` or `,` shows the active parameter in the function signature
-- **Enum/alias values** — `@alias Color` with `---|` entries produces `"red"`, `"green"`, `"blue"`, `"yellow"` completions when LuaLS knows the expected type
-- **Class fields** — `@class SpawnOptions` fields appear when constructing a table for that parameter
+- **Signature help** — typing `(` or `,` shows the active parameter
+- **Enum/alias values** — `@alias` with `---|` entries produces string completions when LuaLS knows the expected type
+- **Class fields** — `@class` fields appear when constructing a table for that parameter
 
-The annotation file is the contract. Getting it right is what makes the rest work.
-
-### 2. Completion provider
+### Completion provider
 
 - Trigger characters: `.` `:` `"` `'` `(` `,`
 - Respects server `textEdit.range` (critical for string/enum completions where the replace span includes quotes)
-- Full LSP kind mapping (1–25) including `EnumMember` for distinct icons on alias values
+- Full LSP kind mapping (1–25) including `EnumMember`
 - Snippet insertion via `insertTextFormat === 2`
 - `resolveCompletionItem` for lazy-loaded docs
 
-### 3. Hover provider
+### Hover, Signature help, Semantic tokens
 
-- Delegates to `textDocument/hover`, converts LSP ranges to Monaco ranges
-- Returns markdown content arrays
+- Hover delegates to `textDocument/hover`, converts LSP ranges to Monaco ranges
+- Signature help triggers on `(` and `,`, retriggers on `)`
+- Semantic tokens: protocol works, but Monaco's built-in themes have limited semantic token color rules — this is a theme/styling gap, not a protocol problem
 
-### 4. Signature help provider
-
-- Triggers on `(` and `,`, retriggers on `)` 
-- Maps LSP `SignatureInformation` → Monaco format including parameter labels and docs
-
-### 5. Semantic tokens provider
-
-- Declares full capability in `initialize` (token types + modifiers)
-- Captures the server's legend from the `initialize` response (not hardcoded)
-- Calls `textDocument/semanticTokens/full` and returns `Uint32Array` directly
-- Monaco editor created with `"semanticHighlighting.enabled": true`
-- **Status:** Tokens are returned from LuaLS but coloring in the editor is inconsistent — the `vs-dark` base theme has limited semantic token color rules and Monaco's built-in mapping doesn't always produce visible color differences. Needs theme-level `semanticTokenColors` rules or custom CSS to fully work. This is a theme/styling problem, not a protocol problem.
-
-### 6. WebSocket bridge
+### WebSocket bridge
 
 - Clean pipe: no message interception, no rewriting
-- LuaLS config injected via `--configpath` pointing to a generated `.luarc.json`
-- `workspace/configuration` pulls from the client also return `callSnippet: "Replace"` for runtime config consistency
+- Config injected via `--configpath` pointing to a generated `.luarc.json`
+- `workspace/configuration` responses also return `callSnippet: "Replace"` for runtime consistency
 
 ---
 
-## The Journey — What We Learned
+## Lessons Learned
 
-### The hard part: getting LuaLS to see the annotations
+### Annotations: just plain `.lua` files
 
-The initial attempt tried to resolve annotation files from `@intechstudio/grid-protocol/annotations` — a path that didn't exist. LuaLS needs plain `.lua` files with `---@meta` headers in a folder passed via `Lua.workspace.library`. No special format, no JSON, no build step — just `.lua` files with EmmyLua-style comments.
+The initial attempt tried to resolve annotation files from `@intechstudio/grid-protocol/annotations` — a path that didn't exist. LuaLS needs plain `.lua` files with `---@meta` headers in a folder passed via `Lua.workspace.library`. No special format, no JSON, no build step.
 
-The breakthrough was creating `build-assets/lua-annotations/grid-api.lua` with `---@meta` at the top and writing normal Lua function stubs with `---@param` / `---@return` annotations. Once this file existed and the path was correct in `.luarc.json`, LuaLS immediately started providing completions, hover, and signature help for all declared functions and types.
+The breakthrough was creating `build-assets/lua-annotations/grid-api.lua` with `---@meta` at the top and writing normal Lua function stubs with EmmyLua-style annotations.
 
-### Configuring LuaLS: two paths that must agree
+### LuaLS config: two paths that must agree
 
-LuaLS pulls configuration from two sources:
 1. **`.luarc.json`** via `--configpath` (read at startup)
-2. **`workspace/configuration`** request (pulled at runtime from the client)
+2. **`workspace/configuration`** request (pulled at runtime)
 
-If these disagree, behavior is unpredictable. For example, `completion.callSnippet: "Replace"` must be in both places — only having it in `.luarc.json` isn't enough because LuaLS may re-pull config at runtime and the client's empty `{}` response would reset it.
+If these disagree, behavior is unpredictable. For example, `completion.callSnippet: "Replace"` must be in both — LuaLS may re-pull config at runtime and an empty `{}` response would reset it.
 
 ### Snippet completions: three things must align
 
-Getting `spawnEntity(name, pos)` instead of just `spawnEntity` required:
 1. `.luarc.json`: `completion.callSnippet: "Replace"`
 2. `workspace/configuration` handler returns: `{ completion: { callSnippet: "Replace" } }`
 3. Client declares `snippetSupport: true` in `initialize` capabilities
 
 Without all three, LuaLS sends plain text completions with no parentheses.
 
-### Enum suggestions require trigger characters + range handling
+### Enum suggestions need trigger characters + range handling
 
-LuaLS suggests alias values (like `"red"` for `@alias Color`) but only when it knows the context requires that type. Two things were needed:
-- `"` and `'` as trigger characters so the completion request fires when the user starts typing a string literal
-- Using the server's `textEdit.range` instead of `getWordUntilPosition` — string completions include the surrounding quotes in the replace range
-
-### Semantic tokens: protocol works, styling is the gap
-
-The semantic tokens protocol integration is fully functional — LuaLS returns encoded token data and Monaco receives it. But Monaco's built-in themes (`vs-dark`, `vs`) have minimal semantic token styling out of the box. The tokens are decoded and applied, but many token types end up with the same default color as the Monarch tokenizer already produces. Making this visually useful requires adding explicit `semanticTokenColors` rules to the theme definition, which Monaco's `defineTheme` API doesn't directly support in the same way VS Code's theme JSON does. This is a known limitation of standalone Monaco vs full VS Code.
+- `"` and `'` as trigger characters so completions fire when the user starts typing a string literal
+- Use the server's `textEdit.range` instead of `getWordUntilPosition` — string completions include the surrounding quotes in the replace range
 
 ### Monaco standalone ≠ VS Code
 
 Several things that "just work" in VS Code require manual wiring in standalone Monaco:
+
 - No built-in LSP client — had to write `JsonRpcConnection` from scratch
 - No `vscode-languageclient` equivalent that auto-registers providers
 - `semanticHighlighting.enabled` must be passed as an editor construction option
 - Theme semantic token colors require workarounds
 - Document sync is manual (`didOpen`/`didChange`/`didClose`)
 
-The `monaco-languageclient` package exists but we opted for a minimal hand-rolled approach to avoid the heavy `@codingame/monaco-vscode-api` dependency chain.
+We opted for a minimal hand-rolled approach to avoid the heavy `@codingame/monaco-vscode-api` dependency chain.
 
 ---
 
 ## File Map
 
-| File | Role |
-|---|---|
-| `src/electron/ipcmain_luals.ts` | Spawns LuaLS, bridges stdio ↔ WS, writes `.luarc.json` |
-| `src/electron/main.ts` | Calls `startLuaLSServer()` / `stopLuaLSServer()` |
-| `src/renderer/lib/monaco-luals-client.ts` | LSP client: JSON-RPC, document sync, all providers |
-| `src/renderer/lib/monaco.ts` | Monarch tokenizer, theme, editor factory, calls `initLuaLSP()` |
-| `build-assets/lua-annotations/grid-api.lua` | `---@meta` annotations for the Grid Lua API |
-| `build-assets/lua-language-server-3.17.1-darwin-arm64/` | LuaLS binary (macOS arm64, dev only) |
+| File                                                 | Role                                                            |
+| ---------------------------------------------------- | --------------------------------------------------------------- |
+| `src/electron/ipcmain_luals.ts`                      | Spawns LuaLS, bridges stdio ↔ WS, writes `.luarc.json`         |
+| `src/electron/main.ts`                               | Calls `startLuaLSServer()` / `stopLuaLSServer()`                |
+| `src/renderer/lib/monaco-luals-client.ts`            | LSP client: JSON-RPC, document sync, all providers              |
+| `src/renderer/lib/monaco.ts`                         | Monarch tokenizer, theme, editor factory, calls `initLuaLSP()`  |
+| `build-assets/lua-annotations/grid-api.lua`          | `---@meta` annotations for the Grid Lua API                     |
+| `build-scripts/download-luals.js`                    | Downloads platform-specific LuaLS binaries from GitHub releases |
+| `build-assets/lua-language-server-<ver>-<platform>/` | LuaLS binary (gitignored, auto-downloaded per platform)         |
 
 ---
 
 ## TODO
 
 ### Annotations
+
 - [ ] Add all ~72 global functions to `grid-api.lua` (currently a test subset)
 - [ ] Add `Element` class with method annotations (~53 methods)
 - [ ] Declare `self` and `element` as `Element` globals
 - [ ] Consider auto-generating annotations from `grid.get_luadocs()` or `grid-fw` source
 
 ### Semantic tokens / coloring
+
 - [ ] Investigate Monaco theme API for semantic token color overrides
 - [ ] Alternatively: use a `TokensProviderFactory` to map LuaLS semantic types to Monarch-compatible scopes
-- [ ] Check if `monaco-editor` exposes `semanticTokenColorCustomizations` equivalent
 
 ### Build / packaging
-- [ ] Bundle LuaLS binary in `extraResources` via `electron-builder-config.js`
-- [ ] Handle packaged app paths in `resolveLualsBinary()`
-- [ ] Add macOS x64, Linux, Windows binaries
+
+- [x] Bundle LuaLS binary in `extraResources` via `electron-builder-config.js`
+- [x] Handle packaged app paths in `resolveLualsBinary()`
+- [x] Add macOS x64, Linux, Windows binaries — `download-luals.js` auto-detects platform
+- [x] Download script integrated into `postinstall` hook and CI workflow
 - [ ] Investigate LuaLS WASM as cross-platform alternative
 
 ### LSP client improvements
+
 - [ ] Wire `textDocument/publishDiagnostics` to `monaco_editor.setModelMarkers`
 - [ ] Debounce `didChange` notifications
 - [ ] WebSocket reconnection on drop
 - [ ] Multi-document support (multiple virtual URIs)
 - [ ] Decide: keep or remove old hand-rolled completion/hover providers from `monaco.ts`
 
-### Monaco full LSP docs
-- [ ] Read through Monaco editor LSP integration docs to understand why initial annotation loading required so much trial and error
-- [ ] Check if `monaco-languageclient` would simplify future provider registration
+---
+
+## Progress Log
+
+### 2026-03-19 — Initial integration attempt
+
+First pass at integrating LuaLS with Monaco. Created the WebSocket bridge (`ipcmain_luals.ts`), hand-rolled JSON-RPC client in the renderer, and rewrote `monaco.ts` with LSP providers. The annotation path from `grid-protocol` didn't exist — resolved by creating `build-assets/lua-annotations/grid-api.lua` with `---@meta` stubs. Decided to revert the large diff and re-apply incrementally. Kept the Monarch tokenizer for syntax highlighting alongside LuaLS intelligence.
+
+Key commits: `b66e4b577` (consume luadocs in Monaco), `b4ddb8240` (allow symlinking grid-protocol).
+
+### 2026-03-25 — Cross-platform LuaLS binary packaging
+
+**PR goal:** Verify that the new LuaLS integration brings meaningful improvements to Grid Editor across all platforms.
+
+Changes:
+
+1. **`build-scripts/download-luals.js`** (new) — Downloads platform-specific LuaLS v3.17.1 binaries from GitHub releases. Auto-detects targets per OS. Skips if already exists.
+
+2. **`src/electron/ipcmain_luals.ts`** — Dynamic platform/arch resolution via `getAssetsBase()` + `resolveLualsBinary()`. Handles packaged vs dev paths and `.exe` on Windows.
+
+3. **`electron-builder-config.js`** — `extraResources` dynamically includes all `lua-language-server-*` directories and `lua-annotations/` outside ASAR.
+
+4. **`.github/workflows/build-matrix.yml`** — Added "Download LuaLS binaries" step after `npm ci`.
+
+5. **`package.json`** — Added `download:luals` script, wired into `postinstall`.
+
+CI matrix:
+
+| Runner           | Downloads              | Packaged into    |
+| ---------------- | ---------------------- | ---------------- |
+| `macos-latest`   | `darwin-arm64` + `x64` | arm64 + x64 DMGs |
+| `windows-latest` | `win32-x64`            | NSIS installer   |
+| `ubuntu-22.04`   | `linux-x64`            | AppImage         |

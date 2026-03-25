@@ -10,7 +10,11 @@
  * --configpath on the electron side. This client just connects the transport.
  */
 import { MonacoLanguageClient } from "monaco-languageclient";
-import { toSocket, WebSocketMessageReader, WebSocketMessageWriter } from "vscode-ws-jsonrpc";
+import {
+  toSocket,
+  WebSocketMessageReader,
+  WebSocketMessageWriter,
+} from "vscode-ws-jsonrpc";
 import { CloseAction, ErrorAction } from "vscode-languageclient/browser.js";
 
 const LUALS_WS_URL = "ws://localhost:8089";
@@ -96,4 +100,3 @@ export async function stopLuaLSClient(): Promise<void> {
     webSocket = null;
   }
 }
-

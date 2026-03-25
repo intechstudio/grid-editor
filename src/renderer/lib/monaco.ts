@@ -276,12 +276,6 @@ function initialize_grammar() {
   // types than standalone monaco-editor, but the tokenizer definition is valid.
   monaco_languages.setMonarchTokensProvider("intech_lua", intech_lua as any);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
-
-  // Also register the same tokenizer for the "lua" language ID.
-  // LuaLS hover responses use ```lua fenced code blocks — Monaco needs a
-  // tokenizer for "lua" to syntax-highlight those blocks in hover tooltips.
-  monaco_languages.setMonarchTokensProvider("lua", createLangDef() as any);
-  monaco_languages.setLanguageConfiguration("lua", language_config);
 }
 
 export namespace MonacoEditor {
@@ -300,7 +294,10 @@ export namespace MonacoEditor {
 
     // Connect to LuaLS via MonacoLanguageClient (non-blocking, logs on failure)
     startLuaLSClient().catch((err) =>
-      console.warn("[LuaLS] Client start failed (server may not be running):", err),
+      console.warn(
+        "[LuaLS] Client start failed (server may not be running):",
+        err,
+      ),
     );
   });
 

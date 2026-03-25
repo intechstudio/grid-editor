@@ -8,6 +8,7 @@
 import path from "path";
 import fs from "fs";
 import os from "os";
+import { app } from "electron";
 import log from "electron-log";
 import WebSocket from "ws";
 import {
@@ -21,16 +22,31 @@ const LUALS_PORT = 8089;
 
 let wss: any;
 
+function getAssetsBase(): string {
+  return app.isPackaged
+    ? process.resourcesPath
+    : path.resolve(__dirname, "../../build-assets");
+}
+
 function resolveLualsBinary(): string {
-  const base = path.resolve(
-    __dirname,
-    "../../build-assets/lua-language-server-3.17.1-darwin-arm64",
+  const base = getAssetsBase();
+  const target = `${process.platform}-${process.arch}`;
+  const entries = fs.readdirSync(base);
+  const dir = entries.find(
+    (e) => e.startsWith("lua-language-server-") && e.endsWith(`-${target}`),
   );
-  return path.join(base, "bin", "lua-language-server");
+  if (!dir) {
+    throw new Error(`LuaLS binary not found for ${target} in ${base}`);
+  }
+  const bin =
+    process.platform === "win32"
+      ? "lua-language-server.exe"
+      : "lua-language-server";
+  return path.join(base, dir, "bin", bin);
 }
 
 function resolveAnnotationsPath(): string {
-  return path.resolve(__dirname, "../../build-assets/lua-annotations");
+  return path.join(getAssetsBase(), "lua-annotations");
 }
 
 /**

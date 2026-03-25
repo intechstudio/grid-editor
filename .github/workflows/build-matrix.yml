@@ -55,6 +55,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Download LuaLS binaries
+        run: node build-scripts/download-luals.js
+
       - name: Update package.json
         if: ${{ inputs.versionOverride != '' }}
         run: npm version ${{ inputs.versionOverride }} --no-git-tag-version

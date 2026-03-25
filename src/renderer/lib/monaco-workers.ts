@@ -5,7 +5,10 @@
  * editor worker service. This must be called before initialize()
  * from @codingame/monaco-vscode-api.
  */
-import { useWorkerFactory, Worker as MCWorker } from "monaco-languageclient/workerFactory";
+import {
+  useWorkerFactory,
+  Worker as MCWorker,
+} from "monaco-languageclient/workerFactory";
 
 useWorkerFactory({
   workerLoaders: {
