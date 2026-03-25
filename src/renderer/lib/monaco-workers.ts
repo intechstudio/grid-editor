@@ -1,24 +1,23 @@
 /**
  * Monaco Editor worker setup for @codingame/monaco-vscode-api.
  *
- * Uses useWorkerFactory from monaco-languageclient to configure the
- * editor worker service. This must be called before initialize()
- * from @codingame/monaco-vscode-api.
+ * Vite's ?worker suffix bundles the entry point into a self-contained file
+ * and gives us a Worker constructor. We set MonacoEnvironment.getWorker so
+ * StandaloneWebWorkerService uses it directly — bypassing the blob-URL
+ * bootstrap that can't resolve bare specifiers under Electron's file://
+ * protocol.
+ *
+ * This must run before initialize() from @codingame/monaco-vscode-api.
  */
-import {
-  useWorkerFactory,
-  Worker as MCWorker,
-} from "monaco-languageclient/workerFactory";
+import { useWorkerFactory } from "monaco-languageclient/workerFactory";
+import EditorWorker from "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.js?worker";
 
-useWorkerFactory({
-  workerLoaders: {
-    editorWorkerService: () =>
-      new MCWorker(
-        new URL(
-          "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.js",
-          import.meta.url,
-        ),
-        { type: "module" },
-      ),
-  },
-});
+// useWorkerFactory initialises MonacoEnvironment (viewServiceType, etc.)
+useWorkerFactory({ workerLoaders: {} });
+
+// getWorker is checked BEFORE getWorkerUrl in StandaloneWebWorkerService.
+// Returning a real Worker bypasses the blob wrapper entirely.
+const monacoEnv = (self as any).MonacoEnvironment;
+if (monacoEnv) {
+  monacoEnv.getWorker = () => new EditorWorker();
+}

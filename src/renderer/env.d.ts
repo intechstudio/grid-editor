@@ -15,3 +15,10 @@ declare module "monaco-editor/esm/vs/editor/editor.worker?worker" {
   };
   export default workerConstructor;
 }
+
+declare module "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.js?worker" {
+  const workerConstructor: {
+    new (): Worker;
+  };
+  export default workerConstructor;
+}

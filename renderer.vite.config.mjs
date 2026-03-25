@@ -66,14 +66,6 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     envPrefix: "VITE_",
     worker: {
       format: "es",
-      rollupOptions: {
-        output: {
-          // Inline all dynamic imports so the worker is a single self-contained
-          // ES file. Without this, code-split chunks use bare specifiers that
-          // fail under Electron's file:// protocol.
-          inlineDynamicImports: true,
-        },
-      },
     },
     optimizeDeps: {
       esbuildOptions: {
