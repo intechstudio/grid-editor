@@ -65,7 +65,7 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     target: "chrome104",
     envPrefix: "VITE_",
     worker: {
-      format: "es", // Required for @codingame/monaco-vscode-* workers (code-splitting)
+      format: "iife", // IIFE avoids bare-specifier resolution failures under Electron file:// protocol
     },
     optimizeDeps: {
       esbuildOptions: {

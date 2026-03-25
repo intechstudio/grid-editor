@@ -98,9 +98,16 @@ export function startLuaLSServer() {
     };
 
     const wsConnection = createWebSocketConnection(socket);
+    const logDir = path.join(os.tmpdir(), "grid-editor-luals", "log");
+    const metaDir = path.join(os.tmpdir(), "grid-editor-luals", "meta");
+    fs.mkdirSync(logDir, { recursive: true });
+    fs.mkdirSync(metaDir, { recursive: true });
+
     const serverConnection = createServerProcess("LuaLS", binary, [
       "--stdio",
       `--configpath=${configPath}`,
+      `--logpath=${logDir}`,
+      `--metapath=${metaDir}`,
     ]);
 
     if (!serverConnection) {
