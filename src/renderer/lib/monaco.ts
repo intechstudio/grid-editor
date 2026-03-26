@@ -5,7 +5,7 @@ import {
   editor as monaco_editor,
   languages as monaco_languages,
   Position,
-} from "monaco-editor";
+} from "monaco-editor/esm/vs/editor/editor.api.js";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 
