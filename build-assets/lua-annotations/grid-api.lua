@@ -614,27 +614,19 @@ function element_name_get(element_index) end
 ---@param element_index integer Element index
 function element_name_send(element_index) end
 
--- =============================================================================
--- LCD Element — screen drawing methods (VSN1 module)
---
--- LCD elements are available on modules with screens (e.g. VSN1).
--- In draw event handlers, `self` refers to the LCD element.
+-- -- LCD / screen draw methods (available on LCD elements, e.g. VSN1) ----------
 -- All draw methods operate on a background buffer — call draw_swap() to
 -- push changes to the visible screen.
--- =============================================================================
-
----@class LcdElement : Element
-local LcdElement = {}
 
 ---Updates the screen with the contents of the background buffer.
 ---Call this after drawing operations to make them visible.
-function LcdElement:draw_swap() end
+function Element:draw_swap() end
 
 ---Draws a pixel at (x, y) with the specified color.
 ---@param x integer X coordinate
 ---@param y integer Y coordinate
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_pixel(x, y, color) end
+function Element:draw_pixel(x, y, color) end
 
 ---Draws a line between two points.
 ---@param x1 integer Start X coordinate
@@ -642,7 +634,7 @@ function LcdElement:draw_pixel(x, y, color) end
 ---@param x2 integer End X coordinate
 ---@param y2 integer End Y coordinate
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_line(x1, y1, x2, y2, color) end
+function Element:draw_line(x1, y1, x2, y2, color) end
 
 ---Draws a rectangle outline between two corner points.
 ---@param x1 integer Top-left X coordinate
@@ -650,7 +642,7 @@ function LcdElement:draw_line(x1, y1, x2, y2, color) end
 ---@param x2 integer Bottom-right X coordinate
 ---@param y2 integer Bottom-right Y coordinate
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_rectangle(x1, y1, x2, y2, color) end
+function Element:draw_rectangle(x1, y1, x2, y2, color) end
 
 ---Draws a filled rectangle between two corner points.
 ---@param x1 integer Top-left X coordinate
@@ -658,7 +650,7 @@ function LcdElement:draw_rectangle(x1, y1, x2, y2, color) end
 ---@param x2 integer Bottom-right X coordinate
 ---@param y2 integer Bottom-right Y coordinate
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_rectangle_filled(x1, y1, x2, y2, color) end
+function Element:draw_rectangle_filled(x1, y1, x2, y2, color) end
 
 ---Draws a rounded rectangle outline between two corner points.
 ---@param x1 integer Top-left X coordinate
@@ -667,7 +659,7 @@ function LcdElement:draw_rectangle_filled(x1, y1, x2, y2, color) end
 ---@param y2 integer Bottom-right Y coordinate
 ---@param radius integer Corner radius in pixels
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_rectangle_rounded(x1, y1, x2, y2, radius, color) end
+function Element:draw_rectangle_rounded(x1, y1, x2, y2, radius, color) end
 
 ---Draws a filled rounded rectangle between two corner points.
 ---@param x1 integer Top-left X coordinate
@@ -676,19 +668,19 @@ function LcdElement:draw_rectangle_rounded(x1, y1, x2, y2, radius, color) end
 ---@param y2 integer Bottom-right Y coordinate
 ---@param radius integer Corner radius in pixels
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_rectangle_rounded_filled(x1, y1, x2, y2, radius, color) end
+function Element:draw_rectangle_rounded_filled(x1, y1, x2, y2, radius, color) end
 
 ---Draws a polygon outline using coordinate arrays.
 ---@param xs integer[] Array of X coordinates {x1, x2, x3, ...}
 ---@param ys integer[] Array of Y coordinates {y1, y2, y3, ...}
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_polygon(xs, ys, color) end
+function Element:draw_polygon(xs, ys, color) end
 
 ---Draws a filled polygon using coordinate arrays.
 ---@param xs integer[] Array of X coordinates {x1, x2, x3, ...}
 ---@param ys integer[] Array of Y coordinates {y1, y2, y3, ...}
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_polygon_filled(xs, ys, color) end
+function Element:draw_polygon_filled(xs, ys, color) end
 
 ---Draws text at the specified position.
 ---@param text string Text to draw
@@ -696,7 +688,7 @@ function LcdElement:draw_polygon_filled(xs, ys, color) end
 ---@param y integer Y coordinate
 ---@param size integer Font size
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_text(text, x, y, size, color) end
+function Element:draw_text(text, x, y, size, color) end
 
 ---Draws text at the specified position using fast rendering.
 ---Faster than draw_text but may have fewer font options.
@@ -705,7 +697,7 @@ function LcdElement:draw_text(text, x, y, size, color) end
 ---@param y integer Y coordinate
 ---@param size integer Font size
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_text_fast(text, x, y, size, color) end
+function Element:draw_text_fast(text, x, y, size, color) end
 
 ---Fills an area with a solid color (no alpha blending).
 ---@param x1 integer Top-left X coordinate
@@ -713,82 +705,74 @@ function LcdElement:draw_text_fast(text, x, y, size, color) end
 ---@param x2 integer Bottom-right X coordinate
 ---@param y2 integer Bottom-right Y coordinate
 ---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function LcdElement:draw_area_filled(x1, y1, x2, y2, color) end
+function Element:draw_area_filled(x1, y1, x2, y2, color) end
 
 ---Draws the n-th iteration of a built-in demo animation.
 ---@param n integer Demo iteration number
-function LcdElement:draw_demo(n) end
+function Element:draw_demo(n) end
 
 ---Returns the time spent rendering between the last two swaps, in microseconds.
 ---@return integer microseconds Render time
-function LcdElement:get_render_time() end
+function Element:get_render_time() end
 
 ---Returns the screen index used by low-level global GUI APIs.
 ---@return integer screen_index Screen index for use with gui_draw_* functions
-function LcdElement:screen_index() end
+function Element:screen_index() end
 
 ---Returns the screen width in pixels.
 ---@return integer width Screen width
-function LcdElement:screen_width() end
+function Element:screen_width() end
 
 ---Returns the screen height in pixels.
 ---@return integer height Screen height
-function LcdElement:screen_height() end
+function Element:screen_height() end
 
--- =============================================================================
--- Endless Potentiometer Element — methods for endless encoder elements (EF44)
---
--- Endless potentiometers combine a rotary encoder (endless_*) with a button
--- (button_*). The EF44 module has 4 such elements indexed 0–3.
--- =============================================================================
-
----@class EndlessElement : Element
-local EndlessElement = {}
+-- -- Endless Potentiometer methods (available on endless encoder elements, e.g. EF44) --
 
 ---Returns (or sets) the current endless potentiometer value.
 ---@param value? integer If provided, sets the value
 ---@return integer value Current value
-function EndlessElement:endless_value(value) end
+function Element:endless_value(value) end
 
 ---Returns (or sets) the minimum endless potentiometer value.
 ---@param value? integer If provided, sets the minimum
 ---@return integer min Minimum value
-function EndlessElement:endless_min(value) end
+function Element:endless_min(value) end
 
 ---Returns (or sets) the maximum endless potentiometer value.
 ---@param value? integer If provided, sets the maximum
 ---@return integer max Maximum value
-function EndlessElement:endless_max(value) end
+function Element:endless_max(value) end
 
 ---Returns (or sets) the endless potentiometer mode.
 ---@param value? integer If provided, sets the mode
 ---@return integer mode Mode value
-function EndlessElement:endless_mode(value) end
+function Element:endless_mode(value) end
 
 ---Returns the endless potentiometer state.
 ---@return integer state Current state
-function EndlessElement:endless_state() end
+function Element:endless_state() end
 
 ---Returns the endless potentiometer velocity.
 ---@return integer velocity Rotation velocity
-function EndlessElement:endless_velocity() end
+function Element:endless_velocity() end
 
 ---Returns the endless potentiometer direction.
 ---@return integer direction Rotation direction
-function EndlessElement:endless_direction() end
+function Element:endless_direction() end
 
 ---Returns (or sets) the endless potentiometer sensitivity.
 ---@param value? integer If provided, sets the sensitivity
 ---@return integer sensitivity Sensitivity value
-function EndlessElement:endless_sensitivity(value) end
+function Element:endless_sensitivity(value) end
 
 ---Returns the LED offset for this endless element.
 ---@param value? integer If provided, sets the offset
 ---@return integer offset LED offset
-function EndlessElement:led_offset(value) end
+function Element:led_offset(value) end
 
 ---Calculates the button step based on mode, min, max, and value.
 ---Returns false if button mode is 0 (momentary), otherwise returns the
 ---current step number: value // ((max - min) // steps).
 ---@return integer|boolean step Current step, or false if mode is 0
-function EndlessElement:button_step() end
+function Element:button_step() end
