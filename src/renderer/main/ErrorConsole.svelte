@@ -3,6 +3,7 @@
   import { fly, fade, slide } from "svelte/transition";
 
   import { Analytics } from "../runtime/analytics.js";
+  import { copyContextMenu } from "./_actions/copy-context-menu.action.js";
 
   const ctxProcess = window.ctxProcess;
   const configuration = ctxProcess.configuration();
@@ -236,7 +237,7 @@
               ? 'bg-gray-800'
               : 'bg-gray-900'} justify-center flex flex-row items-center h-16"
           >
-            <div>{log.reason}</div>
+            <div use:copyContextMenu class="select-text">{log.reason}</div>
             {#if log.solution !== undefined}
               <div class="ml-4 font-bold">{log.solution.message}</div>
 
@@ -281,7 +282,7 @@
         ? notification.class
         : 'bg-green-500'} justify-center flex flex-row items-center h-16"
     >
-      <div>{notification.message}</div>
+      <div use:copyContextMenu class="select-text">{notification.message}</div>
 
       {#if notification.link !== undefined && notification.link !== ""}
         <button
