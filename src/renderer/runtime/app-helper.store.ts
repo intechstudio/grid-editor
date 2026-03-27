@@ -63,6 +63,7 @@ const persistentDefaultValues = {
   eventsLoaded: false,
   midiTesterEnabled: false,
   websocketNotificationEnabled: false,
+  variantLabelEnabled: false,
 };
 
 interface PaneData {

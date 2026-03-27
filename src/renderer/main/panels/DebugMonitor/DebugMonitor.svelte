@@ -23,6 +23,7 @@
   import DebugTextList from "./DebugTextList.svelte";
   import { scrollToBottom } from "../../_actions/scroll.move";
   import SendImmediate from "./SendImmediate.svelte";
+  import { copyContextMenu } from "../../_actions/copy-context-menu.action";
   import SendEvaluate from "./SendEvaluate.svelte";
   import SendRaw from "./SendRaw.svelte";
 
@@ -255,6 +256,7 @@
           <div
             class="flex flex-grow w-full selectable overflow-y-auto p-1"
             use:scrollToBottom={debug_lowlevel_store}
+            use:copyContextMenu
           >
             <div class=" flex flex-col min-h-[100px] font-mono text-white">
               {#each $debug_lowlevel_store as debug, i}

@@ -7,7 +7,7 @@ import {
   languages as monaco_languages,
   Position,
   Range,
-} from "monaco-editor";
+} from "monaco-editor/esm/vs/editor/editor.api.js";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 import { startLuaLSClient, stopLuaLSClient } from "./monaco-luals-client";

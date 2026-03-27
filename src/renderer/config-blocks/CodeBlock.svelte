@@ -46,6 +46,8 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { copyContextMenu } from "../main/_actions/copy-context-menu.action";
+  import MoltenPopup from "../main/panels/preferences/MoltenPopup.svelte";
 
   import { Modal } from "../main/modals/modal.store";
   import Monaco from "../main/modals/Monaco.svelte";
@@ -121,13 +123,30 @@
     <div class="grid w-full">
       <pre
         on:dblclick={open_monaco}
-        class="bg-black/25 my-4 p-2 w-full overflow-x-auto border border-black"
+        use:copyContextMenu
+        class="bg-black/25 my-4 p-2 w-full overflow-x-auto border border-black select-text"
         bind:this={codePreview}
         data-lang="intech_lua"
       />
     </div>
 
-    <MoltenPushButton click={open_monaco} text={"Edit Code"} style={"accept"} />
+    <div class="flex flex-row gap-2">
+      <MoltenPushButton
+        click={open_monaco}
+        text={"Edit Code"}
+        style={"accept"}
+      />
+      <div class="flex-grow" />
+      <MoltenPushButton
+        click={() =>
+          navigator.clipboard.writeText(
+            GridScript.expandScript($action.script),
+          )}
+        text={"Copy Code"}
+      >
+        <MoltenPopup slot="popup" text="Copied to clipboard!" />
+      </MoltenPushButton>
+    </div>
   </div>
 
   <div class="flex flex-row mt-4">

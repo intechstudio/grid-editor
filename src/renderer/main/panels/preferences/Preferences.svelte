@@ -466,6 +466,16 @@
         bind:target={$appSettings.persistent.websocketNotificationEnabled}
         title={"Enabled"}
       />
+
+      <BlockTitle>Variant Label</BlockTitle>
+      <BlockBody>
+        Display a variant label (e.g. "Center", "Smooth") on modules that have a
+        hardware variant identifier.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.variantLabelEnabled}
+        title={"Enabled"}
+      />
     </Block>
   {/if}
 </div>

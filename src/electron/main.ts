@@ -5,7 +5,6 @@ import {
   Tray,
   Menu,
   nativeImage,
-  clipboard,
   shell,
   MessageChannelMain,
   utilityProcess,
@@ -830,11 +829,6 @@ function startConfigWatcher(configPath, rootDirectory) {
   });
   sendLocalConfigs();
 }
-
-ipcMain.handle("clipboardWriteText", async (event, arg) => {
-  console.log(arg.text);
-  clipboard.writeText(arg.text);
-});
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;

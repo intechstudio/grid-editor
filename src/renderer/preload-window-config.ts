@@ -50,13 +50,6 @@ if (import.meta.env.VITE_BUILD_TARGET == "web") {
       restore: () => {},
       isMaximized: () => {},
     },
-    clipboard: {
-      writeText: () => {
-        return new Promise((resolve, reject) => {
-          reject("This feature is not yet supported in web mode.");
-        });
-      },
-    },
     persistentStorage: {
       set: () => {},
       get: async () => {

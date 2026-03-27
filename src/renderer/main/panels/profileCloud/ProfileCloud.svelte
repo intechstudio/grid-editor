@@ -152,7 +152,7 @@
   }
 
   async function handleCreateCloudConfigLink(event) {
-    return await window.electron.clipboard.writeText(event.data.configLinkUrl);
+    return await navigator.clipboard.writeText(event.data.configLinkUrl);
   }
 
   async function handleLogoutFromProfileCloud(event) {

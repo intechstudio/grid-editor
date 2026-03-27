@@ -11,6 +11,7 @@
   } from "./../../runtime/user-input.store";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import MoltenIconButton from "../user-interface/MoltenIconButton.svelte";
+  import { GridScript } from "@intechstudio/grid-protocol";
 
   export let data: Modal.Instance;
 
@@ -29,22 +30,15 @@
     );
   }
 
-  function handleCopy() {
-    const _tempSpan = document.createElement("input");
-    _tempSpan.value = get(event).toLua();
+  $: rawCode = $event?.toLua() ?? "";
+  $: humanReadable = GridScript.expandScript(rawCode);
 
-    _tempSpan.id = "temp-clip";
-    document.getElementById("modal-copy-placeholder").append(_tempSpan);
-    const _temp = document.querySelector("#temp-clip");
-    _temp.select();
-    document.execCommand("copy");
-    document.getElementById("temp-clip").remove();
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
   }
 </script>
 
-<div id="modal-copy-placeholder" />
-
-<MoltenModal {data}>
+<MoltenModal {data} width="700px">
   <div slot="content" class="flex flex-col gap-2 items-center">
     <div class="w-full flex justify-between items-center">
       <div class="text-foreground-muted text-sm pb-1">
@@ -61,15 +55,44 @@
       </div>
     </div>
 
-    <textarea
-      value={$event.toLua()}
-      readonly
-      rows="12"
-      class="min-h-200 font-mono w-full p-1 my-1 rounded bg-background-muted whitespace-pre-wrap resize"
-    />
+    <div class="w-full flex flex-row gap-3">
+      <div class="flex-1 flex flex-col gap-1">
+        <div class="text-foreground-muted text-xs">Raw code</div>
+        <textarea
+          value={rawCode}
+          readonly
+          rows="18"
+          class="font-mono w-full p-1 rounded bg-background-muted whitespace-pre-wrap resize"
+        />
+        <div class="flex justify-end">
+          <MoltenPushButton
+            click={() => copyToClipboard(rawCode)}
+            text="Copy"
+            style="accept"
+          >
+            <MoltenPopup slot="popup" text="Copied to clipboard!" />
+          </MoltenPushButton>
+        </div>
+      </div>
 
-    <MoltenPushButton click={handleCopy} text="Copy" style="accept">
-      <MoltenPopup slot="popup" text="Copied to clipboard!" />
-    </MoltenPushButton>
+      <div class="flex-1 flex flex-col gap-1">
+        <div class="text-foreground-muted text-xs">Human readable</div>
+        <textarea
+          value={humanReadable}
+          readonly
+          rows="18"
+          class="font-mono w-full p-1 rounded bg-background-muted whitespace-pre-wrap resize"
+        />
+        <div class="flex justify-end">
+          <MoltenPushButton
+            click={() => copyToClipboard(humanReadable)}
+            text="Copy"
+            style="accept"
+          >
+            <MoltenPopup slot="popup" text="Copied to clipboard!" />
+          </MoltenPushButton>
+        </div>
+      </div>
+    </div>
   </div>
 </MoltenModal>

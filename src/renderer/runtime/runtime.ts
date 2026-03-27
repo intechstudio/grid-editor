@@ -854,6 +854,14 @@ export class GridEvent extends RuntimeNode<EventData> {
       });
     }
 
+    if (!this.isValid()) {
+      return Promise.resolve({
+        value: true,
+        text: "Nothing to sync, event has invalid actions.",
+        type: GridOperationType.SEND_EVENT_TO_GRID,
+      });
+    }
+
     const element = this.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
