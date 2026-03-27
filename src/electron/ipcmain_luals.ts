@@ -1,13 +1,12 @@
 /**
  * LuaLS WebSocket Bridge
  *
- * Spawns lua-language-server (--stdio) with a generated .luarc.json config
- * and bridges LSP JSON-RPC over a local WebSocket server.
- * The bridge is a dumb pipe — no message interception.
+ * Spawns lua-language-server (--stdio) and bridges LSP JSON-RPC over a
+ * local WebSocket server. Config and annotations are pushed by the renderer
+ * via LSP notifications after connect. The bridge is a dumb pipe.
  */
 import path from "path";
 import fs from "fs";
-import os from "os";
 import { app } from "electron";
 import log from "electron-log";
 import WebSocket from "ws";
@@ -45,40 +44,9 @@ function resolveLualsBinary(): string {
   return path.join(base, dir, "bin", bin);
 }
 
-function resolveAnnotationsPath(): string {
-  return path.join(getAssetsBase(), "lua-annotations");
-}
-
-/**
- * Write a .luarc.json config file so LuaLS picks up our annotation library
- * at startup via --configpath. No runtime config interception needed.
- */
-function writeLuaRcConfig(): string {
-  const configDir = path.join(os.tmpdir(), "grid-editor-luals");
-  fs.mkdirSync(configDir, { recursive: true });
-  const configPath = path.join(configDir, ".luarc.json");
-  fs.writeFileSync(
-    configPath,
-    JSON.stringify({
-      runtime: { version: "Lua 5.4" },
-      diagnostics: {
-        globals: ["self", "element"],
-        severity: {
-          "undefined-global": "Warning",
-        },
-      },
-      workspace: { library: [resolveAnnotationsPath()] },
-      completion: { callSnippet: "Replace" },
-    }),
-  );
-  return configPath;
-}
-
 export function startLuaLSServer() {
   const binary = resolveLualsBinary();
-  const configPath = writeLuaRcConfig();
   log.info("[LuaLS] Starting bridge on port", LUALS_PORT);
-  log.info("[LuaLS] Config:", configPath);
 
   wss = new (WebSocket as any).Server({ port: LUALS_PORT });
 
@@ -98,17 +66,7 @@ export function startLuaLSServer() {
     };
 
     const wsConnection = createWebSocketConnection(socket);
-    const logDir = path.join(os.tmpdir(), "grid-editor-luals", "log");
-    const metaDir = path.join(os.tmpdir(), "grid-editor-luals", "meta");
-    fs.mkdirSync(logDir, { recursive: true });
-    fs.mkdirSync(metaDir, { recursive: true });
-
-    const serverConnection = createServerProcess("LuaLS", binary, [
-      "--stdio",
-      `--configpath=${configPath}`,
-      `--logpath=${logDir}`,
-      `--metapath=${metaDir}`,
-    ]);
+    const serverConnection = createServerProcess("LuaLS", binary, ["--stdio"]);
 
     if (!serverConnection) {
       log.error("[LuaLS] Failed to spawn lua-language-server");

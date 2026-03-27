@@ -6,8 +6,8 @@
  * auto-registers all LSP providers: completion, hover, signature help,
  * diagnostics, semantic tokens, etc.
  *
- * All configuration (annotations, runtime, diagnostics) is handled via
- * --configpath on the electron side. This client just connects the transport.
+ * Annotation library (grid-api.lua) is bundled via ?raw import and injected
+ * via textDocument/didOpen after the client starts — no filesystem access needed.
  */
 import { MonacoLanguageClient } from "monaco-languageclient";
 import {
@@ -16,8 +16,18 @@ import {
   WebSocketMessageWriter,
 } from "vscode-ws-jsonrpc";
 import { CloseAction, ErrorAction } from "vscode-languageclient/browser.js";
+import gridApiLua from "../../../build-assets/lua-annotations/grid-api.lua?raw";
 
 const LUALS_WS_URL = "ws://localhost:8089";
+
+const luaConfig = {
+  runtime: { version: "Lua 5.4" },
+  diagnostics: {
+    globals: ["self", "element"],
+    severity: { "undefined-global": "Warning" },
+  },
+  completion: { callSnippet: "Replace" },
+};
 
 let client: MonacoLanguageClient | null = null;
 let webSocket: WebSocket | null = null;
@@ -58,11 +68,8 @@ export async function startLuaLSClient(): Promise<void> {
           middleware: {
             workspace: {
               configuration: async (params, token, next) => {
-                const result = await next(params, token);
-                // Override each section with our desired settings
-                return (params.items ?? []).map(() => ({
-                  completion: { callSnippet: "Replace" },
-                }));
+                await next(params, token);
+                return (params.items ?? []).map(() => luaConfig);
               },
             },
           },
@@ -72,6 +79,17 @@ export async function startLuaLSClient(): Promise<void> {
 
       try {
         await client.start();
+        await client.sendNotification("workspace/didChangeConfiguration", {
+          settings: { Lua: luaConfig },
+        });
+        await client.sendNotification("textDocument/didOpen", {
+          textDocument: {
+            uri: "file:///grid-annotations/grid-api.lua",
+            languageId: "lua",
+            version: 1,
+            text: gridApiLua,
+          },
+        });
         console.log("[LuaLS] MonacoLanguageClient started");
         resolve();
       } catch (err) {

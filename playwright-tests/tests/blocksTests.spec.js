@@ -307,7 +307,6 @@ test.describe("Input field keyboard shortcuts", () => {
   });
 });
 
-
 test.describe("Code block closes Modal", () => {
   test.beforeEach(async ({ page }) => {
     connectModulePage = new ConnectModulePage(page);
