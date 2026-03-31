@@ -75,7 +75,7 @@
     "uuid": "^9.0.0",
     "vite": "^7.3.1",
     "ws": "^7.5.8",
-    "yauzl": "^3.2.0"
+    "yauzl": "^3.2.1"
   },
   "scripts": {
     "e:builder": "cross-env VITE_BUILD_TARGET=electron NOTARIZE=true electron-builder --config electron-builder-config.js --publish onTagOrDraft",
