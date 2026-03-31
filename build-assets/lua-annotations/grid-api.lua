@@ -6,26 +6,20 @@
 -- so that lua-language-server (LuaLS) can offer completions, hover docs,
 -- signature help, and diagnostics in the Monaco editor.
 --
--- See also: grid-screen-api.lua for LCD/screen, endless, and extended APIs.
+-- Element subclasses are used to scope completions per hardware element type.
+-- `self` and `element[]` are NOT declared here — they are injected per-editor
+-- via a context document typed to the specific element subclass.
 -- =============================================================================
 
 -- =============================================================================
--- Element class — represents a hardware element (encoder, button, potmeter, etc.)
+-- Element (base class)
 --
--- An EN16 module has 16 encoder elements indexed 0–15.
--- A BU16 module has 16 button elements indexed 0–15.
--- A PO16 module has 16 potentiometer elements indexed 0–15.
---
--- In event handlers, `self` refers to the element that triggered the event.
--- `element[N]` accesses element N on the same module (0-based index).
---
--- All getter/setter methods are dual-purpose:
---   self:encoder_value()    -- reads the current value
---   self:encoder_value(64)  -- sets the value to 64
+-- Common methods available on all element types.
+-- Do not use this type directly in user code — use the specific subclass.
 -- =============================================================================
 
 ---@class Element
----Called after element initialization. Triggers the init event handler. Override to customize.
+---Called after element initialization. Triggers the init event handler.
 ---@field post_init_cb? fun(self: Element)
 ---Called when a MIDI message is received from the grid. header = {instr, sx, sy}, data = {channel, command, param1, param2}.
 ---@field midirx_cb? fun(self: Element, header: integer[], data: integer[])
@@ -45,126 +39,10 @@ function Element:element_index(value) end
 ---@return integer index The LED index
 function Element:led_index(value) end
 
--- -- Encoder methods (available on encoder elements, e.g. EN16) ----------------
-
----Returns (or sets) the current encoder value.
----@param value? integer If provided, sets the encoder value
----@return integer value Current encoder value
-function Element:encoder_value(value) end
-
----Returns (or sets) the minimum encoder value.
----@param value? integer If provided, sets the minimum
----@return integer min Minimum value
-function Element:encoder_min(value) end
-
----Returns (or sets) the maximum encoder value.
----@param value? integer If provided, sets the maximum
----@return integer max Maximum value
-function Element:encoder_max(value) end
-
----Returns (or sets) the encoder mode.
----@param value? integer If provided, sets the mode
----@return integer mode Encoder mode
-function Element:encoder_mode(value) end
-
----Returns the encoder state (rotation direction). Values <64 = left, >63 = right.
----@return integer state Encoder state
-function Element:encoder_state() end
-
----Returns the encoder velocity.
----@return integer velocity Rotation velocity
-function Element:encoder_velocity() end
-
----Returns (or sets) the encoder sensitivity.
----@param value? integer If provided, sets the sensitivity
----@return integer sensitivity Encoder sensitivity
-function Element:encoder_sensitivity(value) end
-
----Returns the time elapsed since the last encoder event (milliseconds).
----@return integer ms Elapsed time in milliseconds
-function Element:encoder_elapsed_time() end
-
--- -- Button methods (available on all elements with buttons) -------------------
-
----Returns (or sets) the current button value.
----@param value? integer If provided, sets the button value
----@return integer value Current button value
-function Element:button_value(value) end
-
----Returns (or sets) the minimum button value.
----@param value? integer If provided, sets the minimum
----@return integer min Minimum value
-function Element:button_min(value) end
-
----Returns (or sets) the maximum button value.
----@param value? integer If provided, sets the maximum
----@return integer max Maximum value
-function Element:button_max(value) end
-
----Returns (or sets) the button mode. 0 = momentary.
----@param value? integer If provided, sets the mode
----@return integer mode Button mode
-function Element:button_mode(value) end
-
----Returns the button state. 0 = released, 127 = pressed.
----@return integer state Button state (0 or 127)
-function Element:button_state() end
-
----Returns the time elapsed since the last button event (milliseconds).
----@return integer ms Elapsed time in milliseconds
-function Element:button_elapsed_time() end
-
--- -- Potentiometer methods (available on potmeter/fader elements) --------------
-
----Returns (or sets) the current potentiometer value.
----@param value? integer If provided, sets the value
----@return integer value Current potentiometer value
-function Element:potmeter_value(value) end
-
----Returns (or sets) the minimum potentiometer value.
----@param value? integer If provided, sets the minimum
----@return integer min Minimum value
-function Element:potmeter_min(value) end
-
----Returns (or sets) the maximum potentiometer value.
----@param value? integer If provided, sets the maximum
----@return integer max Maximum value
-function Element:potmeter_max(value) end
-
----Returns (or sets) the potentiometer resolution.
----@param value? integer If provided, sets the resolution
----@return integer resolution Potentiometer resolution
-function Element:potmeter_resolution(value) end
-
----Returns the potentiometer state.
----@return integer state Current state
-function Element:potmeter_state() end
-
----Returns the time elapsed since the last potentiometer event (milliseconds).
----@return integer ms Elapsed time in milliseconds
-function Element:potmeter_elapsed_time() end
-
--- -- LED methods (available on all elements) -----------------------------------
-
----Sets the LED color for this element.
----@param layer integer LED layer index (-1 for all layers)
----@param colors table Color data table
-function Element:led_color(layer, colors) end
-
----Calculates the button step based on mode, min, max, and value.
----Returns false if button mode is 0 (momentary), otherwise returns the
----current step number: value // ((max - min) // steps).
----@return integer|boolean step Current step, or false if mode is 0
-function Element:button_step() end
-
--- -- Element naming methods (available on all elements via metatable) ----------
-
 ---Gets or sets the name of this element.
 ---@param name? string If provided, sets the name
 ---@return string name Element name
 function Element:element_name(name) end
-
--- -- Timer methods (available on all elements via metatable) -------------------
 
 ---Starts a periodic timer for this element.
 ---@param period integer Timer period in milliseconds
@@ -173,35 +51,430 @@ function Element:timer_start(period) end
 ---Stops the timer for this element.
 function Element:timer_stop() end
 
--- -- Event methods (available on all elements via metatable) -------------------
-
 ---Triggers an event on this element.
 ---@param event_type integer Event type index
 function Element:event_trigger(event_type) end
 
+---Sets the LED color for this element.
+---@param layer integer LED layer index (-1 for all layers)
+---@param colors table Color data table
+function Element:led_color(layer, colors) end
+
+---Sends a MIDI message from this element.
+---Pass -1 for any parameter to use the auto-configured value.
+---@param channel MIDI_Channel MIDI channel (0–15, or -1 for auto)
+---@param command MIDI_Command MIDI command (e.g. 144=NoteOn, 176=CC, or -1 for auto)
+---@param param1 MIDI_Param First parameter (0–127, or -1 for auto)
+---@param param2 MIDI_Param Second parameter (0–127, or -1 for auto)
+function Element:midi_send(channel, command, param1, param2) end
+
+---Sends a MIDI SysEx message from this element.
+---@param ... integer SysEx data bytes
+function Element:midi_sysex_send(...) end
+
 -- =============================================================================
--- Global variables
+-- ButtonElement
+-- Available on: BU16
 -- =============================================================================
 
----The element that triggered the current event.
----@type Element
-self = {}
+---@class ButtonElement : Element
+local ButtonElement = {}
 
----Array of all elements on the current module (0-based index).
----For an EN16 module, element[0] through element[15] are available.
----@type Element[]
-element = {}
+---Returns (or sets) the current button value.
+---@param value? integer If provided, sets the button value
+---@return integer value Current button value
+function ButtonElement:button_value(value) end
 
----Alias for `element`. Array of all elements on the current module (0-based index).
----System element is at ele[#ele] (last element).
----@type Element[]
-ele = {}
+---Returns (or sets) the minimum button value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function ButtonElement:button_min(value) end
+
+---Returns (or sets) the maximum button value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function ButtonElement:button_max(value) end
+
+---Returns (or sets) the button mode. 0 = momentary.
+---@param value? integer If provided, sets the mode
+---@return integer mode Button mode
+function ButtonElement:button_mode(value) end
+
+---Returns the button state. 0 = released, 127 = pressed.
+---@return integer state Button state (0 or 127)
+function ButtonElement:button_state() end
+
+---Returns the time elapsed since the last button event (milliseconds).
+---@return integer ms Elapsed time in milliseconds
+function ButtonElement:button_elapsed_time() end
+
+---Calculates the button step based on mode, min, max, and value.
+---Returns false if button mode is 0 (momentary), otherwise returns the current step number.
+---@return integer|boolean step Current step, or false if mode is 0
+function ButtonElement:button_step() end
+
+-- =============================================================================
+-- EncoderElement
+-- Available on: EN16
+-- Encoders have both a rotary encoder and a push button.
+-- =============================================================================
+
+---@class EncoderElement : Element
+local EncoderElement = {}
+
+---Returns (or sets) the current encoder value.
+---@param value? integer If provided, sets the encoder value
+---@return integer value Current encoder value
+function EncoderElement:encoder_value(value) end
+
+---Returns (or sets) the minimum encoder value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function EncoderElement:encoder_min(value) end
+
+---Returns (or sets) the maximum encoder value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function EncoderElement:encoder_max(value) end
+
+---Returns (or sets) the encoder mode.
+---@param value? integer If provided, sets the mode
+---@return integer mode Encoder mode
+function EncoderElement:encoder_mode(value) end
+
+---Returns the encoder state (rotation direction). Values <64 = left, >63 = right.
+---@return integer state Encoder state
+function EncoderElement:encoder_state() end
+
+---Returns the encoder velocity.
+---@return integer velocity Rotation velocity
+function EncoderElement:encoder_velocity() end
+
+---Returns (or sets) the encoder sensitivity.
+---@param value? integer If provided, sets the sensitivity
+---@return integer sensitivity Encoder sensitivity
+function EncoderElement:encoder_sensitivity(value) end
+
+---Returns the time elapsed since the last encoder event (milliseconds).
+---@return integer ms Elapsed time in milliseconds
+function EncoderElement:encoder_elapsed_time() end
+
+---Returns (or sets) the current button value.
+---@param value? integer If provided, sets the button value
+---@return integer value Current button value
+function EncoderElement:button_value(value) end
+
+---Returns (or sets) the minimum button value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function EncoderElement:button_min(value) end
+
+---Returns (or sets) the maximum button value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function EncoderElement:button_max(value) end
+
+---Returns (or sets) the button mode. 0 = momentary.
+---@param value? integer If provided, sets the mode
+---@return integer mode Button mode
+function EncoderElement:button_mode(value) end
+
+---Returns the button state. 0 = released, 127 = pressed.
+---@return integer state Button state (0 or 127)
+function EncoderElement:button_state() end
+
+---Returns the time elapsed since the last button event (milliseconds).
+---@return integer ms Elapsed time in milliseconds
+function EncoderElement:button_elapsed_time() end
+
+---Calculates the button step based on mode, min, max, and value.
+---@return integer|boolean step Current step, or false if mode is 0
+function EncoderElement:button_step() end
+
+-- =============================================================================
+-- PotmeterElement
+-- Available on: PO16
+-- =============================================================================
+
+---@class PotmeterElement : Element
+local PotmeterElement = {}
+
+---Returns (or sets) the current potentiometer value.
+---@param value? integer If provided, sets the value
+---@return integer value Current potentiometer value
+function PotmeterElement:potmeter_value(value) end
+
+---Returns (or sets) the minimum potentiometer value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function PotmeterElement:potmeter_min(value) end
+
+---Returns (or sets) the maximum potentiometer value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function PotmeterElement:potmeter_max(value) end
+
+---Returns (or sets) the potentiometer resolution.
+---@param value? integer If provided, sets the resolution
+---@return integer resolution Potentiometer resolution
+function PotmeterElement:potmeter_resolution(value) end
+
+---Returns the potentiometer state.
+---@return integer state Current state
+function PotmeterElement:potmeter_state() end
+
+---Returns the time elapsed since the last potentiometer event (milliseconds).
+---@return integer ms Elapsed time in milliseconds
+function PotmeterElement:potmeter_elapsed_time() end
+
+-- =============================================================================
+-- FaderElement
+-- Available on: fader modules
+-- Faders use the same API as potmeters.
+-- =============================================================================
+
+---@class FaderElement : Element
+local FaderElement = {}
+
+---Returns (or sets) the current fader value.
+---@param value? integer If provided, sets the value
+---@return integer value Current fader value
+function FaderElement:potmeter_value(value) end
+
+---Returns (or sets) the minimum fader value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function FaderElement:potmeter_min(value) end
+
+---Returns (or sets) the maximum fader value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function FaderElement:potmeter_max(value) end
+
+---Returns (or sets) the fader resolution.
+---@param value? integer If provided, sets the resolution
+---@return integer resolution Fader resolution
+function FaderElement:potmeter_resolution(value) end
+
+---Returns the fader state.
+---@return integer state Current state
+function FaderElement:potmeter_state() end
+
+---Returns the time elapsed since the last fader event (milliseconds).
+---@return integer ms Elapsed time in milliseconds
+function FaderElement:potmeter_elapsed_time() end
+
+-- =============================================================================
+-- EndlessElement
+-- Available on: EF44
+-- Endless encoders have a rotary encoder, a push button, and an LED ring.
+-- =============================================================================
+
+---@class EndlessElement : Element
+local EndlessElement = {}
+
+---Returns (or sets) the current endless potentiometer value.
+---@param value? integer If provided, sets the value
+---@return integer value Current value
+function EndlessElement:endless_value(value) end
+
+---Returns (or sets) the minimum endless potentiometer value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function EndlessElement:endless_min(value) end
+
+---Returns (or sets) the maximum endless potentiometer value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function EndlessElement:endless_max(value) end
+
+---Returns (or sets) the endless potentiometer mode.
+---@param value? integer If provided, sets the mode
+---@return integer mode Mode value
+function EndlessElement:endless_mode(value) end
+
+---Returns the endless potentiometer state.
+---@return integer state Current state
+function EndlessElement:endless_state() end
+
+---Returns the endless potentiometer velocity.
+---@return integer velocity Rotation velocity
+function EndlessElement:endless_velocity() end
+
+---Returns the endless potentiometer direction.
+---@return integer direction Rotation direction
+function EndlessElement:endless_direction() end
+
+---Returns (or sets) the endless potentiometer sensitivity.
+---@param value? integer If provided, sets the sensitivity
+---@return integer sensitivity Sensitivity value
+function EndlessElement:endless_sensitivity(value) end
+
+---Returns the LED offset for this endless element.
+---@param value? integer If provided, sets the offset
+---@return integer offset LED offset
+function EndlessElement:led_offset(value) end
+
+---Returns (or sets) the current button value.
+---@param value? integer If provided, sets the button value
+---@return integer value Current button value
+function EndlessElement:button_value(value) end
+
+---Returns (or sets) the minimum button value.
+---@param value? integer If provided, sets the minimum
+---@return integer min Minimum value
+function EndlessElement:button_min(value) end
+
+---Returns (or sets) the maximum button value.
+---@param value? integer If provided, sets the maximum
+---@return integer max Maximum value
+function EndlessElement:button_max(value) end
+
+---Returns (or sets) the button mode. 0 = momentary.
+---@param value? integer If provided, sets the mode
+---@return integer mode Button mode
+function EndlessElement:button_mode(value) end
+
+---Returns the button state. 0 = released, 127 = pressed.
+---@return integer state Button state (0 or 127)
+function EndlessElement:button_state() end
+
+---Returns the time elapsed since the last button event (milliseconds).
+---@return integer ms Elapsed time in milliseconds
+function EndlessElement:button_elapsed_time() end
+
+---Calculates the button step based on mode, min, max, and value.
+---@return integer|boolean step Current step, or false if mode is 0
+function EndlessElement:button_step() end
+
+-- =============================================================================
+-- LCDElement
+-- Available on: VSN1 (screen elements)
+-- All draw methods operate on a background buffer — call draw_swap() to push
+-- changes to the visible screen.
+-- =============================================================================
+
+---@class LCDElement : Element
+local LCDElement = {}
+
+---Updates the screen with the contents of the background buffer.
+function LCDElement:draw_swap() end
+
+---Draws a pixel at (x, y) with the specified color.
+---@param x integer X coordinate
+---@param y integer Y coordinate
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_pixel(x, y, color) end
+
+---Draws a line between two points.
+---@param x1 integer Start X coordinate
+---@param y1 integer Start Y coordinate
+---@param x2 integer End X coordinate
+---@param y2 integer End Y coordinate
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_line(x1, y1, x2, y2, color) end
+
+---Draws a rectangle outline between two corner points.
+---@param x1 integer Top-left X coordinate
+---@param y1 integer Top-left Y coordinate
+---@param x2 integer Bottom-right X coordinate
+---@param y2 integer Bottom-right Y coordinate
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_rectangle(x1, y1, x2, y2, color) end
+
+---Draws a filled rectangle between two corner points.
+---@param x1 integer Top-left X coordinate
+---@param y1 integer Top-left Y coordinate
+---@param x2 integer Bottom-right X coordinate
+---@param y2 integer Bottom-right Y coordinate
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_rectangle_filled(x1, y1, x2, y2, color) end
+
+---Draws a rounded rectangle outline between two corner points.
+---@param x1 integer Top-left X coordinate
+---@param y1 integer Top-left Y coordinate
+---@param x2 integer Bottom-right X coordinate
+---@param y2 integer Bottom-right Y coordinate
+---@param radius integer Corner radius in pixels
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_rectangle_rounded(x1, y1, x2, y2, radius, color) end
+
+---Draws a filled rounded rectangle between two corner points.
+---@param x1 integer Top-left X coordinate
+---@param y1 integer Top-left Y coordinate
+---@param x2 integer Bottom-right X coordinate
+---@param y2 integer Bottom-right Y coordinate
+---@param radius integer Corner radius in pixels
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_rectangle_rounded_filled(x1, y1, x2, y2, radius, color) end
+
+---Draws a polygon outline using coordinate arrays.
+---@param xs integer[] Array of X coordinates {x1, x2, x3, ...}
+---@param ys integer[] Array of Y coordinates {y1, y2, y3, ...}
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_polygon(xs, ys, color) end
+
+---Draws a filled polygon using coordinate arrays.
+---@param xs integer[] Array of X coordinates {x1, x2, x3, ...}
+---@param ys integer[] Array of Y coordinates {y1, y2, y3, ...}
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_polygon_filled(xs, ys, color) end
+
+---Draws text at the specified position.
+---@param text string Text to draw
+---@param x integer X coordinate
+---@param y integer Y coordinate
+---@param size integer Font size
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_text(text, x, y, size, color) end
+
+---Draws text at the specified position using fast rendering.
+---@param text string Text to draw
+---@param x integer X coordinate
+---@param y integer Y coordinate
+---@param size integer Font size
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_text_fast(text, x, y, size, color) end
+
+---Fills an area with a solid color (no alpha blending).
+---@param x1 integer Top-left X coordinate
+---@param y1 integer Top-left Y coordinate
+---@param x2 integer Bottom-right X coordinate
+---@param y2 integer Bottom-right Y coordinate
+---@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
+function LCDElement:draw_area_filled(x1, y1, x2, y2, color) end
+
+---Draws the n-th iteration of a built-in demo animation.
+---@param n integer Demo iteration number
+function LCDElement:draw_demo(n) end
+
+---Returns the time spent rendering between the last two swaps, in microseconds.
+---@return integer microseconds Render time
+function LCDElement:get_render_time() end
+
+---Returns the screen index used by low-level global GUI APIs.
+---@return integer screen_index Screen index for use with gui_draw_* functions
+function LCDElement:screen_index() end
+
+---Returns the screen width in pixels.
+---@return integer width Screen width
+function LCDElement:screen_width() end
+
+---Returns the screen height in pixels.
+---@return integer height Screen height
+function LCDElement:screen_height() end
+
+-- =============================================================================
+-- SystemElement
+-- The system element is the last element in the element[] array (ele[#ele]).
+-- It has no hardware-specific methods beyond the base Element class.
+-- =============================================================================
+
+---@class SystemElement : Element
+local SystemElement = {}
 
 -- =============================================================================
 -- Event types
---
--- Each element can have event handlers attached to these event types.
--- The handler short codes are used internally (e.g. in --[[@cb]] tags).
 -- =============================================================================
 
 ---@alias EventType
@@ -214,33 +487,6 @@ ele = {}
 ---| 6 # timer — periodic timer fired
 ---| 7 # endless — endless potentiometer rotated
 ---| 8 # draw — LCD screen draw event (VSN1 only)
-
--- =============================================================================
--- Callback system
---
--- Elements support callback functions for receiving decoded messages from
--- other modules on the grid. Set these as fields on the element object.
---
--- These callbacks are invoked by the firmware's decode system whenever a
--- matching message arrives. They are optional — if not set, the message
--- type is silently ignored for that element.
---
--- The callback fields are declared on the Element class above:
---   post_init_cb  — called after element init, triggers init handler
---   midirx_cb     — MIDI receive: midirx_cb(self, {instr,sx,sy}, {ch,cmd,p1,p2})
---   sysexrx_cb    — SysEx receive: sysexrx_cb(self, {instr,sx,sy}, hex_data)
---   eventrx_cb    — Event view receive (LCD): eventrx_cb(self, header, event, value, name)
--- =============================================================================
-
--- =============================================================================
--- Event handler short codes (internal reference)
---
--- These are the short codes used in event handler tags --[[@XX]]:
---   ini = init/setup       ec = encoder          bc = button
---   pc  = potmeter         tim = timer           map = utility/mapmode
---   mrx = midi rx          epc = endless         ld  = draw (LCD)
---   cb  = init callback
--- =============================================================================
 
 -- =============================================================================
 -- Global functions — MIDI
@@ -613,166 +859,3 @@ function element_name_get(element_index) end
 ---Sends an element name update notification.
 ---@param element_index integer Element index
 function element_name_send(element_index) end
-
--- -- LCD / screen draw methods (available on LCD elements, e.g. VSN1) ----------
--- All draw methods operate on a background buffer — call draw_swap() to
--- push changes to the visible screen.
-
----Updates the screen with the contents of the background buffer.
----Call this after drawing operations to make them visible.
-function Element:draw_swap() end
-
----Draws a pixel at (x, y) with the specified color.
----@param x integer X coordinate
----@param y integer Y coordinate
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_pixel(x, y, color) end
-
----Draws a line between two points.
----@param x1 integer Start X coordinate
----@param y1 integer Start Y coordinate
----@param x2 integer End X coordinate
----@param y2 integer End Y coordinate
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_line(x1, y1, x2, y2, color) end
-
----Draws a rectangle outline between two corner points.
----@param x1 integer Top-left X coordinate
----@param y1 integer Top-left Y coordinate
----@param x2 integer Bottom-right X coordinate
----@param y2 integer Bottom-right Y coordinate
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_rectangle(x1, y1, x2, y2, color) end
-
----Draws a filled rectangle between two corner points.
----@param x1 integer Top-left X coordinate
----@param y1 integer Top-left Y coordinate
----@param x2 integer Bottom-right X coordinate
----@param y2 integer Bottom-right Y coordinate
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_rectangle_filled(x1, y1, x2, y2, color) end
-
----Draws a rounded rectangle outline between two corner points.
----@param x1 integer Top-left X coordinate
----@param y1 integer Top-left Y coordinate
----@param x2 integer Bottom-right X coordinate
----@param y2 integer Bottom-right Y coordinate
----@param radius integer Corner radius in pixels
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_rectangle_rounded(x1, y1, x2, y2, radius, color) end
-
----Draws a filled rounded rectangle between two corner points.
----@param x1 integer Top-left X coordinate
----@param y1 integer Top-left Y coordinate
----@param x2 integer Bottom-right X coordinate
----@param y2 integer Bottom-right Y coordinate
----@param radius integer Corner radius in pixels
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_rectangle_rounded_filled(x1, y1, x2, y2, radius, color) end
-
----Draws a polygon outline using coordinate arrays.
----@param xs integer[] Array of X coordinates {x1, x2, x3, ...}
----@param ys integer[] Array of Y coordinates {y1, y2, y3, ...}
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_polygon(xs, ys, color) end
-
----Draws a filled polygon using coordinate arrays.
----@param xs integer[] Array of X coordinates {x1, x2, x3, ...}
----@param ys integer[] Array of Y coordinates {y1, y2, y3, ...}
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_polygon_filled(xs, ys, color) end
-
----Draws text at the specified position.
----@param text string Text to draw
----@param x integer X coordinate
----@param y integer Y coordinate
----@param size integer Font size
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_text(text, x, y, size, color) end
-
----Draws text at the specified position using fast rendering.
----Faster than draw_text but may have fewer font options.
----@param text string Text to draw
----@param x integer X coordinate
----@param y integer Y coordinate
----@param size integer Font size
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_text_fast(text, x, y, size, color) end
-
----Fills an area with a solid color (no alpha blending).
----@param x1 integer Top-left X coordinate
----@param y1 integer Top-left Y coordinate
----@param x2 integer Bottom-right X coordinate
----@param y2 integer Bottom-right Y coordinate
----@param color integer[] RGB color as {r, g, b} with 8-bit channels (0–255)
-function Element:draw_area_filled(x1, y1, x2, y2, color) end
-
----Draws the n-th iteration of a built-in demo animation.
----@param n integer Demo iteration number
-function Element:draw_demo(n) end
-
----Returns the time spent rendering between the last two swaps, in microseconds.
----@return integer microseconds Render time
-function Element:get_render_time() end
-
----Returns the screen index used by low-level global GUI APIs.
----@return integer screen_index Screen index for use with gui_draw_* functions
-function Element:screen_index() end
-
----Returns the screen width in pixels.
----@return integer width Screen width
-function Element:screen_width() end
-
----Returns the screen height in pixels.
----@return integer height Screen height
-function Element:screen_height() end
-
--- -- Endless Potentiometer methods (available on endless encoder elements, e.g. EF44) --
-
----Returns (or sets) the current endless potentiometer value.
----@param value? integer If provided, sets the value
----@return integer value Current value
-function Element:endless_value(value) end
-
----Returns (or sets) the minimum endless potentiometer value.
----@param value? integer If provided, sets the minimum
----@return integer min Minimum value
-function Element:endless_min(value) end
-
----Returns (or sets) the maximum endless potentiometer value.
----@param value? integer If provided, sets the maximum
----@return integer max Maximum value
-function Element:endless_max(value) end
-
----Returns (or sets) the endless potentiometer mode.
----@param value? integer If provided, sets the mode
----@return integer mode Mode value
-function Element:endless_mode(value) end
-
----Returns the endless potentiometer state.
----@return integer state Current state
-function Element:endless_state() end
-
----Returns the endless potentiometer velocity.
----@return integer velocity Rotation velocity
-function Element:endless_velocity() end
-
----Returns the endless potentiometer direction.
----@return integer direction Rotation direction
-function Element:endless_direction() end
-
----Returns (or sets) the endless potentiometer sensitivity.
----@param value? integer If provided, sets the sensitivity
----@return integer sensitivity Sensitivity value
-function Element:endless_sensitivity(value) end
-
----Returns the LED offset for this endless element.
----@param value? integer If provided, sets the offset
----@return integer offset LED offset
-function Element:led_offset(value) end
-
----Calculates the button step based on mode, min, max, and value.
----Returns false if button mode is 0 (momentary), otherwise returns the
----current step number: value // ((max - min) // steps).
----@return integer|boolean step Current step, or false if mode is 0
-function Element:button_step() end

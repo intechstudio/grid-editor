@@ -17,6 +17,7 @@ import "./monaco-workers";
 import { initialize } from "@codingame/monaco-vscode-api";
 import getConfigurationServiceOverride from "@codingame/monaco-vscode-configuration-service-override";
 import getEditorServiceOverride from "@codingame/monaco-vscode-editor-service-override";
+import getFilesServiceOverride from "@codingame/monaco-vscode-files-service-override";
 import getLanguagesServiceOverride from "@codingame/monaco-vscode-languages-service-override";
 import getLogServiceOverride from "@codingame/monaco-vscode-log-service-override";
 import getModelServiceOverride from "@codingame/monaco-vscode-model-service-override";
@@ -29,6 +30,7 @@ import getMonarchServiceOverride from "@codingame/monaco-vscode-monarch-service-
 export const monacoReady: Promise<void> = initialize({
   ...getLogServiceOverride(),
   ...getModelServiceOverride(),
+  ...getFilesServiceOverride(),
   ...getConfigurationServiceOverride(),
   ...getLanguagesServiceOverride(),
   ...getMonarchServiceOverride(),

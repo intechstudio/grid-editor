@@ -16,9 +16,64 @@ import {
   WebSocketMessageWriter,
 } from "vscode-ws-jsonrpc";
 import { CloseAction, ErrorAction } from "vscode-languageclient/browser.js";
+import { Uri, editor as monacoEditorAPI } from "monaco-editor";
+import {
+  registerFileSystemOverlay,
+  FileSystemProviderCapabilities,
+  FileType,
+} from "@codingame/monaco-vscode-files-service-override";
 import gridApiLua from "../../../build-assets/lua-annotations/grid-api.lua?raw";
 
+// initFile for this URI is called in monaco-workers.ts, which runs before
+// initialize() from @codingame/monaco-vscode-api marks services as initialized.
+const ANNOTATIONS_URI = Uri.parse("file:///grid-annotations/grid-api.lua");
+
+// Serve file:///grid-editor/ URIs from Monaco's model registry so the peek
+// definition widget can read the current editor content without hitting disk.
+// Priority -1 = fallback behind the default in-memory FS (priority 0).
+registerFileSystemOverlay(-1, {
+  capabilities:
+    FileSystemProviderCapabilities.FileReadWrite |
+    FileSystemProviderCapabilities.Readonly,
+  onDidChangeCapabilities: () => ({ dispose: () => {} }),
+  onDidChangeFile: () => ({ dispose: () => {} }),
+  watch: () => ({ dispose: () => {} }),
+  stat: async (uri) => {
+    const model = monacoEditorAPI
+      .getModels()
+      .find((m) => m.uri.toString() === uri.toString());
+    if (!model) throw new Error(`No model for ${uri}`);
+    return { type: FileType.File, ctime: 0, mtime: Date.now(), size: 0 };
+  },
+  readFile: async (uri) => {
+    const model = monacoEditorAPI
+      .getModels()
+      .find((m) => m.uri.toString() === uri.toString());
+    if (!model) throw new Error(`No model for ${uri}`);
+    return new TextEncoder().encode(model.getValue());
+  },
+  writeFile: async () => {
+    throw new Error("read only");
+  },
+  mkdir: async () => {},
+  readdir: async () => [],
+  delete: async () => {},
+  rename: async () => {},
+});
+
 const LUALS_WS_URL = "ws://localhost:8089";
+
+const elementTypeToLuaClass: Record<string, string> = {
+  button: "ButtonElement",
+  encoder: "EncoderElement",
+  potmeter: "PotmeterElement",
+  fader: "FaderElement",
+  endless: "EndlessElement",
+  lcd: "LCDElement",
+  system: "SystemElement",
+};
+
+let contextCounter = 0;
 
 const luaConfig = {
   runtime: { version: "Lua 5.4" },
@@ -72,6 +127,22 @@ export async function startLuaLSClient(): Promise<void> {
                 return (params.items ?? []).map(() => luaConfig);
               },
             },
+            // Only allow definitions that point to our registered virtual
+            // annotation file (file:///grid-annotations/...). Everything else
+            // — LuaLS meta files, per-editor context stubs — is not registered
+            // in the in-memory filesystem and would throw FileOperationError
+            // when the peek widget tries to open them.
+            provideDefinition: async (model, position, token, next) => {
+              const result = await next(model, position, token);
+              if (!result) return result;
+              const locations = Array.isArray(result) ? result : [result];
+              const filtered = locations.filter((loc: any) => {
+                const uri =
+                  loc.uri?.toString() ?? loc.targetUri?.toString() ?? "";
+                return uri.startsWith("file:///grid-annotations/");
+              });
+              return filtered.length > 0 ? filtered : null;
+            },
           },
         },
         messageTransports: { reader, writer },
@@ -84,7 +155,7 @@ export async function startLuaLSClient(): Promise<void> {
         });
         await client.sendNotification("textDocument/didOpen", {
           textDocument: {
-            uri: "file:///grid-annotations/grid-api.lua",
+            uri: ANNOTATIONS_URI.toString(),
             languageId: "lua",
             version: 1,
             text: gridApiLua,
@@ -98,6 +169,34 @@ export async function startLuaLSClient(): Promise<void> {
         reject(err);
       }
     });
+  });
+}
+
+/**
+ * Open a per-editor context document that types `self`, `element`, and `ele`
+ * as the specific element subclass for this editor instance.
+ * Returns the URI of the context document, to be passed to closeEditorContext on destroy.
+ */
+export async function openEditorContext(
+  elementType: string,
+): Promise<string | null> {
+  if (!client) return null;
+  const className = elementTypeToLuaClass[elementType] ?? "Element";
+  const uriString = `file:///grid-context/editor-${++contextCounter}.lua`;
+  const text = `---@type ${className}\nself = {}\n---@type ${className}[]\nelement = {}\n---@type ${className}[]\nele = {}\n`;
+  await client.sendNotification("textDocument/didOpen", {
+    textDocument: { uri: uriString, languageId: "lua", version: 1, text },
+  });
+  return uriString;
+}
+
+/**
+ * Close the per-editor context document when the editor is destroyed.
+ */
+export async function closeEditorContext(uri: string): Promise<void> {
+  if (!client) return;
+  await client.sendNotification("textDocument/didClose", {
+    textDocument: { uri },
   });
 }
 

@@ -22,7 +22,12 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { clickOutside } from "../_actions/click-outside.action";
   import { updateAction } from "../../runtime/operations";
+  import { editor as monacoEditor, Uri } from "monaco-editor";
   import { MonacoEditor } from "../../lib/monaco";
+  import {
+    openEditorContext,
+    closeEditorContext,
+  } from "../../lib/monaco-luals-client";
   import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
   import ConfirmModal from "./ConfirmModal.svelte";
 
@@ -43,6 +48,8 @@
   let nameInput;
   let clickedOutside = false;
   let monaco_disposables = [];
+  let lualsContextUri: string | null = null;
+  let editorModel: ReturnType<typeof monacoEditor.createModel> | null = null;
 
   class LengthError extends String {}
 
@@ -95,9 +102,23 @@
     commited.script = monaco_action.script;
     scriptLength = event.toLua().length;
 
+    openEditorContext(element.type).then((uri) => {
+      lualsContextUri = uri;
+    });
+
+    // Create model with a .lua URI so LuaLS recognises it as a Lua file and
+    // provides hover/completion for the standard library (print, string, etc.)
+    // alongside our custom API. Without a .lua extension, LuaLS treats the
+    // inmemory:// model as an unknown file type and stdlib hover is unreliable.
+    const modelUri = Uri.parse(`file:///grid-editor/editor-${Date.now()}.lua`);
+    editorModel = monacoEditor.createModel(
+      GridScript.expandScript(monaco_action.script),
+      "intech_lua",
+      modelUri,
+    );
+
     editor = MonacoEditor.create(monaco_block, {
-      value: GridScript.expandScript(monaco_action.script),
-      language: "intech_lua",
+      model: editorModel,
       theme: $appSettings.persistent.lightMode
         ? MonacoEditor.Theme.LIGHT
         : MonacoEditor.Theme.DARK,
@@ -172,6 +193,8 @@
 
   onDestroy(() => {
     monaco_disposables.forEach((d) => d.dispose());
+    if (lualsContextUri) closeEditorContext(lualsContextUri);
+    editorModel?.dispose();
   });
 
   function handleClose() {
