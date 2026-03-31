@@ -14,7 +14,7 @@
     type LuaTable,
   } from "../../../serialport/evaluate-parser";
   import type { ModuleType } from "@intechstudio/grid-protocol";
-import { MonacoEditor } from "../../../lib/monaco";
+  import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
   import * as monaco from "monaco-editor";
 
@@ -396,27 +396,45 @@ import { MonacoEditor } from "../../../lib/monaco";
         const path = currentPath + opValue.trim();
         const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:close() return true`;
         const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) { opError = "Failed to create file."; return; }
+        if (result[0] !== true) {
+          opError = "Failed to create file.";
+          return;
+        }
       } else if (activeOp === "newFolder") {
         const path = currentPath + opValue.trim();
         const lua = `return dirent.mkdir(${JSON.stringify(path)})`;
         const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) { opError = `Failed to create folder: ${result[1] ?? "unknown error"}`; return; }
+        if (result[0] !== true) {
+          opError = `Failed to create folder: ${result[1] ?? "unknown error"}`;
+          return;
+        }
       } else if (activeOp === "rename") {
-        if (!selectedEntry || opValue.trim() === selectedEntry) { cancelOp(); return; }
+        if (!selectedEntry || opValue.trim() === selectedEntry) {
+          cancelOp();
+          return;
+        }
         const oldPath = currentPath + selectedEntry;
         const newPath = currentPath + opValue.trim();
         const lua = `return os.rename(${JSON.stringify(oldPath)}, ${JSON.stringify(newPath)})`;
         const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) { opError = `Rename failed: ${result[1] ?? "unknown error"}`; return; }
+        if (result[0] !== true) {
+          opError = `Rename failed: ${result[1] ?? "unknown error"}`;
+          return;
+        }
         selectedEntry = null;
       } else if (activeOp === "copy") {
-        if (!selectedEntry || opValue.trim() === selectedEntry) { cancelOp(); return; }
+        if (!selectedEntry || opValue.trim() === selectedEntry) {
+          cancelOp();
+          return;
+        }
         const srcPath = currentPath + selectedEntry;
         const dstPath = currentPath + opValue.trim();
         const lua = `local s=io.open(${JSON.stringify(srcPath)},"r") if not s then return false,"open src failed" end local d=io.open(${JSON.stringify(dstPath)},"w") if not d then s:close() return false,"open dst failed" end local c=s:read(256) while c do d:write(c) c=s:read(256) end s:close() d:close() return true`;
         const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) { opError = `Copy failed: ${result[1] ?? "unknown error"}`; return; }
+        if (result[0] !== true) {
+          opError = `Copy failed: ${result[1] ?? "unknown error"}`;
+          return;
+        }
       }
       cancelOp();
       await listDirectory();
@@ -499,7 +517,9 @@ import { MonacoEditor } from "../../../lib/monaco";
 
   {#if target}
     <!-- Path breadcrumb -->
-    <div class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap">
+    <div
+      class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap"
+    >
       {#each breadcrumbs as segment, i}
         {#if i > 0}
           <span class="opacity-40">/</span>
@@ -543,21 +563,30 @@ import { MonacoEditor } from "../../../lib/monaco";
     {:else}
       <div class="flex flex-row gap-2 flex-wrap">
         <MoltenPushButton click={() => startOp("newFile")} text="New File" />
-        <MoltenPushButton click={() => startOp("newFolder")} text="New Folder" />
+        <MoltenPushButton
+          click={() => startOp("newFolder")}
+          text="New Folder"
+        />
         <MoltenPushButton
           click={() => startOp("copy")}
           text="Copy"
-          disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
+          disabled={!selectedEntry ||
+            selectedEntry === "." ||
+            selectedEntry === ".."}
         />
         <MoltenPushButton
           click={() => startOp("rename")}
           text="Rename"
-          disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
+          disabled={!selectedEntry ||
+            selectedEntry === "." ||
+            selectedEntry === ".."}
         />
         <MoltenPushButton
           click={deleteSelected}
           text="Delete"
-          disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
+          disabled={!selectedEntry ||
+            selectedEntry === "." ||
+            selectedEntry === ".."}
         />
       </div>
     {/if}
