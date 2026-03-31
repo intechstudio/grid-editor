@@ -134,6 +134,7 @@
     rawContent = null;
     editor?.setValue("");
     cancelRename();
+    cancelCopy();
     listDirectory();
   }
 
@@ -370,6 +371,9 @@
   let renaming = false;
   let renameValue = "";
 
+  let copying = false;
+  let copyValue = "";
+
   function startRename() {
     if (!selectedEntry) return;
     renameValue = selectedEntry;
@@ -402,6 +406,43 @@
       }
       selectedEntry = null;
       cancelRename();
+      await listDirectory();
+    } catch (e) {
+      error = String(e);
+    }
+  }
+
+  function startCopy() {
+    if (!selectedEntry) return;
+    copyValue = selectedEntry;
+    copying = true;
+  }
+
+  function cancelCopy() {
+    copying = false;
+    copyValue = "";
+  }
+
+  async function confirmCopy() {
+    if (
+      !target ||
+      !selectedEntry ||
+      !copyValue.trim() ||
+      copyValue === selectedEntry
+    ) {
+      cancelCopy();
+      return;
+    }
+    const srcPath = currentPath + selectedEntry;
+    const dstPath = currentPath + copyValue.trim();
+    const lua = `local s=io.open(${JSON.stringify(srcPath)},"r") if not s then return false,"open src failed" end local d=io.open(${JSON.stringify(dstPath)},"w") if not d then s:close() return false,"open dst failed" end local c=s:read(256) while c do d:write(c) c=s:read(256) end s:close() d:close() return true`;
+    try {
+      const result = await sendLua(lua, target.dx, target.dy);
+      if (result[0] !== true) {
+        error = `Copy failed: ${result[1] ?? "unknown error"}`;
+        return;
+      }
+      cancelCopy();
       await listDirectory();
     } catch (e) {
       error = String(e);
@@ -475,8 +516,8 @@
         entries = Object.values(table).map((v) => {
           const row = v as LuaTable;
           return {
-            name: String(row["name"]),
-            type: row["type"] === "dir" ? "dir" : "file",
+            name: String(row[1]),
+            type: row[2] === 2 ? "dir" : "file",
           } as DirEntry;
         });
       } else {
@@ -542,12 +583,22 @@
         {/each}
       </div>
       <MoltenPushButton
+        click={startCopy}
+        text="Copy"
+        disabled={!selectedEntry ||
+          selectedEntry === "." ||
+          selectedEntry === ".." ||
+          copying ||
+          renaming}
+      />
+      <MoltenPushButton
         click={startRename}
         text="Rename"
         disabled={!selectedEntry ||
           selectedEntry === "." ||
           selectedEntry === ".." ||
-          renaming}
+          renaming ||
+          copying}
       />
       <MoltenPushButton
         click={deleteSelected}
@@ -557,6 +608,25 @@
           selectedEntry === ".."}
       />
     </div>
+
+    {#if copying}
+      <div class="flex flex-row gap-2">
+        <input
+          class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
+          bind:value={copyValue}
+          onkeydown={(e) => {
+            if (e.key === "Enter") confirmCopy();
+            else if (e.key === "Escape") cancelCopy();
+          }}
+        />
+        <MoltenPushButton
+          click={confirmCopy}
+          text="OK"
+          disabled={!copyValue.trim()}
+        />
+        <MoltenPushButton click={cancelCopy} text="Cancel" />
+      </div>
+    {/if}
 
     {#if renaming}
       <div class="flex flex-row gap-2">
