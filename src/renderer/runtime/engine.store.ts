@@ -36,6 +36,7 @@ export enum InstructionClass {
   FETCH = "FETCH",
   REPORT = "REPORT",
   ACKNOWLEDGE = "ACKNOWLEDGE",
+  NACKNOWLEDGE = "NACKNOWLEDGE",
 }
 
 export type BufferElement = {
@@ -377,21 +378,40 @@ export class WriteBuffer implements Readable<WriteBufferData> {
       return;
     }
 
-    let incomingValid = true;
-
     const buffer = waiter.bufferelement;
+
     // validate BRC, must start with this as every input contains BRC!
+    let brcValid = true;
     for (const parameter in buffer.filter.brc_parameters) {
       if (
         descr.brc_parameters[parameter] !=
         buffer.filter.brc_parameters[parameter]
       ) {
-        incomingValid = false;
+        brcValid = false;
       }
     }
 
+    if (!brcValid) return;
+
+    if (descr.class_instr === InstructionClass.NACKNOWLEDGE) {
+      if (descr.class_name === buffer.filter.class_name) {
+        const filterLastHeader = buffer.filter.class_parameters?.LASTHEADER;
+        if (
+          filterLastHeader === undefined ||
+          filterLastHeader == descr.class_parameters?.LASTHEADER
+        ) {
+          console.log("NACKNOWLEDGE received", descr);
+          waiter.destroy();
+        }
+      }
+      return;
+    }
+
+    let incomingValid = true;
+
     if (descr.class_name === buffer.filter.class_name) {
       for (const parameter in buffer.filter.class_parameters) {
+        if (parameter === "LASTHEADER") continue;
         if (
           descr.class_parameters[parameter] !=
           buffer.filter.class_parameters[parameter]

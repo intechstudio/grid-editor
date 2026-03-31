@@ -146,7 +146,8 @@
         {/if}
       </div>
       {#if responseValues !== null}
-        <pre class="text-white whitespace-pre-wrap break-all">{JSON.stringify(
+        <pre
+          class="text-white whitespace-pre-wrap break-all select-text">{JSON.stringify(
             responseValues,
             null,
             2,
