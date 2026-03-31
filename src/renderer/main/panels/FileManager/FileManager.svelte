@@ -14,8 +14,7 @@
     type LuaTable,
   } from "../../../serialport/evaluate-parser";
   import type { ModuleType } from "@intechstudio/grid-protocol";
-  import SendEvaluate from "../DebugMonitor/SendEvaluate.svelte";
-  import { MonacoEditor } from "../../../lib/monaco";
+import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
   import * as monaco from "monaco-editor";
 
@@ -133,8 +132,7 @@
     savedContent = null;
     rawContent = null;
     editor?.setValue("");
-    cancelRename();
-    cancelCopy();
+    cancelOp();
     listDirectory();
   }
 
@@ -364,88 +362,68 @@
 
   // ── File operations ────────────────────────────────────────────────────────
 
-  let newFileName = "";
-  let creating = false;
-  let createError: string | null = null;
+  type OpType = "newFile" | "newFolder" | "copy" | "rename";
+  let activeOp: OpType | null = null;
+  let opValue = "";
+  let opInProgress = false;
+  let opError: string | null = null;
 
-  let renaming = false;
-  let renameValue = "";
+  const opPlaceholder: Record<OpType, string> = {
+    newFile: "new file name",
+    newFolder: "new folder name",
+    copy: "copy name",
+    rename: "new name",
+  };
 
-  let copying = false;
-  let copyValue = "";
-
-  function startRename() {
-    if (!selectedEntry) return;
-    renameValue = selectedEntry;
-    renaming = true;
+  function startOp(op: OpType) {
+    opError = null;
+    opValue = op === "copy" || op === "rename" ? (selectedEntry ?? "") : "";
+    activeOp = op;
   }
 
-  function cancelRename() {
-    renaming = false;
-    renameValue = "";
+  function cancelOp() {
+    activeOp = null;
+    opValue = "";
+    opError = null;
   }
 
-  async function confirmRename() {
-    if (
-      !target ||
-      !selectedEntry ||
-      !renameValue.trim() ||
-      renameValue === selectedEntry
-    ) {
-      cancelRename();
-      return;
-    }
-    const oldPath = currentPath + selectedEntry;
-    const newPath = currentPath + renameValue.trim();
-    const lua = `return os.rename(${JSON.stringify(oldPath)}, ${JSON.stringify(newPath)})`;
+  async function confirmOp() {
+    if (!target || !activeOp || !opValue.trim()) return;
+    opInProgress = true;
+    opError = null;
     try {
-      const result = await sendLua(lua, target.dx, target.dy);
-      if (result[0] !== true) {
-        error = `Rename failed: ${result[1] ?? "unknown error"}`;
-        return;
+      if (activeOp === "newFile") {
+        const path = currentPath + opValue.trim();
+        const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:close() return true`;
+        const result = await sendLua(lua, target.dx, target.dy);
+        if (result[0] !== true) { opError = "Failed to create file."; return; }
+      } else if (activeOp === "newFolder") {
+        const path = currentPath + opValue.trim();
+        const lua = `return dirent.mkdir(${JSON.stringify(path)})`;
+        const result = await sendLua(lua, target.dx, target.dy);
+        if (result[0] !== true) { opError = `Failed to create folder: ${result[1] ?? "unknown error"}`; return; }
+      } else if (activeOp === "rename") {
+        if (!selectedEntry || opValue.trim() === selectedEntry) { cancelOp(); return; }
+        const oldPath = currentPath + selectedEntry;
+        const newPath = currentPath + opValue.trim();
+        const lua = `return os.rename(${JSON.stringify(oldPath)}, ${JSON.stringify(newPath)})`;
+        const result = await sendLua(lua, target.dx, target.dy);
+        if (result[0] !== true) { opError = `Rename failed: ${result[1] ?? "unknown error"}`; return; }
+        selectedEntry = null;
+      } else if (activeOp === "copy") {
+        if (!selectedEntry || opValue.trim() === selectedEntry) { cancelOp(); return; }
+        const srcPath = currentPath + selectedEntry;
+        const dstPath = currentPath + opValue.trim();
+        const lua = `local s=io.open(${JSON.stringify(srcPath)},"r") if not s then return false,"open src failed" end local d=io.open(${JSON.stringify(dstPath)},"w") if not d then s:close() return false,"open dst failed" end local c=s:read(256) while c do d:write(c) c=s:read(256) end s:close() d:close() return true`;
+        const result = await sendLua(lua, target.dx, target.dy);
+        if (result[0] !== true) { opError = `Copy failed: ${result[1] ?? "unknown error"}`; return; }
       }
-      selectedEntry = null;
-      cancelRename();
+      cancelOp();
       await listDirectory();
     } catch (e) {
-      error = String(e);
-    }
-  }
-
-  function startCopy() {
-    if (!selectedEntry) return;
-    copyValue = selectedEntry;
-    copying = true;
-  }
-
-  function cancelCopy() {
-    copying = false;
-    copyValue = "";
-  }
-
-  async function confirmCopy() {
-    if (
-      !target ||
-      !selectedEntry ||
-      !copyValue.trim() ||
-      copyValue === selectedEntry
-    ) {
-      cancelCopy();
-      return;
-    }
-    const srcPath = currentPath + selectedEntry;
-    const dstPath = currentPath + copyValue.trim();
-    const lua = `local s=io.open(${JSON.stringify(srcPath)},"r") if not s then return false,"open src failed" end local d=io.open(${JSON.stringify(dstPath)},"w") if not d then s:close() return false,"open dst failed" end local c=s:read(256) while c do d:write(c) c=s:read(256) end s:close() d:close() return true`;
-    try {
-      const result = await sendLua(lua, target.dx, target.dy);
-      if (result[0] !== true) {
-        error = `Copy failed: ${result[1] ?? "unknown error"}`;
-        return;
-      }
-      cancelCopy();
-      await listDirectory();
-    } catch (e) {
-      error = String(e);
+      opError = String(e);
+    } finally {
+      opInProgress = false;
     }
   }
 
@@ -459,48 +437,6 @@
       await listDirectory();
     } catch (e) {
       error = String(e);
-    }
-  }
-
-  async function createFile() {
-    if (!target || !newFileName.trim()) return;
-    creating = true;
-    createError = null;
-    try {
-      const path = currentPath + newFileName.trim();
-      const lua = `local f = io.open(${JSON.stringify(path)}, "w") if not f then return false end f:close() return true`;
-      const result = await sendLua(lua, target.dx, target.dy);
-      if (result[0] === true) {
-        newFileName = "";
-        await listDirectory();
-      } else {
-        createError = "Failed to create file.";
-      }
-    } catch (e) {
-      createError = String(e);
-    } finally {
-      creating = false;
-    }
-  }
-
-  async function createDirectory() {
-    if (!target || !newFileName.trim()) return;
-    creating = true;
-    createError = null;
-    try {
-      const path = currentPath + newFileName.trim();
-      const lua = `return dirent.mkdir(${JSON.stringify(path)})`;
-      const result = await sendLua(lua, target.dx, target.dy);
-      if (result[0] === true) {
-        newFileName = "";
-        await listDirectory();
-      } else {
-        createError = `Failed to create directory: ${result[1] ?? "unknown error"}`;
-      }
-    } catch (e) {
-      createError = String(e);
-    } finally {
-      creating = false;
     }
   }
 
@@ -562,88 +498,67 @@
   </div>
 
   {#if target}
-    <!-- Path breadcrumb + actions -->
-    <div class="flex flex-row items-center gap-2">
-      <div
-        class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap flex-grow"
-      >
-        {#each breadcrumbs as segment, i}
-          {#if i > 0}
-            <span class="opacity-40">/</span>
-          {/if}
-          <button
-            class="hover:opacity-100 hover:underline px-0.5 rounded {i ===
-            breadcrumbs.length - 1
-              ? 'opacity-100'
-              : 'opacity-60'}"
-            onclick={() => onBreadcrumbClick(i)}
-          >
-            {segment}
-          </button>
-        {/each}
-      </div>
-      <MoltenPushButton
-        click={startCopy}
-        text="Copy"
-        disabled={!selectedEntry ||
-          selectedEntry === "." ||
-          selectedEntry === ".." ||
-          copying ||
-          renaming}
-      />
-      <MoltenPushButton
-        click={startRename}
-        text="Rename"
-        disabled={!selectedEntry ||
-          selectedEntry === "." ||
-          selectedEntry === ".." ||
-          renaming ||
-          copying}
-      />
-      <MoltenPushButton
-        click={deleteSelected}
-        text="Delete"
-        disabled={!selectedEntry ||
-          selectedEntry === "." ||
-          selectedEntry === ".."}
-      />
+    <!-- Path breadcrumb -->
+    <div class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap">
+      {#each breadcrumbs as segment, i}
+        {#if i > 0}
+          <span class="opacity-40">/</span>
+        {/if}
+        <button
+          class="hover:opacity-100 hover:underline px-0.5 rounded {i ===
+          breadcrumbs.length - 1
+            ? 'opacity-100'
+            : 'opacity-60'}"
+          onclick={() => onBreadcrumbClick(i)}
+        >
+          {segment}
+        </button>
+      {/each}
     </div>
 
-    {#if copying}
-      <div class="flex flex-row gap-2">
-        <input
-          class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
-          bind:value={copyValue}
-          onkeydown={(e) => {
-            if (e.key === "Enter") confirmCopy();
-            else if (e.key === "Escape") cancelCopy();
-          }}
-        />
-        <MoltenPushButton
-          click={confirmCopy}
-          text="OK"
-          disabled={!copyValue.trim()}
-        />
-        <MoltenPushButton click={cancelCopy} text="Cancel" />
+    <!-- Operations row -->
+    {#if activeOp}
+      <div class="flex flex-col gap-1">
+        <div class="flex flex-row gap-2">
+          <input
+            class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
+            placeholder={opPlaceholder[activeOp]}
+            bind:value={opValue}
+            onkeydown={(e) => {
+              if (e.key === "Enter") confirmOp();
+              else if (e.key === "Escape") cancelOp();
+            }}
+          />
+          <MoltenPushButton
+            click={confirmOp}
+            text={opInProgress ? "..." : "OK"}
+            disabled={!opValue.trim() || opInProgress}
+          />
+          <MoltenPushButton click={cancelOp} text="Cancel" />
+        </div>
+        {#if opError}
+          <p class="text-xs text-red-400">{opError}</p>
+        {/if}
       </div>
-    {/if}
-
-    {#if renaming}
-      <div class="flex flex-row gap-2">
-        <input
-          class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
-          bind:value={renameValue}
-          onkeydown={(e) => {
-            if (e.key === "Enter") confirmRename();
-            else if (e.key === "Escape") cancelRename();
-          }}
+    {:else}
+      <div class="flex flex-row gap-2 flex-wrap">
+        <MoltenPushButton click={() => startOp("newFile")} text="New File" />
+        <MoltenPushButton click={() => startOp("newFolder")} text="New Folder" />
+        <MoltenPushButton
+          click={() => startOp("copy")}
+          text="Copy"
+          disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
         />
         <MoltenPushButton
-          click={confirmRename}
-          text="OK"
-          disabled={!renameValue.trim()}
+          click={() => startOp("rename")}
+          text="Rename"
+          disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
         />
-        <MoltenPushButton click={cancelRename} text="Cancel" />
+        <MoltenPushButton
+          click={deleteSelected}
+          text="Delete"
+          disabled={!selectedEntry || selectedEntry === "." || selectedEntry === ".."}
+        />
       </div>
     {/if}
 
@@ -693,6 +608,14 @@
         <MeltSelect bind:target={selectedLanguage} options={languageOptions} />
       </div>
       <MoltenPushButton
+        click={() => {
+          fileContent = savedContent;
+          editor?.setValue(savedContent ?? "");
+        }}
+        text="Discard"
+        disabled={!fileDirty}
+      />
+      <MoltenPushButton
         click={saveFile}
         text={savingFile ? "..." : "Save"}
         disabled={!fileDirty || savingFile || !!luaSyntaxError}
@@ -711,34 +634,4 @@
         : ''}"
     />
   </div>
-
-  {#if target}
-    <div class="border-t border-white/10 pt-2 flex flex-col gap-1">
-      <div class="flex flex-row gap-2">
-        <input
-          class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
-          placeholder="new file name"
-          bind:value={newFileName}
-          onkeydown={(e) => e.key === "Enter" && createFile()}
-        />
-        <MoltenPushButton
-          click={createFile}
-          text={creating ? "..." : "File"}
-          disabled={!newFileName.trim() || creating}
-        />
-        <MoltenPushButton
-          click={createDirectory}
-          text={creating ? "..." : "Folder"}
-          disabled={!newFileName.trim() || creating}
-        />
-      </div>
-      {#if createError}
-        <p class="text-xs text-red-400">{createError}</p>
-      {/if}
-    </div>
-
-    <div class="border-t border-white/10 pt-2">
-      <SendEvaluate {target} />
-    </div>
-  {/if}
 </div>
