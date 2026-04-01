@@ -65,23 +65,20 @@ export const blocks = (page) => ({
         Layer: page.getByLabel("Layer"),
       },
     },
-    Color: {
-      block: page.locator("#action-menu").getByText("Color", { exact: true }),
+    "Simple Color": {
+      block: page.locator("#action-menu").getByText("Simple Color"),
       elements: {
-        ledNumber: page.getByLabel("LED Number"),
+        ledNumber: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),
         Red: page.getByLabel("Red"),
         Green: page.getByLabel("Green"),
         Blue: page.getByLabel("Blue"),
-        Canva: page.getByTestId("rgb-color-picker-canvas"),
-        Random: page.getByTestId("random-color-generator"),
-        Beauty: page.locator("#cfg-0").getByRole("checkbox"),
       },
     },
-    Intensity: {
-      block: page.locator("#action-menu").getByText("Intensity"),
+    "Simple Intensity": {
+      block: page.locator("#action-menu").getByText("Simple Intensity"),
       elements: {
-        "LED Number": page.getByLabel("LED Number"),
+        Element: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),
         Intensity: page.getByLabel("Intensity"),
       },
