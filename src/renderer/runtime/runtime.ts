@@ -386,12 +386,6 @@ export class GridAction extends RuntimeNode<ActionData> {
 
     let actionString = script.replace(/\s{2,10}/g, " ");
 
-    if (actionString.startsWith(Grid.Protocol.scriptStart)) {
-      actionString = actionString
-        .split(Grid.Protocol.scriptStart)[1]
-        .split(Grid.Protocol.scriptEnd)[0];
-    }
-
     const matches = [
       ...actionString.matchAll(/--\[\[@(.*?)\]\]\s*(.*?)(?=(--\[\[@|$))/gs),
     ];

@@ -126,8 +126,6 @@ export namespace GridInstruction {
       virtual: boolean = false,
     ) {
       super(virtual);
-      const actionString =
-        Grid.Protocol.scriptStart + config + Grid.Protocol.scriptEnd;
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
@@ -145,8 +143,8 @@ export namespace GridInstruction {
             PAGENUMBER: page,
             ELEMENTNUMBER: element,
             EVENTTYPE: event,
-            ACTIONLENGTH: actionString.length,
-            ACTIONSTRING: actionString,
+            ACTIONLENGTH: config.length,
+            ACTIONSTRING: config,
           },
         },
         responseRequired: true,
@@ -164,12 +162,7 @@ export namespace GridInstruction {
     public executeOn(connection: GridConnection): Promise<any> {
       const configLength =
         this.buffer_element.descr.class_parameters.ACTIONLENGTH;
-      if (
-        configLength >=
-        Grid.Protocol.maxScriptLength +
-          Grid.Protocol.scriptStart.length +
-          Grid.Protocol.scriptEnd.length
-      ) {
+      if (configLength >= Grid.Protocol.maxScriptLength) {
         logger.set({
           type: "alert",
           mode: 0,
@@ -191,8 +184,6 @@ export namespace GridInstruction {
       virtual: boolean = false,
     ) {
       super(virtual);
-      const actionString =
-        Grid.Protocol.scriptStart + script + Grid.Protocol.scriptEnd;
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
@@ -204,8 +195,8 @@ export namespace GridInstruction {
           class_name: InstructionClassName.IMMEDIATE,
           class_instr: InstructionClass.EXECUTE,
           class_parameters: {
-            ACTIONLENGTH: actionString.length,
-            ACTIONSTRING: actionString,
+            ACTIONLENGTH: script.length,
+            ACTIONSTRING: script,
           },
         },
       };
@@ -214,12 +205,7 @@ export namespace GridInstruction {
     public executeOn(connection: GridConnection): Promise<any> {
       const configLength =
         this.buffer_element.descr.class_parameters.ACTIONLENGTH;
-      if (
-        configLength >=
-        Grid.Protocol.maxScriptLength +
-          Grid.Protocol.scriptStart.length +
-          Grid.Protocol.scriptEnd.length
-      ) {
+      if (configLength >= Grid.Protocol.maxScriptLength) {
         //TODO: Reject handling logging
         logger.set({
           type: "alert",
