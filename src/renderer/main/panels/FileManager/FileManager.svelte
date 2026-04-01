@@ -64,7 +64,7 @@
     const runtime = get(runtime_manager).active?.runtime;
     if (!runtime) throw new Error("No runtime");
 
-    const script = `<?lua ${compress ? GridScript.compressScript(code) : code} ?>`;
+    const script = `${compress ? GridScript.compressScript(code) : code}`;
     const size = script.length.toString(16).padStart(4, "0");
     const classBody = `\x02086e0001` + `04` + size + script + `\x03`;
     const classArray: number[] = Array.from(classBody, (c) => c.charCodeAt(0));
@@ -210,7 +210,7 @@
           : fileContent;
       luaSyntaxError = null;
       const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:write("${luaEscape(content)}") f:close() return true`;
-      return `<?lua ${lua} ?>`.length;
+      return `${lua}`.length;
     } catch (e) {
       luaSyntaxError = String(e);
       return null;
