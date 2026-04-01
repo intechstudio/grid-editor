@@ -102,6 +102,7 @@ export namespace GridInstruction {
           class_instr: InstructionClass.REPORT,
           class_name: InstructionClassName.CONFIG,
           class_parameters: {
+            LASTHEADER: null,
             PAGENUMBER: page,
             ELEMENTNUMBER: element,
             EVENTTYPE: event,
