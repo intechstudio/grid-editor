@@ -140,7 +140,7 @@ We opted for a minimal hand-rolled approach to avoid the heavy `@codingame/monac
 
 | File                                                 | Role                                                            |
 | ---------------------------------------------------- | --------------------------------------------------------------- |
-| `src/electron/ipcmain_luals.ts`                      | Spawns LuaLS, bridges stdio ↔ WS, writes `.luarc.json`          |
+| `src/electron/ipcmain_luals.ts`                      | Spawns LuaLS, bridges stdio ↔ WS, writes `.luarc.json`         |
 | `src/electron/main.ts`                               | Calls `startLuaLSServer()` / `stopLuaLSServer()`                |
 | `src/renderer/lib/monaco-luals-client.ts`            | LSP client: JSON-RPC, document sync, all providers              |
 | `src/renderer/lib/monaco.ts`                         | Monarch tokenizer, theme, editor factory, calls `initLuaLSP()`  |
