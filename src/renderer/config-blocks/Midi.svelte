@@ -124,7 +124,7 @@
       }
     }
 
-    const rxParams = extractParam(data.script, "midirx_register");
+    const rxParams = extractParam(data.script, "gmrr");
     if (rxParams !== null) {
       const match = rxParams.match(/\{(true|false),(true|false)\}/);
       feature1 = match ? match[1] === "true" : false;
@@ -149,7 +149,7 @@
     if (feature1 || feature2) {
       const f1 = feature1 ? "true" : "false";
       const f2 = feature2 ? "true" : "false";
-      fullScript += ` self:midirx_register(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}})`;
+      fullScript += ` self:gmrr(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}})`;
     }
     dispatch("update-action", {
       short: action.short,
