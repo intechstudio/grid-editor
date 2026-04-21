@@ -46,10 +46,16 @@
 
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { MeltCombo } from "@intechstudio/grid-uikit";
+  import {
+    Block,
+    BlockRow,
+    BlockTitle,
+    MeltCombo,
+    MeltCheckbox,
+  } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { midiCC } from "./_midi.js";
-  import { Script } from "./_script_parsers.js";
+  import { Script, extractParam } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
@@ -93,16 +99,29 @@
   ];
 
   let scriptSegments = [];
+  let feature1: boolean = false;
+  let feature2: boolean = false;
 
   $: if (!$action.invalid) {
     handleActionChange($action);
   }
 
   function handleActionChange(data: ActionData) {
+    const gmsContent = extractParam(data.script, "gms");
     scriptSegments = Script.toSegments({
       short: data.short,
-      script: data.script,
+      script: gmsContent !== null ? `gms(${gmsContent})` : data.script,
     });
+
+    const rxParams = extractParam(data.script, "midirx_register");
+    if (rxParams !== null) {
+      const match = rxParams.match(/\{(true|false),(true|false)\}/);
+      feature1 = match ? match[1] === "true" : false;
+      feature2 = match ? match[2] === "true" : false;
+    } else {
+      feature1 = false;
+      feature2 = false;
+    }
   }
 
   function sendData() {
@@ -110,11 +129,24 @@
       short: action.short,
       array: scriptSegments,
     }); // important to set the function name
+    let fullScript = "self:" + script;
+    if (feature1 || feature2) {
+      const f1 = feature1 ? "true" : "false";
+      const f2 = feature2 ? "true" : "false";
+      fullScript += ` self:midirx_register(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}})`;
+    }
     dispatch("update-action", {
       short: action.short,
-      script: "self:" + script,
+      script: fullScript,
       validationError: validators.some((e) => e.value === false),
     });
+  }
+
+  $: handleFeatureChange(feature1, feature2);
+
+  function handleFeatureChange(_f1: boolean, _f2: boolean) {
+    sendData();
+    dispatch("sync");
   }
 
   $: if ($event) {
@@ -270,25 +302,36 @@
     </div>
   {/if}
 
-  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
-    {#each scriptSegments as script, i}
-      <MeltCombo
-        title={parameterNames[i]}
-        value={script}
-        suggestions={suggestions[i]}
-        validator={validators[i].func}
-        on:input={(e) => {
-          const { value, validationError } = e.detail;
-          script = value;
-          validators[i].value = !validationError;
-          sendData();
-        }}
-        on:change={() => dispatch("sync")}
-        postProcessor={GridScript.shortify}
-        preProcessor={GridScript.humanize}
-      />
-    {/each}
-  </div>
+  <Block>
+    <BlockTitle>Send MIDI</BlockTitle>
+    <BlockRow even>
+      {#each scriptSegments as script, i}
+        <MeltCombo
+          title={parameterNames[i]}
+          value={script}
+          suggestions={suggestions[i]}
+          validator={validators[i].func}
+          on:input={(e) => {
+            const { value, validationError } = e.detail;
+            script = value;
+            validators[i].value = !validationError;
+            sendData();
+          }}
+          on:change={() => dispatch("sync")}
+          postProcessor={GridScript.shortify}
+          preProcessor={GridScript.humanize}
+        />
+      {/each}
+    </BlockRow>
+  </Block>
+
+  <Block>
+    <BlockTitle>Receive MIDI</BlockTitle>
+    <BlockRow>
+      <MeltCheckbox bind:target={feature1} title="Sync value" />
+      <MeltCheckbox bind:target={feature2} title="Sync LED intensity" />
+    </BlockRow>
+  </Block>
 
   <div class="mt-2">
     <SendFeedback feedback_context="Midi" />
