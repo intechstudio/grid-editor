@@ -226,7 +226,11 @@
     }
 
     if (get(appSettings).persistent.userLevelMinimalist === true) {
-      comp = comp.filter((e) => !e.information.hiddenInMinimalist);
+      comp = comp.filter(
+        (e) =>
+          !e.information.hiddenInMinimalist &&
+          e.information.category !== "deprecated",
+      );
     }
 
     //Group components by category
@@ -252,6 +256,7 @@
       "special",
       "code",
       "timer",
+      "deprecated",
     ];
     comp.sort(function (a, b) {
       return (
