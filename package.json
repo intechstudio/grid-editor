@@ -43,7 +43,7 @@
     "@intechstudio/grid-uikit": "1.20260303.1559",
     "@intechstudio/profile-cloud-webcomponent": "1.20251107.1414",
     "adm-zip": "^0.5.10",
-    "axios": "^1.13.5",
+    "axios": "^1.15.0",
     "cheerio": "^1.0.0",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",
