@@ -178,6 +178,7 @@ export type PendingBufferProcess = {
 export type WriteBufferData = {
   array: BufferElement[];
   current: PendingBufferProcess | undefined;
+  retryCount: number;
 };
 
 export class WriteBuffer implements Readable<WriteBufferData> {
@@ -193,6 +194,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     this._internal = writable({
       array: [],
       current: undefined,
+      retryCount: 0,
     });
   }
 
@@ -232,7 +234,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
   }
 
   public clear() {
-    this.set({ array: [], current: undefined });
+    this.set({ array: [], current: undefined, retryCount: 0 });
     waiter?.destroy();
     waiter = undefined;
   }
@@ -329,6 +331,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
                 break;
               }
               case ResponseStatus.TIMEOUT: {
+                this.update((s) => ({ ...s, retryCount: s.retryCount + 1 }));
                 resolve(this.sendToGrid(bufferElement)); // RETRY recursively until processed
                 break;
               }
