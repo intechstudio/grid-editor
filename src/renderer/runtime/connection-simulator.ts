@@ -24,10 +24,13 @@ export class VirtualModule {
     const events = grid.get_element_events(type);
     return {
       events: events.map((e) => {
+        const cfg = e.defaultConfig.startsWith("<?lua ")
+          ? e.defaultConfig.slice(6, e.defaultConfig.lastIndexOf(" ?>"))
+          : e.defaultConfig;
         return {
           value: Number(e.value),
-          config: e.defaultConfig,
-          stored: e.defaultConfig,
+          config: cfg,
+          stored: cfg,
         };
       }),
     };
