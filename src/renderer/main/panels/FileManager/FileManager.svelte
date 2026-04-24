@@ -638,6 +638,7 @@
       </div>
     {:else}
       <div class="flex flex-row gap-2 flex-wrap">
+        <MoltenPushButton click={listDirectory} text="Refresh" />
         <MoltenPushButton click={() => startOp("newFile")} text="New File" />
         <MoltenPushButton
           click={() => startOp("newFolder")}
