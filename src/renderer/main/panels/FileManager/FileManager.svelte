@@ -171,7 +171,9 @@
       clickTimer = setTimeout(() => {
         clickTimer = null;
         selectedEntry = entry.name;
-        readFile(entry.name);
+        if (entry.type !== "dir") {
+          readFile(entry.name);
+        }
       }, 250);
     }
   }
@@ -698,8 +700,10 @@
   {/if}
 
   <div
-    class="border-t border-white/10 pt-2 flex flex-col gap-1 {fileContent ===
-      null && !readingFile
+    class="border-t border-white/10 pt-2 flex flex-col gap-1 {(fileContent ===
+      null &&
+      !readingFile) ||
+    entries.find((e) => e.name === selectedEntry)?.type === 'dir'
       ? 'hidden'
       : ''}"
   >
