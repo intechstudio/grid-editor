@@ -202,8 +202,8 @@
 
   let luaSyntaxError: string | null = null;
 
-  const CHUNK_SIZE = 10; // raw content chars per write chunk — small for testing
-  const READ_CHUNK_SIZE = 10; // bytes per read chunk — small for testing
+  const CHUNK_SIZE = 50; // raw content chars per write chunk — small for testing
+  const READ_CHUNK_SIZE = 50; // bytes per read chunk — small for testing
 
   $: contentInfo = (() => {
     if (!fileContent || !selectedEntry) return null;
