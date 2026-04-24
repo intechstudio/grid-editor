@@ -48,7 +48,6 @@
   import { fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
 
-  import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { ActionData, GridAction } from "../runtime/runtime.js";
@@ -86,33 +85,9 @@
     });
     dispatch("sync");
   }
-
-  const tabs = [
-    { name: "MIDI", short: "gms" },
-    { name: "14 bit MIDI", short: "gmsh" },
-    { name: "SysEX", short: "gmss" },
-    { name: "NRPN MIDI", short: "gmnp" },
-  ];
-
-  function handleTabButtonClicked(element) {
-    dispatch("replace", { short: element.short });
-  }
 </script>
 
 <action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
-  {#if tabs !== undefined}
-    <div class="ml-auto flex flex-row mb-2">
-      <div />
-      {#each tabs as element}
-        <TabButton
-          selected={action.information.short == element.short}
-          text={element.name}
-          on:click={() => handleTabButtonClicked(element)}
-        />
-      {/each}
-    </div>
-  {/if}
-
   <div class="w-full flex flex-col">
     <div class="text-gray-500 text-sm pb-1 font-bold">
       Enter comma separated sysex bytes or variables.
