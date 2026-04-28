@@ -107,7 +107,7 @@
   function handleActionChange(data: ActionData) {
     // Extract all contents
     const matches = [];
-    const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
+    const regex = /gms\((.*?[^)])\)(?=\s|gms|$)/g;
 
     let match;
     while ((match = regex.exec(data.script)) !== null) {
@@ -125,6 +125,8 @@
         midiLSB.push(part[3]);
       }
     }
+
+    if (midiMSB.length < 2 || midiLSB.length < 1) return;
 
     value = midiMSB[1].split("//")[0];
     if (value.startsWith("(") && value.endsWith(")")) {
