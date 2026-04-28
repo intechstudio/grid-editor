@@ -230,7 +230,7 @@
       }
     }
   }}
-  class="dynamicWrapper activator-button flex flex-grow outline-none"
+  class="dynamicWrapper activator-button flex flex-grow min-w-0 outline-none"
   class:cursor-pointer={ctrlIsDown}
 >
   <Indentation level={$action?.indentation ?? 0} />
@@ -238,7 +238,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="flex flex-grow h-auto min-h-[32px] {!$action.isValid()
+    class="flex flex-grow min-w-0 overflow-x-auto h-auto min-h-[32px] {!$action.isValid()
       ? 'border border-error'
       : 'border border-background-soft'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
@@ -285,14 +285,14 @@
 
       <!-- Body of the config block -->
       <div
-        class="w-full flex flex-grow items-center"
+        class="w-full flex flex-grow min-w-0 items-center"
         class:cursor-auto={$action.toggled}
         class:bg-opacity-30={$action.toggled}
       >
         <!-- Content of block -->
         {#if ($action.toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="h-full w-full bg-background-mute">
+          <div class="h-full w-full bg-background-mute pointer-events-auto">
             <svelte:component
               this={component}
               {...componentProps}

@@ -260,20 +260,22 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-      <MeltSlider
-        target={$data.alphaSliderValue}
-        min={0}
-        max={1}
-        step={0.01}
-        on:change={(e) => {
-          const { value } = e.detail;
-          data.updateAlphaSliderValue(value);
-          sendData($data);
-        }}
-        on:commit={() => {
-          dispatch("sync");
-        }}
-      />
+      <Block>
+        <MeltSlider
+          target={$data.alphaSliderValue}
+          min={0}
+          max={1}
+          step={0.01}
+          on:change={(e) => {
+            const { value } = e.detail;
+            data.updateAlphaSliderValue(value);
+            sendData($data);
+          }}
+          on:commit={() => {
+            dispatch("sync");
+          }}
+        /></Block
+      >
     </BlockColumn>
   </BlockRow>
   <BlockRow>
