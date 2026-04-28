@@ -294,10 +294,7 @@ export namespace Grid {
   }
 
   export namespace Protocol {
-    export const scriptStart = "<?lua ";
-    export const scriptEnd = " ?>";
-    export const maxScriptLength =
-      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
+    export const maxScriptLength = grid.getProperty("CONFIG_LENGTH");
 
     export function getLayerSuggestions(type: ElementType) {
       switch (type) {
