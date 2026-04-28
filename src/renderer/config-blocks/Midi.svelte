@@ -67,6 +67,8 @@
   export let action: GridAction;
 
   let event = action.parent as GridEvent;
+  let containerWidth = 0;
+  $: isWide = containerWidth > 360;
 
   const dispatch = createEventDispatcher();
 
@@ -331,18 +333,21 @@
   }
 </script>
 
-<action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
+<action-midi
+  bind:clientWidth={containerWidth}
+  class="flex flex-col w-full pb-2 px-2 pointer-events-auto"
+>
+  <BlockRow>
+    <MeltRadio
+      options={modes}
+      bind:target={mode}
+      orientation={isWide ? "horizontal" : "vertical"}
+      style="button"
+      size={isWide ? "full" : "auto"}
+    />
+  </BlockRow>
   <Block>
     <BlockTitle>Send MIDI</BlockTitle>
-    <BlockRow>
-      <MeltRadio
-        options={modes}
-        bind:target={mode}
-        orientation="horizontal"
-        style="button"
-        size="full"
-      />
-    </BlockRow>
     <BlockRow even>
       <MeltCombo
         title={parameterNames[0]}
