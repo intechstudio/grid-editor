@@ -290,10 +290,7 @@
           return Promise.reject(ProfileCloud.ErrorText.EMPTY_SNIPPET);
         }
 
-        const script =
-          Grid.Protocol.scriptStart +
-          selected.map((e) => e.toLua()).join("") +
-          Grid.Protocol.scriptEnd;
+        const script = selected.map((e) => e.toLua()).join("");
 
         config.type = "snippet";
         config.configs = script;

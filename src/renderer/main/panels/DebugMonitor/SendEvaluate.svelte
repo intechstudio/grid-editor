@@ -58,7 +58,7 @@
     if (!runtime) return;
 
     const code = editor.getValue();
-    const script = `<?lua ${GridScript.compressScript(code)} ?>`;
+    const script = `${GridScript.compressScript(code)}`;
     const size = script.length.toString(16).padStart(4, "0");
 
     const classBody = `\x02086e0001` + `04` + size + script + `\x03`;

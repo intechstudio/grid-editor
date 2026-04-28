@@ -15,7 +15,7 @@
 
   export let target: { dx: number; dy: number };
 
-  let rawInput = `\x02085e001b<?lua print("INFO: foo") ?>\x03`;
+  let rawInput = `\x02085e0012print("INFO: foo")\x03`;
 
   async function handleSendRawClicked() {
     const runtime = get(runtime_manager).active?.runtime;
