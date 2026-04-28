@@ -149,7 +149,7 @@
     if (feature1 || feature2) {
       const f1 = feature1 ? "true" : "false";
       const f2 = feature2 ? "true" : "false";
-      fullScript += ` self:gmrr(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}})`;
+      fullScript += ` self:gmrr(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}},${String(mode)})`;
     }
     dispatch("update-action", {
       short: action.short,
