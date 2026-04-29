@@ -274,7 +274,7 @@
     } else if (mode === 1) {
       param1 = [
         makeAuto(
-          `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1)})`,
+          `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1) % 32})`,
         ),
         ...make14BitCCs(),
       ];
