@@ -386,6 +386,12 @@ export class GridAction extends RuntimeNode<ActionData> {
 
     let actionString = script.replace(/\s{2,10}/g, " ");
 
+    // Strip legacy <?lua ... ?> framing from old cloud data
+    const framingMatch = actionString.match(/^<\?lua\s(.*)\s\?>$/s);
+    if (framingMatch) {
+      actionString = framingMatch[1];
+    }
+
     const matches = [
       ...actionString.matchAll(/--\[\[@(.*?)\]\]\s*(.*?)(?=(--\[\[@|$))/gs),
     ];
