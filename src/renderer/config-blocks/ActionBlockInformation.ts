@@ -33,6 +33,7 @@ interface Information {
     | "code"
     | "timer"
     | "function"
+    | "deprecated"
     | null;
   displayName: string;
   defaultLua: string;
