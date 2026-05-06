@@ -2272,16 +2272,16 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   create_module(header_param, heartbeat_class_param, virtual = false) {
     const hwcfg = Number(heartbeat_class_param.HWCFG);
-    const revision: string = grid
-      .module_hwcfgs()
-      .find((e) => Number(e.hwcfg) === hwcfg).revision;
     const moduleType = grid.module_type_from_hwcfg(hwcfg);
+    const hwcfgEntry = grid
+      .module_hwcfgs()
+      .find((e) => Number(e.hwcfg) === hwcfg);
 
-    // generic check, code below if works only if all parameters are provided
     if (
       header_param === undefined ||
       moduleType === undefined ||
-      heartbeat_class_param === undefined
+      heartbeat_class_param === undefined ||
+      hwcfgEntry === undefined
     ) {
       console.warn(
         hwcfg,
@@ -2292,6 +2292,8 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       );
       throw "Error creating new module.";
     }
+
+    const revision: string = hwcfgEntry.revision;
 
     return new GridModule(
       this,
