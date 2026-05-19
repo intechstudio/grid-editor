@@ -208,7 +208,8 @@
             "epre",
             "epr",
             "eprlrel",
-            "eprlrei",
+            "eprlrei1",
+            "eprlrei2",
             "eprlre",
             "eprlr",
           ].includes(e.information.short),
@@ -217,6 +218,24 @@
     if (eventString !== "button") {
       comp = comp.filter(
         (e) => !["bprel", "bpre", "bpr", "bst0"].includes(e.information.short),
+      );
+    }
+    if (eventString !== "endless") {
+      comp = comp.filter(
+        (e) =>
+          ![
+            "eplrel",
+            "eplre",
+            "eplr",
+            "epprel",
+            "eppre",
+            "eppr",
+            "epprlrel",
+            "epprlrei1",
+            "epprlrei2",
+            "epprlre",
+            "epprlr",
+          ].includes(e.information.short),
       );
     }
 

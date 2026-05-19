@@ -29,7 +29,7 @@ export interface CompositePartResult {
 function buildPart(
   group: (typeof compositeGroups)[0],
   data: CompositePartData,
-  index: number
+  index: number,
 ): CompositePartResult {
   const type = deriveType(group, index);
   const isFirst = index === 0;
@@ -68,7 +68,7 @@ function buildPart(
 }
 
 export function getCompositePart(
-  short: string
+  short: string,
 ): CompositePartResult | undefined {
   for (const group of compositeGroups) {
     for (let i = 0; i < group.parts.length; i++) {
