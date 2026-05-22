@@ -594,26 +594,6 @@
   </div>
 
   {#if target}
-    <!-- Path breadcrumb -->
-    <div
-      class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
-    >
-      {#each breadcrumbs as segment, i}
-        {#if i > 0}
-          <span class="opacity-40">/</span>
-        {/if}
-        <button
-          class="hover:opacity-100 hover:underline px-1 py-0.5 rounded {i ===
-          breadcrumbs.length - 1
-            ? 'opacity-100'
-            : 'opacity-60'}"
-          onclick={() => onBreadcrumbClick(i)}
-        >
-          {i === 0 ? "root" : segment}
-        </button>
-      {/each}
-    </div>
-
     <!-- Operations row -->
     {#if activeOp}
       <div class="flex flex-col gap-1">
@@ -669,6 +649,26 @@
         />
       </div>
     {/if}
+
+    <!-- Path breadcrumb -->
+    <div
+      class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
+    >
+      {#each breadcrumbs as segment, i}
+        {#if i > 0}
+          <span class="opacity-40">/</span>
+        {/if}
+        <button
+          class="hover:opacity-100 hover:underline px-1 py-0.5 rounded {i ===
+          breadcrumbs.length - 1
+            ? 'opacity-100'
+            : 'opacity-60'}"
+          onclick={() => onBreadcrumbClick(i)}
+        >
+          {i === 0 ? "root" : segment}
+        </button>
+      {/each}
+    </div>
 
     <!-- File list -->
     <div class="min-h-0">
