@@ -578,7 +578,7 @@
   });
 </script>
 
-<div class="w-full h-full flex flex-col p-4 gap-2 overflow-hidden">
+<container data-testid="file-manager" class="flex flex-col h-full p-4">
   <!-- Module selector -->
   <div class="flex flex-row gap-2">
     <div class="flex-grow">
@@ -596,7 +596,7 @@
   {#if target}
     <!-- Path breadcrumb -->
     <div
-      class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap"
+      class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
     >
       {#each breadcrumbs as segment, i}
         {#if i > 0}
@@ -754,4 +754,4 @@
         : ''}"
     />
   </div>
-</div>
+</container>
