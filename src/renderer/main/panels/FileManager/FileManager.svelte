@@ -578,7 +578,7 @@
   });
 </script>
 
-<div class="w-full h-full flex flex-col p-4 gap-2 overflow-hidden">
+<container data-testid="file-manager" class="flex flex-col h-full p-4">
   <!-- Module selector -->
   <div class="flex flex-row gap-2">
     <div class="flex-grow">
@@ -594,32 +594,12 @@
   </div>
 
   {#if target}
-    <!-- Path breadcrumb -->
-    <div
-      class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap"
-    >
-      {#each breadcrumbs as segment, i}
-        {#if i > 0}
-          <span class="opacity-40">/</span>
-        {/if}
-        <button
-          class="hover:opacity-100 hover:underline px-0.5 rounded {i ===
-          breadcrumbs.length - 1
-            ? 'opacity-100'
-            : 'opacity-60'}"
-          onclick={() => onBreadcrumbClick(i)}
-        >
-          {segment}
-        </button>
-      {/each}
-    </div>
-
     <!-- Operations row -->
     {#if activeOp}
       <div class="flex flex-col gap-1">
         <div class="flex flex-row gap-2">
           <input
-            class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
+            class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-base outline-none focus:border-white/50"
             placeholder={opPlaceholder[activeOp]}
             bind:value={opValue}
             onkeydown={(e) => {
@@ -635,7 +615,7 @@
           <MoltenPushButton click={cancelOp} text="Cancel" />
         </div>
         {#if opError}
-          <p class="text-xs text-red-400">{opError}</p>
+          <p class="text-base text-red-400">{opError}</p>
         {/if}
       </div>
     {:else}
@@ -670,37 +650,59 @@
       </div>
     {/if}
 
+    <!-- Path breadcrumb -->
+    <div
+      class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
+    >
+      {#each breadcrumbs as segment, i}
+        {#if i > 0}
+          <span class="opacity-40">/</span>
+        {/if}
+        <button
+          class="hover:opacity-100 hover:underline px-1 py-0.5 rounded {i ===
+          breadcrumbs.length - 1
+            ? 'opacity-100'
+            : 'opacity-60'}"
+          onclick={() => onBreadcrumbClick(i)}
+        >
+          {i === 0 ? "root" : segment}
+        </button>
+      {/each}
+    </div>
+
     <!-- File list -->
-    {#if error}
-      <p class="text-sm text-red-400 select-text">{error}</p>
-    {:else if loading}
-      <p class="text-sm opacity-50">Loading...</p>
-    {:else if entries.length === 0}
-      <p class="text-sm opacity-50">Empty directory.</p>
-    {:else}
-      <div class="flex flex-col overflow-y-auto gap-0.5 font-mono text-sm">
-        {#each entries as entry}
-          <button
-            class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
-            entry.name
-              ? 'bg-white/20'
-              : 'hover:bg-white/10'}"
-            onclick={() => onEntryClick(entry)}
-          >
-            <span class="opacity-50 shrink-0"
-              >{entry.type === "dir" ? "📁" : "📄"}</span
+    <div class="min-h-0">
+      {#if error}
+        <p class="text-base text-red-400 select-text">{error}</p>
+      {:else if loading}
+        <p class="text-base opacity-50">Loading...</p>
+      {:else if entries.length === 0}
+        <p class="text-base opacity-50">Empty directory.</p>
+      {:else}
+        <div class="flex flex-col overflow-y-auto gap-0.5 font-mono text-base">
+          {#each entries as entry}
+            <button
+              class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
+              entry.name
+                ? 'bg-white/20'
+                : 'hover:bg-white/10'}"
+              onclick={() => onEntryClick(entry)}
             >
-            <span class="truncate">{entry.name}</span>
-          </button>
-        {/each}
-      </div>
-    {/if}
+              <span class="opacity-50 shrink-0"
+                >{entry.type === "dir" ? "📁" : "📄"}</span
+              >
+              <span class="truncate">{entry.name}</span>
+            </button>
+          {/each}
+        </div>
+      {/if}
+    </div>
   {:else}
-    <p class="text-sm opacity-50">No modules connected.</p>
+    <p class="text-base opacity-50">No modules connected.</p>
   {/if}
 
   <div
-    class="border-t border-white/10 pt-2 flex flex-col gap-1 {(fileContent ===
+    class="border-t border-white/10 pt-2 flex flex-col gap-1 flex-grow min-h-0 {(fileContent ===
       null &&
       !readingFile) ||
     entries.find((e) => e.name === selectedEntry)?.type === 'dir'
@@ -708,11 +710,11 @@
       : ''}"
   >
     <div class="flex items-center gap-2">
-      <p class="text-xs opacity-50 font-mono flex-grow">
+      <p class="text-base opacity-50 font-mono flex-grow">
         {selectedEntry ?? ""}{fileDirty ? " •" : ""}
       </p>
       {#if contentInfo !== null}
-        <span class="text-xs font-mono opacity-50"
+        <span class="text-base font-mono opacity-50"
           >{contentInfo.bytes} B · {contentInfo.chunks} chunks</span
         >
       {/if}
@@ -738,10 +740,10 @@
       />
     </div>
     {#if luaSyntaxError}
-      <p class="text-xs text-red-400 font-mono">{luaSyntaxError}</p>
+      <p class="text-base text-red-400 font-mono">{luaSyntaxError}</p>
     {/if}
     {#if readingFile}
-      <p class="text-sm opacity-50">
+      <p class="text-base opacity-50">
         {downloadProgress
           ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
           : "Reading..."}
@@ -749,9 +751,9 @@
     {/if}
     <div
       bind:this={monacoElement}
-      class="w-full h-48 border border-white/20 rounded {readingFile
+      class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile
         ? 'hidden'
         : ''}"
     />
   </div>
-</div>
+</container>
