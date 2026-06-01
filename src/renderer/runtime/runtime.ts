@@ -210,6 +210,16 @@ export interface ReplaceActionsResult extends GridOperationResult {
 
 abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   protected _internal: Writable<T>;
+  private static _batchActive = false;
+
+  public static batch<R>(fn: () => R): R {
+    RuntimeNode._batchActive = true;
+    try {
+      return fn();
+    } finally {
+      RuntimeNode._batchActive = false;
+    }
+  }
 
   public subscribe(
     run: Subscriber<T>,
@@ -264,6 +274,7 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   }
 
   protected notifyParent() {
+    if (RuntimeNode._batchActive) return;
     if (!this.parent) {
       return;
     }
@@ -1910,6 +1921,11 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   private aliveModules: Writable<Array<{ id: Grid.UUID; last: number }>>;
   public elementPositionStore: Writable<any> = writable({});
   public ledColorStore: Writable<any> = writable({});
+  private _pendingHeartbeats = new Map<
+    string,
+    { rot: number; portstate: any; memorystat: any }
+  >();
+  private _heartbeatRafPending = false;
 
   constructor(
     connection: GridConnection = undefined,
@@ -1919,6 +1935,33 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
     this.connection = connection;
     this.virtual = virtual;
     this.aliveModules = writable([]);
+  }
+
+  private _flushHeartbeats() {
+    this._heartbeatRafPending = false;
+    for (const [id, updates] of this._pendingHeartbeats) {
+      const module = this.modules.find((m) => m.id === id);
+      if (!module) continue;
+      if (module.rot !== updates.rot) module.rot = updates.rot;
+      if (module.portstate !== updates.portstate)
+        module.portstate = updates.portstate;
+      if (module.memorystat !== updates.memorystat)
+        module.memorystat = updates.memorystat;
+    }
+    this._pendingHeartbeats.clear();
+  }
+
+  private _stageHeartbeat(
+    module: GridModule,
+    rot: number,
+    portstate: any,
+    memorystat: any,
+  ) {
+    this._pendingHeartbeats.set(module.id, { rot, portstate, memorystat });
+    if (!this._heartbeatRafPending) {
+      this._heartbeatRafPending = true;
+      requestAnimationFrame(() => this._flushHeartbeats());
+    }
   }
 
   public countX() {
@@ -2026,18 +2069,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
       const module = this.findModule(sx, sy);
       if (module) {
-        if (module.rot != descr.brc_parameters.ROT) {
-          module.rot = descr.brc_parameters.ROT;
-        }
-
-        if (module.portstate != descr.class_parameters.PORTSTATE) {
-          module.portstate = descr.class_parameters.PORTSTATE;
-        }
-
-        if (module.memorystat != descr.class_parameters.GCCOUNT) {
-          module.memorystat = descr.class_parameters.GCCOUNT;
-        }
-
         this.aliveModules.update((store) => {
           const obj = store.find((e) => e.id === module.id);
           const lastDate = obj.last;
@@ -2050,13 +2081,22 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
           }
           return store;
         });
+
+        this._stageHeartbeat(
+          module,
+          descr.brc_parameters.ROT,
+          descr.class_parameters.PORTSTATE,
+          descr.class_parameters.GCCOUNT,
+        );
       }
       // device not found, add it to runtime and get page count from grid
       else {
-        const controller = this.create_module(
-          descr.brc_parameters,
-          descr.class_parameters,
-          false,
+        const controller = RuntimeNode.batch(() =>
+          this.create_module(
+            descr.brc_parameters,
+            descr.class_parameters,
+            false,
+          ),
         );
         // check if the firmware version of the newly connected device is acceptable
         console.log(
