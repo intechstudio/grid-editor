@@ -20,22 +20,22 @@
     "is_modifier": true
   },
   {
-    "value": "0x05",
+    "value": "0x10",
     "info": "ControlRight",
     "is_modifier": true
   },
   {
-    "value": "0x04",
+    "value": "0x20",
     "info": "ShiftRight",
     "is_modifier": true
   },
   {
-    "value": "0x07",
+    "value": "0x40",
     "info": "AltRight",
     "is_modifier": true
   },
   {
-    "value": "0x08",
+    "value": "0x80",
     "info": "MetaRight",
     "is_modifier": true
   },
