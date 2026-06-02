@@ -34,10 +34,9 @@ jobs:
           npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
       - name: Install Playwright Chromium Browser
         run: |
-          sudo apt-get remove -y --purge needrestart 2>/dev/null || true
-          npx playwright install --with-deps chromium
-        env:
-          DEBIAN_FRONTEND: noninteractive
+          npx playwright install chromium
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 libxrandr2 libgbm1
       - name: Run Playwright tests
         env:
           CI: true
