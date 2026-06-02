@@ -35,8 +35,7 @@ jobs:
       - name: Install Playwright Chromium Browser
         run: |
           npx playwright install chromium
-          sudo apt-get update
-          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 libxrandr2 libgbm1
+          sudo apt-get install -y --no-install-recommends libnss3 libatk-bridge2.0-0 libdrm2 libxcomposite1 libxdamage1 libxrandr2 libgbm1
       - name: Run Playwright tests
         env:
           CI: true
