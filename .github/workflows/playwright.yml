@@ -34,12 +34,10 @@ jobs:
           npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
       - name: Install Playwright Chromium Browser
         run: |
-          echo 'Defaults env_keep += "DEBIAN_FRONTEND NEEDRESTART_MODE"' | sudo tee /etc/sudoers.d/preserve-apt-env > /dev/null
-          sudo chmod 440 /etc/sudoers.d/preserve-apt-env
+          sudo apt-get remove -y --purge needrestart 2>/dev/null || true
           npx playwright install --with-deps chromium
         env:
           DEBIAN_FRONTEND: noninteractive
-          NEEDRESTART_MODE: a
       - name: Run Playwright tests
         env:
           CI: true
