@@ -34,6 +34,8 @@ jobs:
           npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
       - name: Install Playwright Chromium Browser
         run: npx playwright install --with-deps chromium
+        env:
+          DEBIAN_FRONTEND: noninteractive
       - name: Run Playwright tests
         env:
           CI: true
