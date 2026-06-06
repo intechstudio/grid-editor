@@ -118,7 +118,9 @@ export class ConfigPage {
   }
 
   async addActionBlock(category, blockName) {
-    await this.blocks[category][blockName]["block"].click();
+    const block = this.blocks[category][blockName]["block"];
+    await block.scrollIntoViewIfNeeded();
+    await block.click();
   }
 
   async writeActionBlockField(category, blockName, field, input) {
