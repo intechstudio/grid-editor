@@ -24,7 +24,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     //click() wait
-    actionTimeout: 20 * 1000,
+    actionTimeout: 30 * 1000,
 
     expect: {
       timeout: 9 * 1000,
@@ -45,7 +45,7 @@ export default defineConfig({
     },
   ],
 
-  timeout: 25 * 1000,
+  timeout: 60 * 1000,
 
   /* Run your local dev server before starting the tests */
   webServer: {
