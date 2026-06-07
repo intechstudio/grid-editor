@@ -31,6 +31,8 @@ export class UserInput implements Writable<UserInputValue> {
 
   private _internal: Writable<UserInputValue>;
   private _changed_timestamp = 0;
+  private _pendingValue: UserInputValue | null = null;
+  private _rafPending = false;
 
   constructor() {
     this._internal = writable(UserInput.defaultValue);
@@ -104,6 +106,23 @@ export class UserInput implements Writable<UserInputValue> {
     selected_actions.set([]);
   }
 
+  private _flushPending() {
+    this._rafPending = false;
+    if (this._pendingValue !== null) {
+      this._internal.set(this._pendingValue);
+      this._pendingValue = null;
+      selected_actions.set([]);
+    }
+  }
+
+  private _stageSet(value: UserInputValue) {
+    this._pendingValue = value;
+    if (!this._rafPending) {
+      this._rafPending = true;
+      requestAnimationFrame(() => this._flushPending());
+    }
+  }
+
   // Process incoming events
   public process_incoming_event_from_grid(descr: any) {
     if (get(modalManager).windows.some((e) => e.target === Modal.Snap.Full)) {
@@ -164,7 +183,7 @@ export class UserInput implements Writable<UserInputValue> {
           eventtype = descr.class_parameters.EVENTTYPE;
         }
       }
-      this.set({
+      this._stageSet({
         dx: descr.brc_parameters.SX,
         dy: descr.brc_parameters.SY,
         pagenumber: ui.pagenumber,
