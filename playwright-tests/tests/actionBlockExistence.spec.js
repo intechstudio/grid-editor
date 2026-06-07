@@ -172,6 +172,10 @@ test.describe("Interactable input field", () => {
 });
 
 test("should find Else If Actions", async () => {
+  // Close profile cloud panel if open (left panel takes space and blocks action menu clicks)
+  if (await page.locator("profile-cloud-webcomponent").isVisible()) {
+    await page.getByTestId("nav-profile-cloud").click();
+  }
   const category = "condition";
   const ElseIf = "Else if";
   const Else = "Else";
