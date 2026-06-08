@@ -28,8 +28,8 @@ declare global {
 }
 
 if (import.meta.env.VITE_BUILD_TARGET == "web") {
-  // handle non-chromium based browsers
-  if (window.chrome == null) {
+  // mock Web Serial API if not available (e.g. Firefox)
+  if (!("serial" in navigator)) {
     navigator.serial = {
       addEventListener: () => {},
     };
