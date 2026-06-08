@@ -236,7 +236,7 @@
               ? 'bg-gray-800'
               : 'bg-gray-900'} justify-center flex flex-row items-center h-16"
           >
-            <div>{log.reason}</div>
+            <div class="select-text">{log.reason}</div>
             {#if log.solution !== undefined}
               <div class="ml-4 font-bold">{log.solution.message}</div>
 
@@ -279,7 +279,7 @@
       in:fly|global={{ x: -50, delay: 0, duration: 500 }}
       class="w-full {notification.class
         ? notification.class
-        : 'bg-green-500'} justify-center flex flex-row items-center h-16"
+        : 'bg-green-500'} justify-center flex flex-row items-center h-16 select-text"
     >
       <div>{notification.message}</div>
 
