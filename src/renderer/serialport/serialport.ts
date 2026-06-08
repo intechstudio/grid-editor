@@ -18,39 +18,40 @@ import { appSettings } from "../runtime/app-helper.store.js";
 import { type GridTransport } from "./transport.js";
 import { SerialTransport } from "./serial-transport.js";
 
-const configuration = window.ctxProcess.configuration();
-
 interface SerialPortFilter {
   usbVendorId?: number;
   usbProductId?: number;
 }
 
-const filter: SerialPortFilter[] = [
-  {
-    usbVendorId: parseInt(configuration.USB_VID_0),
-    usbProductId: parseInt(configuration.USB_PID_0),
-  },
-  {
-    usbVendorId: parseInt(configuration.USB_VID_1),
-    usbProductId: parseInt(configuration.USB_PID_1),
-  },
-  {
-    usbVendorId: parseInt(configuration.USB_VID_2),
-    usbProductId: parseInt(configuration.USB_PID_2),
-  },
-  {
-    usbVendorId: parseInt(configuration.BOOTLOADER_GRID_D51_VID),
-    usbProductId: parseInt(configuration.BOOTLOADER_GRID_D51_PID),
-  },
-  {
-    usbVendorId: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID),
-    usbProductId: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID),
-  },
-  {
-    usbVendorId: parseInt(configuration.BOOTLOADER_KNOT_VID),
-    usbProductId: parseInt(configuration.BOOTLOADER_KNOT_PID),
-  },
-];
+function getSerialFilter(): SerialPortFilter[] {
+  const configuration = window.ctxProcess.configuration();
+  return [
+    {
+      usbVendorId: parseInt(configuration.USB_VID_0),
+      usbProductId: parseInt(configuration.USB_PID_0),
+    },
+    {
+      usbVendorId: parseInt(configuration.USB_VID_1),
+      usbProductId: parseInt(configuration.USB_PID_1),
+    },
+    {
+      usbVendorId: parseInt(configuration.USB_VID_2),
+      usbProductId: parseInt(configuration.USB_PID_2),
+    },
+    {
+      usbVendorId: parseInt(configuration.BOOTLOADER_GRID_D51_VID),
+      usbProductId: parseInt(configuration.BOOTLOADER_GRID_D51_PID),
+    },
+    {
+      usbVendorId: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID),
+      usbProductId: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID),
+    },
+    {
+      usbVendorId: parseInt(configuration.BOOTLOADER_KNOT_VID),
+      usbProductId: parseInt(configuration.BOOTLOADER_KNOT_PID),
+    },
+  ];
+}
 
 export type GridConnection = {
   id: string;
@@ -194,6 +195,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
 
   static async tryConnectSerial() {
     try {
+      const filter = getSerialFilter();
       let ports: any[];
       if (import.meta.env.VITE_BUILD_TARGET == "web") {
         const port = await navigator.serial.requestPort({ filters: filter });
