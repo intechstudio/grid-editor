@@ -189,6 +189,12 @@
         preProcessor={GridScript.humanize}
       />
     </BlockRow>
+    {#if element !== "self"}
+      <p style="color: color-mix(in srgb, #EAB308 75%, var(--foreground));">
+        Auto values (-1) use the calling event's context. Specify explicit
+        values when targeting another element.
+      </p>
+    {/if}
   {/if}
   <MeltCombo
     title={"Intensity"}
