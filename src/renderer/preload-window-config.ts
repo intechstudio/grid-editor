@@ -27,7 +27,7 @@ declare global {
   }
 }
 
-if (import.meta.env.VITE_BUILD_TARGET == "web") {
+if (import.meta.env.VITE_BUILD_TARGET == "web" || typeof window.ctxProcess === "undefined") {
   // mock Web Serial API if not available (e.g. Firefox)
   if (!("serial" in navigator)) {
     navigator.serial = {
