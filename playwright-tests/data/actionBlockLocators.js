@@ -224,7 +224,7 @@ export const blocks = (page) => ({
       },
     },
     "Else if": {
-      block: page.locator("#action-menu").getByText("Else If"),
+      block: page.locator("#action-menu").getByText("Else if"),
       elements: {
         input: page.locator("#cfg-1 #monaco_container"),
       },
@@ -307,7 +307,7 @@ export const blocks = (page) => ({
       },
     },
     "Element Name": {
-      block: page.locator("#action-menu").getByText("N Element Name"),
+      block: page.locator("#action-menu").getByText("Element Name"),
       elements: {
         input: page.getByLabel("Element Name"),
       },
