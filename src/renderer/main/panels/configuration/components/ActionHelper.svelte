@@ -79,15 +79,15 @@
       />
     </div>
   </div>
-
-  {#if showActionPicker}
-    <ActionPicker
-      event={target.event}
-      index={target.index}
-      {referenceElement}
-      on:close={handleCloseActionPicker}
-      on:new-config={handleNewConfig}
-      on:paste={handlePaste}
-    />
-  {/if}
 </container>
+
+{#if showActionPicker}
+  <ActionPicker
+    event={target.event}
+    index={target.index}
+    {referenceElement}
+    on:close={handleCloseActionPicker}
+    on:new-config={handleNewConfig}
+    on:paste={handlePaste}
+  />
+{/if}
