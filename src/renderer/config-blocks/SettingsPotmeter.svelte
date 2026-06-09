@@ -82,6 +82,9 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(pmo);
+    validators[1].value = validators[1].func(pmi);
+    validators[2].value = validators[2].func(pma);
     const optional = [];
 
     optional.push(`self:pmi(${pmi})  self:pma(${pma})`);

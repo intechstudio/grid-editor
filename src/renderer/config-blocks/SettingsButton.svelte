@@ -100,6 +100,9 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(bmo);
+    validators[1].value = validators[1].func(bmi);
+    validators[2].value = validators[2].func(bma);
     const optional = [];
     optional.push(`self:bmi(${bmi}) self:bma(${bma})`);
 

@@ -38,6 +38,7 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
+  let lastErrorMessage: string | undefined;
   let ctrlIsDown = false;
   let toggled = false;
   let isEdit = false;
@@ -129,11 +130,29 @@
 
   function handleUpdateAction(e) {
     const { short, script, validationError } = e.detail;
+    const wasInvalid = action.invalid;
     const oldAction = action;
     const data = new ActionData(short, script, oldAction.name);
     //TODO: Propose better solution
     data.invalid = validationError;
-    updateAction(action, data, false);
+    updateAction(action, data, false, (msg) => {
+      if (msg !== lastErrorMessage) {
+        lastErrorMessage = msg;
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: `${action.information.displayName} action block is not synced due to syntax error`,
+        });
+      }
+    });
+    if (wasInvalid && !validationError) {
+      lastErrorMessage = undefined;
+      logger.set({
+        type: "success",
+        message: `${action.information.displayName} block input is now valid.`,
+      });
+    }
   }
 
   function handleSendActionToGrid() {
