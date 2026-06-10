@@ -99,6 +99,11 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(emo);
+    validators[1].value = validators[1].func(ev0);
+    validators[2].value = validators[2].func(emi);
+    validators[3].value = validators[3].func(ema);
+    validators[4].value = validators[4].func(ese);
     const optional = [];
 
     optional.push(`self:emi(${emi}) self:ema(${ema})`);

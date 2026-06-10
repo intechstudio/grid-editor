@@ -25,6 +25,7 @@
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
   import { selected_actions } from "../../../../runtime/selected-actions.store";
   import { logger } from "../../../../runtime/runtime.store";
+  import { Runtime } from "../../../../runtime/string-table";
   import { get } from "svelte/store";
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
   import { Modal } from "../../../modals/modal.store";
@@ -38,6 +39,7 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
+  let lastErrorMessage: string | undefined;
   let ctrlIsDown = false;
   let toggled = false;
   let isEdit = false;
@@ -127,13 +129,37 @@
     toggledBlocks.add(newAction.short);
   }
 
+  function formatBlockMessage(msg: string) {
+    return msg.startsWith("Action block")
+      ? msg.replace("Action block", `${action.information.displayName} block`)
+      : msg;
+  }
+
   function handleUpdateAction(e) {
     const { short, script, validationError } = e.detail;
+    const wasInvalid = action.invalid;
     const oldAction = action;
     const data = new ActionData(short, script, oldAction.name);
     //TODO: Propose better solution
     data.invalid = validationError;
-    updateAction(action, data, false);
+    updateAction(action, data, false, (msg) => {
+      if (msg !== lastErrorMessage) {
+        lastErrorMessage = msg;
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: formatBlockMessage(msg),
+        });
+      }
+    });
+    if (wasInvalid && !validationError) {
+      lastErrorMessage = undefined;
+      logger.set({
+        type: "success",
+        message: formatBlockMessage(Runtime.ErrorText.VALID),
+      });
+    }
   }
 
   function handleSendActionToGrid() {
