@@ -118,6 +118,7 @@ export class GridConnectionManager implements Readable<GridConnection[]> {
           // Set up disconnect handler
           transport.onDisconnect(() => {
             console.log("Transport disconnected:", transport.getInfo());
+            eventFetcher.stop();
             this.update((store) => {
               return store.filter((e) => e.id !== current.id);
             });
