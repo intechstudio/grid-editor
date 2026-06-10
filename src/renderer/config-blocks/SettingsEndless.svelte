@@ -126,10 +126,8 @@
   const suggestions = [
     [
       { value: "0", info: "Absolute" },
-      { value: "1", info: "Relative BinOffset" },
-      { value: "2", info: "Relative 2's Comp" },
+      { value: "1", info: "Relative" },
     ],
-
     [
       { value: "0", info: "No velocity (0%)" },
       { value: "50", info: "Default (50%)" },
