@@ -25,6 +25,7 @@
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
   import { selected_actions } from "../../../../runtime/selected-actions.store";
   import { logger } from "../../../../runtime/runtime.store";
+  import { Runtime } from "../../../../runtime/string-table";
   import { get } from "svelte/store";
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
   import { Modal } from "../../../modals/modal.store";
@@ -128,6 +129,12 @@
     toggledBlocks.add(newAction.short);
   }
 
+  function formatBlockMessage(msg: string) {
+    return msg.startsWith("Action block")
+      ? msg.replace("Action block", `${action.information.displayName} block`)
+      : msg;
+  }
+
   function handleUpdateAction(e) {
     const { short, script, validationError } = e.detail;
     const wasInvalid = action.invalid;
@@ -142,7 +149,7 @@
           type: "fail",
           mode: 0,
           classname: "luanotok",
-          message: `${action.information.displayName} action block is not synced due to syntax error`,
+          message: formatBlockMessage(msg),
         });
       }
     });
@@ -150,7 +157,7 @@
       lastErrorMessage = undefined;
       logger.set({
         type: "success",
-        message: `${action.information.displayName} block input is now valid.`,
+        message: formatBlockMessage(Runtime.ErrorText.VALID),
       });
     }
   }
