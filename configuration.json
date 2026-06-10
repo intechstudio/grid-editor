@@ -1,5 +1,6 @@
 {
   "MIXPANEL_TOKEN": "d5072f1b11e0a753c9f655dc3ddf7b8d",
+  "MIXPANEL_API_HOST": "https://api-eu.mixpanel.com",
   "YOUTUBE_EDITORRELEASENOTES_PLAYLISTKEY": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
   "YOUTUBE_API_KEY": "AIzaSyBSwx2yH2mSGKhyduMtakjpdMU_s7Jhdkw",
   "YOUTUBE_RELEASENOTES_PLAYLIST_ID": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
