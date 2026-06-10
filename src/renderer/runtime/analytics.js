@@ -9,7 +9,10 @@ let _initialized = false;
 function ensureInitialized() {
   if (_initialized) return;
   _initialized = true;
-  mixpanel.init(configuration.MIXPANEL_TOKEN, { debug: true });
+  mixpanel.init(configuration.MIXPANEL_TOKEN, {
+    debug: true,
+    api_host: configuration.MIXPANEL_API_HOST,
+  });
   mixpanel.identify(get(appSettings).persistent.userId);
 }
 
