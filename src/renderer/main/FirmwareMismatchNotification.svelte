@@ -14,6 +14,8 @@
   import ManualFirmwareOptions from "./components/ManualFirmwareOptions.svelte";
 
   let fwMismatch = false;
+  let userDismissed = false;
+  let prevModuleCount = 0;
 
   let runtime: GridRuntime;
   $: {
@@ -29,6 +31,11 @@
       return;
     }
 
+    if (data.modules.length !== prevModuleCount) {
+      userDismissed = false;
+      prevModuleCount = data.modules.length;
+    }
+
     appSettings.update((s) => {
       s.firmwareNotificationState = 0;
       return s;
@@ -40,7 +47,7 @@
       fwMismatch = data.modules.some((device) => device.fwMismatch);
     }
 
-    if (!fwMismatch) {
+    if (!fwMismatch || userDismissed) {
       return;
     }
 
@@ -112,6 +119,7 @@
   }
 
   function handleDismissClicked() {
+    userDismissed = true;
     appSettings.update((s) => {
       s.firmwareNotificationState = 0;
       return s;

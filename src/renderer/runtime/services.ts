@@ -24,6 +24,10 @@ export namespace GridService {
       }
     }
 
+    public stop() {
+      this.stopped = true;
+    }
+
     protected abstract worker(): void;
 
     private delay(ms: number) {
@@ -32,7 +36,7 @@ export namespace GridService {
   }
 
   export class AutoEventFetcher extends AbstractService {
-    static readonly pingTime = 300; // ms
+    static readonly pingTime = 150; // ms
 
     constructor(private runtime: GridRuntime) {
       super(AutoEventFetcher.pingTime, ServiceType.AUTO_EVENT_FETCHER);
@@ -53,12 +57,14 @@ export namespace GridService {
               if (isIdle) {
                 event.load().catch((e) => {
                   console.warn("Event load interrupted:", e);
-                  logger.set({
-                    type: "info",
-                    classname: "service",
-                    mode: 0,
-                    message: `Event load interrupted: ${e}`,
-                  });
+                  if (!String(e).includes("is not connected")) {
+                    logger.set({
+                      type: "info",
+                      classname: "service",
+                      mode: 0,
+                      message: `Event load interrupted: ${e}`,
+                    });
+                  }
                 });
               }
               return;

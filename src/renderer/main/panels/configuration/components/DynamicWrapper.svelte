@@ -39,7 +39,6 @@
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
-  let lastErrorMessage: string | undefined;
   let ctrlIsDown = false;
   let toggled = false;
   let isEdit = false;
@@ -106,7 +105,7 @@
       type: "alert",
       mode: 0,
       classname: "luanotok",
-      message: `Invalid edit discarded. Action block reverted to last valid state.`,
+      message: `Blocks containing syntax error reverted to last synced state.`,
     });
 
     updateAction(
@@ -129,37 +128,21 @@
     toggledBlocks.add(newAction.short);
   }
 
-  function formatBlockMessage(msg: string) {
-    return msg.startsWith("Action block")
-      ? msg.replace("Action block", `${action.information.displayName} block`)
-      : msg;
-  }
-
   function handleUpdateAction(e) {
     const { short, script, validationError } = e.detail;
-    const wasInvalid = action.invalid;
-    const oldAction = action;
-    const data = new ActionData(short, script, oldAction.name);
+    const data = new ActionData(short, script, action.name);
     //TODO: Propose better solution
     data.invalid = validationError;
     updateAction(action, data, false, (msg) => {
-      if (msg !== lastErrorMessage) {
-        lastErrorMessage = msg;
+      if (msg === Runtime.ErrorText.LENGTH_ERROR) {
         logger.set({
           type: "fail",
           mode: 0,
           classname: "luanotok",
-          message: formatBlockMessage(msg),
+          message: msg,
         });
       }
     });
-    if (wasInvalid && !validationError) {
-      lastErrorMessage = undefined;
-      logger.set({
-        type: "success",
-        message: formatBlockMessage(Runtime.ErrorText.VALID),
-      });
-    }
   }
 
   function handleSendActionToGrid() {
