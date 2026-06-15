@@ -91,7 +91,7 @@
     "preinstall": "node ./build-scripts/check-node-version.js",
     "postinstall": "electron-builder install-app-deps",
     "test": "vitest run",
-    "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 VITE_BUILD_TARGET=electron VITE_BUILD_ENV=development electron-vite dev --watch",
+    "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 VITE_BUILD_TARGET=electron VITE_BUILD_ENV=development electron-vite dev --watch -- --remote-debugging-port=9222",
     "electron-dev": "npm run electron:dev",
     "fix-permissions": "sudo chown root ./node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 ./node_modules/electron/dist/chrome-sandbox",
     "format": "prettier --write .",
