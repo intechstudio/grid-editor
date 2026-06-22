@@ -2268,23 +2268,15 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   public async clearPage(index: number): Promise<void> {
-    console.time("clearPage");
     return new Promise((resolve, reject) => {
       const instruction = new GridInstruction.ClearPage(this.virtual);
-      console.time("clearPage:executeOn");
       instruction
         .executeOn(this.connection)
         .then(() => {
-          console.timeEnd("clearPage:executeOn");
-          console.time("clearPage:resetToDefaults");
           for (const module of this.modules) {
             const page = module.findPage(index);
-            console.time(`clearPage:resetModule ${module.dx},${module.dy}`);
             page.resetToDefaults();
-            console.timeEnd(`clearPage:resetModule ${module.dx},${module.dy}`);
           }
-          console.timeEnd("clearPage:resetToDefaults");
-          console.timeEnd("clearPage");
           resolve();
         })
         .catch((e) => {

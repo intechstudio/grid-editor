@@ -102,15 +102,6 @@ function updateAvailableProfileTypes() {
   }
 
   availableProfileTypes = Array.from(profileTypeSet).sort();
-
-  // Print summary of available profiles grouped by profile type
-  console.log("[Getting Started] Available profiles:");
-  for (const profileType of availableProfileTypes) {
-    const modules = Object.keys(PROFILES)
-      .filter((moduleType) => PROFILES[moduleType][profileType])
-      .sort();
-    console.log(`  ${profileType}: ${modules.join(", ")}`);
-  }
 }
 
 // Export available profile types
@@ -208,9 +199,6 @@ export function loadGettingStartedProfiles(
 
         const registeredProfile = PROFILES[moduleType]?.[profileType];
         if (!registeredProfile) {
-          console.warn(
-            `No "${profileType}" profile for ${moduleType}, skipping...`,
-          );
           skippedCount++;
           continue;
         }

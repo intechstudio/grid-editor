@@ -143,11 +143,8 @@
   function handleClear() {
     const ui = get(user_input);
     const profileType = $selectedProfileType;
-    const label = profileType ? `load:${profileType}` : "clear";
-    console.time(label);
 
     const finish = () => {
-      console.timeEnd(label);
       logger.set({
         type: "success",
         mode: 0,
@@ -167,7 +164,6 @@
     };
 
     const fail = (e) => {
-      console.timeEnd(label);
       console.warn(e);
       logger.set({
         type: "alert",
