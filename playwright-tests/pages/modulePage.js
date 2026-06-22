@@ -96,7 +96,9 @@ export class ModulePage {
     this.characterLimitPasteToast = page.getByText("Modifications can not");
     this.characterLimitAddToast = page.getByText("Modifications can not");
     this.storeButton = page.getByRole("button", { name: "Store" });
-    this.clearButton = page.getByRole("button", { name: "Clear" });
+    this.clearButton = page
+      .getByTestId("clear-load-button")
+      .getByRole("button");
     this.confirmClearButton = page.getByRole("button", {
       name: "Confirm",
       exact: true,

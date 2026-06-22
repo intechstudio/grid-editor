@@ -319,11 +319,28 @@
         options={profileTypeOptions}
       />
 
-      <MoltenPushButton
-        text={$selectedProfileType ? "Load" : "Clear"}
-        style="normal"
-        click={handleClear}
-      />
+      <div
+        data-testid="clear-load-button"
+        use:tooltip={{
+          key: "configuration_header_clear",
+          placement: "top",
+          class: "w-60 p-4",
+          buttons: [
+            {
+              label: "Cancel",
+              handler: undefined,
+            },
+            { label: "Confirm", handler: handleClear },
+          ],
+          triggerEvents: ["show-buttons", "hover"],
+        }}
+      >
+        <MoltenPushButton
+          text={$selectedProfileType ? "Load" : "Clear"}
+          style="normal"
+          click={() => {}}
+        />
+      </div>
     </BlockRow>
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
