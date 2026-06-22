@@ -270,6 +270,9 @@
         <div class="mx-4 font-medium">
           writeBuffer: {$buffer?.array.length}
         </div>
+        <div class="mx-4 font-medium">
+          retryCount: {$buffer?.retryCount}
+        </div>
       {/if}
     </div>
 

@@ -31,6 +31,7 @@
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./validators";
   import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { extractParam } from "./_script_parsers.js";
 
   export let action: GridAction;
 
@@ -76,44 +77,33 @@
   let ema = "127";
   let ese = "100";
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
-
   $: if (!$action.invalid) {
     handleActionChange($action);
   }
 
   function handleActionChange(data: ActionData) {
-    const arr = data.script.split("self:").slice(1);
+    emo = extractParam(data.script, "emo");
+    ev0 = extractParam(data.script, "ev0");
 
-    const parts = {
-      emo: null,
-      ev0: null,
-      emi: null,
-      ema: null,
-      ese: null,
-    };
-
-    for (const [key, value] of Object.entries(parts)) {
-      const index = arr.findIndex((e) => e.includes(key));
-      if (index !== -1) {
-        parts[key] = whatsInParenthesis.exec(arr[index])[1];
-      }
+    const newEmi = extractParam(data.script, "emi");
+    const newEma = extractParam(data.script, "ema");
+    if (!!newEmi || !!newEma) {
+      emi = newEmi;
+      ema = newEma;
     }
 
-    emo = parts.emo;
-    ev0 = parts.ev0;
-
-    if (!!parts.emi || !!parts.ema) {
-      emi = parts.emi;
-      ema = parts.ema;
-    }
-
-    if (!!parts.ese) {
-      ese = parts.ese;
+    const newEse = extractParam(data.script, "ese");
+    if (!!newEse) {
+      ese = newEse;
     }
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(emo);
+    validators[1].value = validators[1].func(ev0);
+    validators[2].value = validators[2].func(emi);
+    validators[3].value = validators[3].func(ema);
+    validators[4].value = validators[4].func(ese);
     const optional = [];
 
     optional.push(`self:emi(${emi}) self:ema(${ema})`);

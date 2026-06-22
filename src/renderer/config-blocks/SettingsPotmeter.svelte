@@ -30,6 +30,7 @@
   import { Validator } from "./validators";
   import { Block, BlockRow, MeltCombo } from "@intechstudio/grid-uikit";
   import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { extractParam } from "./_script_parsers.js";
 
   export let action: GridAction;
 
@@ -61,31 +62,18 @@
   let pma = "127";
   let pmi = "0";
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
-
   $: if (!$action.invalid) {
     handleActionChange($action);
   }
 
   function handleActionChange(data: ActionData) {
-    const arr = data.script.split("self:").slice(1);
-    const parts = {
-      pmo: null,
-      pma: null,
-      pmi: null,
-    };
-    for (const [key, value] of Object.entries(parts)) {
-      const index = arr.findIndex((e) => e.includes(key));
-      if (index !== -1) {
-        parts[key] = whatsInParenthesis.exec(arr[index])[1];
-      }
-    }
+    pmo = extractParam(data.script, "pmo");
 
-    pmo = parts.pmo;
-
-    if (!!parts.pmi || !!parts.pma) {
-      pmi = parts.pmi;
-      pma = parts.pma;
+    const newPmi = extractParam(data.script, "pmi");
+    const newPma = extractParam(data.script, "pma");
+    if (!!newPmi || !!newPma) {
+      pmi = newPmi;
+      pma = newPma;
     }
   }
 
@@ -94,6 +82,9 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(pmo);
+    validators[1].value = validators[1].func(pmi);
+    validators[2].value = validators[2].func(pma);
     const optional = [];
 
     optional.push(`self:pmi(${pmi})  self:pma(${pma})`);

@@ -1,5 +1,6 @@
 {
   "MIXPANEL_TOKEN": "d5072f1b11e0a753c9f655dc3ddf7b8d",
+  "MIXPANEL_API_HOST": "https://api-eu.mixpanel.com",
   "YOUTUBE_EDITORRELEASENOTES_PLAYLISTKEY": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
   "YOUTUBE_API_KEY": "AIzaSyBSwx2yH2mSGKhyduMtakjpdMU_s7Jhdkw",
   "YOUTUBE_RELEASENOTES_PLAYLIST_ID": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
@@ -18,10 +19,10 @@
   "BOOTLOADER_GRID_D51_PID": "0x2402",
   "FIRMWARE_GRID_D51_REQUIRED_MAJOR": 1,
   "FIRMWARE_GRID_D51_REQUIRED_MINOR": 5,
-  "FIRMWARE_GRID_D51_REQUIRED_PATCH": 1,
+  "FIRMWARE_GRID_D51_REQUIRED_PATCH": 4,
   "FIRMWARE_GRID_ESP32_REQUIRED_MAJOR": 1,
   "FIRMWARE_GRID_ESP32_REQUIRED_MINOR": 5,
-  "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 1,
+  "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 4,
   "FIRMWARE_GRID_URL_BEGINING": "https://github.com/intechstudio/grid-fw/releases/download/",
   "FIRMWARE_GRID_URL_END": "/grid_release.zip",
   "FIRMWARE_GRID_RELEASE_URL": "https://github.com/intechstudio/grid-fw/releases/latest/download/grid_release.zip",
@@ -37,7 +38,6 @@
   "EDITOR_DOWNLOAD_URL": "https://links.intech.studio/grid-editor-download",
   "DISCORD_FEEDBACK_WEBHOOK": "https://discord.com/api/webhooks/841993443911270431/nN2quZz5UK0lDf2kfzrqK6nlpiF8a6ZxPBXYIogYlpqmgCORKAimSEt3v9Oqrs0KrgMC",
   "NOTIFICATION_JSON_URL": "https://raw.githubusercontent.com/intechstudio/grid-editor/stable/notification.json",
-  "FIRMWARE_JSON_URL": "https://raw.githubusercontent.com/intechstudio/grid-editor/stable/firmware.json",
   "DOCUMENTATION_REFERENCEMANUAL_URL": "https://links.intech.studio/wiki",
   "DOCUMENTATION_DISCORDSERVER_URL": "https://links.intech.studio/discord",
   "DOCUMENTATION_TROUBLESHOOTING_URL": "https://links.intech.studio/grid-troubleshoot",
@@ -111,6 +111,11 @@
       "name": "Websocket Monitor (Legacy)",
       "svgIcon": "menu_websocket_monitor",
       "description": "Watch communication coming from the Editor websocket port"
+    },
+    "file-manager": {
+      "name": "File Manager",
+      "svgIcon": "menu_file_manager",
+      "description": "Browse and manage files on connected Grid modules"
     }
   }
 }

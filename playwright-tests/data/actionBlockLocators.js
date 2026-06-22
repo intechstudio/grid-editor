@@ -65,23 +65,20 @@ export const blocks = (page) => ({
         Layer: page.getByLabel("Layer"),
       },
     },
-    Color: {
-      block: page.locator("#action-menu").getByText("Color", { exact: true }),
+    "Simple Color": {
+      block: page.locator("#action-menu").getByText("Simple Color"),
       elements: {
-        ledNumber: page.getByLabel("LED Number"),
+        ledNumber: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),
         Red: page.getByLabel("Red"),
         Green: page.getByLabel("Green"),
         Blue: page.getByLabel("Blue"),
-        Canva: page.getByTestId("rgb-color-picker-canvas"),
-        Random: page.getByTestId("random-color-generator"),
-        Beauty: page.locator("#cfg-0").getByRole("checkbox"),
       },
     },
-    Intensity: {
-      block: page.locator("#action-menu").getByText("Intensity"),
+    "Simple Intensity": {
+      block: page.locator("#action-menu").getByText("Simple Intensity"),
       elements: {
-        "LED Number": page.getByLabel("LED Number"),
+        Element: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),
         Intensity: page.getByLabel("Intensity"),
       },
@@ -227,7 +224,7 @@ export const blocks = (page) => ({
       },
     },
     "Else if": {
-      block: page.locator("#action-menu").getByText("Else If"),
+      block: page.locator("#action-menu").getByText("Else if"),
       elements: {
         input: page.locator("#cfg-1 #monaco_container"),
       },
@@ -262,16 +259,20 @@ export const blocks = (page) => ({
     },
   },
   specialEncoder: {
-    "Left/Right Rotate": {
-      block: page.locator("#action-menu").getByText("Left/Right Rotate"),
+    "Encoder Left/Right Rotate": {
+      block: page
+        .locator("#action-menu")
+        .getByText("Encoder Left/Right Rotate"),
       elements: {
         left: page.locator("#cfg-0"),
         right: page.locator("#cfg-1"),
         end: page.locator("#cfg-2"),
       },
     },
-    "Push & Rotate L R": {
-      block: page.locator("#action-menu").getByText("Push & Rotate L R"),
+    "Encoder Push & Rotate L R": {
+      block: page
+        .locator("#action-menu")
+        .getByText("Encoder Push & Rotate L R"),
       elements: {
         "push left": page.locator("#cfg-0"),
         "push right": page.locator("#cfg-1"),
@@ -280,10 +281,10 @@ export const blocks = (page) => ({
         end: page.locator("#cfg-4"),
       },
     },
-    "Push & Rotate": {
+    "Encoder Push & Rotate": {
       block: page
         .locator("#action-menu")
-        .getByText("Push & Rotate", { exact: true }),
+        .getByText("Encoder Push & Rotate", { exact: true }),
       elements: {
         "push rotate": page.locator("#cfg-0"),
         "just rotate": page.locator("#cfg-1"),
@@ -306,7 +307,7 @@ export const blocks = (page) => ({
       },
     },
     "Element Name": {
-      block: page.locator("#action-menu").getByText("N Element Name"),
+      block: page.locator("#action-menu").getByText("Element Name"),
       elements: {
         input: page.getByLabel("Element Name"),
       },

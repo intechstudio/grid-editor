@@ -31,6 +31,7 @@
   import { Validator } from "./validators";
   import { Block, BlockRow, MeltCombo } from "@intechstudio/grid-uikit";
   import { ActionData, GridAction } from "../runtime/runtime.js";
+  import { extractParam } from "./_script_parsers.js";
 
   export let action: GridAction;
 
@@ -76,39 +77,24 @@
   let epma = "16383";
   let epse = "50";
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
-
   $: if (!$action.invalid) {
     handleActionChange($action);
   }
 
   function handleActionChange(data: ActionData) {
-    const arr = data.script.split("self:").slice(1);
-    const parts = {
-      epmo: null,
-      epv0: null,
-      epmi: null,
-      epma: null,
-      epse: null,
-    };
+    epmo = extractParam(data.script, "epmo");
+    epv0 = extractParam(data.script, "epv0");
 
-    for (const [key, value] of Object.entries(parts)) {
-      const index = arr.findIndex((e) => e.includes(key));
-      if (index !== -1) {
-        parts[key] = whatsInParenthesis.exec(arr[index])[1];
-      }
+    const newEpmi = extractParam(data.script, "epmi");
+    const newEpma = extractParam(data.script, "epma");
+    if (!!newEpmi || !!newEpma) {
+      epmi = newEpmi;
+      epma = newEpma;
     }
 
-    epmo = parts.epmo;
-    epv0 = parts.epv0;
-
-    if (!!parts.epmi || !!parts.epma) {
-      epmi = parts.epmi;
-      epma = parts.epma;
-    }
-
-    if (!!parts.epse) {
-      epse = parts.epse;
+    const newEpse = extractParam(data.script, "epse");
+    if (!!newEpse) {
+      epse = newEpse;
     }
   }
 
@@ -117,6 +103,11 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(epmo);
+    validators[1].value = validators[1].func(epv0);
+    validators[2].value = validators[2].func(epmi);
+    validators[3].value = validators[3].func(epma);
+    validators[4].value = validators[4].func(epse);
     const optional = [];
 
     optional.push(`self:epmi(${epmi}) self:epma(${epma})`);
@@ -137,7 +128,6 @@
       { value: "0", info: "Absolute" },
       { value: "1", info: "Relative" },
     ],
-
     [
       { value: "0", info: "No velocity (0%)" },
       { value: "50", info: "Default (50%)" },

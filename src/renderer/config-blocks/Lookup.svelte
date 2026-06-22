@@ -255,7 +255,7 @@
         />
 
         <button
-          class:invisible={i === 0}
+          class:invisible={i === 0 && lookupTable.pairs.length === 1}
           on:click={() => {
             removeLine(i);
           }}

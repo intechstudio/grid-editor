@@ -215,10 +215,17 @@ export async function updateAction(
   target: GridAction,
   data: ActionData,
   sync: boolean,
+  onError?: (message: string) => void,
 ) {
   return target
     .updateData(data)
-    .catch(handleError)
+    .catch((e: GridOperationResult) => {
+      if (onError) {
+        onError(e.text);
+      } else {
+        handleError(e);
+      }
+    })
     .finally(() => {
       if (sync) {
         syncWithGrid(target);

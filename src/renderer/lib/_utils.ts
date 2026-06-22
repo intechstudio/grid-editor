@@ -47,7 +47,8 @@ export namespace Grid {
             module.dy,
             page.pageNumber,
           ];
-          return (module_position_y * 4 + page_current) % 16;
+          const ch = module_position_y * 4 + page_current;
+          return ((ch % 16) + 16) % 16;
         }
         case Value.MIDI_COMMAND: {
           return event.type === EventTypeToNumber(EventType.BUTTON) ? 144 : 176;
@@ -57,7 +58,8 @@ export namespace Grid {
             module.dx,
             element.elementIndex,
           ];
-          return (32 + module_position_x * 16 + element_index) % 128;
+          const p1 = 32 + module_position_x * 16 + element_index;
+          return ((p1 % 128) + 128) % 128;
         }
       }
     }
@@ -292,10 +294,7 @@ export namespace Grid {
   }
 
   export namespace Protocol {
-    export const scriptStart = "<?lua ";
-    export const scriptEnd = " ?>";
-    export const maxScriptLength =
-      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
+    export const maxScriptLength = grid.getProperty("CONFIG_LENGTH");
 
     export function getLayerSuggestions(type: ElementType) {
       switch (type) {
@@ -321,6 +320,11 @@ export namespace Grid {
             { value: "1", info: "Potmeter layer" },
             { value: "2", info: "Unused layer" },
           ];
+        case ElementType.TOUCH:
+          return [
+            { value: "1", info: "Touch layer" },
+            { value: "2", info: "Unused layer" },
+          ];
         default: {
           const defaultLayerSuggestion = [
             { value: "1", info: "Layer 1" },
@@ -338,6 +342,7 @@ export namespace Grid {
       PBF4 = "PBF4",
       EF44 = "EF44",
       VSNX = "VSNX",
+      XY = "XY",
     }
 
     const typeToArchetypeMap = {
@@ -352,6 +357,7 @@ export namespace Grid {
       [ModuleType.VSN1L]: Module.Archetype.VSNX,
       [ModuleType.VSN1R]: Module.Archetype.VSNX,
       [ModuleType.VSN2]: Module.Archetype.VSNX,
+      [ModuleType.XY]: Module.Archetype.XY,
     };
 
     export function toArchetype(type: ModuleType): Module.Archetype {

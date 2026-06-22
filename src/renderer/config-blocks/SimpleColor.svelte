@@ -212,6 +212,12 @@
         preProcessor={GridScript.humanize}
       />
     </BlockRow>
+    {#if $data.element.value !== "self"}
+      <p style="color: color-mix(in srgb, #EAB308 75%, var(--foreground));">
+        Auto values (-1) use the calling event's context. Specify explicit
+        values when targeting another element.
+      </p>
+    {/if}
   {/if}
   <ColorLayerSelector
     colors={$data.previewColors}
@@ -260,20 +266,22 @@
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
-      <MeltSlider
-        target={$data.alphaSliderValue}
-        min={0}
-        max={1}
-        step={0.01}
-        on:change={(e) => {
-          const { value } = e.detail;
-          data.updateAlphaSliderValue(value);
-          sendData($data);
-        }}
-        on:commit={() => {
-          dispatch("sync");
-        }}
-      />
+      <Block>
+        <MeltSlider
+          target={$data.alphaSliderValue}
+          min={0}
+          max={1}
+          step={0.01}
+          on:change={(e) => {
+            const { value } = e.detail;
+            data.updateAlphaSliderValue(value);
+            sendData($data);
+          }}
+          on:commit={() => {
+            dispatch("sync");
+          }}
+        /></Block
+      >
     </BlockColumn>
   </BlockRow>
   <BlockRow>

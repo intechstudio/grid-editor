@@ -120,7 +120,15 @@
       <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
           <span style="color: var(--foreground-disabled)">Script length: </span>
-          <span data-testid="charCount"
+          <span
+            data-testid="charCount"
+            class={($event?.toLua().length ?? 0) >=
+            Grid.Protocol.maxScriptLength * 0.98
+              ? "text-error"
+              : ($event?.toLua().length ?? 0) >=
+                  (Grid.Protocol.maxScriptLength / 3) * 2
+                ? "text-yellow-400"
+                : ""}
             >{$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength -
               1}</span
           >

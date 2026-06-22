@@ -16,9 +16,7 @@ test("Default configuration compression/expansion", function () {
     const events = grid.get_element_events(element);
     if (typeof events !== "undefined") {
       events.forEach((event) => {
-        const defaultConfig = event.defaultConfig
-          .split("<?lua ")[1]
-          .split(" ?>")[0];
+        const defaultConfig = event.defaultConfig;
         const expanded = GridScript.expandScript(defaultConfig);
         const compressed = GridScript.compressScript(expanded);
         // Compare compressed versions since minification normalizes whitespace

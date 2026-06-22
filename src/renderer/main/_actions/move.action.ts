@@ -118,6 +118,12 @@ export function draggable(node: HTMLElement, params: DragParameters) {
       return;
     }
 
+    // Scrollbars are not DOM elements; the node itself is the event target.
+    // Bail out if the click lands in the scrollbar region (beyond client area).
+    if (e.offsetX > node.clientWidth || e.offsetY > node.clientHeight) {
+      return;
+    }
+
     if (!movable) {
       return;
     }

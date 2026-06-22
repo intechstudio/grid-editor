@@ -39,8 +39,7 @@ test.describe("Issues", () => {
     await page
       .getByTestId("action-block")
       .filter({ hasText: 'Code preview: print("hello")' })
-      .getByRole("button")
-      .nth(2)
+      .getByTestId(/^action-checkbox/)
       .click(); //uncheck codeblock
     await configPage.removeAction();
 

@@ -5,6 +5,7 @@
   import ProfileCloud from "./panels/profileCloud/ProfileCloud.svelte";
   import Packages from "./panels/packages/Packages.svelte";
   import Preferences from "./panels/preferences/Preferences.svelte";
+  import FileManager from "./panels/FileManager/FileManager.svelte";
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
   $: leftPanel = $splitpanes.left.component ?? "profile-cloud";
@@ -15,7 +16,9 @@
   style="background-color: var(--background); color: var(--foreground);"
   class="w-full h-full"
 >
-  {#if leftPanel == "preferences"}
+  {#if leftPanel == "file-manager"}
+    <FileManager />
+  {:else if leftPanel == "preferences"}
     <Preferences />
   {:else if leftPanel == "packages"}
     <Packages />

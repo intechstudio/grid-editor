@@ -24,26 +24,25 @@
   function handleEventDataChange(event: EventData) {
     step = 0;
     let stack = [];
-    for (const action of event.config) {
-      if (action.short === "bst0") {
+    for (const a of event.config) {
+      if (a.short === "bst0") {
         stack.push(0);
       }
 
-      if (action.short === "bste") {
+      if (a.short === "bste") {
         stack.pop();
       }
 
-      if (action.short === "bstn") {
+      if (a.short === "bstn") {
+        if (stack.length === 0) continue;
         step = ++stack[stack.length - 1];
-        if (action.id === action.id) {
-          const defaultScript = action.information.defaultLua;
+        if (a.id === action.id) {
+          const defaultScript = a.information.defaultLua;
           const newScript = defaultScript.replace("N", String(step));
-          const oldScript = action.script;
+          const oldScript = a.script;
           if (newScript !== oldScript) {
-            action.updateData(
-              new ActionData(action.short, newScript, action.name),
-            );
-            action.sendToGrid();
+            a.updateData(new ActionData(a.short, newScript, a.name));
+            a.sendToGrid();
           }
           return;
         }

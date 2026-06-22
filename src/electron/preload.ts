@@ -42,9 +42,6 @@ contextBridge.exposeInMainWorld("electron", {
     restartSerialCheckInterval: () =>
       ipcRenderer.invoke("restartSerialCheckInterval"),
   },
-  clipboard: {
-    writeText: (text) => ipcRenderer.invoke("clipboardWriteText", { text }),
-  },
   configs: {
     migrateToProfileCloud: (oldRootPath, newRootPath, configDirectory) =>
       ipcRenderer.invoke("migrateToProfileCloud", {

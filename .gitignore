@@ -17,5 +17,6 @@ buildVariables.json
 /blob-report/
 /playwright/.cache/
 screenshot*
+.playwright-mcp/
 src/electron/main.ts
 .vscode/settings.json

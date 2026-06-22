@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/release/intechstudio/grid-editor)](https://github.com/intechstudio/grid-editor/releases/latest)
 
-## Running the app locally (development) under Ubuntu (Tested on Xubuntu 25.10)
+## Running the app locally (delopment) in Electron under Ubuntu (Tested on Xubuntu 25.10)
 
 ```
 sudo apt-get install -y nodejs
@@ -25,6 +25,16 @@ sudo usermod -aG dialout $USER
 ```
 
 Restart the computer!
+
+## Flatpak Firefox Web Serial access
+
+On Ubuntu (and likely Debian-based distros), if using Firefox installed via Flatpak, the Web Serial API cannot enumerate serial ports by default because the sandbox blocks access to the udev database. This is not needed on Fedora.
+
+```
+flatpak override --user --device=all --filesystem=/run/udev org.mozilla.firefox
+```
+
+Restart Firefox after running the command.
 
 ## Code formatting using prettier
 

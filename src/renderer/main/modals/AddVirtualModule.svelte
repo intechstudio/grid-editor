@@ -4,6 +4,7 @@
   import EF44 from "./../grid-layout/grid-modules/devices/EF44.svelte";
   import VSNX from "./../grid-layout/grid-modules/devices/VSNX.svelte";
   import OCTV from "./../grid-layout/grid-modules/devices/OCTV.svelte";
+  import XY from "./../grid-layout/grid-modules/devices/XY.svelte";
 
   import { ModuleType } from "@intechstudio/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
@@ -76,6 +77,12 @@
       component: OCTV,
       unrelease: true,
       hwcfg: 123,
+    },
+    {
+      id: ModuleType.XY,
+      type: ModuleType.XY,
+      component: XY,
+      hwcfg: 161,
     },
   ];
 

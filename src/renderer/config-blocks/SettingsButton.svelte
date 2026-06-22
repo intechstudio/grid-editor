@@ -45,6 +45,7 @@
   } from "../runtime/runtime.js";
   import { Grid } from "../lib/_utils.js";
   import { SettingsButton } from "./SettingsButton.js";
+  import { extractParam } from "./_script_parsers.js";
 
   export let action: GridAction;
   let event = action.parent as GridEvent;
@@ -75,7 +76,6 @@
     },
   ];
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
   let bmo = "";
   let bmi = "0";
   let bma = "127";
@@ -85,25 +85,13 @@
   }
 
   function handleActionChange(data: ActionData) {
-    const arr = data.script.split("self:").slice(1);
-    const parts = {
-      bmo: null,
-      bmi: null,
-      bma: null,
-    };
+    bmo = extractParam(data.script, "bmo");
 
-    for (const [key, value] of Object.entries(parts)) {
-      const index = arr.findIndex((e) => e.includes(key));
-      if (index !== -1) {
-        parts[key] = whatsInParenthesis.exec(arr[index])[1];
-      }
-    }
-
-    bmo = parts.bmo;
-
-    if (!!parts.bmi || !!parts.bma) {
-      bmi = parts.bmi;
-      bma = parts.bma;
+    const newBmi = extractParam(data.script, "bmi");
+    const newBma = extractParam(data.script, "bma");
+    if (!!newBmi || !!newBma) {
+      bmi = newBmi;
+      bma = newBma;
     }
   }
 
@@ -112,6 +100,9 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(bmo);
+    validators[1].value = validators[1].func(bmi);
+    validators[2].value = validators[2].func(bma);
     const optional = [];
     optional.push(`self:bmi(${bmi}) self:bma(${bma})`);
 

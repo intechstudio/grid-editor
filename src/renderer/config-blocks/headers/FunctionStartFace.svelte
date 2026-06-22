@@ -24,6 +24,10 @@
       info: "SysEx RX callback handler",
     },
     {
+      value: "self.rtmrx_cb(self, header, rtm)",
+      info: "MIDI Real-Time RX callback handler (clock, start, stop, etc.)",
+    },
+    {
       value: "midi_auto_ch(self)",
       info: "Calculate default MIDI channel (0-15) from grid position",
     },

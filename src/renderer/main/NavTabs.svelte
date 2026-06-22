@@ -83,6 +83,15 @@
       menuIcon="menu_midi_monitor"
       clickHandler={changeLeftTab}
     />
+
+    <NavTabsButton
+      {selectedLeftTab}
+      {leftSize}
+      tooltipText="File Manager"
+      tabName="file-manager"
+      menuIcon="menu_file_manager"
+      clickHandler={changeLeftTab}
+    />
   {/if}
   <div class="grow" />
 

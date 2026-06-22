@@ -5,7 +5,6 @@ import {
   Tray,
   Menu,
   nativeImage,
-  clipboard,
   shell,
   MessageChannelMain,
   utilityProcess,
@@ -351,6 +350,14 @@ if (!gotTheLock) {
       ];
       store.set("enabledPackages", newEnabledPackages);
       store.set("lastActiveVersion", configuration.EDITOR_VERSION);
+    }
+
+    // Ensure built-in packages that should always be present are enabled
+    const alwaysEnabled = ["file-manager"];
+    let enabledPackages: string[] = store.get("enabledPackages") ?? [];
+    const missing = alwaysEnabled.filter((id) => !enabledPackages.includes(id));
+    if (missing.length > 0) {
+      store.set("enabledPackages", [...enabledPackages, ...missing]);
     }
 
     if (process.platform !== "darwin") {
@@ -826,11 +833,6 @@ function startConfigWatcher(configPath, rootDirectory) {
   });
   sendLocalConfigs();
 }
-
-ipcMain.handle("clipboardWriteText", async (event, arg) => {
-  console.log(arg.text);
-  clipboard.writeText(arg.text);
-});
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;

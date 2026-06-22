@@ -8,15 +8,24 @@
     outbound_data_rate_history,
   } from "./DebugMonitor.store";
   import { fade } from "svelte/transition";
+  import { onMount } from "svelte";
   import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { MoltenPushButton, MeltRadio } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MeltRadio,
+    MeltSelect,
+  } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import type { ModuleType } from "@intechstudio/grid-protocol";
   import DebugTextList from "./DebugTextList.svelte";
   import { scrollToBottom } from "../../_actions/scroll.move";
   import SendImmediate from "./SendImmediate.svelte";
+  import { copyContextMenu } from "../../_actions/copy-context-menu.action";
+  import SendEvaluate from "./SendEvaluate.svelte";
+  import SendRaw from "./SendRaw.svelte";
 
   const incoming_messages_stores = writable([]);
 
@@ -54,6 +63,47 @@
   }
 
   let display = "CHAR";
+  let selectedSend = "evaluate";
+
+  let selectedModule: string = "all";
+  let moduleOptions: Array<{ title: string; value: string }> = [];
+
+  function getModuleTypeName(type: ModuleType): string {
+    if (typeof type === "object" && type.type) return type.type;
+    return String(type);
+  }
+
+  function refreshModuleList() {
+    const runtime = get(runtime_manager)?.active?.runtime;
+    const modules = runtime?.modules || [];
+
+    const newOptions = [
+      { title: "All Modules (Global)", value: "all" },
+      ...modules.map((module) => ({
+        title: `Module [${module.dx}, ${module.dy}] - ${getModuleTypeName(module.type)}`,
+        value: `${module.dx},${module.dy}`,
+      })),
+    ];
+
+    if (selectedModule !== "all") {
+      const exists = newOptions.some((opt) => opt.value === selectedModule);
+      if (!exists) selectedModule = "all";
+    }
+
+    moduleOptions = newOptions;
+  }
+
+  onMount(() => {
+    refreshModuleList();
+  });
+
+  $: target =
+    !selectedModule || selectedModule === "all"
+      ? { dx: -127, dy: -127 }
+      : (() => {
+          const [dxStr, dyStr] = selectedModule.split(",");
+          return { dx: parseInt(dxStr) || 0, dy: parseInt(dyStr) || 0 };
+        })();
 
   function average(arr) {
     let sum = 0;
@@ -134,7 +184,39 @@
   transition:fade|global={{ duration: 150 }}
   class="w-full h-full flex flex-col p-4 z-10"
 >
-  <SendImmediate />
+  <div class="flex flex-row gap-2 mb-2">
+    <div class="flex-grow">
+      {#key moduleOptions}
+        <MeltSelect
+          bind:target={selectedModule}
+          options={moduleOptions}
+          disabled={false}
+        />
+      {/key}
+    </div>
+    <MoltenPushButton click={refreshModuleList} text="Refresh" />
+  </div>
+
+  <div class="flex mb-2">
+    <MeltRadio
+      bind:target={selectedSend}
+      style="button"
+      orientation="horizontal"
+      options={[
+        { title: "Evaluate", value: "evaluate" },
+        { title: "Immediate", value: "immediate" },
+        { title: "Raw", value: "raw" },
+      ]}
+    />
+  </div>
+
+  {#if selectedSend === "immediate"}
+    <SendImmediate {target} />
+  {:else if selectedSend === "evaluate"}
+    <SendEvaluate {target} />
+  {:else if selectedSend === "raw"}
+    <SendRaw {target} />
+  {/if}
 
   <Splitpanes
     theme="modern-theme"
@@ -174,6 +256,7 @@
           <div
             class="flex flex-grow w-full selectable overflow-y-auto p-1"
             use:scrollToBottom={debug_lowlevel_store}
+            use:copyContextMenu
           >
             <div class=" flex flex-col min-h-[100px] font-mono text-white">
               {#each $debug_lowlevel_store as debug, i}

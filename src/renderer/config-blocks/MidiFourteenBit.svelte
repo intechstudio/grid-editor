@@ -9,7 +9,7 @@
     short: "gmsh",
     name: "MidiFourteenBit",
     rendering: "standard",
-    category: "midi",
+    category: "deprecated",
     displayName: "MIDI 14",
     color: "#DA4167",
     defaultLua: "gms(0,176,0,val//128) gms(0,176,32,val%128)",
@@ -52,7 +52,7 @@
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-  import TabButton from "../main/user-interface/TabButton.svelte";
+
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
   import { Grid } from "../lib/_utils.js";
@@ -197,32 +197,12 @@
   $: if ($event) {
     renderSuggestions();
   }
-  const tabs = [
-    { name: "MIDI", short: "gms" },
-    { name: "14 bit MIDI", short: "gmsh" },
-    { name: "SysEX", short: "gmss" },
-    { name: "NRPN MIDI", short: "gmnp" },
-  ];
-
-  function handleTabButtonClicked(element) {
-    dispatch("replace", { short: element.short });
-  }
 </script>
 
 <action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
-  {#if tabs !== undefined}
-    <div class="ml-auto flex flex-row mb-2">
-      <div />
-      {#each tabs as element}
-        <TabButton
-          selected={action.information.short == element.short}
-          text={element.name}
-          on:click={() => handleTabButtonClicked(element)}
-        />
-      {/each}
-    </div>
-  {/if}
-
+  <div class="w-full text-yellow-400 text-xs px-1 py-2">
+    This block is deprecated. Use the MIDI block with CC 14-bit mode instead.
+  </div>
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
       <MeltCombo

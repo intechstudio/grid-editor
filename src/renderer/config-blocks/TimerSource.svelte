@@ -78,6 +78,9 @@
 
   function sendData(e, index) {
     scriptSegments[index] = e;
+    validators.forEach((v, i) => {
+      v.value = v.func(scriptSegments[i] ?? "");
+    });
     const script = Script.toScript({
       short: action.short,
       array: scriptSegments,
