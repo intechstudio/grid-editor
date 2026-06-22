@@ -9,8 +9,8 @@
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
   import {
     MoltenPushButton,
-    MoltenPushButtonGroup,
-    MoltenPushButtonDropdown,
+    MeltSelect,
+    BlockRow,
   } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
@@ -21,6 +21,7 @@
     availableProfileTypes,
     register_getting_started_profile,
   } from "../../runtime/getting-started-profile";
+  import { profileLoadProgress } from "../../runtime/profileLoadProgress";
 
   /**
    * Formats a profile type string for display
@@ -40,12 +41,14 @@
   });
 
   for (const path in profileModules) {
-    // Extract module type and profile type from filename
-    // Example: "../../../content/bu16-getting-started.json" -> moduleType: "BU16", profileType: "getting-started"
-    const match = path.match(/\/([a-z0-9]+)-(.+)\.json$/i);
-    if (match) {
-      const moduleType = match[1].toUpperCase();
-      const profileType = match[2]; // e.g., "getting-started", "advanced", etc.
+    // Extract profile type and module type from filename
+    // Example: "../../../content/pressure-sensitive-defaults-bu16.json" -> profileType: "pressure-sensitive-defaults", moduleType: "BU16"
+    const filename = path.split("/").pop();
+    const lastHyphen = filename.lastIndexOf("-");
+    const dotJson = filename.lastIndexOf(".json");
+    if (lastHyphen > 0 && dotJson > lastHyphen) {
+      const profileType = filename.slice(0, lastHyphen);
+      const moduleType = filename.slice(lastHyphen + 1, dotJson).toUpperCase();
       const profileData = profileModules[path];
 
       // Register using the registration mechanism
@@ -58,12 +61,8 @@
     }
   }
 
-  // Local state for selected profile type
-  const selectedProfileType = writable<string>("clear");
-
   let isChanges = false;
   let changes = 0;
-  let clearButtonWidth = 0;
 
   let runtime: GridRuntime;
   let buffer: WriteBuffer;
@@ -72,14 +71,15 @@
     buffer = runtime.connection.buffer;
   }
 
-  // Create options for profile type dropdown
-  // Note: onclick must be a function (even if no-op) due to bug in MoltenPushButton check
-  $: profileTypeOptions = [
-    { value: "clear", title: "Clear", onclick: () => {} },
+  // Profile type selection for MeltSelect
+  const selectedProfileType = writable("");
+
+  // Options for MeltSelect — "Clear to Default" always first, then profile types
+  const profileTypeOptions = [
+    { value: "", title: "Default Config" },
     ...availableProfileTypes.map((type) => ({
       value: type,
       title: formatProfileTypeTitle(type),
-      onclick: () => {},
     })),
   ];
 
@@ -142,34 +142,76 @@
 
   function handleClear() {
     const ui = get(user_input);
-    runtime
-      .clearPage(ui.pagenumber)
+    const profileType = $selectedProfileType;
+    const label = profileType ? `load:${profileType}` : "clear";
+    console.time(label);
+
+    const finish = () => {
+      console.timeEnd(label);
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "pageclear",
+        message: profileType
+          ? `Succesfully loaded ${profileType}!`
+          : `Page clear complete!`,
+      });
+      Analytics.track({
+        event: "Page Config",
+        payload: {
+          click: "Clear",
+          profileType: profileType || "none",
+        },
+        mandatory: false,
+      });
+    };
+
+    const fail = (e) => {
+      console.timeEnd(label);
+      console.warn(e);
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "pageclear",
+        message: `Unsuccessful page clear! Please retry!`,
+      });
+    };
+
+    Promise.resolve()
       .then(() => {
-        clearOverlays();
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pageclear",
-          message: `Page clear complete!`,
+        return import("../../runtime/getting-started-profile").then((m) => {
+          m.initProfileLoadOverlay(runtime, profileType || undefined);
         });
       })
-      .catch((e) => {
-        console.warn(e);
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "pageclear",
-          message: `Unsuccessful page clear! Please retry!`,
+      .then(() => runtime.clearPage(ui.pagenumber))
+      .then(() => {
+        if (profileType) return;
+        profileLoadProgress.update((map) => {
+          if (!map) return map;
+          for (const key in map) {
+            map[key].operationTotal = 1;
+            map[key].operationCompleted = 1;
+          }
+          return map;
         });
-      });
-
-    Analytics.track({
-      event: "Page Config",
-      payload: {
-        click: "Clear",
-      },
-      mandatory: false,
-    });
+        return new Promise((r) => setTimeout(r, 1000));
+      })
+      .then(() => {
+        clearOverlays();
+        if (!profileType) {
+          moduleOverlay.close();
+          profileLoadProgress.set(undefined);
+        }
+      })
+      .then(() => {
+        if (!profileType) return;
+        return import("../../runtime/getting-started-profile").then(
+          ({ loadGettingStartedProfiles }) =>
+            loadGettingStartedProfiles(runtime, profileType),
+        );
+      })
+      .then(finish)
+      .catch(fail);
   }
 
   function handleDiscard() {
@@ -215,45 +257,6 @@
         message: `Serial connect failed, your browser is not supperted yet.`,
       });
     });
-  }
-
-  async function handleLoadGettingStarted() {
-    // Handle "Clear Only" option
-    if ($selectedProfileType === "clear") {
-      const ui = get(user_input);
-      try {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "pageclear",
-          message: `Clearing page ${ui.pagenumber}...`,
-        });
-
-        await runtime.clearPage(ui.pagenumber);
-
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pageclear",
-          message: `Page clear complete!`,
-        });
-      } catch (e) {
-        console.warn(e);
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "pageclear",
-          message: `Failed to clear page!`,
-        });
-      }
-      return;
-    }
-
-    // Normal profile loading
-    const { loadGettingStartedProfiles } = await import(
-      "../../runtime/getting-started-profile"
-    );
-    await loadGettingStartedProfiles(runtime, $selectedProfileType);
   }
 </script>
 
@@ -314,54 +317,18 @@
       />
     </div>
 
-    {#if profileTypeOptions.length > 0}
-      <MoltenPushButtonGroup>
-        <div
-          use:tooltip={{
-            key: "configuration_header_clear",
-            placement: "top",
-            class: "w-60 p-4",
-            buttons: [
-              {
-                label: "Cancel",
-                handler: undefined,
-              },
-              {
-                label: "Selected Module",
-                handler: handleLoadGettingStarted,
-              },
-              { label: "Clear All Modules", handler: handleLoadGettingStarted },
-            ],
-            triggerEvents: ["show-buttons", "hover"],
-          }}
-        >
-          <MoltenPushButton
-            text=""
-            style="normal"
-            click={() => {}}
-            bind:target={$selectedProfileType}
-            options={profileTypeOptions}
-            bind:width={clearButtonWidth}
-            decorations={["", ""]}
-            grouped={true}
-          />
-        </div>
-        <div
-          use:tooltip={{
-            key: "configuration_header_clear_dropdown",
-            placement: "top",
-            class: "w-60 p-4",
-          }}
-        >
-          <MoltenPushButtonDropdown
-            style="normal"
-            options={profileTypeOptions}
-            bind:target={$selectedProfileType}
-            menuWidth={clearButtonWidth}
-          />
-        </div>
-      </MoltenPushButtonGroup>
-    {/if}
+    <BlockRow>
+      <MeltSelect
+        bind:target={$selectedProfileType}
+        options={profileTypeOptions}
+      />
+
+      <MoltenPushButton
+        text={$selectedProfileType ? "Load" : "Clear"}
+        style="normal"
+        click={handleClear}
+      />
+    </BlockRow>
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
         text="Connect"

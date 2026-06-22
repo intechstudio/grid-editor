@@ -1,8 +1,8 @@
 /**
  * Profile Loading System
  *
- * Filename convention: {module-type}-{profile-type}.json
- * Examples: bu16-getting-started.json, en16-advanced.json
+ * Filename convention: {profile-type}-{module-type}.json
+ * Examples: pressure-sensitive-defaults-bu16.json
  *
  * This will create dropdown options for each unique profile-type,
  * and load the appropriate file for each module type.
@@ -12,6 +12,8 @@ import { get, writable } from "svelte/store";
 import { user_input } from "./user-input.store";
 import { logger } from "./runtime.store";
 import { Analytics } from "./analytics";
+import { moduleOverlay, ModuleOverlay } from "./moduleOverlay";
+import { profileLoadProgress } from "./profileLoadProgress";
 import type { GridRuntime } from "./runtime";
 
 // Constants
@@ -119,7 +121,30 @@ export { availableProfileTypes };
  * @param runtime - The GridRuntime instance
  * @param profileType - The profile type to load (e.g., "getting-started", "advanced")
  */
-export async function loadGettingStartedProfiles(
+export function initProfileLoadOverlay(
+  runtime: GridRuntime,
+  profileType?: string,
+) {
+  const modules = runtime.modules;
+  if (!modules || modules.length === 0) return;
+
+  const progressMap: Record<
+    string,
+    { available: boolean; operationTotal: number; operationCompleted: number }
+  > = {};
+  for (const m of modules) {
+    const hasProfile = profileType ? !!PROFILES[m.type]?.[profileType] : true;
+    progressMap[`${m.dx},${m.dy}`] = {
+      available: hasProfile,
+      operationTotal: 0,
+      operationCompleted: 0,
+    };
+  }
+  profileLoadProgress.set(progressMap);
+  moduleOverlay.show(ModuleOverlay.Types.PROFILE_LOAD_PROGRESS);
+}
+
+export function loadGettingStartedProfiles(
   runtime: GridRuntime,
   profileType: string,
 ) {
@@ -146,123 +171,106 @@ export async function loadGettingStartedProfiles(
     return;
   }
 
-  try {
-    const { GridProfileData } = await import("./runtime");
-    const { loadProfile } = await import("./operations");
+  return Promise.all([import("./runtime"), import("./operations")])
+    .then(([{ GridProfileData }, { loadProfile }]) => {
+      let loadedCount = 0;
+      let skippedCount = 0;
+      let chain = Promise.resolve();
 
-    let loadedCount = 0;
-    let skippedCount = 0;
-
-    // Clear the page before loading profiles
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: CLASSNAME,
-      message: `Clearing page ${ui.pagenumber}...`,
-    });
-
-    await runtime.clearPage(ui.pagenumber);
-
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: CLASSNAME,
-      message: `Loading "${profileType}" profiles to ${modules.length} module(s)...`,
-    });
-
-    // Process each module
-    for (let i = 0; i < modules.length; i++) {
-      const module = modules[i];
-      const moduleType = module.type;
-
-      // Check if we have this profile type for this module type
-      const registeredProfile = PROFILES[moduleType]?.[profileType];
-      if (!registeredProfile) {
-        console.warn(
-          `No "${profileType}" profile for ${moduleType}, skipping...`,
-        );
-        skippedCount++;
-        continue;
-      }
-
-      // Show loading message for this module
-      logger.set({
-        type: "progress",
-        mode: (loadedCount + skippedCount) / modules.length,
-        classname: CLASSNAME,
-        message: `Loading to ${moduleType} (${module.dx},${module.dy})...`,
-      });
-
-      // Convert to GridProfileData
-      const profile = GridProfileData.createFromCloudData(
-        registeredProfile.data,
+      const loadableModules = modules.filter(
+        (m) => PROFILES[m.type]?.[profileType],
       );
 
-      // Get the current page for this module
-      const page = module.pages[ui.pagenumber];
-
-      // Load the profile (no progress callback to reduce logger spam)
-      await loadProfile(profile, page);
-
-      loadedCount++;
-
-      // Show completion message for this module
-      logger.set({
-        type: "progress",
-        mode: (loadedCount + skippedCount) / modules.length,
-        classname: CLASSNAME,
-        message: `Loaded ${moduleType} (${module.dx},${module.dy}) - ${loadedCount + skippedCount}/${modules.length}`,
+      profileLoadProgress.update((map) => {
+        if (map) return map;
+        const newMap: Record<
+          string,
+          {
+            available: boolean;
+            operationTotal: number;
+            operationCompleted: number;
+          }
+        > = {};
+        for (const m of modules) {
+          newMap[`${m.dx},${m.dy}`] = {
+            available: !!PROFILES[m.type]?.[profileType],
+            operationTotal: 0,
+            operationCompleted: 0,
+          };
+        }
+        return newMap;
       });
-    }
+      moduleOverlay.show(ModuleOverlay.Types.PROFILE_LOAD_PROGRESS);
 
-    // Show final result
-    const resultMessages = [];
-    if (loadedCount > 0) {
-      resultMessages.push(`Loaded ${loadedCount} module(s)`);
-    }
-    if (skippedCount > 0) {
-      resultMessages.push(`skipped ${skippedCount} (no profile available)`);
-    }
+      for (let i = 0; i < modules.length; i++) {
+        const module = modules[i];
+        const moduleType = module.type;
 
-    logger.set({
-      type: "success",
-      mode: 0,
-      classname: CLASSNAME,
-      message: `Getting started profiles complete! ${resultMessages.join(", ")}`,
+        const registeredProfile = PROFILES[moduleType]?.[profileType];
+        if (!registeredProfile) {
+          console.warn(
+            `No "${profileType}" profile for ${moduleType}, skipping...`,
+          );
+          skippedCount++;
+          continue;
+        }
+
+        const profile = GridProfileData.createFromCloudData(
+          registeredProfile.data,
+        );
+        const page = module.pages[ui.pagenumber];
+        const key = `${module.dx},${module.dy}`;
+
+        chain = chain
+          .then(() =>
+            loadProfile(profile, page, (status) => {
+              profileLoadProgress.update((map) => {
+                if (!map) return map;
+                map[key] = {
+                  available: true,
+                  operationTotal: status.total || 0,
+                  operationCompleted: status.completed || 0,
+                };
+                return map;
+              });
+            }),
+          )
+          .then(() => {
+            loadedCount++;
+          });
+      }
+
+      return chain
+        .then(() => runtime.storePage(ui.pagenumber))
+        .then(() => ({ loadedCount, skippedCount }));
+    })
+    .then(({ loadedCount, skippedCount }) => {
+      return new Promise((r) => setTimeout(r, 1000)).then(() => ({
+        loadedCount,
+        skippedCount,
+      }));
+    })
+    .then(({ loadedCount, skippedCount }) => {
+      moduleOverlay.close();
+      profileLoadProgress.set(undefined);
+      Analytics.track({
+        event: "Getting Started Profile",
+        payload: {
+          modulesLoaded: loadedCount,
+          modulesSkipped: skippedCount,
+        },
+        mandatory: false,
+      });
+    })
+    .catch((error) => {
+      moduleOverlay.close();
+      profileLoadProgress.set(undefined);
+      console.error("Failed to load getting started profiles:", error);
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: CLASSNAME,
+        message: "Failed to load getting started profiles. Please try again.",
+      });
     });
-
-    // Store the configurations to the modules
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: CLASSNAME,
-      message: `Storing configurations to modules...`,
-    });
-
-    await runtime.storePage(ui.pagenumber);
-
-    logger.set({
-      type: "success",
-      mode: 0,
-      classname: CLASSNAME,
-      message: `Store complete!`,
-    });
-
-    Analytics.track({
-      event: "Getting Started Profile",
-      payload: {
-        modulesLoaded: loadedCount,
-        modulesSkipped: skippedCount,
-      },
-      mandatory: false,
-    });
-  } catch (error) {
-    console.error("Failed to load getting started profiles:", error);
-    logger.set({
-      type: "alert",
-      mode: 0,
-      classname: CLASSNAME,
-      message: "Failed to load getting started profiles. Please try again.",
-    });
-  }
 }

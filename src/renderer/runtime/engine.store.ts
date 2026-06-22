@@ -316,7 +316,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
             if (class_parameters?.LASTHEADER !== undefined) {
               class_parameters.LASTHEADER = id;
             }
-            const timeout = bufferElement.responseTimeout ?? 1000;
+            const timeout = bufferElement.responseTimeout ?? 250;
             const response = await this.waitResponseFromGrid(
               bufferElement,
               timeout,
@@ -332,6 +332,9 @@ export class WriteBuffer implements Readable<WriteBufferData> {
               }
               case ResponseStatus.TIMEOUT: {
                 this.update((s) => ({ ...s, retryCount: s.retryCount + 1 }));
+                console.error(
+                  `Timeout on ${bufferElement.descr.class_name}, retrying...`,
+                );
                 resolve(this.sendToGrid(bufferElement)); // RETRY recursively until processed
                 break;
               }

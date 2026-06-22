@@ -1031,8 +1031,16 @@ export class GridEvent extends RuntimeNode<EventData> {
         new GridAction(undefined, new ActionData(e.short, e.script, e.name)),
     );
 
-    this.clear();
-    this.push(...copy);
+    RuntimeNode.batch(() => {
+      copy.forEach((a) => ((a as any).parent = this));
+      const lua = copy.map((a) => a.toLua()).join("");
+      this.update((data) => {
+        data.config = copy;
+        data.stored = lua;
+        data.state = GridNodeState.SYNCED;
+        return data;
+      });
+    });
 
     return Promise.resolve({
       value: false,
@@ -1539,12 +1547,18 @@ export class GridPage extends RuntimeNode<PageData> {
       }
 
       let completed = 0;
+      const module = this.parent as GridModule;
+      const isVirtual = module?.architecture === Architecture.VIRTUAL;
+
       for (const preset of presets) {
         const element = this.findElement(preset.element.elementIndex);
         await element.overwrite(preset.element.data);
 
         for (const event of element.events) {
           await event.sendToGrid();
+          if (isVirtual) {
+            await new Promise((r) => setTimeout(r, 0));
+          }
           ++completed;
           setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed });
         }
@@ -1603,6 +1617,39 @@ export class GridPage extends RuntimeNode<PageData> {
       promises.push(element.load());
     }
     return Promise.all(promises);
+  }
+
+  public resetToDefaults() {
+    RuntimeNode.batch(() => {
+      for (const element of this.control_elements) {
+        const defaultEvents = grid.get_element_events(element.type);
+        for (const event of element.events) {
+          const defaultEvent = defaultEvents.find(
+            (e) => Number(e.value) === event.type,
+          );
+          if (!defaultEvent) continue;
+
+          const script = defaultEvent.defaultConfig.startsWith("<?lua ")
+            ? defaultEvent.defaultConfig.slice(
+                6,
+                defaultEvent.defaultConfig.lastIndexOf(" ?>"),
+              )
+            : defaultEvent.defaultConfig;
+
+          const actions = GridAction.parse(script);
+          actions.forEach((a) => ((a as any).parent = event));
+          const lua = actions.map((a) => a.toLua()).join("");
+
+          event.update((data) => {
+            data.config = actions;
+            data.stored = lua;
+            data.state = GridNodeState.SYNCED;
+            return data;
+          });
+        }
+      }
+    });
+    this.notify();
   }
 
   // Getters
@@ -2221,30 +2268,24 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
   }
 
   public async clearPage(index: number): Promise<void> {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pageclear",
-      message: `Clearing configurations from page...`,
-    });
+    console.time("clearPage");
     return new Promise((resolve, reject) => {
       const instruction = new GridInstruction.ClearPage(this.virtual);
+      console.time("clearPage:executeOn");
       instruction
         .executeOn(this.connection)
         .then(() => {
+          console.timeEnd("clearPage:executeOn");
+          console.time("clearPage:resetToDefaults");
           for (const module of this.modules) {
             const page = module.findPage(index);
-            page.unload();
+            console.time(`clearPage:resetModule ${module.dx},${module.dy}`);
+            page.resetToDefaults();
+            console.timeEnd(`clearPage:resetModule ${module.dx},${module.dy}`);
           }
-          const ui = get(user_input);
-          const event = this.findEvent(
-            ui.dx,
-            ui.dy,
-            ui.pagenumber,
-            ui.elementnumber,
-            ui.eventtype,
-          );
-          event.load().then(() => resolve());
+          console.timeEnd("clearPage:resetToDefaults");
+          console.timeEnd("clearPage");
+          resolve();
         })
         .catch((e) => {
           console.warn(e);
