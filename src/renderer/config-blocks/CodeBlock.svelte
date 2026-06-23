@@ -50,6 +50,7 @@
   import MoltenPopup from "../main/panels/preferences/MoltenPopup.svelte";
 
   import { Modal } from "../main/modals/modal.store";
+  import { activeMonacoSession } from "../main/modals/monaco-session.store";
   import Monaco from "../main/modals/Monaco.svelte";
   import { MonacoEditor } from "../lib/monaco";
   import { appSettings } from "../runtime/app-helper.store";
@@ -105,7 +106,26 @@
     handleActionChange($action, theme);
   }
 
+  // Block editing on every code block while an editor has unsaved changes —
+  // it can't be auto-replaced until it's committed or discarded (issue #1390).
+  $: editDisabled = !!$activeMonacoSession && $activeMonacoSession.dirty;
+
   async function open_monaco() {
+    const session = $activeMonacoSession;
+    if (session) {
+      // Editor is already showing this block — nothing to do.
+      if (session.action === action) {
+        return;
+      }
+      // Another block is open with unsaved changes: leave it be so the user
+      // doesn't silently lose work (matches the pre-existing behavior).
+      if (session.dirty) {
+        return;
+      }
+      // Clean editor: auto-close it so it can be replaced by this block.
+      session.close();
+    }
+
     new Modal.Window(Monaco, Modal.Snap.GridLayout, {
       disableClickOutside: true,
       disableEscapeClose: true,
@@ -133,6 +153,7 @@
     <div class="flex flex-row gap-2">
       <MoltenPushButton
         click={open_monaco}
+        disabled={editDisabled}
         text={"Edit Code"}
         style={"accept"}
       />

@@ -17,6 +17,8 @@
   import { onDestroy, tick } from "svelte";
   import { NumberToEventType, GridScript } from "@intechstudio/grid-protocol";
   import { Modal, modalManager } from "./modal.store";
+  import { activeMonacoSession } from "./monaco-session.store";
+  import { get } from "svelte/store";
   import MoltenModal from "./MoltenModal.svelte";
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -43,6 +45,7 @@
   let nameInput;
   let clickedOutside = false;
   let monaco_disposables = [];
+  const sessionToken = {};
 
   class LengthError extends String {}
 
@@ -117,11 +120,27 @@
     });
 
     editor.onDidChangeModelContent(handleContentChange);
+
+    activeMonacoSession.set({
+      token: sessionToken,
+      action: monaco_action,
+      dirty,
+      close: () => data.close(),
+    });
   });
 
   $: if (editor) {
     handleLightModeChange($appSettings.persistent.lightMode);
   }
+
+  // "Needs committing": unsaved changes or an unresolved error.
+  $: dirty = commitEnabled || errorMessage !== "";
+
+  // Keep the shared session in sync so other code blocks can react to whether
+  // this editor currently needs committing (issue #1390, part 1).
+  $: activeMonacoSession.update((s) =>
+    s?.token === sessionToken ? { ...s, dirty } : s,
+  );
 
   function handleLightModeChange(value: boolean) {
     MonacoEditor.setTheme(
@@ -172,6 +191,9 @@
 
   onDestroy(() => {
     monaco_disposables.forEach((d) => d.dispose());
+    if (get(activeMonacoSession)?.token === sessionToken) {
+      activeMonacoSession.set(null);
+    }
   });
 
   function handleClose() {
