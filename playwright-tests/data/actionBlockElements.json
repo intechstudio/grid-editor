@@ -54,15 +54,15 @@
     "Repeater Loop": ["variable", "times"]
   },
   "specialEncoder": {
-    "Left/Right Rotate": ["left", "right", "end"],
-    "Push & Rotate L R": [
+    "Encoder Left/Right Rotate": ["left", "right", "end"],
+    "Encoder Push & Rotate L R": [
       "push left",
       "push right",
       "just left",
       "just right",
       "end"
     ],
-    "Push & Rotate": ["push rotate", "just rotate", "end"]
+    "Encoder Push & Rotate": ["push rotate", "just rotate", "end"]
   },
   "code": {
     "Code Block": ["input", "Edit Code"],

@@ -103,6 +103,11 @@
   }
 
   function sendData() {
+    validators[0].value = validators[0].func(epmo);
+    validators[1].value = validators[1].func(epv0);
+    validators[2].value = validators[2].func(epmi);
+    validators[3].value = validators[3].func(epma);
+    validators[4].value = validators[4].func(epse);
     const optional = [];
 
     optional.push(`self:epmi(${epmi}) self:epma(${epma})`);
@@ -123,7 +128,6 @@
       { value: "0", info: "Absolute" },
       { value: "1", info: "Relative" },
     ],
-
     [
       { value: "0", info: "No velocity (0%)" },
       { value: "50", info: "Default (50%)" },

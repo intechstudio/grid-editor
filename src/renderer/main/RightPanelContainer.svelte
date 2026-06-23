@@ -19,7 +19,7 @@
 <div class="w-full h-full" use:watchResize={resize}>
   <div
     style="background-color: var(--background); color: var(--foreground);"
-    class="h-full"
+    class="w-full h-full"
   >
     <Configuration />
   </div>

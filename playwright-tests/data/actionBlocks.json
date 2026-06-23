@@ -18,7 +18,11 @@
   "element": ["Button Mode", "Encoder Mode", "Potmeter Mode", "Endless Mode"],
   "condition": ["If"],
   "loop": ["Repeater Loop"],
-  "specialEncoder": ["Left/Right Rotate", "Push & Rotate L R", "Push & Rotate"],
+  "specialEncoder": [
+    "Encoder Left/Right Rotate",
+    "Encoder Push & Rotate L R",
+    "Encoder Push & Rotate"
+  ],
   "code": ["Code Block", "Comment Block", "Element Name"],
   "timer": ["Clock Source", "Start", "Stop"],
   "specialButton": ["Press/Release", "Button Step"]

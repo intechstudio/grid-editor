@@ -25,6 +25,7 @@
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
   import { selected_actions } from "../../../../runtime/selected-actions.store";
   import { logger } from "../../../../runtime/runtime.store";
+  import { Runtime } from "../../../../runtime/string-table";
   import { get } from "svelte/store";
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
   import { Modal } from "../../../modals/modal.store";
@@ -104,7 +105,7 @@
       type: "alert",
       mode: 0,
       classname: "luanotok",
-      message: `Invalid edit discarded. Action block reverted to last valid state.`,
+      message: `Blocks containing syntax error reverted to last synced state.`,
     });
 
     updateAction(
@@ -129,11 +130,19 @@
 
   function handleUpdateAction(e) {
     const { short, script, validationError } = e.detail;
-    const oldAction = action;
-    const data = new ActionData(short, script, oldAction.name);
+    const data = new ActionData(short, script, action.name);
     //TODO: Propose better solution
     data.invalid = validationError;
-    updateAction(action, data, false);
+    updateAction(action, data, false, (msg) => {
+      if (msg === Runtime.ErrorText.LENGTH_ERROR) {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: msg,
+        });
+      }
+    });
   }
 
   function handleSendActionToGrid() {
@@ -230,7 +239,7 @@
       }
     }
   }}
-  class="dynamicWrapper activator-button flex flex-grow outline-none"
+  class="dynamicWrapper activator-button flex flex-grow min-w-0 outline-none"
   class:cursor-pointer={ctrlIsDown}
 >
   <Indentation level={$action?.indentation ?? 0} />
@@ -238,7 +247,7 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
-    class="flex flex-grow h-auto min-h-[32px] {!$action.isValid()
+    class="flex flex-grow min-w-0 overflow-x-auto h-auto min-h-[32px] {!$action.isValid()
       ? 'border border-error'
       : 'border border-background-soft'} cursor-pointer"
     class:rounded-tr-xl={$action.information.rounding === "top"}
@@ -285,14 +294,14 @@
 
       <!-- Body of the config block -->
       <div
-        class="w-full flex flex-grow items-center"
+        class="w-full flex flex-grow min-w-0 items-center"
         class:cursor-auto={$action.toggled}
         class:bg-opacity-30={$action.toggled}
       >
         <!-- Content of block -->
         {#if ($action.toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <div class="h-full w-full bg-background-mute">
+          <div class="h-full w-full bg-background-mute pointer-events-auto">
             <svelte:component
               this={component}
               {...componentProps}

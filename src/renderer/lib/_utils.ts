@@ -294,10 +294,7 @@ export namespace Grid {
   }
 
   export namespace Protocol {
-    export const scriptStart = "<?lua ";
-    export const scriptEnd = " ?>";
-    export const maxScriptLength =
-      grid.getProperty("CONFIG_LENGTH") - scriptEnd.length - scriptStart.length;
+    export const maxScriptLength = grid.getProperty("CONFIG_LENGTH");
 
     export function getLayerSuggestions(type: ElementType) {
       switch (type) {
@@ -323,6 +320,11 @@ export namespace Grid {
             { value: "1", info: "Potmeter layer" },
             { value: "2", info: "Unused layer" },
           ];
+        case ElementType.TOUCH:
+          return [
+            { value: "1", info: "Touch layer" },
+            { value: "2", info: "Unused layer" },
+          ];
         default: {
           const defaultLayerSuggestion = [
             { value: "1", info: "Layer 1" },
@@ -340,6 +342,7 @@ export namespace Grid {
       PBF4 = "PBF4",
       EF44 = "EF44",
       VSNX = "VSNX",
+      XY = "XY",
     }
 
     const typeToArchetypeMap = {
@@ -354,6 +357,7 @@ export namespace Grid {
       [ModuleType.VSN1L]: Module.Archetype.VSNX,
       [ModuleType.VSN1R]: Module.Archetype.VSNX,
       [ModuleType.VSN2]: Module.Archetype.VSNX,
+      [ModuleType.XY]: Module.Archetype.XY,
     };
 
     export function toArchetype(type: ModuleType): Module.Archetype {

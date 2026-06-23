@@ -145,7 +145,7 @@
           return dragged && dragged.length > 0;
         },
       }}
-      class="overflow-y-scroll justify-start w-full h-full pl-2 pr-3"
+      class="overflow-y-scroll overflow-x-hidden justify-start w-full h-full pl-2 pr-3"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
         <SeparatorLine target={{ event: event, index: 0 }} />

@@ -120,7 +120,9 @@
 
   function sendData(e, index) {
     scriptSegments[index] = e;
-    // important to set the function name = human readable for now
+    validators.forEach((v, i) => {
+      v.value = v.func(scriptSegments[i] ?? "");
+    });
     const script = Script.toScript({
       short: "glpfs",
       array: scriptSegments,
@@ -223,7 +225,7 @@
         on:input={(e) => {
           const { value, validationError } = e.detail;
           script = value;
-          validators[i].value = !validationError;
+          validators[i + 2].value = !validationError;
           sendData(value, i + 2);
         }}
         on:change={() => dispatch("sync")}

@@ -88,6 +88,10 @@ export class ProfileCloudEvent {
                   .findEvent(target.event.value);
 
                 const snippet = GridSnippetData.createFromCloudData(config);
+                console.log(
+                  "[ProfileCloud] snippet lua:",
+                  snippet.actions.map((a) => a.toLua()).join(""),
+                );
                 loadSnippet(snippet, event, target.index).catch();
 
                 break;

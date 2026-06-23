@@ -64,7 +64,7 @@
     const runtime = get(runtime_manager).active?.runtime;
     if (!runtime) throw new Error("No runtime");
 
-    const script = `<?lua ${compress ? GridScript.compressScript(code) : code} ?>`;
+    const script = `${compress ? GridScript.compressScript(code) : code}`;
     const size = script.length.toString(16).padStart(4, "0");
     const classBody = `\x02086e0001` + `04` + size + script + `\x03`;
     const classArray: number[] = Array.from(classBody, (c) => c.charCodeAt(0));
@@ -171,7 +171,9 @@
       clickTimer = setTimeout(() => {
         clickTimer = null;
         selectedEntry = entry.name;
-        readFile(entry.name);
+        if (entry.type !== "dir") {
+          readFile(entry.name);
+        }
       }, 250);
     }
   }
@@ -194,23 +196,28 @@
   let savedContent: string | null = null;
   let rawContent: string | null = null;
   let readingFile = false;
+  let downloadProgress: { current: number; total: number } | null = null;
   let savingFile = false;
+  let uploadProgress: { current: number; total: number } | null = null;
 
   $: fileDirty = fileContent !== null && fileContent !== savedContent;
 
   let luaSyntaxError: string | null = null;
 
-  $: savePacketSize = (() => {
+  const CHUNK_SIZE = 50; // raw content chars per write chunk — small for testing
+  const READ_CHUNK_SIZE = 50; // bytes per read chunk — small for testing
+
+  $: contentInfo = (() => {
     if (!fileContent || !selectedEntry) return null;
     try {
-      const path = currentPath + selectedEntry;
       const content =
         selectedLanguage === "lua"
           ? GridScript.compressScript(fileContent)
           : fileContent;
       luaSyntaxError = null;
-      const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:write("${luaEscape(content)}") f:close() return true`;
-      return `<?lua ${lua} ?>`.length;
+      const bytes = content.length;
+      const chunks = Math.max(1, Math.ceil(bytes / CHUNK_SIZE));
+      return { bytes, chunks };
     } catch (e) {
       luaSyntaxError = String(e);
       return null;
@@ -300,15 +307,43 @@
     }
     const path = currentPath + entry;
     readingFile = true;
+    downloadProgress = null;
     fileContent = null;
     savedContent = null;
+    rawContent = null;
     try {
-      const lua = `local f = io.open(${JSON.stringify(path)}, "r") if not f then return nil end local c = f:read("*a") f:close() return c`;
-      const result = await sendLua(lua, target.dx, target.dy);
-      rawContent = result[0] != null ? String(result[0]) : null;
+      const sizeResult = await sendLua(
+        `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local n=0 local c=f:read(256) while c do n=n+#c c=f:read(256) end f:close() return n`,
+        target.dx,
+        target.dy,
+      );
+      if (sizeResult[0] == null) {
+        throw new Error("Could not read file size");
+      }
+      const fileSize = Number(sizeResult[0]);
+
+      let assembled = "";
+      if (fileSize > 0) {
+        const totalChunks = Math.ceil(fileSize / READ_CHUNK_SIZE);
+        for (let i = 0; i < totalChunks; i++) {
+          const offset = i * READ_CHUNK_SIZE;
+          const result = await sendLua(
+            `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end f:seek("set",${offset}) local c=f:read(${READ_CHUNK_SIZE}) f:close() collectgarbage("collect") return c`,
+            target.dx,
+            target.dy,
+          );
+          if (result[0] == null) {
+            throw new Error(`Read failed at chunk ${i + 1}/${totalChunks}`);
+          }
+          assembled += String(result[0]);
+          downloadProgress = { current: i + 1, total: totalChunks };
+        }
+      }
+
+      rawContent = assembled;
       selectedLanguage = detectLanguage(entry);
       fileContent =
-        rawContent !== null && selectedLanguage === "lua"
+        selectedLanguage === "lua"
           ? GridScript.expandScript(rawContent)
           : rawContent;
       savedContent = fileContent;
@@ -316,17 +351,22 @@
     } catch (e) {
       fileContent = null;
       savedContent = null;
+      rawContent = null;
     } finally {
       readingFile = false;
+      downloadProgress = null;
     }
   }
 
   async function saveFile() {
     if (!target || !selectedEntry || fileContent === null) return;
     savingFile = true;
+    uploadProgress = null;
     error = null;
     try {
       const path = currentPath + selectedEntry;
+      const tmpPath = path + ".tmp";
+
       let content: string;
       try {
         content =
@@ -337,26 +377,64 @@
         error = `Syntax error: ${e}`;
         return;
       }
-      const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:write("${luaEscape(content)}") f:close() return true`;
-      const result = await sendLua(lua, target.dx, target.dy, false);
-      if (result[0] === true) {
-        savedContent = fileContent;
-        // Invalidate Lua require() cache so the updated module is picked up next call
-        const moduleName = selectedEntry.replace(/\.lua$/i, "");
-        if (selectedEntry.toLowerCase().endsWith(".lua")) {
-          await sendLua(
-            `package.loaded[${JSON.stringify(moduleName)}] = nil`,
-            target.dx,
-            target.dy,
-          );
+
+      const expectedSize = content.length;
+
+      // Split on raw content boundaries so escape sequences are never split
+      const rawChunks: string[] = [];
+      for (let i = 0; i < content.length; i += CHUNK_SIZE) {
+        rawChunks.push(content.slice(i, i + CHUNK_SIZE));
+      }
+      if (rawChunks.length === 0) rawChunks.push("");
+
+      for (let i = 0; i < rawChunks.length; i++) {
+        const mode = i === 0 ? "w" : "a";
+        const escaped = luaEscape(rawChunks[i]);
+        const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:write("${escaped}") f:close() collectgarbage("collect") return true`;
+        const result = await sendLua(lua, target.dx, target.dy, false);
+        if (result[0] !== true) {
+          error = `Write failed at chunk ${i + 1}/${rawChunks.length}`;
+          return;
         }
-      } else {
-        error = `Save failed: ${JSON.stringify(result)}`;
+        uploadProgress = { current: i + 1, total: rawChunks.length };
+      }
+
+      const renameResult = await sendLua(
+        `return os.rename(${JSON.stringify(tmpPath)}, ${JSON.stringify(path)})`,
+        target.dx,
+        target.dy,
+      );
+      if (renameResult[0] !== true) {
+        error = `Rename failed: ${renameResult[1] ?? "unknown"}`;
+        return;
+      }
+
+      const sizeResult = await sendLua(
+        `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local n=0 local c=f:read(256) while c do n=n+#c c=f:read(256) end f:close() return n`,
+        target.dx,
+        target.dy,
+      );
+      const actualSize = sizeResult[0];
+      if (actualSize !== expectedSize) {
+        error = `Size mismatch: expected ${expectedSize} B, got ${actualSize} B`;
+        return;
+      }
+
+      savedContent = fileContent;
+
+      if (selectedEntry.toLowerCase().endsWith(".lua")) {
+        const moduleName = selectedEntry.replace(/\.lua$/i, "");
+        await sendLua(
+          `package.loaded[${JSON.stringify(moduleName)}] = nil`,
+          target.dx,
+          target.dy,
+        );
       }
     } catch (e) {
       error = String(e);
     } finally {
       savingFile = false;
+      uploadProgress = null;
     }
   }
 
@@ -500,7 +578,7 @@
   });
 </script>
 
-<div class="w-full h-full flex flex-col p-4 gap-2 overflow-hidden">
+<container data-testid="file-manager" class="flex flex-col h-full p-4">
   <!-- Module selector -->
   <div class="flex flex-row gap-2">
     <div class="flex-grow">
@@ -516,32 +594,12 @@
   </div>
 
   {#if target}
-    <!-- Path breadcrumb -->
-    <div
-      class="flex flex-row items-center gap-0.5 font-mono text-xs opacity-70 flex-wrap"
-    >
-      {#each breadcrumbs as segment, i}
-        {#if i > 0}
-          <span class="opacity-40">/</span>
-        {/if}
-        <button
-          class="hover:opacity-100 hover:underline px-0.5 rounded {i ===
-          breadcrumbs.length - 1
-            ? 'opacity-100'
-            : 'opacity-60'}"
-          onclick={() => onBreadcrumbClick(i)}
-        >
-          {segment}
-        </button>
-      {/each}
-    </div>
-
     <!-- Operations row -->
     {#if activeOp}
       <div class="flex flex-col gap-1">
         <div class="flex flex-row gap-2">
           <input
-            class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-sm outline-none focus:border-white/50"
+            class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-base outline-none focus:border-white/50"
             placeholder={opPlaceholder[activeOp]}
             bind:value={opValue}
             onkeydown={(e) => {
@@ -557,11 +615,12 @@
           <MoltenPushButton click={cancelOp} text="Cancel" />
         </div>
         {#if opError}
-          <p class="text-xs text-red-400">{opError}</p>
+          <p class="text-base text-red-400">{opError}</p>
         {/if}
       </div>
     {:else}
       <div class="flex flex-row gap-2 flex-wrap">
+        <MoltenPushButton click={listDirectory} text="Refresh" />
         <MoltenPushButton click={() => startOp("newFile")} text="New File" />
         <MoltenPushButton
           click={() => startOp("newFolder")}
@@ -591,47 +650,73 @@
       </div>
     {/if}
 
+    <!-- Path breadcrumb -->
+    <div
+      class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
+    >
+      {#each breadcrumbs as segment, i}
+        {#if i > 0}
+          <span class="opacity-40">/</span>
+        {/if}
+        <button
+          class="hover:opacity-100 hover:underline px-1 py-0.5 rounded {i ===
+          breadcrumbs.length - 1
+            ? 'opacity-100'
+            : 'opacity-60'}"
+          onclick={() => onBreadcrumbClick(i)}
+        >
+          {i === 0 ? "root" : segment}
+        </button>
+      {/each}
+    </div>
+
     <!-- File list -->
-    {#if error}
-      <p class="text-sm text-red-400 select-text">{error}</p>
-    {:else if loading}
-      <p class="text-sm opacity-50">Loading...</p>
-    {:else if entries.length === 0}
-      <p class="text-sm opacity-50">Empty directory.</p>
-    {:else}
-      <div class="flex flex-col overflow-y-auto gap-0.5 font-mono text-sm">
-        {#each entries as entry}
-          <button
-            class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
-            entry.name
-              ? 'bg-white/20'
-              : 'hover:bg-white/10'}"
-            onclick={() => onEntryClick(entry)}
-          >
-            <span class="opacity-50 shrink-0"
-              >{entry.type === "dir" ? "📁" : "📄"}</span
+    <div class="min-h-0">
+      {#if error}
+        <p class="text-base text-red-400 select-text">{error}</p>
+      {:else if loading}
+        <p class="text-base opacity-50">Loading...</p>
+      {:else if entries.length === 0}
+        <p class="text-base opacity-50">Empty directory.</p>
+      {:else}
+        <div class="flex flex-col overflow-y-auto gap-0.5 font-mono text-base">
+          {#each entries as entry}
+            <button
+              class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
+              entry.name
+                ? 'bg-white/20'
+                : 'hover:bg-white/10'}"
+              onclick={() => onEntryClick(entry)}
             >
-            <span class="truncate">{entry.name}</span>
-          </button>
-        {/each}
-      </div>
-    {/if}
+              <span class="opacity-50 shrink-0"
+                >{entry.type === "dir" ? "📁" : "📄"}</span
+              >
+              <span class="truncate">{entry.name}</span>
+            </button>
+          {/each}
+        </div>
+      {/if}
+    </div>
   {:else}
-    <p class="text-sm opacity-50">No modules connected.</p>
+    <p class="text-base opacity-50">No modules connected.</p>
   {/if}
 
   <div
-    class="border-t border-white/10 pt-2 flex flex-col gap-1 {fileContent ===
-      null && !readingFile
+    class="border-t border-white/10 pt-2 flex flex-col gap-1 flex-grow min-h-0 {(fileContent ===
+      null &&
+      !readingFile) ||
+    entries.find((e) => e.name === selectedEntry)?.type === 'dir'
       ? 'hidden'
       : ''}"
   >
     <div class="flex items-center gap-2">
-      <p class="text-xs opacity-50 font-mono flex-grow">
+      <p class="text-base opacity-50 font-mono flex-grow">
         {selectedEntry ?? ""}{fileDirty ? " •" : ""}
       </p>
-      {#if savePacketSize !== null}
-        <span class="text-xs font-mono opacity-50">{savePacketSize} B</span>
+      {#if contentInfo !== null}
+        <span class="text-base font-mono opacity-50"
+          >{contentInfo.bytes} B · {contentInfo.chunks} chunks</span
+        >
       {/if}
       <div class="w-28">
         <MeltSelect bind:target={selectedLanguage} options={languageOptions} />
@@ -646,21 +731,29 @@
       />
       <MoltenPushButton
         click={saveFile}
-        text={savingFile ? "..." : "Save"}
+        text={savingFile
+          ? uploadProgress
+            ? `${uploadProgress.current}/${uploadProgress.total}`
+            : "..."
+          : "Save"}
         disabled={!fileDirty || savingFile || !!luaSyntaxError}
       />
     </div>
     {#if luaSyntaxError}
-      <p class="text-xs text-red-400 font-mono">{luaSyntaxError}</p>
+      <p class="text-base text-red-400 font-mono">{luaSyntaxError}</p>
     {/if}
     {#if readingFile}
-      <p class="text-sm opacity-50">Reading...</p>
+      <p class="text-base opacity-50">
+        {downloadProgress
+          ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
+          : "Reading..."}
+      </p>
     {/if}
     <div
       bind:this={monacoElement}
-      class="w-full h-48 border border-white/20 rounded {readingFile
+      class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile
         ? 'hidden'
         : ''}"
     />
   </div>
-</div>
+</container>

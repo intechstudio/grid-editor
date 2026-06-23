@@ -52,15 +52,13 @@
 
 <container
   bind:this={referenceElement}
-  class="relativ flex w-full"
+  class="relative flex w-full min-w-0 overflow-x-auto"
   class:pr-8={indentation > 0}
 >
   <Indentation level={indentation} />
-  <div
-    class="w-full grid grid-cols-[1fr_auto] py-2 px-5 justify-between items-center gap-2 bg-background-muted"
-  >
-    <span class="text-start line-clamp-3 flex-grow">{text}</span>
-    <div class="flex flex-row gap-2">
+  <div class="w-full flex flex-col py-2 px-5 gap-2 bg-background-muted">
+    <span class="text-start line-clamp-3">{text}</span>
+    <div class="flex flex-wrap gap-2">
       <MoltenPushButton
         text="Paste"
         style="accept"
@@ -81,15 +79,15 @@
       />
     </div>
   </div>
-
-  {#if showActionPicker}
-    <ActionPicker
-      event={target.event}
-      index={target.index}
-      {referenceElement}
-      on:close={handleCloseActionPicker}
-      on:new-config={handleNewConfig}
-      on:paste={handlePaste}
-    />
-  {/if}
 </container>
+
+{#if showActionPicker}
+  <ActionPicker
+    event={target.event}
+    index={target.index}
+    {referenceElement}
+    on:close={handleCloseActionPicker}
+    on:new-config={handleNewConfig}
+    on:paste={handlePaste}
+  />
+{/if}

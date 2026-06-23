@@ -224,7 +224,7 @@ export const blocks = (page) => ({
       },
     },
     "Else if": {
-      block: page.locator("#action-menu").getByText("Else If"),
+      block: page.locator("#action-menu").getByText("Else if"),
       elements: {
         input: page.locator("#cfg-1 #monaco_container"),
       },
@@ -259,16 +259,20 @@ export const blocks = (page) => ({
     },
   },
   specialEncoder: {
-    "Left/Right Rotate": {
-      block: page.locator("#action-menu").getByText("Left/Right Rotate"),
+    "Encoder Left/Right Rotate": {
+      block: page
+        .locator("#action-menu")
+        .getByText("Encoder Left/Right Rotate"),
       elements: {
         left: page.locator("#cfg-0"),
         right: page.locator("#cfg-1"),
         end: page.locator("#cfg-2"),
       },
     },
-    "Push & Rotate L R": {
-      block: page.locator("#action-menu").getByText("Push & Rotate L R"),
+    "Encoder Push & Rotate L R": {
+      block: page
+        .locator("#action-menu")
+        .getByText("Encoder Push & Rotate L R"),
       elements: {
         "push left": page.locator("#cfg-0"),
         "push right": page.locator("#cfg-1"),
@@ -277,10 +281,10 @@ export const blocks = (page) => ({
         end: page.locator("#cfg-4"),
       },
     },
-    "Push & Rotate": {
+    "Encoder Push & Rotate": {
       block: page
         .locator("#action-menu")
-        .getByText("Push & Rotate", { exact: true }),
+        .getByText("Encoder Push & Rotate", { exact: true }),
       elements: {
         "push rotate": page.locator("#cfg-0"),
         "just rotate": page.locator("#cfg-1"),
@@ -303,7 +307,7 @@ export const blocks = (page) => ({
       },
     },
     "Element Name": {
-      block: page.locator("#action-menu").getByText("N Element Name"),
+      block: page.locator("#action-menu").getByText("Element Name"),
       elements: {
         input: page.getByLabel("Element Name"),
       },
