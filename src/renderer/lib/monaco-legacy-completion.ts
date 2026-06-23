@@ -6,7 +6,7 @@ import type { IRange, Position } from "monaco-editor";
 import { intech_lua, MonacoEditor } from "./monaco";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 
-let hoverTips: {[key: string]: string} = {};
+let hoverTips: { [key: string]: string } = {};
 
 function populateLegacyHoverTips() {
   for (const [key, value] of grid.lua_function_to_human_map()) {
@@ -21,24 +21,23 @@ export function legacy_initialize_hover() {
   populateLegacyHoverTips();
   monaco_languages.registerHoverProvider("intech_lua", {
     provideHover: function (model, position) {
-        const wordAtPosition = model.getWordAtPosition(position);
-        if (!wordAtPosition) return;
-        const word = wordAtPosition.word;
+      const wordAtPosition = model.getWordAtPosition(position);
+      if (!wordAtPosition) return;
+      const word = wordAtPosition.word;
 
-        if (hoverTips[word] !== undefined){
-          return {
-            contents: [
-              { value: "**SOURCE**" },
-              { value: "```html\n" + hoverTips[word] + "\n```" },
-            ],
-          };
-        }
+      if (hoverTips[word] !== undefined) {
+        return {
+          contents: [
+            { value: "**SOURCE**" },
+            { value: "```html\n" + hoverTips[word] + "\n```" },
+          ],
+        };
+      }
     },
   });
 }
 
 export function legacy_initialize_autocomplete() {
-
   function isCustomCodeEditor(
     editor: monaco_editor.ICodeEditor,
   ): editor is MonacoEditor.CustomCodeEditor {
@@ -52,12 +51,12 @@ export function legacy_initialize_autocomplete() {
     prefix: string,
   ) {
     const instance = monaco_editor
-    .getEditors()
-    .find(
+      .getEditors()
+      .find(
         (e): e is MonacoEditor.CustomCodeEditor =>
-        isCustomCodeEditor(e) &&
-        e.getModel()?.uri.toString() === model.uri.toString(),
-    );
+          isCustomCodeEditor(e) &&
+          e.getModel()?.uri.toString() === model.uri.toString(),
+      );
 
     // typesafe scope check
     const restrictScope = instance?.restrictScope;
@@ -111,7 +110,7 @@ export function legacy_initialize_autocomplete() {
 
       const key = item[0];
       const value = item[1];
-      const elementTypeMapping: {[key: string]: string} = {
+      const elementTypeMapping: { [key: string]: string } = {
         GRID_LUA_FNC_EP: "endless",
         GRID_LUA_FNC_E: "encoder",
         GRID_LUA_FNC_B: "button",
@@ -203,7 +202,12 @@ export function legacy_initialize_autocomplete() {
       }
 
       return {
-        suggestions: createLegacyIntechLuaProposals(range, model, position, prefix),
+        suggestions: createLegacyIntechLuaProposals(
+          range,
+          model,
+          position,
+          prefix,
+        ),
       };
     },
   });

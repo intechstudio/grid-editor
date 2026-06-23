@@ -4,12 +4,15 @@ import { monacoReady } from "./monaco-init";
 
 import {
   editor as monaco_editor,
-  languages as monaco_languages
+  languages as monaco_languages,
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 import { startLuaLSClient, stopLuaLSClient } from "./monaco-luals-client";
-import { legacy_initialize_autocomplete, legacy_initialize_hover } from "./monaco-legacy-completion";
+import {
+  legacy_initialize_autocomplete,
+  legacy_initialize_hover,
+} from "./monaco-legacy-completion";
 import { Analytics } from "../runtime/analytics";
 
 const language_config: monaco_languages.LanguageConfiguration = {
@@ -297,8 +300,8 @@ export namespace MonacoEditor {
 
     // Connect to LuaLS via MonacoLanguageClient (non-blocking, logs on failure)
     startLuaLSClient()
-      .then(()=> {
-        console.info("[LuaLS] Client successfully started.")
+      .then(() => {
+        console.info("[LuaLS] Client successfully started.");
         Analytics.track({
           event: "Monaco Completion Mode",
           payload: { status: "luaLS" },
@@ -309,7 +312,7 @@ export namespace MonacoEditor {
         console.warn(
           "[LuaLS] Client start failed (server may not be running):",
           err,
-        )
+        );
 
         Analytics.track({
           event: "Monaco Completion Mode",
@@ -319,9 +322,9 @@ export namespace MonacoEditor {
 
         // In case the LuaLS server could not start, fallback to the original autocomplete and hover
         legacy_initialize_autocomplete();
-        legacy_initialize_hover()
-      })
-    });
+        legacy_initialize_hover();
+      });
+  });
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
 
@@ -347,7 +350,7 @@ export namespace MonacoEditor {
 
     const editorDomNode = editor.getDomNode();
 
-    if(editorDomNode){
+    if (editorDomNode) {
       editorDomNode.addEventListener("mousedown", () => {
         TabFocus.setTabFocusMode(false);
       });

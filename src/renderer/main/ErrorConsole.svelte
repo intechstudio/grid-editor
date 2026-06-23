@@ -140,7 +140,9 @@
       // autocomplete handles these gracefully — no toast needed.
       if (
         message.includes("Client is not running and can't be stopped") ||
-        message.includes("Pending response rejected since connection got disposed")
+        message.includes(
+          "Pending response rejected since connection got disposed",
+        )
       ) {
         console.warn("[LuaLS] Suppressed connection error:", message);
         doNotDisplayError("Suppressed: " + message, stack);
