@@ -105,12 +105,24 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   const [stats] = await checkIfWritableDirectory(`${path}/${rootDirectory}`);
 
   if (stats.isDirectory) {
-    const files = await fs.promises.readdir(`${path}/${rootDirectory}`);
+    const entries = await fs.promises.readdir(`${path}/${rootDirectory}`, {
+      withFileTypes: true,
+    });
 
-    for (const file of files) {
+    for (const entry of entries) {
+      // Only read .json files. Skip subdirectories (e.g. a .git folder when the
+      // configs folder is under source control) and other non-config files —
+      // attempting to readFile a directory throws EISDIR and would abort the
+      // whole load, leaving the user with no configs at all (issue #1392).
+      if (!entry.isFile() || !entry.name.endsWith(".json")) {
+        continue;
+      }
+
+      const file = entry.name;
       let filepath = path + "/" + rootDirectory + "/" + file;
 
-      await fs.promises.readFile(filepath, "utf-8").then(async (data) => {
+      try {
+        const data = await fs.promises.readFile(filepath, "utf-8");
         if (isJson(data)) {
           let obj = JSON.parse(data);
           if (obj.configType) {
@@ -128,7 +140,9 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
         } else {
           log.info("Not a file!");
         }
-      });
+      } catch (e) {
+        log.info(`Failed to read config file ${file}:`, e);
+      }
     }
   } else {
     log.info("Not a directory!");
