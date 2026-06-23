@@ -84,7 +84,6 @@
     "e:builder:local": "cross-env VITE_BUILD_ENV=nightly VITE_BUILD_TARGET=electron DEBUG=electron-builder DEBUG=electron-notarize* electron-builder --config electron-builder-config.js --publish never",
     "export": "cross-env VITE_BUILD_ENV=production run-s s:build e:builder",
     "export:nightly": "run-s s:build e:builder:nightly",
-    "export:alpha": "cross-env VITE_BUILD_ENV=alpha run-s s:build e:builder",
     "export:local": "run-s clean-up s:build e:builder:local",
     "clean-up": "rm -rf dist && rm -rf dist-web && rm -rf build",
     "download:luals": "node build-scripts/download-luals.js",

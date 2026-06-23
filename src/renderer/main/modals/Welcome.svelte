@@ -48,7 +48,15 @@
 <MoltenModal {data}>
   <div slot="content">
     <div class="flex-col w-full flex justify-between items-center mb-6">
-      <div class="flex w-full text-4xl opacity-90">Grid Editor {version}</div>
+      <div class="flex w-full text-4xl opacity-90">
+        Grid Editor {version}
+        {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
+          {import.meta.env.VITE_BRANCH_NAME}
+        {/if}
+        {#if import.meta.env.VITE_BUILD_ENV === "development"}
+          {import.meta.env.VITE_BUILD_ENV}
+        {/if}
+      </div>
       <div class="flex w-full text-2xl opacity-70">Intech Studio</div>
 
       <button
