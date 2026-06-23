@@ -63,6 +63,7 @@
   export let initial_value: string | undefined = undefined;
 
   let codeEditor: CodeEditor;
+  let commitButton: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor | undefined;
   let commitEnabled = false;
   let errorMessage = "";
@@ -181,6 +182,16 @@
     clickedOutside = true;
   }
 
+  // Ctrl/Cmd+S commits the editor by triggering the Commit button, which
+  // no-ops on its own when disabled. Scoped to this modal's content subtree.
+  function handleKeydown(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      e.stopPropagation();
+      commitButton?.querySelector("button")?.click();
+    }
+  }
+
   function handleWindowKeydown(e: KeyboardEvent) {
     if (modalManager.getTop() !== data) {
       return;
@@ -216,6 +227,7 @@
     slot="content"
     class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
     use:watchResize={handleResize}
+    on:keydown={handleKeydown}
   >
     <div class="flex flex-col w-full gap-2">
       <div class="flex flex-row w-full items-center gap-4">
@@ -247,12 +259,14 @@
 
         <CommitStatus {commitEnabled} deleted={isDeleted($monaco_action)} />
 
-        <MoltenPushButton
-          click={() => codeEditor.commit()}
-          disabled={!commitEnabled || isDeleted($monaco_action)}
-          text="Commit"
-          style="accept"
-        />
+        <div bind:this={commitButton} class="contents">
+          <MoltenPushButton
+            click={() => codeEditor.commit()}
+            disabled={!commitEnabled || isDeleted($monaco_action)}
+            text="Commit"
+            style="accept"
+          />
+        </div>
         <MoltenPushButton click={handleClose} text="Close" style="normal" />
       </div>
 

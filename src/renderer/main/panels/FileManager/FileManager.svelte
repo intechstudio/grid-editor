@@ -226,6 +226,17 @@
 
   let monacoElement: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor;
+  let saveButton: HTMLElement;
+
+  // Ctrl/Cmd+S saves the file by triggering the Save button, which no-ops on
+  // its own when disabled. Scoped to the editor section's subtree.
+  function handleKeydown(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      e.stopPropagation();
+      saveButton?.querySelector("button")?.click();
+    }
+  }
 
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
@@ -702,6 +713,7 @@
   {/if}
 
   <div
+    onkeydown={handleKeydown}
     class="border-t border-white/10 pt-2 flex flex-col gap-1 flex-grow min-h-0 {(fileContent ===
       null &&
       !readingFile) ||
@@ -729,15 +741,17 @@
         text="Discard"
         disabled={!fileDirty}
       />
-      <MoltenPushButton
-        click={saveFile}
-        text={savingFile
-          ? uploadProgress
-            ? `${uploadProgress.current}/${uploadProgress.total}`
-            : "..."
-          : "Save"}
-        disabled={!fileDirty || savingFile || !!luaSyntaxError}
-      />
+      <div bind:this={saveButton} class="contents">
+        <MoltenPushButton
+          click={saveFile}
+          text={savingFile
+            ? uploadProgress
+              ? `${uploadProgress.current}/${uploadProgress.total}`
+              : "..."
+            : "Save"}
+          disabled={!fileDirty || savingFile || !!luaSyntaxError}
+        />
+      </div>
     </div>
     {#if luaSyntaxError}
       <p class="text-base text-red-400 font-mono">{luaSyntaxError}</p>

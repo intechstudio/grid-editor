@@ -55,8 +55,20 @@
   const dispatch = createEventDispatcher();
 
   let codeEditor: CodeEditor;
+  let commitButton: HTMLElement;
   let commitEnabled = false;
   let errorMessage = "";
+
+  // Ctrl/Cmd+S inside this block commits it. Caught here (not via a Monaco
+  // keybinding) so it's scoped to the block: we stop propagation and trigger
+  // the Commit button — which no-ops on its own when disabled.
+  function handleKeydown(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      e.stopPropagation();
+      commitButton?.querySelector("button")?.click();
+    }
+  }
 
   $: elementType = ((action.parent as GridEvent)?.parent as GridElement)
     ?.type as ElementType;
@@ -141,7 +153,10 @@
   }
 </script>
 
-<code-block class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto">
+<code-block
+  class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto"
+  on:keydown={handleKeydown}
+>
   <div
     class="w-full flex flex-col"
     class:grayscale={editingInModal}
@@ -160,12 +175,14 @@
         disabled={!inlineDirty || editingInModal}
         text={"Discard"}
       />
-      <MoltenPushButton
-        click={() => codeEditor.commit()}
-        disabled={!commitEnabled || editingInModal}
-        text={"Commit"}
-        style={"accept"}
-      />
+      <div bind:this={commitButton} class="contents">
+        <MoltenPushButton
+          click={() => codeEditor.commit()}
+          disabled={!commitEnabled || editingInModal}
+          text={"Commit"}
+          style={"accept"}
+        />
+      </div>
     </div>
 
     <div class="w-full border border-background-soft bg-background-muted">
