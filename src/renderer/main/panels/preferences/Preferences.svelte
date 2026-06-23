@@ -237,6 +237,29 @@
           },
         ]}
       />
+
+      <BlockTitle>Startup window state</BlockTitle>
+      <BlockBody>
+        Choose how the window appears when Grid Editor launches. Useful when the
+        editor starts automatically with your system.
+      </BlockBody>
+      <MeltRadio
+        bind:target={$appSettings.persistent.startupWindowState}
+        options={[
+          {
+            title: "Open in a normal window",
+            value: "normal",
+          },
+          {
+            title: "Open minimized to the taskbar",
+            value: "taskbar",
+          },
+          {
+            title: "Open hidden in the tray",
+            value: "tray",
+          },
+        ]}
+      />
     </Block>
 
     <Block border={"orange"}>

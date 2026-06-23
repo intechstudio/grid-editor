@@ -321,17 +321,23 @@ if (!gotTheLock) {
   app.on(
     "second-instance",
     (event, commandLine, workingDirectory, additionalData) => {
-      // Someone tried to run a second instance, we should focus our window.
+      // Someone tried to run a second instance — restore and focus our window.
+      // Covers both a minimized window and one hidden to the tray/dock (e.g.
+      // when launched with the "taskbar" or "tray" startup window state).
       if (mainWindow) {
-        if (process.platform !== "darwin") {
-          mainWindow.show();
-        }
-
         if (mainWindow.isMinimized()) {
           mainWindow.restore();
-          mainWindow.focus();
         }
-        handleDeeplinkReturnData(commandLine.pop().toString());
+        mainWindow.setSkipTaskbar(false);
+        mainWindow.show();
+        mainWindow.focus();
+
+        // Only treat the last arg as a deeplink when it actually is a URL;
+        // a plain relaunch passes a file path that new URL() would reject.
+        const lastArg = commandLine.pop()?.toString();
+        if (lastArg && lastArg.includes("://")) {
+          handleDeeplinkReturnData(lastArg);
+        }
       }
     },
   );
@@ -414,6 +420,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width,
     height,
+    // Create hidden; we decide whether to show or start minimized once the
+    // content is ready to render (avoids a white flash on normal launch).
+    show: false,
     minHeight: 500,
     minWidth: 800,
     backgroundColor: "#1e2628",
@@ -431,6 +440,27 @@ function createWindow() {
       backgroundThrottling: false,
     },
     icon: "./icon.png",
+  });
+
+  // Decide how the window appears on launch (see "Startup window state" in
+  // preferences). A second launch always restores + focuses the window (see the
+  // "second-instance" handler), so a tray/minimized start stays recoverable.
+  mainWindow.once("ready-to-show", () => {
+    switch (store.get("startupWindowState")) {
+      case "tray":
+        // Stay hidden in the tray/dock. On Windows/Linux the tray icon is the
+        // way back; on macOS there is no tray but the dock icon remains.
+        if (process.platform !== "darwin") {
+          mainWindow.setSkipTaskbar(true);
+          mainWindow.webContents.send("trayState", true);
+        }
+        break;
+      case "taskbar":
+        mainWindow.minimize();
+        break;
+      default:
+        mainWindow.show();
+    }
   });
 
   // We set an intercept on incoming requests to disable x-frame-options

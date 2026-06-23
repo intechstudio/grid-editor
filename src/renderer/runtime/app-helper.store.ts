@@ -38,6 +38,7 @@ const persistentDefaultValues = {
   authIdToken: "",
   authRefreshToken: "",
   alwaysRunInTheBackground: true,
+  startupWindowState: "normal",
   analyticsEnabled: false,
   firstLaunch: true,
   fontSize: 12,
