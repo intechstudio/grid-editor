@@ -135,6 +135,18 @@
         return;
       }
 
+      // LuaLS bridge connection errors are expected when the binary is
+      // unavailable (e.g. Linux AppImage read-only FS). The fallback
+      // autocomplete handles these gracefully — no toast needed.
+      if (
+        message.includes("Client is not running and can't be stopped") ||
+        message.includes("Pending response rejected since connection got disposed")
+      ) {
+        console.warn("[LuaLS] Suppressed connection error:", message);
+        doNotDisplayError("Suppressed: " + message, stack);
+        return;
+      }
+
       displayError(message, stack);
     };
 

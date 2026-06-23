@@ -90,9 +90,25 @@ export function startLuaLSServer() {
 
     const wsConnection = createWebSocketConnection(socket);
 
+    // On Linux AppImages the resources path is a read-only FUSE mount, so we
+    // redirect LuaLS log/cache into the existing grid-userdata folder.
+    const lualsUserData = path.join(app.getPath("documents"), "grid-userdata", "luals");
+    const lualsLogPath = path.join(lualsUserData, "log");
+    const lualsDataPath = path.join(lualsUserData, "cache");
+    try {
+      fs.mkdirSync(lualsLogPath, { recursive: true });
+      fs.mkdirSync(lualsDataPath, { recursive: true });
+    } catch (mkdirError) {
+      log.warn("[LuaLS] Could not create writable dirs:", mkdirError);
+    }
+
     let serverConnection;
     try {
-      serverConnection = createServerProcess("LuaLS", binary, ["--stdio"]);
+      serverConnection = createServerProcess("LuaLS", binary, [
+        "--stdio",
+        `--logpath=${lualsLogPath}`,
+        `--datapath=${lualsDataPath}`,
+      ]);
     } catch (error) {
       log.error("[LuaLS] Failed to start lua-language-server:", error);
       ws.close();
