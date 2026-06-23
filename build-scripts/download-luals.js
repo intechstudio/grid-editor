@@ -36,9 +36,9 @@ function getDefaultTargets() {
       // macOS electron-builder targets both arm64 and x64
       return ["darwin-arm64", "darwin-x64"];
     case "win32":
-      return ["win32-x64"];
+      return [`win32-${process.arch === "ia32" ? "ia32" : "x64"}`];
     case "linux":
-      return ["linux-x64"];
+      return [`linux-${process.arch}`]; // arm64 → linux-arm64, x64 → linux-x64
     default:
       throw new Error(`Unsupported platform: ${process.platform}`);
   }
