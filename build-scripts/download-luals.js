@@ -17,7 +17,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execSync } = require("node:child_process");
 
-const LUALS_VERSION = "3.17.1";
+const LUALS_VERSION = "3.18.2";
 const RELEASE_BASE = `https://github.com/LuaLS/lua-language-server/releases/download/${LUALS_VERSION}`;
 const BUILD_ASSETS_DIR = path.resolve(__dirname, "..", "build-assets");
 

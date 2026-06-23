@@ -10,6 +10,7 @@ import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 import { startLuaLSClient, stopLuaLSClient } from "./monaco-luals-client";
 import { legacy_initialize_autocomplete, legacy_initialize_hover } from "./monaco-legacy-completion";
+import { Analytics } from "../runtime/analytics";
 
 const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
@@ -273,17 +274,12 @@ function initialize_highlight() {
   });
 }
 
-// Old hand-rolled hover provider removed.
-// Hover is now handled by MonacoLanguageClient via LuaLS.
-
 function initialize_grammar() {
   // Cast needed: @codingame/monaco-vscode-editor-api has stricter IMonarchLanguage
   // types than standalone monaco-editor, but the tokenizer definition is valid.
   monaco_languages.setMonarchTokensProvider("intech_lua", intech_lua);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
-
-
 
 export namespace MonacoEditor {
   export enum Theme {
@@ -300,17 +296,32 @@ export namespace MonacoEditor {
     initialize_grammar();
 
     // Connect to LuaLS via MonacoLanguageClient (non-blocking, logs on failure)
-    startLuaLSClient().catch((err) => {
-      console.warn(
-        "[LuaLS] Client start failed (server may not be running):",
-        err,
-      )
+    startLuaLSClient()
+      .then(()=> {
+        console.info("[LuaLS] Client successfully started.")
+        Analytics.track({
+          event: "Monaco Completion Mode",
+          payload: { status: "luaLS" },
+          mandatory: false,
+        });
+      })
+      .catch((err) => {
+        console.warn(
+          "[LuaLS] Client start failed (server may not be running):",
+          err,
+        )
 
-      // In case the LuaLS server could not start, fallback to the original autocomplete and hover
-      legacy_initialize_autocomplete();
-      legacy_initialize_hover()
-    })
-  });
+        Analytics.track({
+          event: "Monaco Completion Mode",
+          payload: { status: "legacy" },
+          mandatory: false,
+        });
+
+        // In case the LuaLS server could not start, fallback to the original autocomplete and hover
+        legacy_initialize_autocomplete();
+        legacy_initialize_hover()
+      })
+    });
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
 
