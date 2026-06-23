@@ -99,21 +99,26 @@
   onMount(async () => {
     // check for errors
 
-    const originalConsoleError = console.error;
-    console.error = function (...args) {
-      originalConsoleError.apply(console, args);
-      const error = args.find((a) => a instanceof Error);
-      const message = args
-        .map((a) =>
-          a instanceof Error
-            ? a.message
-            : typeof a === "object"
-              ? JSON.stringify(a)
-              : String(a),
-        )
-        .join(" ");
-      displayError(message, error?.stack);
-    };
+    // Only mirror console.error into the overlay on development/nightly builds,
+    // keeping stable releases quiet for end users.
+    const buildEnv = import.meta.env.VITE_BUILD_ENV;
+    if (buildEnv === "development" || buildEnv === "nightly") {
+      const originalConsoleError = console.error;
+      console.error = function (...args) {
+        originalConsoleError.apply(console, args);
+        const error = args.find((a) => a instanceof Error);
+        const message = args
+          .map((a) =>
+            a instanceof Error
+              ? a.message
+              : typeof a === "object"
+                ? JSON.stringify(a)
+                : String(a),
+          )
+          .join(" ");
+        displayError(message, error?.stack);
+      };
+    }
 
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
       // Supress unhandled but not harmful errors
