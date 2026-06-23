@@ -17,5 +17,10 @@ buildVariables.json
 /blob-report/
 /playwright/.cache/
 screenshot*
+.playwright-mcp/
 src/electron/main.ts
 .vscode/settings.json
+
+# Local agent guides (symlinks to ~/Documents/productivity/agents)
+AGENTS.md
+CLAUDE.md

@@ -147,8 +147,11 @@ export async function saveFile(data, filename) {
     // Create blob for the binary data
     const blob = new Blob([data], { type: "application/octet-stream" });
 
-    // Check if File System Access API is available (Chrome/Edge)
-    if (window.showSaveFilePicker) {
+    // In Electron, createWritable() is blocked by the sandbox even when
+    // showSaveFilePicker is available — use anchor download instead.
+    const isElectron = import.meta.env.VITE_BUILD_TARGET !== "web";
+
+    if (!isElectron && window.showSaveFilePicker) {
       const handle = await window.showSaveFilePicker({
         suggestedName: filename,
         types: [
