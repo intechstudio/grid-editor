@@ -4,13 +4,12 @@ import { monacoReady } from "./monaco-init";
 
 import {
   editor as monaco_editor,
-  languages as monaco_languages,
-  Position,
-  Range,
+  languages as monaco_languages
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
 import { startLuaLSClient, stopLuaLSClient } from "./monaco-luals-client";
+import { legacy_initialize_autocomplete, legacy_initialize_hover } from "./monaco-legacy-completion";
 
 const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
@@ -38,7 +37,8 @@ const language_config: monaco_languages.LanguageConfiguration = {
   ],
 };
 
-const createLangDef = () => ({
+// exported to be used by legacy completion
+export const intech_lua: monaco_languages.IMonarchLanguage = {
   defaultToken: "",
   tokenPostfix: ".lua",
   keywords: [
@@ -213,9 +213,7 @@ const createLangDef = () => ({
       ],
     ],
   },
-});
-
-const intech_lua = createLangDef();
+};
 
 function initialize_language() {
   monaco_languages.register({ id: "intech_lua" });
@@ -281,9 +279,11 @@ function initialize_highlight() {
 function initialize_grammar() {
   // Cast needed: @codingame/monaco-vscode-editor-api has stricter IMonarchLanguage
   // types than standalone monaco-editor, but the tokenizer definition is valid.
-  monaco_languages.setMonarchTokensProvider("intech_lua", intech_lua as any);
+  monaco_languages.setMonarchTokensProvider("intech_lua", intech_lua);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
+
+
 
 export namespace MonacoEditor {
   export enum Theme {
@@ -300,12 +300,16 @@ export namespace MonacoEditor {
     initialize_grammar();
 
     // Connect to LuaLS via MonacoLanguageClient (non-blocking, logs on failure)
-    startLuaLSClient().catch((err) =>
+    startLuaLSClient().catch((err) => {
       console.warn(
         "[LuaLS] Client start failed (server may not be running):",
         err,
-      ),
-    );
+      )
+
+      // In case the LuaLS server could not start, fallback to the original autocomplete and hover
+      legacy_initialize_autocomplete();
+      legacy_initialize_hover()
+    })
   });
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
@@ -332,9 +336,11 @@ export namespace MonacoEditor {
 
     const editorDomNode = editor.getDomNode();
 
-    editorDomNode.addEventListener("mousedown", () => {
-      TabFocus.setTabFocusMode(false);
-    });
+    if(editorDomNode){
+      editorDomNode.addEventListener("mousedown", () => {
+        TabFocus.setTabFocusMode(false);
+      });
+    }
 
     editor.onDidBlurEditorText(() => {
       TabFocus.setTabFocusMode(true);

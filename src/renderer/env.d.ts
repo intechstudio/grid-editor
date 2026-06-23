@@ -22,3 +22,10 @@ declare module "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.
   };
   export default workerConstructor;
 }
+
+declare module "*.lua?raw" {
+  const content: string;
+  export default content;
+}
+
+declare module "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
