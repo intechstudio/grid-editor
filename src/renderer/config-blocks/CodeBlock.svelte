@@ -38,72 +38,74 @@
 </script>
 
 <script lang="ts">
-  import { GridAction, ActionData } from "./../runtime/runtime";
-  import { GridScript } from "@intechstudio/grid-protocol";
-
-  import { onDestroy } from "svelte";
-
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
+  import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
+  import { type ElementType } from "@intechstudio/grid-protocol";
 
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import { copyContextMenu } from "../main/_actions/copy-context-menu.action";
-  import MoltenPopup from "../main/panels/preferences/MoltenPopup.svelte";
 
   import { Modal } from "../main/modals/modal.store";
   import { activeMonacoSession } from "../main/modals/monaco-session.store";
   import Monaco from "../main/modals/Monaco.svelte";
-  import { MonacoEditor } from "../lib/monaco";
-  import { appSettings } from "../runtime/app-helper.store";
+  import CodeEditor from "../main/user-interface/CodeEditor.svelte";
+  import CommitStatus from "../main/user-interface/CommitStatus.svelte";
 
   export let action: GridAction;
 
-  let codePreview: HTMLElement;
+  const dispatch = createEventDispatcher();
 
-  const lualogo_foreground = "#808080";
-  const lualogo_background = "#212a2c";
+  let codeEditor: CodeEditor;
+  let commitEnabled = false;
+  let errorMessage = "";
 
-  const lualogo = `<svg version="1.0" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="100%" height="100%" viewBox="0 0 947 947" enable-background="new 0 0 947 947" xml:space="preserve">
-<g>
-	<path fill="${lualogo_foreground}" d="M835.5,473.6c0-199.8-162.2-362-362-362s-362,162.2-362,362c0,199.8,162.2,362,362,362
-		S835.5,673.4,835.5,473.6"/>
-	<path fill="${lualogo_background}" d="M729.5,323.6c0-58.5-47.5-106-106-106s-106,47.5-106,106c0,58.5,47.5,106,106,106S729.5,382.1,729.5,323.6"
-		/>
-	<path fill="${lualogo_foreground}" d="M941.5,111.5c0-58.5-47.5-106-106-106s-106,47.5-106,106c0,58.5,47.5,106,106,106S941.5,170.1,941.5,111.5"
-		/>
-	<g>
-		<path fill="${lualogo_background}" d="M258.1,627.8h117.3v26.7H227.8V417h30.3V627.8z"/>
-		<path fill="${lualogo_background}" d="M515.5,654.5v-23.8c-16,22.5-31.9,31.3-57,31.3c-33.2,0-54.4-18.2-54.4-46.6V483.8h27v120.9
-			c0,20.5,13.7,33.6,35.2,33.6c28.3,0,46.6-22.8,46.6-57.7v-96.8h27v170.7H515.5z"/>
-		<path fill="${lualogo_background}" d="M738.4,659.1c-8.8,2.3-13,2.9-18.6,2.9c-17.6,0-26.1-7.8-28-25.1c-19.2,17.6-36.5,25.1-58,25.1
-			c-34.5,0-56-19.5-56-50.5c0-22.2,10.1-37.5,30-45.6c10.4-4.2,16.3-5.5,54.7-10.4c21.5-2.6,28.3-7.5,28.3-18.9v-7.2
-			c0-16.3-13.7-25.4-38.1-25.4c-25.4,0-37.8,9.4-40.1,30.3h-27.4c0.7-16.9,3.9-26.7,11.7-35.5c11.4-12.7,31.9-19.9,56.7-19.9
-			c42,0,64.2,16.3,64.2,46.6v100.4c0,8.5,5.2,13.4,14.7,13.4c1.6,0,2.9,0,5.9-0.7V659.1z M690.8,570.1c-9.1,4.2-15,5.5-43.7,9.4
-			c-29,4.2-41.1,13.4-41.1,31.3c0,17.3,12.4,27.4,33.6,27.4c16,0,29.3-5.2,40.4-15.3c8.1-7.5,10.8-13,10.8-22.2V570.1z"/>
-	</g>
-	<path fill="none" stroke="${lualogo_foreground}" stroke-width="10.8612" stroke-miterlimit="10" stroke-dasharray="40.8475" d="M890.6,261
-		c33.5,65.8,51,138.6,51,212.5c0,258.4-209.7,468.1-468.1,468.1S5.4,731.9,5.4,473.5C5.4,215.1,215.1,5.4,473.5,5.4
-		c83.1,0,164.6,22.1,236.2,63.9"/>
-</g>
-</svg>`;
+  $: elementType = ((action.parent as GridEvent)?.parent as GridElement)
+    ?.type as ElementType;
 
-  onDestroy(() => {
-    codePreview.removeEventListener("wheel", (evt) => {
-      evt.preventDefault();
-      codePreview.scrollLeft += evt.deltaY;
-    });
-  });
+  // Disable inline editing only for the block whose code is open in the full
+  // editor modal, so the two editors can't fight over the same action. Other
+  // blocks stay editable (issue #1390, part 2).
+  $: editingInModal = $activeMonacoSession?.action === action;
 
-  function handleActionChange(data: ActionData, theme: MonacoEditor.Theme) {
-    codePreview.innerHTML = GridScript.expandScript(data.script);
-    MonacoEditor.colorize(codePreview, theme);
+  // The inline editor has uncommitted changes (edited script or a syntax error).
+  $: inlineDirty = commitEnabled || errorMessage !== "";
+
+  // Propagate the inline editor's syntax-error state to the action so the
+  // block is flagged invalid (red border), like other action blocks do. The
+  // committed script is kept; only the validity flag is toggled.
+  let hadError = false;
+  $: {
+    const hasError = errorMessage !== "";
+    if (hasError !== hadError) {
+      hadError = hasError;
+      dispatch("update-action", {
+        short: action.information.short,
+        script: action.script,
+        validationError: hasError,
+      });
+    }
   }
 
-  $: if (codePreview && !$action.invalid) {
-    const theme = $appSettings.persistent.lightMode
-      ? MonacoEditor.Theme.LIGHT
-      : MonacoEditor.Theme.DARK;
-    handleActionChange($action, theme);
+  // The invalid flag is set without touching the script, so revertToSynced
+  // can't clear it. Clear it ourselves when the editor is torn down (navigating
+  // away or collapsing the block) so the block doesn't stay flagged invalid.
+  onDestroy(() => {
+    if (hadError) {
+      dispatch("update-action", {
+        short: action.information.short,
+        script: action.synced,
+        validationError: false,
+      });
+    }
+  });
+
+  // When the modal closes for this block, reload the inline editor from the
+  // committed script so discarded modal edits don't linger inline.
+  let wasEditingInModal = false;
+  $: {
+    if (wasEditingInModal && !editingInModal) {
+      codeEditor?.reset();
+    }
+    wasEditingInModal = editingInModal;
   }
 
   // Block editing on every code block while an editor has unsaved changes —
@@ -132,52 +134,75 @@
       showAsUnique: true,
     }).show({
       monaco_action: action,
+      // Carry uncommitted inline edits into the modal so it opens on the
+      // current content rather than the last committed state.
+      initial_value: inlineDirty ? codeEditor?.getValue() : undefined,
     });
   }
 </script>
 
-<code-block class="w-full flex flex-col p-4 pb-2 pointer-events-auto">
-  <div class="w-full flex flex-col">
-    <div class="text-gray-500 text-sm font-bold">Code preview:</div>
-
-    <div class="grid w-full">
-      <pre
-        on:dblclick={open_monaco}
-        use:copyContextMenu
-        class="bg-black/25 my-4 p-2 w-full overflow-x-auto border border-black select-text"
-        bind:this={codePreview}
-        data-lang="intech_lua"
-      />
-    </div>
-
-    <div class="flex flex-row gap-2">
+<code-block class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto">
+  <div
+    class="w-full flex flex-col"
+    class:grayscale={editingInModal}
+    class:opacity-50={editingInModal}
+  >
+    <div class="flex flex-row gap-2 items-center mb-2">
+      <CommitStatus {commitEnabled} />
+      <div class="flex-grow" />
       <MoltenPushButton
         click={open_monaco}
         disabled={editDisabled}
-        text={"Edit Code"}
+        text={"Open Editor"}
+      />
+      <MoltenPushButton
+        click={() => codeEditor.reset()}
+        disabled={!inlineDirty || editingInModal}
+        text={"Discard"}
+      />
+      <MoltenPushButton
+        click={() => codeEditor.commit()}
+        disabled={!commitEnabled || editingInModal}
+        text={"Commit"}
         style={"accept"}
       />
-      <div class="flex-grow" />
-      <MoltenPushButton
-        click={() =>
-          navigator.clipboard.writeText(
-            GridScript.expandScript($action.script),
-          )}
-        text={"Copy Code"}
+    </div>
+
+    <div class="w-full border border-background-soft bg-background-muted">
+      <CodeEditor
+        bind:this={codeEditor}
+        bind:commitEnabled
+        bind:errorMessage
+        {action}
+        name={$action.name}
+        restrictScope={elementType}
+        readOnly={editingInModal}
+        minLines={5}
+        maxLines={20}
+        lineNumbers={false}
+        wordWrap={false}
+        suggestions={false}
+      />
+    </div>
+
+    {#if errorMessage}
+      <div
+        class="text-left text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto mt-2"
       >
-        <MoltenPopup slot="popup" text="Copied to clipboard!" />
-      </MoltenPushButton>
-    </div>
+        {errorMessage}
+      </div>
+    {/if}
   </div>
 
-  <div class="flex flex-row mt-4">
-    <div class="w-full flex flex-col">
-      <div class="text-gray-500 font-bold -mb-2">Powered by Lua</div>
-      <SendFeedback feedback_context="CodeBlock" />
+  {#if editingInModal}
+    <div
+      class="absolute inset-0 flex items-center justify-center pointer-events-auto"
+    >
+      <span
+        class="text-lg font-bold text-foreground-muted [text-shadow:0_0_6px_var(--background),0_0_6px_var(--background),0_0_6px_var(--background),0_0_12px_var(--background),0_0_12px_var(--background)]"
+      >
+        Currently open in editor window!
+      </span>
     </div>
-
-    <div class="h-12 w-12">
-      {@html lualogo}
-    </div>
-  </div>
+  {/if}
 </code-block>
