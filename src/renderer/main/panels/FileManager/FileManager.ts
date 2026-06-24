@@ -78,6 +78,7 @@ function luaEscape(s: string): string {
     .replace(/[\x01-\x1f\x7f-\xff]/g, (c) => `\\${c.charCodeAt(0)}`);
 }
 
+
 export async function writeFileContent(
   path: string,
   content: string,

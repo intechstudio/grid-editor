@@ -34,7 +34,7 @@
     selectedConfigStore,
   } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
-    import type { fetchDirEntries } from "../FileManager/FileManager";
+  import { fetchDirEntries, fetchFileContent } from "../FileManager/FileManager";
 
 
   const configuration = window.ctxProcess.configuration();
@@ -229,15 +229,42 @@
       localId: id,
     };
 
+    console.log("[PC] get current configuration from editor.", configType)
+
     switch (configType) {
       case "profile": {
         const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
         await page.load();
+        console.log(page, page.isValid());
+
         if (!page.isValid()) {
           return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
         }
 
-        const fileEntries = await fetchDirEntries(`/${ui.pageNumber}/`,ui.dx, ui.dy)
+        // Get files from the selected module, under given page folder. NO recursion / traversal.
+        const pagenumberInHex = ui.pagenumber
+          .toString(16)
+          .padStart(2, "0")
+          .toUpperCase();
+        const pageFolderPath = `/${pagenumberInHex}/`;
+        const fileEntries = await fetchDirEntries(pageFolderPath, ui.dx, ui.dy);
+        const files: { name: string; content: string }[] = [];
+
+        for (const entry of fileEntries) {
+          if (entry.type !== "file") {
+            continue;
+          }
+          const content = await fetchFileContent(
+            `${pageFolderPath}${entry.name}`,
+            ui.dx,
+            ui.dy,
+            512,
+          );
+          files.push({
+            name: entry.name,
+            content,
+          });
+        }
 
         config.type = (page.parent as GridModule).type;
         config.configs = page.control_elements.map((element) => {
@@ -251,10 +278,9 @@
             }),
           };
         });
+        config.files = files;
         config.name = `New ${config.type} config`;
-
-        console.log("the config we send back to profile cloud", page);
-
+        console.log("the config we send back to profile cloud", config);
         break;
       }
       case "preset": {
