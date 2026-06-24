@@ -16,6 +16,7 @@
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
+  import {fetchDirEntries, fetchFileContent, writeFileContent, invalidateLuaModule, createFile, createDir, renameEntry, copyFile, deleteFile} from "./FileManager";
   import * as monaco from "monaco-editor";
 
   let selectedModule: string = "";
@@ -53,67 +54,9 @@
       })()
     : null;
 
-  // ── Lua evaluate helper ────────────────────────────────────────────────────
-
-  async function sendLua(
-    code: string,
-    dx: number,
-    dy: number,
-    compress = true,
-  ): Promise<LuaValue[]> {
-    const runtime = get(runtime_manager).active?.runtime;
-    if (!runtime) throw new Error("No runtime");
-
-    const script = `${compress ? GridScript.compressScript(code) : code}`;
-    const size = script.length.toString(16).padStart(4, "0");
-    const classBody = `\x02086e0001` + `04` + size + script + `\x03`;
-    const classArray: number[] = Array.from(classBody, (c) => c.charCodeAt(0));
-    classArray.push(0x04);
-
-    const dummyDescr = {
-      brc_parameters: { DX: dx, DY: dy },
-      class_name: InstructionClassName.IMMEDIATE,
-      class_instr: InstructionClass.EXECUTE,
-      class_parameters: { ACTIONLENGTH: 0, ACTIONSTRING: "" },
-    };
-    const encoded = grid.encode_packet(dummyDescr);
-    if (!encoded) throw new Error("Packet encode failed");
-
-    const brcHeader: number[] = encoded.serial.slice(0, 23);
-    const messageArray: number[] = [...brcHeader, ...classArray];
-
-    const lenHex = messageArray.length.toString(16).padStart(4, "0");
-    for (let i = 0; i < 4; i++) {
-      messageArray[2 + i] = lenHex.charCodeAt(i);
-    }
-
-    const checksum = messageArray.reduce((a, b) => a ^ b);
-    const checksumHex = checksum.toString(16).padStart(2, "0");
-    messageArray.push(checksumHex.charCodeAt(0));
-    messageArray.push(checksumHex.charCodeAt(1));
-    messageArray.push(10);
-
-    const descr = await runtime.connection.buffer.sendRawDataToGrid(
-      new Uint8Array(messageArray),
-      {
-        dx,
-        dy,
-        responseRequired: true,
-        filter: {
-          class_name: "EVALUATE",
-          brc_parameters: {},
-          class_parameters: {},
-        },
-        responseTimeout: 5000,
-      },
-    );
-    return parseEvaluateResponse(descr);
-  }
-
   // ── Navigation ─────────────────────────────────────────────────────────────
 
   let currentPath = "/";
-  type DirEntry = { name: string; type: "file" | "dir" };
   let entries: DirEntry[] = [];
   let loading = false;
   let error: string | null = null;
@@ -176,18 +119,6 @@
         }
       }, 250);
     }
-  }
-
-  // ── Lua string escaping ────────────────────────────────────────────────────
-
-  function luaEscape(s: string): string {
-    return s
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, "\\n")
-      .replace(/\r/g, "\\r")
-      .replace(/\0/g, "\\0")
-      .replace(/[\x01-\x1f\x7f-\xff]/g, (c) => `\\${c.charCodeAt(0)}`);
   }
 
   // ── File reading ───────────────────────────────────────────────────────────
@@ -312,34 +243,13 @@
     savedContent = null;
     rawContent = null;
     try {
-      const sizeResult = await sendLua(
-        `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local n=0 local c=f:read(256) while c do n=n+#c c=f:read(256) end f:close() return n`,
+      const assembled = await fetchFileContent(
+        path,
         target.dx,
         target.dy,
+        READ_CHUNK_SIZE,
+        (current, total) => { downloadProgress = { current, total }; }, // pass callback function to update the downloadProgress
       );
-      if (sizeResult[0] == null) {
-        throw new Error("Could not read file size");
-      }
-      const fileSize = Number(sizeResult[0]);
-
-      let assembled = "";
-      if (fileSize > 0) {
-        const totalChunks = Math.ceil(fileSize / READ_CHUNK_SIZE);
-        for (let i = 0; i < totalChunks; i++) {
-          const offset = i * READ_CHUNK_SIZE;
-          const result = await sendLua(
-            `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end f:seek("set",${offset}) local c=f:read(${READ_CHUNK_SIZE}) f:close() collectgarbage("collect") return c`,
-            target.dx,
-            target.dy,
-          );
-          if (result[0] == null) {
-            throw new Error(`Read failed at chunk ${i + 1}/${totalChunks}`);
-          }
-          assembled += String(result[0]);
-          downloadProgress = { current: i + 1, total: totalChunks };
-        }
-      }
-
       rawContent = assembled;
       selectedLanguage = detectLanguage(entry);
       fileContent =
@@ -347,6 +257,7 @@
           ? GridScript.expandScript(rawContent)
           : rawContent;
       savedContent = fileContent;
+      console.log("[FM] fileContent", fileContent);
       editor?.setValue(fileContent ?? "");
     } catch (e) {
       fileContent = null;
@@ -365,7 +276,6 @@
     error = null;
     try {
       const path = currentPath + selectedEntry;
-      const tmpPath = path + ".tmp";
 
       let content: string;
       try {
@@ -378,57 +288,20 @@
         return;
       }
 
-      const expectedSize = content.length;
-
-      // Split on raw content boundaries so escape sequences are never split
-      const rawChunks: string[] = [];
-      for (let i = 0; i < content.length; i += CHUNK_SIZE) {
-        rawChunks.push(content.slice(i, i + CHUNK_SIZE));
-      }
-      if (rawChunks.length === 0) rawChunks.push("");
-
-      for (let i = 0; i < rawChunks.length; i++) {
-        const mode = i === 0 ? "w" : "a";
-        const escaped = luaEscape(rawChunks[i]);
-        const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:write("${escaped}") f:close() collectgarbage("collect") return true`;
-        const result = await sendLua(lua, target.dx, target.dy, false);
-        if (result[0] !== true) {
-          error = `Write failed at chunk ${i + 1}/${rawChunks.length}`;
-          return;
-        }
-        uploadProgress = { current: i + 1, total: rawChunks.length };
-      }
-
-      const renameResult = await sendLua(
-        `return os.rename(${JSON.stringify(tmpPath)}, ${JSON.stringify(path)})`,
+      await writeFileContent(
+        path,
+        content,
         target.dx,
         target.dy,
+        CHUNK_SIZE,
+        (current, total) => { uploadProgress = { current, total }; },
       );
-      if (renameResult[0] !== true) {
-        error = `Rename failed: ${renameResult[1] ?? "unknown"}`;
-        return;
-      }
-
-      const sizeResult = await sendLua(
-        `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local n=0 local c=f:read(256) while c do n=n+#c c=f:read(256) end f:close() return n`,
-        target.dx,
-        target.dy,
-      );
-      const actualSize = sizeResult[0];
-      if (actualSize !== expectedSize) {
-        error = `Size mismatch: expected ${expectedSize} B, got ${actualSize} B`;
-        return;
-      }
 
       savedContent = fileContent;
 
       if (selectedEntry.toLowerCase().endsWith(".lua")) {
         const moduleName = selectedEntry.replace(/\.lua$/i, "");
-        await sendLua(
-          `package.loaded[${JSON.stringify(moduleName)}] = nil`,
-          target.dx,
-          target.dy,
-        );
+        await invalidateLuaModule(moduleName, target.dx, target.dy);
       }
     } catch (e) {
       error = String(e);
@@ -471,48 +344,32 @@
     opError = null;
     try {
       if (activeOp === "newFile") {
-        const path = currentPath + opValue.trim();
-        const lua = `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:close() return true`;
-        const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) {
-          opError = "Failed to create file.";
-          return;
-        }
+        await createFile(currentPath + opValue.trim(), target.dx, target.dy);
       } else if (activeOp === "newFolder") {
-        const path = currentPath + opValue.trim();
-        const lua = `return dirent.mkdir(${JSON.stringify(path)})`;
-        const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) {
-          opError = `Failed to create folder: ${result[1] ?? "unknown error"}`;
-          return;
-        }
+        await createDir(currentPath + opValue.trim(), target.dx, target.dy);
       } else if (activeOp === "rename") {
         if (!selectedEntry || opValue.trim() === selectedEntry) {
           cancelOp();
           return;
         }
-        const oldPath = currentPath + selectedEntry;
-        const newPath = currentPath + opValue.trim();
-        const lua = `return os.rename(${JSON.stringify(oldPath)}, ${JSON.stringify(newPath)})`;
-        const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) {
-          opError = `Rename failed: ${result[1] ?? "unknown error"}`;
-          return;
-        }
+        await renameEntry(
+          currentPath + selectedEntry,
+          currentPath + opValue.trim(),
+          target.dx,
+          target.dy,
+        );
         selectedEntry = null;
       } else if (activeOp === "copy") {
         if (!selectedEntry || opValue.trim() === selectedEntry) {
           cancelOp();
           return;
         }
-        const srcPath = currentPath + selectedEntry;
-        const dstPath = currentPath + opValue.trim();
-        const lua = `local s=io.open(${JSON.stringify(srcPath)},"r") if not s then return false,"open src failed" end local d=io.open(${JSON.stringify(dstPath)},"w") if not d then s:close() return false,"open dst failed" end local c=s:read(256) while c do d:write(c) c=s:read(256) end s:close() d:close() return true`;
-        const result = await sendLua(lua, target.dx, target.dy);
-        if (result[0] !== true) {
-          opError = `Copy failed: ${result[1] ?? "unknown error"}`;
-          return;
-        }
+        await copyFile(
+          currentPath + selectedEntry,
+          currentPath + opValue.trim(),
+          target.dx,
+          target.dy,
+        );
       }
       cancelOp();
       await listDirectory();
@@ -525,10 +382,8 @@
 
   async function deleteSelected() {
     if (!target || !selectedEntry) return;
-    const path = currentPath + selectedEntry;
-    const lua = `return os.remove(${JSON.stringify(path)})`;
     try {
-      await sendLua(lua, target.dx, target.dy);
+      await deleteFile(currentPath + selectedEntry, target.dx, target.dy);
       selectedEntry = null;
       await listDirectory();
     } catch (e) {
@@ -541,20 +396,7 @@
     loading = true;
     error = null;
     try {
-      const lua = `return dirent.list(${JSON.stringify(currentPath)})`;
-      const result = await sendLua(lua, target.dx, target.dy);
-      const table = result[0] as LuaTable | null;
-      if (table && typeof table === "object") {
-        entries = Object.values(table).map((v) => {
-          const row = v as LuaTable;
-          return {
-            name: String(row[1]),
-            type: row[2] === 2 ? "dir" : "file",
-          } as DirEntry;
-        });
-      } else {
-        entries = [];
-      }
+      entries = await fetchDirEntries()
     } catch (e) {
       error = String(e);
     } finally {
