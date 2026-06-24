@@ -410,7 +410,7 @@
     loading = true;
     error = null;
     try {
-      entries = await fetchDirEntries();
+      entries = await fetchDirEntries(currentPath, target.dx, target.dy);;
     } catch (e) {
       error = String(e);
     } finally {

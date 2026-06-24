@@ -13,7 +13,7 @@ import { get } from "svelte/store";
 
 export type DirEntry = { name: string; type: "file" | "dir" };
 
-export async function sendLua(
+async function sendLua(
   code: string,
   dx: number,
   dy: number,
@@ -68,7 +68,7 @@ export async function sendLua(
   return parseEvaluateResponse(descr);
 }
 
-export function luaEscape(s: string): string {
+function luaEscape(s: string): string {
   return s
     .replace(/\\/g, "\\\\")
     .replace(/"/g, '\\"')

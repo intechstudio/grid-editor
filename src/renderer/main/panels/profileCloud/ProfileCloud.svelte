@@ -13,6 +13,7 @@
   import { logger } from "../../../runtime/runtime.store";
   import {
     user_input,
+    UserInput,
     type UserInputValue,
   } from "./../../../runtime/user-input.store";
 
@@ -33,6 +34,8 @@
     selectedConfigStore,
   } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
+    import type { fetchDirEntries } from "../FileManager/FileManager";
+
 
   const configuration = window.ctxProcess.configuration();
 
@@ -209,7 +212,7 @@
       return Promise.reject(ProfileCloud.ErrorText.NO_DEVICE);
     }
 
-    const ui = get(user_input);
+    const ui: UserInput = get(user_input);
     const configType = event.data.configType;
     const id = uuidv4();
 
@@ -233,6 +236,8 @@
         if (!page.isValid()) {
           return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
         }
+
+        const fileEntries = await fetchDirEntries(`/${ui.pageNumber}/`,ui.dx, ui.dy)
 
         config.type = (page.parent as GridModule).type;
         config.configs = page.control_elements.map((element) => {
