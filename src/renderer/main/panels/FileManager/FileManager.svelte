@@ -16,7 +16,17 @@
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import {fetchDirEntries, fetchFileContent, writeFileContent, invalidateLuaModule, createFile, createDir, renameEntry, copyFile, deleteFile} from "./FileManager";
+  import {
+    fetchDirEntries,
+    fetchFileContent,
+    writeFileContent,
+    invalidateLuaModule,
+    createFile,
+    createDir,
+    renameEntry,
+    copyFile,
+    deleteFile,
+  } from "./FileManager";
   import * as monaco from "monaco-editor";
 
   let selectedModule: string = "";
@@ -248,7 +258,9 @@
         target.dx,
         target.dy,
         READ_CHUNK_SIZE,
-        (current, total) => { downloadProgress = { current, total }; }, // pass callback function to update the downloadProgress
+        (current, total) => {
+          downloadProgress = { current, total };
+        }, // pass callback function to update the downloadProgress
       );
       rawContent = assembled;
       selectedLanguage = detectLanguage(entry);
@@ -294,7 +306,9 @@
         target.dx,
         target.dy,
         CHUNK_SIZE,
-        (current, total) => { uploadProgress = { current, total }; },
+        (current, total) => {
+          uploadProgress = { current, total };
+        },
       );
 
       savedContent = fileContent;
@@ -396,7 +410,7 @@
     loading = true;
     error = null;
     try {
-      entries = await fetchDirEntries()
+      entries = await fetchDirEntries();
     } catch (e) {
       error = String(e);
     } finally {

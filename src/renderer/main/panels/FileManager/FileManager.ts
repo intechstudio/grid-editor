@@ -14,59 +14,59 @@ import { get } from "svelte/store";
 export type DirEntry = { name: string; type: "file" | "dir" };
 
 export async function sendLua(
-    code: string,
-    dx: number,
-    dy: number,
-    compress = true,
-  ): Promise<LuaValue[]> {
-    const runtime = get(runtime_manager).active?.runtime;
-    if (!runtime) throw new Error("No runtime");
+  code: string,
+  dx: number,
+  dy: number,
+  compress = true,
+): Promise<LuaValue[]> {
+  const runtime = get(runtime_manager).active?.runtime;
+  if (!runtime) throw new Error("No runtime");
 
-    const script = `${compress ? GridScript.compressScript(code) : code}`;
-    const size = script.length.toString(16).padStart(4, "0");
-    const classBody = `\x02086e0001` + `04` + size + script + `\x03`;
-    const classArray: number[] = Array.from(classBody, (c) => c.charCodeAt(0));
-    classArray.push(0x04);
+  const script = `${compress ? GridScript.compressScript(code) : code}`;
+  const size = script.length.toString(16).padStart(4, "0");
+  const classBody = `\x02086e0001` + `04` + size + script + `\x03`;
+  const classArray: number[] = Array.from(classBody, (c) => c.charCodeAt(0));
+  classArray.push(0x04);
 
-    const dummyDescr = {
-      brc_parameters: { DX: dx, DY: dy },
-      class_name: InstructionClassName.IMMEDIATE,
-      class_instr: InstructionClass.EXECUTE,
-      class_parameters: { ACTIONLENGTH: 0, ACTIONSTRING: "" },
-    };
-    const encoded = grid.encode_packet(dummyDescr);
-    if (!encoded) throw new Error("Packet encode failed");
+  const dummyDescr = {
+    brc_parameters: { DX: dx, DY: dy },
+    class_name: InstructionClassName.IMMEDIATE,
+    class_instr: InstructionClass.EXECUTE,
+    class_parameters: { ACTIONLENGTH: 0, ACTIONSTRING: "" },
+  };
+  const encoded = grid.encode_packet(dummyDescr);
+  if (!encoded) throw new Error("Packet encode failed");
 
-    const brcHeader: number[] = encoded.serial.slice(0, 23);
-    const messageArray: number[] = [...brcHeader, ...classArray];
+  const brcHeader: number[] = encoded.serial.slice(0, 23);
+  const messageArray: number[] = [...brcHeader, ...classArray];
 
-    const lenHex = messageArray.length.toString(16).padStart(4, "0");
-    for (let i = 0; i < 4; i++) {
-      messageArray[2 + i] = lenHex.charCodeAt(i);
-    }
-
-    const checksum = messageArray.reduce((a, b) => a ^ b);
-    const checksumHex = checksum.toString(16).padStart(2, "0");
-    messageArray.push(checksumHex.charCodeAt(0));
-    messageArray.push(checksumHex.charCodeAt(1));
-    messageArray.push(10);
-
-    const descr = await runtime.connection.buffer.sendRawDataToGrid(
-      new Uint8Array(messageArray),
-      {
-        dx,
-        dy,
-        responseRequired: true,
-        filter: {
-          class_name: "EVALUATE",
-          brc_parameters: {},
-          class_parameters: {},
-        },
-        responseTimeout: 5000,
-      },
-    );
-    return parseEvaluateResponse(descr);
+  const lenHex = messageArray.length.toString(16).padStart(4, "0");
+  for (let i = 0; i < 4; i++) {
+    messageArray[2 + i] = lenHex.charCodeAt(i);
   }
+
+  const checksum = messageArray.reduce((a, b) => a ^ b);
+  const checksumHex = checksum.toString(16).padStart(2, "0");
+  messageArray.push(checksumHex.charCodeAt(0));
+  messageArray.push(checksumHex.charCodeAt(1));
+  messageArray.push(10);
+
+  const descr = await runtime.connection.buffer.sendRawDataToGrid(
+    new Uint8Array(messageArray),
+    {
+      dx,
+      dy,
+      responseRequired: true,
+      filter: {
+        class_name: "EVALUATE",
+        brc_parameters: {},
+        class_parameters: {},
+      },
+      responseTimeout: 5000,
+    },
+  );
+  return parseEvaluateResponse(descr);
+}
 
 export function luaEscape(s: string): string {
   return s
@@ -121,7 +121,9 @@ export async function writeFileContent(
     dy,
   );
   if (sizeResult[0] !== expectedSize) {
-    throw new Error(`Size mismatch: expected ${expectedSize} B, got ${sizeResult[0]} B`);
+    throw new Error(
+      `Size mismatch: expected ${expectedSize} B, got ${sizeResult[0]} B`,
+    );
   }
 }
 
@@ -169,7 +171,11 @@ export async function fetchFileContent(
   return assembled;
 }
 
-export async function createFile(path: string, dx: number, dy: number): Promise<void> {
+export async function createFile(
+  path: string,
+  dx: number,
+  dy: number,
+): Promise<void> {
   const result = await sendLua(
     `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:close() return true`,
     dx,
@@ -180,10 +186,20 @@ export async function createFile(path: string, dx: number, dy: number): Promise<
   }
 }
 
-export async function createDir(path: string, dx: number, dy: number): Promise<void> {
-  const result = await sendLua(`return dirent.mkdir(${JSON.stringify(path)})`, dx, dy);
+export async function createDir(
+  path: string,
+  dx: number,
+  dy: number,
+): Promise<void> {
+  const result = await sendLua(
+    `return dirent.mkdir(${JSON.stringify(path)})`,
+    dx,
+    dy,
+  );
   if (result[0] !== true) {
-    throw new Error(`Failed to create folder: ${String(result[1] ?? "unknown error")}`);
+    throw new Error(
+      `Failed to create folder: ${String(result[1] ?? "unknown error")}`,
+    );
   }
 }
 
@@ -216,18 +232,36 @@ export async function copyFile(
   }
 }
 
-export async function deleteFile(path: string, dx: number, dy: number): Promise<void> {
-  const result = await sendLua(`return os.remove(${JSON.stringify(path)})`, dx, dy);
+export async function deleteFile(
+  path: string,
+  dx: number,
+  dy: number,
+): Promise<void> {
+  const result = await sendLua(
+    `return os.remove(${JSON.stringify(path)})`,
+    dx,
+    dy,
+  );
   if (result[0] !== true) {
     throw new Error(`Delete failed: ${String(result[1] ?? "unknown error")}`);
   }
 }
 
-export async function fetchDirEntries(path: string, dx: number, dy: number): Promise<DirEntry[]> {
-  const result = await sendLua(`return dirent.list(${JSON.stringify(path)})`, dx, dy);
+export async function fetchDirEntries(
+  path: string,
+  dx: number,
+  dy: number,
+): Promise<DirEntry[]> {
+  const result = await sendLua(
+    `return dirent.list(${JSON.stringify(path)})`,
+    dx,
+    dy,
+  );
   const table = result[0] as LuaTable | null;
   if (!table || typeof table !== "object") {
-    throw new Error(`Failed to list directory: ${String(result[1] ?? "unknown error")}`);
+    throw new Error(
+      `Failed to list directory: ${String(result[1] ?? "unknown error")}`,
+    );
   }
   return Object.values(table).map((v) => {
     const row = v as LuaTable;

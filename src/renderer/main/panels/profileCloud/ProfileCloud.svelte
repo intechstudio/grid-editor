@@ -248,7 +248,7 @@
         });
         config.name = `New ${config.type} config`;
 
-        console.log("the config we send back to profile cloud",page)
+        console.log("the config we send back to profile cloud", page);
 
         break;
       }
