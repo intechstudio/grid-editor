@@ -65,7 +65,9 @@ export async function invalidateLuaModule(
   moduleName: string,
   module: GridModule,
 ): Promise<void> {
-  await module.execLUAImmediateAndEvalaute(`package.loaded[${JSON.stringify(moduleName)}] = nil`);
+  await module.execLUAImmediateAndEvalaute(
+    `package.loaded[${JSON.stringify(moduleName)}] = nil`,
+  );
 }
 
 export async function fetchFileContent(

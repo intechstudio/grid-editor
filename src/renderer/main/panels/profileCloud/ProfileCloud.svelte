@@ -34,8 +34,11 @@
     selectedConfigStore,
   } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
-  import { fetchDirEntries, fetchFileContent, pageNumberToFolderPath } from "../FileManager/FileManager";
-
+  import {
+    fetchDirEntries,
+    fetchFileContent,
+    pageNumberToFolderPath,
+  } from "../FileManager/FileManager";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -229,7 +232,7 @@
       localId: id,
     };
 
-    console.log("[PC] get current configuration from editor.", configType)
+    console.log("[PC] get current configuration from editor.", configType);
 
     switch (configType) {
       case "profile": {

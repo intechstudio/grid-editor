@@ -74,7 +74,7 @@ export enum ConfigurationType {
 
 export class GridProfileData {
   public presets: GridPresetData[] = [];
-  public files: {name: string, content: string}[] | undefined = undefined;
+  public files: { name: string; content: string }[] | undefined = undefined;
   public description: string;
   public id: string;
   public readonly type = ConfigurationType.PROFILE;
@@ -96,13 +96,13 @@ export class GridProfileData {
       profile.presets.push(preset);
     }
 
-    if(cloudProfile.files?.length > 0){
+    if (cloudProfile.files?.length > 0) {
       profile.files = cloudProfile.files;
     }
 
     profile.description = cloudProfile.description;
     profile.id = cloudProfile.id;
-    console.log("Profile data is returned successfully.", profile)
+    console.log("Profile data is returned successfully.", profile);
     return profile;
   }
 }
@@ -1625,7 +1625,7 @@ export class GridPage extends RuntimeNode<PageData> {
     const folderPath = pageNumberToFolderPath(this.pageNumber);
     const dir = folderPath.slice(0, -1);
     await createDir(dir, module).catch((err) => {
-      console.log("Directory?", err)
+      console.log("Directory?", err);
     });
     for (const file of files) {
       const path = `${folderPath}${file.name}`;
@@ -1805,7 +1805,10 @@ export class GridModule extends RuntimeNode<ModuleData> {
     });
   }
 
-  public execLUAImmediateAndEvalaute(code: string, compress = true): Promise<LuaValue[]> {
+  public execLUAImmediateAndEvalaute(
+    code: string,
+    compress = true,
+  ): Promise<LuaValue[]> {
     const runtime = this.parent as GridRuntime;
     const instruction = new GridInstruction.SendLuaImmediateAndEvaluate(
       this.dx,
