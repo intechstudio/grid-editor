@@ -34,7 +34,7 @@
     selectedConfigStore,
   } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
-  import { fetchDirEntries, fetchFileContent } from "../FileManager/FileManager";
+  import { fetchDirEntries, fetchFileContent, pageNumberToFolderPath } from "../FileManager/FileManager";
 
 
   const configuration = window.ctxProcess.configuration();
@@ -242,12 +242,9 @@
         }
 
         // Get files from the selected module, under given page folder. NO recursion / traversal.
-        const pagenumberInHex = ui.pagenumber
-          .toString(16)
-          .padStart(2, "0")
-          .toUpperCase();
-        const pageFolderPath = `/${pagenumberInHex}/`;
-        const fileEntries = await fetchDirEntries(pageFolderPath, ui.dx, ui.dy);
+        const pageFolderPath = pageNumberToFolderPath(ui.pagenumber);
+        const activeModule = active.findModule(ui.dx, ui.dy);
+        const fileEntries = await fetchDirEntries(pageFolderPath, activeModule);
         const files: { name: string; content: string }[] = [];
 
         for (const entry of fileEntries) {
@@ -256,8 +253,7 @@
           }
           const content = await fetchFileContent(
             `${pageFolderPath}${entry.name}`,
-            ui.dx,
-            ui.dy,
+            activeModule,
             512,
           );
           files.push({

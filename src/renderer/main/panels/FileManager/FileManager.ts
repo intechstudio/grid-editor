@@ -3,6 +3,10 @@ import { type GridModule } from "../../../runtime/runtime";
 
 export type DirEntry = { name: string; type: "file" | "dir" };
 
+export function pageNumberToFolderPath(pageNumber: number): string {
+  return `/${pageNumber.toString(16).padStart(2, "0").toUpperCase()}/`;
+}
+
 function luaEscape(s: string): string {
   return s
     .replace(/\\/g, "\\\\")
@@ -33,7 +37,7 @@ export async function writeFileContent(
     const mode = i === 0 ? "w" : "a";
     const escaped = luaEscape(rawChunks[i]);
     const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:write("${escaped}") f:close() collectgarbage("collect") return true`;
-    const result = await module.e(lua, false);
+    const result = await module.execLUAImmediateAndEvalaute(lua, false);
     if (result[0] !== true) {
       throw new Error(`Write failed at chunk ${i + 1}/${rawChunks.length}`);
     }

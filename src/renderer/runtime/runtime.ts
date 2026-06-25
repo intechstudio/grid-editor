@@ -34,6 +34,7 @@ import {
   writeFileContent,
   invalidateLuaModule,
   createDir,
+  pageNumberToFolderPath,
 } from "../main/panels/FileManager/FileManager";
 
 class NodeData {
@@ -1621,10 +1622,13 @@ export class GridPage extends RuntimeNode<PageData> {
   ): Promise<void> {
     if (!files?.length) return;
     const module = this.parent as GridModule;
-    const dir = `/page${this.pageNumber}`;
-    await createDir(dir, module).catch(() => {});
+    const folderPath = pageNumberToFolderPath(this.pageNumber);
+    const dir = folderPath.slice(0, -1);
+    await createDir(dir, module).catch((err) => {
+      console.log("Directory?", err)
+    });
     for (const file of files) {
-      const path = `${dir}/${file.name}`;
+      const path = `${folderPath}${file.name}`;
       try {
         await writeFileContent(path, file.content, module, 200);
         const moduleName = file.name.replace(/\.lua$/, "");
