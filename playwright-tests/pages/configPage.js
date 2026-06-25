@@ -189,7 +189,10 @@ export class ConfigPage {
   // Element and Action Operations
 
   async selectAllActions() {
-    await this.configFocus.click();
+    // Focus the config panel itself rather than clicking into the area (which
+    // can land in an inline code editor that captures Ctrl+A as select-text),
+    // so the select-all-actions shortcut actually fires.
+    await this.page.locator(".configpanel").first().focus();
     await this.keyboardActions.selectAll();
   }
 
