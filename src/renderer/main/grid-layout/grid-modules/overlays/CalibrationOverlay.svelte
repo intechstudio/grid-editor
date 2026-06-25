@@ -22,7 +22,7 @@
   $: counterRotation = -deviceRotationDeg - totalRotation;
 
   function handleCalibrate(code: string) {
-    device?.execLUAImmediate(code);
+    device?.execConfigImmediate(code);
   }
 
   function handleClose() {

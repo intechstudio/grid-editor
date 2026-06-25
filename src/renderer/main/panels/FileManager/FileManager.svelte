@@ -4,15 +4,6 @@
   import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { grid, GridScript } from "@intechstudio/grid-protocol";
-  import {
-    InstructionClassName,
-    InstructionClass,
-  } from "../../../runtime/engine.store";
-  import {
-    parseEvaluateResponse,
-    type LuaValue,
-    type LuaTable,
-  } from "../../../serialport/evaluate-parser";
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -60,7 +51,9 @@
   $: target = selectedModule
     ? (() => {
         const [dxStr, dyStr] = selectedModule.split(",");
-        return { dx: parseInt(dxStr) || 0, dy: parseInt(dyStr) || 0 };
+        const dx = parseInt(dxStr) || 0;
+        const dy = parseInt(dyStr) || 0;
+        return get(runtime_manager).active?.runtime?.findModule(dx, dy) ?? null;
       })()
     : null;
 
@@ -255,8 +248,7 @@
     try {
       const assembled = await fetchFileContent(
         path,
-        target.dx,
-        target.dy,
+        target,
         READ_CHUNK_SIZE,
         (current, total) => {
           downloadProgress = { current, total };
@@ -303,8 +295,7 @@
       await writeFileContent(
         path,
         content,
-        target.dx,
-        target.dy,
+        target,
         CHUNK_SIZE,
         (current, total) => {
           uploadProgress = { current, total };
@@ -315,7 +306,7 @@
 
       if (selectedEntry.toLowerCase().endsWith(".lua")) {
         const moduleName = selectedEntry.replace(/\.lua$/i, "");
-        await invalidateLuaModule(moduleName, target.dx, target.dy);
+        await invalidateLuaModule(moduleName, target);
       }
     } catch (e) {
       error = String(e);
@@ -358,9 +349,9 @@
     opError = null;
     try {
       if (activeOp === "newFile") {
-        await createFile(currentPath + opValue.trim(), target.dx, target.dy);
+        await createFile(currentPath + opValue.trim(), target);
       } else if (activeOp === "newFolder") {
-        await createDir(currentPath + opValue.trim(), target.dx, target.dy);
+        await createDir(currentPath + opValue.trim(), target);
       } else if (activeOp === "rename") {
         if (!selectedEntry || opValue.trim() === selectedEntry) {
           cancelOp();
@@ -369,8 +360,7 @@
         await renameEntry(
           currentPath + selectedEntry,
           currentPath + opValue.trim(),
-          target.dx,
-          target.dy,
+          target,
         );
         selectedEntry = null;
       } else if (activeOp === "copy") {
@@ -381,8 +371,7 @@
         await copyFile(
           currentPath + selectedEntry,
           currentPath + opValue.trim(),
-          target.dx,
-          target.dy,
+          target,
         );
       }
       cancelOp();
@@ -397,7 +386,7 @@
   async function deleteSelected() {
     if (!target || !selectedEntry) return;
     try {
-      await deleteFile(currentPath + selectedEntry, target.dx, target.dy);
+      await deleteFile(currentPath + selectedEntry, target);
       selectedEntry = null;
       await listDirectory();
     } catch (e) {
@@ -410,7 +399,7 @@
     loading = true;
     error = null;
     try {
-      entries = await fetchDirEntries(currentPath, target.dx, target.dy);;
+      entries = await fetchDirEntries(currentPath, target);;
     } catch (e) {
       error = String(e);
     } finally {

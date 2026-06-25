@@ -372,11 +372,17 @@ export async function loadProfile(
     payload: {},
     mandatory: false,
   });
+
+  const module = target.parent as GridModule;
+
+  if(profile.files){
+    await target.sendFiles(profile.files);
+  }
+
   return target
-    .loadProfile(profile, setStatus)
+    .sendProfile(profile, setStatus)
     .then(() => {
       const ui = get(user_input);
-      const module = target.parent as GridModule;
       if (ui.dx !== module.dx || ui.dy !== module.dy) {
         user_input.set({
           dx: module.dx,
@@ -386,7 +392,6 @@ export async function loadProfile(
           eventtype: ui.eventtype,
         });
       }
-
       configTour.createTourFromProfile(profile, module);
       return Promise.resolve();
     })
