@@ -24,7 +24,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "24"
+          node-version: "24.14.1"
       - name: write a basic file
         run: |
           mkdir -p playwright-report
