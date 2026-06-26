@@ -310,8 +310,6 @@
       }),
     );
   }
-
-  console.log("firebase-test-deploy")
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
