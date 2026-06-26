@@ -269,12 +269,6 @@
         </div>
         <MoltenPushButton click={handleClose} text="Close" style="normal" />
       </div>
-
-      <div
-        class="text-left text-sm text-error whitespace-pre-line min-h-10 max-h-24 overflow-y-auto"
-      >
-        {errorMessage}
-      </div>
     </div>
 
     <div
@@ -302,6 +296,12 @@
         restrictScope={element?.type}
         initialValue={initial_value}
       />
+    </div>
+
+    <div
+      class="text-left text-sm text-error whitespace-pre-line min-h-10 max-h-24 overflow-y-auto w-full"
+    >
+      {errorMessage}
     </div>
 
     <div class="h-1/4 flex w-full">

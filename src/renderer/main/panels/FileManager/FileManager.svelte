@@ -763,13 +763,6 @@
         />
       </div>
     </div>
-    {#if luaSyntaxError}
-      <p
-        class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"
-      >
-        {luaSyntaxError}
-      </p>
-    {/if}
     {#if readingFile}
       <p class="text-base opacity-50">
         {downloadProgress
@@ -783,5 +776,12 @@
         ? 'hidden'
         : ''}"
     />
+    {#if luaSyntaxError}
+      <p
+        class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"
+      >
+        {luaSyntaxError}
+      </p>
+    {/if}
   </div>
 </container>
