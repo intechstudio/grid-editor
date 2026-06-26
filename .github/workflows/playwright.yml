@@ -127,7 +127,7 @@ jobs:
       - name: Report to Firebase Hosting on Push
         if: ${{ github.event_name == 'push' }}
         id: firebase_deploy
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: FirebaseExtended/action-hosting-deploy@v0.9.0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
@@ -141,7 +141,7 @@ jobs:
           echo "::notice title=📋 Playwright Report Preview::${{ steps.firebase_deploy.outputs.details_url }}"
       - name: Report to Firebase Hosting on Pull Request
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: FirebaseExtended/action-hosting-deploy@v0.9.0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
