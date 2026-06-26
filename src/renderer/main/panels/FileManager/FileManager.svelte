@@ -353,10 +353,16 @@
 
       rawContent = assembled;
       selectedLanguage = detectLanguage(entry);
-      fileContent =
-        selectedLanguage === "lua"
-          ? GridScript.expandScript(rawContent)
-          : rawContent;
+      try {
+        fileContent =
+          selectedLanguage === "lua"
+            ? GridScript.expandScript(rawContent)
+            : rawContent;
+        luaSyntaxError = null;
+      } catch (e) {
+        fileContent = rawContent;
+        luaSyntaxError = String(e);
+      }
       savedContent = fileContent;
       editor?.setValue(fileContent ?? "");
     } catch (e) {
