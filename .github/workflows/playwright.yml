@@ -26,7 +26,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "24"
+          node-version: "24.14.1"
       - name: Install dependencies
         run: npm ci
       - name: Ensure Rollup native optional dependency (Linux)
@@ -119,12 +119,11 @@ jobs:
             "createdAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }
           EOF
-      - name: Derive Channel ID from Commit SHA
-        if: ${{ github.event_name == 'push' }}
+      - name: Derive Channel ID from Run ID
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
         id: derive_channel
         run: |
-          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
-          echo "channel=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "channel=run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - name: Report to Firebase Hosting on Push
         if: ${{ github.event_name == 'push' }}
         id: firebase_deploy
@@ -148,10 +147,11 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
           target: playwright-preview
+          channelId: run-${{ github.run_id }}-${{ github.run_attempt }}
           expires: 3d
-# # HEADED MODE
-#  name: Playwright Tests
 
+## HEADED MODE
+#  name: Playwright Tests
 # on:
 #   push:
 #     branches:
