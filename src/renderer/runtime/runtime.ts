@@ -1033,14 +1033,13 @@ export class GridEvent extends RuntimeNode<EventData> {
 
     RuntimeNode.batch(() => {
       copy.forEach((a) => ((a as any).parent = this));
-      const lua = copy.map((a) => a.toLua()).join("");
       this.update((data) => {
         data.config = copy;
-        data.stored = lua;
         data.state = GridNodeState.SYNCED;
         return data;
       });
     });
+    this.notify();
 
     return Promise.resolve({
       value: false,

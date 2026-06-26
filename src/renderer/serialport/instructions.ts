@@ -147,6 +147,7 @@ export namespace GridInstruction {
             ACTIONSTRING: config,
           },
         },
+        responseTimeout: 500,
         responseRequired: true,
         filter: {
           brc_parameters: {
@@ -352,7 +353,7 @@ export namespace GridInstruction {
           class_instr: InstructionClass.EXECUTE,
           class_parameters: {},
         },
-        //responseTimeout: 8000,
+        responseTimeout: 3000,
         responseRequired: true,
         filter: {
           class_name: InstructionClassName.PAGESTORE,
@@ -374,7 +375,7 @@ export namespace GridInstruction {
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
-        responseTimeout: 8000,
+        responseTimeout: 3000,
         descr: {
           brc_parameters: {
             DX: -127,
