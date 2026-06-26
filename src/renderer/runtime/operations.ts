@@ -376,7 +376,7 @@ export async function loadProfile(
   const module = target.parent as GridModule;
 
   if (profile.files && profile.files?.length > 0) {
-    await target.sendFiles(profile.files);
+    await target.sendFiles(profile.files, setStatus);
   }
 
   return target

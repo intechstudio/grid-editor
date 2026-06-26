@@ -205,7 +205,9 @@
                 <span
                   >{Math.round(($model.completed / $model.total) * 100)}%</span
                 >
-                <span class="text-white mr-2">Loading...</span>
+                <span class="text-white mr-2"
+                  >{$model.message ?? "Loading..."}</span
+                >
               {:else if $model.step === ProfileCloudLoad.State.ERROR}
                 <span class="text-white">Error!</span>
               {:else if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}

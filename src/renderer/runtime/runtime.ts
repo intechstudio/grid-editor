@@ -1619,6 +1619,7 @@ export class GridPage extends RuntimeNode<PageData> {
 
   public async sendFiles(
     files: { name: string; content: string }[],
+    setStatus?: (status: ProfileCloudLoad.Status) => void,
   ): Promise<void> {
     if (!files?.length) return;
     const module = this.parent as GridModule;
@@ -1627,12 +1628,25 @@ export class GridPage extends RuntimeNode<PageData> {
     await createDir(dir, module).catch((err) => {
       console.log("Directory?", err);
     });
+    const total = files.length;
+    let completed = 0;
+    setStatus?.({
+      step: ProfileCloudLoad.State.BUSY,
+      total,
+      completed,
+      message: "Uploading files...",
+    });
     for (const file of files) {
       const path = `${folderPath}${file.name}`;
       try {
         await writeFileContent(path, file.content, module, 200);
-        const moduleName = file.name.replace(/\.lua$/, "");
-        await invalidateLuaModule(moduleName, module);
+        ++completed;
+        setStatus?.({
+          step: ProfileCloudLoad.State.BUSY,
+          total,
+          completed,
+          message: `Uploading files... (${completed}/${total})`,
+        });
       } catch (e) {
         logger.set({
           type: "fail",
