@@ -310,6 +310,8 @@
       }),
     );
   }
+
+  console.info("this is only for debugging the firebase deploy issue");
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
