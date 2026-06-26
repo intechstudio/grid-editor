@@ -18,7 +18,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "24"
+          node-version: "24.14.1" #specify the Node.js version as Gemini suggested a socket bug 2026-06-26 during deploy. Should be revised later if this fixes the issue.
           cache: "npm"
 
       - run: npm ci && npm run web-build
