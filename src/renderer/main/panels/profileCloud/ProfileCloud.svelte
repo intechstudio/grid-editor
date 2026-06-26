@@ -232,13 +232,10 @@
       localId: id,
     };
 
-    console.log("[PC] get current configuration from editor.", configType);
-
     switch (configType) {
       case "profile": {
         const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
         await page.load();
-        console.log(page, page.isValid());
 
         if (!page.isValid()) {
           return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
@@ -279,7 +276,6 @@
         });
         config.files = files;
         config.name = `New ${config.type} config`;
-        console.log("the config we send back to profile cloud", config);
         break;
       }
       case "preset": {
