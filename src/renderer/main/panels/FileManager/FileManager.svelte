@@ -684,7 +684,11 @@
     <!-- File list -->
     <div class="min-h-0">
       {#if error}
-        <p class="text-base text-red-400 select-text">{error}</p>
+        <p
+          class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto select-text"
+        >
+          {error}
+        </p>
       {:else if loading}
         <p class="text-base opacity-50">Loading...</p>
       {:else if entries.length === 0}
@@ -754,7 +758,11 @@
       </div>
     </div>
     {#if luaSyntaxError}
-      <p class="text-base text-red-400 font-mono">{luaSyntaxError}</p>
+      <p
+        class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"
+      >
+        {luaSyntaxError}
+      </p>
     {/if}
     {#if readingFile}
       <p class="text-base opacity-50">
