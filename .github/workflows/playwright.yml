@@ -15,12 +15,6 @@ on:
         default: false
         type: boolean
 
-# only one workflow is running at the same time for each branch
-# concurrency:
-#   group: ${{ github.ref_name }}
-#   # optional
-#   cancel-in-progress: true
-
 jobs:
   test:
     name: Web build test
