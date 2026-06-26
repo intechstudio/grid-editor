@@ -24,7 +24,7 @@ on:
 jobs:
   test:
     name: Web build test
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.use_mock_report) }}
+    if: ${{ !((github.event_name == 'workflow_dispatch' && inputs.use_mock_report) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[mock-report]'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -54,9 +54,14 @@ jobs:
           retention-days: 30
   mock_report:
     name: Mock report artifact
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_mock_report }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.use_mock_report) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[mock-report]')) }}
     runs-on: ubuntu-latest
     steps:
+      - name: Explain mock trigger
+        run: |
+          echo "Mock report mode enabled."
+          echo "- workflow_dispatch: use_mock_report=true"
+          echo "- push: include [mock-report] in commit message"
       - name: Create mocked Playwright report
         run: |
           mkdir -p playwright-report
