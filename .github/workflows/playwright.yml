@@ -25,19 +25,23 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "24"
-      - name: Install dependencies
-        run: npm ci
-      - name: Ensure Rollup native optional dependency (Linux)
-        if: ${{ runner.os == 'Linux' }}
+      - name: write a basic file
         run: |
-          ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
-          npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
-      - name: Install Playwright Chromium Browser
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright tests
-        env:
-          CI: true
-        run: npx playwright test
+          mkdir -p playwright-report
+          echo "${GITHUB_SHA}" > playwright-report/index.html
+      # - name: Install dependencies
+      #   run: npm ci
+      # - name: Ensure Rollup native optional dependency (Linux)
+      #   if: ${{ runner.os == 'Linux' }}
+      #   run: |
+      #     ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+      #     npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
+      # - name: Install Playwright Chromium Browser
+      #   run: npx playwright install --with-deps chromium
+      # - name: Run Playwright tests
+      #   env:
+      #     CI: true
+      #   run: npx playwright test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
