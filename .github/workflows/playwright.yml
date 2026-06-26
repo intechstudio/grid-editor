@@ -57,6 +57,10 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - name: Setup NodeJs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.14.1"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
@@ -71,7 +75,7 @@ jobs:
       - name: Report to Firebase Hosting on Push
         if: ${{ github.event_name == 'push' }}
         id: firebase_deploy
-        uses: FirebaseExtended/action-hosting-deploy@v0.10.0
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToolsVersion: "15.22.1"
@@ -86,7 +90,7 @@ jobs:
           echo "::notice title=📋 Playwright Report Preview::${{ steps.firebase_deploy.outputs.details_url }}"
       - name: Report to Firebase Hosting on Pull Request
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: FirebaseExtended/action-hosting-deploy@v0.10.0
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToolsVersion: "15.22.1"
