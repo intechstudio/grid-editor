@@ -261,7 +261,6 @@
           ? GridScript.expandScript(rawContent)
           : rawContent;
       savedContent = fileContent;
-      console.log("[FM] fileContent", fileContent);
       editor?.setValue(fileContent ?? "");
     } catch (e) {
       fileContent = null;
