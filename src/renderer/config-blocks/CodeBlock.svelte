@@ -162,26 +162,28 @@
     class:grayscale={editingInModal}
     class:opacity-50={editingInModal}
   >
-    <div class="flex flex-row gap-2 items-center mb-2">
+    <div class="flex flex-row gap-2 items-center mb-2 flex-wrap">
       <CommitStatus {commitEnabled} />
       <div class="flex-grow" />
-      <MoltenPushButton
-        click={open_monaco}
-        disabled={editDisabled}
-        text={"Open Editor"}
-      />
-      <MoltenPushButton
-        click={() => codeEditor.reset()}
-        disabled={!inlineDirty || editingInModal}
-        text={"Discard"}
-      />
-      <div bind:this={commitButton} class="contents">
+      <div class="flex flex-row gap-2 items-center">
         <MoltenPushButton
-          click={() => codeEditor.commit()}
-          disabled={!commitEnabled || editingInModal}
-          text={"Commit"}
-          style={"accept"}
+          click={open_monaco}
+          disabled={editDisabled}
+          text={"Open Editor"}
         />
+        <MoltenPushButton
+          click={() => codeEditor.reset()}
+          disabled={!inlineDirty || editingInModal}
+          text={"Discard"}
+        />
+        <div bind:this={commitButton} class="contents">
+          <MoltenPushButton
+            click={() => codeEditor.commit()}
+            disabled={!commitEnabled || editingInModal}
+            text={"Commit"}
+            style={"accept"}
+          />
+        </div>
       </div>
     </div>
 
