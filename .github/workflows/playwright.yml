@@ -24,24 +24,20 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "24.14.1"
-      - name: write a basic file
+          node-version: "24.14.1" # pin node version to avoid deployment issues
+      - name: Install dependencies
+        run: npm ci
+      - name: Ensure Rollup native optional dependency (Linux)
+        if: ${{ runner.os == 'Linux' }}
         run: |
-          mkdir -p playwright-report
-          echo "${GITHUB_SHA}" > playwright-report/index.html
-      # - name: Install dependencies
-      #   run: npm ci
-      # - name: Ensure Rollup native optional dependency (Linux)
-      #   if: ${{ runner.os == 'Linux' }}
-      #   run: |
-      #     ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
-      #     npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
-      # - name: Install Playwright Chromium Browser
-      #   run: npx playwright install --with-deps chromium
-      # - name: Run Playwright tests
-      #   env:
-      #     CI: true
-      #   run: npx playwright test
+          ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+          npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
+      - name: Install Playwright Chromium Browser
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright tests
+        env:
+          CI: true
+        run: npx playwright test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -78,7 +74,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          # firebaseToolsVersion: "15.22.1"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
           target: playwright-preview
@@ -93,7 +88,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          #firebaseToolsVersion: "15.22.1"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
           target: playwright-preview
