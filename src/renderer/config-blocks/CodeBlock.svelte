@@ -187,7 +187,7 @@
       </div>
     </div>
 
-    <div class="w-full border border-background-soft bg-background-muted">
+    <div class="w-full h-32 border border-background-soft bg-background-muted">
       <CodeEditor
         bind:this={codeEditor}
         bind:commitEnabled
@@ -196,8 +196,8 @@
         name={$action.name}
         restrictScope={elementType}
         readOnly={editingInModal}
-        minLines={5}
-        maxLines={20}
+        minLines={7}
+        maxLines={7}
         lineNumbers={false}
         wordWrap={false}
         suggestions={false}

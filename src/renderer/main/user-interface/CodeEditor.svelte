@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
-  import { editor as MonacoApi } from "monaco-editor";
   import { GridScript, type ElementType } from "@intechstudio/grid-protocol";
   import { Grid } from "../../lib/_utils";
   import { appSettings } from "../../runtime/app-helper.store";
@@ -15,11 +14,6 @@
   // Autocomplete scope (element type), passed through to Monaco.
   export let restrictScope: ElementType | undefined = undefined;
   export let readOnly = false;
-  // Auto-size the editor to its content, clamped between minLines and maxLines
-  // (content scrolls past maxLines). When maxLines is undefined the editor fills
-  // its parent instead. Used for the in-action-block editor.
-  export let minLines = 1;
-  export let maxLines: number | undefined = undefined;
   // Show the line-number gutter. Disabled for the compact in-action-block editor.
   export let lineNumbers = true;
   // Wrap long lines. When false, lines scroll horizontally instead.
@@ -45,11 +39,8 @@
   // Thrown for the script-length limit so it can be told apart from parse errors.
   class LengthError extends String {}
 
-  $: autoSize = maxLines !== undefined;
-
   $: if (editor) {
     editor.updateOptions({ fontSize: $appSettings.persistent.fontSize });
-    updateHeight();
   }
 
   $: if (editor) {
@@ -122,10 +113,6 @@
     });
 
     disposables.push(editor.onDidChangeModelContent(handleContentChange));
-    if (autoSize) {
-      disposables.push(editor.onDidContentSizeChange(updateHeight));
-    }
-    updateHeight();
 
     // An override may differ from the committed script, so reflect that as
     // unsaved changes right away.
@@ -156,18 +143,6 @@
     disposables.forEach((d) => d.dispose());
     editor?.dispose();
   });
-
-  // Size the editor to its content, clamped between minLines and maxLines.
-  function updateHeight() {
-    if (!autoSize || !editor) return;
-    const lineHeight = editor.getOption(MonacoApi.EditorOption.lineHeight);
-    const height = Math.min(
-      maxLines * lineHeight,
-      Math.max(minLines * lineHeight, editor.getContentHeight()),
-    );
-    monaco_block.style.height = `${height}px`;
-    editor.layout();
-  }
 
   // Validate the current editor content and recompute commit/error state.
   // The action is mutated transiently only to measure the resulting event
@@ -224,4 +199,4 @@
   }
 </script>
 
-<div bind:this={monaco_block} class="flex w-full {autoSize ? '' : 'h-full'}" />
+<div bind:this={monaco_block} class="flex w-full h-full" />
