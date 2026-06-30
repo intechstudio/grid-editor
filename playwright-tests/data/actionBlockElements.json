@@ -65,7 +65,7 @@
     "Encoder Push & Rotate": ["push rotate", "just rotate", "end"]
   },
   "code": {
-    "Code Block": ["input", "Edit Code"],
+    "Code Block": ["input", "Open Editor"],
     "Comment Block": ["input"],
     "Element Name": ["input"]
   },
