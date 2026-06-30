@@ -109,11 +109,9 @@
 
   function handleProfileLoad() {
     const page = device.findPage(get(user_input).pagenumber);
-    console.log("Page", page);
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
     loadProfile(profile, page, (e) => {
       ProfileLoadOverlay.viewModel.update((s) => ({ ...s, ...e }));
-      console.log("Model", e, ProfileLoadOverlay.viewModel);
     }).catch((e) => {
       console.warn(e);
     });

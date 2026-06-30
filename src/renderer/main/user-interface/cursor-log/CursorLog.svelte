@@ -31,15 +31,19 @@
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- The container is just a positioner and must not intercept clicks (it sits
+  over the app for ~5s after every operation); only the messages themselves are
+  interactive, so pointer events are re-enabled per message below. -->
 <container
   id="cursor-log"
-  class="absolute bottom-[5rem] left-1/2 -translate-x-1/2 mb-4 z-[2]"
-  on:mouseenter={handleMouseEnter}
-  on:mouseleave={handleMouseLeave}
+  class="absolute bottom-[5rem] left-1/2 -translate-x-1/2 mb-4 z-[2] pointer-events-none"
 >
   <div class="flex flex-col w-[30rem]">
     {#each $logStreamStore as log, i (log)}
       <div
+        class="pointer-events-auto"
+        on:mouseenter={handleMouseEnter}
+        on:mouseleave={handleMouseLeave}
         in:fly|global={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
         out:fly|global={{ x: 10, delay: 400 * i, duration: 500 }}
       >

@@ -32,6 +32,7 @@
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
 
   import { logger } from "./runtime/runtime.store";
+  import { logStreamStore } from "./main/user-interface/cursor-log/LogStream.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import PanelToggleButton from "./main/PanelToggleButton.svelte";
@@ -285,6 +286,14 @@
   //Disable Context Menu
   onMount(async () => {
     document.addEventListener("contextmenu", preventContextMenuEvent);
+    // Test-only seam: let the (web build) e2e suite reset transient UI state —
+    // notification toasts that otherwise linger ~5s and bleed across tests.
+    if (import.meta.env.VITE_BUILD_TARGET === "web") {
+      (window as any).__gridTest = {
+        ...(window as any).__gridTest,
+        resetLogStream: () => logStreamStore.reset(),
+      };
+    }
     loaded = true;
     window.electron.appLoaded();
   });

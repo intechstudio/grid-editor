@@ -47,6 +47,7 @@
   import { Focus } from "../../_actions/focus.action";
   import ModuleInfo from "./underlays/ModuleInfo.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
+  import ProfileLoadProgressOverlay from "./overlays/ProfileLoadProgressOverlay.svelte";
 
   export let device: GridModule = undefined;
   export let width = 225;
@@ -446,6 +447,10 @@
         <ProfileLoadOverlay
           {device}
           visible={$moduleOverlay === ModuleOverlay.Types.PROFILE_LOAD}
+        />
+        <ProfileLoadProgressOverlay
+          {device}
+          visible={$moduleOverlay === ModuleOverlay.Types.PROFILE_LOAD_PROGRESS}
         />
         <CalibrationOverlay
           {device}

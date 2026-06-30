@@ -1,0 +1,376 @@
+{
+  "id": "99dc51c7-35d2-4f72-9104-288b834f605c",
+  "modifiedAt": "2026-01-08T13:00:55.808Z",
+  "name": "en16-test",
+  "description": "Click here to add description",
+  "type": "EN16",
+  "version": {
+    "major": "1",
+    "minor": "6",
+    "patch": "2"
+  },
+  "configType": "profile",
+  "configs": [
+    {
+      "controlElementNumber": 0,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,17,0,1},{255,4,0,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 1,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 2,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 3,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 4,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 5,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 6,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,17,0,1},{255,4,0,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 7,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 8,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 9,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 10,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 11,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 12,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 13,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 14,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 15,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Encoder Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 2,
+          "config": "--[[@sec]] self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 255,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[page init]]"
+        },
+        {
+          "event": 4,
+          "config": "--[[@cb]] gpl(gpn())"
+        },
+        {
+          "event": 5,
+          "config": "--[[@l]] local ch,cmd,param1,param2=midi.ch,midi.cmd,midi.p1,midi.p2"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    }
+  ],
+  "createdAt": "2026-01-08T13:00:55.808Z",
+  "virtualPath": "",
+  "cloudId": "danYTylkBeFhRTD48Zsz",
+  "owner": "oMiJQcb4xqTI7XJlGZItEH2eKtm2"
+}

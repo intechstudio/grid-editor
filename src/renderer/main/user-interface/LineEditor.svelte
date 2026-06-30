@@ -148,7 +148,7 @@
 
 <div
   id="monaco_container"
-  class="grid grid-cols-1 w-full h-full items-center p-1 rounded bg-background"
+  class="grid grid-cols-1 w-full h-full items-center p-1 rounded border border-background-soft bg-background-muted"
 >
   <div
     id="line-editor"

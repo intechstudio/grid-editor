@@ -296,8 +296,8 @@ export const blocks = (page) => ({
     "Code Block": {
       block: page.locator("#action-menu").getByText("Code Block"),
       elements: {
-        input: page.locator("pre"),
-        "Edit Code": page.getByRole("button", { name: "Edit Code" }),
+        input: page.locator("code-block .view-line").first(),
+        "Open Editor": page.getByRole("button", { name: "Open Editor" }),
       },
     },
     "Comment Block": {

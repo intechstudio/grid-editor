@@ -1,13 +1,40 @@
 {
   "compilerOptions": {
-    "lib": ["esnext", "webworker", "DOM"],
-    "module": "esnext",
-    "target": "esnext",
+    "target": "ES2022",
+    "module": "ESNext",
     "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "types": ["vite/client", "svelte"],
+    "jsx": "preserve",
     "allowJs": true,
-    "downlevelIteration": true,
+    "checkJs": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "verbatimModuleSyntax": true
-  }
+    "allowSyntheticDefaultImports": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "maxNodeModuleJsDepth": 0,
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.js",
+    "src/**/*.svelte",
+    "*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-web",
+    "build",
+    "playwright-report",
+    "test-results"
+  ]
 }
