@@ -200,7 +200,6 @@
         maxLines={7}
         lineNumbers={false}
         wordWrap={false}
-        suggestions={false}
       />
     </div>
 
