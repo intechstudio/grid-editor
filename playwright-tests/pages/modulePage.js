@@ -102,7 +102,9 @@ export class ModulePage {
       .getByText("Modifications can not")
       .first();
     this.storeButton = page.getByRole("button", { name: "Store" });
-    this.clearButton = page.getByRole("button", { name: "Clear" });
+    this.clearButton = page
+      .getByTestId("clear-load-button")
+      .getByRole("button");
     this.confirmClearButton = page.getByRole("button", {
       name: "Confirm",
       exact: true,
