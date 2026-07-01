@@ -63,6 +63,13 @@ const config = {
     ],
     artifactName: "${name}-linux-${version}-${arch}.${ext}",
   },
+  snapcraft: {
+    base: "core24",
+    core24: {
+      confinement: "strict",
+      useLXD: true
+    }
+  },
   mac: {
     target: [
       {
