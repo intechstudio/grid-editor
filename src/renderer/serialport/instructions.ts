@@ -148,6 +148,7 @@ export namespace GridInstruction {
             ACTIONSTRING: config,
           },
         },
+        responseTimeout: 500,
         responseRequired: true,
         filter: {
           brc_parameters: {
@@ -353,7 +354,7 @@ export namespace GridInstruction {
           class_instr: InstructionClass.EXECUTE,
           class_parameters: {},
         },
-        //responseTimeout: 8000,
+        responseTimeout: 3000,
         responseRequired: true,
         filter: {
           class_name: InstructionClassName.PAGESTORE,
@@ -375,7 +376,7 @@ export namespace GridInstruction {
       this.buffer_element = {
         id: uuidv4(),
         virtual: virtual,
-        responseTimeout: 8000,
+        responseTimeout: 3000,
         descr: {
           brc_parameters: {
             DX: -127,
@@ -405,41 +406,6 @@ export namespace GridInstruction {
           classname: "engine-disabled",
           message: `Engine is disabled, erasing NVM memory failed!`,
         });
-      }
-
-      return connection.buffer.add_last(this.buffer_element);
-    }
-  }
-
-  export class NVMDefrag extends AbstractInstruction {
-    constructor(virtual: boolean = false) {
-      super(virtual);
-      this.buffer_element = {
-        id: uuidv4(),
-        virtual: virtual,
-        descr: {
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-          },
-          class_name: InstructionClassName.NVMDEFRAG,
-          class_instr: InstructionClass.EXECUTE,
-          class_parameters: {},
-        },
-        responseRequired: true,
-        filter: {
-          class_name: InstructionClassName.NVMDEFRAG,
-          class_instr: InstructionClass.ACKNOWLEDGE,
-          class_parameters: {
-            LASTHEADER: null,
-          },
-        },
-      };
-    }
-
-    public executeOn(connection: GridConnection): Promise<any> {
-      if (get(connection.buffer).length > 0) {
-        return Promise.reject("NVM defrag failed");
       }
 
       return connection.buffer.add_last(this.buffer_element);

@@ -66,9 +66,18 @@ function createLogStream() {
     }
   });
 
+  // Force the log stream (and the underlying logger) back to an empty state,
+  // cancelling any pending auto-clear. Used to get rid of "bleeding" toasts
+  // that would otherwise linger for up to 5s and overlay later interactions.
+  function reset() {
+    clearTimeout(logClearTimeout);
+    clearLogs(true);
+  }
+
   return {
     ...logStream,
     dismissLog: dismissLog,
     enableTimeout: enableTimeout,
+    reset: reset,
   };
 }

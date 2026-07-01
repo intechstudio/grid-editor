@@ -26,6 +26,9 @@ async function setupModule(moduleName) {
   await connectModulePage.addModule(moduleName);
 }
 async function changeModuleIfNeeded(category) {
+  // A prior test can leave the action menu open / a toast up on the shared
+  // page, which would intercept the "Remove Module" click below.
+  await configPage.resetTransientUi();
   if (category === "specialButton") {
     await modulePage.removeModule();
     await setupModule("BU16");

@@ -5,8 +5,34 @@
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
   import { GridEvent, GridRuntime } from "./../../../runtime/runtime";
   import { fade } from "svelte/transition";
-  import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
+
+  // FLIP-style animation that only translates (unlike svelte/animate's `flip`,
+  // which also scales). Scaling squishes the contents of any block whose height
+  // changes mid-list — e.g. a code block growing to show a syntax error — so we
+  // translate position changes only and let resized blocks grow in place.
+  function reflow(
+    node: Element,
+    { from, to }: { from: DOMRect; to: DOMRect },
+    params: {
+      delay?: number;
+      duration?: number;
+      easing?: (t: number) => number;
+    } = {},
+  ) {
+    const style = getComputedStyle(node);
+    const transform = style.transform === "none" ? "" : style.transform;
+    const dx = from.left - to.left;
+    const dy = from.top - to.top;
+    const { delay = 0, duration = 300, easing = eases.cubicOut } = params;
+    return {
+      delay,
+      duration,
+      easing,
+      css: (_t: number, u: number) =>
+        `transform: ${transform} translate(${u * dx}px, ${u * dy}px);`,
+    };
+  }
   import { addActions, pasteActions } from "../../../runtime/operations";
   import { GridAction } from "./../../../runtime/runtime";
   import { appSettings } from "./../../../runtime/app-helper.store";
@@ -168,7 +194,7 @@
 
         <div
           data-testid="action-block"
-          animate:flip={{ duration: 300, easing: eases.backOut }}
+          animate:reflow={{ duration: 300, easing: eases.cubicOut }}
           in:fade|global={{ delay: 0 }}
         >
           <div class="flex flex-row gap-2">

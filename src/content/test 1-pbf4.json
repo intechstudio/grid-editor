@@ -1,0 +1,244 @@
+{
+  "id": "c6597b1e-3d47-4ec8-bbb4-288bb095aa51",
+  "modifiedAt": "2026-01-08T13:01:23.695Z",
+  "name": "pbf4-test",
+  "description": "Click here to add description",
+  "type": "PBF4",
+  "version": {
+    "major": "1",
+    "minor": "6",
+    "patch": "2"
+  },
+  "configType": "profile",
+  "configs": [
+    {
+      "controlElementNumber": 0,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gmsh]] gms(0,176,0,val//128) gms(0,176,32,val%128)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 1,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 2,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 3,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 4,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 5,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 6,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 7,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Potmeter Init]]"
+        },
+        {
+          "event": 1,
+          "config": "--[[@spc]] self:pmo(7) self:pmi(0) self:pma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 8,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 9,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 10,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 11,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[Button Init]]"
+        },
+        {
+          "event": 3,
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    },
+    {
+      "controlElementNumber": 255,
+      "events": [
+        {
+          "event": 0,
+          "config": "--[[@cb]] --[[page init]]"
+        },
+        {
+          "event": 4,
+          "config": "--[[@cb]] gpl(gpn())"
+        },
+        {
+          "event": 5,
+          "config": "--[[@l]] local ch,cmd,param1,param2=midi.ch,midi.cmd,midi.p1,midi.p2"
+        },
+        {
+          "event": 6,
+          "config": "--[[@cb]] print('tick')"
+        }
+      ]
+    }
+  ],
+  "createdAt": "2026-01-08T13:01:23.695Z",
+  "virtualPath": "",
+  "cloudId": "mrSkr1YnGquVCF2x3JXJ",
+  "owner": "oMiJQcb4xqTI7XJlGZItEH2eKtm2"
+}

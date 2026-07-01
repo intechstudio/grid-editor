@@ -37,18 +37,16 @@ function setupRendererLogTransport() {
                            'log';
       
       // Format the message with [ELECTRON] prefix to distinguish from renderer logs
-      const prefix = `%c[ELECTRON]%c ${scope}`;
-      const prefixStyle = 'color: #ff6b6b; font-weight: bold;';
-      const scopeStyle = scope ? 'color: #a78bfa;' : '';
-      
+      const prefix = `[ELECTRON]${scope ? " " + scope : ""}`;
+
       // Execute console log in the renderer's DevTools
-      const args = logData.map(arg => 
+      const args = logData.map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
-      
+
       // Inject the log into renderer's console
       mainWindow.webContents.executeJavaScript(
-        `console.${consoleMethod}("${prefix}", "${prefixStyle}", "${scopeStyle}", ${JSON.stringify(args)})`
+        `console.${consoleMethod}(${JSON.stringify(prefix)}, ${JSON.stringify(args)})`
       ).catch(() => {
         // Silently fail if window is closing
       });
@@ -809,8 +807,12 @@ function startConfigWatcher(configPath, rootDirectory) {
   configWatcher?.close();
 
   async function sendLocalConfigs() {
-    var result = await loadConfigsFromDirectory(configPath, rootDirectory);
-    mainWindow.webContents.send("sendConfigsToRenderer", result);
+    try {
+      var result = await loadConfigsFromDirectory(configPath, rootDirectory);
+      mainWindow.webContents.send("sendConfigsToRenderer", result);
+    } catch (e) {
+      log.error("Failed to load local configs:", e);
+    }
   }
 
   configWatcher = chokidar.watch(path.join(configPath, "configs"), {
