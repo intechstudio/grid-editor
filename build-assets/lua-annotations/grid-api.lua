@@ -12,12 +12,32 @@
 -- =============================================================================
 
 -- =============================================================================
+-- 1. SHARED TYPES & ALIASES
+-- Put all dropdown menus and custom types here at the very top!
+-- =============================================================================
+
+---@alias Auto integer
+---| -1 # Auto (use the configured element value / min-max)
+
+---@alias Layer integer
+---| -1 # Auto (use the active/configured layer)
+---| 1  # Layer 1 (Button and Potmeter)
+---| 2  # Layer 2 (Encoder and Endless)
+
+-- =============================================================================
 -- Element (base class)
 --
 -- Common methods available on all element types.
 -- Do not use this type directly in user code — use the specific subclass.
 -- =============================================================================
 
+---**THE "self" VARIABLE**
+---In Grid Lua, `self` always refers to the specific physical control (button, encoder, fader) 
+---that you are currently interacting with. 
+---
+---When you use a function with `self:` (like `self:midi_send()`), you are 
+---telling the Grid to apply that action specifically to **this exact element**.
+---
 ---@class Element
 ---Called after element initialization. Triggers the init event handler.
 ---@field post_init_cb? fun(self: Element)
@@ -55,20 +75,61 @@ function Element:timer_stop() end
 ---@param event_type integer Event type index
 function Element:event_trigger(event_type) end
 
----Sets the LED color for this element.
----@param layer integer LED layer index (-1 for all layers)
----@param colors table Color data table
+---Sets the LED color and its value-based transition for this element.  
+---  
+---This function creates smooth color fades based on the element's current value (min to max).  
+---You must provide a list of colors, where each color is `{red, green, blue, alpha}`.  
+---* **RGB** values are `0-255`. You can also use `-1` for any RGB channel to use the element's auto-configured (factory) color.  
+---* **Alpha** (brightness/opacity) is `0.0 - 1.0`.  
+---    
+---**The transition changes based on how many colors you provide:**  
+---* **1 Color:** `{{-1, -1, -1, 1}}`
+---  Sets the color for the MAX value (using the auto color in this example). The MIN value defaults to transparent (0 alpha).  
+---* **2 Colors:** `{{0, 0, 255, 0.5}, {255, 0, 0, 1}}`
+---  1st color is MIN value, 2nd color is MAX value.  
+---* **3 Colors:** `{{0, 255, 0, 1}, {255, 255, 0, 1}, {255, 0, 0, 1}}`
+---  1st color is MIN, 2nd color is MIDDLE, 3rd color is MAX value.  
+---  
+---@param layer Layer integer The LED layer to target (use `-1` for all/active layers).
+---@param colors number[][] Array of color tables. Don't forget the double braces! Example: `{{-1, -1, -1, 1}}`
 function Element:led_color(layer, colors) end
 
----Sends a MIDI message from this element.
----Pass -1 for any parameter to use the auto-configured value.
----@param channel MIDI_Channel MIDI channel (0–15, or -1 for auto)
----@param command MIDI_Command MIDI command (e.g. 144=NoteOn, 176=CC, or -1 for auto)
----@param param1 MIDI_Param First parameter (0–127, or -1 for auto)
----@param param2 MIDI_Param Second parameter (0–127, or -1 for auto)
-function Element:midi_send(channel, command, param1, param2) end
 
----Sends a MIDI SysEx message from this element.
+
+---Sets or gets the LED light intensity (brightness/phase) for this element.
+---  
+---When parameters are provided, it sets the intensity. The `-1` value is very common and tells the Grid to use the auto-configured setting.
+---
+---@param layer Layer integer The LED layer to target (`1`, `2`, or `-1` for auto).
+---@param value integer The intensity level (`0-255`, or `-1` for auto).
+---@return integer|nil current_value Returns the current value if called without parameters, otherwise nothing.
+function Element:led_value(layer, value) end
+
+---Sends a MIDI message from this specific element.  
+---Pass -1 for any parameter to use the element's auto-configured value.  
+---  
+---
+---@param channel integer MIDI channel (0-15). Note: Your DAW translates this as channels 1-16! (0 = Channel 1, or -1 for auto).
+---@param command integer MIDI command type (e.g., 144 = Note On, 176=CC or -1 for auto).
+---@param param1 integer Value (0-127). For Notes: Pitch (e.g., 60 = Middle C). For CC: Controller Number (e.g., 7 = Volume). (-1 for auto).
+---@param param2 integer use -1 (Auto) for the element's min-max range. or provide a specific value.
+---@param resolution? integer Optional MIDI resolution mode (0=Standard 7-bit, 1=14-bit, 2=NRPN, 3=14-bit NRPN). Defaults to 0.
+function Element:midi_send(channel, command, param1, param2, resolution) end
+
+---Registers a MIDI receive (RX) listener for this element.  
+---This allows the element to automatically update its internal value or LED state 
+---when the specified MIDI message is received from the host (DAW).  
+---
+---@param element_index integer Target element index (use `-1` for this specific element).
+---@param channel integer MIDI channel (0-15, or -1 for auto).
+---@param command integer MIDI command type (e.g., 144 = Note On, 176=CC or -1 for auto).
+---@param param1 integer Note pitch or CC number (0-127, or -1 for auto).
+---@param sync_config {value_sync: boolean, led_sync: boolean} Synchronization settings. Example: `{value_sync = true, led_sync = true}`.
+---@param resolution integer resolution mode (0=Standard 7-bit, 1=14-bit, 2=NRPN, 3=14-bit NRPN).
+function Element:midirx_register(element_index, channel, command, param1, sync_config, resolution) end
+
+---Sends a MIDI SysEx message from this element.  
+--- Send 8bit SysEx data bytes (0-255) as separate arguments. eg: (0xF0, 0x41, 0x10, 0xF7)
 ---@param ... integer SysEx data bytes
 function Element:midi_sysex_send(...) end
 
@@ -492,48 +553,18 @@ local SystemElement = {}
 -- Global functions — MIDI
 -- =============================================================================
 
----Returns the short code of the currently executing event handler.
----Possible values: "ini", "ec", "bc", "pc", "tim", "map", "mrx", "epc", "ld".
----@return string event_name Event handler short code
-function event_function_name() end
-
----@alias MIDI_Channel
----| -1 # auto
----| 0 # Channel 1
----| 1 # Channel 2
----| 2 # Channel 3
----| 3 # Channel 4
----| 4 # Channel 5
----| 5 # Channel 6
----| 6 # Channel 7
----| 7 # Channel 8
----| 8 # Channel 9
----| 9 # Channel 10
----| 10 # Channel 11
----| 11 # Channel 12
----| 12 # Channel 13
----| 13 # Channel 14
----| 14 # Channel 15
----| 15 # Channel 16
-
----@alias MIDI_Command
----| -1 # auto
----| 176 # Control change
----| 144 # Note on
----| 128 # Note off
-
----@alias MIDI_Param
----| -1 # auto
-
----Sends a MIDI message.
----Pass -1 for any parameter to use the auto-configured value.
----@param channel MIDI_Channel MIDI channel (0–15, or -1 for auto)
----@param command MIDI_Command MIDI command (e.g. 144=NoteOn, 176=CC, or -1 for auto)
----@param param1 MIDI_Param First parameter (0–127, or -1 for auto)
----@param param2 MIDI_Param Second parameter (0–127, or -1 for auto)
+---Sends a standard 7-bit MIDI message.  
+---(Note: Use `self:midi_send()` to send the MIDI messages from an Element).  
+---  
+---
+---@param channel integer MIDI channel (0-15). Note: Your DAW translates this as channels 1-16! (0 = Channel 1).
+---@param command integer MIDI command type (e.g., 144 = Note On).
+---@param param1 integer Value (0-127). For Notes: Pitch (e.g., 60 = Middle C). For CC: Controller Number (e.g., 7 = Volume).
+---@param param2 integer Value (0-127). For Notes: Velocity (hit strength). For CC: Control Value (CV).
 function midi_send(channel, command, param1, param2) end
 
----Sends a MIDI SysEx message.
+---Sends a MIDI SysEx message.  
+--- Send 8bit SysEx data bytes (0-255) as separate arguments. eg: (0xF0, 0x41, 0x10, 0xF7)
 ---@param ... integer SysEx data bytes
 function midi_sysex_send(...) end
 
@@ -543,7 +574,7 @@ function midi_sysex_send(...) end
 
 ---Sets LED color by layer for a specific element LED.
 ---@param led_index integer Hardware LED index (use led_address_get to resolve)
----@param layer integer LED layer
+---@param layer Layer integer LED layer
 ---@param red integer Red component (0–255)
 ---@param green integer Green component (0–255)
 ---@param blue integer Blue component (0–255)
@@ -551,7 +582,7 @@ function led_color(led_index, layer, red, green, blue) end
 
 ---Sets the LED phase/intensity value for a specific LED and layer.
 ---@param led_index integer Hardware LED index
----@param layer integer LED layer
+---@param layer Layer integer LED layer
 ---@param value integer Phase/intensity value (0–255)
 function led_value(led_index, layer, value) end
 
@@ -572,13 +603,13 @@ function led_default_blue(value) end
 
 ---Sets the LED animation rate for a specific LED and layer.
 ---@param led_index integer Hardware LED index
----@param layer integer LED layer
+---@param layer Layer integer LED layer
 ---@param value integer Animation rate
 function led_animation_rate(led_index, layer, value) end
 
 ---Sets the LED animation type/shape for a specific LED and layer.
 ---@param led_index integer Hardware LED index
----@param layer integer LED layer
+---@param layer Layer integer LED layer
 ---@param value integer Animation type
 function led_animation_type(led_index, layer, value) end
 
@@ -636,6 +667,11 @@ function timer_stop(element_index) end
 -- =============================================================================
 -- Global functions — Events
 -- =============================================================================
+
+---Returns the short code of the currently executing event handler.
+---Possible values: "ini" (init), "ec" (encoder), "bc" (button), "pc" (potmeter), "tim" (timer), "map", "mrx" , "epc" (endless), "ld".
+---@return string event_name Event handler short code
+function event_function_name() end
 
 ---Triggers an event on a specific element.
 ---@param element_index integer Element index
@@ -708,7 +744,8 @@ function package_send(message) end
 ---@param message string Message to send
 function websocket_send(message) end
 
----Sends Lua code for immediate execution on a remote module.
+---Sends Lua code for immediate execution on a remote module.  
+---Example: https://docs.intech.studio/wiki/more/immediate-send-explainer/
 ---@param x integer Target module X coordinate
 ---@param y integer Target module Y coordinate
 ---@param lua_code string Lua code to execute
@@ -731,3 +768,102 @@ function element_name_get(element_index) end
 ---Sends an element name update notification.
 ---@param element_index integer Element index
 function element_name_send(element_index) end
+
+-- =============================================================================
+-- Global functions — Auto values
+-- =============================================================================
+
+---Overrideable MIDI channel provider.
+---Called by the system for every MIDI event.
+---
+---You can override it like:
+---```lua
+---midi_auto_ch = function(self)
+---  return 0
+---end
+---```  
+---more info: https://docs.intech.studio/wiki/more/midi-auto-value
+---@param self table Context of the current MIDI event
+---@return MIDI_Channel channel 0–15
+function midi_auto_ch(self) end
+
+---Overrideable MIDI command provider.
+---Example override:
+---```lua
+---midi_auto_cmd = function(self)
+---  return 144
+---end
+---```  
+---more info: https://docs.intech.studio/wiki/more/midi-auto-value
+---@param self table Context of the current MIDI event
+---@return MIDI_Command command
+function midi_auto_cmd(self) end
+
+---Overrideable MIDI parameter 1 provider (note/CC number).
+---Example override:
+---```lua
+---midi_auto_p1 = function(self)
+---  return 60
+---end
+---```  
+---more info: https://docs.intech.studio/wiki/more/midi-auto-value
+---@param self table Context of the current MIDI event
+---@return integer value
+function midi_auto_p1(self) end
+
+---Overrideable MIDI parameter 2 provider (velocity/value).
+---Example override:
+---```lua
+---midi_auto_p2 = function(self)
+---  return 127
+---end
+---```  
+---more info: https://docs.intech.studio/wiki/more/midi-auto-value
+---@param self table Context of the current MIDI event
+---@return integer value
+function midi_auto_p2(self) end
+
+-- =============================================================================
+-- MIDI RX Mode configuration
+-- =============================================================================
+
+---Configures which input sources are enabled for a specific MIDI message type.
+---
+---This function controls the RX Mode routing programmatically.
+---
+---### Types:
+---- `0` = MIDI Voice
+---- `1` = MIDI SysEx
+---- `2` = MIDI RTM
+---- `3` = Event View
+---
+---### Sources:
+---- `0` = Disabled
+---- `1` = USB
+---- `2` = External (Ext)
+---- `3` = USB + Ext
+---- `4` = Internal (Int)
+---- `5` = USB + Int
+---- `6` = Ext + Int
+---- `7` = USB + Ext + Int
+---
+---@param type integer MIDI message type (0–3)
+---@param source integer Input source mask (0–7)
+function rx_mode(type, source) end
+
+-- =============================================================================
+-- ERROR CATCHING STUBS (Do not use these functions globally!)
+-- These are helper definitions to warn beginners who forget to use "self:"
+-- =============================================================================
+
+---@deprecated ❌ Incorrect usage! Did you forget "self:"? Use: self:button_value()
+function button_value(value) end
+
+---@deprecated ❌ Incorrect usage! Did you forget "self:"? Use: self:encoder_value()
+function encoder_value(value) end
+
+---@deprecated ❌ Incorrect usage! Did you forget "self:"? Use: self:potmeter_value()
+function potmeter_value(value) end
+
+---@deprecated ❌ Incorrect usage! Did you forget "self:"? Use: self:endless_value()
+function endless_value(value) end
