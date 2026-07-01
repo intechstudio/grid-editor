@@ -51,8 +51,17 @@ const config = {
     icon: "build-assets/icon.png",
   },
   linux: {
-    target: ["AppImage", "snap"],
-    artifactName: "${name}-linux-${version}.${ext}",
+    target: [
+      {
+        target: "AppImage",
+        arch: ["x64", "arm64"],
+      },
+      {
+        target: "snap",
+        arch: ["x64", "arm64"],
+      },
+    ],
+    artifactName: "${name}-linux-${version}-${arch}.${ext}",
   },
   mac: {
     target: [
