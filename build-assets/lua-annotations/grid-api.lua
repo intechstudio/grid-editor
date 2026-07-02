@@ -24,6 +24,17 @@
 ---| 1  # Layer 1 (Button and Potmeter)
 ---| 2  # Layer 2 (Encoder and Endless)
 
+---@alias EventType
+---| 0 # setup (init) — runs once when the page is loaded
+---| 1 # potmeter — potentiometer value changed
+---| 2 # encoder — encoder rotated
+---| 3 # button — button pressed or released
+---| 4 # utility (mapmode) — utility/map mode event
+---| 5 # midirx — MIDI message received (deprecated)
+---| 6 # timer — periodic timer fired
+---| 7 # endless — endless potentiometer rotated
+---| 8 # draw — LCD screen draw event (VSN1 only)
+
 -- =============================================================================
 -- Element (base class)
 --
@@ -535,21 +546,6 @@ function LCDElement:screen_height() end
 local SystemElement = {}
 
 -- =============================================================================
--- Event types
--- =============================================================================
-
----@alias EventType
----| 0 # setup (init) — runs once when the page is loaded
----| 1 # potmeter — potentiometer value changed
----| 2 # encoder — encoder rotated
----| 3 # button — button pressed or released
----| 4 # utility (mapmode) — utility/map mode event
----| 5 # midirx — MIDI message received
----| 6 # timer — periodic timer fired
----| 7 # endless — endless potentiometer rotated
----| 8 # draw — LCD screen draw event (VSN1 only)
-
--- =============================================================================
 -- Global functions — MIDI
 -- =============================================================================
 
@@ -644,7 +640,7 @@ function module_position_x() end
 function module_position_y() end
 
 ---Returns the rotation of this module.
----@return integer rotation Module rotation (0, 90, 180, 270)
+---@return integer rotation Module rotation (0 - 0°,1 - 90°,2 - 180°, 3 - 270°)
 function module_rotation() end
 
 ---Returns the number of elements on this module.
@@ -669,7 +665,7 @@ function timer_stop(element_index) end
 -- =============================================================================
 
 ---Returns the short code of the currently executing event handler.
----Possible values: "ini" (init), "ec" (encoder), "bc" (button), "pc" (potmeter), "tim" (timer), "map", "mrx" , "epc" (endless), "ld".
+---Possible values: "ini" (setup), "ec" (encoder), "bc" (button), "pc" (potmeter), "tim" (timer), "map" (utility) , "epc" (endless), "ld" (lcd draw).
 ---@return string event_name Event handler short code
 function event_function_name() end
 
