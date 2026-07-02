@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-latest, macos-latest]
+        os: [ubuntu-22.04, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -101,3 +101,65 @@ jobs:
         with:
           name: ${{ steps.find_dmg.outputs.name }}
           path: ${{ steps.find_dmg.outputs.file }}
+
+  flatpak-build:
+    needs: set-branch-name
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: x64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install python setup-tools dependency
+        run: pip install setuptools
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+
+      - name: Install flatpak tooling and runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder elfutils
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08 \
+            org.electronjs.Electron2.BaseApp//24.08
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update package.json
+        if: ${{ inputs.versionOverride != '' }}
+        run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
+
+      - name: Build flatpak
+        run: |
+          if [[ "${{ inputs.exportScript }}" == *nightly* ]]; then
+            npm run export:flatpak:nightly
+          else
+            npm run export:flatpak
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-${{ matrix.arch }}-artifact
+          path: build/*.flatpak
