@@ -20,6 +20,19 @@ import chokidar from "chokidar";
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 
+
+function isManagedLinuxPackage(): boolean {
+  // Flatpak: `container=flatpak` is set for every flatpak'd process;
+  // /.flatpak-info is the filesystem fallback.
+  const isFlatpak =
+    process.env.container === "flatpak" || fs.existsSync("/.flatpak-info");
+
+  // Snap: snapd exports SNAP (mount dir) and SNAP_NAME for confined apps.
+  const isSnap = !!process.env.SNAP && !!process.env.SNAP_NAME;
+
+  return isFlatpak || isSnap;
+}
+
 // Add custom transport to forward logs to renderer DevTools console
 function setupRendererLogTransport() {
   // @ts-ignore - custom transport
@@ -450,7 +463,11 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
-  updater.init(store.get("nightlyEditor"), store.get("disableAutoUpdate"));
+
+  updater.init(
+    store.get("nightlyEditor"),
+    store.get("disableAutoUpdate") || isManagedLinuxPackage(),
+  );
 
   // Setup custom log transport to forward logs to renderer
   setupRendererLogTransport();
