@@ -136,9 +136,9 @@ jobs:
           sudo apt-get install -y flatpak flatpak-builder elfutils
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y --noninteractive flathub \
-            org.freedesktop.Platform//24.08 \
-            org.freedesktop.Sdk//24.08 \
-            org.electronjs.Electron2.BaseApp//24.08
+            org.freedesktop.Platform//25.08 \
+            org.freedesktop.Sdk//25.08 \
+            org.electronjs.Electron2.BaseApp//25.08
 
       - name: Install dependencies
         run: npm ci
@@ -158,8 +158,29 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
 
+      # Tarball of the unpacked app for the Flathub manifest to consume.
+      # The dir target ran as part of e:builder:flatpak (--linux flatpak dir),
+      # so build/linux-unpacked (or linux-arm64-unpacked) already exists.
+      - name: Create tarball for Flathub
+        run: |
+          ARCH="${{ matrix.arch }}"
+          if [ "$ARCH" = "arm64" ]; then
+            DIR="linux-arm64-unpacked"
+          else
+            DIR="linux-unpacked"
+          fi
+          if [[ "${{ inputs.exportScript }}" == *nightly* ]]; then
+            NAME="grid-editor-nightly-linux-$ARCH.tar.gz"
+          else
+            NAME="grid-editor-linux-$ARCH.tar.gz"
+          fi
+          tar -czf "build/$NAME" -C build "$DIR"
+          ls -lh "build/$NAME"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: flatpak-${{ matrix.arch }}-artifact
-          path: build/*.flatpak
+          path: |
+            build/*.flatpak
+            build/*.tar.gz

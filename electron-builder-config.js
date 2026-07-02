@@ -51,8 +51,19 @@ const config = {
     icon: "build-assets/icon.png",
   },
   linux: {
+    // AppImage stays the default target so `npm run export` behaves exactly
+    // as before. The flatpak target is selected explicitly via
+    // `electron-builder --linux flatpak` (see e:builder:flatpak script),
+    // so it never runs implicitly on machines without flatpak-builder.
     target: "AppImage",
     artifactName: "${name}-linux-${version}.${ext}",
+    category: "Audio",
+    synopsis: "Editor software for Intech Studio Grid controllers",
+    desktop: {
+      entry: {
+        StartupWMClass: productNameByWorkflow(),
+      },
+    },
   },
   flatpak: {
     // NOTE: the flatpak app ID is derived from appId
@@ -61,10 +72,10 @@ const config = {
     // (e.g. "studio.intech.GridEditor") and a native manifest instead.
     artifactName: "${name}-linux-${version}-${arch}.${ext}",
     runtime: "org.freedesktop.Platform",
-    runtimeVersion: "24.08",
+    runtimeVersion: "25.08",
     sdk: "org.freedesktop.Sdk",
     base: "org.electronjs.Electron2.BaseApp",
-    baseVersion: "24.08",
+    baseVersion: "25.08",
     branch: "stable",
     // finishArgs REPLACES electron-builder's defaults, so the full set is
     // listed here on purpose.
