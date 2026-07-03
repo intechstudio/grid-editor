@@ -129,7 +129,7 @@
       renderLineHighlight: "none",
       contextmenu: false,
       scrollBeyondLastLine: false,
-      automaticLayout: true,
+      automaticLayout: false,
       wordWrap: wordWrap ? "on" : "off",
       suggest: {
         showIcons: false,

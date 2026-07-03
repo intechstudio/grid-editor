@@ -323,8 +323,8 @@
   </div>
 </MoltenModal>
 
-<style global>
+<!-- <style global>
   #monaco-container .monaco-editor {
     position: absolute !important;
   }
-</style>
+</style> -->
