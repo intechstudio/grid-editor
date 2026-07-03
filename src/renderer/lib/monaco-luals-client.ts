@@ -215,8 +215,10 @@ export async function openEditorContext(
 ): Promise<string | null> {
   if (!client) return null;
   const className = elementTypeToLuaClass[elementType] ?? "Element";
-  const uriString = `file:///grid-context/editor-${++contextCounter}.lua`;
-  const text = `---@type ${className}\nself = {}\n---@type ${className}[]\nelement = {}\n---@type ${className}[]\nele = {}\n`;
+  const contextId = ++contextCounter;
+  const uriString = `file:///grid-context/editor-${contextId}.lua`;
+  const selfClassName = `Element Self ${contextId}`;
+  const text = `---@class ${selfClassName} : ${className}\n---@field [string] any\n---@type ${selfClassName}\nself = {}\n---@type ${className}[]\nelement = {}\n---@type ${className}[]\nele = {}\n`;
   await client.sendNotification("textDocument/didOpen", {
     textDocument: { uri: uriString, languageId: "lua", version: 1, text },
   });
