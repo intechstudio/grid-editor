@@ -239,4 +239,16 @@
   }
 </script>
 
-<div bind:this={monaco_block} class="flex w-full h-full" />
+<div bind:this={monaco_block} class="relative flex w-full h-full" />
+
+<style>
+  /* The editor theme's background is transparent (`editor.background`) so the
+     surrounding container's own background shows through. Monaco's sticky
+     scroll widget (pinned scope headers while scrolling) inherits that same
+     transparent color by default, so scrolled-past code shows through behind
+     the pinned lines. Force it opaque, matching the container background,
+     so the sticky lines actually occlude the content scrolling beneath them. */
+  :global(.monaco-editor .sticky-widget .sticky-widget-lines-scrollable) {
+    background-color: var(--background-muted) !important;
+  }
+</style>
