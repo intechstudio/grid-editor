@@ -63,6 +63,22 @@ registerFileSystemOverlay(-1, {
 
 const LUALS_WS_URL = "ws://localhost:8089";
 
+// URI path segment marking editor models that hold a single Lua *expression*
+// fragment (e.g. the right-hand side of a `VariableManager` assignment, or an
+// `if`/`elseif` condition) rather than a full statement/chunk. A bare
+// expression is not a valid standalone Lua statement, so LuaLS's parser
+// always reports `EXP_IN_ACTION` ("Unexpected <exp> .") for these documents —
+// that diagnostic is a false positive here and is filtered out below, while
+// every other diagnostic (e.g. real syntax errors, undefined globals) is
+// still surfaced.
+export const EXPRESSION_FRAGMENT_URI_MARKER = "/expr-fragment-";
+
+const UNEXPECTED_EXPRESSION_STATEMENT_MESSAGE = "Unexpected <exp>";
+
+function isExpressionFragmentUri(uri: { toString(): string }): boolean {
+  return uri.toString().includes(EXPRESSION_FRAGMENT_URI_MARKER);
+}
+
 const elementTypeToLuaClass: Record<string, string> = {
   button: "ButtonElement",
   encoder: "EncoderElement",
@@ -142,6 +158,23 @@ export async function startLuaLSClient(): Promise<void> {
                 return uri.startsWith("file:///grid-annotations/");
               });
               return filtered.length > 0 ? filtered : null;
+            },
+            // Drop the "Unexpected <exp>" syntax error for expression-only
+            // fragment documents (see EXPRESSION_FRAGMENT_URI_MARKER above).
+            handleDiagnostics: (uri, diagnostics, next) => {
+              if (!isExpressionFragmentUri(uri)) {
+                next(uri, diagnostics);
+                return;
+              }
+              next(
+                uri,
+                diagnostics.filter(
+                  (d) =>
+                    !d.message?.includes(
+                      UNEXPECTED_EXPRESSION_STATEMENT_MESSAGE,
+                    ),
+                ),
+              );
             },
           },
         },

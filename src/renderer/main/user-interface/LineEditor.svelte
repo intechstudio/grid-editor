@@ -9,6 +9,12 @@
 
   import { ElementType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../lib/monaco";
+  import { editor as monacoEditor, Uri } from "monaco-editor";
+  import {
+    openEditorContext,
+    closeEditorContext,
+    EXPRESSION_FRAGMENT_URI_MARKER,
+  } from "../../lib/monaco-luals-client";
 
   const dispatch = createEventDispatcher();
 
@@ -16,6 +22,17 @@
   export let disabled = false;
   export let availableCharacters = Infinity;
   export let restrictScopeTo: ElementType | undefined = undefined;
+  // Wire this editor up to the Lua language server: opens a per-editor context
+  // document (typing `self`/`element`/`ele` as the element subclass) and backs
+  // the editor with a `.lua`-URI model so LuaLS provides scoped completion,
+  // matching CodeEditor's `luals` behavior.
+  export let luals = false;
+  // Set this when the editor only ever holds a single Lua *expression*
+  // fragment (e.g. the right-hand side of an assignment, or an `if`
+  // condition) rather than a full statement. A bare expression is not a
+  // valid standalone Lua statement, so LuaLS would otherwise report a false
+  // positive "Unexpected <exp>" syntax error on perfectly valid input.
+  export let lualsExpressionOnly = false;
 
   let monaco_block;
 
@@ -23,6 +40,10 @@
   let input_buffer = value;
   let value_buffer = value;
   let newLinesRemoved = false;
+  let editorHeight = 0;
+  // LuaLS-backed editor state (only populated when `luals` is true).
+  let lualsContextUri: string | null = null;
+  let editorModel: ReturnType<typeof monacoEditor.createModel> | null = null;
 
   function handleDisabledChange(value) {
     editor.updateOptions({ readOnly: value });
@@ -50,12 +71,28 @@
     editor?.updateOptions({ fontSize: fontSize });
   }
 
-  onMount(() => {
+  onMount(async () => {
     input_buffer = value;
 
+    if (luals) {
+      // Register the element-scoped context document so LuaLS types
+      // `self`/`element`/`ele` for completion, matching the full-screen
+      // editor's scoped suggestions (e.g. encoder-specific methods).
+      lualsContextUri = await openEditorContext(restrictScopeTo ?? "");
+
+      // Back the editor with a model that has a `.lua` URI so LuaLS
+      // recognises it as a Lua file. An inmemory:// model is treated as
+      // unknown and gets no LuaLS-backed completion/hover.
+      const modelUri = Uri.parse(
+        `file:///grid-editor/${lualsExpressionOnly ? EXPRESSION_FRAGMENT_URI_MARKER.slice(1) : "line-editor-"}${Date.now()}.lua`,
+      );
+      editorModel = monacoEditor.createModel(value, "intech_lua", modelUri);
+    }
+
     editor = MonacoEditor.create(monaco_block, {
-      value: value,
-      language: "intech_lua",
+      ...(editorModel
+        ? { model: editorModel }
+        : { value, language: "intech_lua" }),
       theme: $appSettings.persistent.lightMode
         ? MonacoEditor.Theme.LIGHT
         : MonacoEditor.Theme.DARK,
@@ -88,6 +125,16 @@
       },
       automaticLayout: true,
     });
+
+    // Size the container to exactly fit the (always single-line) content,
+    // instead of stretching to fill the parent row's height. This also
+    // re-fires when the font size changes, keeping the height in sync.
+    const updateHeight = () => {
+      editorHeight = editor.getContentHeight();
+      editor.layout({ width: monaco_block.clientWidth, height: editorHeight });
+    };
+    editor.onDidContentSizeChange(updateHeight);
+    updateHeight();
 
     editor.getModel().onDidChangeContent((event) => {
       //Hackey solutin for filtering out new line characters
@@ -128,8 +175,9 @@
   });
 
   onDestroy(() => {
+    if (lualsContextUri) closeEditorContext(lualsContextUri);
     editor?.dispose();
-    overflowWidgetsDomNode?.remove();
+    editorModel?.dispose();
   });
 
   // Save a reference to the original ResizeObserver
@@ -160,7 +208,7 @@
 
 <div
   id="monaco_container"
-  class="grid grid-cols-1 w-full h-full items-center p-1 rounded border border-background-soft bg-background-muted"
+  class="grid grid-cols-1 w-full items-center p-1 rounded border border-background-soft bg-background-muted"
 >
   <div
     id="line-editor"
@@ -171,7 +219,8 @@
     onmousedown={(e) => {
       e.preventDefault();
     }}
-    class="line-editor pointer-events-auto flex w-full h-full"
+    style="height: {editorHeight}px"
+    class="line-editor pointer-events-auto flex w-full"
   ></div>
 </div>
 

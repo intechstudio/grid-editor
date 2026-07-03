@@ -50,6 +50,7 @@
         value={scriptSegment}
         availableCharacters={$event.getAvailableChars()}
         restrictScopeTo={elementType}
+        luals
       />
     </div>
   </div>

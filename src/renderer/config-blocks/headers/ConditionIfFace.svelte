@@ -48,8 +48,7 @@
         value={scriptSegment}
         availableCharacters={$event.getAvailableChars()}
         restrictScopeTo={elementType}
-        suggestLines={1}
-        hoverEnabled={false}
+        luals
       />
     </div>
     <span class="mx-3">Then</span>
