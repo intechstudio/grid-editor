@@ -200,6 +200,7 @@
         maxLines={7}
         lineNumbers={false}
         wordWrap={false}
+        luals
       />
     </div>
 

@@ -1,6 +1,11 @@
 <script lang="ts">
   import { appSettings } from "../../runtime/app-helper.store";
-  import { beforeUpdate, createEventDispatcher, onMount } from "svelte";
+  import {
+    beforeUpdate,
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+  } from "svelte";
 
   import { ElementType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../lib/monaco";
@@ -47,6 +52,7 @@
 
   onMount(() => {
     input_buffer = value;
+
     editor = MonacoEditor.create(monaco_block, {
       value: value,
       language: "intech_lua",
@@ -75,6 +81,7 @@
       contextmenu: false,
       scrollPredominantAxis: false,
       scrollBeyondLastLine: false,
+      fixedOverflowWidgets: true, // the suggestions, hover info can appear outside of the action block scope
       suggest: {
         showIcons: true,
         showWords: true,
@@ -118,6 +125,11 @@
 
   beforeUpdate(() => {
     //editor?.layout();
+  });
+
+  onDestroy(() => {
+    editor?.dispose();
+    overflowWidgetsDomNode?.remove();
   });
 
   // Save a reference to the original ResizeObserver

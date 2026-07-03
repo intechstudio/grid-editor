@@ -321,14 +321,6 @@
 </MoltenModal>
 
 <style global>
-  .monaco-editor .suggest-widget {
-    width: 250px !important;
-    overflow: hidden !important;
-  }
-  .line-editor .monaco-editor .suggest-widget {
-    position: absolute !important;
-    left: 0 !important;
-  }
   #monaco-container .monaco-editor {
     position: absolute !important;
   }

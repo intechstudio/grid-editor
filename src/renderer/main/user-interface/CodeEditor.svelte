@@ -128,6 +128,7 @@
         showIcons: false,
         showWords: true,
       },
+      fixedOverflowWidgets: true,
       quickSuggestions: suggestions,
       suggestOnTriggerCharacters: suggestions,
       minimap: { enabled: false },
