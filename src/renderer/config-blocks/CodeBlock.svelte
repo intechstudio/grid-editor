@@ -59,9 +59,11 @@
   let commitEnabled = false;
   let errorMessage = "";
 
-  // Ctrl/Cmd+S inside this block commits it. Caught here (not via a Monaco
-  // keybinding) so it's scoped to the block: we stop propagation and trigger
-  // the Commit button — which no-ops on its own when disabled.
+  // Ctrl/Cmd+S commits the block when focus is somewhere in it but outside
+  // Monaco (e.g. nothing focused inside the editor). Triggers the Commit
+  // button, which no-ops on its own when disabled. Focus inside Monaco is
+  // handled separately by CodeEditor's `onSave` Monaco command, since a DOM
+  // listener here can't observe keydowns that originate inside the editor.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();

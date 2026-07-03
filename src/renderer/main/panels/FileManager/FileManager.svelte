@@ -228,8 +228,11 @@
   let editor: MonacoEditor.CustomCodeEditor;
   let saveButton: HTMLElement;
 
-  // Ctrl/Cmd+S saves the file by triggering the Save button, which no-ops on
-  // its own when disabled. Scoped to the editor section's subtree.
+  // Ctrl/Cmd+S saves the file when focus is somewhere in this section but
+  // outside Monaco. Triggers the Save button, which no-ops on its own when
+  // disabled. Focus inside Monaco is handled separately by the `onSave`
+  // Monaco command registered below, since a DOM listener here can't
+  // observe keydowns that originate inside the editor.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
@@ -290,6 +293,13 @@
       wordWrap: "on",
       minimap: { enabled: false },
       lineNumbers: "on",
+      // Ctrl/Cmd+S saves the file, no-op'ing when there's nothing to save
+      // (matches the disabled Save button).
+      onSave: () => {
+        if (fileDirty && !savingFile && !luaSyntaxError) {
+          saveFile();
+        }
+      },
     });
     editor.onDidChangeModelContent(() => {
       if (fileContent !== null) {

@@ -118,6 +118,13 @@
       fontSize: $appSettings.persistent.fontSize,
       restrictScope,
       readOnly,
+      // Ctrl/Cmd+S commits the editor, no-op'ing when there's nothing to
+      // commit or an unresolved error (matches the disabled Commit button).
+      onSave: () => {
+        if (!readOnly && commitEnabled && !errorMessage) {
+          commit();
+        }
+      },
       folding: false,
       renderLineHighlight: "none",
       contextmenu: false,

@@ -5,6 +5,8 @@ import { monacoReady } from "./monaco-init";
 import {
   editor as monaco_editor,
   languages as monaco_languages,
+  KeyMod,
+  KeyCode,
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
@@ -332,6 +334,12 @@ export namespace MonacoEditor {
 
   export type CustomOptions = {
     restrictScope?: ElementType;
+    // Called when Ctrl/Cmd+S is pressed while this editor (or one of its
+    // widgets) has focus. Must be registered as a Monaco command via
+    // `editor.addCommand`, not a DOM `keydown` listener on an ancestor
+    // element: @codingame/monaco-vscode-api's keybinding service consumes
+    // the native keydown itself, so it never reaches ancestor DOM nodes.
+    onSave?: () => void;
   };
   export type CustomCodeEditor = monaco_editor.ICodeEditor & CustomOptions;
 
@@ -347,6 +355,12 @@ export namespace MonacoEditor {
     });
 
     editor.restrictScope = options.restrictScope;
+
+    if (options.onSave) {
+      editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => {
+        options.onSave?.();
+      });
+    }
 
     const editorDomNode = editor.getDomNode();
 
