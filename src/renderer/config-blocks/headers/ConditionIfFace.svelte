@@ -49,6 +49,7 @@
         availableCharacters={$event.getAvailableChars()}
         restrictScopeTo={elementType}
         luals
+        lualsExpressionOnly
       />
     </div>
     <span class="mx-3">Then</span>
