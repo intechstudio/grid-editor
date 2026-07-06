@@ -129,10 +129,10 @@
       renderLineHighlight: "none",
       contextmenu: false,
       scrollBeyondLastLine: false,
-      automaticLayout: false,
+      automaticLayout: true,
       wordWrap: wordWrap ? "on" : "off",
       suggest: {
-        showIcons: false,
+        showIcons: true,
         showWords: true,
       },
       fixedOverflowWidgets: true,
