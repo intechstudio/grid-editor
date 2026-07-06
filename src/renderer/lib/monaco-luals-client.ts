@@ -17,6 +17,17 @@ import {
 } from "vscode-ws-jsonrpc";
 import { CloseAction, ErrorAction } from "vscode-languageclient/browser.js";
 import { Uri, editor as monacoEditorAPI } from "monaco-editor";
+import type {
+  CancellationToken,
+  CompletionContext,
+  CompletionItem,
+  CompletionList,
+  Definition,
+  LocationLink,
+  ProviderResult,
+  Position,
+  TextDocument,
+} from "vscode";
 import {
   registerFileSystemOverlay,
   FileSystemProviderCapabilities,
@@ -100,6 +111,58 @@ const luaConfig = {
   completion: { callSnippet: "Replace" },
 };
 
+const CALL_MEMBER_KINDS = new Set([0, 1, 2]);
+
+const FIELD_MEMBER_KINDS = new Set([3, 4, 9, 13, 14, 16]);
+
+type MemberAccessContext = "call" | "field" | null;
+
+function getMemberAccessContext(
+  document: TextDocument,
+  position: Position,
+  context: CompletionContext,
+): MemberAccessContext {
+  if (context.triggerCharacter === ":") return "call";
+  if (context.triggerCharacter === ".") return "field";
+
+  const linePrefix = document.lineAt(position.line).text.slice(0, position.character);
+
+  if (/:\s*$/.test(linePrefix)) return "call";
+  if (/\.\s*$/.test(linePrefix)) return "field";
+  return null;
+}
+
+type CompletionResult = CompletionItem[] | CompletionList;
+
+function filterMemberCompletionItems(
+  result: CompletionResult,
+  accessContext: MemberAccessContext,
+): CompletionResult {
+  if (!accessContext) return result;
+
+  const items = Array.isArray(result) ? result : result.items;
+  const filtered = items.filter((item) => {
+    if (item.kind === undefined) return true;
+    if (accessContext === "call") {
+      return (
+        CALL_MEMBER_KINDS.has(item.kind) || !FIELD_MEMBER_KINDS.has(item.kind)
+      );
+    }
+    return (
+      FIELD_MEMBER_KINDS.has(item.kind) || !CALL_MEMBER_KINDS.has(item.kind)
+    );
+  });
+
+  if (filtered.length === 0) return result;
+
+  return Array.isArray(result)
+    ? filtered
+    : {
+        ...result,
+        items: filtered,
+      };
+}
+
 let client: MonacoLanguageClient | null = null;
 let webSocket: WebSocket | null = null;
 
@@ -137,6 +200,28 @@ export async function startLuaLSClient(): Promise<void> {
           // callSnippet: "Replace" tells LuaLS to insert function calls as
           // snippets with parameter placeholders.
           middleware: {
+            provideCompletionItem: (
+              document: TextDocument,
+              position: Position,
+              context: CompletionContext,
+              token: CancellationToken,
+              next: (
+                document: TextDocument,
+                position: Position,
+                context: CompletionContext,
+                token: CancellationToken,
+              ) => ProviderResult<CompletionResult>,
+            ) => {
+              return Promise.resolve(next(document, position, context, token)).then(
+                (result) => {
+                  if (!result) return result;
+                  return filterMemberCompletionItems(
+                    result,
+                    getMemberAccessContext(document, position, context),
+                  );
+                },
+              );
+            },
             workspace: {
               configuration: async (params, token, next) => {
                 await next(params, token);
@@ -148,16 +233,27 @@ export async function startLuaLSClient(): Promise<void> {
             // — LuaLS meta files, per-editor context stubs — is not registered
             // in the in-memory filesystem and would throw FileOperationError
             // when the peek widget tries to open them.
-            provideDefinition: async (model, position, token, next) => {
+            provideDefinition: async (
+              model: TextDocument,
+              position: Position,
+              token: CancellationToken,
+              next: any,
+            ) => {
               const result = await next(model, position, token);
               if (!result) return result;
-              const locations = Array.isArray(result) ? result : [result];
-              const filtered = locations.filter((loc: any) => {
-                const uri =
-                  loc.uri?.toString() ?? loc.targetUri?.toString() ?? "";
-                return uri.startsWith("file:///grid-annotations/");
-              });
-              return filtered.length > 0 ? filtered : null;
+              if (Array.isArray(result)) {
+                const filtered = result.filter((loc) => {
+                  const uri =
+                    (loc as LocationLink).targetUri?.toString() ??
+                    (loc as { uri?: { toString(): string } }).uri?.toString() ??
+                    "";
+                  return uri.startsWith("file:///grid-annotations/");
+                });
+                return filtered.length > 0 ? filtered : null;
+              }
+
+              const uri = result.uri?.toString() ?? "";
+              return uri.startsWith("file:///grid-annotations/") ? result : null;
             },
             // Drop the "Unexpected <exp>" syntax error for expression-only
             // fragment documents (see EXPRESSION_FRAGMENT_URI_MARKER above).
@@ -215,10 +311,8 @@ export async function openEditorContext(
 ): Promise<string | null> {
   if (!client) return null;
   const className = elementTypeToLuaClass[elementType] ?? "Element";
-  const contextId = ++contextCounter;
-  const uriString = `file:///grid-context/editor-${contextId}.lua`;
-  const selfClassName = `Element Self ${contextId}`;
-  const text = `---@class ${selfClassName} : ${className}\n---@field [string] any\n---@type ${selfClassName}\nself = {}\n---@type ${className}[]\nelement = {}\n---@type ${className}[]\nele = {}\n`;
+  const uriString = `file:///grid-context/editor-${++contextCounter}.lua`;
+  const text = `---@type ${className}\nself = {}\n---@type ${className}[]\nelement = {}\n---@type ${className}[]\nele = {}\n`;
   await client.sendNotification("textDocument/didOpen", {
     textDocument: { uri: uriString, languageId: "lua", version: 1, text },
   });
