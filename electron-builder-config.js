@@ -85,6 +85,12 @@ const config = {
       "--socket=wayland",
       "--share=ipc",
       "--device=dri",
+      // D-Bus session bus: required by zypak-helper (the Electron zygote wrapper
+      // in Electron2.BaseApp) to negotiate the sandbox strategy. Without this,
+      // zypak aborts on systems where dbus is built without X11 autolaunch
+      // (e.g. Debian/Ubuntu >= 23.04). Must be listed before other sockets.
+      // Reported by @benblaise-intech
+      "--socket=session-bus",
       // Sound (Web MIDI on Linux goes through the ALSA sequencer; pulseaudio
       // socket also covers any audio the app or packages produce)
       "--socket=pulseaudio",

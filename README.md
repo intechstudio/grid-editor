@@ -26,6 +26,22 @@ sudo usermod -aG dialout $USER
 
 Restart the computer!
 
+## Flatpak fails to start: zypak-helper D-Bus error
+
+On Debian (and Ubuntu ≥ 23.04), `dbus` is compiled without X11 autolaunch support.
+Without `--socket=session-bus` in the Flatpak manifest, `zypak-helper` — the Electron
+zygote sandbox helper bundled in `org.electronjs.Electron2.BaseApp` — cannot reach the
+session bus and aborts with:
+
+```
+Failed to connect to session bus: [org.freedesktop.DBus.Error.NotSupported]
+Using X11 for dbus-daemon autolaunch was disabled at compile time
+Assertion failed: bus
+```
+
+`--socket=session-bus` is already present in the `finishArgs` of `electron-builder-config.js`.
+If you are rebuilding the Flatpak manually, make sure that permission is included in your manifest.
+
 ## Flatpak Firefox Web Serial access
 
 On Ubuntu (and likely Debian-based distros), if using Firefox installed via Flatpak, the Web Serial API cannot enumerate serial ports by default because the sandbox blocks access to the udev database. This is not needed on Fedora.
