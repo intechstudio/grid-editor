@@ -96,7 +96,7 @@ const luaConfig = {
   diagnostics: {
     globals: ["self", "element"],
     // Temporary until editors can share the full controller symbol graph.
-    disable: ["undefined-global"],
+    disable: ["undefined-global", "inject-field"],
     severity: { "undefined-global": "Warning" },
   },
   completion: { callSnippet: "Replace" },
