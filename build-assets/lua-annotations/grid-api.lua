@@ -742,8 +742,8 @@ function websocket_send(message) end
 
 ---Sends Lua code for immediate execution on a remote module.  
 ---Example: https://docs.intech.studio/wiki/more/immediate-send-explainer/
----@param x integer Target module X coordinate
----@param y integer Target module Y coordinate
+---@param x integer|nil Target module X coordinate
+---@param y integer|nil Target module Y coordinate
 ---@param lua_code string Lua code to execute
 function immediate_send(x, y, lua_code) end
 
