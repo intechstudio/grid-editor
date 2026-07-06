@@ -52,10 +52,13 @@ export namespace ProfileCloudLoad {
 
   export interface Status {
     step: State;
+    phase?: "files" | "config";
     message?: string;
     error?: string;
     total?: number;
     completed?: number;
+    fileChunkCurrent?: number;
+    fileChunkTotal?: number;
   }
 }
 
@@ -102,7 +105,6 @@ export class GridProfileData {
 
     profile.description = cloudProfile.description;
     profile.id = cloudProfile.id;
-    console.log("Profile data is returned successfully.", profile);
     return profile;
   }
 }
@@ -1542,7 +1544,12 @@ export class GridPage extends RuntimeNode<PageData> {
         return acc + preset.element.events.length;
       }, 0);
 
-      setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed: 0 });
+      setStatus?.({
+        step: ProfileCloudLoad.State.BUSY,
+        phase: "config",
+        total,
+        completed: 0,
+      });
       await this.load();
 
       const presets = profile.presets;
@@ -1571,12 +1578,18 @@ export class GridPage extends RuntimeNode<PageData> {
             await new Promise((r) => setTimeout(r, 0));
           }
           ++completed;
-          setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed });
+          setStatus?.({
+            step: ProfileCloudLoad.State.BUSY,
+            phase: "config",
+            total,
+            completed,
+          });
         }
       }
 
       setStatus?.({
         step: ProfileCloudLoad.State.LOADED,
+        phase: "config",
         total,
         completed: total,
       });
@@ -1586,7 +1599,7 @@ export class GridPage extends RuntimeNode<PageData> {
         type: GridOperationType.LOAD_PROFILE,
       };
     } catch (error) {
-      setStatus?.({ step: ProfileCloudLoad.State.ERROR });
+      setStatus?.({ step: ProfileCloudLoad.State.ERROR, phase: "config" });
       return Promise.reject({
         value: false,
         text: error instanceof Error ? error.message : String(error),
@@ -1678,6 +1691,7 @@ export class GridPage extends RuntimeNode<PageData> {
     let completed = 0;
     setStatus?.({
       step: ProfileCloudLoad.State.BUSY,
+      phase: "files",
       total,
       completed,
       message: "Uploading files...",
@@ -1685,12 +1699,31 @@ export class GridPage extends RuntimeNode<PageData> {
     for (const file of files) {
       const path = `${folderPath}${file.name}`;
       try {
-        await writeFileContent(path, file.content, module, 200);
+        await writeFileContent(
+          path,
+          file.content,
+          module,
+          200,
+          (chunkCurrent, chunkTotal) => {
+            setStatus?.({
+              step: ProfileCloudLoad.State.BUSY,
+              phase: "files",
+              total,
+              completed,
+              fileChunkCurrent: chunkCurrent,
+              fileChunkTotal: chunkTotal,
+              message: `Uploading files...`,
+            });
+          },
+        );
         ++completed;
         setStatus?.({
           step: ProfileCloudLoad.State.BUSY,
+          phase: "files",
           total,
           completed,
+          fileChunkCurrent: undefined,
+          fileChunkTotal: undefined,
           message: `Uploading files... (${completed}/${total})`,
         });
       } catch (e) {
