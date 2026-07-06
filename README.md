@@ -36,6 +36,16 @@ flatpak override --user --device=all --filesystem=/run/udev org.mozilla.firefox
 
 Restart Firefox after running the command.
 
+## Flatpak artifacts for nightly vs Flathub
+
+The Flatpak CI job produces two artifact types:
+
+- Installable Flatpak bundle (`*.flatpak`) for nightly/manual testing
+- Flathub source tarball (`*.tar.gz`) from the unpacked Linux app
+
+To keep nightly release downloads small, only `*.flatpak` files are included in GitHub release assets.
+The `*.tar.gz` tarball is uploaded as a separate workflow artifact for Flathub distribution work and is not attached to nightly/stable release downloads.
+
 ## Code formatting using prettier
 
 Format validator is run on every push, please make sure to run the prettier code formatter before pushing code to the repository!

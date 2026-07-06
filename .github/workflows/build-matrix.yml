@@ -181,6 +181,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flatpak-${{ matrix.arch }}-artifact
-          path: |
-            build/*.flatpak
-            build/*.tar.gz
+          path: build/*.flatpak
+
+      - name: Upload Flathub tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Intentionally not ending in "-artifact" so nightly/stable release
+          # aggregation (pattern: "*-artifact") excludes this tarball.
+          name: flatpak-${{ matrix.arch }}-flathub-source
+          path: build/*.tar.gz
