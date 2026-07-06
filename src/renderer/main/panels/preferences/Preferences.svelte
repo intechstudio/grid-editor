@@ -168,6 +168,28 @@
         />
       </BlockRow>
 
+      <BlockTitle>Code Editor height</BlockTitle>
+      <BlockBody>
+        Sets the default height of inline code editors. Larger values show more
+        lines before the editor starts scrolling.
+      </BlockBody>
+      <BlockRow>
+        <MoltenInput
+          bind:target={$appSettings.persistent.codeEditorDefaultLines}
+          type="number"
+          min={3}
+          max={20}
+          step={1}
+        />
+        <MoltenPushButton
+          text="Reset"
+          style="normal"
+          click={() => {
+            $appSettings.persistent.codeEditorDefaultLines = 7;
+          }}
+        />
+      </BlockRow>
+
       <BlockTitle>Show PCB</BlockTitle>
       <BlockBody>
         When selecting the system element of a module, it's underlaying PCB
