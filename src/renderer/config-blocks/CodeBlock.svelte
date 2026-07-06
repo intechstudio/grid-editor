@@ -49,6 +49,7 @@
   import Monaco from "../main/modals/Monaco.svelte";
   import CodeEditor from "../main/user-interface/CodeEditor.svelte";
   import CommitStatus from "../main/user-interface/CommitStatus.svelte";
+  import { appSettings } from "../runtime/app-helper.store";
 
   export let action: GridAction;
 
@@ -189,7 +190,7 @@
       </div>
     </div>
 
-    <div class="w-full h-32 border border-background-soft bg-background-muted">
+    <div class="w-full border border-background-soft bg-background-muted">
       <CodeEditor
         bind:this={codeEditor}
         bind:commitEnabled
@@ -198,8 +199,7 @@
         name={$action.name}
         restrictScope={elementType}
         readOnly={editingInModal}
-        minLines={7}
-        maxLines={7}
+        lineCount={$appSettings.persistent.codeEditorDefaultLines}
         lineNumbers={false}
         wordWrap={false}
         luals

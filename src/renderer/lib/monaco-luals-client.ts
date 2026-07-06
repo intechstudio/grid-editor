@@ -106,6 +106,8 @@ const luaConfig = {
   runtime: { version: "Lua 5.4" },
   diagnostics: {
     globals: ["self", "element"],
+    // Temporary until editors can share the full controller symbol graph.
+    disable: ["undefined-global", "inject-field"],
     severity: { "undefined-global": "Warning" },
   },
   completion: { callSnippet: "Replace" },

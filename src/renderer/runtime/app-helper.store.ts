@@ -41,6 +41,7 @@ const persistentDefaultValues = {
   analyticsEnabled: false,
   firstLaunch: true,
   fontSize: 12,
+  codeEditorDefaultLines: 7,
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
   nightlyFirmware: false,
