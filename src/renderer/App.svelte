@@ -17,6 +17,7 @@
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
 
   import FirmwareMismatchNotification from "./main/FirmwareMismatchNotification.svelte";
+  import LegacyCompletionNotification from "./main/LegacyCompletionNotification.svelte";
   import WebSocketNotification from "./main/WebSocketNotification.svelte";
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
@@ -345,6 +346,7 @@
 
   <div class="flex flex-col w-full h-full">
     <FirmwareMismatchNotification />
+    <LegacyCompletionNotification />
     {#if $appSettings.persistent.websocketNotificationEnabled}
       <WebSocketNotification />
     {/if}

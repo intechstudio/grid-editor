@@ -16,6 +16,7 @@ import {
   legacy_initialize_hover,
 } from "./monaco-legacy-completion";
 import { Analytics } from "../runtime/analytics";
+import { appSettings } from "../runtime/app-helper.store";
 
 const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
@@ -325,6 +326,10 @@ export namespace MonacoEditor {
         // In case the LuaLS server could not start, fallback to the original autocomplete and hover
         legacy_initialize_autocomplete();
         legacy_initialize_hover();
+        appSettings.update((s) => {
+          s.legacyCompletionActive = true;
+          return s;
+        });
       });
   });
 

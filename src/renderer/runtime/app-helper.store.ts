@@ -118,6 +118,7 @@ function createAppSettingsStore(persistent) {
     trayState: false,
     intervalPause: false,
     firmwareNotificationState: 0,
+    legacyCompletionActive: false,
     firmware_d51_required: {
       major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
       minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),
