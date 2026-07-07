@@ -17,7 +17,10 @@
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
   import * as monaco from "monaco-editor";
-  import { openEditorContext, closeEditorContext } from "../../../lib/monaco-luals-client";
+  import {
+    openEditorContext,
+    closeEditorContext,
+  } from "../../../lib/monaco-luals-client";
 
   let selectedModule: string = "";
   let moduleOptions: Array<{ title: string; value: string }> = [];
@@ -229,7 +232,9 @@
   let editor: MonacoEditor.CustomCodeEditor;
   let saveButton: HTMLElement;
   let lualsContextUri: string | null = null;
-  let fileManagerEditorModel: ReturnType<typeof monaco.editor.createModel> | null = null;
+  let fileManagerEditorModel: ReturnType<
+    typeof monaco.editor.createModel
+  > | null = null;
 
   // Ctrl/Cmd+S saves the file when focus is somewhere in this section but
   // outside Monaco. Triggers the Save button, which no-ops on its own when
