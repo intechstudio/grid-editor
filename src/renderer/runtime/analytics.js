@@ -4,6 +4,8 @@ import { appSettings } from "./app-helper.store";
 
 const configuration = window.ctxProcess.configuration();
 
+const isWebBuild = import.meta.env.VITE_BUILD_TARGET === "web";
+
 let _initialized = false;
 
 function ensureInitialized() {
@@ -12,6 +14,8 @@ function ensureInitialized() {
   mixpanel.init(configuration.MIXPANEL_TOKEN, {
     debug: true,
     api_host: configuration.MIXPANEL_API_HOST,
+    img: isWebBuild, // web build: use Image GET (no CORS) instead of XHR
+    api_method: isWebBuild ? "GET" : "POST", // img mode needs GET or data is lost
   });
   mixpanel.identify(get(appSettings).persistent.userId);
 }
