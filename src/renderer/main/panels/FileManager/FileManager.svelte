@@ -17,6 +17,7 @@
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
   import * as monaco from "monaco-editor";
+  import { openEditorContext, closeEditorContext } from "../../../lib/monaco-luals-client";
 
   let selectedModule: string = "";
   let moduleOptions: Array<{ title: string; value: string }> = [];
@@ -227,6 +228,8 @@
   let monacoElement: HTMLElement;
   let editor: MonacoEditor.CustomCodeEditor;
   let saveButton: HTMLElement;
+  let lualsContextUri: string | null = null;
+  let fileManagerEditorModel: ReturnType<typeof monaco.editor.createModel> | null = null;
 
   // Ctrl/Cmd+S saves the file when focus is somewhere in this section but
   // outside Monaco. Triggers the Save button, which no-ops on its own when
@@ -243,12 +246,12 @@
 
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
-    { title: "Lua", value: "lua" },
+    { title: "Lua", value: "intech_lua" },
     { title: "TOML", value: "ini" },
   ];
 
   const extLanguageMap: Record<string, string> = {
-    lua: "lua",
+    lua: "intech_lua",
     toml: "ini",
   };
 
@@ -275,18 +278,33 @@
         luaSyntaxError = String(e);
       }
     }
+    if (selectedLanguage === "intech_lua") {
+      if (!lualsContextUri) {
+        openEditorContext("").then((uri) => {
+          lualsContextUri = uri;
+        });
+      }
+    } else if (lualsContextUri) {
+      closeEditorContext(lualsContextUri);
+      lualsContextUri = null;
+    }
   }
 
   onMount(() => {
+    fileManagerEditorModel = monaco.editor.createModel(
+      "",
+      "plaintext",
+      monaco.Uri.parse("file:///grid-editor/file-manager.lua"),
+    );
     editor = MonacoEditor.create(monacoElement, {
-      value: "",
-      language: "plaintext",
+      model: fileManagerEditorModel,
       theme: $appSettings.persistent.lightMode
         ? MonacoEditor.Theme.LIGHT
         : MonacoEditor.Theme.DARK,
       fontSize: $appSettings.persistent.fontSize,
       folding: false,
       renderLineHighlight: "none",
+      fixedOverflowWidgets: true,
       contextmenu: false,
       scrollBeyondLastLine: false,
       automaticLayout: true,
@@ -310,6 +328,11 @@
 
   onDestroy(() => {
     editor?.dispose();
+    if (lualsContextUri) {
+      closeEditorContext(lualsContextUri);
+      lualsContextUri = null;
+    }
+    fileManagerEditorModel?.dispose();
   });
 
   $: if (editor) {
