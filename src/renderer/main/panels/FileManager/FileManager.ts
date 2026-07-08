@@ -165,24 +165,101 @@ export async function deleteFile(
   }
 }
 
+/**
+ * Max characters of entry names per response chunk.
+ * Tune to your hardware's transmit limit, leaving headroom for
+ * serialization overhead (brackets, type numbers, framing).
+ */
+const PAGE_CHAR_BUDGET = 256;
+
+/** Rough per-entry serialization overhead (type field, separators). */
+const PER_ENTRY_OVERHEAD = 8;
+
 export async function fetchDirEntries(
   path: string,
   module: GridModule,
 ): Promise<DirEntry[]> {
-  const result = await module.execLUAImmediateAndEvalaute(
-    `return dirent.list(${JSON.stringify(path)})`,
-  );
-  const table = result[0] as LuaTable | null;
-  if (!table || typeof table !== "object") {
-    throw new Error(
-      `Failed to list directory: ${String(result[1] ?? "unknown error")}`,
+  const entries: DirEntry[] = [];
+  let start = 1; // Lua is 1-indexed
+
+  while (true) {
+    const script =
+      `local t,e=dirent.list(${JSON.stringify(path)}) ` +
+      `if not t then return nil,e end ` +
+      `table.sort(t,function(a,b) return a[1]<b[1] end) ` +
+      `local o,l,i={},0,${start} ` +
+      `while i<=#t do ` +
+      `local c=#t[i][1]+${PER_ENTRY_OVERHEAD} ` +
+      `if l+c>${PAGE_CHAR_BUDGET} then break end ` +
+      `o[#o+1]=t[i] l=l+c i=i+1 ` +
+      `end ` +
+      `return i,o`;
+
+    const result = await module.execLUAImmediateAndEvalaute(script);
+
+    const nextIndex = result[0] as number | null;
+
+    if (nextIndex === null || typeof nextIndex !== "number") {
+      throw new Error(
+        `Failed to list directory: ${String(result[1] ?? "unknown error")}`,
+      );
+    }
+
+    const table = result[1] as LuaTable;
+    const rows = Object.values(table ?? {});
+
+    if (rows.length === 0) {
+      if (nextIndex <= start) {
+        // Cursor didn't advance and nothing was packed: either we're past
+        // the end (done) or a single name exceeds the budget (stuck).
+        if (nextIndex === start && start === 1) {
+          // empty directory
+          break;
+        }
+        break;
+      }
+      break;
+    }
+
+    for (const v of rows) {
+      const row = v as LuaTable;
+      entries.push({
+        name: String(row[1]),
+        type: row[2] === 2 ? "dir" : "file",
+      } as DirEntry);
+    }
+
+    // Safety: a lone entry longer than the budget would never advance.
+    if (nextIndex <= start) {
+      throw new Error(
+        `Entry at index ${start} in "${path}" exceeds ${PAGE_CHAR_BUDGET}-char page budget`,
+      );
+    }
+
+    start = nextIndex;
+  }
+
+  return entries;
+}
+
+export async function clearDirFiles(
+  path: string,
+  module: GridModule,
+): Promise<void> {
+  let entries: DirEntry[];
+  try {
+    entries = await fetchDirEntries(path, module);
+  } catch {
+    // Directory doesn't exist yet — nothing to clear
+    return;
+  }
+  for (const entry of entries) {
+    if (entry.type !== "file") continue;
+    const filePath = path.endsWith("/")
+      ? `${path}${entry.name}`
+      : `${path}/${entry.name}`;
+    await module.execLUAImmediateAndEvalaute(
+      `return os.remove(${JSON.stringify(filePath)})`,
     );
   }
-  return Object.values(table).map((v) => {
-    const row = v as LuaTable;
-    return {
-      name: String(row[1]),
-      type: row[2] === 2 ? "dir" : "file",
-    } as DirEntry;
-  });
 }

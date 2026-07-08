@@ -1,4 +1,8 @@
 import { Analytics } from "./analytics";
+import {
+  clearDirFiles,
+  pageNumberToFolderPath,
+} from "../main/panels/FileManager/FileManager";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { logger } from "./runtime.store";
 import { selected_actions } from "./selected-actions.store";
@@ -376,6 +380,10 @@ export async function loadProfile(
   const module = target.parent as GridModule;
 
   if (profile.files && profile.files?.length > 0) {
+    // consider adding this to path where profile does not have files
+    const folderPath = pageNumberToFolderPath(target.pageNumber);
+    await clearDirFiles(folderPath, module);
+    // upload files to module
     await target.sendFiles(profile.files, setStatus);
   }
 
