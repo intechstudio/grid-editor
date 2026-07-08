@@ -3,6 +3,7 @@
   import { get } from "svelte/store";
   import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import type { GridRuntime } from "../../../runtime/runtime";
   import { grid, GridScript } from "@intechstudio/grid-protocol";
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../../lib/monaco";
@@ -37,7 +38,19 @@
       value: `${module.dx},${module.dy}`,
     }));
 
-    moduleOptions = newOptions;
+    // Only reassign when the options actually changed, to avoid needless
+    // re-renders when the runtime store fires for unrelated updates.
+    const changed =
+      newOptions.length !== moduleOptions.length ||
+      newOptions.some(
+        (o, i) =>
+          o.value !== moduleOptions[i]?.value ||
+          o.title !== moduleOptions[i]?.title,
+      );
+
+    if (changed) {
+      moduleOptions = newOptions;
+    }
 
     if (
       newOptions.length > 0 &&
@@ -434,8 +447,40 @@
     listDirectory();
   }
 
+  let unsubscribeRuntimeManager: (() => void) | null = null;
+  let unsubscribeActiveRuntime: (() => void) | null = null;
+
+  function subscribeToActiveRuntime(runtime: GridRuntime | null) {
+    unsubscribeActiveRuntime?.();
+    unsubscribeActiveRuntime = null;
+    if (runtime) {
+      // Fires when modules connect/disconnect (reconnect) on the active runtime.
+      unsubscribeActiveRuntime = runtime.subscribe(() => {
+        refreshModuleList();
+      });
+    }
+  }
+
   onMount(() => {
     refreshModuleList();
+
+    let currentRuntime = get(runtime_manager)?.active?.runtime ?? null;
+    subscribeToActiveRuntime(currentRuntime);
+
+    // React to the active connection changing, and re-bind to its runtime.
+    unsubscribeRuntimeManager = runtime_manager.subscribe((value) => {
+      const nextRuntime = value?.active?.runtime ?? null;
+      if (nextRuntime !== currentRuntime) {
+        currentRuntime = nextRuntime;
+        subscribeToActiveRuntime(nextRuntime);
+      }
+      refreshModuleList();
+    });
+  });
+
+  onDestroy(() => {
+    unsubscribeRuntimeManager?.();
+    unsubscribeActiveRuntime?.();
   });
 </script>
 
