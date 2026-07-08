@@ -485,8 +485,20 @@
 </script>
 
 <container data-testid="file-manager" class="flex flex-col h-full p-4">
+  <!-- Docs link -->
+  <div class="flex flex-row mb-3">
+    <button
+      onclick={() =>
+        window.electron.openInBrowser(
+          "https://docs.intech.studio/wiki/more/file-manager/",
+        )}
+      class=" text-foreground-soft hover:text-foreground underline underline-offset-2 transition-colors"
+    >
+      Read the docs about File Manager
+    </button>
+  </div>
   <!-- Module selector -->
-  <div class="flex flex-row gap-2">
+  <div class="flex flex-row gap-2 mb-2">
     <div class="flex-grow">
       {#key moduleOptions}
         <MeltSelect
