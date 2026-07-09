@@ -37,8 +37,17 @@
     updateAction,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
-  import { MeltRadio, MoltenInput, Toggle } from "@intechstudio/grid-uikit";
-  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
+  import {
+    MeltRadio,
+    MoltenInput,
+    Toggle,
+    MeltSelect,
+  } from "@intechstudio/grid-uikit";
+  import {
+    EventType,
+    EventTypeToNumber,
+    ElementType,
+  } from "@intechstudio/grid-protocol";
   import {
     information as elementNameInformation,
     generateScript,
@@ -62,10 +71,6 @@
   $: handleContextChange($user_input, $runtime_manager);
 
   $: handleElementNameChange(elementName);
-
-  $: if ($element) {
-    handleElementChange(element);
-  }
 
   function handleElementNameChange(value: string | undefined) {
     if (typeof element === "undefined") {
@@ -118,6 +123,31 @@
     } else {
       elementName = "";
     }
+
+    // Read back MIDI channel for system element — always reset first
+    let readbackChannel: number | null = null;
+
+    if (element.type === ElementType.SYSTEM && setup) {
+      const fstIndex = findMidiAutoChBlock(setup);
+      if (fstIndex !== -1) {
+        const fenIndex = setup.config.findIndex(
+          (a, i) => i > fstIndex && a.short === "fen",
+        );
+        const endIndex = fenIndex !== -1 ? fenIndex : setup.config.length;
+        const cbAction = setup.config.find(
+          (a, i) =>
+            i > fstIndex &&
+            i < endIndex &&
+            a.short === "cb" &&
+            MIDI_AUTO_CH_CB_REGEX.test(a.script),
+        );
+        const match = cbAction?.script?.match(MIDI_AUTO_CH_CB_REGEX);
+        readbackChannel = match ? Number(match[1]) + 1 : null;
+      }
+    }
+
+    systemMidiChannel = readbackChannel;
+    setMidiDisplay(readbackChannel);
   }
 
   function handleContextChange(
@@ -142,17 +172,159 @@
       ui.eventtype,
     );
 
-    if (typeof element !== "undefined" && !element.isLoaded()) {
-      element
-        .load()
-        .then((e) => {})
-        .catch((err) => {
-          console.error("Failed to load element:", err);
-        });
+    if (typeof element !== "undefined") {
+      if (element.isLoaded()) {
+        handleElementChange(element);
+      } else {
+        const loadingElement = element;
+        loadingElement
+          .load()
+          .then(() => {
+            // Only apply if the element hasn't changed while loading
+            if (element === loadingElement) {
+              handleElementChange(loadingElement);
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to load element:", err);
+          });
+      }
     }
   }
 
+  // --- System MIDI Channel ---
+  const MIDI_AUTO_CH_FST_SCRIPT = "midi_auto_ch = function(self)"; // humanized form (spaces)
+  const MIDI_AUTO_CH_FST_SCRIPT_SHORT = "midi_auto_ch=function(self)"; // shortified form (no spaces, from hardware)
+  const MIDI_AUTO_CH_CB_REGEX = /^return (\d+)$/;
+
   let containerWidth: number;
+  let systemMidiChannel: number | null = null;
+
+  function findMidiAutoChBlock(setup: GridEvent): number {
+    return setup.config.findIndex(
+      (a) =>
+        a.short === "fst" &&
+        (a.script === MIDI_AUTO_CH_FST_SCRIPT ||
+          a.script === MIDI_AUTO_CH_FST_SCRIPT_SHORT),
+    );
+  }
+
+  function handleSystemMidiChannelChange(value: number | null) {
+    if (typeof element === "undefined") return;
+    if (element.type !== ElementType.SYSTEM) return;
+
+    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
+    if (!setup) return;
+    const fstIndex = findMidiAutoChBlock(setup);
+
+    if (value === null) {
+      // Auto selected — remove fst + everything up to and including its fen
+      if (fstIndex !== -1) {
+        const fenIndex = setup.config.findIndex(
+          (a, i) => i > fstIndex && a.short === "fen",
+        );
+        const endIndex = fenIndex !== -1 ? fenIndex + 1 : fstIndex + 1;
+        // Snapshot the actions to remove before modifying config
+        const actionsToRemove = [...setup.config.slice(fstIndex, endIndex)];
+        // Remove one by one to avoid partial-remove rejections
+        const removeSequentially = async () => {
+          for (const action of actionsToRemove) {
+            // Re-check it's still in config (it may have already been removed)
+            if (setup.config.includes(action)) {
+              await setup.remove(action).catch(console.error);
+            }
+          }
+          await setup.sendToGrid();
+        };
+        removeSequentially();
+      }
+      return;
+    }
+
+    // channel is 1-based from dropdown, Lua return value is 0-based
+    const returnVal = value - 1;
+    const cbScript = `return ${returnVal}`;
+
+    if (fstIndex !== -1) {
+      // Function block exists — find the first cb with our return pattern
+      // between fst and fen, or insert one right after fst
+      const fenIndex = setup.config.findIndex(
+        (a, i) => i > fstIndex && a.short === "fen",
+      );
+      const endIndex = fenIndex !== -1 ? fenIndex : setup.config.length;
+      const cbIndex = setup.config.findIndex(
+        (a, i) =>
+          i > fstIndex &&
+          i < endIndex &&
+          a.short === "cb" &&
+          MIDI_AUTO_CH_CB_REGEX.test(a.script),
+      );
+      if (cbIndex !== -1) {
+        // Matching cb found — update it
+        const cbAction = setup.config[cbIndex];
+        const data = new ActionData("cb", cbScript, cbAction.name);
+        updateAction(cbAction, data, true);
+      } else {
+        // No matching cb — insert a new one right after fst
+        const newCb = new GridAction(
+          setup as GridEvent,
+          new ActionData("cb", cbScript),
+        );
+        (setup as GridEvent)
+          .insert(fstIndex + 1, newCb)
+          .then(() => (setup as GridEvent).sendToGrid())
+          .catch(console.error);
+      }
+    } else {
+      // Insert 3 new blocks at index 0
+      const fstAction = new GridAction(
+        setup as GridEvent,
+        new ActionData("fst", MIDI_AUTO_CH_FST_SCRIPT),
+      );
+      const cbAction = new GridAction(
+        setup as GridEvent,
+        new ActionData("cb", cbScript),
+      );
+      const fenAction = new GridAction(
+        setup as GridEvent,
+        new ActionData("fen", "end"),
+      );
+      (setup as GridEvent)
+        .insert(0, fstAction, cbAction, fenAction)
+        .then(() => (setup as GridEvent).sendToGrid())
+        .catch(console.error);
+    }
+  }
+
+  const MIDI_AUTO_SENTINEL = "auto";
+  const midiChannelOptions = [
+    { title: "Auto", value: MIDI_AUTO_SENTINEL },
+    ...Array.from({ length: 16 }, (_, i) => ({
+      title: `Channel ${i + 1}`,
+      value: String(i + 1),
+    })),
+  ];
+
+  // String target for MeltSelect — always a string, never null.
+  // Updated programmatically by setMidiDisplay(); mutated by MeltSelect on user pick.
+  let midiChannelDisplay: string = MIDI_AUTO_SENTINEL;
+  let _midiDisplayUpdating = false;
+
+  function setMidiDisplay(value: number | null) {
+    _midiDisplayUpdating = true;
+    midiChannelDisplay = value === null ? MIDI_AUTO_SENTINEL : String(value);
+    _midiDisplayUpdating = false;
+  }
+
+  // Fires whenever MeltSelect mutates midiChannelDisplay.
+  // Guard skips it when setMidiDisplay() is the one changing it.
+  $: if (!_midiDisplayUpdating) {
+    handleSystemMidiChannelChange(
+      midiChannelDisplay === MIDI_AUTO_SENTINEL
+        ? null
+        : Number(midiChannelDisplay),
+    );
+  }
 
   $: handleIsMultiViewAutoUpdate(
     containerWidth,
@@ -350,6 +522,21 @@
             <span>Element Name</span>
             <div class="flex w-full" data-testid="element-name-input-field">
               <MoltenInput bind:target={elementName} />
+            </div>
+          </div>
+        {/if}
+
+        {#if $element && $element.type === ElementType.SYSTEM}
+          <div
+            class="flex flex-col gap-2 w-full text-sm items-start whitespace-nowrap p-3"
+          >
+            <span>Module MIDI Channel</span>
+            <div class="flex w-full" data-testid="system-midi-channel">
+              <MeltSelect
+                options={midiChannelOptions}
+                bind:target={midiChannelDisplay}
+                size="full"
+              />
             </div>
           </div>
         {/if}
