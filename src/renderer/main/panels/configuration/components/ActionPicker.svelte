@@ -265,10 +265,10 @@
 
     //Sort components by category
     const sorting_array = [
-      "code",
       "midi",
       "led",
       "hid",
+      "code",
       "element settings",
       "special",
       "variables",
