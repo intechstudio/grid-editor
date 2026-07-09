@@ -134,8 +134,7 @@ body {
 }
 
 /* 
-  Mixpanel img-transport tracking pixels must never intercept pointer events
-  This is required for the test suite to run.
+  Mixpanel img-transport tracking pixels must never intercept pointer events. This is required for the test suite to run.
 */
 img[src*="mixpanel.com"] {
   pointer-events: none !important;
