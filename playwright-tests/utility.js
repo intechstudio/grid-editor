@@ -6,11 +6,6 @@ export async function initializeBrowserContext() {
   const browser = await chromium.launch();
   const context = await browser.newContext();
 
-  // Abort all outbound requests to external hosts.  On CI these connections
-  // (mixpanel, GitHub, YouTube, …) can hang indefinitely and exhaust test
-  // retries, pushing the job past the 30-minute timeout.
-  await context.route(/^https?:\/\/(?!localhost)/, (route) => route.abort());
-
   const page = await context.newPage();
 
   await page.addInitScript(() => {

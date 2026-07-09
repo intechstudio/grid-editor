@@ -6,8 +6,7 @@ const configuration = window.ctxProcess.configuration();
 
 const isWebBuild = import.meta.env.VITE_BUILD_TARGET === "web";
 // Set VITE_IS_TEST=true in the environment that starts the Vite dev server
-// (e.g. in the CI workflow step that runs `npx playwright test`) to suppress
-// outbound img-transport requests that hang on CI and cause test timeouts.
+// and return early before initializing mixpanel in test environment
 const isTestEnv = import.meta.env.VITE_IS_TEST === "true";
 
 let _initialized = false;

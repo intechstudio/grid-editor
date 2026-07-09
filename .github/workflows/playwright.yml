@@ -37,9 +37,7 @@ jobs:
       - name: Run Playwright tests
         env:
           CI: true
-          # Tells the Vite dev server (spawned by Playwright webServer) to skip
-          # mixpanel img-transport requests, which hang on CI and cause test
-          # timeouts by exhausting retries over 20+ minutes.
+          # Flag to disallow specific (e.g. MIXPANEL) services from starting in test mode
           VITE_IS_TEST: "true"
         run: npx playwright test
       - uses: actions/upload-artifact@v4
