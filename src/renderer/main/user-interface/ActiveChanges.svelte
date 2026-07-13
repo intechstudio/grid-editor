@@ -89,6 +89,8 @@
     }
   }
 
+  $: noModules = $runtime.modules.length === 0;
+
   function clearOverlays() {
     if (
       [
@@ -346,6 +348,7 @@
           text={selectedLabel}
           style="normal"
           click={() => {}}
+          disabled={noModules}
           grouped={true}
         />
       </div>
