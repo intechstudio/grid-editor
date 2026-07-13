@@ -271,11 +271,11 @@
       "code",
       "element settings",
       "special",
+      "timer",
+      "function",
       "variables",
       "condition",
-      "function",
       "loop",
-      "timer",
       "deprecated",
     ];
     comp.sort(function (a, b) {
