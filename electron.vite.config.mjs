@@ -10,7 +10,6 @@ export default defineConfig({
     optimizeDeps: {
       include: ["esm-dep > cjs-dep"],
     },
-
     build: {
       rollupOptions: {
         input: {

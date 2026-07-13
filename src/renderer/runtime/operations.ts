@@ -1,4 +1,8 @@
 import { Analytics } from "./analytics";
+import {
+  clearDirFiles,
+  pageNumberToFolderPath,
+} from "../main/panels/FileManager/FileManager";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { logger } from "./runtime.store";
 import { selected_actions } from "./selected-actions.store";
@@ -372,11 +376,21 @@ export async function loadProfile(
     payload: {},
     mandatory: false,
   });
+
+  const module = target.parent as GridModule;
+
+  if (profile.files && profile.files?.length > 0) {
+    // consider adding this to path where profile does not have files
+    const folderPath = pageNumberToFolderPath(target.pageNumber);
+    await clearDirFiles(folderPath, module);
+    // upload files to module
+    await target.sendFiles(profile.files, setStatus);
+  }
+
   return target
-    .loadProfile(profile, setStatus)
+    .sendProfile(profile, setStatus)
     .then(() => {
       const ui = get(user_input);
-      const module = target.parent as GridModule;
       if (ui.dx !== module.dx || ui.dy !== module.dy) {
         user_input.set({
           dx: module.dx,
@@ -386,7 +400,6 @@ export async function loadProfile(
           eventtype: ui.eventtype,
         });
       }
-
       configTour.createTourFromProfile(profile, module);
       return Promise.resolve();
     })

@@ -13,6 +13,7 @@
   import { logger } from "../../../runtime/runtime.store";
   import {
     user_input,
+    UserInput,
     type UserInputValue,
   } from "./../../../runtime/user-input.store";
 
@@ -33,6 +34,11 @@
     selectedConfigStore,
   } from "./ProfileCloud";
   import { Grid } from "../../../lib/_utils";
+  import {
+    fetchDirEntries,
+    fetchFileContent,
+    pageNumberToFolderPath,
+  } from "../FileManager/FileManager";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -209,7 +215,7 @@
       return Promise.reject(ProfileCloud.ErrorText.NO_DEVICE);
     }
 
-    const ui = get(user_input);
+    const ui: UserInput = get(user_input);
     const configType = event.data.configType;
     const id = uuidv4();
 
@@ -230,8 +236,30 @@
       case "profile": {
         const page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
         await page.load();
+
         if (!page.isValid()) {
           return Promise.reject(ProfileCloud.ErrorText.SYNTAX_ERROR);
+        }
+
+        // Get files from the selected module, under given page folder. NO recursion / traversal.
+        const pageFolderPath = pageNumberToFolderPath(ui.pagenumber);
+        const activeModule = active.findModule(ui.dx, ui.dy);
+        const fileEntries = await fetchDirEntries(pageFolderPath, activeModule);
+        const files: { name: string; content: string }[] = [];
+
+        for (const entry of fileEntries) {
+          if (entry.type !== "file") {
+            continue;
+          }
+          const content = await fetchFileContent(
+            `${pageFolderPath}${entry.name}`,
+            activeModule,
+            512,
+          );
+          files.push({
+            name: entry.name,
+            content,
+          });
         }
 
         config.type = (page.parent as GridModule).type;
@@ -246,6 +274,7 @@
             }),
           };
         });
+        config.files = files;
         config.name = `New ${config.type} config`;
         break;
       }
