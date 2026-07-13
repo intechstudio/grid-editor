@@ -219,8 +219,9 @@ function EncoderElement:encoder_mode(value) end
 function EncoderElement:encoder_state() end
 
 ---Returns the encoder velocity.
+---@param value? integer If provided, sets the velocity
 ---@return integer velocity Rotation velocity
-function EncoderElement:encoder_velocity() end
+function EncoderElement:encoder_velocity(value) end
 
 ---Returns (or sets) the encoder sensitivity.
 ---@param value? integer If provided, sets the sensitivity
