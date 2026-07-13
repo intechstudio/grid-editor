@@ -4,6 +4,11 @@
   import { Grid } from "../../lib/_utils";
   import { appSettings } from "../../runtime/app-helper.store";
   import { MonacoEditor } from "../../lib/monaco";
+  import { editor as monacoEditor, Uri } from "monaco-editor";
+  import {
+    openEditorContext,
+    closeEditorContext,
+  } from "../../lib/monaco-luals-client";
   import { GridAction, ActionData, GridEvent } from "../../runtime/runtime";
   import { updateAction } from "../../runtime/operations";
 
@@ -14,12 +19,19 @@
   // Autocomplete scope (element type), passed through to Monaco.
   export let restrictScope: ElementType | undefined = undefined;
   export let readOnly = false;
+  // Fixed editor height in lines for inline code editors.
+  export let lineCount: number | undefined = undefined;
   // Show the line-number gutter. Disabled for the compact in-action-block editor.
   export let lineNumbers = true;
   // Wrap long lines. When false, lines scroll horizontally instead.
   export let wordWrap = true;
   // Show autocomplete suggestions while typing. Disabled for the inline editor.
   export let suggestions = true;
+  // Wire this editor up to the Lua language server: opens a per-editor context
+  // document (typing `self`/`element`/`ele` as the element subclass) and backs
+  // the editor with a `.lua`-URI model so LuaLS provides stdlib + custom API
+  // hover/completion. Off by default; the full-screen modal opts in.
+  export let luals = false;
   // Initial editor text (expanded form) overriding the action's committed
   // script — used to carry uncommitted inline edits into the modal.
   export let initialValue: string | undefined = undefined;
@@ -35,12 +47,20 @@
   let monaco_block: HTMLElement;
   let commited = { script: "", name: "" };
   let disposables: { dispose: () => void }[] = [];
+  // LuaLS-backed editor state (only populated when `luals` is true).
+  let lualsContextUri: string | null = null;
+  let editorModel: ReturnType<typeof monacoEditor.createModel> | null = null;
+  let editorHeight = 0;
+  let editorVerticalPadding: number | null = null;
 
   // Thrown for the script-length limit so it can be told apart from parse errors.
   class LengthError extends String {}
 
   $: if (editor) {
     editor.updateOptions({ fontSize: $appSettings.persistent.fontSize });
+    if (lineCount !== undefined) {
+      updateEditorHeight();
+    }
   }
 
   $: if (editor) {
@@ -79,15 +99,39 @@
     commited.script = action.script;
     scriptLength = (action.parent as GridEvent).toLua().length;
 
+    const value = initialValue ?? GridScript.expandScript(action.script);
+
+    if (luals) {
+      // Register the element-scoped context document so LuaLS types
+      // `self`/`element`/`ele` for completion and hover.
+      lualsContextUri = await openEditorContext(restrictScope ?? "");
+
+      // Back the editor with a model that has a `.lua` URI so LuaLS recognises
+      // it as a Lua file and provides stdlib (print, string, …) hover/completion
+      // alongside our custom API. An inmemory:// model is treated as unknown.
+      const modelUri = Uri.parse(
+        `file:///grid-editor/editor-${Date.now()}.lua`,
+      );
+      editorModel = monacoEditor.createModel(value, "intech_lua", modelUri);
+    }
+
     editor = MonacoEditor.create(monaco_block, {
-      value: initialValue ?? GridScript.expandScript(action.script),
-      language: "intech_lua",
+      ...(editorModel
+        ? { model: editorModel }
+        : { value, language: "intech_lua" }),
       theme: $appSettings.persistent.lightMode
         ? MonacoEditor.Theme.LIGHT
         : MonacoEditor.Theme.DARK,
       fontSize: $appSettings.persistent.fontSize,
       restrictScope,
       readOnly,
+      // Ctrl/Cmd+S commits the editor, no-op'ing when there's nothing to
+      // commit or an unresolved error (matches the disabled Commit button).
+      onSave: () => {
+        if (!readOnly && commitEnabled && !errorMessage) {
+          commit();
+        }
+      },
       folding: false,
       renderLineHighlight: "none",
       contextmenu: false,
@@ -95,9 +139,10 @@
       automaticLayout: true,
       wordWrap: wordWrap ? "on" : "off",
       suggest: {
-        showIcons: false,
+        showIcons: true,
         showWords: true,
       },
+      fixedOverflowWidgets: true,
       quickSuggestions: suggestions,
       suggestOnTriggerCharacters: suggestions,
       minimap: { enabled: false },
@@ -113,6 +158,11 @@
     });
 
     disposables.push(editor.onDidChangeModelContent(handleContentChange));
+
+    if (lineCount !== undefined) {
+      disposables.push(editor.onDidContentSizeChange(updateEditorHeight));
+      updateEditorHeight();
+    }
 
     // An override may differ from the committed script, so reflect that as
     // unsaved changes right away.
@@ -141,7 +191,9 @@
 
   onDestroy(() => {
     disposables.forEach((d) => d.dispose());
+    if (lualsContextUri) closeEditorContext(lualsContextUri);
     editor?.dispose();
+    editorModel?.dispose();
   });
 
   // Validate the current editor content and recompute commit/error state.
@@ -149,7 +201,7 @@
   // length, then restored — it is not actually changed until commit().
   function handleContentChange() {
     try {
-      const compressed = GridScript.compressScript(editor.getValue());
+      const compressed = GridScript.compressScript(editor?.getValue() ?? "");
       $action.script = compressed;
       $action.name =
         name !== $action?.information.displayName ? name : undefined;
@@ -171,6 +223,20 @@
     $action.script = commited.script;
   }
 
+  function updateEditorHeight() {
+    if (!editor || lineCount === undefined) return;
+    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight);
+    if (editorVerticalPadding === null) {
+      const modelLineCount = editor.getModel()?.getLineCount() ?? 1;
+      editorVerticalPadding = Math.max(
+        editor.getContentHeight() - modelLineCount * lineHeight,
+        0,
+      );
+    }
+    editorHeight = lineCount * lineHeight + editorVerticalPadding;
+    editor.layout({ width: monaco_block.clientWidth, height: editorHeight });
+  }
+
   function handleNameChange(value: string | undefined) {
     if (!editor) return;
     if (value === action?.information.displayName) return;
@@ -187,7 +253,7 @@
       action,
       new ActionData(
         action.short,
-        GridScript.compressScript(editor.getValue()),
+        GridScript.compressScript(editor?.getValue() ?? ""),
         name !== $action?.information.displayName ? name : undefined,
       ),
       true,
@@ -199,4 +265,21 @@
   }
 </script>
 
-<div bind:this={monaco_block} class="flex w-full h-full" />
+<div
+  bind:this={monaco_block}
+  class="relative flex w-full"
+  class:h-full={lineCount === undefined}
+  style={lineCount !== undefined ? `height: ${editorHeight}px` : undefined}
+></div>
+
+<style>
+  /* The editor theme's background is transparent (`editor.background`) so the
+     surrounding container's own background shows through. Monaco's sticky
+     scroll widget (pinned scope headers while scrolling) inherits that same
+     transparent color by default, so scrolled-past code shows through behind
+     the pinned lines. Force it opaque, matching the container background,
+     so the sticky lines actually occlude the content scrolling beneath them. */
+  :global(.monaco-editor .sticky-widget .sticky-widget-lines-scrollable) {
+    background-color: var(--background-muted) !important;
+  }
+</style>

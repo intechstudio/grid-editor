@@ -24,3 +24,4 @@ src/electron/main.ts
 # Local agent guides (symlinks to ~/Documents/productivity/agents)
 AGENTS.md
 CLAUDE.md
+build-assets/lua-language-server*

@@ -10,15 +10,20 @@ async function initApp() {
   try {
     // Initialize the Lua formatter WASM module
     await initLuaFormatter();
+  } catch (err) {
+    console.warn(
+      "Lua formatter WASM initialization failed, formatting features will be unavailable:",
+      err,
+    );
+  }
 
-    // Initialize the config block registry (built-in blocks are eager, package component is lazy)
-    await init_config_block_library();
+  // Initialize the config block registry (built-in blocks are eager, package component is lazy)
+  await init_config_block_library();
 
-    // Initialize the Svelte app after the configuration is ready
-    app = mount(App, {
-      target: document.body,
-    });
-  } catch (err) {}
+  // Initialize the Svelte app after the configuration is ready
+  app = mount(App, {
+    target: document.body,
+  });
 }
 
 // Call the function to initialize the app

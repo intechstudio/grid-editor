@@ -182,8 +182,11 @@
     clickedOutside = true;
   }
 
-  // Ctrl/Cmd+S commits the editor by triggering the Commit button, which
-  // no-ops on its own when disabled. Scoped to this modal's content subtree.
+  // Ctrl/Cmd+S commits the editor when focus is somewhere in the modal but
+  // outside Monaco (e.g. the Name field). Triggers the Commit button, which
+  // no-ops on its own when disabled. Focus inside Monaco is handled
+  // separately by CodeEditor's `onSave` Monaco command, since a DOM listener
+  // here can't observe keydowns that originate inside the editor.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
@@ -295,6 +298,7 @@
         action={monaco_action}
         restrictScope={element?.type}
         initialValue={initial_value}
+        luals
       />
     </div>
 
@@ -319,16 +323,8 @@
   </div>
 </MoltenModal>
 
-<style global>
-  .monaco-editor .suggest-widget {
-    width: 250px !important;
-    overflow: hidden !important;
-  }
-  .line-editor .monaco-editor .suggest-widget {
-    position: absolute !important;
-    left: 0 !important;
-  }
+<!-- <style global>
   #monaco-container .monaco-editor {
     position: absolute !important;
   }
-</style>
+</style> -->

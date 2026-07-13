@@ -1,8 +1,19 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { sveltePreprocess } from "svelte-preprocess";
 import path, { resolve } from "path";
+import { realpathSync } from "fs";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
+  // Resolve symlinked packages (e.g. npm link) so Vite can serve their files
+  let gridProtocolRealPath;
+  try {
+    gridProtocolRealPath = realpathSync(
+      resolve(__dirname, "node_modules/@intechstudio/grid-protocol"),
+    );
+  } catch {
+    // Package not linked, no extra fs.allow needed
+  }
+
   return {
     plugins: [
       svelte({
@@ -26,17 +37,37 @@ export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
     },
     root: resolve(__dirname, "src/renderer"),
     resolve: {
+      preserveSymlinks: false,
+      dedupe: ["@intechstudio/grid-protocol"],
       alias: {
+        // Redirect @wasm-fmt/lua_fmt to the Vite-compatible entry that uses ?url for WASM
+        "@wasm-fmt/lua_fmt": "@wasm-fmt/lua_fmt/vite",
+        // Route all monaco-editor imports through @codingame/monaco-vscode-editor-api
+        // so the VSCode service-backed API is used (required by monaco-languageclient).
+        "monaco-editor": "@codingame/monaco-vscode-editor-api",
         $lib: path.resolve("src/renderer/lib"),
         "$app/environment": path.resolve(
           "src/renderer/lib/app-environment-shim.ts",
         ),
       },
     },
+    server: {
+      port: 5273,
+      fs: {
+        allow: [
+          // Allow serving files from the project root
+          resolve(__dirname),
+          // Allow serving files from symlinked packages (npm link)
+          ...(gridProtocolRealPath ? [gridProtocolRealPath] : []),
+        ],
+      },
+    },
     target: "chrome104",
     envPrefix: "VITE_",
+    worker: {
+      format: "es",
+    },
     optimizeDeps: {
-      exclude: ["@intechstudio/grid-protocol"],
       esbuildOptions: {
         plugins: [
           {

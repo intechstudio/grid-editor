@@ -179,6 +179,7 @@
             title=" "
             value={segment.name}
             validator={validators[i].func}
+            valueInfoEnabled={false}
             on:input={(e) => {
               const { value, validationError } = e.detail;
               segment.name = value;
@@ -202,6 +203,8 @@
             {restrictScopeTo}
             value={segment.value}
             {availableCharacters}
+            luals
+            lualsExpressionOnly
           />
         </div>
 
