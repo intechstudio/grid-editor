@@ -1646,6 +1646,10 @@ export class GridPage extends RuntimeNode<PageData> {
             return data;
           });
         }
+        // Clearing wipes the config (including any name action) and restarts
+        // the module, so the cached name must not survive — drop it and let the
+        // module regenerate the default (mirrors resetDefault()/unload()).
+        element.resetName();
       }
     });
     this.notify();

@@ -36,6 +36,11 @@
     pasteActions,
     updateAction,
   } from "../../../runtime/operations";
+  import {
+    moduleMidiChannelState,
+    writeModuleMidiChannel,
+    type ModuleMidiChannelState,
+  } from "../../../runtime/system-midi-channel";
   import { isPasteActionsEnabled } from "./components/Toolbar";
   import {
     MeltRadio,
@@ -60,6 +65,10 @@
 
   let container: HTMLElement;
   let elementName: string = "";
+  // Last name we applied/read back. The reactive below only writes when
+  // elementName differs from this, so a read-back (which sets both in lockstep
+  // via setElementNameDisplay) never triggers a write or a spurious insert.
+  let _lastElementName: string = "";
 
   onDestroy(() => {
     appSettings.update((store) => {
@@ -70,7 +79,18 @@
 
   $: handleContextChange($user_input, $runtime_manager);
 
-  $: handleElementNameChange(elementName);
+  // Fires only when elementName changes from a real user edit — read-backs set
+  // _lastElementName in lockstep, so they compare equal and skip (no write, no
+  // spurious `self:gen("")` insert just from navigating between elements).
+  $: if (elementName !== _lastElementName) {
+    _lastElementName = elementName;
+    handleElementNameChange(elementName);
+  }
+
+  function setElementNameDisplay(value: string) {
+    elementName = value;
+    _lastElementName = value;
+  }
 
   function handleElementNameChange(value: string | undefined) {
     if (typeof element === "undefined") {
@@ -81,18 +101,32 @@
 
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
 
+    // Mutate the local model only while typing — the grid push is deferred to
+    // handleElementNameCommit (on blur/enter) so we don't sync every keystroke.
     if (setup.actionAt(0)?.short !== elementNameInformation.short) {
+      // No name action yet — only create one for a non-empty name (an empty
+      // name means "no name", so there is nothing to insert).
+      if (value.length === 0) {
+        return;
+      }
       const data = new ActionData(
         elementNameInformation.short,
         generateScript(value),
       );
-      setup.insert(0, new GridAction(setup, data));
+      setup.insert(0, new GridAction(setup, data)).catch(console.error);
       return;
     }
 
     const action = setup.actionAt(0);
-    const regex = elementNameInformation.valueRegex;
-    const name = action.script.match(regex)[1];
+
+    // Empty name — just remove the action (no point updating it beforehand).
+    if (value.length === 0) {
+      setup.remove(action).catch(console.error);
+      return;
+    }
+
+    const match = action.script.match(elementNameInformation.valueRegex);
+    const name = match ? match[1] : "";
 
     if (name !== value) {
       const data = new ActionData(
@@ -100,54 +134,47 @@
         generateScript(value),
       );
 
-      updateAction(action, data, true);
-    }
-
-    if (value.length === 0) {
-      setup.remove(action);
-      setup.sendToGrid();
+      updateAction(action, data, false);
     }
   }
 
+  // Push the element's name to the grid once, on commit (blur/enter), rather
+  // than on every keystroke. Mirrors how the ElementName block syncs on change.
+  function handleElementNameCommit() {
+    if (typeof element === "undefined") {
+      return;
+    }
+    element.findEvent(EventTypeToNumber(EventType.SETUP))?.sendToGrid();
+  }
+
   function handleElementChange(element: GridElement) {
-    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
-    const action = setup.actionAt(0);
+    refreshElementNameDisplay(element);
+  }
+
+  // Recompute the panel's name field from the element's Setup action-0. Read
+  // only — sets elementName and _lastElementName in lockstep so it never
+  // triggers a write. Runs on navigation and (reactively) on live edits, so
+  // editing the ElementName action block reflects into the field instantly.
+  function refreshElementNameDisplay(el: GridElement | undefined) {
+    if (typeof el === "undefined" || !el.isLoaded()) {
+      return;
+    }
+
+    const setup = el.findEvent(EventTypeToNumber(EventType.SETUP));
+    const action = setup?.actionAt(0);
 
     if (action?.short === elementNameInformation.short) {
-      const regex = elementNameInformation.valueRegex;
-      const value = action.script.match(regex)[1];
+      // Null-safe: a hand-edited sn script that doesn't match reads as empty
+      // rather than throwing (this runs on every element-store emission).
+      const match = action.script.match(elementNameInformation.valueRegex);
+      const value = match ? match[1] : "";
       if (value !== elementName) {
-        elementName = value;
-        element.name = value;
+        setElementNameDisplay(value);
+        el.name = value;
       }
-    } else {
-      elementName = "";
+    } else if (elementName !== "") {
+      setElementNameDisplay("");
     }
-
-    // Read back MIDI channel for system element — always reset first
-    let readbackChannel: number | null = null;
-
-    if (element.type === ElementType.SYSTEM && setup) {
-      const fstIndex = findMidiAutoChBlock(setup);
-      if (fstIndex !== -1) {
-        const fenIndex = setup.config.findIndex(
-          (a, i) => i > fstIndex && a.short === "fen",
-        );
-        const endIndex = fenIndex !== -1 ? fenIndex : setup.config.length;
-        const cbAction = setup.config.find(
-          (a, i) =>
-            i > fstIndex &&
-            i < endIndex &&
-            a.short === "cb" &&
-            MIDI_AUTO_CH_CB_REGEX.test(a.script),
-        );
-        const match = cbAction?.script?.match(MIDI_AUTO_CH_CB_REGEX);
-        readbackChannel = match ? Number(match[1]) + 1 : null;
-      }
-    }
-
-    systemMidiChannel = readbackChannel;
-    setMidiDisplay(readbackChannel);
   }
 
   function handleContextChange(
@@ -193,111 +220,25 @@
   }
 
   // --- System MIDI Channel ---
-  const MIDI_AUTO_CH_FST_SCRIPT = "midi_auto_ch = function(self)"; // humanized form (spaces)
-  const MIDI_AUTO_CH_FST_SCRIPT_SHORT = "midi_auto_ch=function(self)"; // shortified form (no spaces, from hardware)
-  const MIDI_AUTO_CH_CB_REGEX = /^return (\d+)$/;
+  // All parse/serialize logic lives in runtime/system-midi-channel.ts. This
+  // component only maps between that state and the dropdown's string value.
 
   let containerWidth: number;
-  let systemMidiChannel: number | null = null;
 
-  function findMidiAutoChBlock(setup: GridEvent): number {
-    return setup.config.findIndex(
-      (a) =>
-        a.short === "fst" &&
-        (a.script === MIDI_AUTO_CH_FST_SCRIPT ||
-          a.script === MIDI_AUTO_CH_FST_SCRIPT_SHORT),
+  function handleSystemMidiChannelChange(value: number | null) {
+    if (typeof element === "undefined" || element.type !== ElementType.SYSTEM) {
+      return;
+    }
+    // Dropdown is 1-based; the stored Lua channel is 0-based. null = Auto.
+    writeModuleMidiChannel(
+      element.parent as GridPage,
+      value === null ? null : value - 1,
     );
   }
 
-  function handleSystemMidiChannelChange(value: number | null) {
-    if (typeof element === "undefined") return;
-    if (element.type !== ElementType.SYSTEM) return;
-
-    const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
-    if (!setup) return;
-    const fstIndex = findMidiAutoChBlock(setup);
-
-    if (value === null) {
-      // Auto selected — remove fst + everything up to and including its fen
-      if (fstIndex !== -1) {
-        const fenIndex = setup.config.findIndex(
-          (a, i) => i > fstIndex && a.short === "fen",
-        );
-        const endIndex = fenIndex !== -1 ? fenIndex + 1 : fstIndex + 1;
-        // Snapshot the actions to remove before modifying config
-        const actionsToRemove = [...setup.config.slice(fstIndex, endIndex)];
-        // Remove one by one to avoid partial-remove rejections
-        const removeSequentially = async () => {
-          for (const action of actionsToRemove) {
-            // Re-check it's still in config (it may have already been removed)
-            if (setup.config.includes(action)) {
-              await setup.remove(action).catch(console.error);
-            }
-          }
-          await setup.sendToGrid();
-        };
-        removeSequentially();
-      }
-      return;
-    }
-
-    // channel is 1-based from dropdown, Lua return value is 0-based
-    const returnVal = value - 1;
-    const cbScript = `return ${returnVal}`;
-
-    if (fstIndex !== -1) {
-      // Function block exists — find the first cb with our return pattern
-      // between fst and fen, or insert one right after fst
-      const fenIndex = setup.config.findIndex(
-        (a, i) => i > fstIndex && a.short === "fen",
-      );
-      const endIndex = fenIndex !== -1 ? fenIndex : setup.config.length;
-      const cbIndex = setup.config.findIndex(
-        (a, i) =>
-          i > fstIndex &&
-          i < endIndex &&
-          a.short === "cb" &&
-          MIDI_AUTO_CH_CB_REGEX.test(a.script),
-      );
-      if (cbIndex !== -1) {
-        // Matching cb found — update it
-        const cbAction = setup.config[cbIndex];
-        const data = new ActionData("cb", cbScript, cbAction.name);
-        updateAction(cbAction, data, true);
-      } else {
-        // No matching cb — insert a new one right after fst
-        const newCb = new GridAction(
-          setup as GridEvent,
-          new ActionData("cb", cbScript),
-        );
-        (setup as GridEvent)
-          .insert(fstIndex + 1, newCb)
-          .then(() => (setup as GridEvent).sendToGrid())
-          .catch(console.error);
-      }
-    } else {
-      // Insert 3 new blocks at index 0
-      const fstAction = new GridAction(
-        setup as GridEvent,
-        new ActionData("fst", MIDI_AUTO_CH_FST_SCRIPT),
-      );
-      const cbAction = new GridAction(
-        setup as GridEvent,
-        new ActionData("cb", cbScript),
-      );
-      const fenAction = new GridAction(
-        setup as GridEvent,
-        new ActionData("fen", "end"),
-      );
-      (setup as GridEvent)
-        .insert(0, fstAction, cbAction, fenAction)
-        .then(() => (setup as GridEvent).sendToGrid())
-        .catch(console.error);
-    }
-  }
-
   const MIDI_AUTO_SENTINEL = "auto";
-  const midiChannelOptions = [
+  const MIDI_CUSTOM_SENTINEL = "custom";
+  const baseMidiChannelOptions = [
     { title: "Auto", value: MIDI_AUTO_SENTINEL },
     ...Array.from({ length: 16 }, (_, i) => ({
       title: `Channel ${i + 1}`,
@@ -305,24 +246,68 @@
     })),
   ];
 
+  // Append a display-only "Custom" entry while the block holds hand-written
+  // code, so MeltSelect renders it instead of going blank (a blank select
+  // would write `undefined` back through bind:target → `return NaN`).
+  $: midiChannelOptions =
+    midiChannelDisplay === MIDI_CUSTOM_SENTINEL
+      ? [
+          ...baseMidiChannelOptions,
+          { title: "Expression", value: MIDI_CUSTOM_SENTINEL },
+        ]
+      : baseMidiChannelOptions;
+
   // String target for MeltSelect — always a string, never null.
   // Updated programmatically by setMidiDisplay(); mutated by MeltSelect on user pick.
   let midiChannelDisplay: string = MIDI_AUTO_SENTINEL;
-  let _midiDisplayUpdating = false;
+  // Last value we applied/read back. The reactive block below only fires a
+  // hardware write when midiChannelDisplay differs from this, so a read-back
+  // (which sets both) never triggers a write or removal.
+  let _lastMidiDisplay: string = MIDI_AUTO_SENTINEL;
 
-  function setMidiDisplay(value: number | null) {
-    _midiDisplayUpdating = true;
-    midiChannelDisplay = value === null ? MIDI_AUTO_SENTINEL : String(value);
-    _midiDisplayUpdating = false;
+  function setMidiDisplay(display: string) {
+    midiChannelDisplay = display;
+    _lastMidiDisplay = display;
   }
 
-  // Fires whenever MeltSelect mutates midiChannelDisplay.
-  // Guard skips it when setMidiDisplay() is the one changing it.
-  $: if (!_midiDisplayUpdating) {
-    handleSystemMidiChannelChange(
-      midiChannelDisplay === MIDI_AUTO_SENTINEL
-        ? null
-        : Number(midiChannelDisplay),
+  // Fires only when MeltSelect mutates midiChannelDisplay from a user pick —
+  // read-backs set _lastMidiDisplay in lockstep, so they compare equal and skip.
+  $: if (midiChannelDisplay !== _lastMidiDisplay) {
+    _lastMidiDisplay = midiChannelDisplay;
+    // "custom" is display-only, and a stray non-numeric value must never write
+    // `return NaN` — only Auto or a real channel number reaches the hardware.
+    if (midiChannelDisplay !== MIDI_CUSTOM_SENTINEL) {
+      const value =
+        midiChannelDisplay === MIDI_AUTO_SENTINEL
+          ? null
+          : Number(midiChannelDisplay);
+      if (value === null || Number.isInteger(value)) {
+        handleSystemMidiChannelChange(value);
+      }
+    }
+  }
+
+  // $element re-emits whenever a descendant action changes, so editing the
+  // ElementName block updates the name field instantly (not just on navigation).
+  $: ($element, refreshElementNameDisplay(element));
+
+  // Config-derived channel for the selected element's page. Derives from the
+  // system element's SETUP event store, so it tracks every config change —
+  // including Clear (resetToDefaults notifies inside a batch that the $element
+  // reactive would miss). setMidiDisplay sets display + _lastMidiDisplay in
+  // lockstep, so applying a read-back never triggers a write back.
+  $: midiChannelState = moduleMidiChannelState(
+    element ? (element.parent as GridPage) : undefined,
+  );
+  $: applyMidiChannelState($midiChannelState);
+
+  function applyMidiChannelState(state: ModuleMidiChannelState) {
+    setMidiDisplay(
+      state.kind === "channel"
+        ? String(state.value + 1)
+        : state.kind === "custom"
+          ? MIDI_CUSTOM_SENTINEL
+          : MIDI_AUTO_SENTINEL,
     );
   }
 
@@ -521,7 +506,10 @@
           >
             <span>Element Name</span>
             <div class="flex w-full" data-testid="element-name-input-field">
-              <MoltenInput bind:target={elementName} />
+              <MoltenInput
+                bind:target={elementName}
+                on:change={handleElementNameCommit}
+              />
             </div>
           </div>
         {/if}
