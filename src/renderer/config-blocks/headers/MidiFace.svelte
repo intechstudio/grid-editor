@@ -67,14 +67,14 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
   class="flex items-center flex-row w-full pr-2"
-  style="background-color: {action.information.color}"
+  style="background-color: var(--background-muted)"
   on:click={handleClick}
 >
   <div
-    class="grid grid-cols-[auto_1fr_auto] gap-2 items-center justify-center h-full w-full py-1"
+    class="grid grid-cols-[auto_1fr_auto] gap-2 pl-2 items-center justify-center h-full w-full py-1"
   >
-    <slot name="name" />
     <InfoBox value={`${getDisplayValues($action)}`} />
+    <div></div>
     <slot name="edit-name-trigger" />
   </div>
 </div>

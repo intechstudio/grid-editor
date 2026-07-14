@@ -18,8 +18,8 @@
 
 <div class="w-full h-full" use:watchResize={resize}>
   <div
-    style="background-color: var(--background); color: var(--foreground);"
-    class="w-full h-full"
+    style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
+    class="w-[99%] h-full"
   >
     <Configuration />
   </div>

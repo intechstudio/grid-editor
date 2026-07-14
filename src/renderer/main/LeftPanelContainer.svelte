@@ -13,8 +13,8 @@
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
 <div
-  style="background-color: var(--background); color: var(--foreground);"
-  class="w-full h-full"
+  style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
+  class="w-full h-full overflow-hidden"
 >
   {#if leftPanel == "file-manager"}
     <FileManager />

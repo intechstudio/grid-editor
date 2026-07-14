@@ -197,7 +197,7 @@
           animate:reflow={{ duration: 300, easing: eases.cubicOut }}
           in:fade|global={{ delay: 0 }}
         >
-          <div class="flex flex-row gap-2">
+          <div class="flex flex-row gap-4">
             {#key $latestComponentVersionKeys.get(action.short)}
               <DynamicWrapper
                 {index}

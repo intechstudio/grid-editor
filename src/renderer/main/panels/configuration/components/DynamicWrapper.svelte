@@ -240,6 +240,7 @@
     }
   }}
   class="dynamicWrapper activator-button flex flex-grow min-w-0 outline-none"
+  style="background-color: var(--background); color: var(--foreground); "
   class:cursor-pointer={ctrlIsDown}
 >
   <Indentation level={$action?.indentation ?? 0} />
@@ -282,11 +283,14 @@
     <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
       {#if $action.information.hideIcon !== true}
-        <div
-          style="background-color:{$action.information.color}"
-          class="flex items-center p-2 w-min text-center"
-        >
-          <div class="w-6 h-6 whitespace-nowrap">
+        <div class="flex flex-row justify-center items-center">
+          <div
+            style="background-color:{$action.information.color}"
+            class="flex items-center p-1 w-min text-center h-full"
+          ></div>
+          <div
+            class=" pl-1 w-7 h-7 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
+          >
             {@html $action.information.blockIcon}
           </div>
         </div>

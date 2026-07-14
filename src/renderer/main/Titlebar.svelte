@@ -20,7 +20,7 @@
 </script>
 
 <top-bar
-  style="background-color:rgb(25, 26, 32)"
+  style="background-color: var(--background-soft)"
   class="text-white static top-0 w-full p-1"
 >
   <!-- Editor logo text svg -->

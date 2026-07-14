@@ -47,10 +47,10 @@
 {#if visible}
   <div
     class="{$$props.class} border-2"
-    class:border-transparent={!isSelected && !device?.fwMismatch}
+    class:border-gray-700={!isSelected && !device?.fwMismatch}
     class:border-error={device?.fwMismatch && animationDisabled}
     class:border-white={isSelected && !device?.fwMismatch}
-    class:border-opacity-30={isSelected && !device?.fwMismatch}
+    class:border-opacity-60={isSelected && !device?.fwMismatch}
     class:animate-border-error={device?.fwMismatch && !animationDisabled}
     style={$$props.style}
   >

@@ -259,8 +259,9 @@
 <container
   in:fade={{ delay: 300, duration: 1000 }}
   out:blur={{ duration: 150 }}
+  class="w-full"
 >
-  <div class="flex flex-row justify-center items-center gap-2">
+  <div class="flex flex-row items-center h-full justify-center gap-2 w-full">
     <div class="flex flex-col">
       <div class="mx-4 font-medium">
         {changes} active changes
@@ -294,25 +295,9 @@
         click={() => {}}
         disabled={!isChanges}
         text="Discard All"
+        snap="wide"
       />
     </div>
-    <div
-      use:tooltip={{
-        key: "configuration_header_store",
-        placement: "top",
-        class: "w-60 p-4",
-      }}
-      use:configTour.registerStaticTarget={ConfigTour.Target
-        .StaticElementIdentifier.STORE}
-    >
-      <MoltenPushButton
-        click={handleStore}
-        disabled={!isChanges || !$runtime.isValid()}
-        text="Store"
-        style="accept"
-      />
-    </div>
-
     <BlockRow>
       <MeltSelect
         bind:target={$selectedProfileType}
@@ -338,7 +323,25 @@
         <MoltenPushButton
           text={$selectedProfileType ? "Load" : "Clear"}
           style="normal"
+          snap="wide"
           click={() => {}}
+        />
+      </div>
+      <div
+        use:tooltip={{
+          key: "configuration_header_store",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
+        use:configTour.registerStaticTarget={ConfigTour.Target
+          .StaticElementIdentifier.STORE}
+      >
+        <MoltenPushButton
+          click={handleStore}
+          disabled={!isChanges || !$runtime.isValid()}
+          text="Store"
+          snap="wide"
+          style="accept"
         />
       </div>
     </BlockRow>

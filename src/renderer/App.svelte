@@ -363,9 +363,6 @@
 
         <Pane class="overflow-clip w-full h-full">
           <div class="flex w-full h-full">
-            <div class="absolute top-0 right-0 m-2 z-50">
-              <PanelToggleButton target={"right"} />
-            </div>
             <MiddlePanelContainer />
           </div>
         </Pane>
@@ -390,8 +387,8 @@
   }
 
   .activator-button:focus {
-    border-color: rgb(68, 68, 209) !important;
-    outline-color: rgb(68, 68, 209) !important;
+    border-color: var(--border) !important;
+    outline-color: var(--border) !important;
   }
 
   .splitpanes.modern-theme .splitpanes__pane {
@@ -406,22 +403,24 @@
   }
 
   .splitpanes.modern-theme .splitpanes__splitter {
-    background-color: #4c4c4c;
+    background-color: transparent !important;
+    border: none !important;
     position: relative;
+    min-width: 0 !important;
+    min-height: 0 !important;
   }
   .splitpanes.modern-theme .splitpanes__splitter:before {
     content: "";
     position: absolute;
     left: 0;
     top: 0;
-    transition: opacity 0.3s;
-    background-color: #2db9d2;
-    width: 200;
-    opacity: 0;
+    background-color: transparent !important;
+    width: 4px;
+    opacity: 0 !important;
     z-index: 1;
   }
   .splitpanes.modern-theme .splitpanes__splitter:hover:before {
-    opacity: 1;
+    opacity: 0 !important;
   }
   .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
     z-index: 2;
