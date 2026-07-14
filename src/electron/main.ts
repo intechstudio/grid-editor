@@ -973,7 +973,6 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
-  console.log(arg.url);
   return await shell.openExternal(arg.url);
 });
 
