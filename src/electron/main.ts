@@ -217,6 +217,24 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient("grid-editor");
 }
 
+// Single, reliable way to bring the window back to the foreground, no matter
+// how it was hidden (minimized, tray/dock, or never shown after a "taskbar"/
+// "tray" startup). This is the escape hatch from every hidden startup state:
+// the tray menu/icon, a relaunch (see "second-instance"), and macOS dock
+// activation all route through here.
+function showMainWindow() {
+  if (!mainWindow) {
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.setSkipTaskbar(false);
+  mainWindow.show();
+  mainWindow.focus();
+  mainWindow.webContents.send("trayState", false);
+}
+
 function create_tray() {
   /* ===============================================================================
 // Conde snippet to generate JSON file from PNG. Use this when creating a new icon
@@ -237,12 +255,7 @@ function create_tray() {
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Show",
-      click: function () {
-        mainWindow.setSkipTaskbar(false);
-        mainWindow.show();
-
-        mainWindow.webContents.send("trayState", false);
-      },
+      click: showMainWindow,
     },
     {
       label: "Hide",
@@ -265,6 +278,11 @@ function create_tray() {
   tray.setToolTip("Grid Editor");
   tray.setContextMenu(contextMenu);
   tray.setTitle("Grid Editor");
+
+  // Clicking the tray icon (single click on Windows, double click elsewhere) is
+  // the most discoverable way back to a window hidden in the tray.
+  tray.on("click", showMainWindow);
+  tray.on("double-click", showMainWindow);
 }
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -325,12 +343,7 @@ if (!gotTheLock) {
       // Covers both a minimized window and one hidden to the tray/dock (e.g.
       // when launched with the "taskbar" or "tray" startup window state).
       if (mainWindow) {
-        if (mainWindow.isMinimized()) {
-          mainWindow.restore();
-        }
-        mainWindow.setSkipTaskbar(false);
-        mainWindow.show();
-        mainWindow.focus();
+        showMainWindow();
 
         // Only treat the last arg as a deeplink when it actually is a URL;
         // a plain relaunch passes a file path that new URL() would reject.
@@ -448,14 +461,33 @@ function createWindow() {
   mainWindow.once("ready-to-show", () => {
     switch (store.get("startupWindowState")) {
       case "tray":
-        // Stay hidden in the tray/dock. On Windows/Linux the tray icon is the
-        // way back; on macOS there is no tray but the dock icon remains.
-        if (process.platform !== "darwin") {
+        // "Open hidden in the tray" is only offered on Windows (see the
+        // Preferences radio): macOS has no tray and many Linux desktops lack a
+        // system tray, where hiding would make the app unreachable. Honour the
+        // setting only on Windows; on any other platform a stale/synced "tray"
+        // value falls through to a normal window so the app can't get stuck
+        // hidden with no way back.
+        if (process.platform === "win32") {
           mainWindow.setSkipTaskbar(true);
           mainWindow.webContents.send("trayState", true);
+          // The tray icon is easy to miss (Windows hides new icons in the
+          // overflow area), so tell the user where the window went.
+          if (tray) {
+            tray.displayBalloon({
+              title: "Grid Editor",
+              content:
+                "Grid Editor is running in the background. Click the tray icon to open its window.",
+            });
+          }
+        } else {
+          mainWindow.show();
         }
         break;
       case "taskbar":
+        // Show first so the window is actually mapped, then minimize. Calling
+        // minimize() on a never-shown window leaves no recoverable window on
+        // some compositors (e.g. Wayland/GNOME).
+        mainWindow.show();
         mainWindow.minimize();
         break;
       default:
@@ -1115,8 +1147,10 @@ app.on("window-all-closed", (evt) => {
 
 app.on("activate", () => {
   // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  mainWindow.show();
+  // dock icon is clicked and there are no other windows open. This is also the
+  // way back from a "tray" startup on macOS, where the window is hidden but the
+  // dock icon remains.
+  showMainWindow();
 });
 
 // termination of application, closing the windows, used for macOS hide flag

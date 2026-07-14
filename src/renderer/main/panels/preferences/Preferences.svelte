@@ -19,6 +19,20 @@
   import { Grid } from "../../../lib/_utils";
   const configuration = window.ctxProcess.configuration();
 
+  // "Open hidden in the tray" only works reliably on Windows. macOS has no tray
+  // (only the dock) and many Linux desktops (e.g. GNOME/Wayland) have no system
+  // tray at all, where hiding the window would leave the app unreachable. Show
+  // the option everywhere but disable it off Windows so users can see it exists.
+  const startupWindowStateOptions = [
+    { title: "Open in a normal window", value: "normal" },
+    { title: "Open minimized to the taskbar", value: "taskbar" },
+    {
+      title: "Open hidden in the tray (Windows only)",
+      value: "tray",
+      disabled: window.ctxProcess.platform() !== "win32",
+    },
+  ];
+
   async function selectDirectory() {
     appSettings.update((s) => {
       s.intervalPause = true;
@@ -245,20 +259,7 @@
       </BlockBody>
       <MeltRadio
         bind:target={$appSettings.persistent.startupWindowState}
-        options={[
-          {
-            title: "Open in a normal window",
-            value: "normal",
-          },
-          {
-            title: "Open minimized to the taskbar",
-            value: "taskbar",
-          },
-          {
-            title: "Open hidden in the tray",
-            value: "tray",
-          },
-        ]}
+        options={startupWindowStateOptions}
       />
     </Block>
 
