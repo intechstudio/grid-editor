@@ -109,11 +109,9 @@
 
   function handleProfileLoad() {
     const page = device.findPage(get(user_input).pagenumber);
-    console.log("Page", page);
     const profile = GridProfileData.createFromCloudData($selectedConfigStore);
     loadProfile(profile, page, (e) => {
       ProfileLoadOverlay.viewModel.update((s) => ({ ...s, ...e }));
-      console.log("Model", e, ProfileLoadOverlay.viewModel);
     }).catch((e) => {
       console.warn(e);
     });
@@ -203,10 +201,26 @@
               class:error-element={$model.step == ProfileCloudLoad.State.ERROR}
             >
               {#if $model.step === ProfileCloudLoad.State.BUSY && device.dx == $model.target.parent.dx && device.dy == $model.target.parent.dy}
-                <span
-                  >{Math.round(($model.completed / $model.total) * 100)}%</span
-                >
-                <span class="text-white mr-2">Loading...</span>
+                {#if $model.phase === "files"}
+                  <span class="text-white mr-1">
+                    Uploading file... {Math.min(
+                      $model.completed + 1,
+                      $model.total,
+                    )}/{$model.total}
+                    {#if $model.fileChunkTotal && $model.fileChunkTotal > 1}
+                      {Math.round(
+                        ($model.fileChunkCurrent / $model.fileChunkTotal) * 100,
+                      )}%
+                    {/if}
+                  </span>
+                {:else}
+                  <span class="text-white">Uploading config...</span>
+                  <span
+                    >{Math.round(
+                      ($model.completed / $model.total) * 100,
+                    )}%</span
+                  >
+                {/if}
               {:else if $model.step === ProfileCloudLoad.State.ERROR}
                 <span class="text-white">Error!</span>
               {:else if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}

@@ -9,6 +9,7 @@ export namespace ModuleOverlay {
     PRESET_LOAD = "preset-load-overlay",
     PROFILE_DRAG = "profile-drag-overlay",
     PRESET_DRAG = "preset-drag-overlay",
+    PROFILE_LOAD_PROGRESS = "profile-load-progress-overlay",
   }
 }
 

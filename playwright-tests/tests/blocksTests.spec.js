@@ -38,7 +38,7 @@ test.describe("Issues", () => {
     await configPage.selectAllActions();
     await page
       .getByTestId("action-block")
-      .filter({ hasText: 'Code preview: print("hello")' })
+      .filter({ hasText: 'print("hello")' })
       .getByTestId(/^action-checkbox/)
       .click(); //uncheck codeblock
     await configPage.removeAction();
@@ -307,34 +307,6 @@ test.describe("Input field keyboard shortcuts", () => {
   });
 });
 
-test.describe("Monaco Sugestion", () => {
-  test.beforeEach(async ({ page }) => {
-    connectModulePage = new ConnectModulePage(page);
-    modulePage = new ModulePage(page);
-    configPage = new ConfigPage(page);
-    keyboardActions = new KeyboardActions(page);
-    await page.goto(PAGE_PATH);
-    await connectModulePage.openVirtualModules();
-    await connectModulePage.addModule("BU16");
-    await configPage.turnOffMinimalistMode();
-    await configPage.removeAllActions();
-  });
-  test("correct suggestion is visible once", async ({ page }) => {
-    const code = "button_";
-    await configPage.addAndEditCodeBlock(code);
-    const buttonMax = page.getByLabel("self:button_max");
-    await expect(buttonMax).toHaveCount(1);
-    await expect(buttonMax.first()).toBeVisible();
-  });
-  test("correct suggestion is visible after element[x]", async ({ page }) => {
-    const code = "element[2]:button_";
-    await configPage.addAndEditCodeBlock(code);
-    const buttonMax = page.getByLabel("button_max");
-    await expect(buttonMax).toHaveCount(1);
-    await expect(buttonMax.first()).toBeVisible();
-  });
-});
-
 test.describe("Code block closes Modal", () => {
   test.beforeEach(async ({ page }) => {
     connectModulePage = new ConnectModulePage(page);
@@ -374,19 +346,7 @@ test.describe("Code block closes Modal", () => {
     await configPage.closeCode();
     await expect(await configPage.codeBlockModalDiscardButton).toBeVisible();
   });
-  test("Modal not appear and not closes code editor if monaco suggestion closed by 'esc' key ", async ({
-    page,
-  }) => {
-    const code = "button_";
-    await configPage.addAndEditCodeBlock(code);
-    const buttonMax = page.getByLabel("self:button_max");
-    await buttonMax.waitFor({ state: "visible" });
-    await keyboardActions.esc();
-    await expect(await configPage.commitCodeButton).toBeVisible();
-    await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
-  });
-
-  test("Modal not appear if no cahnges", async () => {
+  test("Modal not appear if no changes", async () => {
     await configPage.addAndEditCodeBlock(`print("hello")`);
     await configPage.closeCode();
     await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();

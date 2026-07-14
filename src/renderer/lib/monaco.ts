@@ -1,15 +1,22 @@
-// Worker setup — must be imported before any monaco-editor usage
-import "./monaco-workers";
+// Service initialization — must be imported before any monaco-editor usage.
+// monacoReady resolves once all VSCode services are set up.
+import { monacoReady } from "./monaco-init";
 
 import {
   editor as monaco_editor,
   languages as monaco_languages,
-  Position,
+  KeyMod,
+  KeyCode,
 } from "monaco-editor";
 import { TabFocus } from "monaco-editor/esm/vs/editor/browser/config/tabFocus.js";
 import { ElementType, grid } from "@intechstudio/grid-protocol";
-
-let hoverTips = {};
+import { startLuaLSClient, stopLuaLSClient } from "./monaco-luals-client";
+import {
+  legacy_initialize_autocomplete,
+  legacy_initialize_hover,
+} from "./monaco-legacy-completion";
+import { Analytics } from "../runtime/analytics";
+import { appSettings } from "../runtime/app-helper.store";
 
 const language_config: monaco_languages.LanguageConfiguration = {
   comments: {
@@ -37,7 +44,8 @@ const language_config: monaco_languages.LanguageConfiguration = {
   ],
 };
 
-const [lua, intech_lua] = Array(2).fill({
+// exported to be used by legacy completion
+export const intech_lua: monaco_languages.IMonarchLanguage = {
   defaultToken: "",
   tokenPostfix: ".lua",
   keywords: [
@@ -70,34 +78,35 @@ const [lua, intech_lua] = Array(2).fill({
     "acos",
     "asin",
     "atan",
-    "atan2",
     "ceil",
     "cos",
-    "cosh",
     "deg",
     "exp",
     "floor",
     "fmod",
-    "frexp",
-    "huge",
-    "ldexp",
     "log",
-    "log10",
     "max",
     "min",
     "modf",
-    "pi",
-    "pow",
     "rad",
     "random",
     "randomseed",
     "sin",
-    "sinh",
     "sqrt",
     "tan",
-    "tanh",
+    "tointeger",
+    "type",
+    "ult",
   ],
-  variables: ["self", "element", "math"],
+  variables: [
+    "self",
+    "element",
+    "math",
+    "huge",
+    "maxinteger",
+    "mininteger",
+    "pi",
+  ],
   forbiddens: [],
   brackets: [
     { token: "delimiter.bracket", open: "{", close: "}" },
@@ -125,6 +134,12 @@ const [lua, intech_lua] = Array(2).fill({
     ".",
     "..",
     "...",
+    "//",
+    "&",
+    "|",
+    "~",
+    "<<",
+    ">>",
   ],
   symbols: /[=><!~?:&|+\-*\/\^%]+/,
   escapes:
@@ -205,7 +220,7 @@ const [lua, intech_lua] = Array(2).fill({
       ],
     ],
   },
-});
+};
 
 function initialize_language() {
   monaco_languages.register({ id: "intech_lua" });
@@ -250,238 +265,8 @@ function initialize_theme() {
   });
 }
 
-type Range = {
-  startLineNumber: number;
-  endLineNumber: number;
-  startColumn: number;
-  endColumn: number;
-};
-
-function initialize_autocomplete() {
-  function createLuaProposals(range: Range) {
-    let proposalList = [];
-    lua.functions = ["print"];
-
-    // Handle other general cases (mathfunctions, keywords, etc.)
-    for (const element of lua.mathfunctions) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      proposalItem.label = "math." + element;
-      proposalItem.insertText = "math." + element;
-      proposalList.push(proposalItem);
-    }
-
-    for (const element of lua.keywords) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Keyword,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      proposalItem.label = element;
-      proposalItem.insertText = element;
-
-      proposalList.push(proposalItem);
-    }
-
-    for (const element of lua.functions) {
-      if (proposalList.find((e) => e.label === element)) {
-        continue;
-      }
-
-      let proposalItem = {
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        range: range,
-        label: element,
-        insertText: element + "()",
-      };
-
-      proposalList.push(proposalItem);
-    }
-
-    return proposalList;
-  }
-
-  function createIntechLuaProposals(
-    range: Range,
-    model: monaco_editor.ITextModel,
-    position: Position,
-    prefix: string,
-  ) {
-    const instance: MonacoEditor.CustomCodeEditor = monaco_editor
-      .getEditors()
-      .find((e) => e.getModel().uri === model.uri);
-
-    const scope =
-      instance.restrictScope === ElementType.FADER
-        ? ElementType.POTMETER
-        : instance.restrictScope;
-
-    let proposalList = [];
-    intech_lua.functions = ["print"];
-
-    // Handle other general cases (mathfunctions, keywords, etc.)
-    for (const element of intech_lua.mathfunctions) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      proposalItem.label = "math." + element;
-      proposalItem.insertText = "math." + element;
-      proposalList.push(proposalItem);
-    }
-
-    for (const element of intech_lua.keywords) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Keyword,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      proposalItem.label = element;
-      proposalItem.insertText = element;
-
-      proposalList.push(proposalItem);
-    }
-
-    for (const item of grid.lua_function_to_human_map()) {
-      let proposalItem = {
-        label: "",
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        insertText: "",
-        range: range,
-      };
-
-      const key = item[0];
-      const value = item[1];
-      const elementTypeMapping = {
-        GRID_LUA_FNC_EP: "endless",
-        GRID_LUA_FNC_E: "encoder",
-        GRID_LUA_FNC_B: "button",
-        GRID_LUA_FNC_P: "potmeter",
-        GRID_LUA_FNC_L: "lcd",
-      };
-
-      const lineContent = model.getLineContent(range.startLineNumber);
-      const isInsideSelfOrElement =
-        lineContent.includes("self:") || lineContent.includes("element[");
-      const keyPrefix = Object.keys(elementTypeMapping).find((prefix) =>
-        key.startsWith(prefix),
-      );
-
-      if (
-        keyPrefix &&
-        (scope === elementTypeMapping[keyPrefix] || scope === undefined)
-      ) {
-        proposalItem.label = isInsideSelfOrElement ? value : `self:${value}`;
-        proposalItem.insertText = `${proposalItem.label}()`;
-      } else if (scope === ElementType.SYSTEM || !scope) {
-        if (!proposalList.some((e) => e.label === `element[0]:${value}`)) {
-          proposalItem.label = isInsideSelfOrElement
-            ? value
-            : `element[0]:${value}`;
-          proposalItem.insertText = `${proposalItem.label}()`;
-        }
-      } else if (!keyPrefix) {
-        proposalItem.label = value;
-        proposalItem.insertText = `${value}()`;
-      }
-
-      // Only push items that were actually populated — Monaco 0.55+
-      // rejects completion items with empty labels.
-      if (proposalItem.label !== "") {
-        proposalList.push(proposalItem);
-      }
-
-      const helperText = grid.get_lua_function_helper(key);
-      if (typeof helperText !== "undefined") {
-        hoverTips[value] = helperText;
-      }
-    }
-
-    for (const element of intech_lua.functions) {
-      if (proposalList.find((e) => e.label === element)) {
-        continue;
-      }
-
-      let proposalItem = {
-        kind: monaco_languages.CompletionItemKind.Function,
-        documentation: "Documentation",
-        range: range,
-        label: element,
-        insertText: element + "()",
-      };
-
-      proposalList.push(proposalItem);
-    }
-
-    return proposalList;
-  }
-
-  monaco_languages.registerCompletionItemProvider("intech_lua", {
-    provideCompletionItems: function (model, position) {
-      const word = model.getWordUntilPosition(position);
-      const lineContent = model.getLineContent(position.lineNumber);
-      const range: Range = {
-        startLineNumber: position.lineNumber,
-        endLineNumber: position.lineNumber,
-        startColumn: word.startColumn,
-        endColumn: word.endColumn,
-      };
-
-      // Check for 'self:' or 'element[x]:'
-      const selfIndex = lineContent.lastIndexOf("self:", position.column - 1);
-      const elementIndex = lineContent.lastIndexOf(
-        "element[",
-        position.column - 1,
-      );
-
-      // If 'self:' or 'element[x]:' is found, adjust the prefix
-      let prefix = "";
-      if (selfIndex !== -1 && selfIndex + 5 <= word.startColumn) {
-        prefix = "self:";
-      } else if (elementIndex !== -1 && elementIndex + 8 <= word.startColumn) {
-        prefix = lineContent.slice(elementIndex, position.column); // 'element[x]:'
-      }
-
-      return {
-        suggestions: createIntechLuaProposals(range, model, position, prefix),
-      };
-    },
-  });
-
-  monaco_languages.registerCompletionItemProvider("lua", {
-    provideCompletionItems: function (model, position) {
-      const word = model.getWordUntilPosition(position);
-      const range: Range = {
-        startLineNumber: position.lineNumber,
-        endLineNumber: position.lineNumber,
-        startColumn: word.startColumn,
-        endColumn: word.endColumn,
-      };
-
-      return {
-        suggestions: createLuaProposals(range),
-      };
-    },
-  });
-}
+// Old hand-rolled completion providers removed.
+// All completion/hover/signature/diagnostics now handled by MonacoLanguageClient via LuaLS.
 
 function initialize_highlight() {
   grid.lua_function_to_human_map().forEach((value, key) => {
@@ -495,25 +280,9 @@ function initialize_highlight() {
   });
 }
 
-function initialize_hover() {
-  monaco_languages.registerHoverProvider("intech_lua", {
-    provideHover: function (model, position) {
-      if (model.getWordAtPosition(position) !== null) {
-        const word = model.getWordAtPosition(position).word;
-
-        if (hoverTips[word] !== undefined)
-          return {
-            contents: [
-              { value: "**SOURCE**" },
-              { value: "```html\n" + hoverTips[word] + "\n```" },
-            ],
-          };
-      }
-    },
-  });
-}
-
 function initialize_grammar() {
+  // Cast needed: @codingame/monaco-vscode-editor-api has stricter IMonarchLanguage
+  // types than standalone monaco-editor, but the tokenizer definition is valid.
   monaco_languages.setMonarchTokensProvider("intech_lua", intech_lua);
   monaco_languages.setLanguageConfiguration("intech_lua", language_config);
 }
@@ -523,12 +292,46 @@ export namespace MonacoEditor {
     LIGHT = "monaco-light",
     DARK = "monaco-dark",
   }
-  initialize_theme();
-  initialize_language();
-  initialize_highlight();
-  initialize_autocomplete();
-  initialize_hover();
-  initialize_grammar();
+
+  // Initialization is deferred until monacoReady resolves.
+  // The ready promise is exposed so consumers can await it before creating editors.
+  export const ready: Promise<void> = monacoReady.then(() => {
+    initialize_theme();
+    initialize_language();
+    initialize_highlight();
+    initialize_grammar();
+
+    // Connect to LuaLS via MonacoLanguageClient (non-blocking, logs on failure)
+    startLuaLSClient()
+      .then(() => {
+        console.info("[LuaLS] Client successfully started.");
+        Analytics.track({
+          event: "Monaco Completion Mode",
+          payload: { status: "luaLS" },
+          mandatory: false,
+        });
+      })
+      .catch((err) => {
+        console.warn(
+          "[LuaLS] Client start failed (server may not be running):",
+          err,
+        );
+
+        Analytics.track({
+          event: "Monaco Completion Mode",
+          payload: { status: "legacy" },
+          mandatory: false,
+        });
+
+        // In case the LuaLS server could not start, fallback to the original autocomplete and hover
+        legacy_initialize_autocomplete();
+        legacy_initialize_hover();
+        appSettings.update((s) => {
+          s.legacyCompletionActive = true;
+          return s;
+        });
+      });
+  });
 
   export type Options = monaco_editor.IStandaloneEditorConstructionOptions;
 
@@ -536,6 +339,12 @@ export namespace MonacoEditor {
 
   export type CustomOptions = {
     restrictScope?: ElementType;
+    // Called when Ctrl/Cmd+S is pressed while this editor (or one of its
+    // widgets) has focus. Must be registered as a Monaco command via
+    // `editor.addCommand`, not a DOM `keydown` listener on an ancestor
+    // element: @codingame/monaco-vscode-api's keybinding service consumes
+    // the native keydown itself, so it never reaches ancestor DOM nodes.
+    onSave?: () => void;
   };
   export type CustomCodeEditor = monaco_editor.ICodeEditor & CustomOptions;
 
@@ -545,15 +354,26 @@ export namespace MonacoEditor {
   ) {
     const editor: CustomCodeEditor = monaco_editor.create(node, {
       ...options,
+      // Enable semantic highlighting so LuaLS semantic tokens (function colors,
+      // global variable colors, etc.) are applied on top of Monarch tokenizer.
+      "semanticHighlighting.enabled": true,
     });
 
     editor.restrictScope = options.restrictScope;
 
+    if (options.onSave) {
+      editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => {
+        options.onSave?.();
+      });
+    }
+
     const editorDomNode = editor.getDomNode();
 
-    editorDomNode.addEventListener("mousedown", () => {
-      TabFocus.setTabFocusMode(false);
-    });
+    if (editorDomNode) {
+      editorDomNode.addEventListener("mousedown", () => {
+        TabFocus.setTabFocusMode(false);
+      });
+    }
 
     editor.onDidBlurEditorText(() => {
       TabFocus.setTabFocusMode(true);

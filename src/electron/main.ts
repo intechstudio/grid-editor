@@ -20,6 +20,19 @@ import chokidar from "chokidar";
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 
+
+function isManagedLinuxPackage(): boolean {
+  // Flatpak: `container=flatpak` is set for every flatpak'd process;
+  // /.flatpak-info is the filesystem fallback.
+  const isFlatpak =
+    process.env.container === "flatpak" || fs.existsSync("/.flatpak-info");
+
+  // Snap: snapd exports SNAP (mount dir) and SNAP_NAME for confined apps.
+  const isSnap = !!process.env.SNAP && !!process.env.SNAP_NAME;
+
+  return isFlatpak || isSnap;
+}
+
 // Add custom transport to forward logs to renderer DevTools console
 function setupRendererLogTransport() {
   // @ts-ignore - custom transport
@@ -37,18 +50,16 @@ function setupRendererLogTransport() {
                            'log';
       
       // Format the message with [ELECTRON] prefix to distinguish from renderer logs
-      const prefix = `%c[ELECTRON]%c ${scope}`;
-      const prefixStyle = 'color: #ff6b6b; font-weight: bold;';
-      const scopeStyle = scope ? 'color: #a78bfa;' : '';
-      
+      const prefix = `[ELECTRON]${scope ? " " + scope : ""}`;
+
       // Execute console log in the renderer's DevTools
-      const args = logData.map(arg => 
+      const args = logData.map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
-      
+
       // Inject the log into renderer's console
       mainWindow.webContents.executeJavaScript(
-        `console.${consoleMethod}("${prefix}", "${prefixStyle}", "${scopeStyle}", ${JSON.stringify(args)})`
+        `console.${consoleMethod}(${JSON.stringify(prefix)}, ${JSON.stringify(args)})`
       ).catch(() => {
         // Silently fail if window is closing
       });
@@ -69,6 +80,7 @@ log.info(
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
+import { startLuaLSServer, stopLuaLSServer } from "./ipcmain_luals";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, findBootloaderPathNative, writeFirmwareToBootloader } from "./src/firmware";
@@ -514,7 +526,14 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
-  updater.init(store.get("nightlyEditor"), store.get("disableAutoUpdate"));
+
+  updater.init(
+    store.get("nightlyEditor"),
+    store.get("disableAutoUpdate") || isManagedLinuxPackage(),
+  );
+
+  // Start LuaLS WebSocket bridge for Monaco LSP
+  startLuaLSServer();
 
   // Setup custom log transport to forward logs to renderer
   setupRendererLogTransport();
@@ -554,7 +573,7 @@ function createWindow() {
   console.log(`here what is VITE_BUILD_ENV: ${import.meta.env.VITE_BUILD_ENV}`);
   if (import.meta.env.VITE_BUILD_ENV === "development") {
     log.info("Development Mode!");
-    mainWindow.loadURL("http://localhost:5173/");
+    mainWindow.loadURL("http://localhost:5273/");
     mainWindow.webContents.openDevTools();
   } else {
     // this is applicable for any non development environment, like production or test
@@ -618,7 +637,7 @@ function createWindow() {
       if (
         permission === "serial" &&
         (details.securityOrigin == "file:///" ||
-          details.securityOrigin == "http://localhost:5173/")
+          details.securityOrigin == "http://localhost:5273/")
       ) {
         return true;
       }
@@ -630,7 +649,7 @@ function createWindow() {
     if (
       details.deviceType === "serial" &&
       (details.origin === "file://" ||
-        details.origin === "http://localhost:5173")
+        details.origin === "http://localhost:5273")
     ) {
       return true;
     }
@@ -871,8 +890,12 @@ function startConfigWatcher(configPath, rootDirectory) {
   configWatcher?.close();
 
   async function sendLocalConfigs() {
-    var result = await loadConfigsFromDirectory(configPath, rootDirectory);
-    mainWindow.webContents.send("sendConfigsToRenderer", result);
+    try {
+      var result = await loadConfigsFromDirectory(configPath, rootDirectory);
+      mainWindow.webContents.send("sendConfigsToRenderer", result);
+    } catch (e) {
+      log.error("Failed to load local configs:", e);
+    }
   }
 
   configWatcher = chokidar.watch(path.join(configPath, "configs"), {
@@ -1156,5 +1179,6 @@ app.on("activate", () => {
 // termination of application, closing the windows, used for macOS hide flag
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
+  stopLuaLSServer();
   app.quitting = true;
 });

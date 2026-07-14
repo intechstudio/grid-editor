@@ -3,6 +3,7 @@
   import { fly, fade, slide } from "svelte/transition";
 
   import { Analytics } from "../runtime/analytics.js";
+  import { copyContextMenu } from "./_actions/copy-context-menu.action.js";
 
   const ctxProcess = window.ctxProcess;
   const configuration = ctxProcess.configuration();
@@ -155,6 +156,20 @@
         return;
       }
 
+      // LuaLS bridge connection errors are expected when the binary is
+      // unavailable (e.g. Linux AppImage read-only FS). The fallback
+      // autocomplete handles these gracefully — no toast needed.
+      if (
+        message.includes("Client is not running and can't be stopped") ||
+        message.includes(
+          "Pending response rejected since connection got disposed",
+        )
+      ) {
+        console.warn("[LuaLS] Suppressed connection error:", message);
+        doNotDisplayError("Suppressed: " + message, stack);
+        return;
+      }
+
       displayError(message, stack);
     };
 
@@ -302,7 +317,7 @@
         ? notification.class
         : 'bg-green-500'} justify-center flex flex-row items-center h-16 select-text"
     >
-      <div>{notification.message}</div>
+      <div use:copyContextMenu class="select-text">{notification.message}</div>
 
       {#if notification.link !== undefined && notification.link !== ""}
         <button

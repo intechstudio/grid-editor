@@ -42,6 +42,7 @@ const persistentDefaultValues = {
   analyticsEnabled: false,
   firstLaunch: true,
   fontSize: 12,
+  codeEditorDefaultLines: 7,
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
   nightlyFirmware: false,
@@ -118,6 +119,7 @@ function createAppSettingsStore(persistent) {
     trayState: false,
     intervalPause: false,
     firmwareNotificationState: 0,
+    legacyCompletionActive: false,
     firmware_d51_required: {
       major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
       minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),

@@ -190,39 +190,6 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
       });
   }
 
-  public NVMDefrag() {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "nvmdefrag",
-      message: `Defragging all modules...`,
-    });
-
-    const promises: Promise<any>[] = [];
-    for (const target of get(this._internal).data) {
-      const instruction = new GridInstruction.NVMDefrag(target.runtime.virtual);
-      promises.push(instruction.executeOn(target.runtime.connection));
-    }
-    Promise.all(promises)
-      .then((res) => {
-        //TODO
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "nvmdefrag",
-          message: `Defrag complete!`,
-        });
-      })
-      .catch((e) => {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "engine-disabled",
-          message: `Engine is disabled, NVM Defragmentation failed!`,
-        });
-      });
-  }
-
   public LUAExecImmediate(dx: number, dy: number, script: string) {
     const target = get(this._internal).active;
     if (!target) {

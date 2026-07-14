@@ -17,4 +17,13 @@ export default defineConfig({
       }),
     ],
   }),
+  test: {
+    alias: {
+      // Use Node.js entry for WASM loading in tests (avoids Vite-specific ?url import)
+      "@wasm-fmt/lua_fmt": resolve(
+        __dirname,
+        "node_modules/@wasm-fmt/lua_fmt/lua_fmt_node.js",
+      ),
+    },
+  },
 });

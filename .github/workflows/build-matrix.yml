@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
+        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -54,6 +54,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Download LuaLS binaries
+        run: node build-scripts/download-luals.js
 
       - name: Update package.json
         if: ${{ inputs.versionOverride != '' }}
@@ -101,3 +104,92 @@ jobs:
         with:
           name: ${{ steps.find_dmg.outputs.name }}
           path: ${{ steps.find_dmg.outputs.file }}
+
+  flatpak-build:
+    needs: set-branch-name
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: x64
+          - os: ubuntu-22.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install python setup-tools dependency
+        run: pip install setuptools
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+
+      - name: Install flatpak tooling and runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder elfutils
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub \
+            org.freedesktop.Platform//25.08 \
+            org.freedesktop.Sdk//25.08 \
+            org.electronjs.Electron2.BaseApp//25.08
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update package.json
+        if: ${{ inputs.versionOverride != '' }}
+        run: npm version ${{ inputs.versionOverride }} --no-git-tag-version
+
+      - name: Build flatpak
+        run: |
+          if [[ "${{ inputs.exportScript }}" == *nightly* ]]; then
+            npm run export:flatpak:nightly
+          else
+            npm run export:flatpak
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_BRANCH_NAME: ${{needs.set-branch-name.outputs.branch_name}}
+
+      # Tarball of the unpacked app for the Flathub manifest to consume.
+      # The dir target ran as part of e:builder:flatpak (--linux flatpak dir),
+      # so build/linux-unpacked (or linux-arm64-unpacked) already exists.
+      - name: Create tarball for Flathub
+        run: |
+          ARCH="${{ matrix.arch }}"
+          if [ "$ARCH" = "arm64" ]; then
+            DIR="linux-arm64-unpacked"
+          else
+            DIR="linux-unpacked"
+          fi
+          if [[ "${{ inputs.exportScript }}" == *nightly* ]]; then
+            NAME="grid-editor-nightly-linux-$ARCH.tar.gz"
+          else
+            NAME="grid-editor-linux-$ARCH.tar.gz"
+          fi
+          tar -czf "build/$NAME" -C build "$DIR"
+          ls -lh "build/$NAME"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-${{ matrix.arch }}-artifact
+          path: build/*.flatpak
+
+      - name: Upload Flathub tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Intentionally not ending in "-artifact" so nightly/stable release
+          # aggregation (pattern: "*-artifact") excludes this tarball.
+          name: flatpak-${{ matrix.arch }}-flathub-source
+          path: build/*.tar.gz

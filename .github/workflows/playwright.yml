@@ -24,7 +24,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "24"
+          node-version: "24.14.1" # pin node version to avoid deployment issues
       - name: Install dependencies
         run: npm ci
       - name: Ensure Rollup native optional dependency (Linux)
@@ -37,6 +37,8 @@ jobs:
       - name: Run Playwright tests
         env:
           CI: true
+          # Flag to disallow specific (e.g. MIXPANEL) services from starting in test mode
+          VITE_IS_TEST: "true"
         run: npx playwright test
       - uses: actions/upload-artifact@v4
         if: always()
@@ -53,6 +55,10 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - name: Setup NodeJs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.14.1"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:

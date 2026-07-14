@@ -76,9 +76,18 @@ export class ConfigPage {
       .filter({ hasText: "End" })
       .locator("action-placeholder div")
       .first();
-    this.commitCodeButton = page.getByRole("button", { name: "Commit" });
-    this.closeCodeButton = page.getByRole("button", { name: "Close" });
-    this.codeblockInput = page.locator(".view-line").first();
+    // The code block now has an inline editor with its own Commit button, so
+    // scope these to the full-screen editor modal (#monaco-container and its
+    // parent, which holds the modal's Commit/Close buttons).
+    this.commitCodeButton = page
+      .locator("#monaco-container")
+      .locator("xpath=..")
+      .getByRole("button", { name: "Commit" });
+    this.closeCodeButton = page
+      .locator("#monaco-container")
+      .locator("xpath=..")
+      .getByRole("button", { name: "Close" });
+    this.codeblockInput = page.locator("#monaco-container .view-line").first();
     this.codeBlockCharacterLimitMessage = page.getByText(
       "Config limit reached.",
     );
@@ -100,11 +109,13 @@ export class ConfigPage {
   }
 
   async openAndAddActionBlock(category, blockName) {
+    await this.resetTransientUi();
     await this.addActionBlockButton.click();
     await this.blocks[category][blockName]["block"].click();
   }
 
   async openActionBlockList() {
+    await this.resetTransientUi();
     await this.addActionBlockButton.click();
   }
 
@@ -178,7 +189,10 @@ export class ConfigPage {
   // Element and Action Operations
 
   async selectAllActions() {
-    await this.configFocus.click();
+    // Focus the config panel itself rather than clicking into the area (which
+    // can land in an inline code editor that captures Ctrl+A as select-text),
+    // so the select-all-actions shortcut actually fires.
+    await this.page.locator(".configpanel").first().focus();
     await this.keyboardActions.selectAll();
   }
 
@@ -196,6 +210,26 @@ export class ConfigPage {
 
   async clearElement() {
     await this.elementButtons.clear.click();
+    // Clearing raises a transient progress toast ("Clearing element
+    // configuration..." → "...was reset to default!") that overlays the UI and
+    // can intercept the next click — including in a following test, since the
+    // page is shared across the spec. Reset it so it can't bleed across.
+    await this.resetTransientUi();
+  }
+
+  // Reset transient, page-level UI that bleeds across tests on the shared page:
+  // notification toasts (which otherwise linger ~5s) via the web build's test
+  // hook, and any leftover-open action menu / popover (Escape). Both can
+  // overlay and intercept a later click.
+  async resetTransientUi() {
+    await this.page
+      .evaluate(() => window.__gridTest?.resetLogStream?.())
+      .catch(() => {});
+    // Close any leftover-open action menu. Its search input is auto-focused and
+    // swallows Escape, so blur first to let the key reach the menu's
+    // document-level Escape handler.
+    await this.page.evaluate(() => document.activeElement?.blur());
+    await this.page.keyboard.press("Escape");
   }
 
   async copyAction() {
@@ -244,8 +278,9 @@ export class ConfigPage {
 
   async addAndEditCodeBlock(code) {
     await this.addCodeBlock();
-    await this.blocks["code"]["Code Block"]["elements"]["Edit Code"].click();
-    await this.page.getByText("Synced with Grid!").click();
+    await this.blocks["code"]["Code Block"]["elements"]["Open Editor"].click();
+    // Both the inline block and the modal show this status, so target one.
+    await this.page.getByText("Synced with Grid!").first().click();
     await this.codeblockInput.click({ clickCount: 1 });
 
     await this.keyboardActions.selectAll();

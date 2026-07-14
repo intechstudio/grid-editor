@@ -93,10 +93,18 @@ export class ModulePage {
       name: "Actions have been copied",
     });
 
-    this.characterLimitPasteToast = page.getByText("Modifications can not");
-    this.characterLimitAddToast = page.getByText("Modifications can not");
+    // The same toast can stack (one per affected module/event), so target one
+    // to avoid strict-mode violations.
+    this.characterLimitPasteToast = page
+      .getByText("Modifications can not")
+      .first();
+    this.characterLimitAddToast = page
+      .getByText("Modifications can not")
+      .first();
     this.storeButton = page.getByRole("button", { name: "Store" });
-    this.clearButton = page.getByRole("button", { name: "Clear" });
+    this.clearButton = page
+      .getByTestId("clear-load-button")
+      .getByRole("button");
     this.confirmClearButton = page.getByRole("button", {
       name: "Confirm",
       exact: true,

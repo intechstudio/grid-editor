@@ -1,10 +1,11 @@
 import { chromium } from "@playwright/test";
 
-export const PAGE_PATH = "http://localhost:5173";
+export const PAGE_PATH = "http://localhost:5273";
 
 export async function initializeBrowserContext() {
   const browser = await chromium.launch();
   const context = await browser.newContext();
+
   const page = await context.newPage();
 
   await page.addInitScript(() => {
