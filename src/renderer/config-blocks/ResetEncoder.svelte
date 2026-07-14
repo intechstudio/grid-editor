@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,7 +11,7 @@
     name: "ResetEncoder",
     category: "special",
     rendering: "standard",
-    color: "#4A4AA7",
+    color: categoryColors["special"] as any,
     displayName: "Reset Encoder",
     defaultLua: "self:eva(0) self:get(2)",
     icon: `

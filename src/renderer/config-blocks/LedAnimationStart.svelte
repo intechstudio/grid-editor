@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,7 +11,7 @@
     rendering: "standard",
     category: "led",
     displayName: "Start Animation",
-    color: "#726E60",
+    color: categoryColors["led"] as any,
     defaultLua: "glpfs(num,1,val,1,1)",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 303 303" fill="none" xmlns="http://www.w3.org/2000/svg">

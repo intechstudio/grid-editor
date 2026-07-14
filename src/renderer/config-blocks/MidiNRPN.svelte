@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.js";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import MidiFourteenBitFace from "./headers/MidiFourteenBitFace.svelte";
   export const header = MidiFourteenBitFace;
@@ -10,7 +11,7 @@
     rendering: "standard",
     category: "deprecated",
     displayName: "MIDI NRPN",
-    color: "#DA4167",
+    color: categoryColors["deprecated"] as any,
     defaultLua: "gms(0,176,99,num//128) gms(0,176,98,num%128) gms(0,176,6,val)",
     icon: `
       <svg width="100%" height="100%" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">

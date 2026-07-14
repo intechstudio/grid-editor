@@ -53,7 +53,7 @@
     </div>
     <div class="normal-cell-ui-container">
       <div
-        class="absolute inset-0 rounded"
+        class="absolute inset-0"
         style="background: color-mix(in srgb, var(--background-soft) 30%, transparent);"
       />
       <svg class="absolute inset-0 w-full h-full pointer-events-none">
@@ -97,12 +97,12 @@
 
   <!-- System element -->
   <div
-    class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
+    class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] system-cell-underlay-container"
   >
     <slot name="cell-underlay" elementNumber={255} />
   </div>
   <div
-    class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-overlay-container"
+    class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] system-cell-overlay-container"
   >
     <slot name="cell-overlay" elementNumber={255} />
   </div>

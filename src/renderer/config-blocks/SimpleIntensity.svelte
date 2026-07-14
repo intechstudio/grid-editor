@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  import { categoryColors } from "./categoryColors";
   export const header = RegularActionBlockFace;
 
   export const information: ActionBlockInformation = {
@@ -9,7 +10,7 @@
     rendering: "standard",
     category: "led",
     displayName: "Simple Intensity",
-    color: "#726E60",
+    color: categoryColors["led"] as any,
     defaultLua: "self:glp(-1,-1)",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 303 303" fill="none" xmlns="http://www.w3.org/2000/svg">

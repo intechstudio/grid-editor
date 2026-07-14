@@ -428,7 +428,7 @@
             <div
               role="region"
               aria-label="Drop area for presets"
-              class="w-full h-full bg-commit/25 pointer-events-auto rounded"
+              class="w-full h-full bg-commit/25 pointer-events-auto"
               on:dragenter={() => handleDragEnter(element)}
               on:dragleave|preventDefault={handleDragLeave}
               on:dragover|preventDefault
@@ -461,7 +461,7 @@
             <div
               role="region"
               aria-label="Drop area for profiles"
-              class="w-full h-full bg-commit/25 pointer-events-auto rounded"
+              class="w-full h-full bg-commit/25 pointer-events-auto"
               on:dragenter={() =>
                 handleDragEnter(device.findPage($user_input.pagenumber))}
               on:dragleave|preventDefault={handleDragLeave}
@@ -537,7 +537,7 @@
 
   :root {
     --element-margin: 5px;
-    --grid-rounding: 5px;
+    --grid-rounding: var(--radius);
     --overlay-bg: color-mix(in srgb, var(--background) 80%, transparent);
   }
   .module-dimensions {

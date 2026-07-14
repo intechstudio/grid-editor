@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -9,7 +10,7 @@
     name: "SettingsEncoder",
     rendering: "standard",
     category: "element settings",
-    color: "#5F416D",
+    color: categoryColors["element settings"] as any,
     displayName: "Encoder Mode",
     defaultLua:
       "self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)",

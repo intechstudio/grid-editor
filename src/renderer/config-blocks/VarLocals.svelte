@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -11,7 +12,7 @@
     category: "variables",
     displayName: "Locals",
     defaultLua: "local num = self:ind()",
-    color: "#78BC61",
+    color: categoryColors["variables"] as any,
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
     blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
     selectable: true,

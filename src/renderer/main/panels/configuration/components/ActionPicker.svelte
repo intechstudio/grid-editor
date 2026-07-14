@@ -416,24 +416,22 @@
       <menu id="action-menu" class="action-menu shadow-md p-4">
         <wrapper class="flex flex-col w-full h-full gap-2">
           <div class="flex flex-col flex-grow gap-1">
-            <div class="flex flex-row items-center justify-between">
-              <span style="color: var(--foreground-muted)" class="text-sm"
-                >Search</span
-              >
+            <div class="flex flex-row items-center justify-end">
+              <MoltenInput
+                bind:this={searchBar}
+                bind:target={searchValue}
+                on:keydown={handleSearchBarKeyDown}
+                placeholder="Search..."
+              />
               <button
                 on:click={handleClose}
                 id="close-btn"
                 style="color: var(--foreground-muted)"
-                class="hover:bg-background-muted fill-current p-1 flex items-center justify-center"
+                class="fill-current pl-3 flex items-center justify-center"
               >
                 <SvgIcon width={10} height={10} iconPath={"close"} />
               </button>
             </div>
-            <MoltenInput
-              bind:this={searchBar}
-              bind:target={searchValue}
-              on:keydown={handleSearchBarKeyDown}
-            />
           </div>
 
           <div class="flex flex-col w-full h-full overflow-y-auto">
@@ -441,26 +439,29 @@
               {#each filteredOptions as option}
                 <div
                   style="color: var(--foreground-muted)"
-                  class="text-xs font-semibold uppercase tracking-widest pt-2 pb-0.5"
+                  class="text-l font-semibold uppercase tracking-widest pt-2 pb-0.5"
                 >
                   {option.category[0].toUpperCase() + option.category.slice(1)}
                 </div>
 
-                <div class="w-full flex justify-start py-1 flex-wrap gap-1">
+                <div class="w-full flex flex-col gap-1">
                   {#each option.components as component}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
                     <button
-                      style="--action-color: {component.information.color};"
                       on:click={() => handleAddAction({ component })}
-                      class="action-card hover:border-pick cursor-pointer py-0.5 px-1 flex items-center text-white"
+                      class="action-card hover:border-pick cursor-pointer w-full flex items-center gap-3 h-10"
                     >
                       <div
-                        class="w-6 h-6 p-0.5 m-0.5 [&_svg]:fill-white [&_svg_path]:fill-white [&_span]:text-white"
+                        style="background-color: {component.information.color};"
+                        class="w-1.5 h-full flex-shrink-0"
+                      ></div>
+                      <div
+                        class="w-5 h-5 flex-shrink-0 [&_svg]:fill-foreground [&_svg_path]:fill-foreground [&_span]:text-foreground"
                       >
                         {@html component.information.icon}
                       </div>
-                      <div class="py-0.5 ml-1 px-1 bg-secondary bg-opacity-25">
+                      <div class="text-l truncate">
                         {#if typeof component.information.menuName === "undefined"}
                           {component.information.displayName}
                         {:else}
@@ -493,11 +494,11 @@
 
 <style>
   .action-card {
-    background-color: var(--action-color);
+    background-color: var(--background-muted);
   }
 
   .action-card:hover {
-    background-color: rgba(95, 120, 133, 1);
+    background-color: var(--background-soft);
   }
 
   .action-menu {

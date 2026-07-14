@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import MidiSysExFace from "./headers/MidiSysExFace.svelte";
   export const header = MidiSysExFace;
@@ -10,7 +11,7 @@
     rendering: "standard",
     category: "midi",
     displayName: "SysEX",
-    color: "#DA4167",
+    color: categoryColors["midi"] as any,
     defaultLua: "gmss(0xF0, 0x41, 0x10, val, 0xF7)",
     icon: `
       <svg width="100%" height="100%" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">

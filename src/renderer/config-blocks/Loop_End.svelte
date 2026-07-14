@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
@@ -21,7 +22,7 @@
     </svg>
     `,
     blockIcon: `<span class="text-white">End</span>`,
-    color: "#F4511E",
+    color: categoryColors["loop"] as any,
     selectable: false,
     movable: false,
     hideIcon: true,

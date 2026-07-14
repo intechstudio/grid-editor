@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.js";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -9,7 +10,7 @@
     name: "SettingsEndless",
     rendering: "standard",
     category: "element settings",
-    color: "#5F416D",
+    color: categoryColors["element settings"] as any,
     displayName: "Endless Mode",
     defaultLua:
       "self:epmo(0) self:epv0(50) self:epmi(0) self:epma(16383) self:epse(50)",

@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import MidiFace from "./headers/MidiFace.svelte";
   export const header = MidiFace;
@@ -10,7 +11,7 @@
     rendering: "standard",
     category: "midi",
     displayName: "MIDI",
-    color: "#DA4167",
+    color: categoryColors["midi"] as any,
     defaultLua: "self:gms(-1,-1,-1,-1)",
     icon: `
       <svg width="100%" height="100%" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">

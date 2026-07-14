@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import ButtonStepFace from "./headers/ButtonStepFace.svelte";
   export const header = ButtonStepFace;
@@ -17,7 +18,7 @@
     defaultLua: "end",
     icon: undefined,
     blockIcon: undefined,
-    color: "#4A4AA7",
+    color: categoryColors["special"] as any,
     selectable: false,
     movable: false,
     hideIcon: true,

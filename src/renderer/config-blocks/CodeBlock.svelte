@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import { type ActionBlockInformation } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,7 +11,7 @@
     rendering: "standard",
     category: "code",
     displayName: "Code Block",
-    color: "#887880",
+    color: categoryColors["code"] as any,
     defaultLua: 'print("hello")',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 333 265" fill="none" xmlns="http://www.w3.org/2000/svg">

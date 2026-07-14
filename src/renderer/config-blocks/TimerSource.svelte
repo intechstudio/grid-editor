@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,7 +11,7 @@
     category: "timer",
     rendering: "standard",
     displayName: "Clock Source",
-    color: "#95638D",
+    color: categoryColors["timer"] as any,
     defaultLua: "gts(self:ind(),0)",
     icon: `
     <svg height="100%" width="100%" viewBox="0 0 384 384" xmlns="http://www.w3.org/2000/svg">

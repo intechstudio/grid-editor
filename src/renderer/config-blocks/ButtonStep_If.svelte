@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import ButtonStepFace from "./headers/ButtonStepFace.svelte";
   import * as ButtonStepElseIf from "./ButtonStep_ElseIf.svelte";
@@ -32,7 +33,7 @@
     ],
     icon: icon,
     blockIcon: icon,
-    color: "#4A4AA7 ",
+    color: categoryColors["special"] as any,
     selectable: true,
     movable: true,
     hideIcon: false,

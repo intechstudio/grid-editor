@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -9,7 +10,7 @@
     name: "Macro",
     rendering: "standard",
     category: "hid",
-    color: "#9D95AD",
+    color: categoryColors["hid"] as any,
     displayName: "Keyboard",
     defaultLua: "gks()",
     icon: `

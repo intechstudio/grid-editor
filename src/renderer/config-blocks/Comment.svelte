@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -17,7 +18,7 @@
     blockIcon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
     `,
-    color: "#887880",
+    color: categoryColors["code"] as any,
     selectable: true,
     movable: true,
     hideIcon: false,

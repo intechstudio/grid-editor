@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import { grid } from "@intechstudio/grid-protocol";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -11,7 +12,7 @@
     rendering: "standard",
     category: "element settings",
     displayName: "Button Mode",
-    color: "#5F416D",
+    color: categoryColors["element settings"] as any,
     defaultLua: "self:bmo(0) self:bmi(0) self:bma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,

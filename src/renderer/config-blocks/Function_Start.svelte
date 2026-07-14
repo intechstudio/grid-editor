@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import FunctionStartFace from "./headers/FunctionStartFace.svelte";
   export const header = FunctionStartFace;
@@ -22,7 +23,7 @@
       </svg>
       `,
     blockIcon: `<span class="text-white font-medium">fn</span>`,
-    color: "#4474c2",
+    color: categoryColors["function"] as any,
     selectable: true,
     movable: true,
     hideIcon: false,

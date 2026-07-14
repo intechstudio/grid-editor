@@ -119,6 +119,20 @@
 
 html {
   font-size: 12px;
+
+  /* Action block category colors */
+  --category-midi: #FF9CF6;
+  --category-hid: #C0E4F6;
+  --category-led: #1181C8;
+  --category-variables: #EBECE6;
+  --category-condition: #FFF4D1;
+  --category-loop: #FDFFE4;
+  --category-code: #7BF1A8;
+  --category-element-settings: #E5FFCF;
+  --category-timer: #90F1EF;
+  --category-function: #F2EAE0;
+  --category-special: #B8B8FF;
+  --category-deprecated: #545454;
 }
 
 body {

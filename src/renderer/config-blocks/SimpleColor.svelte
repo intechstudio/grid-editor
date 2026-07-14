@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import SimpleColorFace from "./headers/SimpleColorFace.svelte";
   export const header = SimpleColorFace;
@@ -9,7 +10,7 @@
     name: "SimpleColor",
     category: "led",
     rendering: "standard",
-    color: "#726E60",
+    color: categoryColors["led"] as any,
     displayName: "Simple Color",
     defaultLua: "self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)",
     icon: `

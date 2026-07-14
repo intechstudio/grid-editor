@@ -2,6 +2,7 @@ import {
   type LuaScript,
   type ActionBlockInformation,
 } from "./ActionBlockInformation";
+import { categoryColors } from "./categoryColors";
 
 export interface CompositePartData {
   short: string;
@@ -21,7 +22,7 @@ export interface CompositeGroup {
 export const compositeGroups: CompositeGroup[] = [
   {
     name: "EncoderLeftRight",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "elr",
@@ -49,7 +50,7 @@ export const compositeGroups: CompositeGroup[] = [
   },
   {
     name: "EncoderPushRot",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "epr",
@@ -77,7 +78,7 @@ export const compositeGroups: CompositeGroup[] = [
   },
   {
     name: "EncoderPushRotLeftRight",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "eprlr",
@@ -120,7 +121,7 @@ export const compositeGroups: CompositeGroup[] = [
   },
   {
     name: "ButtonPressRelease",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "bpr",
@@ -148,7 +149,7 @@ export const compositeGroups: CompositeGroup[] = [
   // --- Endless potentiometer groups (epst instead of est) ---
   {
     name: "EndlessLeftRight",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "eplr",
@@ -177,7 +178,7 @@ export const compositeGroups: CompositeGroup[] = [
   },
   {
     name: "EndlessPushRot",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "eppr",
@@ -206,7 +207,7 @@ export const compositeGroups: CompositeGroup[] = [
   },
   {
     name: "EndlessPushRotLeftRight",
-    color: "#4A4AA7",
+    color: categoryColors["special"],
     parts: [
       {
         short: "epprlr",

@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -9,7 +10,7 @@
     name: "SettingsPotmeter",
     rendering: "standard",
     category: "element settings",
-    color: "#5F416D",
+    color: categoryColors["element settings"] as any,
     displayName: "Potmeter Mode",
     defaultLua: "self:pmo(7) self:pmi(0) self:pma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,

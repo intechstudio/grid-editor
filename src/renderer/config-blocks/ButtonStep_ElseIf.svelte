@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import ButtonStepFace from "./headers/ButtonStepFace.svelte";
   export const header = ButtonStepFace;
@@ -18,7 +19,7 @@
     defaultLua: "elseif self:bstp() == N then",
     icon: icon,
     blockIcon: icon,
-    color: "#4A4AA7",
+    color: categoryColors["special"] as any,
     selectable: true,
     movable: false,
     hideIcon: false,

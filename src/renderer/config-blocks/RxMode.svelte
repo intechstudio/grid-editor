@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  import { categoryColors } from "./categoryColors";
   export const header = RegularActionBlockFace;
 
   export const information: ActionBlockInformation = {
@@ -9,7 +10,7 @@
     rendering: "standard",
     category: "function",
     displayName: "RX Mode",
-    color: "#4A6FA5",
+    color: categoryColors["function"] as any,
     defaultLua: "grxm(0,3) grxm(1,3) grxm(2,0) grxm(3,0)",
     icon: `<span class="block w-full text-center font-gt-pressura text-sm font-bold">RX</span>`,
     blockIcon: `<span class="block w-full text-center font-gt-pressura text-sm font-bold">RX</span>`,

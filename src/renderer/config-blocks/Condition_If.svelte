@@ -3,6 +3,7 @@
     type ActionBlockInformation,
     SyntaxPreprocessor,
   } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import ConditionIfFace from "./headers/ConditionIfFace.svelte";
   export const header = ConditionIfFace;
@@ -22,7 +23,7 @@
     </svg>
     `,
     blockIcon: `<span class="text-white">If</span>`,
-    color: "#F84AA7 ",
+    color: categoryColors["condition"] as any,
     selectable: true,
     movable: true,
     hideIcon: true,
