@@ -411,17 +411,20 @@
       use:clickOutside={{ useCapture: true }}
       on:click-outside={handleClickOutside}
       class="flex w-96"
-      style={`max-height: calc(100vh - 27px); width: 20vw;`}
+      style={`max-height: calc(100vh - 27px); width: 28vw; min-width: 320px;`}
     >
-      <menu id="action-menu" class="action-menu shadow-md rounded-md p-4">
+      <menu id="action-menu" class="action-menu shadow-md p-4">
         <wrapper class="flex flex-col w-full h-full gap-2">
-          <div class="flex flex-col flex-grow">
-            <div class="flex flex-row justify-between">
-              <span class="text-gray-500 text-sm self-end"> Search: </span>
+          <div class="flex flex-col flex-grow gap-1">
+            <div class="flex flex-row items-center justify-between">
+              <span style="color: var(--foreground-muted)" class="text-sm"
+                >Search</span
+              >
               <button
                 on:click={handleClose}
                 id="close-btn"
-                class="hover:bg-secondary fill-gray-500 p-1 rounded mb-1"
+                style="color: var(--foreground-muted)"
+                class="hover:bg-background-muted fill-current p-1 flex items-center justify-center"
               >
                 <SvgIcon width={10} height={10} iconPath={"close"} />
               </button>
@@ -436,7 +439,10 @@
           <div class="flex flex-col w-full h-full overflow-y-auto">
             {#if filteredOptions.length > 0}
               {#each filteredOptions as option}
-                <div class="text-gray-500 text-sm">
+                <div
+                  style="color: var(--foreground-muted)"
+                  class="text-xs font-semibold uppercase tracking-widest pt-2 pb-0.5"
+                >
                   {option.category[0].toUpperCase() + option.category.slice(1)}
                 </div>
 
@@ -447,14 +453,14 @@
                     <button
                       style="--action-color: {component.information.color};"
                       on:click={() => handleAddAction({ component })}
-                      class="action-card hover:border-pick cursor-pointer py-0.5 px-1 flex items-center rounded-md text-white"
+                      class="action-card hover:border-pick cursor-pointer py-0.5 px-1 flex items-center text-white"
                     >
-                      <div class="w-6 h-6 p-0.5 m-0.5">
+                      <div
+                        class="w-6 h-6 p-0.5 m-0.5 [&_svg]:fill-white [&_svg_path]:fill-white [&_span]:text-white"
+                      >
                         {@html component.information.icon}
                       </div>
-                      <div
-                        class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
-                      >
+                      <div class="py-0.5 ml-1 px-1 bg-secondary bg-opacity-25">
                         {#if typeof component.information.menuName === "undefined"}
                           {component.information.displayName}
                         {:else}
@@ -496,8 +502,11 @@
 
   .action-menu {
     background-color: var(--background);
-    border: 1px solid var(--background-soft);
+    border: 1px solid var(--border);
     height: 35rem;
-    width: 20vw;
+    width: 28vw;
+    min-width: 320px;
+    --focus-outline: 1px solid var(--border);
+    --focus-offset: 0px;
   }
 </style>

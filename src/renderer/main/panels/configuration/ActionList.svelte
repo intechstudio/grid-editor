@@ -151,7 +151,7 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class=" pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
+    class=" pb-0 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     {#if $appSettings.isMultiView}
       <div class="flex flex-row gap-2 px-3 text-sm">

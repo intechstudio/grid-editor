@@ -138,14 +138,14 @@
             <div
               in:fly|global={{ x: -10 }}
               out:fly|global={{ x: 10 }}
-              class="w-fit absolute right-0 bottom-0 mb-6 mr-4 flex flex-row items-center gap-2"
+              class="w-fit absolute right-0 bottom-0 mb-0 mr-4 flex flex-row items-center gap-2"
             >
               <Tracker />
               <PanelToggleButton target={"right"} />
             </div>
           {/if}
 
-          <div class="absolute left-0 bottom-0 mb-7 ml-4">
+          <div class="absolute left-0 bottom-0 mb-4 ml-4">
             <PanelToggleButton target={"minimap"} />
           </div>
 

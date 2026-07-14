@@ -69,7 +69,7 @@
 <container class={$$props.class}>
   <div
     style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius) ;"
-    class="flex flex-row items-center p-3 gap-3 px-3"
+    class="flex flex-row items-center p-3 gap-3"
   >
     <div
       use:tooltip={{

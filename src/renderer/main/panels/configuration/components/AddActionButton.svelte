@@ -29,10 +29,12 @@
   <button
     bind:this={referenceElement}
     on:click={handleShowActionPicker}
-    class="cursor-pointer flex w-full truncate hover:border-pick border-l-foreground hover:bg-background-muted
-                transition-colors duration-300 border-l-4 pl-4 p-2"
+    style="border-color: var(--foreground-muted); color: var(--foreground);"
+    class="cursor-pointer flex w-full items-center justify-center gap-3 border border-dashed px-4 py-4 mx-2 my-2 w-[calc(100%-1rem)]
+           hover:bg-background-muted hover:brightness-125 transition-all duration-200 text-base font-medium"
   >
-    Add action block...
+    <span class="text-2xl leading-none">+</span>
+    <span>Add action block</span>
   </button>
 
   {#if showActionPicker}
