@@ -496,10 +496,14 @@ function createWindow() {
         }
         break;
       case "taskbar":
-        // Show first so the window is actually mapped, then minimize. Calling
-        // minimize() on a never-shown window leaves no recoverable window on
-        // some compositors (e.g. Wayland/GNOME).
-        mainWindow.show();
+        // Linux compositors (e.g. Wayland/GNOME) won't map a window that was
+        // never shown, so it has to be shown before it can be minimized. On
+        // Windows/macOS calling show() first makes the window flash on screen
+        // for a frame before minimizing, so there we minimize the still-hidden
+        // window directly.
+        if (process.platform === "linux") {
+          mainWindow.show();
+        }
         mainWindow.minimize();
         break;
       default:
