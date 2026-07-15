@@ -101,9 +101,16 @@
 
     const setup = element.findEvent(EventTypeToNumber(EventType.SETUP));
 
+    // Find the name action at any position — not just action-0. If several sn
+    // blocks exist, the FIRST is canonical (matches insertion at index 0 and
+    // the read path below), so edits target that one rather than a later dup.
+    const action = setup.config.find(
+      (a) => a.short === elementNameInformation.short,
+    );
+
     // Mutate the local model only while typing — the grid push is deferred to
     // handleElementNameCommit (on blur/enter) so we don't sync every keystroke.
-    if (setup.actionAt(0)?.short !== elementNameInformation.short) {
+    if (typeof action === "undefined") {
       // No name action yet — only create one for a non-empty name (an empty
       // name means "no name", so there is nothing to insert).
       if (value.length === 0) {
@@ -116,8 +123,6 @@
       setup.insert(0, new GridAction(setup, data)).catch(console.error);
       return;
     }
-
-    const action = setup.actionAt(0);
 
     // Empty name — just remove the action (no point updating it beforehand).
     if (value.length === 0) {
@@ -151,7 +156,8 @@
     refreshElementNameDisplay(element);
   }
 
-  // Recompute the panel's name field from the element's Setup action-0. Read
+  // Recompute the panel's name field from the element's Setup name action
+  // (found at any position). Read
   // only — sets elementName and _lastElementName in lockstep so it never
   // triggers a write. Runs on navigation and (reactively) on live edits, so
   // editing the ElementName action block reflects into the field instantly.
@@ -161,9 +167,12 @@
     }
 
     const setup = el.findEvent(EventTypeToNumber(EventType.SETUP));
-    const action = setup?.actionAt(0);
+    // Find the name action at any position (first sn is canonical — see write path).
+    const action = setup?.config.find(
+      (a) => a.short === elementNameInformation.short,
+    );
 
-    if (action?.short === elementNameInformation.short) {
+    if (action) {
       // Null-safe: a hand-edited sn script that doesn't match reads as empty
       // rather than throwing (this runs on every element-store emission).
       const match = action.script.match(elementNameInformation.valueRegex);
@@ -172,8 +181,19 @@
         setElementNameDisplay(value);
         el.name = value;
       }
-    } else if (elementName !== "") {
-      setElementNameDisplay("");
+    } else {
+      // No name block — clear both the panel field and the runtime model.
+      // Resetting el.name matters because removing the block from the action
+      // list (not the field) otherwise leaves el.name stale and the grid layout
+      // keeps showing the old name. Guarded independently: the field and the
+      // model can each be stale without the other (e.g. navigating to an
+      // element whose block was removed while it wasn't the active one).
+      if (elementName !== "") {
+        setElementNameDisplay("");
+      }
+      if (el.name) {
+        el.name = "";
+      }
     }
   }
 
