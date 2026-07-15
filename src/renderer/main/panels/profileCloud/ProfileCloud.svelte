@@ -38,6 +38,7 @@
     fetchDirEntries,
     fetchFileContent,
     pageNumberToFolderPath,
+    type DirEntry,
   } from "../FileManager/FileManager";
 
   const configuration = window.ctxProcess.configuration();
@@ -244,7 +245,12 @@
         // Get files from the selected module, under given page folder. NO recursion / traversal.
         const pageFolderPath = pageNumberToFolderPath(ui.pagenumber);
         const activeModule = active.findModule(ui.dx, ui.dy);
-        const fileEntries = await fetchDirEntries(pageFolderPath, activeModule);
+        let fileEntries: DirEntry[] = [];
+        try {
+          fileEntries = await fetchDirEntries(pageFolderPath, activeModule);
+        } catch {
+          // Directory doesn't exist yet — nothing to include
+        }
         const files: { name: string; content: string }[] = [];
 
         for (const entry of fileEntries) {
