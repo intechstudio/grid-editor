@@ -317,7 +317,7 @@
 
 <action-midi
   bind:clientWidth={containerWidth}
-  class="flex flex-col w-full pb-2 px-2 pointer-events-auto"
+  class="flex flex-col w-full py-2 px-2 pointer-events-auto"
 >
   <BlockRow>
     <MeltRadio

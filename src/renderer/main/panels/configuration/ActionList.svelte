@@ -171,7 +171,7 @@
           return dragged && dragged.length > 0;
         },
       }}
-      class="overflow-y-scroll overflow-x-hidden justify-start w-full h-full pl-2 pr-3"
+      class="overflow-y-scroll overflow-x-hidden justify-start w-full h-full px-1"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
         <SeparatorLine target={{ event: event, index: 0 }} />
@@ -197,7 +197,7 @@
           animate:reflow={{ duration: 300, easing: eases.cubicOut }}
           in:fade|global={{ delay: 0 }}
         >
-          <div class="flex flex-row gap-4">
+          <div class="flex flex-row gap-1">
             {#key $latestComponentVersionKeys.get(action.short)}
               <DynamicWrapper
                 {index}

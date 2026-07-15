@@ -240,7 +240,6 @@
     }
   }}
   class="dynamicWrapper activator-button flex flex-grow min-w-0 outline-none"
-  style="background-color: var(--background); color: var(--foreground); "
   class:cursor-pointer={ctrlIsDown}
 >
   <Indentation level={$action?.indentation ?? 0} />
@@ -248,11 +247,10 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
+    style="background-color: var(--background); color: var(--foreground); "
     class="flex flex-grow min-w-0 overflow-x-auto h-auto min-h-[32px] {!$action.isValid()
       ? 'border border-error'
-      : 'border border-background-soft'} cursor-pointer"
-    class:rounded-tr-xl={$action.information.rounding === "top"}
-    class:rounded-br-xl={$action.information.rounding === "bottom"}
+      : ' '} cursor-pointer"
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
@@ -282,19 +280,19 @@
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
-      {#if $action.information.hideIcon !== true}
-        <div class="flex flex-row justify-center items-center">
+      <div class="flex flex-row justify-center items-center">
+        <div
+          style="background-color:{$action.information.color}"
+          class="flex items-center p-1 w-min text-center h-full"
+        ></div>
+        {#if $action.information.hideIcon !== true}
           <div
-            style="background-color:{$action.information.color}"
-            class="flex items-center p-1 w-min text-center h-full"
-          ></div>
-          <div
-            class=" pl-1 w-8 h-8 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
+            class=" pl-1 w-7 h-7 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
           >
             {@html $action.information.blockIcon}
           </div>
-        </div>
-      {/if}
+        {/if}
+      </div>
 
       <!-- Body of the config block -->
       <div

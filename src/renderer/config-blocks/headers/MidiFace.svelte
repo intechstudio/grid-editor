@@ -67,7 +67,7 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
   class="flex items-center flex-row w-full pr-2"
-  style="background-color: var(--background-muted)"
+  style=""
   on:click={handleClick}
 >
   <div

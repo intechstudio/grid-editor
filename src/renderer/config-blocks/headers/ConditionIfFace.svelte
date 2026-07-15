@@ -31,10 +31,7 @@
   }
 </script>
 
-<div
-  class="px-2 w-full rounded-tr-xl flex text-white py-1 pointer-events-none"
-  style="background-color:{action.information.color}"
->
+<div class="px-2 w-full rounded-tr-xl flex text-white py-1 pointer-events-none">
   <div class="flex flex-row items-center w-full">
     <span class="mr-4">If</span>
 

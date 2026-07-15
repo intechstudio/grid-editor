@@ -360,10 +360,16 @@
           </div>
         {/if}
 
-        <div class="flex w-full px-3">
+        <div
+          class="flex w-full px-3 pt-4"
+          style="background-color: var(--background-soft);"
+        >
           <Toolbar {event} {element} />
         </div>
-        <div class="flex flex-row h-full w-full max-h-full overflow-auto">
+        <div
+          class="flex flex-row h-full w-full max-h-full overflow-auto"
+          style="background-color: var(--background-soft);"
+        >
           {#if $appSettings.isMultiView}
             {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
               <ActionList {event} focusTrigger={`action-list-${i}`} />

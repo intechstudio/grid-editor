@@ -36,10 +36,7 @@
 </script>
 
 <container
-  class="px-1 w-full rounded-tr-xl justify-center flex flex-col pointer-events-none text-sm"
-  style="border: 3px solid {action.information
-    .color}; background-color: color-mix(in srgb, {action.information
-    .color} 20%, var(--background))"
+  class="p-2 w-full justify-center flex flex-col pointer-events-none text-sm"
 >
   <div class="flex flex-row flex-grow items-center gap-1">
     <div class="pointer-events-auto">

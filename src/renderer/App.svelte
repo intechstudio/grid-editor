@@ -384,7 +384,7 @@
 <style global>
   .activator-button {
     text-align: left;
-    border: 1px solid rgba(0, 0, 0, 0);
+    border: 0px solid rgba(0, 0, 0, 0);
     outline: 0px solid rgba(0, 0, 0, 0);
   }
 

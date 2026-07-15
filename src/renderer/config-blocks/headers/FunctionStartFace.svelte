@@ -107,14 +107,9 @@
   }
 </script>
 
-<function-start-block
-  class="px-1 w-full rounded-tr-xl flex pointer-events-none text-sm"
-  style="border: 3px solid {action.information
-    .color}; background-color: color-mix(in srgb, {action.information
-    .color} 20%, var(--background))"
->
+<function-start-block class="px-1 w-full flex pointer-events-none text-sm">
   <div class="flex flex-row items-center w-full gap-1">
-    <div class="pointer-events-auto flex-grow">
+    <div class="pointer-events-auto flex-grow pt-3">
       <MeltCombo
         value={scriptSegment}
         {suggestions}
