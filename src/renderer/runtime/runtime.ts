@@ -1409,11 +1409,15 @@ export class GridElement extends RuntimeNode<ElementData> {
       }
 
       const setup = this.findEvent(0);
-      const action = setup.actionAt(0);
-      if (action?.short === "sn") {
+      // Find the name (sn) block at any position, not just action-0. If several
+      // exist the first is canonical (matches the config panel's lookup).
+      const action = setup.config.find((a) => a.short === "sn");
+      if (action) {
         const regex = /self:gen\("([^"]*)"\)/;
-        const name = action.script.match(regex)[1];
-        this.name = name;
+        const match = action.script.match(regex);
+        if (match) {
+          this.name = match[1];
+        }
       }
 
       return Promise.resolve();
@@ -1671,6 +1675,10 @@ export class GridPage extends RuntimeNode<PageData> {
             return data;
           });
         }
+        // Clearing wipes the config (including any name action) and restarts
+        // the module, so the cached name must not survive — drop it and let the
+        // module regenerate the default (mirrors resetDefault()/unload()).
+        element.resetName();
       }
     });
     this.notify();

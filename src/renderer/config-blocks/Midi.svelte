@@ -58,7 +58,14 @@
   import { midiCC } from "./_midi.js";
   import { Script, extractParam } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
+  import {
+    ActionData,
+    GridAction,
+    GridElement,
+    GridEvent,
+    GridPage,
+  } from "./../runtime/runtime";
+  import { moduleMidiChannelState } from "../runtime/system-midi-channel";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
   import { Validator } from "./validators";
@@ -67,6 +74,12 @@
   export let action: GridAction;
 
   let event = action.parent as GridEvent;
+  // Reactive, config-derived module MIDI channel for this action's page — lets
+  // renderSuggestions re-run (and the "Auto (N)" label update) the moment the
+  // page's default channel changes.
+  const channelStore = moduleMidiChannelState(
+    (event.parent as GridElement)?.parent as GridPage | undefined,
+  );
   let containerWidth = 0;
   $: isWide = containerWidth > 360;
 
@@ -309,13 +322,16 @@
       index,
     });
 
+    // Recompute the channel "Auto (N)" label each run so it reflects the page's
+    // current module MIDI channel (getMidi reads it live), rather than the value
+    // captured once in baseSuggestions at mount.
+    const channelAuto = makeAuto(
+      `Auto (${Grid.Auto.getMidiChannelLabel(action)})`,
+    );
+
     // assemble suggestions with "auto" always first
     suggestions = [
-      [
-        baseSuggestions[0][0],
-        ...localDefinitions,
-        ...baseSuggestions[0].slice(1),
-      ], // channels
+      [channelAuto, ...localDefinitions, ...baseSuggestions[0].slice(1)], // channels
       [autoCommand, ...localDefinitions, ...baseSuggestions[1]], // commands
       param1.length > 0
         ? [param1[0], ...localDefinitions, ...param1.slice(1)]
@@ -328,7 +344,7 @@
     ];
   }
 
-  $: if ($event || mode !== undefined) {
+  $: if ($event || mode !== undefined || $channelStore) {
     renderSuggestions();
   }
 </script>

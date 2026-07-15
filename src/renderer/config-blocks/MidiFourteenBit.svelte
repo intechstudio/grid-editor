@@ -171,7 +171,7 @@
     suggestions[0] = [
       {
         value: "-1",
-        info: `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_CHANNEL)})`,
+        info: `Auto (${Grid.Auto.getMidiChannelLabel(action)})`,
         key: "auto",
       },
       ..._suggestions[0],
