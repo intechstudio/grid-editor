@@ -139,3 +139,77 @@ body {
 img[src*="mixpanel.com"] {
   pointer-events: none !important;
 }
+
+/*
+  Monaco's hover and completion-docs popovers (LuaLS markdown content) render
+  as real DOM inside .overflowingContentWidgets, relying on the browser's
+  default heading/list styles since monaco ships almost no typography CSS of
+  its own. Tailwind's preflight resets those defaults globally, which
+  flattens headings and strips bullets there. Monaco also never styled code
+  blocks outside of the hover widget specifically. Restore both, scoped to
+  monaco's own overflow-widget container only.
+*/
+.monaco-editor .overflowingContentWidgets h1,
+.monaco-editor .overflowingContentWidgets h2,
+.monaco-editor .overflowingContentWidgets h3,
+.monaco-editor .overflowingContentWidgets h4,
+.monaco-editor .overflowingContentWidgets h5,
+.monaco-editor .overflowingContentWidgets h6 {
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+}
+.monaco-editor .overflowingContentWidgets h1 {
+  font-size: 1.4em;
+}
+.monaco-editor .overflowingContentWidgets h2 {
+  font-size: 1.25em;
+}
+.monaco-editor .overflowingContentWidgets h3 {
+  font-size: 1.1em;
+}
+
+.monaco-editor .overflowingContentWidgets ul,
+.monaco-editor .overflowingContentWidgets ol {
+  list-style: revert;
+  margin: 0.25em 0;
+  padding-left: 1.5em;
+}
+
+.monaco-editor .overflowingContentWidgets pre {
+  margin: 0.5em 0;
+  padding: 0.4em 0.6em;
+  overflow-x: auto;
+  border-radius: 3px;
+}
+
+.monaco-editor .overflowingContentWidgets code {
+  background-color: var(--vscode-textCodeBlock-background);
+}
+
+/*
+  The completion-docs panel gets its own vertical rhythm for free from
+  monaco's suggest.css (`.docs.markdown-docs > div { padding: 4px 5px }`).
+  Hover has no equivalent: the upstream rules that would provide it
+  (vs/base/browser/ui/hover/hoverWidget.css - line-height: 1.5em and
+  margin: 8px 0 on p/ul/ol) aren't part of this bundle, only the
+  border/background rules from vs/editor/contrib/hover/browser/hover.css
+  are. Restore the missing spacing so wrapped/broken lines aren't cramped.
+*/
+.monaco-editor .overflowingContentWidgets .hover-contents {
+  line-height: 1.5;
+}
+.monaco-editor .overflowingContentWidgets .hover-contents p,
+.monaco-editor .overflowingContentWidgets .hover-contents ul,
+.monaco-editor .overflowingContentWidgets .hover-contents ol {
+  margin: 8px 0;
+}
+.monaco-editor .overflowingContentWidgets .hover-contents p:first-child,
+.monaco-editor .overflowingContentWidgets .hover-contents ul:first-child,
+.monaco-editor .overflowingContentWidgets .hover-contents ol:first-child {
+  margin-top: 0;
+}
+.monaco-editor .overflowingContentWidgets .hover-contents p:last-child,
+.monaco-editor .overflowingContentWidgets .hover-contents ul:last-child,
+.monaco-editor .overflowingContentWidgets .hover-contents ol:last-child {
+  margin-bottom: 0;
+}
