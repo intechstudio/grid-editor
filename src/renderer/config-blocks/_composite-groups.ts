@@ -10,6 +10,7 @@ export interface CompositePartData {
   display: string;
   menuName?: string;
   helper?: string;
+  description?: string;
   iconKey: string;
 }
 
@@ -30,6 +31,7 @@ export const compositeGroups: CompositeGroup[] = [
         display: "Encoder Rotate Left",
         menuName: "Encoder Left/Right Rotate",
         helper: "Actions here are triggered when the encoder was rotated left.",
+        description: "Actions here are triggered when the encoder was rotated left.",
         iconKey: "rotate-left",
       },
       {
@@ -59,6 +61,7 @@ export const compositeGroups: CompositeGroup[] = [
         menuName: "Encoder Push & Rotate",
         helper:
           "Actions here are triggered by rotating the encoder while it is pressed.",
+        description: "Actions here are triggered by rotating the encoder while it is pressed.",
         iconKey: "push-rotate",
       },
       {
@@ -87,6 +90,7 @@ export const compositeGroups: CompositeGroup[] = [
         menuName: "Encoder Push & Rotate L R",
         helper:
           "Actions here are triggered by rotating the encoder left while it is pressed.",
+        description: "Actions here are triggered by rotating the encoder left while it is pressed.",
         iconKey: "push-rot-left",
       },
       {
@@ -128,6 +132,7 @@ export const compositeGroups: CompositeGroup[] = [
         lua: "if self:bst()>0 then",
         display: "Press",
         menuName: "Press/Release",
+        description: "Actions here are triggered when the button is pressed.",
         helper: "Actions here are triggered when the button is pressed.",
         iconKey: "button-press",
       },
@@ -156,6 +161,7 @@ export const compositeGroups: CompositeGroup[] = [
         lua: "if self:epst()<64 then",
         display: "Endless Rotate Left",
         menuName: "Endless Left/Right Rotate",
+        description: "Actions here are triggered when the endless potentiometer was rotated left.",
         helper:
           "Actions here are triggered when the endless potentiometer was rotated left.",
         iconKey: "rotate-left",
@@ -185,6 +191,7 @@ export const compositeGroups: CompositeGroup[] = [
         lua: "if self:bst()>0 then",
         display: "Endless Push & Rotate",
         menuName: "Endless Push & Rotate",
+        description: "Actions here are triggered by rotating the endless potentiometer while it is pressed.",
         helper:
           "Actions here are triggered by rotating the endless potentiometer while it is pressed.",
         iconKey: "push-rotate",
@@ -214,6 +221,7 @@ export const compositeGroups: CompositeGroup[] = [
         lua: "if (self:bst()>0 and self:epst()<64) then",
         display: "Endless Push & Rotate Left",
         menuName: "Endless Push & Rotate L R",
+        description: "Actions here are triggered by rotating the endless potentiometer left while it is pressed.",
         helper:
           "Actions here are triggered by rotating the endless potentiometer left while it is pressed.",
         iconKey: "push-rot-left",

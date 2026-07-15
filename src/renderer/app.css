@@ -3,6 +3,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Stroke-only icons: prevent fill from being inherited from parent containers */
+.stroke-icon,
+.stroke-icon path,
+.stroke-icon rect,
+.stroke-icon circle,
+.stroke-icon ellipse,
+.stroke-icon polygon,
+.stroke-icon polyline,
+.stroke-icon line {
+  fill: none !important;
+}
+
+/* Allow explicit fill="currentColor" overrides for dot/marker elements */
+.stroke-icon [fill="currentColor"] {
+  fill: currentColor !important;
+}
+
 @font-face {
   font-family: "GT Pressura Pro M Trial";
   src: url("/fonts/GT-Pressura-Pro-Mono-Trial-Light.otf") format("opentype");
@@ -121,17 +138,17 @@ html {
   font-size: 12px;
 
   /* Action block category colors */
-  --category-midi: #FF9CF6;
-  --category-hid: #C0E4F6;
-  --category-led: #1181C8;
-  --category-variables: #EBECE6;
-  --category-condition: #FFF4D1;
-  --category-loop: #FDFFE4;
-  --category-code: #7BF1A8;
-  --category-element-settings: #E5FFCF;
-  --category-timer: #90F1EF;
-  --category-function: #F2EAE0;
-  --category-special: #B8B8FF;
+  --category-midi: #ff9cf6;
+  --category-hid: #c0e4f6;
+  --category-led: #1181c8;
+  --category-variables: #ebece6;
+  --category-condition: #fff4d1;
+  --category-loop: #fdffe4;
+  --category-code: #7bf1a8;
+  --category-element-settings: #e5ffcf;
+  --category-timer: #90f1ef;
+  --category-function: #f2eae0;
+  --category-special: #b8b8ff;
   --category-deprecated: #545454;
 }
 

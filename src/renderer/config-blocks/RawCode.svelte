@@ -14,6 +14,7 @@
     rendering: "standard",
     category: null,
     displayName: "RAW code",
+    description: "Write Lua code by hand",
     color: "#f0f5f7",
     defaultLua: undefined,
     icon: undefined,

@@ -458,15 +458,27 @@
                         class="w-1.5 h-full flex-shrink-0"
                       ></div>
                       <div
-                        class="w-5 h-5 flex-shrink-0 [&_svg]:fill-foreground [&_svg_path]:fill-foreground [&_span]:text-foreground"
+                        class="w-6 h-6 flex-shrink-0 [&_svg]:fill-foreground [&_svg_path]:fill-foreground [&_span]:text-foreground"
                       >
                         {@html component.information.icon}
                       </div>
-                      <div class="text-l truncate">
-                        {#if typeof component.information.menuName === "undefined"}
-                          {component.information.displayName}
-                        {:else}
-                          {component.information.menuName}
+                      <div
+                        class="flex-1 min-w-0 truncate flex items-center gap-1"
+                      >
+                        <span class="text-l">
+                          {#if typeof component.information.menuName === "undefined"}
+                            {component.information.displayName}
+                          {:else}
+                            {component.information.menuName}
+                          {/if}
+                        </span>
+                        {#if typeof component.information.description != "undefined"}
+                          <span
+                            class="text-sm truncate"
+                            style="color: var(--foreground-muted)"
+                          >
+                            -- {component.information.description}
+                          </span>
                         {/if}
                       </div>
                     </button>

@@ -8,6 +8,7 @@
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
   import {
+    Block,
     MoltenPushButton,
     MoltenPushButtonGroup,
   } from "@intechstudio/grid-uikit";
@@ -299,18 +300,11 @@
         snap="wide"
       />
     </div>
-
     <MoltenPushButtonGroup
       options={profileTypeOptions}
       bind:target={$selectedProfileType}
       style="normal"
     >
-    <BlockRow>
-      <MeltSelect
-        bind:target={$selectedProfileType}
-        options={profileTypeOptions}
-      />
-
       <div
         slot="button"
         let:closeDropdown
@@ -339,13 +333,14 @@
         <MoltenPushButton
           text={selectedLabel}
           style="normal"
-          snap="wide"
           click={() => {}}
           disabled={noModules}
           grouped={true}
+          snap="wide"
         />
       </div>
     </MoltenPushButtonGroup>
+    <div>
       <div
         use:tooltip={{
           key: "configuration_header_store",
@@ -363,7 +358,7 @@
           style="accept"
         />
       </div>
-    </BlockRow>
+    </div>
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
         text="Connect"

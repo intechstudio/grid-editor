@@ -11,22 +11,11 @@
     rendering: "standard",
     category: "variables",
     displayName: "Lookup",
+    description: "Map input values to new output values",
     color: categoryColors["variables"] as any,
     defaultLua: "glut(param1,36,0,37,1)",
-    icon: `<svg width="100%" height="100%" viewBox="0 0 163 212" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 15.526L123.027 0.207275L108.651 56.1951L93.2051 41.1528L43.769 90.5889L33.8695 80.6894L83.3056 31.2533L67.294 15.526Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 196.307L123.027 211.626L108.651 155.638L93.2051 170.68L43.769 121.244L33.8695 131.144L83.3056 180.58L67.294 196.307Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M112.712 76.9999L162.954 105.577L113.199 135.001L112.913 113.443L43 113.443L43 99.4427L112.913 99.4427L112.712 76.9999Z" fill="black"/>
-        <path d="M35 105.5C35 115.165 27.165 123 17.5 123C7.83502 123 0 115.165 0 105.5C0 95.835 7.83502 88 17.5 88C27.165 88 35 95.835 35 105.5Z" fill="black"/>
-      </svg>
-    `,
-    blockIcon: `<svg width="100%" height="100%" viewBox="0 0 163 212" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 15.526L123.027 0.207275L108.651 56.1951L93.2051 41.1528L43.769 90.5889L33.8695 80.6894L83.3056 31.2533L67.294 15.526Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 196.307L123.027 211.626L108.651 155.638L93.2051 170.68L43.769 121.244L33.8695 131.144L83.3056 180.58L67.294 196.307Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M112.712 76.9999L162.954 105.577L113.199 135.001L112.913 113.443L43 113.443L43 99.4427L112.913 99.4427L112.712 76.9999Z" fill="black"/>
-        <path d="M35 105.5C35 115.165 27.165 123 17.5 123C7.83502 123 0 115.165 0 105.5C0 95.835 7.83502 88 17.5 88C27.165 88 35 95.835 35 105.5Z" fill="black"/>
-      </svg>
-    `,
+    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m16 3.5 4 4-4 4M20 7.5H7M8 20.5l-4-4 4-4M4 16.5h13"/></svg>`,
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m16 3.5 4 4-4 4M20 7.5H7M8 20.5l-4-4 4-4M4 16.5h13"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,

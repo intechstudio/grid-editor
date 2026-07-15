@@ -11,13 +11,10 @@
     rendering: "standard",
     category: "code",
     displayName: "Comment Block",
+    description: "Leave a note for yourself",
     defaultLua: "--[[This Is A Comment]]",
-    icon: `
-    <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
-    `,
-    blockIcon: `
-    <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
-    `,
+    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H9.4L4 21V7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/><path d="M9 11h6"/></svg>`,
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H9.4L4 21V7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z"/><path d="M9 11h6"/></svg>`,
     color: categoryColors["code"] as any,
     selectable: true,
     movable: true,

@@ -289,7 +289,7 @@
             class="flex items-center p-1 w-min text-center h-full"
           ></div>
           <div
-            class=" pl-1 w-7 h-7 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
+            class=" pl-1 w-8 h-8 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
           >
             {@html $action.information.blockIcon}
           </div>
