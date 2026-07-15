@@ -1,4 +1,6 @@
 const dotenv = require("dotenv");
+const fs = require("fs");
+const path = require("path");
 dotenv.config();
 
 function productNameByWorkflow() {
@@ -30,6 +32,18 @@ const config = {
       from: "src/renderer/assets/**/*",
       to: "assets",
     },
+    {
+      from: "build-assets/lua-annotations",
+      to: "lua-annotations",
+    },
+    ...fs
+      .readdirSync(path.join(__dirname, "build-assets"))
+      .filter(
+        (d) =>
+          d.startsWith("lua-language-server-") &&
+          fs.statSync(path.join(__dirname, "build-assets", d)).isDirectory(),
+      )
+      .map((dir) => ({ from: `build-assets/${dir}`, to: dir })),
   ],
   files: ["**/*"],
   win: {

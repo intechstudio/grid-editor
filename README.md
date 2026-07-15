@@ -77,3 +77,22 @@ npm run format
 npm i
 npm run web-dev
 ```
+
+## Start local Profile Cloud development
+
+1. Open Editor with `npm run electron-dev`
+2. Preferences -> Developer settings –> Package Developer Mode -> ☑️
+3. Preferences -> Developer settings –> Profile cloud URL -> package://profile-cloud/public
+4. Restart Editor fully, renderer reload is not enough!, `ctrl+c`
+5. Start the `profile-cloud` project in webcomponent mode with `npm run dev:webcomponent`
+6. Editor should receive a message through websocket:9000, when the webcomponent is built. The Package Manager panel should give a prompt to accept the development package.
+7. Reload Editor (shift+cmd+R)
+8. The dev:webcomponent Profile Cloud should be rendered into the Profile Cloud panel
+
+## Grid Editor and Profile Cloud projects during development
+
+- handy firebase commands: `firebase logout`, `firebase login`, `firebase projects:list`, `firebase use THE-PROJECT-NAME`
+- is-auth-dev is the central firebase authentication project used by the Grid Editor
+- profile-cloud-dev is the profile cloud firebase project used by the Profile Cloud
+- when firestore security settings are changed, they shouls be either emulated locally or pushed to the appropiate project environment
+- passing auth is through `oidc`

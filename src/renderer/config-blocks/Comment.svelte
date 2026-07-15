@@ -24,6 +24,7 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
+    hiddenInMinimalist: true,
     editName: true,
     version: "2.0",
   };

@@ -1,18 +1,31 @@
 /**
- * Monaco Editor worker setup for Vite (no plugin required).
+ * Monaco Editor worker setup for @codingame/monaco-vscode-api.
  *
- * Uses Vite's built-in `?worker` import to bundle the base editor worker.
- * Only the generic editor worker is needed — Lua/intech_lua use Monarch
- * tokenizers which run on the main thread.
+ * Vite's ?worker suffix bundles the entry point into a self-contained file
+ * and gives us a Worker constructor. We set MonacoEnvironment.getWorker so
+ * StandaloneWebWorkerService uses it directly — bypassing the blob-URL
+ * bootstrap that can't resolve bare specifiers under Electron's file://
+ * protocol.
  *
- * When migrating to LuaLS + monaco-languageclient in the future,
- * the language server will communicate via WebSocket/IPC,
- * not through Monaco's built-in worker system.
+ * This must run before initialize() from @codingame/monaco-vscode-api.
  */
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import { useWorkerFactory } from "monaco-languageclient/workerFactory";
+import EditorWorker from "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker.js?worker";
+import { Uri } from "monaco-editor";
+import { initFile } from "@codingame/monaco-vscode-files-service-override";
+import gridApiLua from "../../../build-assets/lua-annotations/grid-api.lua?raw";
 
-self.MonacoEnvironment = {
-  getWorker() {
-    return new editorWorker();
-  },
-};
+// Pre-populate the annotation file in the in-memory filesystem BEFORE initialize()
+// from @codingame/monaco-vscode-api runs (which happens in monaco-init.ts after this
+// import). initFile called after initialize() throws "Services are already initialized".
+initFile(Uri.parse("file:///grid-annotations/grid-api.lua"), gridApiLua);
+
+// useWorkerFactory initialises MonacoEnvironment (viewServiceType, etc.)
+useWorkerFactory({ workerLoaders: {} });
+
+// getWorker is checked BEFORE getWorkerUrl in StandaloneWebWorkerService.
+// Returning a real Worker bypasses the blob wrapper entirely.
+const monacoEnv = (self as any).MonacoEnvironment;
+if (monacoEnv) {
+  monacoEnv.getWorker = () => new EditorWorker();
+}

@@ -80,6 +80,7 @@ log.info(
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
+import { startLuaLSServer, stopLuaLSServer } from "./ipcmain_luals";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, findBootloaderPathNative, writeFirmwareToBootloader } from "./src/firmware";
@@ -228,6 +229,24 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient("grid-editor");
 }
 
+// Single, reliable way to bring the window back to the foreground, no matter
+// how it was hidden (minimized, tray/dock, or never shown after a "taskbar"/
+// "tray" startup). This is the escape hatch from every hidden startup state:
+// the tray menu/icon, a relaunch (see "second-instance"), and macOS dock
+// activation all route through here.
+function showMainWindow() {
+  if (!mainWindow) {
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.setSkipTaskbar(false);
+  mainWindow.show();
+  mainWindow.focus();
+  mainWindow.webContents.send("trayState", false);
+}
+
 function create_tray() {
   /* ===============================================================================
 // Conde snippet to generate JSON file from PNG. Use this when creating a new icon
@@ -248,12 +267,7 @@ function create_tray() {
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Show",
-      click: function () {
-        mainWindow.setSkipTaskbar(false);
-        mainWindow.show();
-
-        mainWindow.webContents.send("trayState", false);
-      },
+      click: showMainWindow,
     },
     {
       label: "Hide",
@@ -276,6 +290,11 @@ function create_tray() {
   tray.setToolTip("Grid Editor");
   tray.setContextMenu(contextMenu);
   tray.setTitle("Grid Editor");
+
+  // Clicking the tray icon (single click on Windows, double click elsewhere) is
+  // the most discoverable way back to a window hidden in the tray.
+  tray.on("click", showMainWindow);
+  tray.on("double-click", showMainWindow);
 }
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -332,17 +351,18 @@ if (!gotTheLock) {
   app.on(
     "second-instance",
     (event, commandLine, workingDirectory, additionalData) => {
-      // Someone tried to run a second instance, we should focus our window.
+      // Someone tried to run a second instance — restore and focus our window.
+      // Covers both a minimized window and one hidden to the tray/dock (e.g.
+      // when launched with the "taskbar" or "tray" startup window state).
       if (mainWindow) {
-        if (process.platform !== "darwin") {
-          mainWindow.show();
-        }
+        showMainWindow();
 
-        if (mainWindow.isMinimized()) {
-          mainWindow.restore();
-          mainWindow.focus();
+        // Only treat the last arg as a deeplink when it actually is a URL;
+        // a plain relaunch passes a file path that new URL() would reject.
+        const lastArg = commandLine.pop()?.toString();
+        if (lastArg && lastArg.includes("://")) {
+          handleDeeplinkReturnData(lastArg);
         }
-        handleDeeplinkReturnData(commandLine.pop().toString());
       }
     },
   );
@@ -425,6 +445,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width,
     height,
+    // Create hidden; we decide whether to show or start minimized once the
+    // content is ready to render (avoids a white flash on normal launch).
+    show: false,
     minHeight: 500,
     minWidth: 800,
     backgroundColor: "#1e2628",
@@ -442,6 +465,50 @@ function createWindow() {
       backgroundThrottling: false,
     },
     icon: "./icon.png",
+  });
+
+  // Decide how the window appears on launch (see "Startup window state" in
+  // preferences). A second launch always restores + focuses the window (see the
+  // "second-instance" handler), so a tray/minimized start stays recoverable.
+  mainWindow.once("ready-to-show", () => {
+    switch (store.get("startupWindowState")) {
+      case "tray":
+        // "Open hidden in the tray" is only offered on Windows (see the
+        // Preferences radio): macOS has no tray and many Linux desktops lack a
+        // system tray, where hiding would make the app unreachable. Honour the
+        // setting only on Windows; on any other platform a stale/synced "tray"
+        // value falls through to a normal window so the app can't get stuck
+        // hidden with no way back.
+        if (process.platform === "win32") {
+          mainWindow.setSkipTaskbar(true);
+          mainWindow.webContents.send("trayState", true);
+          // The tray icon is easy to miss (Windows hides new icons in the
+          // overflow area), so tell the user where the window went.
+          if (tray) {
+            tray.displayBalloon({
+              title: "Grid Editor",
+              content:
+                "Grid Editor is running in the background. Click the tray icon to open its window.",
+            });
+          }
+        } else {
+          mainWindow.show();
+        }
+        break;
+      case "taskbar":
+        // Linux compositors (e.g. Wayland/GNOME) won't map a window that was
+        // never shown, so it has to be shown before it can be minimized. On
+        // Windows/macOS calling show() first makes the window flash on screen
+        // for a frame before minimizing, so there we minimize the still-hidden
+        // window directly.
+        if (process.platform === "linux") {
+          mainWindow.show();
+        }
+        mainWindow.minimize();
+        break;
+      default:
+        mainWindow.show();
+    }
   });
 
   // We set an intercept on incoming requests to disable x-frame-options
@@ -468,6 +535,9 @@ function createWindow() {
     store.get("nightlyEditor"),
     store.get("disableAutoUpdate") || isManagedLinuxPackage(),
   );
+
+  // Start LuaLS WebSocket bridge for Monaco LSP
+  startLuaLSServer();
 
   // Setup custom log transport to forward logs to renderer
   setupRendererLogTransport();
@@ -507,7 +577,7 @@ function createWindow() {
   console.log(`here what is VITE_BUILD_ENV: ${import.meta.env.VITE_BUILD_ENV}`);
   if (import.meta.env.VITE_BUILD_ENV === "development") {
     log.info("Development Mode!");
-    mainWindow.loadURL("http://localhost:5173/");
+    mainWindow.loadURL("http://localhost:5273/");
     mainWindow.webContents.openDevTools();
   } else {
     // this is applicable for any non development environment, like production or test
@@ -571,7 +641,7 @@ function createWindow() {
       if (
         permission === "serial" &&
         (details.securityOrigin == "file:///" ||
-          details.securityOrigin == "http://localhost:5173/")
+          details.securityOrigin == "http://localhost:5273/")
       ) {
         return true;
       }
@@ -583,7 +653,7 @@ function createWindow() {
     if (
       details.deviceType === "serial" &&
       (details.origin === "file://" ||
-        details.origin === "http://localhost:5173")
+        details.origin === "http://localhost:5273")
     ) {
       return true;
     }
@@ -969,7 +1039,6 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
-  console.log(arg.url);
   return await shell.openExternal(arg.url);
 });
 
@@ -1104,12 +1173,15 @@ app.on("window-all-closed", (evt) => {
 
 app.on("activate", () => {
   // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  mainWindow.show();
+  // dock icon is clicked and there are no other windows open. This is also the
+  // way back from a "tray" startup on macOS, where the window is hidden but the
+  // dock icon remains.
+  showMainWindow();
 });
 
 // termination of application, closing the windows, used for macOS hide flag
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
+  stopLuaLSServer();
   app.quitting = true;
 });

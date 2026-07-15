@@ -27,10 +27,10 @@ export function setDocumentAnimationsEnabled(value: boolean) {
 function disableAnimation() {
   const css = `
         * {
-          animation-duration: 0.01ms !important;
+          animation-duration: 0ms !important;
           animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-          animation-delay: 0.01ms !important;
+          transition-duration: 0ms !important;
+          animation-delay: 0ms !important;
         }
       `;
   const existingStyleElement = document.getElementById("custom-global-style");

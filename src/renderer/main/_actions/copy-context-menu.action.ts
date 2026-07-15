@@ -75,7 +75,8 @@ export function copyContextMenu(node: HTMLElement) {
     button.textContent = "Copy";
     button.className = "w-full text-left px-4 py-1 hover:bg-gray-700";
     button.onclick = () => {
-      navigator.clipboard.writeText(getSelectionText());
+      const text = getSelectionText() || getTextFromNode(node);
+      navigator.clipboard.writeText(text);
       removeMenu();
     };
 

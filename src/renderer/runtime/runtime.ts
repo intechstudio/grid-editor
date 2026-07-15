@@ -29,6 +29,13 @@ import { type GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
 import { type ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
+import { type LuaValue } from "../serialport/evaluate-parser";
+import {
+  writeFileContent,
+  invalidateLuaModule,
+  createDir,
+  pageNumberToFolderPath,
+} from "../main/panels/FileManager/FileManager";
 
 class NodeData {
   id?: Grid.UUID;
@@ -45,10 +52,13 @@ export namespace ProfileCloudLoad {
 
   export interface Status {
     step: State;
+    phase?: "files" | "config";
     message?: string;
     error?: string;
     total?: number;
     completed?: number;
+    fileChunkCurrent?: number;
+    fileChunkTotal?: number;
   }
 }
 
@@ -67,6 +77,7 @@ export enum ConfigurationType {
 
 export class GridProfileData {
   public presets: GridPresetData[] = [];
+  public files: { name: string; content: string }[] | undefined = undefined;
   public description: string;
   public id: string;
   public readonly type = ConfigurationType.PROFILE;
@@ -81,12 +92,15 @@ export class GridProfileData {
       if (typeof type === "undefined") {
         continue;
       }
-
       const events = data.find(
         (e: any) => e.controlElementNumber === Number(index),
       ).events;
       const preset = new GridPresetData(type, Number(index), events);
       profile.presets.push(preset);
+    }
+
+    if (cloudProfile.files?.length > 0) {
+      profile.files = cloudProfile.files;
     }
 
     profile.description = cloudProfile.description;
@@ -1185,7 +1199,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     if (this.elementIndex === 255) {
       return; // do not request name for system element
     }
-    module.execLUAImmediate(`ele[${this.elementIndex}]:gen()`);
+    module.execConfigImmediate(`ele[${this.elementIndex}]:gen()`);
   }
 
   public isPresetLoaded(preset: GridPresetData) {
@@ -1521,7 +1535,7 @@ export class GridPage extends RuntimeNode<PageData> {
     };
   }
 
-  public async loadProfile(
+  public async sendProfile(
     profile: GridProfileData,
     setStatus?: (status: ProfileCloudLoad.Status) => void,
   ): Promise<ProfileLoadResult> {
@@ -1530,7 +1544,12 @@ export class GridPage extends RuntimeNode<PageData> {
         return acc + preset.element.events.length;
       }, 0);
 
-      setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed: 0 });
+      setStatus?.({
+        step: ProfileCloudLoad.State.BUSY,
+        phase: "config",
+        total,
+        completed: 0,
+      });
       await this.load();
 
       const presets = profile.presets;
@@ -1559,12 +1578,18 @@ export class GridPage extends RuntimeNode<PageData> {
             await new Promise((r) => setTimeout(r, 0));
           }
           ++completed;
-          setStatus?.({ step: ProfileCloudLoad.State.BUSY, total, completed });
+          setStatus?.({
+            step: ProfileCloudLoad.State.BUSY,
+            phase: "config",
+            total,
+            completed,
+          });
         }
       }
 
       setStatus?.({
         step: ProfileCloudLoad.State.LOADED,
+        phase: "config",
         total,
         completed: total,
       });
@@ -1574,7 +1599,7 @@ export class GridPage extends RuntimeNode<PageData> {
         type: GridOperationType.LOAD_PROFILE,
       };
     } catch (error) {
-      setStatus?.({ step: ProfileCloudLoad.State.ERROR });
+      setStatus?.({ step: ProfileCloudLoad.State.ERROR, phase: "config" });
       return Promise.reject({
         value: false,
         text: error instanceof Error ? error.message : String(error),
@@ -1649,6 +1674,70 @@ export class GridPage extends RuntimeNode<PageData> {
       }
     });
     this.notify();
+  }
+
+  public async sendFiles(
+    files: { name: string; content: string }[],
+    setStatus?: (status: ProfileCloudLoad.Status) => void,
+  ): Promise<void> {
+    if (!files?.length) return;
+    const module = this.parent as GridModule;
+    const folderPath = pageNumberToFolderPath(this.pageNumber);
+    const dir = folderPath.slice(0, -1);
+    await createDir(dir, module).catch((err) => {
+      console.log("Directory?", err);
+    });
+    const total = files.length;
+    let completed = 0;
+    setStatus?.({
+      step: ProfileCloudLoad.State.BUSY,
+      phase: "files",
+      total,
+      completed,
+      message: "Uploading files...",
+    });
+    for (const file of files) {
+      const path = `${folderPath}${file.name}`;
+      try {
+        await writeFileContent(
+          path,
+          file.content,
+          module,
+          200,
+          (chunkCurrent, chunkTotal) => {
+            setStatus?.({
+              step: ProfileCloudLoad.State.BUSY,
+              phase: "files",
+              total,
+              completed,
+              fileChunkCurrent: chunkCurrent,
+              fileChunkTotal: chunkTotal,
+              message: `Uploading files...`,
+            });
+          },
+        );
+        ++completed;
+        setStatus?.({
+          step: ProfileCloudLoad.State.BUSY,
+          phase: "files",
+          total,
+          completed,
+          fileChunkCurrent: undefined,
+          fileChunkTotal: undefined,
+          message: `Uploading files... (${completed}/${total})`,
+        });
+      } catch (e) {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "operationerror",
+          message: `File upload failed for ${file.name}: ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+        });
+        throw e;
+      }
+    }
   }
 
   // Getters
@@ -1795,7 +1884,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
     });
   }
 
-  public execLUAImmediate(script: string) {
+  public execConfigImmediate(script: string) {
     const runtime = this.parent as GridRuntime;
     const instruction = new GridInstruction.SendConfigImmediate(
       this.dx,
@@ -1807,6 +1896,21 @@ export class GridModule extends RuntimeNode<ModuleData> {
     instruction.executeOn(runtime.connection).catch((e) => {
       console.warn(e);
     });
+  }
+
+  public execLUAImmediateAndEvalaute(
+    code: string,
+    compress = true,
+  ): Promise<LuaValue[]> {
+    const runtime = this.parent as GridRuntime;
+    const instruction = new GridInstruction.SendLuaImmediateAndEvaluate(
+      this.dx,
+      this.dy,
+      code,
+      compress,
+      runtime.virtual,
+    );
+    return instruction.executeOn(runtime.connection);
   }
 
   findPage(index: number) {

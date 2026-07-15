@@ -9,8 +9,7 @@
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
   import {
     MoltenPushButton,
-    MeltSelect,
-    BlockRow,
+    MoltenPushButtonGroup,
   } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../runtime/runtime-manager.store";
   import { GridRuntime } from "../../runtime/runtime";
@@ -89,6 +88,8 @@
       isChanges = changes > 0;
     }
   }
+
+  $: noModules = $runtime.modules.length === 0;
 
   function clearOverlays() {
     if (
@@ -298,6 +299,12 @@
         snap="wide"
       />
     </div>
+
+    <MoltenPushButtonGroup
+      options={profileTypeOptions}
+      bind:target={$selectedProfileType}
+      style="normal"
+    >
     <BlockRow>
       <MeltSelect
         bind:target={$selectedProfileType}
@@ -305,6 +312,9 @@
       />
 
       <div
+        slot="button"
+        let:closeDropdown
+        let:selectedLabel
         data-testid="clear-load-button"
         use:tooltip={{
           key: "configuration_header_clear",
@@ -315,18 +325,27 @@
               label: "Cancel",
               handler: undefined,
             },
-            { label: "Confirm", handler: handleClear },
+            {
+              label: "Confirm",
+              handler: () => {
+                handleClear();
+                closeDropdown();
+              },
+            },
           ],
           triggerEvents: ["show-buttons", "hover"],
         }}
       >
         <MoltenPushButton
-          text={$selectedProfileType ? "Load" : "Clear"}
+          text={selectedLabel}
           style="normal"
           snap="wide"
           click={() => {}}
+          disabled={noModules}
+          grouped={true}
         />
       </div>
+    </MoltenPushButtonGroup>
       <div
         use:tooltip={{
           key: "configuration_header_store",
