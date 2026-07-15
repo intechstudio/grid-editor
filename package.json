@@ -39,9 +39,9 @@
     "vitest": "^4.1.0"
   },
   "dependencies": {
-    "@intechstudio/grid-protocol": "1.20260520.959",
+    "@intechstudio/grid-protocol": "1.20260714.1509",
     "@intechstudio/grid-uikit": "1.20260714.912",
-    "@intechstudio/profile-cloud-webcomponent": "1.20251107.1414",
+    "@intechstudio/profile-cloud-webcomponent": "1.20260714.1544",
     "adm-zip": "^0.5.10",
     "axios": "^1.16.0",
     "cheerio": "^1.0.0",
