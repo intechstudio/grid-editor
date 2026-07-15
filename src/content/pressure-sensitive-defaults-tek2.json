@@ -1,7 +1,7 @@
 {
-  "id": "28e3dada-156c-4701-a02a-740c2600eae0",
-  "modifiedAt": "2026-01-08T13:01:39.112Z",
-  "name": "tek2-test",
+  "id": "ec037e3f-27e8-42b6-b01a-29538e91a771",
+  "modifiedAt": "2026-07-13T19:57:13.126Z",
+  "name": "New TEK2 Pressure",
   "description": "Click here to add description",
   "type": "TEK2",
   "version": {
@@ -20,7 +20,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -37,7 +37,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -54,7 +54,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -71,7 +71,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -88,7 +88,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -105,7 +105,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -122,7 +122,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -139,7 +139,7 @@
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(-2) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,10,39,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -152,15 +152,15 @@
       "events": [
         {
           "event": 0,
-          "config": "--[[@cb]] --[[Button Init]]"
+          "config": "--[[@cb]] --[[Endless Init]]"
         },
         {
           "event": 3,
-          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{255,17,0,1},{255,4,0,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
+          "config": "--[[@sbc]] self:bmo(0) self:bmi(0) self:bma(127)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 7,
-          "config": "--[[@sen]] self:epmo(0) self:epv0(50) self:epmi(0) self:epma(127) self:epse(50)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gmsh]] gms(0,176,0,val//128) gms(0,176,32,val%128)"
+          "config": "--[[@sen]] self:epmo(0) self:epv0(50) self:epmi(0) self:epma(127) self:epse(50)--[[@sglc]] self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)--[[@gms]] self:gms(-1,-1,-1,-1)"
         },
         {
           "event": 6,
@@ -211,8 +211,7 @@
       ]
     }
   ],
-  "createdAt": "2026-01-08T13:01:39.112Z",
+  "createdAt": "2026-07-13T19:57:13.126Z",
   "virtualPath": "",
-  "cloudId": "m4c3h8KjJiKqax9OcWEX",
-  "owner": "oMiJQcb4xqTI7XJlGZItEH2eKtm2"
+  "owner": "hLIZijz6PxRnxEjTA9Jb0OYSFt83"
 }
