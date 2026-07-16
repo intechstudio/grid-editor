@@ -50,6 +50,7 @@
   import CodeEditor from "../main/user-interface/CodeEditor.svelte";
   import CommitStatus from "../main/user-interface/CommitStatus.svelte";
   import { appSettings } from "../runtime/app-helper.store";
+  import { setCodeBlockDirty } from "../runtime/code-block-dirty.store";
 
   export let action: GridAction;
 
@@ -84,6 +85,8 @@
   // The inline editor has uncommitted changes (edited script or a syntax error).
   $: inlineDirty = commitEnabled || errorMessage !== "";
 
+  $: setCodeBlockDirty(action.id, inlineDirty);
+
   // Propagate the inline editor's syntax-error state to the action so the
   // block is flagged invalid (red border), like other action blocks do. The
   // committed script is kept; only the validity flag is toggled.
@@ -104,6 +107,7 @@
   // can't clear it. Clear it ourselves when the editor is torn down (navigating
   // away or collapsing the block) so the block doesn't stay flagged invalid.
   onDestroy(() => {
+    setCodeBlockDirty(action.id, false);
     if (hadError) {
       dispatch("update-action", {
         short: action.information.short,

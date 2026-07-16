@@ -25,6 +25,11 @@
       elementnumber: elementNumber,
       eventtype: ui.eventtype,
     });
+
+    const after = get(user_input);
+    if (after.elementnumber !== elementNumber) {
+      selectedElementNumber = after.elementnumber;
+    }
   }
 
   $: handlePageChange($page);

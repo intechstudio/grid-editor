@@ -27,7 +27,7 @@
   import { logger } from "../../../../runtime/runtime.store";
   import { Runtime } from "../../../../runtime/string-table";
   import { get } from "svelte/store";
-  import { information } from "../../../../config-blocks/CodeBlock.svelte";
+  import { codeBlockDirty } from "../../../../runtime/code-block-dirty.store";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
 
@@ -155,6 +155,15 @@
 
   function handleToggle() {
     if (action.information.toggleable == false) {
+      return;
+    }
+    if (action.toggled && get(codeBlockDirty)) {
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "luanotok",
+        message: `Commit or discard changes before collapsing.`,
+      });
       return;
     }
     action.toggled = !action.toggled;

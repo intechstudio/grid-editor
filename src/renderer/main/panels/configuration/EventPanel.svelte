@@ -75,6 +75,11 @@
       elementnumber: ui.elementnumber,
       eventtype: selected,
     });
+
+    const after = get(user_input);
+    if (after.eventtype !== selected) {
+      selected = after.eventtype;
+    }
   }
 
   function handleMouseLeave() {

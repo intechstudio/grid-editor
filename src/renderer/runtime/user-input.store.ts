@@ -6,11 +6,13 @@ import {
   type Writable,
 } from "svelte/store";
 import { Modal, modalManager } from "../main/modals/modal.store";
+import ConfirmModal from "../main/modals/ConfirmModal.svelte";
 import { appSettings } from "./app-helper.store";
 import { runtime_manager } from "./runtime-manager.store";
 import { Grid } from "../lib/_utils";
 import { selected_actions } from "./selected-actions.store";
 import { GridElement, GridEvent, GridModule, GridPage } from "./runtime";
+import { codeBlockDirty } from "./code-block-dirty.store";
 
 export type UserInputValue = {
   dx: number;
@@ -32,6 +34,7 @@ export class UserInput implements Writable<UserInputValue> {
   private _internal: Writable<UserInputValue>;
   private _changed_timestamp = 0;
   private _pendingValue: UserInputValue | null = null;
+  private _pendingNavigation: UserInputValue | null = null;
   private _rafPending = false;
 
   constructor() {
@@ -42,13 +45,16 @@ export class UserInput implements Writable<UserInputValue> {
     const element = value.parent as GridElement;
     const page = element.parent as GridPage;
     const module = page.parent as GridModule;
-    this.set({
-      dx: module.dx,
-      dy: module.dy,
-      pagenumber: page.pageNumber,
-      elementnumber: element.elementIndex,
-      eventtype: value.type,
-    });
+    this.set(
+      {
+        dx: module.dx,
+        dy: module.dy,
+        pagenumber: page.pageNumber,
+        elementnumber: element.elementIndex,
+        eventtype: value.type,
+      },
+      true,
+    );
 
     // Wait for next re-render
     await new Promise<void>((resolve) =>
@@ -79,29 +85,41 @@ export class UserInput implements Writable<UserInputValue> {
           element.events.map((e) => e.type),
           value.eventtype,
         );
-        this.set({
-          dx: value.dx,
-          dy: value.dy,
-          pagenumber: value.pagenumber,
-          elementnumber: value.elementnumber,
-          eventtype: closestEvent,
-        });
+        this.set(
+          {
+            dx: value.dx,
+            dy: value.dy,
+            pagenumber: value.pagenumber,
+            elementnumber: value.elementnumber,
+            eventtype: closestEvent,
+          },
+          true,
+        );
       }
     } else {
-      this.set(UserInput.defaultValue);
+      this.set(UserInput.defaultValue, true);
     }
 
     return this._internal.subscribe(run, invalidate);
   }
 
   // Set the entire object
-  public set(value: UserInputValue) {
+  public set(value: UserInputValue, force = false) {
+    if (!force && get(codeBlockDirty)) {
+      this._showDiscardModal(value);
+      return;
+    }
     this._internal.set(value);
     selected_actions.set([]);
   }
 
   // Update the object with a partial update function
-  public update(updater: Updater<UserInputValue>) {
+  public update(updater: Updater<UserInputValue>, force = false) {
+    if (!force && get(codeBlockDirty)) {
+      const current = get(this._internal);
+      this._showDiscardModal(updater(current));
+      return;
+    }
     this._internal.update(updater);
     selected_actions.set([]);
   }
@@ -109,6 +127,11 @@ export class UserInput implements Writable<UserInputValue> {
   private _flushPending() {
     this._rafPending = false;
     if (this._pendingValue !== null) {
+      if (get(codeBlockDirty)) {
+        this._showDiscardModal(this._pendingValue);
+        this._pendingValue = null;
+        return;
+      }
       this._internal.set(this._pendingValue);
       this._pendingValue = null;
       selected_actions.set([]);
@@ -121,6 +144,30 @@ export class UserInput implements Writable<UserInputValue> {
       this._rafPending = true;
       requestAnimationFrame(() => this._flushPending());
     }
+  }
+
+  private _showDiscardModal(target: UserInputValue) {
+    this._pendingNavigation = target;
+    const confirmModal = new Modal.Window(ConfirmModal, Modal.Snap.Full, {
+      showAsUnique: true,
+    });
+    confirmModal.show({
+      buttons: [
+        {
+          text: "Discard Changes & Navigate",
+          style: "outlined",
+          handler: () => {
+            const nav = this._pendingNavigation;
+            this._pendingNavigation = null;
+            confirmModal.close();
+            if (nav) {
+              this.set(nav, true);
+            }
+          },
+          focused: true,
+        },
+      ],
+    });
   }
 
   // Process incoming events
@@ -202,15 +249,18 @@ export class UserInput implements Writable<UserInputValue> {
     if (dx === ui.dx && dy === ui.dy) {
       const active = get(runtime_manager).active.runtime;
       if (active.modules.length > 0) {
-        this.set({
-          dx: active.modules[0].dx,
-          dy: active.modules[0].dy,
-          pagenumber: ui.pagenumber,
-          elementnumber: 0,
-          eventtype: ui.eventtype,
-        });
+        this.set(
+          {
+            dx: active.modules[0].dx,
+            dy: active.modules[0].dy,
+            pagenumber: ui.pagenumber,
+            elementnumber: 0,
+            eventtype: ui.eventtype,
+          },
+          true,
+        );
       } else {
-        this.set(UserInput.defaultValue);
+        this.set(UserInput.defaultValue, true);
       }
     }
   }
