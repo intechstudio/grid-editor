@@ -19,7 +19,7 @@ export async function getLatestVideo() {
           log.error(err);
           reject({
             videoId: undefined,
-            videLink: undefined,
+            videoLink: undefined,
           });
         } else {
           const snippet =
@@ -37,7 +37,7 @@ export async function getLatestVideo() {
   }).catch((err) => {
     return {
       videoId: undefined,
-      videLink: undefined,
+      videoLink: undefined,
     };
   });
 }

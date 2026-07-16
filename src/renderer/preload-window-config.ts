@@ -95,7 +95,7 @@ if (
     },
     getLatestVideo: async () => {
       return {
-        videLink: "",
+        videoLink: "",
         videoId: "",
       };
     },

@@ -4,6 +4,7 @@
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import thumbnail from "../../assets/imgs/thumbnail.png";
 
   export let data: Modal.Instance;
 
@@ -13,6 +14,8 @@
 
   let video_id;
 
+  let video_load_error = false;
+
   let analyticsEnabled;
 
   onMount(async () => {
@@ -21,11 +24,15 @@
 
     video_link = configuration["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
 
-    const { videoLink, videoId } = await window.electron.getLatestVideo();
+    try {
+      const { videoLink, videoId } = await window.electron.getLatestVideo();
 
-    if (videoLink && videoId) {
-      video_link = videoLink;
-      video_id = videoId;
+      if (videoLink && videoId) {
+        video_link = videoLink;
+        video_id = videoId;
+      }
+    } catch (e) {
+      console.error("Failed to fetch latest video:", e);
     }
   });
 
@@ -90,12 +97,27 @@
         <div class="flex-col w-7/12 flex justify-between">
           <div class="flex w-full text-xl opacity-70">Latest Release Video</div>
 
-          <iframe
-            crossorigin="anonymous"
-            title="release video"
-            class="py-1 w-full h-full block"
-            src="https://youtube.com/embed/{video_id}"
-          />
+          {#if video_id && !video_load_error}
+            <iframe
+              crossorigin="anonymous"
+              title="release video"
+              class="py-1 w-full h-full block"
+              src="https://youtube.com/embed/{video_id}"
+              on:error={() => (video_load_error = true)}
+            />
+          {:else}
+            <button
+              on:click={(e) => window.electron.openInBrowser(video_link)}
+              class="py-1 w-full h-full block cursor-pointer
+              text-center items-center justify-center flex"
+            >
+              <img
+                src={thumbnail}
+                alt="Watch latest release video"
+                class="w-full h-full object-contain"
+              />
+            </button>
+          {/if}
         </div>
 
         <div
