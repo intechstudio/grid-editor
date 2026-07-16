@@ -44,9 +44,9 @@
   import { isPasteActionsEnabled } from "./components/Toolbar";
   import {
     MeltRadio,
-    MoltenInput,
     Toggle,
     MeltSelect,
+    SvgIcon,
   } from "@intechstudio/grid-uikit";
   import {
     EventType,
@@ -65,6 +65,7 @@
 
   let container: HTMLElement;
   let elementName: string = "";
+  let isEditingElementName: boolean = false;
   // Last name we applied/read back. The reactive below only writes when
   // elementName differs from this, so a read-back (which sets both in lockstep
   // via setElementNameDisplay) never triggers a write or a spurious insert.
@@ -201,6 +202,7 @@
     ui: UserInputValue,
     rtm: GridRuntimeManagerData,
   ) {
+    isEditingElementName = false;
     runtime = rtm.active.runtime;
     page = runtime.findPage(ui.dx, ui.dy, ui.pagenumber);
 
@@ -490,11 +492,35 @@
       <configs
         class="w-full h-full flex flex-col overflow-hidden text-left pt-4"
       >
-        <div class="flex flex-row gap-2 items-center px-3">
-          <div class="flex flex-grow h-fit">
-            <ElementSelectionPanel {page} />
+        <div class="flex flex-row gap-2 items-center px-3 pb-6">
+          <div class="flex flex-grow h-fit min-w-0">
+            <ElementSelectionPanel
+              {page}
+              bind:isEditingName={isEditingElementName}
+              bind:elementName
+              on:change={handleElementNameCommit}
+              on:blur={() => {
+                isEditingElementName = false;
+                handleElementNameCommit();
+              }}
+              on:keydown={(e) => {
+                if (e.detail?.key === "Enter" || e.detail?.key === "Escape") {
+                  isEditingElementName = false;
+                  handleElementNameCommit();
+                }
+              }}
+            />
           </div>
           <div class="flex flex-row items-center justify-end gap-2">
+            {#if $element}
+              <button
+                title="Rename element"
+                on:click={() => (isEditingElementName = !isEditingElementName)}
+                class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded"
+              >
+                <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+              </button>
+            {/if}
             {#if false}
               <MeltRadio
                 bind:target={$appSettings.persistent.userLevelMinimalist}
@@ -520,19 +546,6 @@
               />{/if}
           </div>
         </div>
-        {#if $element}
-          <div
-            class="flex flex-col gap-2 w-full text-sm items-start whitespace-nowrap p-3"
-          >
-            <span>Element Name</span>
-            <div class="flex w-full" data-testid="element-name-input-field">
-              <MoltenInput
-                bind:target={elementName}
-                on:change={handleElementNameCommit}
-              />
-            </div>
-          </div>
-        {/if}
 
         {#if $element && $element.type === ElementType.SYSTEM}
           <div

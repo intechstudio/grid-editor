@@ -76,7 +76,7 @@
 
   // Options for MeltSelect — "Clear to Default" always first, then profile types
   const profileTypeOptions = [
-    { value: "", title: "Default Config" },
+    { value: "", title: "Clear to Default" },
     ...availableProfileTypes.map((type) => ({
       value: type,
       title: formatProfileTypeTitle(type),
