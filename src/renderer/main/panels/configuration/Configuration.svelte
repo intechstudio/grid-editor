@@ -192,7 +192,7 @@
         setElementNameDisplay("");
       }
       if (el.name) {
-        el.name = "";
+        el.name = undefined;
       }
     }
   }

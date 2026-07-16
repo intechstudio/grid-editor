@@ -40,7 +40,7 @@
 
     let newOptions = elements.map((e) => {
       const stringName = e.name;
-      if (typeof stringName !== "undefined") {
+      if (typeof stringName !== "undefined" && stringName !== "") {
         return {
           title:
             stringName +
