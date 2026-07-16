@@ -92,7 +92,7 @@ const elementTypeToLuaClass: Record<string, string> = {
 let contextCounter = 0;
 
 const luaConfig = {
-  runtime: { version: "Lua 5.4" },
+  runtime: { version: "Lua 5.5" },
   diagnostics: {
     globals: ["self", "element"],
     // Temporary until editors can share the full controller symbol graph.

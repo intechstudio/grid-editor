@@ -1,7 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
-  import { ActionData, GridAction } from "../../runtime/runtime.js";
+  import {
+    ActionData,
+    GridAction,
+    GridElement,
+    GridEvent,
+    GridPage,
+  } from "../../runtime/runtime.js";
+  import { moduleMidiChannelState } from "../../runtime/system-midi-channel";
   import { InfoBox } from "@intechstudio/grid-uikit";
   import { Grid } from "../../lib/_utils.js";
   import {
@@ -14,11 +21,23 @@
 
   export let action: GridAction;
 
+  // Reactive, config-derived module MIDI channel for this action's page, so the
+  // preview's auto channel value updates live when the page default changes.
+  const channelStore = moduleMidiChannelState(
+    ((action.parent as GridEvent)?.parent as GridElement)?.parent as
+      | GridPage
+      | undefined,
+  );
+
   let scriptSegments: string[] = [];
 
   $: if (!$action.invalid) {
     handleActionChange($action);
   }
+
+  // Depend on $channelStore too so a change to the page's module channel
+  // re-renders the preview (getDisplayValues reads it via getMidiChannelLabel).
+  $: channelPreview = ($channelStore, getDisplayValues($action));
 
   function handleActionChange(data: ActionData) {
     scriptSegments = Script.toSegments({
@@ -37,11 +56,16 @@
         Grid.Auto.Value.MIDI_COMMAND,
         Grid.Auto.Value.MIDI_P1,
       ] as const
-    ).map((e, i) =>
-      scriptSegments[i] === "-1"
-        ? Grid.Auto.getMidi(action, e)
-        : scriptSegments[i],
-    );
+    ).map((e, i) => {
+      if (scriptSegments[i] !== "-1") {
+        return scriptSegments[i];
+      }
+      // Auto: for the channel, surface "Expression" when the module's
+      // midi_auto_ch is hand-written — a resolved number would be misleading.
+      return e === Grid.Auto.Value.MIDI_CHANNEL
+        ? Grid.Auto.getMidiChannelLabel(action)
+        : Grid.Auto.getMidi(action, e);
+    });
 
     if (!isNaN(+segments[0])) {
       segments[0] = +segments[0] + 1;
@@ -73,8 +97,8 @@
   <div
     class="grid grid-cols-[auto_1fr_auto] gap-2 pl-2 items-center justify-center h-full w-full py-1"
   >
-    <InfoBox value={`${getDisplayValues($action)}`} />
-    <div></div>
+    <slot name="name" />
+    <InfoBox value={channelPreview} />
     <slot name="edit-name-trigger" />
   </div>
 </div>

@@ -52,11 +52,60 @@
 ---@class Element
 ---Called after element initialization. Triggers the init event handler.
 ---@field post_init_cb? fun(self: Element)
----Called when a MIDI message is received from the grid. header = {instr, sx, sy}, data = {channel, command, param1, param2}.
+---Called when a MIDI message is received from the grid.
+---### Usage
+---Assign this in the element's Setup.
+---- **header** `integer[]` - `{instr, sx, sy}`; use `header[1] == 13` to filter messages coming from a DAW/synth/other external gear.
+---- **data** `integer[]` - `{channel, command, param1, param2}`.
+---```
+---self.midirx_cb = function(self, header, data)
+---  if header[1] == 13 and data[2] == 176 then -- CC message from a DAW
+---    print("CC "..data[3].." = "..data[4])
+---  end
+---end
+---```
 ---@field midirx_cb? fun(self: Element, header: integer[], data: integer[])
----Called when a SysEx message is received from the grid. header = {instr, sx, sy}, data = hex string.
+---Called when a SysEx message is received from the grid.
+---### Usage
+---Assign this in the element's Setup.
+---- **header** `integer[]` - `{instr, sx, sy}`
+---- **data** `string` - the raw SysEx payload as a hex string.
+---```
+---self.sysexrx_cb = function(self, header, data)
+---  local bytes = {}
+---  for hex_byte in data:gmatch("%x%x") do
+---    bytes[#bytes + 1] = tonumber(hex_byte, 16)
+---  end
+---  print("Manufacturer:", bytes[2])
+---end
+---```
 ---@field sysexrx_cb? fun(self: Element, header: integer[], data: string)
----Called when an event view message is received (LCD). header = {instr, sx, sy}, event = {page, element, type}, value = {val, min, max}.
+---Called when a MIDI Real-Time Message (clock/transport) is received. Must be enabled first via the RX Mode block (MIDI RTM).
+---### Usage
+---Assign this in the element's Setup.
+---```
+---self.rtmrx_cb = function(self, header, rtm_byte)
+---  if rtm_byte == 250 then
+---    print("Playback started")
+---  end
+---end
+---```
+---- **header** `integer[]` - `{instr, sx, sy}`
+---- **rtm_byte** `integer` - the received status byte: `248` Clock, `250` Start, `251` Continue, `252` Stop.
+---@field rtmrx_cb? fun(self: Element, header: integer[], rtm_byte: integer)
+---Called when a value-change event is broadcast from any element on the page (potmeter, encoder, button, endless). Useful on VSN1 LCD elements to stay in sync with whichever control last changed, without wiring a listener per element.
+---### Usage
+---Assign this in the element's Setup, then redraw on the next `draw` event (see `EventType`).
+---```
+---self.eventrx_cb = function(self, header, event, value, name)
+---  self.last_value = value[1] -- remember the new value
+---  self.dirty = true -- redraw on the next draw event, see self:draw_swap()
+---end
+---```
+---- **header** `integer[]` - `{instr, sx, sy}`
+---- **event** `integer[]` - `{page, element, type}`; `type` matches `EventType`, e.g. `2` = encoder.
+---- **value** `integer[]` - `{val, min, max}`.
+---- **name** `string` - the changed element's display name.
 ---@field eventrx_cb? fun(self: Element, header: integer[], event: integer[], value: integer[], name: string)
 local Element = {}
 
@@ -578,6 +627,11 @@ function midi_sysex_send(...) end
 function led_color(led_index, layer, red, green, blue) end
 
 ---Sets the LED phase/intensity value for a specific LED and layer.
+---### Usage
+---You can call this in the global scope.
+---```
+---led_value(self:element_index(), 2, 255) -- this sets LED to max brightness
+---```
 ---@param led_index integer Hardware LED index
 ---@param layer Layer integer LED layer
 ---@param value integer Phase/intensity value (0–255)

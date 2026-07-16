@@ -12,6 +12,10 @@ import {
   GridModule,
   GridPage,
 } from "../runtime/runtime";
+import {
+  readModuleMidiChannel,
+  readModuleMidiChannelState,
+} from "../runtime/system-midi-channel";
 
 export namespace Grid {
   export type UUID = string;
@@ -43,6 +47,12 @@ export namespace Grid {
 
       switch (param) {
         case Value.MIDI_CHANNEL: {
+          // Prefer the page's user-set default channel (midi_auto_ch block on
+          // the system element); fall back to the position-based default.
+          const override = readModuleMidiChannel(page);
+          if (override !== null) {
+            return override;
+          }
           const [module_position_y, page_current] = [
             module.dy,
             page.pageNumber,
@@ -61,6 +71,25 @@ export namespace Grid {
           const p1 = 32 + module_position_x * 16 + element_index;
           return ((p1 % 128) + 128) % 128;
         }
+      }
+    }
+
+    // Display string for the channel "Auto (…)" hint. When the page's
+    // midi_auto_ch is a hand-written expression we can't evaluate statically,
+    // shows "Expression" instead of a misleading position-default number.
+    export function getMidiChannelLabel(action: GridAction): string {
+      const event = action.parent as GridEvent;
+      const element = event.parent as GridElement;
+      const page = element.parent as GridPage;
+      const state = readModuleMidiChannelState(page);
+      switch (state.kind) {
+        case "channel":
+          return String(state.value);
+        case "custom":
+          return "Expression";
+        default:
+          // auto → position-based default (getMidi owns that formula)
+          return String(getMidi(action, Value.MIDI_CHANNEL));
       }
     }
 

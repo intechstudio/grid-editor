@@ -73,8 +73,13 @@
   }
 
   $: {
-    const index = event.config.findIndex((e) => e.id === action.id);
-    if (index === 0 && NumberToEventType(event.type) === EventType.SETUP) {
+    // Update the element name if this is the canonical name block in the Setup
+    // event — at any position, not only action-0. If several sn blocks exist the
+    // FIRST is canonical, so editing a later duplicate must not touch element.name.
+    const isSetup = NumberToEventType(event.type) === EventType.SETUP;
+    const isPrimaryName =
+      event.config.find((e) => e.short === information.short)?.id === action.id;
+    if (isSetup && isPrimaryName) {
       element.name = scriptValue;
     }
     sendData(scriptValue);
