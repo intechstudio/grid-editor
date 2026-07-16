@@ -317,8 +317,6 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
       store[key] = value;
       return store;
     });
-
-    this.notifyParent();
   }
 }
 
