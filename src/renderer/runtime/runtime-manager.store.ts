@@ -22,6 +22,7 @@ import {
   type SetIntervalAsyncTimer,
 } from "set-interval-async";
 import { modalManager } from "../main/modals/modal.store";
+import { codeBlockDirty } from "./code-block-dirty.store";
 import { Grid } from "../lib/_utils";
 import { GridService } from "./services";
 
@@ -233,7 +234,8 @@ export class GridRuntimeManager implements Readable<GridRuntimeManagerData> {
 
     if (
       runtime.unsavedChangesCount() != 0 ||
-      get(modalManager).windows.length > 0
+      get(modalManager).windows.length > 0 ||
+      get(codeBlockDirty)
     ) {
       // THIS IS NEEDED!
       // This determines if the Grid FW should prevent page change when unsaved

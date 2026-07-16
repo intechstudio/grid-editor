@@ -28,6 +28,7 @@ import { Grid } from "../lib/_utils";
 import { type GridConnection } from "../serialport/serialport";
 import { GridRuntimeManager } from "./runtime-manager.store";
 import { user_input } from "./user-input.store";
+import { codeBlockDirty } from "./code-block-dirty.store";
 import { type ProfileCloudTypes } from "../main/panels/profileCloud/ProfileCloud";
 import { type LuaValue } from "../serialport/evaluate-parser";
 import {
@@ -2306,7 +2307,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   public async change_page(new_page_number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (this.unsavedChangesCount() != 0) {
+      if (this.unsavedChangesCount() != 0 || get(codeBlockDirty)) {
         reject(Runtime.ErrorText.PAGE_CHANGE_DISABLED);
         return;
       }
