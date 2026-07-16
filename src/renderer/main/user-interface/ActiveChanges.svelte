@@ -296,7 +296,7 @@
       <MoltenPushButton
         click={() => {}}
         disabled={!isChanges}
-        text="Discard All"
+        text="Discard Changes"
         snap="wide"
       />
     </div>
