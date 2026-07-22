@@ -290,7 +290,10 @@
       {/if}
     {/each}
 
-    <div class="w-full flex flex-row bg-red-500 justify-center items-center">
+    <div
+      class="w-full flex flex-row justify-center items-center"
+      style="background: color-mix(in srgb, var(--error), var(--background));"
+    >
       Reload the application using {text} or click
 
       <button
