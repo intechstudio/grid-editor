@@ -134,7 +134,7 @@
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1}
-  <div class="w-full bg-error text-white">
+  <div class="w-full text-white" style="background: var(--error);">
     <BlockRow>
       <div class="flex-col">
         <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>

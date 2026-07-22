@@ -51,7 +51,8 @@
     { event: target.event, disabled: disabled, index: target.index })}
   >
     <div
-      class="h-2 w-full rounded-full {disabled ? 'bg-error' : 'bg-commit'}"
-    />
+      class="h-2 w-full rounded-full {disabled ? '' : 'bg-commit'}"
+      style={disabled ? "background: var(--error);" : ""}
+    ></div>
   </div>
 </div>

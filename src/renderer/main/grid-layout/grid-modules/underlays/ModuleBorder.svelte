@@ -48,11 +48,13 @@
   <div
     class="{$$props.class} border-2"
     class:border-gray-700={!isSelected && !device?.fwMismatch}
-    class:border-error={device?.fwMismatch && animationDisabled}
     class:border-white={isSelected && !device?.fwMismatch}
     class:border-opacity-60={isSelected && !device?.fwMismatch}
     class:animate-border-error={device?.fwMismatch && !animationDisabled}
     style={$$props.style}
+    style:border-color={device?.fwMismatch && animationDisabled
+      ? "var(--error)"
+      : undefined}
   >
     {#if isSelected && isSystemEventsSelected && $appSettings.persistent.showPCB}
       <div
@@ -1526,7 +1528,7 @@
 <style>
   .animate-border-error {
     animation-name: error-animation;
-    animation-duration: 1s;
+    animation-duration: 2.5s;
     animation-iteration-count: infinite;
     animation-direction: alternate-reverse;
     animation-timing-function: ease;
@@ -1534,10 +1536,10 @@
 
   @keyframes error-animation {
     from {
-      border-color: #dc2626;
+      border-color: var(--error);
     }
     to {
-      border-color: transparent;
+      border-color: color-mix(in srgb, var(--error) 50%, transparent);
     }
   }
 
