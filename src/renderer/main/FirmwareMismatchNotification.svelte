@@ -134,32 +134,50 @@
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1}
-  <div class="w-full text-white" style="background: var(--error);">
+  <div
+    class="w-full px-4 py-3"
+    style="background: color-mix(in srgb, var(--error), var(--background));"
+  >
     <BlockRow>
-      <div class="flex-col">
-        <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
-        <div class="mx-2">
-          <p>
-            Please Save your configuration to the Profile Cloud before updating
-            to prevent loss of data.
-          </p>
-          <p>
-            Reconnect your module in bootloader mode by holding the utility
-            button while plugging in the USB cable!
-          </p>
+      <div class="flex items-start gap-3 mr-4 flex-1">
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+          style="background: color-mix(in srgb, var(--error) 30%, var(--background)); color: var(--error);"
+        >
+          !
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="font-semibold" style="color: var(--foreground);">
+            Firmware mismatch detected
+          </div>
+          <div class="text-sm" style="color: var(--foreground-muted);">
+            Save your configuration to Profile Cloud before updating to avoid
+            losing data.
+          </div>
+          <div class="text-sm" style="color: var(--foreground-muted);">
+            To enter bootloader mode, hold the utility button while plugging in
+            the USB cable.
+          </div>
         </div>
       </div>
-      <MoltenPushButton
-        text={showManualOptions ? "Hide manual options" : "Show manual options"}
-        click={toggleManualOptions}
-      />
-      <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
+      <div class="flex items-center gap-2 shrink-0">
+        <MoltenPushButton
+          text={showManualOptions
+            ? "Hide manual options"
+            : "Show manual options"}
+          click={toggleManualOptions}
+        />
+        <MoltenPushButton text="Dismiss" click={handleDismissClicked} />
+      </div>
     </BlockRow>
 
     {#if showManualOptions}
-      <Block>
+      <div
+        class="mt-3 rounded-md border p-3"
+        style="border-color: color-mix(in srgb, var(--error) 1%, var(--background));"
+      >
         <ManualFirmwareOptions />
-      </Block>
+      </div>
     {/if}
   </div>
 {/if}
