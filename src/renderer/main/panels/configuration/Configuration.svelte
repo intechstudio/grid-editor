@@ -512,7 +512,7 @@
             />
           </div>
           <div class="flex flex-row items-center justify-end gap-2">
-            {#if $element}
+            {#if $element && !$appSettings.persistent.userLevelMinimalist}
               <button
                 title="Rename element"
                 on:click={() => (isEditingElementName = !isEditingElementName)}

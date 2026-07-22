@@ -28,6 +28,7 @@
   import { Runtime } from "../../../../runtime/string-table";
   import { get } from "svelte/store";
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
   import { tooltip } from "../../../_actions/tooltip";
@@ -335,13 +336,20 @@
               </div>
 
               <div slot="edit-name-trigger" class="flex items-center gap-1">
-                <button
-                  on:click|stopPropagation={handleEditClicked}
-                  class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
-                  style="border-radius: var(--radius);"
-                >
-                  <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
-                </button>
+                {#if !$appSettings.persistent.userLevelMinimalist}
+                  <button
+                    on:click|stopPropagation={handleEditClicked}
+                    class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
+                    style="border-radius: var(--radius);"
+                  >
+                    <SvgIcon
+                      iconPath="edit"
+                      fill="#FFF"
+                      width={13}
+                      height={13}
+                    />
+                  </button>
+                {/if}
 
                 {#if $action.information.documentationUrl}
                   <a
