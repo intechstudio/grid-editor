@@ -25,13 +25,13 @@
   on:click={handleClick}
   style="border-radius: var(--radius);"
   class="{disabled
-    ? 'border-error'
+    ? 'border-foreground-disabled'
     : 'border-foreground'}  flex w-6 h-6 items-center justify-center border transition-opacity fill-foreground"
   class:border-opacity-80={selected}
   class:bg-background-muted={selected}
   class:border-opacity-30={!selected}
   class:hover:border-opacity-100={!selected && !disabled}
-  style:background={disabled ? 'var(--error)' : undefined}
+  style:background={disabled ? 'var(--foreground-disabled)' : undefined}
   class:bg-opacity-10={disabled}
   {disabled}
 >
