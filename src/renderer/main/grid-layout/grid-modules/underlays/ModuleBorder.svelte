@@ -10,6 +10,7 @@
   let isSelected = false;
   let isSystemEventsSelected = false;
   let animationDisabled = false;
+  let showFirmwareMismatch = false;
 
   $: handleUserInputChange($user_input);
 
@@ -39,6 +40,9 @@
     $appSettings.persistent.disableAnimations,
     $reduced_motion_store,
   );
+
+  $: showFirmwareMismatch =
+    !!device?.fwMismatch && $appSettings.firmwareNotificationState !== 0;
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -47,14 +51,11 @@
 {#if visible}
   <div
     class="{$$props.class} border-2"
-    class:border-gray-700={!isSelected && !device?.fwMismatch}
-    class:border-white={isSelected && !device?.fwMismatch}
-    class:border-opacity-60={isSelected && !device?.fwMismatch}
-    class:animate-border-error={device?.fwMismatch && !animationDisabled}
+    class:border-gray-700={!isSelected && !showFirmwareMismatch}
+    class:border-white={isSelected && !showFirmwareMismatch}
+    class:border-opacity-60={isSelected && !showFirmwareMismatch}
     style={$$props.style}
-    style:border-color={device?.fwMismatch && animationDisabled
-      ? "var(--error)"
-      : undefined}
+    style:border-color={showFirmwareMismatch ? "var(--error)" : undefined}
   >
     {#if isSelected && isSystemEventsSelected && $appSettings.persistent.showPCB}
       <div
@@ -1526,23 +1527,6 @@
 {/if}
 
 <style>
-  .animate-border-error {
-    animation-name: error-animation;
-    animation-duration: 2.5s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate-reverse;
-    animation-timing-function: ease;
-  }
-
-  @keyframes error-animation {
-    from {
-      border-color: var(--error);
-    }
-    to {
-      border-color: color-mix(in srgb, var(--error) 50%, transparent);
-    }
-  }
-
   .active-systemelement {
     box-shadow: inset 0 0 10px #dddddd60;
   }
