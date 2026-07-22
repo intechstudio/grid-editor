@@ -10,6 +10,7 @@
     name: "TimerSource",
     category: "timer",
     rendering: "standard",
+    documentationUrl: "https://docs.intech.studio/category/timer-actions",
     displayName: "Clock Source",
     description: "Run actions when the timer fires",
     color: categoryColors["timer"] as any,

@@ -9,6 +9,8 @@
     short: "sen",
     name: "SettingsEndless",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/endless-mode",
     category: "element settings",
     color: categoryColors["element settings"] as any,
     displayName: "Endless Mode",

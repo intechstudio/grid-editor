@@ -9,6 +9,8 @@
     short: "sec",
     name: "SettingsEncoder",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/encoder-mode",
     category: "element settings",
     color: categoryColors["element settings"] as any,
     displayName: "Encoder Mode",

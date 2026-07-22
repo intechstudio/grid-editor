@@ -8,6 +8,8 @@
     short: "sglp",
     name: "SimpleIntensity",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/led/simple-led-intensity/",
     category: "led",
     displayName: "Simple Intensity",
     description: "Set the LED brightness",

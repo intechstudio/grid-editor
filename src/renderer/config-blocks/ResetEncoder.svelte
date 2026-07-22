@@ -11,6 +11,8 @@
     name: "ResetEncoder",
     category: "special",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/encoder-mode",
     color: categoryColors["special"] as any,
     displayName: "Reset Encoder",
     description: "",
@@ -30,7 +32,6 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo, MeltCheckbox } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { GridAction } from "./../runtime/runtime";
   import { get } from "svelte/store";
   import { ResetEncoder } from "./ResetEncoder";
@@ -107,5 +108,4 @@
       preProcessor={GridScript.humanize}
     />
   </div>
-  <SendFeedback feedback_context="LedColor" class="text-sm text-gray-500" />
 </config-led-color>

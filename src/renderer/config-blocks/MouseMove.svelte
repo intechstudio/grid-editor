@@ -9,6 +9,8 @@
     short: "gmms",
     name: "MouseMove",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/keyboard-and-mouse/mouse-move",
     category: "hid",
     displayName: "Mouse Move",
     description: "Move or scroll the virtual mouse",

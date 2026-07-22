@@ -12,6 +12,8 @@
     short: "fst",
     name: "Function_Start",
     rendering: "modifier",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/function/function/",
     rounding: "top",
     category: "function",
     displayName: "Function",

@@ -55,4 +55,5 @@ interface Information {
   editName: boolean;
   version?: string;
   description?: string;
+  documentationUrl?: string;
 }

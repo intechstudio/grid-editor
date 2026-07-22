@@ -9,6 +9,8 @@
     short: "gmbs",
     name: "MouseButton",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/keyboard-and-mouse/mouse-button",
     category: "hid",
     displayName: "Mouse Button",
     description: "Click a virtual mouse button",

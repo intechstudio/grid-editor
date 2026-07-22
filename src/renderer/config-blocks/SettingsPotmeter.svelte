@@ -9,6 +9,8 @@
     short: "spc",
     name: "SettingsPotmeter",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/potmeter-mode/",
     category: "element settings",
     color: categoryColors["element settings"] as any,
     displayName: "Potmeter Mode",

@@ -15,6 +15,7 @@
     category: null,
     displayName: "RAW code",
     description: "Write Lua code by hand",
+    documentationUrl: "https://docs.intech.studio/wiki/actions/code/code-block",
     color: "#f0f5f7",
     defaultLua: undefined,
     icon: undefined,
@@ -40,8 +41,6 @@
 </script>
 
 <script lang="ts">
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
-
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { mergeActionsToCode } from "../runtime/operations";
@@ -149,9 +148,6 @@
           click={handleReplace}
         />
       {/if}
-    </div>
-    <div class="mt-2">
-      <SendFeedback feedback_context={`RAW action block: ${action.script}`} />
     </div>
   </div>
 </code-block>

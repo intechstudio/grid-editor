@@ -10,6 +10,8 @@
     short: "sbc",
     name: "SettingsButton",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/button-mode",
     category: "element settings",
     displayName: "Button Mode",
     description: "Configure how the button responds",

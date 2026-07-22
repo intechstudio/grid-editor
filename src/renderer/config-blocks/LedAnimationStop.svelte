@@ -9,6 +9,8 @@
     short: "glap",
     name: "LedAnimationStop",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/led/led-stop-animation/",
     category: "led",
     displayName: "Stop Animation",
     description: "Stop the LED animation",

@@ -9,6 +9,8 @@
     short: "l",
     name: "VarLocals",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/local-variables",
     category: "variables",
     displayName: "Locals",
     description: "Define variables for this event",

@@ -9,6 +9,8 @@
     short: "ggms",
     name: "GamePadAxis",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/gamepad/gamepad-axis",
     category: "hid",
     displayName: "GamePad Axis",
     description: "Move a virtual gamepad axis",

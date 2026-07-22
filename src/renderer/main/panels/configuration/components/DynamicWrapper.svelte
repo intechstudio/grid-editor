@@ -30,6 +30,7 @@
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
+  import { tooltip } from "../../../_actions/tooltip";
 
   const dispatch = createEventDispatcher();
 
@@ -333,13 +334,35 @@
                 />
               </div>
 
-              <button
-                slot="edit-name-trigger"
-                on:click|stopPropagation={handleEditClicked}
-                class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded pointer-events-auto"
-              >
-                <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
-              </button>
+              <div slot="edit-name-trigger" class="flex items-center gap-1">
+                <button
+                  on:click|stopPropagation={handleEditClicked}
+                  class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
+                  style="border-radius: var(--radius);"
+                >
+                  <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+                </button>
+
+                {#if $action.information.documentationUrl}
+                  <a
+                    href={$action.information.documentationUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    use:tooltip={{ text: $action.information.description }}
+                    on:click|stopPropagation
+                    class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
+                    style="border-radius: var(--radius);"
+                    aria-label={`Open documentation for ${$action.information.displayName}`}
+                  >
+                    <SvgIcon
+                      iconPath="info"
+                      fill="#FFF"
+                      width={13}
+                      height={13}
+                    />
+                  </a>
+                {/if}
+              </div>
             </svelte:component>
           </div>
         {/if}

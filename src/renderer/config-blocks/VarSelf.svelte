@@ -9,6 +9,8 @@
     short: "s",
     name: "VarSelf",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/self-variables/",
     category: "variables",
     displayName: "Self",
     description: "Define variables for this element",

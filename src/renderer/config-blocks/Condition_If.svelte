@@ -12,6 +12,7 @@
     short: "if",
     name: "Condition_If",
     rendering: "modifier",
+    documentationUrl: "https://docs.intech.studio/wiki/actions/condition/if/",
     rounding: "top",
     category: "condition",
     displayName: "If",

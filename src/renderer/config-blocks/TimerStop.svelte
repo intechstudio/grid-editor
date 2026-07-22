@@ -9,6 +9,8 @@
     short: "gtp",
     name: "TimerStop",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/timer/timer-stop",
     category: "timer",
     displayName: "Stop",
     description: "Stop this element's timer",

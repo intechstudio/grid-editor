@@ -12,6 +12,8 @@
     short: "for",
     name: "For_Loop",
     rendering: "modifier",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/iteration/for-loop/",
     rounding: "top",
     category: "loop",
     displayName: "Repeater Loop",

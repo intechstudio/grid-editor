@@ -10,6 +10,8 @@
     name: "TimerStart",
     category: "timer",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/timer/timer-start/",
     displayName: "Start",
     description: "Start this element's timer",
     color: categoryColors["timer"] as any,

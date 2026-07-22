@@ -9,6 +9,8 @@
     short: "g",
     name: "VarGlobal",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/global-variables",
     category: "variables",
     displayName: "Global",
     description: "Define variables shared by the module",

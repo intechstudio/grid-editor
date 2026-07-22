@@ -9,6 +9,8 @@
     short: "glut",
     name: "Lookup",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/lookup-variables/",
     category: "variables",
     displayName: "Lookup",
     description: "Map input values to new output values",

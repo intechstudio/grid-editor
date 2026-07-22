@@ -9,6 +9,8 @@
     short: "glat",
     name: "LedAnimationStart",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/led/led-start-animation",
     category: "led",
     displayName: "Start Animation",
     description: "Start an LED animation",

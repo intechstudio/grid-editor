@@ -9,6 +9,8 @@
     short: "ggbs",
     name: "GamePadButton",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/gamepad/gamepad-button/",
     category: "hid",
     displayName: "GamePad Button",
     description: "Press a virtual gamepad button",

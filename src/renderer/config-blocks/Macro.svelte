@@ -9,6 +9,8 @@
     short: "gks",
     name: "Macro",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/keyboard-and-mouse/keyboard",
     category: "hid",
     color: categoryColors["hid"] as any,
     displayName: "Keyboard",

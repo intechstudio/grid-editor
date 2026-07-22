@@ -13,6 +13,8 @@
     color: categoryColors["led"] as any,
     displayName: "Simple Color",
     description: "Set the LED color of this element",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/led/simple-led-color/",
     defaultLua: "self:glc(-1,{{-1,-1,-1,1}}) self:glp(-1,-1)",
     icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.5a9.5 9.5 0 0 1 0-19 9.5 8.6 0 0 1 9.5 8.6 4.8 4.8 0 0 1-4.8 4.8h-2.1a1.7 1.7 0 0 0-1.36 2.72l.29.38a1.7 1.7 0 0 1-1.36 2.72Z"/><circle cx="13.4" cy="6.6" r="1.05" fill="currentColor" stroke="none"/><circle cx="17.2" cy="10.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="8.6" cy="7.6" r="1.05" fill="currentColor" stroke="none"/><circle cx="6.7" cy="12.4" r="1.05" fill="currentColor" stroke="none"/></svg>`,
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.5a9.5 9.5 0 0 1 0-19 9.5 8.6 0 0 1 9.5 8.6 4.8 4.8 0 0 1-4.8 4.8h-2.1a1.7 1.7 0 0 0-1.36 2.72l.29.38a1.7 1.7 0 0 1-1.36 2.72Z"/><circle cx="13.4" cy="6.6" r="1.05" fill="currentColor" stroke="none"/><circle cx="17.2" cy="10.4" r="1.05" fill="currentColor" stroke="none"/><circle cx="8.6" cy="7.6" r="1.05" fill="currentColor" stroke="none"/><circle cx="6.7" cy="12.4" r="1.05" fill="currentColor" stroke="none"/></svg>`,
@@ -44,7 +46,6 @@
   } from "@intechstudio/grid-uikit";
 
   import { GridScript } from "@intechstudio/grid-protocol";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { Script } from "./_script_parsers.js";
   import { GridAction } from "./../runtime/runtime";
   import { get } from "svelte/store";
@@ -310,5 +311,4 @@
       title={"Update intensity automatically"}
     />
   {/if}
-  <SendFeedback feedback_context="LedColor" />
 </config-led-color>
