@@ -14,7 +14,7 @@
     </div>
 
     <div
-      class="flex w-full aspect-[320/240] bg-black/10 text-white/20 items-center justify-center"
+      class="flex w-full aspect-[320/240] bg-black/10 text-white/30 items-center justify-center"
     >
       {"Element: " + elementNumberList[4]}<br />
       320x240
