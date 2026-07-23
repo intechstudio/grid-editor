@@ -51,11 +51,12 @@
 {#if visible}
   <div
     class="{$$props.class} border-2"
-    class:border-gray-700={!isSelected && !showFirmwareMismatch}
-    class:border-white={isSelected && !showFirmwareMismatch}
-    class:border-opacity-60={isSelected && !showFirmwareMismatch}
     style={$$props.style}
-    style:border-color={showFirmwareMismatch ? "var(--error)" : undefined}
+		style:border-color={showFirmwareMismatch
+			? "var(--error)"
+			: isSelected
+				? "color-mix(in srgb, var(--foreground) 60%, transparent)"
+				: "var(--border)"}
   >
     {#if isSelected && isSystemEventsSelected && $appSettings.persistent.showPCB}
       <div
