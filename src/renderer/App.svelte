@@ -63,12 +63,21 @@
     name = $appSettings.persistent.helperName;
   }
 
-  $: handleColorModeChange($appSettings.persistent.lightMode);
-  function handleColorModeChange(value: boolean) {
-    document.documentElement.setAttribute(
-      "color-scheme",
-      value ? "light" : "dark",
-    );
+  $: isLightMode = $appSettings.persistent.theme !== "dark";
+  $: syncLightMode(isLightMode);
+  $: applyTheme($appSettings.persistent.theme);
+
+  function syncLightMode(value: boolean) {
+    if ($appSettings.persistent.lightMode !== value) {
+      appSettings.update((settings) => {
+        settings.persistent.lightMode = value;
+        return settings;
+      });
+    }
+  }
+
+  function applyTheme(theme: string) {
+    document.documentElement.setAttribute("color-scheme", theme);
   }
 
   function resize() {

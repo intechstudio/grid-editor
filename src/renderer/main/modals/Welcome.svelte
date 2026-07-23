@@ -3,17 +3,16 @@
   import { Modal } from "./modal.store";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MeltCheckbox, MoltenPushButton } from "@intechstudio/grid-uikit";
 
   export let data: Modal.Instance;
 
   const configuration = window.ctxProcess.configuration();
 
   let video_link = "";
-
-  let video_id;
-
-  let analyticsEnabled;
+  let video_id = "";
+  let analyticsEnabled = false;
+  let initialized = false;
 
   onMount(async () => {
     const firstLaunch = $appSettings.persistent.firstLaunch;
@@ -27,219 +26,206 @@
       video_link = videoLink;
       video_id = videoId;
     }
+
+    initialized = true;
   });
+
+  $: if (
+    initialized &&
+    $appSettings.persistent.analyticsEnabled !== analyticsEnabled
+  ) {
+    $appSettings.persistent.analyticsEnabled = analyticsEnabled;
+  }
 
   onDestroy(() => {
     $appSettings.persistent.firstLaunch = false;
     $appSettings.persistent.analyticsEnabled = analyticsEnabled;
   });
 
-  function handleOpenPolicyClicked(e) {
-    window.electron.openInBrowser(
-      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL,
-    );
+  function openExternal(url: string) {
+    window.electron.openInBrowser(url);
   }
 
   let version = `${configuration.EDITOR_VERSION}`;
 </script>
 
-<div id="modal-copy-placeholder" />
+<div id="modal-copy-placeholder"></div>
 
-<MoltenModal {data}>
-  <div slot="content">
-    <div class="flex-col w-full flex justify-between items-center mb-6">
-      <div class="flex w-full text-4xl opacity-90">
-        Grid Editor {version}
-        {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
-          {import.meta.env.VITE_BRANCH_NAME}
-        {/if}
-        {#if import.meta.env.VITE_BUILD_ENV === "development"}
-          {import.meta.env.VITE_BUILD_ENV}
-        {/if}
+<MoltenModal {data} width={"800px"}>
+  <div slot="content" class="flex max-h-[82vh] flex-col gap-5 overflow-y-auto">
+    <header class="flex w-full items-start justify-between gap-6">
+      <div class="flex flex-col gap-1">
+        <div class="text-3xl text-foreground">
+          Welcome to Grid Editor {version}
+          {#if import.meta.env.VITE_BUILD_ENV == "nightly"}
+            {import.meta.env.VITE_BRANCH_NAME}
+          {/if}
+          {#if import.meta.env.VITE_BUILD_ENV === "development"}
+            {import.meta.env.VITE_BUILD_ENV}
+          {/if}
+        </div>
+        <div class="text-base text-foreground-muted">Intech Studio</div>
       </div>
-      <div class="flex w-full text-2xl opacity-70">Intech Studio</div>
 
       <button
-        on:click={() => {
-          data.close();
-        }}
-        id="close-btn"
-        class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
-        hover:bg-secondary"
+        aria-label="Close welcome screen"
+        title="Close"
+        on:click={() => data.close()}
+        class="not-draggable flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border hover:bg-background-muted"
+        style="border-color: var(--border); border-radius: var(--radius);"
       >
         <svg
-          class="w-5 h-5 p-1 fill-current text-gray-300"
+          class="h-4 w-4 fill-current text-foreground-muted"
           viewBox="0 0 29 29"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
           <path
-            d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091
-            2.37512L2.37506 0.142151Z"
+            d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
           />
           <path
-            d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934
-            0.142151L28.4264 2.37512Z"
+            d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
           />
         </svg>
       </button>
-    </div>
+    </header>
 
-    <div class="flex flex-row w-full">
-      <div class="flex flex-row gap-4 w-full">
-        <div class="flex-col w-7/12 flex justify-between">
-          <div class="flex w-full text-xl opacity-70">Latest Release Video</div>
+    <div
+      class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(260px,0.62fr)_minmax(0,1.38fr)]"
+    >
+      <section
+        class="flex flex-col gap-4 border p-4"
+        style="border-color: var(--border); background-color: var(--background-muted); border-radius: var(--radius);"
+      >
+        <div class="flex flex-col gap-2">
+          <h2 class="m-0 text-lg text-foreground">Start creating</h2>
+          <p class="m-0 text-sm text-foreground-muted">
+            The Grid Editor is your workspace for programming Intech Studio
+            Grid.
+          </p>
+          <p class="m-0 text-sm text-foreground-muted">
+            Design profiles, map every control to the actions you need, and tune
+            your setup with live feedback.
+          </p>
+        </div>
 
-          <iframe
-            crossorigin="anonymous"
-            title="release video"
-            class="py-1 w-full h-full block"
-            src="https://youtube.com/embed/{video_id}"
+        <div class="flex flex-col gap-3">
+          <MoltenPushButton
+            text="Join the Discord community"
+            style="accept"
+            click={() =>
+              openExternal(configuration.DOCUMENTATION_DISCORDSERVER_URL)}
+          />
+          <MoltenPushButton
+            text="Open the editor reference manual"
+            style="outlined"
+            click={() =>
+              openExternal(configuration.DOCUMENTATION_REFERENCEMANUAL_URL)}
           />
         </div>
 
-        <div
-          class="p-4 flex-col w-5/12 flex justify-between bg-black bg-opacity-20"
-        >
-          <div class="flex w-full text-xl opacity-70">Getting started</div>
-          <button
-            on:click={(e) => window.electron.openInBrowser(video_link)}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Release notes video...
-          </button>
-          <button
-            on:click={(e) => {
-              window.electron.openInBrowser(
-                configuration.DOCUMENTATION_REFERENCEMANUAL_URL,
-              );
-            }}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Editor reference manual...
-          </button>
-          <button
-            on:click={(e) =>
-              window.electron.openInBrowser(
-                configuration.DOCUMENTATION_DISCORDSERVER_URL,
-              )}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Join the Discord community...
-          </button>
+        <!-- <div class="border-t pt-4" style="border-color: var(--border);">
+          <div class="mb-3 text-sm text-foreground-muted">Explore more</div>
+          <div class="grid grid-cols-1 gap-2">
+            <MoltenPushButton
+              text="Public roadmap"
+              style="normal"
+              click={() => openExternal(configuration.PUBLIC_ROADMAP_URL)}
+            />
+            <MoltenPushButton
+              text="Release notes"
+              style="normal"
+              click={() => openExternal(video_link)}
+            />
+          </div>
+        </div> -->
+      </section>
 
-          <br />
-
-          <div class="flex w-full text-xl opacity-70">Troubleshooting</div>
-          <button
-            on:click={(e) =>
-              window.electron.openInBrowser(
-                configuration.DOCUMENTATION_TROUBLESHOOTING_URL,
-              )}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Grid does not connect...
-          </button>
-          <button
-            on:click={(e) =>
-              window.electron.openInBrowser(
-                configuration.DOCUMENTATION_MAINTENANCE_URL,
-              )}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Taking care of grid modules...
-          </button>
-
-          <br />
-
-          <div class="flex w-full text-xl opacity-70">Suggest Features</div>
-
-          <button
-            on:click={(e) =>
-              window.electron.openInBrowser(configuration.PUBLIC_ROADMAP_URL)}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Public Roadmap
-          </button>
-          <button
-            on:click={handleOpenPolicyClicked}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Analytics Gathering Policy
-          </button>
+      <section class="flex min-w-0 flex-col gap-3">
+        <div class="flex items-baseline justify-between gap-3">
+          <h2 class="m-0 text-xl text-foreground">Latest release</h2>
+          <span class="text-sm text-foreground-muted">What changed</span>
         </div>
-      </div>
+        {#if video_id}
+          <iframe
+            title="Latest Grid Editor release video"
+            class="aspect-video w-full border shadow-sm"
+            style="border-color: var(--border); border-radius: var(--radius);"
+            src={`https://youtube.com/embed/${video_id}`}
+          ></iframe>
+        {:else}
+          <div
+            class="flex aspect-video items-center justify-center border p-6 text-center text-foreground-muted"
+            style="border-color: var(--border); background-color: var(--background-muted); border-radius: var(--radius);"
+          >
+            The latest release video is loading.
+          </div>
+        {/if}
+      </section>
     </div>
 
-    <div
-      class="flex flex-row w-full bottom-0
-      justify-between items-center"
+    <section
+      class="grid grid-cols-1 gap-5 border p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+      style="border-color: var(--border); border-radius: var(--radius);"
     >
-      <div class="flex flex-col h-full p-6">
-        <div class="flex w-full opacity-70">
-          Grid Editor is Open-Source Software
+      <div class="flex flex-col gap-3">
+        <div>
+          <h2 class="m-0 text-lg text-foreground">Need a hand?</h2>
+          <p class="m-0 mt-1 text-sm text-foreground-muted">
+            Find connection help and care guidance for your Grid hardware.
+          </p>
         </div>
-        <button
-          on:click={(e) =>
-            window.electron.openInBrowser(configuration.EDITOR_REPOSITORY_URL)}
-          class="flex w-full opacity-40 hover:opacity-100 transition-opacity
-          cursor-pointer"
-        >
-          <svg
-            class="mr-2 w-5 h-5"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M8 0C3.58 0 0 3.58 0 8C0 11.54 2.29 14.53 5.47 15.59C5.87 15.66
-              6.02 15.42 6.02 15.21C6.02 15.02 6.01 14.39 6.01 13.72C4 14.09
-              3.48 13.23 3.32 12.78C3.23 12.55 2.84 11.84 2.5 11.65C2.22 11.5
-              1.82 11.13 2.49 11.12C3.12 11.11 3.57 11.7 3.72 11.94C4.44 13.15
-              5.59 12.81 6.05 12.6C6.12 12.08 6.33 11.73 6.56 11.53C4.78 11.33
-              2.92 10.64 2.92 7.58C2.92 6.71 3.23 5.99 3.74 5.43C3.66 5.23 3.38
-              4.41 3.82 3.31C3.82 3.31 4.49 3.1 6.02 4.13C6.66 3.95 7.34 3.86
-              8.02 3.86C8.7 3.86 9.38 3.95 10.02 4.13C11.55 3.09 12.22 3.31
-              12.22 3.31C12.66 4.41 12.38 5.23 12.3 5.43C12.81 5.99 13.12 6.7
-              13.12 7.58C13.12 10.65 11.25 11.33 9.47 11.53C9.76 11.78 10.01
-              12.26 10.01 13.01C10.01 14.08 10 14.94 10 15.21C10 15.42 10.15
-              15.67 10.55 15.59C12.1382 15.054 13.5183 14.0333 14.496
-              12.6718C15.4737 11.3102 15.9997 9.67624 16 8C16 3.58 12.42 0 8 0Z"
-              fill="white"
-            />
-          </svg>
-          <div>Developed by Intech Studio</div>
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <MoltenPushButton
+            text="Connection troubleshooting"
+            style="outlined"
+            click={() =>
+              openExternal(configuration.DOCUMENTATION_TROUBLESHOOTING_URL)}
+          />
+          <MoltenPushButton
+            text="Module care"
+            style="outlined"
+            click={() =>
+              openExternal(configuration.DOCUMENTATION_MAINTENANCE_URL)}
+          />
+        </div>
       </div>
 
-      <div class="flex flex-row items-center h-full p-6">
-        <div class="flex flex-col">
-          <div class="flex items-center">
-            <input
-              class="mr-1 opacity-70"
-              type="checkbox"
-              bind:checked={analyticsEnabled}
-            />
-            <div class="mx-1 mr-4 opacity-70">Analytics gathering enabled</div>
-          </div>
-          <div class="flex items-center">
-            <input
-              class="mr-1 opacity-70"
-              type="checkbox"
-              bind:checked={$appSettings.persistent.welcomeOnStartup}
-            />
-            <div class="mx-1 mr-4 opacity-70">Always show on startup</div>
-          </div>
+      <div
+        class="flex flex-col justify-between gap-3 border-l pl-0 md:pl-5"
+        style="border-color: var(--border);"
+      >
+        <div class="flex flex-col gap-2">
+          <MeltCheckbox
+            bind:target={analyticsEnabled}
+            title="Help improve Grid Editor with analytics"
+            style="transparent"
+          />
+          <MeltCheckbox
+            bind:target={$appSettings.persistent.welcomeOnStartup}
+            title="Show this welcome screen on startup"
+            style="transparent"
+          />
         </div>
-
-        <MoltenPushButton
-          click={() => {
-            data.close();
-          }}
-          id="close-btn"
-          text={"Close"}
-        />
+        <div class="flex flex-wrap items-center gap-2">
+          <MoltenPushButton
+            text="Analytics policy"
+            style="normal"
+            click={() =>
+              openExternal(configuration.DOCUMENTATION_ANALYTICS_POLICY_URL)}
+          />
+        </div>
       </div>
-    </div>
+    </section>
+
+    <footer
+      class="flex flex-wrap items-center justify-between gap-3 text-sm text-foreground-muted"
+    >
+      <span>Grid Editor is open-source software.</span>
+      <MoltenPushButton
+        text="Developed by Intech Studio"
+        style="normal"
+        click={() => openExternal(configuration.EDITOR_REPOSITORY_URL)}
+      />
+    </footer>
   </div>
 </MoltenModal>

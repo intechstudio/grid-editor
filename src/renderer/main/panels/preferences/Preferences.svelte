@@ -104,10 +104,16 @@
   </Block>
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
-      <BlockTitle>Light Color Theme</BlockTitle>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.lightMode}
-        title={"Light Mode Enabled"}
+      <BlockTitle>Color Theme</BlockTitle>
+      <MeltRadio
+        bind:target={$appSettings.persistent.theme}
+        orientation={"horizontal"}
+        options={[
+          { title: "Dark", value: "dark" },
+          { title: "Moss", value: "moss" },
+          { title: "Sunset", value: "sunset" },
+          { title: "Icy", value: "icy" },
+        ]}
       />
 
       <BlockTitle>Control surface rotation</BlockTitle>

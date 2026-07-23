@@ -60,6 +60,7 @@ const persistentDefaultValues = {
   allowDevBlocks: false,
   lastActiveVersion: undefined,
   lightMode: false,
+  theme: "dark",
   userLevelMinimalist: true,
   minimapToggled: false,
   eventsLoaded: false,
@@ -195,6 +196,14 @@ async function init_appsettings() {
             value = persistentDefaultValues[key];
           }
 
+          if (
+            key === "theme" &&
+            (typeof value !== "string" ||
+              !["dark", "moss", "sunset", "icy"].includes(value))
+          ) {
+            value = "dark";
+          }
+
           if (key === "pageActivatorInterval" && value === undefined) {
             value = 1000;
           }
@@ -213,7 +222,7 @@ async function init_appsettings() {
         get(appSettings).persistent.welcomeOnStartup === true ||
         get(appSettings).persistent.lastVersion === undefined ||
         get(appSettings).persistent.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
