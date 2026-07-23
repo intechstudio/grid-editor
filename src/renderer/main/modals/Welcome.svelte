@@ -3,7 +3,11 @@
   import { Modal } from "./modal.store";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { MeltCheckbox, MoltenPushButton } from "@intechstudio/grid-uikit";
+  import {
+    MeltCheckbox,
+    MoltenPushButton,
+    Toggle,
+  } from "@intechstudio/grid-uikit";
 
   export let data: Modal.Instance;
 
@@ -138,6 +142,31 @@
             />
           </div>
         </div> -->
+
+        <div class="border-t pt-4" style="border-color: var(--border);">
+          <div class="mb-2 text-sm text-foreground-muted">Editing mode</div>
+          <Toggle
+            testid="minimalist_toggle_welcome"
+            title="Minimalist mode"
+            on:change={() => {
+              if ($appSettings.persistent.userLevelMinimalist === true) {
+                $appSettings.persistent.userLevelMinimalist = false;
+              } else {
+                $appSettings.persistent.userLevelMinimalist = true;
+              }
+            }}
+            value={$appSettings.persistent.userLevelMinimalist === true}
+          />
+          <p class="m-0 mt-2 text-xs leading-relaxed text-foreground-muted">
+            {#if $appSettings.persistent.userLevelMinimalist}
+              Minimalist mode keeps the editor focused on essentials for faster
+              profile building.
+            {:else}
+              Deep editing mode unlocks advanced controls, detailed options, and
+              Lua scripting tools.
+            {/if}
+          </p>
+        </div>
       </section>
 
       <section class="flex min-w-0 flex-col gap-3">
