@@ -246,19 +246,19 @@
     </section>
 
     <footer
-      class="flex flex-wrap items-center justify-between gap-3 text-sm text-foreground-muted"
+      class="flex flex-wrap items-center justify-between gap-3 text-foreground-muted"
     >
-      <div>
-        <span>Grid Editor is open-source software.</span>
+      <div class="text-sm">
         <MoltenPushButton
-          text="Developed by Intech Studio"
-          style="secondary"
+          text="Grid Editor is open-source software, developed by Intech Studio"
+          style="none"
           click={() => openExternal(configuration.EDITOR_REPOSITORY_URL)}
         />
       </div>
       <MoltenPushButton
         text="Continue"
         style="accept"
+        snap="wide"
         click={() => data.close()}
       />
     </footer>
