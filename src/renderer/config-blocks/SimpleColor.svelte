@@ -11,7 +11,7 @@
     category: "led",
     rendering: "standard",
     color: categoryColors["led"] as any,
-    displayName: "Simple Color",
+    displayName: "Color",
     description: "Set the LED color of this element",
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/led/simple-led-color/",

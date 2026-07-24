@@ -1,23 +1,76 @@
 {
   "Function": {
-    "Function": ["Function", "input", "End"]
+    "Function": [
+      "Function",
+      "input",
+      "End"
+    ]
   },
   "variables": {
-    "Lookup": ["source", "input", "output", "destination", "addNewPair"],
-    "Global": ["name", "value", "addNewPair"],
-    "Locals": ["name", "value", "addNewPair"],
-    "Self": ["name", "value", "addNewPair"]
+    "Lookup": [
+      "source",
+      "input",
+      "output",
+      "destination",
+      "addNewPair"
+    ],
+    "Global": [
+      "name",
+      "value",
+      "addNewPair"
+    ],
+    "Locals": [
+      "name",
+      "value",
+      "addNewPair"
+    ],
+    "Self": [
+      "name",
+      "value",
+      "addNewPair"
+    ]
   },
   "led": {
-    "Start Animation": ["ledNumber", "Layer", "Phase", "Rate", "Shape"],
-    "Stop Animation": ["ledNumber", "Layer"],
-    "Simple Color": ["ledNumber", "Layer", "Red", "Green", "Blue"],
-    "Simple Intensity": ["Element", "Layer", "Intensity"]
+    "Start Animation": [
+      "ledNumber",
+      "Layer",
+      "Phase",
+      "Rate",
+      "Shape"
+    ],
+    "Stop Animation": [
+      "ledNumber",
+      "Layer"
+    ],
+    "Color": [
+      "ledNumber",
+      "Layer",
+      "Red",
+      "Green",
+      "Blue"
+    ],
+    "Intensity": [
+      "Element",
+      "Layer",
+      "Intensity"
+    ]
   },
   "midi": {
-    "MIDI": ["Channel", "Command", "Parameter1", "Parameter2"],
-    "MIDI 14": ["Channel", "CC", "Controller Value"],
-    "SysEX": ["Commit", "message"],
+    "MIDI": [
+      "Channel",
+      "Command",
+      "Parameter1",
+      "Parameter2"
+    ],
+    "MIDI 14": [
+      "Channel",
+      "CC",
+      "Controller Value"
+    ],
+    "SysEX": [
+      "Commit",
+      "message"
+    ],
     "MIDI NRPN": [
       "Channel",
       "MSB",
@@ -28,8 +81,14 @@
     ]
   },
   "hid": {
-    "GamePad Axis": ["Axis", "Position"],
-    "GamePad Button": ["Button", "State"],
+    "GamePad Axis": [
+      "Axis",
+      "Position"
+    ],
+    "GamePad Button": [
+      "Button",
+      "State"
+    ],
     "Keyboard": [
       "Macro",
       "Add Key",
@@ -38,23 +97,59 @@
       "Default Delay",
       "Clear All"
     ],
-    "Mouse Button": ["Button", "State"],
-    "Mouse Move": ["Axis", "Position"]
+    "Mouse Button": [
+      "Button",
+      "State"
+    ],
+    "Mouse Move": [
+      "Axis",
+      "Position"
+    ]
   },
   "element": {
-    "Button Mode": ["Mode", "Min", "Max"],
-    "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
-    "Potmeter Mode": ["Bit", "Min", "Max"],
-    "Endless Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"]
+    "Button Mode": [
+      "Mode",
+      "Min",
+      "Max"
+    ],
+    "Encoder Mode": [
+      "Mode",
+      "Velocity",
+      "Min",
+      "Max",
+      "Sensitivity"
+    ],
+    "Potmeter Mode": [
+      "Bit",
+      "Min",
+      "Max"
+    ],
+    "Endless Mode": [
+      "Mode",
+      "Velocity",
+      "Min",
+      "Max",
+      "Sensitivity"
+    ]
   },
   "condition": {
-    "If": ["input", "end"]
+    "If": [
+      "input",
+      "end"
+    ]
   },
   "loop": {
-    "Repeater Loop": ["variable", "times"]
+    "Repeater Loop": [
+      "variable",
+      "times"
+    ]
   },
   "specialEncoder": {
-    "Encoder Left/Right Rotate": ["left", "right", "end"],
+    "Encoder Left/Right Rotate": [
+      "left",
+      "right",
+      "end"
+    ],
     "Encoder Push & Rotate L R": [
       "push left",
       "push right",
@@ -62,20 +157,46 @@
       "just right",
       "end"
     ],
-    "Encoder Push & Rotate": ["push rotate", "just rotate", "end"]
+    "Encoder Push & Rotate": [
+      "push rotate",
+      "just rotate",
+      "end"
+    ]
   },
   "code": {
-    "Code Block": ["input", "Open Editor"],
-    "Comment Block": ["input"],
-    "Element Name": ["input"]
+    "Code Block": [
+      "input",
+      "Open Editor"
+    ],
+    "Comment Block": [
+      "input"
+    ],
+    "Element Name": [
+      "input"
+    ]
   },
   "timer": {
-    "Clock Source": ["Element Number", "Source"],
-    "Start": ["Element Number", "Time"],
-    "Stop": ["Element Number"]
+    "Clock Source": [
+      "Element Number",
+      "Source"
+    ],
+    "Start": [
+      "Element Number",
+      "Time"
+    ],
+    "Stop": [
+      "Element Number"
+    ]
   },
   "specialButton": {
-    "Press/Release": ["press", "release", "end"],
-    "Button Step": ["Button Off", "Step One"]
+    "Press/Release": [
+      "press",
+      "release",
+      "end"
+    ],
+    "Button Step": [
+      "Button Off",
+      "Step One"
+    ]
   }
 }

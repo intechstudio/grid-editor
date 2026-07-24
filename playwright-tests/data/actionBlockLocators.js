@@ -65,8 +65,8 @@ export const blocks = (page) => ({
         Layer: page.getByLabel("Layer"),
       },
     },
-    "Simple Color": {
-      block: page.locator("#action-menu").getByText("Simple Color"),
+    "Color": {
+      block: page.locator("#action-menu").getByText("Color"),
       elements: {
         ledNumber: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),
@@ -75,8 +75,8 @@ export const blocks = (page) => ({
         Blue: page.getByLabel("Blue"),
       },
     },
-    "Simple Intensity": {
-      block: page.locator("#action-menu").getByText("Simple Intensity"),
+    "Intensity": {
+      block: page.locator("#action-menu").getByText("Intensity"),
       elements: {
         Element: page.getByLabel("Element"),
         Layer: page.getByLabel("Layer"),

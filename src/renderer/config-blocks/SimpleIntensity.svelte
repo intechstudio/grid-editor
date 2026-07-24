@@ -11,7 +11,7 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/led/simple-led-intensity/",
     category: "led",
-    displayName: "Simple Intensity",
+    displayName: "Intensity",
     description: "Set the LED brightness",
     color: categoryColors["led"] as any,
     defaultLua: "self:glp(-1,-1)",
