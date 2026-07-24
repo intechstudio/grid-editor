@@ -356,7 +356,11 @@
                     href={$action.information.documentationUrl}
                     target="_blank"
                     rel="noreferrer"
-                    use:tooltip={{ text: $action.information.description }}
+                    use:tooltip={{
+                      text: $action.information.description,
+                      duration: 0,
+                      delay: 0,
+                    }}
                     on:click|stopPropagation
                     class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
                     style="border-radius: var(--radius);"

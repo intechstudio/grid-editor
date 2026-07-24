@@ -94,7 +94,7 @@
   let activePreferenceMenu = PreferenceMenu.GENERAL;
 </script>
 
-<div class="flex flex-col h-full w-full px-2 py-2 overflow-y-auto">
+<div class="flex flex-col h-full w-full px-0 py-2 overflow-y-auto">
   <Block>
     <MeltSelect
       bind:target={activePreferenceMenu}

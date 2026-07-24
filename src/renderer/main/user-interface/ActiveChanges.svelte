@@ -256,7 +256,27 @@
       });
     });
   }
+
+  function handleWindowKeyDown(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s") {
+      return;
+    }
+
+    if (e.target instanceof Element && e.target.closest(".monaco-editor")) {
+      return;
+    }
+
+    if (!isChanges || !$runtime.isValid()) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    handleStore();
+  }
 </script>
+
+<svelte:window on:keydown={handleWindowKeyDown} />
 
 <container
   in:fade={{ delay: 300, duration: 1000 }}

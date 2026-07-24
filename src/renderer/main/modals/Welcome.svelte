@@ -172,7 +172,6 @@
       <section class="flex min-w-0 flex-col gap-3">
         <div class="flex items-baseline justify-between gap-3">
           <h2 class="m-0 text-xl text-foreground">Latest release</h2>
-          <span class="text-sm text-foreground-muted">What changed</span>
         </div>
         {#if video_id}
           <iframe
@@ -238,7 +237,7 @@
         <div class="flex flex-wrap items-center gap-2">
           <MoltenPushButton
             text="Analytics policy"
-            style="normal"
+            style="secondary"
             click={() =>
               openExternal(configuration.DOCUMENTATION_ANALYTICS_POLICY_URL)}
           />
@@ -249,11 +248,18 @@
     <footer
       class="flex flex-wrap items-center justify-between gap-3 text-sm text-foreground-muted"
     >
-      <span>Grid Editor is open-source software.</span>
+      <div>
+        <span>Grid Editor is open-source software.</span>
+        <MoltenPushButton
+          text="Developed by Intech Studio"
+          style="secondary"
+          click={() => openExternal(configuration.EDITOR_REPOSITORY_URL)}
+        />
+      </div>
       <MoltenPushButton
-        text="Developed by Intech Studio"
-        style="normal"
-        click={() => openExternal(configuration.EDITOR_REPOSITORY_URL)}
+        text="Continue"
+        style="accept"
+        click={() => data.close()}
       />
     </footer>
   </div>

@@ -422,7 +422,9 @@
                 bind:this={searchBar}
                 bind:target={searchValue}
                 on:keydown={handleSearchBarKeyDown}
-                placeholder="Search..."
+                placeholder={$appSettings.persistent.userLevelMinimalist
+                  ? "Search Essentials Blocks..."
+                  : "Search..."}
               />
               <button
                 on:click={handleClose}
