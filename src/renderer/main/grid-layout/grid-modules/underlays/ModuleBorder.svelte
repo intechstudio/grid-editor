@@ -42,7 +42,7 @@
   );
 
   $: showFirmwareMismatch =
-    !!device?.fwMismatch && $appSettings.firmwareNotificationState !== 0;
+    Boolean(device?.fwMismatch) && $appSettings.firmwareNotificationState !== 0;
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -52,11 +52,11 @@
   <div
     class="{$$props.class} border-2"
     style={$$props.style}
-		style:border-color={showFirmwareMismatch
-			? "var(--error)"
-			: isSelected
-				? "color-mix(in srgb, var(--foreground) 60%, transparent)"
-				: "var(--border)"}
+    style:border-color={showFirmwareMismatch
+      ? "var(--error)"
+      : isSelected
+        ? "color-mix(in srgb, var(--foreground) 60%, transparent)"
+        : "var(--border)"}
   >
     {#if isSelected && isSystemEventsSelected && $appSettings.persistent.showPCB}
       <div

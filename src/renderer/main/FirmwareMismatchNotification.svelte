@@ -167,7 +167,7 @@
             : "Show manual options"}
           click={toggleManualOptions}
         />
-        <!-- <MoltenPushButton text="Dismiss" click={handleDismissClicked} /> for force update -->
+        <!-- <MoltenPushButton text="Dismiss" click={handleDismissClicked} /> for force -->
       </div>
     </BlockRow>
 
