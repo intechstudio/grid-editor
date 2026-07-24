@@ -35,7 +35,7 @@
 
 <div class={$$props.class}>
   <div
-    style="background-color: var(--background); color: var(--foreground)"
+    style="background-color: var(--background); color: var(--foreground); border: solid var(--border); border-radius: var(--radius);"
     class="flex flex-col rounded-md shadow-xl w-64 p-4 relative"
   >
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
@@ -46,7 +46,7 @@
           To connect modules, press Connect to enable Grid Editor access USB.
           Each module must be enabled separately.
         </span>
-        <span style="color: (--foreground-muted)" lass="text-sm"
+        <span style="color: var(--foreground-muted)" class="text-sm"
           >(Only supported in Edge, Opera and Google Chrome)</span
         >
       </div>
@@ -127,7 +127,6 @@
           Try reconnecting your Grid module by unplugging it, then plugging it
           in.
         </span>
-        <SendFeedback feedback_context="Module not responding" />
       </div>
       <div class="flex flex-col gap-2 mt-4">
         <MoltenPushButton
@@ -148,19 +147,4 @@
 </div>
 
 <style>
-  .test {
-    animation-name: test-animate;
-    animation-duration: 1s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate-reverse;
-  }
-
-  @keyframes test-animate {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(18px, 0);
-    }
-  }
 </style>
