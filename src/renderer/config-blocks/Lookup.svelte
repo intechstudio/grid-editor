@@ -16,7 +16,7 @@
     description: "Map input values to new output values",
     color: categoryColors["variables"] as any,
     defaultLua: "glut(param1,36,0,37,1)",
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m16 3.5 4 4-4 4M20 7.5H7M8 20.5l-4-4 4-4M4 16.5h13"/></svg>`,
+
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m16 3.5 4 4-4 4M20 7.5H7M8 20.5l-4-4 4-4M4 16.5h13"/></svg>`,
     selectable: true,
     movable: true,

@@ -17,7 +17,7 @@
     description: "Configure how the encoder responds",
     defaultLua:
       "self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)",
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="m12 12 3.4-4.6"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
+
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="m12 12 3.4-4.6"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
     selectable: true,
     movable: true,

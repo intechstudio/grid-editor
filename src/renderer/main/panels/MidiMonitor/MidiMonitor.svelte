@@ -423,19 +423,9 @@
                         >{$midi_messages[index].device.name}</span
                       >
                       {#if $midi_messages[index].data.direction == "REPORT"}
-                        <SvgIcon
-                          fill="#FFF"
-                          iconPath="arrow_left"
-                          width={14}
-                          height={14}
-                        />
+                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
                       {:else}
-                        <SvgIcon
-                          fill="#FFF"
-                          iconPath="arrow_right"
-                          width={14}
-                          height={14}
-                        />
+                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
                       {/if}
                     </div>
                     <span class="truncate"

@@ -94,7 +94,7 @@
         </div>
 
         <div
-          style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border);  border-radius: var(--radius);"
+          style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border);  border-radius: var(--radius); border-top:none;"
           class="absolute top-0 w-fit mx-auto self-center z-[1] items-center flex gap-2 h-24 px-4"
         >
           <ActiveChanges />
@@ -138,16 +138,13 @@
             <div
               in:fly|global={{ x: -10 }}
               out:fly|global={{ x: 10 }}
-              class="w-fit absolute right-0 bottom-0 mb-0 mr-4 flex flex-row items-center gap-2"
+              class="w-full absolute right-0 bottom-0 mb-0 mr-4 pl-4 flex flex-row items-center justify-between"
             >
+              <PanelToggleButton target={"minimap"} />
               <Tracker />
               <PanelToggleButton target={"right"} />
             </div>
           {/if}
-
-          <div class="absolute left-0 bottom-0 mb-4 ml-4">
-            <PanelToggleButton target={"minimap"} />
-          </div>
 
           <CursorLog on:content-change={handleContentChange} />
         </div>
@@ -158,7 +155,10 @@
     bind:size={$splitpanes.minimap.size}
     minSize={$splitpanes.minimap.default}
   >
-    <div class="flex w-full h-full p-2 bg-background">
+    <div
+      class="flex w-full h-full p-2 bg-background"
+      style="border-top: 1px solid var(--border); border-top: 1px solid var(--border); border-radius: var(--radius);"
+    >
       <MiniMap />
     </div>
   </Pane>

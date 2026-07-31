@@ -16,7 +16,6 @@
     description: "Define variables shared by the module",
     defaultLua: "test = self:ind()",
     color: categoryColors["variables"] as any,
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.9 2.8 2.9 14.2 0 17-2.9-2.8-2.9-14.2 0-17Z"/></svg>`,
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.9 2.8 2.9 14.2 0 17-2.9-2.8-2.9-14.2 0-17Z"/></svg>`,
     selectable: true,
     movable: true,

@@ -15,8 +15,8 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/code/element-name",
     defaultLua: `self:gen("Custom Name")`,
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M11.6 2.6H5a2.4 2.4 0 0 0-2.4 2.4v6.6a2.4 2.4 0 0 0 .7 1.7l8 8a2.4 2.4 0 0 0 3.4 0l6.2-6.2a2.4 2.4 0 0 0 0-3.4l-8-8a2.4 2.4 0 0 0-1.7-.7Z"/><circle cx="7.8" cy="7.8" r="1.1" fill="currentColor" stroke="none"/></svg>`,
-    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M11.6 2.6H5a2.4 2.4 0 0 0-2.4 2.4v6.6a2.4 2.4 0 0 0 .7 1.7l8 8a2.4 2.4 0 0 0 3.4 0l6.2-6.2a2.4 2.4 0 0 0 0-3.4l-8-8a2.4 2.4 0 0 0-1.7-.7Z"/><circle cx="7.8" cy="7.8" r="1.1" fill="currentColor" stroke="none"/></svg>`,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M11.6 2.6H5a2.4 2.4 0 0 0-2.4 2.4v6.6a2.4 2.4 0 0 0 .7 1.7l8 8a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4l-8-8a2.4 2.4 0 0 0-1.7-.7Z"/><circle cx="7.8" cy="7.8" r="1.1" fill="currentColor" stroke="none"/></svg>`,
     color: categoryColors["code"] as any,
     selectable: true,
     movable: true,

@@ -15,7 +15,7 @@
     documentationUrl: "https://docs.intech.studio/wiki/actions/midi/midi-sysex",
     color: categoryColors["midi"] as any,
     defaultLua: "gmss(0xF0, 0x41, 0x10, val, 0xF7)",
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="m10 9.4-2.4 2.6L10 14.6M14 9.4l2.4 2.6L14 14.6"/></svg>`,
+
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="m10 9.4-2.4 2.6L10 14.6M14 9.4l2.4 2.6L14 14.6"/></svg>`,
     selectable: true,
     movable: true,

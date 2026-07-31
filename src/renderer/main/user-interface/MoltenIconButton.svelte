@@ -15,7 +15,7 @@
   class="p-2 cursor-pointer rounded not-draggable hover:bg-white/10"
   style="fill: var(--foreground) !important; stroke: var(--foreground) !important;"
 >
-  <SvgIcon {iconPath} width={10} height={10} />
+  <SvgIcon {iconPath} />
 </button>
 
 <style>

@@ -16,7 +16,7 @@
     displayName: "Keyboard",
     description: "Type a keyboard shortcut or macro",
     defaultLua: "gks()",
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="2.8" y="6.8" width="18.4" height="10.8" rx="2"/><path d="M6.2 10.2h.01M9.5 10.2h.01M12.8 10.2h.01M16.1 10.2h.01M18.6 10.2h.01M6.2 14h.01M18.6 14h.01M9 14h6.5"/></svg>`,
+
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="2.8" y="6.8" width="18.4" height="10.8" rx="2"/><path d="M6.2 10.2h.01M9.5 10.2h.01M12.8 10.2h.01M16.1 10.2h.01M18.6 10.2h.01M6.2 14h.01M18.6 14h.01M9 14h6.5"/></svg>`,
     selectable: true,
     movable: true,

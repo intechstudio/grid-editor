@@ -16,7 +16,6 @@
     displayName: "End",
     rounding: "bottom",
     defaultLua: "end",
-    icon: undefined,
     blockIcon: undefined,
     color: categoryColors["special"] as any,
     selectable: false,

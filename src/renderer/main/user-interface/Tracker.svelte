@@ -68,7 +68,7 @@
 
 <container class={$$props.class}>
   <div
-    style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius) ;"
+    style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border); border-bottom: none; border-radius: var(--radius);"
     class="flex flex-row items-center p-3 gap-3"
   >
     <div

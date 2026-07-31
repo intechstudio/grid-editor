@@ -33,7 +33,6 @@
         script: ButtonStepEnd.information.defaultLua,
       },
     ],
-    icon: icon,
     blockIcon: icon,
     color: categoryColors["special"] as any,
     selectable: true,

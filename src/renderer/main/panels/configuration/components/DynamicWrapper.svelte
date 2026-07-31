@@ -289,9 +289,9 @@
         ></div>
         {#if $action.information.hideIcon !== true}
           <div
-            class=" pl-1 w-7 h-7 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
+            class=" pl-1 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
           >
-            {@html $action.information.blockIcon}
+            <SvgIcon scale={1.2} iconData={action.information.blockIcon} />
           </div>
         {/if}
       </div>
@@ -342,12 +342,7 @@
                     class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
                     style="border-radius: var(--radius);"
                   >
-                    <SvgIcon
-                      iconPath="edit"
-                      fill="#FFF"
-                      width={13}
-                      height={13}
-                    />
+                    <SvgIcon iconPath="edit" fill="#FFF" />
                   </button>
                 {/if}
 
@@ -366,12 +361,7 @@
                     style="border-radius: var(--radius);"
                     aria-label={`Open documentation for ${$action.information.displayName}`}
                   >
-                    <SvgIcon
-                      iconPath="info"
-                      fill="#FFF"
-                      width={13}
-                      height={13}
-                    />
+                    <SvgIcon iconPath="info" fill="#FFF" />
                   </a>
                 {/if}
               </div>

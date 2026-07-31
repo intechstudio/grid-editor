@@ -432,7 +432,7 @@
                 style="color: var(--foreground-muted)"
                 class="fill-current pl-3 flex items-center justify-center"
               >
-                <SvgIcon width={10} height={10} iconPath={"close"} />
+                <SvgIcon scale={0.8} iconPath={"close"} />
               </button>
             </div>
           </div>
@@ -453,16 +453,19 @@
                     <!-- svelte-ignore a11y-no-static-element-interactions -->
                     <button
                       on:click={() => handleAddAction({ component })}
-                      class="action-card hover:border-pick cursor-pointer w-full flex items-center gap-3 h-10"
+                      class="action-card hover:border-pick cursor-pointer w-full flex items-center h-10"
                     >
                       <div
                         style="background-color: {component.information.color};"
-                        class="w-1.5 h-full flex-shrink-0"
+                        class="w-2 h-full flex-shrink-0"
                       ></div>
                       <div
-                        class="w-6 h-6 flex-shrink-0 [&_svg]:fill-foreground [&_svg_path]:fill-foreground [&_span]:text-foreground"
+                        class="flex-shrink-0 [&_svg]:fill-foreground [&_svg_path]:fill-foreground [&_span]:text-foreground pl-1 pr-3"
                       >
-                        {@html component.information.icon}
+                        <SvgIcon
+                          scale={1.3}
+                          iconData={component.information.blockIcon}
+                        />
                       </div>
                       <div
                         class="flex-1 min-w-0 truncate flex items-center gap-1"
@@ -476,8 +479,8 @@
                         </span>
                         {#if typeof component.information.description != "undefined"}
                           <span
-                            class="text-sm truncate"
-                            style="color: var(--foreground-muted)"
+                            class=" truncate"
+                            style="color: var(--foreground-muted); font-size: .9em;"
                           >
                             -- {component.information.description}
                           </span>

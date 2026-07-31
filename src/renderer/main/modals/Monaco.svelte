@@ -250,7 +250,7 @@
             on:click={handleEditClicked}
             class="cursor-pointer pointer-events-auto"
           >
-            <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+            <SvgIcon iconPath="edit" fill="#FFF" />
           </button>
         </div>
 

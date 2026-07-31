@@ -15,7 +15,7 @@
     documentationUrl: "https://docs.intech.studio/wiki/actions/midi/midi",
     color: categoryColors["midi"] as any,
     defaultLua: "self:gms(-1,-1,-1,-1)",
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M10.6 3.9v1.6h2.8V3.9"/><circle cx="7.3" cy="12" r="1.05" fill="currentColor" stroke="none"/><circle cx="16.7" cy="12" r="1.05" fill="currentColor" stroke="none"/><path d="M9.4 14.6 8.1 15.9M14.6 14.6l1.3 1.3M12 15.6v1.9"/></svg>`,
+
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M10.6 3.9v1.6h2.8V3.9"/><circle cx="7.3" cy="12" r="1.05" fill="currentColor" stroke="none"/><circle cx="16.7" cy="12" r="1.05" fill="currentColor" stroke="none"/><path d="M9.4 14.6 8.1 15.9M14.6 14.6l1.3 1.3M12 15.6v1.9"/></svg>`,
     selectable: true,
     movable: true,

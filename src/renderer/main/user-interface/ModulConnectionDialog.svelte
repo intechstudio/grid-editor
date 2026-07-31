@@ -41,7 +41,7 @@
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <div class="flex flex-col">
         <span class="text-xl text-center mb-4">Connect your modules!</span>
-        <SvgIcon width={"100%"} height={25} fill={"#FFF"} iconPath="disabled" />
+        <SvgIcon width={10} height={10} fill={"#FFF"} iconPath="disabled" />
         <span class="text-sm mt-4">
           To connect modules, press Connect to enable Grid Editor access USB.
           Each module must be enabled separately.

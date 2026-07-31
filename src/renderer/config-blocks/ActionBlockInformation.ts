@@ -37,7 +37,6 @@ interface Information {
   | null;
   displayName: string;
   defaultLua: string;
-  icon: string;
   color: HexColor;
   blockIcon: string;
   selectable: boolean;

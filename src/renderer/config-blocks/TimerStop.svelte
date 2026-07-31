@@ -16,7 +16,6 @@
     description: "Stop this element's timer",
     color: categoryColors["timer"] as any,
     defaultLua: "gtp(self:ind())",
-    icon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="13" r="8"/><rect x="9.4" y="10.4" width="5.2" height="5.2" rx="0.8"/><path d="M10 2.5h4"/></svg>`,
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="13" r="8"/><rect x="9.4" y="10.4" width="5.2" height="5.2" rx="0.8"/><path d="M10 2.5h4"/></svg>`,
     selectable: true,
     movable: true,

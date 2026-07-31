@@ -98,7 +98,9 @@
     class="grid grid-cols-[auto_1fr_auto] gap-2 pl-2 items-center justify-center h-full w-full py-1"
   >
     <slot name="name" />
-    <InfoBox value={channelPreview} />
+    <div class="justify-self-end">
+      <InfoBox value={channelPreview} />
+    </div>
     <slot name="edit-name-trigger" />
   </div>
 </div>

@@ -17,7 +17,6 @@
     category: "special",
     displayName: undefined, //Is generated on the face
     defaultLua: "elseif self:bstp() == N then",
-    icon: icon,
     blockIcon: icon,
     color: categoryColors["special"] as any,
     selectable: true,

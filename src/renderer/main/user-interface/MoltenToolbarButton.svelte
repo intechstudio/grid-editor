@@ -50,7 +50,7 @@
     $appSettings.persistent.colorfulToolbar}
   style="--color: {color};"
 >
-  <SvgIcon width={14} height={14} {iconPath} />
+  <SvgIcon {iconPath} />
 </button>
 
 <style>
