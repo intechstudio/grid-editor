@@ -50,7 +50,7 @@
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
       transition:scale={{ duration: 500, start: 0.95 }}
-      style="--width: {width};"
+      style="--width: {width}; border-color: var(--border); border-radius: var(--radius);"
     >
       <div class="flex flex-col h-full">
         <div class="p-6 flex-1 min-h-0">
