@@ -107,19 +107,19 @@
 </script>
 
 <div class="flex flex-col w-full">
-  <div class="grid grid-cols-[1fr_auto_auto] items-center">
+  <div class="grid grid-cols-[1fr_auto_auto] items-end">
     <!-- When any of the array elements is true -->
     <div class="flex flex-col truncate">
-      <span class="text-sm truncate">
+      <!-- <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
           {($event?.getName() ?? "No Device") + " Event"}
         {:else}
           {selectedAction?.at(0) ?? ""}
         {/if}
-      </span>
+      </span> -->
       <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
-          <span style="color: var(--foreground-disabled)">Script length: </span>
+          <span style="color: var(--foreground-muted)">Script length: </span>
           <span
             data-testid="charCount"
             class={($event?.toLua().length ?? 0) >=
@@ -129,6 +129,10 @@
                   (Grid.Protocol.maxScriptLength / 3) * 2
                 ? "text-yellow-400"
                 : ""}
+            style={($event?.toLua().length ?? 0) >=
+            (Grid.Protocol.maxScriptLength / 3) * 2
+              ? ""
+              : "color: var(--foreground-muted)"}
             >{$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength -
               1}</span
           >
