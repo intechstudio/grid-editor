@@ -14,6 +14,7 @@ test.beforeEach(async ({ page }) => {
   modulePage = new ModulePage(page);
   configPage = new ConfigPage(page);
   await page.goto(PAGE_PATH);
+  await configPage.closeWelcomeModal();
   await connectModulePage.openVirtualModules();
 });
 

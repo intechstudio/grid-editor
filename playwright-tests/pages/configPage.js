@@ -11,6 +11,8 @@ export class ConfigPage {
       "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
     );
 
+    this.welcomeModalCloseButton = page.getByTestId("close-welcome-modal");
+
     this.eventPanel = page.getByTestId("event-panel");
 
     // Common Locators
@@ -95,6 +97,8 @@ export class ConfigPage {
     this.elementMaxResolution14Bit = page.getByRole("option", {
       name: "14 bit MIDI",
     });
+
+    this.elementNameEditButton = page.getByRole('button', { name: 'Rename element' })
     this.elementNametextbox = page
       .getByTestId("element-name-input-field")
       .getByRole("textbox");
@@ -106,6 +110,10 @@ export class ConfigPage {
 
   async turnOnMinimalistMode() {
     await this.minimalistCheckbox.check();
+  }
+
+  async closeWelcomeModal() {
+    await this.welcomeModalCloseButton.click();
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -333,10 +341,12 @@ export class ConfigPage {
   }
 
   async fillElementName(name) {
+    await this.elementNameEditButton.click();
     await this.elementNametextbox.fill(name);
   }
 
   async getElementNameFromMainTextbox() {
+    await this.elementNameEditButton.click();
     return await this.elementNametextbox.inputValue();
   }
 }

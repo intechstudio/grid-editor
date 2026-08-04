@@ -454,6 +454,7 @@
                     <button
                       on:click={() => handleAddAction({ component })}
                       class="action-card hover:border-pick cursor-pointer w-full flex items-center h-10"
+                      data-testid={component.information.name}
                     >
                       <div
                         style="background-color: {component.information.color};"

@@ -18,6 +18,7 @@ test.describe("Action Block Operations", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
     await configPage.removeAllActions();
@@ -103,6 +104,7 @@ test.describe("Element Operations", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.turnOffMinimalistMode();
@@ -220,6 +222,7 @@ test.describe("Character limit", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
     await configPage.turnOffMinimalistMode();
@@ -280,7 +283,7 @@ test.describe("Character limit", () => {
     await configPage.removeAllActions();
     await configPage.addAndEditCodeBlock(text);
     await configPage.commitCode();
-    await expect(configPage.characterCount).toContainText("23");
+    await expect(configPage.characterCount).toContainText("37");
   });
 });
 
@@ -290,6 +293,7 @@ test.describe("Syntax error", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
     await configPage.removeAllActions();
