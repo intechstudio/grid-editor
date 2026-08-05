@@ -216,8 +216,8 @@ export function getCommand(value: number) {
 }
 
 export enum MidiType {
-  "SYSEX",
-  "MIDI",
+  SYSEX,
+  MIDI,
 }
 
 export interface MidiStreamItem {

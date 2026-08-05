@@ -25,8 +25,7 @@
   // preview's auto channel value updates live when the page default changes.
   const channelStore = moduleMidiChannelState(
     ((action.parent as GridEvent)?.parent as GridElement)?.parent as
-      | GridPage
-      | undefined,
+      GridPage | undefined,
   );
 
   let scriptSegments: string[] = [];
