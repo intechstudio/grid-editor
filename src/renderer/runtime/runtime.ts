@@ -196,8 +196,8 @@ export interface PasteActionsResult extends GridOperationResult {
   info: EventInfo;
   pasted: GridAction[];
 }
-export interface DiscardElementResult extends GridOperationResult { }
-export interface OverwriteElementResult extends GridOperationResult { }
+export interface DiscardElementResult extends GridOperationResult {}
+export interface OverwriteElementResult extends GridOperationResult {}
 export interface UpdateActionResult extends GridOperationResult {
   info: EventInfo;
 }
@@ -208,13 +208,13 @@ export interface MergeActionsToCodeResult extends GridOperationResult {
 export interface RemoveActionsResult extends GridOperationResult {
   removed: Array<{ index: number; action: GridAction }>;
 }
-export interface CutActionsResult extends GridOperationResult { }
-export interface ResetElementResult extends GridOperationResult { }
-export interface SendToGridResult extends GridOperationResult { }
-export interface PresetLoadResult extends GridOperationResult { }
-export interface ProfileLoadResult extends GridOperationResult { }
-export interface SnippetLoadResult extends GridOperationResult { }
-export interface OverwriteEventResult extends GridOperationResult { }
+export interface CutActionsResult extends GridOperationResult {}
+export interface ResetElementResult extends GridOperationResult {}
+export interface SendToGridResult extends GridOperationResult {}
+export interface PresetLoadResult extends GridOperationResult {}
+export interface ProfileLoadResult extends GridOperationResult {}
+export interface SnippetLoadResult extends GridOperationResult {}
+export interface OverwriteEventResult extends GridOperationResult {}
 export interface InsertActionsResult extends GridOperationResult {
   info: EventInfo;
 }
@@ -343,8 +343,9 @@ export class ActionData extends NodeData {
   }
 
   public toLua() {
-    return `--[[@${this.short}${typeof this.name !== "undefined" ? `#${this.name}` : ""
-      }]] ${this.script}`;
+    return `--[[@${this.short}${
+      typeof this.name !== "undefined" ? `#${this.name}` : ""
+    }]] ${this.script}`;
   }
 
   public isValid() {
@@ -1220,10 +1221,11 @@ export class GridElement extends RuntimeNode<ElementData> {
 
   public getHumanName() {
     const page = this.parent as GridPage;
-    return `Element ${this.elementIndex < 255
+    return `Element ${
+      this.elementIndex < 255
         ? this.elementIndex
         : page.control_elements.length - 1
-      } (${this.type[0].toUpperCase() + this.type.slice(1).toLowerCase()})`;
+    } (${this.type[0].toUpperCase() + this.type.slice(1).toLowerCase()})`;
   }
 
   public getInfo(): ElementInfo {
@@ -1657,9 +1659,9 @@ export class GridPage extends RuntimeNode<PageData> {
 
           const script = defaultEvent.defaultConfig.startsWith("<?lua ")
             ? defaultEvent.defaultConfig.slice(
-              6,
-              defaultEvent.defaultConfig.lastIndexOf(" ?>"),
-            )
+                6,
+                defaultEvent.defaultConfig.lastIndexOf(" ?>"),
+              )
             : defaultEvent.defaultConfig;
 
           const actions = GridAction.parse(script);
@@ -1737,8 +1739,9 @@ export class GridPage extends RuntimeNode<PageData> {
           type: "fail",
           mode: 0,
           classname: "operationerror",
-          message: `File upload failed for ${file.name}: ${e instanceof Error ? e.message : String(e)
-            }`,
+          message: `File upload failed for ${file.name}: ${
+            e instanceof Error ? e.message : String(e)
+          }`,
         });
         throw e;
       }
@@ -2555,7 +2558,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         lcs[dx][dy] = undefined;
         return lcs;
       });
-    } catch (error) { }
+    } catch (error) {}
 
     Analytics.track({
       event: "Disconnect Module",
