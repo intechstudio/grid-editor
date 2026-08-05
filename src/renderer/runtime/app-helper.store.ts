@@ -222,17 +222,14 @@ async function init_appsettings() {
         get(appSettings).persistent.welcomeOnStartup === true ||
         get(appSettings).persistent.lastVersion === undefined ||
         get(appSettings).persistent.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
           return s;
         });
-        // updated Modal call to match rest of codebase, moved out of store callback as it is not valid in svelte-5
-        if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-          new Modal.Window(Welcome).show();
-        }
+        new Modal.Window(Welcome).show();
       }
 
       //TODO
