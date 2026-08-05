@@ -77,6 +77,7 @@
         on:click={() => data.close()}
         class="not-draggable flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border hover:bg-background-muted"
         style="border-color: var(--border); border-radius: var(--radius);"
+        data-testid="welcome-close-button"
       >
         <svg
           class="h-4 w-4 fill-current text-foreground-muted"
