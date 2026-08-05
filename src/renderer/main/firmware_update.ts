@@ -1,6 +1,18 @@
 import JSZip from "jszip";
 import { Analytics } from "../runtime/analytics.js";
 
+export function isMultiarchGroup(): boolean {
+  const url = window.location.href;
+  if (url.startsWith("http")) {
+    return true;
+  }
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) - hash + url.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0) % 100 < 25;
+}
+
 const CORS_PROXY = "https://api.cors.lol/?url=";
 
 let status = "";

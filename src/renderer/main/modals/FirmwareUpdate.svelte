@@ -32,6 +32,7 @@
   import {
     getGridRecommendedFirmwareUrl,
     fetchAndExtract,
+    isMultiarchGroup,
   } from "../firmware_update.ts";
   import ManualFirmwareOptions from "../components/ManualFirmwareOptions.svelte";
   export let data: Modal.Instance;
@@ -110,12 +111,21 @@
 
       // Find the correct firmware file based on product and architecture
       let firmwareFile = null;
+      const useMultiarch = product === "grid" && isMultiarchGroup();
+
       for (const file of uf2Files) {
         const filename = file.filename.toLowerCase();
 
         if (product === "grid") {
-          // Look for grid firmware matching the architecture
           if (
+            useMultiarch &&
+            filename.includes("multiarch") &&
+            filename.includes("grid")
+          ) {
+            firmwareFile = file;
+            break;
+          } else if (
+            !useMultiarch &&
             architecture === "esp32" &&
             filename.includes("esp32") &&
             filename.includes("grid")
@@ -123,6 +133,7 @@
             firmwareFile = file;
             break;
           } else if (
+            !useMultiarch &&
             architecture === "d51" &&
             filename.includes("d51") &&
             filename.includes("grid")
@@ -131,7 +142,6 @@
             break;
           }
         } else if (product === "knot") {
-          // Look for knot firmware
           if (filename.includes("knot")) {
             firmwareFile = file;
             break;
@@ -162,6 +172,7 @@
         event: "FirmwareCheck",
         payload: {
           message: "Firmware Download Finished",
+          filename: firmwareFile.filename,
         },
         mandatory: false,
       });
