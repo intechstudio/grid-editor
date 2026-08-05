@@ -8,7 +8,7 @@ export interface LuaScript {
 export type ActionBlockInformation = Information;
 
 export class SyntaxPreprocessor {
-  constructor(public generatorString: string) { }
+  constructor(public generatorString: string) {}
 
   public generate(script: string) {
     // Replace the placeholder "$SCRIPT$" with the provided script content.
@@ -22,19 +22,19 @@ interface Information {
   menuName?: string;
   rendering: "modifier" | "standard";
   category:
-  | "variables"
-  | "led"
-  | "midi"
-  | "hid"
-  | "element settings"
-  | "condition"
-  | "loop"
-  | "special"
-  | "code"
-  | "timer"
-  | "function"
-  | "deprecated"
-  | null;
+    | "variables"
+    | "led"
+    | "midi"
+    | "hid"
+    | "element settings"
+    | "condition"
+    | "loop"
+    | "special"
+    | "code"
+    | "timer"
+    | "function"
+    | "deprecated"
+    | null;
   displayName: string;
   defaultLua: string;
   color: HexColor;

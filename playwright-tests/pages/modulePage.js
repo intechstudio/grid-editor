@@ -109,7 +109,9 @@ export class ModulePage {
       name: "Confirm",
       exact: true,
     });
-    this.discardAllButton = page.getByRole("button", { name: "Discard Changes" });
+    this.discardAllButton = page.getByRole("button", {
+      name: "Discard Changes",
+    });
   }
 
   async storeConfig() {

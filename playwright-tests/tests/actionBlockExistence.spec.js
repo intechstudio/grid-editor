@@ -58,7 +58,6 @@ test.beforeAll(async () => {
   await page.goto(PAGE_PATH);
   await configPage.closeWelcomeModal();
   await setupModule("EF44");
-
 });
 
 test.afterAll(async () => {

@@ -17,7 +17,7 @@ export class ConfigPage {
 
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
-    this.addActionBlockButton = page.getByTestId('add-action-button');
+    this.addActionBlockButton = page.getByTestId("add-action-button");
     this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", {
       name: "Add Action",
@@ -98,7 +98,9 @@ export class ConfigPage {
       name: "14 bit MIDI",
     });
 
-    this.elementNameEditButton = page.getByRole('button', { name: 'Rename element' })
+    this.elementNameEditButton = page.getByRole("button", {
+      name: "Rename element",
+    });
     this.elementNametextbox = page
       .getByTestId("element-name-input-field")
       .getByRole("textbox");
