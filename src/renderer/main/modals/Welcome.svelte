@@ -77,7 +77,6 @@
         on:click={() => data.close()}
         class="not-draggable flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border hover:bg-background-muted"
         style="border-color: var(--border); border-radius: var(--radius);"
-        data-testid="close-welcome-modal"
       >
         <svg
           class="h-4 w-4 fill-current text-foreground-muted"
@@ -174,21 +173,12 @@
         <div class="flex items-baseline justify-between gap-3">
           <h2 class="m-0 text-xl text-foreground">Latest release</h2>
         </div>
-        {#if video_id}
-          <iframe
-            title="Latest Grid Editor release video"
-            class="aspect-video w-full border shadow-sm"
-            style="border-color: var(--border); border-radius: var(--radius);"
-            src={`https://youtube.com/embed/${video_id}`}
-          ></iframe>
-        {:else}
-          <div
-            class="flex aspect-video items-center justify-center border p-6 text-center text-foreground-muted"
-            style="border-color: var(--border); background-color: var(--background-muted); border-radius: var(--radius);"
-          >
-            The latest release video is loading.
-          </div>
-        {/if}
+        <iframe
+          title="Grid Editor playlist"
+          class="aspect-video w-full border shadow-sm"
+          style="border-color: var(--border); border-radius: var(--radius);"
+          src="https://www.youtube.com/embed/videoseries?si=HinU7FppyIM8_6lI&list=PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu"
+        ></iframe>
       </section>
     </div>
 
