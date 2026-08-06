@@ -3,6 +3,11 @@ import App from "./App.svelte";
 import { init_config_block_library } from "./lib/_configs";
 import { initLuaFormatter } from "@intechstudio/grid-protocol";
 import { mount } from "svelte";
+import { isMultiarchGroup } from "./main/firmware_update";
+
+console.log(
+  `Multiarch group: ${isMultiarchGroup() ? "YES" : "NO"} (url: ${window.location.href})`,
+);
 
 let app;
 
