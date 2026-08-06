@@ -18,12 +18,15 @@
     renameEntry,
     copyFile,
     deleteFile,
+    type DirEntry,
   } from "./FileManager";
   import * as monaco from "monaco-editor";
   import {
     openEditorContext,
     closeEditorContext,
   } from "../../../lib/monaco-luals-client";
+
+  const LUA_LANGUAGE_ID = "intech_lua";
 
   let selectedModule: string = "";
   let moduleOptions: Array<{ title: string; value: string }> = [];
@@ -162,8 +165,8 @@
     if (!fileContent || !selectedEntry) return null;
     try {
       const content =
-        selectedLanguage === "lua"
-          ? GridScript.compressScript(fileContent)
+        selectedLanguage === LUA_LANGUAGE_ID
+          ? GridScript.shortify(fileContent)
           : fileContent;
       luaSyntaxError = null;
       const bytes = content.length;
@@ -198,12 +201,12 @@
 
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
-    { title: "Lua", value: "intech_lua" },
+    { title: "Lua", value: LUA_LANGUAGE_ID },
     { title: "TOML", value: "ini" },
   ];
 
   const extLanguageMap: Record<string, string> = {
-    lua: "intech_lua",
+    lua: LUA_LANGUAGE_ID,
     toml: "ini",
   };
 
@@ -220,8 +223,8 @@
     if (rawContent !== null) {
       try {
         const recalculated =
-          selectedLanguage === "lua"
-            ? GridScript.expandScript(rawContent)
+          selectedLanguage === LUA_LANGUAGE_ID
+            ? GridScript.humanize(rawContent)
             : rawContent;
         fileContent = recalculated;
         savedContent = recalculated;
@@ -230,7 +233,7 @@
         luaSyntaxError = String(e);
       }
     }
-    if (selectedLanguage === "intech_lua") {
+    if (selectedLanguage === LUA_LANGUAGE_ID) {
       if (!lualsContextUri) {
         openEditorContext("").then((uri) => {
           lualsContextUri = uri;
@@ -320,8 +323,8 @@
       selectedLanguage = detectLanguage(entry);
       try {
         fileContent =
-          selectedLanguage === "lua"
-            ? GridScript.expandScript(rawContent)
+          selectedLanguage === LUA_LANGUAGE_ID
+            ? GridScript.humanize(rawContent)
             : rawContent;
         luaSyntaxError = null;
       } catch (e) {
@@ -351,8 +354,8 @@
       let content: string;
       try {
         content =
-          selectedLanguage === "lua"
-            ? GridScript.compressScript(fileContent)
+          selectedLanguage === LUA_LANGUAGE_ID
+            ? GridScript.shortify(fileContent)
             : fileContent;
       } catch (e) {
         error = `Syntax error: ${e}`;
