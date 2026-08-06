@@ -26,7 +26,7 @@
     closeEditorContext,
   } from "../../../lib/monaco-luals-client";
 
-  // Monaco language id for Grid Lua files. 
+  // Monaco language id for Grid Lua files.
   const LUA_LANGUAGE_ID = "intech_lua";
 
   let selectedModule: string = "";
