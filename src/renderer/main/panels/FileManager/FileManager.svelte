@@ -26,6 +26,7 @@
     closeEditorContext,
   } from "../../../lib/monaco-luals-client";
 
+  // Monaco language id for Grid Lua files. 
   const LUA_LANGUAGE_ID = "intech_lua";
 
   let selectedModule: string = "";
@@ -166,7 +167,7 @@
     try {
       const content =
         selectedLanguage === LUA_LANGUAGE_ID
-          ? GridScript.shortify(fileContent)
+          ? GridScript.compressScript(fileContent)
           : fileContent;
       luaSyntaxError = null;
       const bytes = content.length;
@@ -224,7 +225,7 @@
       try {
         const recalculated =
           selectedLanguage === LUA_LANGUAGE_ID
-            ? GridScript.humanize(rawContent)
+            ? GridScript.expandScript(rawContent)
             : rawContent;
         fileContent = recalculated;
         savedContent = recalculated;
@@ -324,7 +325,7 @@
       try {
         fileContent =
           selectedLanguage === LUA_LANGUAGE_ID
-            ? GridScript.humanize(rawContent)
+            ? GridScript.expandScript(rawContent)
             : rawContent;
         luaSyntaxError = null;
       } catch (e) {
@@ -355,7 +356,7 @@
       try {
         content =
           selectedLanguage === LUA_LANGUAGE_ID
-            ? GridScript.shortify(fileContent)
+            ? GridScript.compressScript(fileContent)
             : fileContent;
       } catch (e) {
         error = `Syntax error: ${e}`;
