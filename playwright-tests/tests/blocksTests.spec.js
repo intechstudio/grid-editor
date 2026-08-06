@@ -267,29 +267,29 @@ test.describe("Input field keyboard shortcuts", () => {
     await configPage.removeAllActions();
     await configPage.turnOffMinimalistMode();
   });
-  // select all keyboard not working
-  // test("Monaco Field", async ({ page }) => {
-  //   const category = "condition";
-  //   const blockName = "If";
-  //   const field = "input";
-  //   const expectedValue = "TestTest";
-  //   await configPage.openAndAddActionBlock(category, blockName);
-  //   await configPage.clickActionBlockElement(category, blockName, field);
-  //   await keyboardActions.selectAll();
-  //   await keyboardActions.type("Test");
-  //   await keyboardActions.selectAll();
-  //   await keyboardActions.cut();
-  //   await page.waitForTimeout(10);
-  //   await keyboardActions.paste();
-  //   await keyboardActions.paste();
-  //   await configPage.clickActionBlockElement(category, blockName, field); // make sure expected value is loaded
-  //   const actualValue = await configPage.getActionBlockMonacoFieldTextContetnt(
-  //     category,
-  //     blockName,
-  //     field,
-  //   );
-  //   await expect(actualValue).toBe(expectedValue);
-  // });
+  // select all keyboard not working on macOS
+  test("Monaco Field", async ({ page }) => {
+    const category = "condition";
+    const blockName = "If";
+    const field = "input";
+    const expectedValue = "TestTest";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(category, blockName, field);
+    await keyboardActions.selectAll();
+    await keyboardActions.type("Test");
+    await keyboardActions.selectAll();
+    await keyboardActions.cut();
+    await page.waitForTimeout(10);
+    await keyboardActions.paste();
+    await keyboardActions.paste();
+    await configPage.clickActionBlockElement(category, blockName, field); // make sure expected value is loaded
+    const actualValue = await configPage.getActionBlockMonacoFieldTextContetnt(
+      category,
+      blockName,
+      field,
+    );
+    await expect(actualValue).toBe(expectedValue);
+  });
   test("Text Field", async () => {
     const category = "midi";
     const blockName = "MIDI";
@@ -352,12 +352,12 @@ test.describe("Code block closes Modal", () => {
     await configPage.closeCode();
     await expect(await configPage.codeBlockModalDiscardButton).toBeVisible();
   });
-  // select all keyboard not working
-  // test("Modal not appear if no changes", async () => {
-  //   await configPage.addAndEditCodeBlock(`print("hello")`);
-  //   await configPage.closeCode();
-  //   await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
-  // });
+  // select all keyboard not working on macOS
+  test("Modal not appear if no changes", async () => {
+    await configPage.addAndEditCodeBlock(`print("hello")`);
+    await configPage.closeCode();
+    await expect(await configPage.codeBlockModalDiscardButton).toBeHidden();
+  });
 });
 
 test.describe("Element naming", () => {

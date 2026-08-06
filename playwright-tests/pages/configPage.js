@@ -12,6 +12,9 @@ export class ConfigPage {
     );
 
     this.welcomeModalCloseButton = page.getByTestId("welcome-close-button");
+    this.closeModuleOverlayButton = page.getByRole("button", {
+      name: "Close Overlay",
+    });
 
     this.eventPanel = page.getByTestId("event-panel");
 
@@ -235,6 +238,9 @@ export class ConfigPage {
     await this.page
       .evaluate(() => window.__gridTest?.resetLogStream?.())
       .catch(() => {});
+    if (await this.closeModuleOverlayButton.isVisible()) {
+      await this.closeModuleOverlayButton.click();
+    }
     // Close any leftover-open action menu. Its search input is auto-focused and
     // swallows Escape, so blur first to let the key reach the menu's
     // document-level Escape handler.
