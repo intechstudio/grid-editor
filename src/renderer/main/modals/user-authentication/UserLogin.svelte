@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { authStore, AuthEnvironment } from "$lib/auth.store";
+  import { authStore } from "$lib/auth.store";
   import LoginError from "$lib/auth.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import configuration from "../../../../../configuration.json";
@@ -123,20 +123,14 @@
   <div class="px-8 py-2 w-full">
     <div class="border-b border-neutral-700 w-full" />
   </div>
-  {#if authStore.getCurrentAuthEnvironment() === AuthEnvironment.PRODUCTION}
-    <MoltenPushButton
-      click={() =>
-        window.electron.openInBrowser(
-          configuration.PROFILE_CLOUD_EMAIL_REGISTRATION,
-        )}
-      text="Register on Website"
-      snap="full"
-    />
-  {:else}
-    <div class="text-white border border-red-500 text-center my-2">
-      <p>Can't register with email on development environment!</p>
-    </div>
-  {/if}
+  <MoltenPushButton
+    click={() =>
+      window.electron.openInBrowser(
+        configuration.PROFILE_CLOUD_EMAIL_REGISTRATION,
+      )}
+    text="Register on Website"
+    snap="full"
+  />
 
   <MoltenPushButton snap="full" style="outlined" click={() => socialLogin()}>
     <div

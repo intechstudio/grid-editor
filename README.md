@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/release/intechstudio/grid-editor)](https://github.com/intechstudio/grid-editor/releases/latest)
 
-## Running the app locally (delopment) in Electron under Ubuntu (Tested on Xubuntu 25.10)
+## Running the app locally (development) in Electron under Ubuntu (Tested on Xubuntu 25.10)
 
 ```
 sudo apt-get install -y nodejs
