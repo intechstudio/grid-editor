@@ -4,7 +4,6 @@
   import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import type { GridRuntime } from "../../../runtime/runtime";
-  import { grid, GridScript } from "@intechstudio/grid-protocol";
   import type { ModuleType } from "@intechstudio/grid-protocol";
   import { MonacoEditor } from "../../../lib/monaco";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -19,6 +18,11 @@
     copyFile,
     deleteFile,
   } from "./FileManager";
+  import {
+    toDeviceContent,
+    toEditorContent,
+    LUA_LANGUAGE_ID,
+  } from "./lua-transform";
   import * as monaco from "monaco-editor";
   import {
     openEditorContext,
@@ -161,10 +165,7 @@
   $: contentInfo = (() => {
     if (!fileContent || !selectedEntry) return null;
     try {
-      const content =
-        selectedLanguage === "lua"
-          ? GridScript.compressScript(fileContent)
-          : fileContent;
+      const content = toDeviceContent(fileContent, selectedLanguage);
       luaSyntaxError = null;
       const bytes = content.length;
       const chunks = Math.max(1, Math.ceil(bytes / CHUNK_SIZE));
@@ -198,12 +199,12 @@
 
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
-    { title: "Lua", value: "intech_lua" },
+    { title: "Lua", value: LUA_LANGUAGE_ID },
     { title: "TOML", value: "ini" },
   ];
 
   const extLanguageMap: Record<string, string> = {
-    lua: "intech_lua",
+    lua: LUA_LANGUAGE_ID,
     toml: "ini",
   };
 
@@ -219,10 +220,7 @@
     if (model) monaco.editor.setModelLanguage(model, selectedLanguage);
     if (rawContent !== null) {
       try {
-        const recalculated =
-          selectedLanguage === "lua"
-            ? GridScript.expandScript(rawContent)
-            : rawContent;
+        const recalculated = toEditorContent(rawContent, selectedLanguage);
         fileContent = recalculated;
         savedContent = recalculated;
         editor.setValue(recalculated);
@@ -319,10 +317,7 @@
       rawContent = assembled;
       selectedLanguage = detectLanguage(entry);
       try {
-        fileContent =
-          selectedLanguage === "lua"
-            ? GridScript.expandScript(rawContent)
-            : rawContent;
+        fileContent = toEditorContent(rawContent, selectedLanguage);
         luaSyntaxError = null;
       } catch (e) {
         fileContent = rawContent;
@@ -350,10 +345,7 @@
 
       let content: string;
       try {
-        content =
-          selectedLanguage === "lua"
-            ? GridScript.compressScript(fileContent)
-            : fileContent;
+        content = toDeviceContent(fileContent, selectedLanguage);
       } catch (e) {
         error = `Syntax error: ${e}`;
         return;
