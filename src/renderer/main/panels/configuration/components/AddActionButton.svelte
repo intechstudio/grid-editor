@@ -25,27 +25,25 @@
   }
 </script>
 
-<container>
-  <button
-    bind:this={referenceElement}
-    on:click={handleShowActionPicker}
-    style="border-color: var(--foreground-muted); color: var(--foreground);"
-    class="cursor-pointer flex w-full items-center justify-center gap-3 border border-dashed px-4 py-4 mx-2 my-2 w-[calc(100%-1rem)]
+<button
+  bind:this={referenceElement}
+  on:click={handleShowActionPicker}
+  style="border-color: var(--foreground-muted); color: var(--foreground);"
+  class="cursor-pointer flex w-full items-center justify-center gap-3 border border-dashed px-4 py-4 mx-2 my-2 w-[calc(100%-1rem)]
            hover:bg-background-muted hover:brightness-125 transition-all duration-200"
-    data-testid="add-action-button"
-  >
-    <span class=" leading-none" style="font-size: 1.3em;">+</span>
-    <span style="font-size: 1em;">Add action block</span>
-  </button>
+  data-testid="add-action-button"
+>
+  <span class=" leading-none" style="font-size: 1.3em;">+</span>
+  <span style="font-size: 1em;">Add action block</span>
+</button>
 
-  {#if showActionPicker}
-    <ActionPicker
-      event={target.event}
-      index={target.index}
-      {referenceElement}
-      on:close={handleCloseActionPicker}
-      on:new-config={handleNewConfig}
-      on:paste={handlePaste}
-    />
-  {/if}
-</container>
+{#if showActionPicker}
+  <ActionPicker
+    event={target.event}
+    index={target.index}
+    {referenceElement}
+    on:close={handleCloseActionPicker}
+    on:new-config={handleNewConfig}
+    on:paste={handlePaste}
+  />
+{/if}

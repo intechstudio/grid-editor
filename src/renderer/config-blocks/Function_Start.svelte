@@ -22,7 +22,7 @@
     compositeLua: [{ short: "fen", script: "end" }],
 
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M10.8 5c-1.9 0-2.7 1-3 2.9L6.2 19"/><path d="M5.6 10.6h4.8"/><path d="m13.4 11 5.6 8M19 11l-5.6 8"/></svg>`,
-    color: categoryColors["function"] as any,
+    color: categoryColors["function"],
     selectable: true,
     movable: true,
     hideIcon: false,

@@ -248,6 +248,7 @@
   $: handleNameChange(name);
 
   // Persist the current content to the action and sync it to the grid.
+  // TODO: This is a bit of a hack, CodeEditor.svelte should be just a dumb text area, and the parent component should handle the commit logic. This will make it easier to test and maintain.
   export function commit() {
     return updateAction(
       action,

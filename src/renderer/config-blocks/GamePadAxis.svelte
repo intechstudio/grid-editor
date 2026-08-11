@@ -15,7 +15,7 @@
     displayName: "GamePad Axis",
     description: "Move a virtual gamepad axis",
     defaultLua: "ggms(0,0)",
-    color: categoryColors["hid"] as any,
+    color: categoryColors["hid"],
 
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5V9.6"/><circle cx="12" cy="7" r="2.6"/><path d="M8 15.5h8l1.5 4h-11Z"/><path d="M5.6 8.7a6.8 6.8 0 0 1 1.6-3.6M18.4 8.7a6.8 6.8 0 0 0-1.6-3.6"/></svg>`,
     selectable: true,

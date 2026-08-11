@@ -13,7 +13,7 @@
     displayName: "Code Block",
     description: "Write Lua code by hand",
     documentationUrl: "https://docs.intech.studio/wiki/actions/code/code-block",
-    color: categoryColors["code"] as any,
+    color: categoryColors["code"],
     defaultLua: 'print("hello")',
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m9 8.2-3.8 3.8L9 15.8M15 8.2l3.8 3.8L15 15.8"/></svg>`,
     selectable: true,
@@ -60,6 +60,7 @@
       e.preventDefault();
       e.stopPropagation();
       commitButton?.querySelector("button")?.click();
+      console.log("CodeBlock: Ctrl/Cmd+S commit triggered");
     }
   }
 
@@ -149,6 +150,7 @@
 <code-block
   class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto"
   on:keydown={handleKeydown}
+  tabindex="-1"
 >
   <div
     class="w-full flex flex-col"

@@ -13,7 +13,7 @@
     rendering: "standard",
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/element-settings/encoder-mode",
-    color: categoryColors["special"] as any,
+    color: categoryColors["special"],
     displayName: "Reset Encoder",
     description: "",
     defaultLua: "self:eva(0) self:get(2)",

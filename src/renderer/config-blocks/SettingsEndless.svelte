@@ -12,7 +12,7 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/element-settings/endless-mode",
     category: "element settings",
-    color: categoryColors["element settings"] as any,
+    color: categoryColors["element settings"],
     displayName: "Endless Mode",
     description: "Configure how the endless pot responds",
     defaultLua:

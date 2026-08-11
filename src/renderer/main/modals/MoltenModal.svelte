@@ -1,11 +1,18 @@
 <script lang="ts">
   import { scale } from "svelte/transition";
   import { Modal, modalManager } from "./modal.store";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
   export let data: Modal.Instance;
   export let width: string = "600px";
   export let style: "normal" | "success" | "error" = "normal";
+  export let onkeydown: (e: KeyboardEvent) => void = () => {};
+
+  function onkeydown_handle(e) {
+    console.log("onkeydown_handle", e.key);
+    handleModalClose(e);
+    onkeydown?.(e);
+  }
 
   function close() {
     if (data.props.disableClickOutside) {
@@ -15,11 +22,17 @@
   }
 
   let mounted = false;
-  onMount(() => {
+  let modalElement: HTMLElement;
+  onMount(async () => {
     mounted = true;
+    await tick();
+
+    if (modalManager.getTop() === data) {
+      modalElement.focus();
+    }
   });
 
-  function handleKeyDown(e: KeyboardEvent) {
+  function handleModalClose(e: KeyboardEvent) {
     if (modalManager.getTop() !== data) {
       return;
     }
@@ -36,13 +49,16 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
-
 {#if mounted}
   <div
-    role="presentation"
-    class="z-40 absolute left-0 top-0 w-full h-full bg-gray-800/50"
+    bind:this={modalElement}
+    on:keydown={onkeydown_handle}
+    role="dialog"
+    aria-modal="true"
+    aria-label="Modal dialog"
+    class="z-40 absolute left-0 top-0 w-full h-full bg-gray-800/50 focus:outline-none"
     on:mousedown|self={close}
+    tabindex="-1"
   >
     <div
       class="z-50 shadow-md

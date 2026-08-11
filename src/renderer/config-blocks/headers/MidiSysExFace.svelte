@@ -22,7 +22,9 @@
     class="grid grid-cols-[auto_1fr_auto] gap-2 justify-center items-center h-full w-full my-1"
   >
     <slot name="name" />
-    <InfoBox value={whatsInParenthesis.exec($action.script)[0]} />
+    <div class="justify-self-end">
+      <InfoBox value={whatsInParenthesis.exec($action.script)[0]} />
+    </div>
     <slot name="edit-name-trigger" />
   </div>
 </div>

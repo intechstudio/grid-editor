@@ -60,6 +60,7 @@ export namespace Modal {
 
     private instance: SvelteComponent<any> | null = null;
     private targetNode: HTMLElement | null = null;
+    private previouslyFocused: HTMLElement | null = null;
 
     constructor(
       private componentType: ComponentWithData<TData, TExtraProps>,
@@ -85,6 +86,10 @@ export namespace Modal {
         }
       }
 
+      this.previouslyFocused =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       this.targetNode = document.createElement("div");
 
       if (this.target === Snap.Full) {
@@ -124,6 +129,11 @@ export namespace Modal {
       } else {
         console.warn("Modal target node already removed or never created.");
       }
+
+      if (this.previouslyFocused?.isConnected) {
+        this.previouslyFocused.focus();
+      }
+      this.previouslyFocused = null;
     }
   }
 

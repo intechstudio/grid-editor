@@ -15,7 +15,7 @@
     category: "element settings",
     displayName: "Button Mode",
     description: "Configure how the button responds",
-    color: categoryColors["element settings"] as any,
+    color: categoryColors["element settings"],
     defaultLua: "self:bmo(0) self:bmi(0) self:bma(127)",
 
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.8"/></svg>`,

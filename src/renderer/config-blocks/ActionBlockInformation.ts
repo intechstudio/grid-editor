@@ -1,5 +1,3 @@
-type HexColor = `#${string}`;
-
 export interface LuaScript {
   short: string;
   script: string;
@@ -37,7 +35,7 @@ interface Information {
     | null;
   displayName: string;
   defaultLua: string;
-  color: HexColor;
+  color: string;
   blockIcon: string;
   selectable: boolean;
   movable: boolean;

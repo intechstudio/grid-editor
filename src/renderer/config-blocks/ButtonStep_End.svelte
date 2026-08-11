@@ -17,7 +17,7 @@
     rounding: "bottom",
     defaultLua: "end",
     blockIcon: undefined,
-    color: categoryColors["special"] as any,
+    color: categoryColors["special"],
     selectable: false,
     movable: false,
     hideIcon: true,

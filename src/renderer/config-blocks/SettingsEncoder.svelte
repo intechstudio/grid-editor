@@ -12,7 +12,7 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/element-settings/encoder-mode",
     category: "element settings",
-    color: categoryColors["element settings"] as any,
+    color: categoryColors["element settings"],
     displayName: "Encoder Mode",
     description: "Configure how the encoder responds",
     defaultLua:

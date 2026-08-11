@@ -21,24 +21,13 @@
   }
 </script>
 
-<div class="w-full grid grid-cols-[1fr_auto_auto] gap-2">
+<div class="w-full flex flex-row items-center">
   <AddActionButton
     {target}
     on:new-config={handleNewConfig}
     on:paste={handlePaste}
   />
-  {#if $appSettings.isMultiView}
-    <button
-      class="flex rounded px-3 py-1 bg-commit items-center justify-center"
-      class:opacity-50={!$isPasteActionsEnabled}
-      on:click={() => handlePaste(target.index)}
-      disabled={!$isPasteActionsEnabled}
-    >
-      <span class="text-white"> Paste </span>
-    </button>
-  {/if}
-
-  {#if !$appSettings.isMultiView}
+  {#if $appSettings.persistent.userLevelMinimalist == false}
     <ExportButton />
   {/if}
 </div>

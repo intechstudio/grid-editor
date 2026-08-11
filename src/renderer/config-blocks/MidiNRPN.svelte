@@ -13,7 +13,7 @@
     displayName: "MIDI NRPN",
     description: "Send an NRPN message",
     documentationUrl: "https://docs.intech.studio/wiki/actions/midi/nrpn-midi",
-    color: categoryColors["deprecated"] as any,
+    color: categoryColors["deprecated"],
     defaultLua: "gms(0,176,99,num//128) gms(0,176,98,num%128) gms(0,176,6,val)",
 
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="m8.8 9.2 2.4 2.8-2.4 2.8M12.8 9.2l2.4 2.8-2.4 2.8"/></svg>`,

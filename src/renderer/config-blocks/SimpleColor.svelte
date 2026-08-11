@@ -10,7 +10,7 @@
     name: "SimpleColor",
     category: "led",
     rendering: "standard",
-    color: categoryColors["led"] as any,
+    color: categoryColors["led"],
     displayName: "Color",
     description: "Set the LED color of this element",
     documentationUrl:

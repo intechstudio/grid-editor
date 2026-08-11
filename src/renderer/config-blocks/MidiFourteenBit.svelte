@@ -14,7 +14,7 @@
     displayName: "MIDI 14",
     description: "Send high-resolution 14-bit MIDI",
     documentationUrl: "https://docs.intech.studio/wiki/actions/midi/midi-14bit",
-    color: categoryColors["deprecated"] as any,
+    color: categoryColors["deprecated"],
     defaultLua: "gms(0,176,0,val//128) gms(0,176,32,val%128)",
 
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M9.5 12h5M12 9.5v5"/></svg>`,

@@ -329,6 +329,28 @@
       }),
     );
   }
+
+  function handleWindowKeyDown(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s") {
+      return;
+    }
+
+    if (e.target instanceof Element && e.target.closest(".monaco-editor")) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    const storeButton = document.querySelector<HTMLElement>(
+      '[data-tour-static-target-id="store-button"] button',
+    );
+    if (!storeButton) {
+      console.error("Could not find the Store button for Cmd/Ctrl+S.");
+      return;
+    }
+
+    storeButton.click();
+  }
 </script>
 
 {#if import.meta.env.VITE_BUILD_TARGET !== "web"}
@@ -340,6 +362,7 @@
 
 <main
   use:watchResize={resize}
+  on:keydown={handleWindowKeyDown}
   on:mousewheel={(e) => {
     if (event.ctrlKey) {
       event.preventDefault();
@@ -347,7 +370,7 @@
   }}
   id="app"
   spellcheck="false"
-  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden app-svelte"
   style="font-size:{$appSettings.persistent.fontSize}px;"
 >
   <!-- Switch between tabs for different application features. -->

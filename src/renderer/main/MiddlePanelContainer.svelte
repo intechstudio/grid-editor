@@ -79,6 +79,7 @@
     <container
       bind:this={container}
       use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
+      tabindex="-1"
       style="color: var(--foreground); background-color: var(--background);"
       class="grid grid-rows-[1fr_auto] w-full h-full"
     >

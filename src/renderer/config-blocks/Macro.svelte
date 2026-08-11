@@ -12,7 +12,7 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/keyboard-and-mouse/keyboard",
     category: "hid",
-    color: categoryColors["hid"] as any,
+    color: categoryColors["hid"],
     displayName: "Keyboard",
     description: "Type a keyboard shortcut or macro",
     defaultLua: "gks()",

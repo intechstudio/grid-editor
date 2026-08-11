@@ -34,7 +34,7 @@
       },
     ],
     blockIcon: icon,
-    color: categoryColors["special"] as any,
+    color: categoryColors["special"],
     selectable: true,
     movable: true,
     hideIcon: false,

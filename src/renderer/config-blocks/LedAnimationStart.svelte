@@ -14,7 +14,7 @@
     category: "led",
     displayName: "Start Animation",
     description: "Start an LED animation",
-    color: categoryColors["led"] as any,
+    color: categoryColors["led"],
     defaultLua: "glpfs(num,1,val,1,1)",
 
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.7v6.6l5.4-3.3z"/></svg>`,

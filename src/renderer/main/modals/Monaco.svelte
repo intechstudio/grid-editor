@@ -192,10 +192,9 @@
       e.preventDefault();
       e.stopPropagation();
       commitButton?.querySelector("button")?.click();
+      return;
     }
-  }
 
-  function handleWindowKeydown(e: KeyboardEvent) {
     if (modalManager.getTop() !== data) {
       return;
     }
@@ -223,14 +222,12 @@
 </script>
 
 <div id="modal-copy-placeholder" />
-<svelte:window on:keydown={handleWindowKeydown} />
 
-<MoltenModal {data}>
+<MoltenModal {data} onkeydown={handleKeydown}>
   <div
     slot="content"
     class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
     use:watchResize={handleResize}
-    on:keydown={handleKeydown}
   >
     <div class="flex flex-col w-full gap-2">
       <div class="flex flex-row w-full items-center gap-4">

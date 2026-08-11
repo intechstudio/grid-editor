@@ -12,7 +12,7 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/element-settings/potmeter-mode/",
     category: "element settings",
-    color: categoryColors["element settings"] as any,
+    color: categoryColors["element settings"],
     displayName: "Potmeter Mode",
     description: "Configure the potentiometer range",
     defaultLua: "self:pmo(7) self:pmi(0) self:pma(127)",

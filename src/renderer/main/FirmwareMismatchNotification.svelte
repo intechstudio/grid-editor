@@ -173,8 +173,8 @@
 
     {#if showManualOptions}
       <div
-        class="mt-3 rounded-md border p-3"
-        style="border-color: color-mix(in srgb, var(--error) 1%, var(--background));"
+        class="mt-3 border p-3"
+        style="border-color: color-mix(in srgb, var(--error) 1%, var(--background)); border-radius: var(--radius);"
       >
         <ManualFirmwareOptions />
       </div>

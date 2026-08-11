@@ -18,7 +18,7 @@
     displayName: undefined, //Is generated on the face
     defaultLua: "elseif self:bstp() == N then",
     blockIcon: icon,
-    color: categoryColors["special"] as any,
+    color: categoryColors["special"],
     selectable: true,
     movable: false,
     hideIcon: false,
