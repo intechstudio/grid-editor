@@ -46,7 +46,7 @@
 
 <container
   transition:slide={{ duration: 200 }}
-  class="flex h-full w-full overflow-x-scroll overflow-y-clip"
+  class="flex h-full w-full overflow-x-auto overflow-y-clip"
 >
   <div class="flex h-full flex-row items-center gap-4 p-4">
     {#each $data as entry (entry.runtime.id)}

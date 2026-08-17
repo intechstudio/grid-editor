@@ -33,7 +33,7 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
   import { ModuleOverlay, moduleOverlay } from "../../../runtime/moduleOverlay";
-  import { onMount, type SvelteComponent } from "svelte";
+  import { type SvelteComponent } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { get } from "svelte/store";
   import {
@@ -86,29 +86,26 @@
     new (options: { target: Element; props: SharedProps }): SvelteComponent;
   };
 
-  let component: ModuleComponent | undefined;
+  const componentsByType: Record<string, ModuleComponent> = {
+    BU16: XX16,
+    PO16: XX16,
+    PBF4: PBF4,
+    EN16: XX16,
+    EF44: EF44,
+    TEK2: VSNX,
+    TEK1: VSNX,
+    VSN0: VSNX,
+    VSN1L: VSNX,
+    VSN1R: VSNX,
+    VSN2: VSNX,
+    OCTV: OCTV,
+    XY: XY,
+  };
 
-  onMount(() => {
-    const components: {
-      type: string;
-      component: ModuleComponent;
-    }[] = [
-      { type: "BU16", component: XX16 },
-      { type: "PO16", component: XX16 },
-      { type: "PBF4", component: PBF4 },
-      { type: "EN16", component: XX16 },
-      { type: "EF44", component: EF44 },
-      { type: "TEK2", component: VSNX },
-      { type: "TEK1", component: VSNX },
-      { type: "VSN0", component: VSNX },
-      { type: "VSN1L", component: VSNX },
-      { type: "VSN1R", component: VSNX },
-      { type: "VSN2", component: VSNX },
-      { type: "OCTV", component: OCTV },
-      { type: "XY", component: XY },
-    ];
-    component = components.find((e) => e.type === device?.type).component;
-  });
+  // Reactive (not onMount-only) so the preview updates if `device.type`
+  // isn't populated yet at first mount (e.g. a freshly created virtual
+  // module) and resolves shortly after.
+  $: component = componentsByType[device?.type];
 
   function visualDebugEffect(dom_element, color) {
     dom_element.style.backgroundColor = color;
