@@ -65,6 +65,7 @@
       rounded-xl max-h-screen bg-background text-foreground {style}"
       class:snap-full={data.target === Modal.Snap.Full}
       class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
+      class:docked={data.target === Modal.Snap.GridLayout}
       transition:scale={{ duration: 500, start: 0.95 }}
       style="--width: {width}; border-color: var(--border); border-radius: var(--radius);"
     >
@@ -105,5 +106,9 @@
     border-style: solid;
     border-width: 1px;
     @apply border-error;
+  }
+
+  .docked {
+    border-width: 0;
   }
 </style>
