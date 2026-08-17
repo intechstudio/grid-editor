@@ -115,7 +115,7 @@
           <!-- {($event?.getName() ?? "No Device") + " Event"} -->
         {:else}
           {selectedAction?.at(0) ?? ""}
-          <span style="color: var(--foreground-disabled)"
+          <span style="color: var(--foreground-muted)"
             >{selectedAction?.at(1) ?? ""}</span
           >
         {/if}

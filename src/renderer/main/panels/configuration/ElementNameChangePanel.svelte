@@ -162,7 +162,7 @@
       on:click={() => (isEditingName = !isEditingName)}
       class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded"
     >
-      <SvgIcon iconPath="edit" fill="#FFF" />
+      <SvgIcon iconPath="edit" fill="var(--foreground)" />
     </button>
     <slot name="controls" />
   </div>

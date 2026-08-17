@@ -18,8 +18,6 @@
   let solutions = [];
   let notifications = [];
 
-  let bgHelper = 0;
-
   function doNotDisplayError(errorMessage, stack, url, line) {
     Analytics.track({
       event: "ErrorConsole",
@@ -34,12 +32,6 @@
   function displayError(errorMessage, stack, url, line) {
     if (logtext.length > 4) {
       //logtext.shift();
-    }
-
-    if (bgHelper === 0) {
-      bgHelper = 1;
-    } else {
-      bgHelper = 0;
     }
 
     console.log(
@@ -263,7 +255,8 @@
 {#if logtext.length != 0}
   <div
     bind:this={logelement}
-    class="w-full bg-gray-900 text-white justify-center flex flex-col items-center"
+    style="background-color: var(--background-soft); color: var(--foreground);"
+    class="w-full justify-center flex flex-col items-center"
     transition:fade|global
   >
     {#each logtext as log, index}
@@ -271,9 +264,8 @@
         {#key index === logtext.length}
           <div
             in:fly|global={{ x: -50, delay: 0, duration: 500 }}
-            class="w-full {(logtext.length - index + bgHelper) % 2
-              ? 'bg-gray-800'
-              : 'bg-gray-900'} justify-center flex flex-row items-center h-16"
+            style="background-color: var(--background-soft); color: var(--foreground);"
+            class="w-full justify-center flex flex-row items-center h-16"
           >
             <div class="select-text">{log.reason}</div>
             {#if log.solution !== undefined}
@@ -282,7 +274,7 @@
               {#if log.solution.link !== undefined && log.solution.link !== ""}
                 <button
                   on:click={solution(log.solution.link)}
-                  class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+                  class="relative bg-background-soft mr-3 block hover:bg-background text-foreground ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
                 >
                   Find solution
                 </button>
@@ -295,19 +287,19 @@
 
     <div
       class="w-full flex flex-row justify-center items-center"
-      style="background: color-mix(in srgb, var(--error), var(--background));"
+      style="background-color: var(--error); color: var(--foreground);"
     >
       Reload the application using {text} or click
 
       <button
         on:click={refresh}
-        class="relative bg-gray-500 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+        class="relative bg-background-soft mr-3 block hover:bg-background text-foreground ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
       >
         Restart
       </button>
       <button
         on:click={dismiss}
-        class="relative bg-gray-500 mr-3 block hover:bg-gray-300 text-white ml-1 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+        class="relative bg-background-soft mr-3 block hover:bg-background text-foreground ml-1 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
       >
         Dismiss
       </button>

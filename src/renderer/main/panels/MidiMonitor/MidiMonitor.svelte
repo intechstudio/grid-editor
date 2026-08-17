@@ -204,20 +204,25 @@
 </script>
 
 <container data-testid="midi-monitor" class="flex flex-col h-full p-4">
-  <div class="flex flex-row w-full text-white justify-between">
+  <div class="flex flex-row w-full text-foreground justify-between">
     <div class="flex text-2xl">MIDI Monitor</div>
 
     <Toggle bind:value={debug} title="Debug View" />
   </div>
   {#if !debug}
     <div class="py-8 px-6">
-      <div class="border-gray-700 border rounded flex flex-col col-span-3 mb-2">
-        <span class="text-white bg-secondary px-2 truncate">Command</span>
+      <div
+        class="border flex flex-col col-span-3 mb-2"
+        style="border-color: var(--border); border-radius: var(--radius);"
+      >
+        <span class="text-foreground bg-background-muted px-2 truncate"
+          >Command</span
+        >
         <div
-          class="flex flex-row w-full text-white justify-between align-center items-center"
+          class="flex flex-row w-full text-foreground justify-between align-center items-center"
         >
           <div class="flex items-center py-1 px-3">
-            <span class="flex text-white truncate"
+            <span class="flex text-foreground truncate"
               >{last ? last.data.command.name : "Waiting for MIDI..."}</span
             >
           </div>
@@ -228,7 +233,9 @@
                 : 'bg-white'}"
             >
               <div
-                class="flex {hover ? 'text-white' : 'text-primary'} text-center"
+                class="flex {hover
+                  ? 'text-foreground'
+                  : 'text-primary'} text-center"
               >
                 {hover ? "SELECT" : "LAST"}
               </div>
@@ -243,21 +250,36 @@
       </div>
 
       <div class="grid grid-cols-3 gap-4 my-4 text-center">
-        <div class="border-gray-700 border rounded flex flex-col">
-          <span class="text-white bg-secondary px-1 truncate">Channel</span>
-          <span class="px-2 text-white text-center truncate"
+        <div
+          class="border flex flex-col"
+          style="border-color: var(--border); border-radius: var(--radius);"
+        >
+          <span class="text-foreground bg-background-muted px-1 truncate"
+            >Channel</span
+          >
+          <span class="px-2 text-foreground text-center truncate"
             >{last ? last.data.channel + 1 : "---"}</span
           >
         </div>
-        <div class="border-gray-700 border rounded flex flex-col">
-          <span class="text-white bg-secondary px-1 truncate">Device</span>
-          <span class="px-2 text-white text-center truncate"
+        <div
+          class="border flex flex-col"
+          style="border-color: var(--border); border-radius: var(--radius);"
+        >
+          <span class="text-foreground bg-background-muted px-1 truncate"
+            >Device</span
+          >
+          <span class="px-2 text-foreground text-center truncate"
             >{last ? last.device.name : "---"}</span
           >
         </div>
-        <div class="border-gray-700 border rounded flex flex-col">
-          <span class="text-white bg-secondary px-1 truncate">Direction</span>
-          <span class="px-2 text-white text-center truncate"
+        <div
+          class="border flex flex-col"
+          style="border-color: var(--border); border-radius: var(--radius);"
+        >
+          <span class="text-foreground bg-background-muted px-1 truncate"
+            >Direction</span
+          >
+          <span class="px-2 text-foreground text-center truncate"
             >{last
               ? last.data.direction == "REPORT"
                 ? "Receive"
@@ -268,14 +290,18 @@
       </div>
 
       <div class="grid grid-cols-2 gap-4 place-items-center">
-        <div class="border-gray-700 border rounded flex flex-col w-44">
-          <div class="flex flex-row w-full text-white">
-            <span class="text-white text-center bg-secondary w-full truncate"
+        <div
+          class="border flex flex-col w-44"
+          style="border-color: var(--border); border-radius: var(--radius);"
+        >
+          <div class="flex flex-row w-full text-foreground">
+            <span
+              class="text-foreground text-center bg-background-muted w-full truncate"
               >{last ? last.data.params.p1.name : "Parameter 1"}</span
             >
           </div>
 
-          <span class="text-white text-center truncate"
+          <span class="text-foreground text-center truncate"
             >{last
               ? last.data.params.p1.value_alias
                 ? last.data.params.p1.value_alias
@@ -283,14 +309,18 @@
               : "---"}</span
           >
         </div>
-        <div class="border-gray-700 border rounded flex flex-col w-44">
-          <div class="flex flex-row w-full text-white">
-            <span class="text-white text-center bg-secondary w-full truncate"
+        <div
+          class="border flex flex-col w-44"
+          style="border-color: var(--border); border-radius: var(--radius);"
+        >
+          <div class="flex flex-row w-full text-foreground">
+            <span
+              class="text-foreground text-center bg-background-muted w-full truncate"
               >{last ? last.data.params.p2.name : "Parameter 2"}</span
             >
           </div>
 
-          <span class="text-white text-center truncate"
+          <span class="text-foreground text-center truncate"
             >{last ? last.data.params.p2.value : "---"}</span
           >
         </div>
@@ -313,10 +343,10 @@
                 <MidiTester />
               </div>
             {/if}
-            <div class="flex w-full font-medium text-white pb-2 pt-8">
+            <div class="flex w-full font-medium text-foreground pb-2 pt-8">
               MIDI Messages (RAW)
             </div>
-            <div class="w-full grid grid-cols-6 text-white">
+            <div class="w-full grid grid-cols-6 text-foreground">
               <div>[X,Y]</div>
               <div>CH</div>
               <div>CMD</div>
@@ -326,7 +356,7 @@
             </div>
 
             <div
-              class="flex flex-col flex-grow bg-secondary w-full overflow-clip select-text"
+              class="flex flex-col flex-grow bg-background-muted w-full overflow-clip select-text"
               use:copyContextMenu
               bind:clientHeight={debugMessageListHeight}
             >
@@ -345,10 +375,11 @@
                     let:index
                     let:style
                     {style}
-                    class="grid grid-cols-7 items-start justify-start w-full font-mono {$midi_stream
-                      .buffer[index].data.direction == 'REPORT'
-                      ? 'text-blue-600 '
-                      : 'text-green-400 '}"
+                    class="grid grid-cols-7 items-start justify-start w-full font-mono"
+                    style:color={$midi_stream.buffer[index].data.direction ===
+                    "REPORT"
+                      ? "color-mix(in srgb, var(--foreground) 50%, #2563eb 50%)"
+                      : "color-mix(in srgb, var(--foreground) 50%, #16a34a 50%)"}
                   >
                     <div class="col-span-2">
                       [{$midi_stream.buffer[index].device.x}, {$midi_stream
@@ -375,10 +406,10 @@
                     <div class="flex items-center">
                       {#if $midi_stream.buffer[index].data.direction == "REPORT"}
                         <span>RX</span>
-                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                        <SvgIcon fill="currentColor" iconPath="arrow_left" />
                       {:else}
                         <span>TX</span>
-                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                        <SvgIcon fill="currentColor" iconPath="arrow_right" />
                       {/if}
                     </div>
                   </div>
@@ -386,9 +417,9 @@
               {/if}
             </div>
           {:else}
-            <div class="flex w-full text-white pb-2">MIDI Messages</div>
+            <div class="flex w-full text-foreground pb-2">MIDI Messages</div>
             <div
-              class="flex h-full bg-secondary w-full overflow-clip select-text"
+              class="flex h-full bg-background-muted w-full overflow-clip select-text"
               use:copyContextMenu
               bind:clientHeight={midiMessageListHeight}
             >
@@ -407,11 +438,12 @@
                     let:index
                     let:style
                     {style}
-                    class="grid grid-cols-8 gap-2 {$midi_messages[index].data
-                      .direction == 'REPORT'
-                      ? 'text-blue-600 hover:text-blue-400'
-                      : 'text-green-400 hover:text-green-200'}
+                    class="grid grid-cols-8 gap-2
               transition-transform origin-left duration-100 transform w-full"
+                    style:color={$midi_messages[index].data.direction ===
+                    "REPORT"
+                      ? "color-mix(in srgb, var(--foreground) 50%, #2563eb 50%)"
+                      : "color-mix(in srgb, var(--foreground) 50%, #16a34a 50%)"}
                     on:mouseover={() =>
                       onEnterMidiMessage($midi_messages[index])}
                     on:mouseleave={() => onLeaveMidiMessage()}
@@ -419,13 +451,11 @@
                     <div
                       class="flex flex-row gap-1 min-w-fit min-h-fit col-span-2"
                     >
-                      <span class="text-white"
-                        >{$midi_messages[index].device.name}</span
-                      >
+                      <span>{$midi_messages[index].device.name}</span>
                       {#if $midi_messages[index].data.direction == "REPORT"}
-                        <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                        <SvgIcon fill="currentColor" iconPath="arrow_left" />
                       {:else}
-                        <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                        <SvgIcon fill="currentColor" iconPath="arrow_right" />
                       {/if}
                     </div>
                     <span class="truncate"
@@ -459,7 +489,7 @@
         {#if debug}
           <div class="flex flex-col h-full w-full">
             <div
-              class="text-white flex flex-row pb-2 pt-6 font-medium justify-between"
+              class="text-foreground flex flex-row pb-2 pt-6 font-medium justify-between"
             >
               <div>Debug Text</div>
               <div class="flex flex-row">
@@ -470,7 +500,7 @@
                     : configScriptLength >=
                         (Grid.Protocol.maxScriptLength / 3) * 2
                       ? "text-yellow-400"
-                      : "text-white"}
+                      : "text-foreground"}
                 >
                   {configScriptLength}
                 </div>
@@ -481,11 +511,11 @@
           </div>
         {:else}
           <div class="flex flex-col h-full w-full">
-            <div class="flex w-full text-white pb-2 pt-6">
+            <div class="flex w-full text-foreground pb-2 pt-6">
               System Exclusive Messages
             </div>
             <div
-              class="flex h-full bg-secondary w-full overflow-clip select-text"
+              class="flex h-full bg-background-muted w-full overflow-clip select-text"
               use:copyContextMenu
               bind:clientHeight={sysExMessageListHeight}
             >
@@ -504,17 +534,19 @@
                     let:index
                     let:style
                     {style}
-                    class="{$sysex_messages[index].data.direction == 'REPORT'
-                      ? 'text-blue-400'
-                      : 'text-green-400'} font-mono"
+                    class="font-mono"
+                    style:color={$sysex_messages[index].data.direction ===
+                    "REPORT"
+                      ? "color-mix(in srgb, var(--foreground) 50%, #2563eb 50%)"
+                      : "color-mix(in srgb, var(--foreground) 50%, #16a34a 50%)"}
                   >
                     <div class="flex flex-row gap-2">
-                      <div class="flex flex-row text-white">
+                      <div class="flex flex-row">
                         <span>{$sysex_messages[index].device.name}</span>
                         {#if $sysex_messages[index].data.direction == "REPORT"}
-                          <SvgIcon fill="#FFF" iconPath="arrow_left" />
+                          <SvgIcon fill="currentColor" iconPath="arrow_left" />
                         {:else}
-                          <SvgIcon fill="#FFF" iconPath="arrow_right" />
+                          <SvgIcon fill="currentColor" iconPath="arrow_right" />
                         {/if}
                       </div>
 

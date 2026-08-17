@@ -342,7 +342,7 @@
                     class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
                     style="border-radius: var(--radius);"
                   >
-                    <SvgIcon iconPath="edit" fill="#FFF" />
+                    <SvgIcon iconPath="edit" fill="var(--foreground)" />
                   </button>
                 {/if}
 
@@ -361,7 +361,7 @@
                     style="border-radius: var(--radius);"
                     aria-label={`Open documentation for ${$action.information.displayName}`}
                   >
-                    <SvgIcon iconPath="info" fill="#FFF" />
+                    <SvgIcon iconPath="info" fill="var(--foreground)" />
                   </a>
                 {/if}
               </div>

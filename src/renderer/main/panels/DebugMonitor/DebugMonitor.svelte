@@ -229,7 +229,7 @@
     <Pane class="overflow-hidden">
       {#if $debug_lowlevel_store.length != 0}
         <div class="flex flex-col w-full h-full">
-          <div class="flex flex-row gap-2 text-white items-center my-2">
+          <div class="flex flex-row gap-2 text-foreground items-center my-2">
             <div class="inline-flex">
               <MeltRadio
                 bind:target={display}
@@ -252,13 +252,13 @@
               <MoltenPushButton click={clearDebugtext} text="Clear" />
             </div>
           </div>
-          <div class="text-white mt-2">Raw Packet:</div>
+          <div class="text-foreground mt-2">Raw Packet:</div>
           <div
             class="flex flex-grow w-full selectable overflow-y-auto p-1"
             use:scrollToBottom={debug_lowlevel_store}
             use:copyContextMenu
           >
-            <div class=" flex flex-col min-h-[100px] font-mono text-white">
+            <div class=" flex flex-col min-h-[100px] font-mono text-foreground">
               {#each $debug_lowlevel_store as debug, i}
                 <span
                   class="px-1 py-0.5 my-1 w-full break-all {debug.direction ==
@@ -282,7 +282,7 @@
     </Pane>
     <Pane>
       <div class="flex flex-col h-full overflow-hidden gap-2 mt-2">
-        <div class="text-white">Watched values:</div>
+        <div class="text-foreground">Watched values:</div>
         <div class="flex-grow overflow-y-auto">
           {#if $incoming_messages_stores.length > 0 && $runtime_manager.active.runtime.modules.length > 0}
             <div class="w-full grid grid-cols-2 gap-1">
@@ -292,9 +292,9 @@
             </div>
           {:else}
             <div
-              class="flex w-full h-full justify-center items-center bg-secondary"
+              class="flex w-full h-full justify-center items-center bg-background-muted"
             >
-              <span class="text-white">None</span>
+              <span class="text-foreground">None</span>
             </div>
           {/if}
         </div>
