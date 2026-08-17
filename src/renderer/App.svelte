@@ -10,7 +10,6 @@
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
-  import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
 
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
@@ -352,10 +351,6 @@
     storeButton.click();
   }
 </script>
-
-{#if import.meta.env.VITE_BUILD_TARGET !== "web"}
-  <Titlebar />
-{/if}
 
 <AnimationToggle />
 <Analytics />

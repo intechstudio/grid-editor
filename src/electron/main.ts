@@ -394,6 +394,7 @@ if (!gotTheLock) {
     if (process.platform !== "darwin") {
       create_tray();
     }
+    createApplicationMenu();
     createWindow();
     protocol.handle("package", (req) => {
       let requestPath = req.url.substring("package://".length);
@@ -431,13 +432,69 @@ app.on("open-url", (event, url) => {
   handleDeeplinkReturnData(url);
 });
 
+// The window is frameless with a custom Titlebar.svelte, so Electron's
+// default application menu would otherwise stay active but invisible —
+// including Reload/Force Reload accelerators that silently re-read the
+// preload script from disk. Building an explicit menu here both makes the
+// available shortcuts discoverable and lets us control what "restart" does:
+// in dev, `electron-vite dev --watch` supervises this process as a child,
+// so a real `app.relaunch()+app.exit()` (see `restartApp`) would kill the
+// whole dev server — a soft `webContents.reload()` is used there instead.
+function createApplicationMenu() {
+  const isDev = import.meta.env.VITE_BUILD_ENV === "development";
+
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: "File",
+      submenu: [
+        {
+          label: "Restart",
+          accelerator: "CmdOrCtrl+Shift+R",
+          click: () => {
+            if (isDev) {
+              mainWindow?.webContents.reload();
+            } else {
+              restartApp();
+            }
+          },
+        },
+        { type: "separator" },
+        { role: "quit" },
+      ],
+    },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "toggleDevTools" },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+      ],
+    },
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 // We should be able to set the dock icon and menu name of the app, but it doesnt work
 // app.on('ready', () => {
 //   app.setName('Grid Editor')
 // })
 
 function createWindow() {
-  const windowTitle = "Grid Editor - " + configuration.EDITOR_VERSION;
+  // Match the title text shown in Titlebar.svelte.
+  const windowTitle =
+    `Grid Editor ${configuration.EDITOR_VERSION}` +
+    (import.meta.env.VITE_BUILD_ENV === "nightly"
+      ? ` ${import.meta.env.VITE_BRANCH_NAME}`
+      : "") +
+    (import.meta.env.VITE_BUILD_ENV === "development"
+      ? ` ${import.meta.env.VITE_BUILD_ENV}`
+      : "");
 
   // First we'll get our height and width. This will be the defaults if there wasn't anything saved
   let { width, height } = store.get("windowBounds");
@@ -451,12 +508,7 @@ function createWindow() {
     minHeight: 500,
     minWidth: 800,
     backgroundColor: "#1e2628",
-    frame: false,
-    titleBarStyle: "hidden",
-    trafficLightPosition: {
-      x: 6,
-      y: 6,
-    },
+    frame: true,
     title: windowTitle,
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.js"),
@@ -465,6 +517,18 @@ function createWindow() {
       backgroundThrottling: false,
     },
     icon: "./icon.png",
+  });
+
+  // Fully hidden, not just auto-hide (which would still let Alt reveal it) —
+  // the menu's entries and accelerators (File > Restart, View > Reload, …)
+  // stay registered and working either way.
+  mainWindow.setMenuBarVisibility(false);
+
+  // Without this, Electron overwrites `windowTitle` with the loaded page's
+  // own <title> (index.html has a generic "Editor") once it finishes
+  // loading, via `page-title-updated`.
+  mainWindow.on("page-title-updated", (event) => {
+    event.preventDefault();
   });
 
   // Decide how the window appears on launch (see "Startup window state" in
@@ -1066,28 +1130,6 @@ ipcMain.handle("setPersistentStore", (event, arg) => {
   return "saved";
 });
 
-// app window management
-ipcMain.handle("closeWindow", async (event, args) => {
-  mainWindow.close();
-  return "closed";
-});
-
-ipcMain.handle("minimizeWindow", async (event, args) => {
-  mainWindow.minimize();
-});
-
-ipcMain.handle("maximizeWindow", async (event, args) => {
-  mainWindow.maximize();
-});
-
-ipcMain.handle("restoreWindow", async (event, args) => {
-  mainWindow.restore();
-});
-
-ipcMain.handle("isMaximized", async (event, args) => {
-  return mainWindow.isMaximized();
-});
-
 // configuration variables
 ipcMain.on("getConfiguration", (event) => {
   event.returnValue = configuration;
@@ -1130,7 +1172,7 @@ ipcMain.on("resetAppSettings", (event, arg) => {
   return true;
 });
 
-ipcMain.on("restartApp", (event, arg) => {
+function restartApp() {
   log.info("main", "App restart requested");
 
   if (process.env.APPIMAGE) {
@@ -1150,6 +1192,10 @@ ipcMain.on("restartApp", (event, arg) => {
     app.relaunch();
     app.exit();
   }
+}
+
+ipcMain.on("restartApp", (event, arg) => {
+  restartApp();
 });
 
 // Quit when all windows are closed.

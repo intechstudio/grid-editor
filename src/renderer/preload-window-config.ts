@@ -46,13 +46,6 @@ if (
     },
   };
   window.electron = {
-    window: {
-      close: () => {},
-      maximize: () => {},
-      minimize: () => {},
-      restore: () => {},
-      isMaximized: () => {},
-    },
     persistentStorage: {
       set: () => {},
       get: async () => {
