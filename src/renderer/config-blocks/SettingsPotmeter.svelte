@@ -179,7 +179,10 @@
   </Block>
 
   <div class="flex flex-row gap-2">
-    <span class="text-gray-500 text-sm">Step size:</span>
-    <span class="text-white text-sm">{stepSize}</span>
+    <span class="text-sm" style="color: var(--foreground-soft)">Step size:</span
+    >
+    <span class="text-sm" style="color: var(--foreground-muted)"
+      >{stepSize}</span
+    >
   </div>
 </potmeter-settings>

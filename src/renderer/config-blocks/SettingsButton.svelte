@@ -208,8 +208,10 @@
   </Block>
 
   <div class="flex flex-row gap-2" class:invisible={Number(bmo) === 0}>
-    <span class="text-gray-500 text-sm">Step values:</span>
-    <div class="text-white text-sm">
+    <span class="text-sm" style="color: var(--foreground-soft)"
+      >Step values:</span
+    >
+    <div class="text-sm" style="color: var(--foreground-soft)">
       {#each stepValues as step, i}
         <span>{step}</span>
         <span class:hidden={i === stepValues.length - 1} class="mr-2">,</span>
