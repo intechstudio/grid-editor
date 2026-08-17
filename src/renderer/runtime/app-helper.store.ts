@@ -29,6 +29,7 @@ const persistentDefaultValues = {
   writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
   messageIdDebugEnabled: false,
+  consoleErrorOverlayEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,

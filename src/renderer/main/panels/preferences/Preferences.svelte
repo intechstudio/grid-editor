@@ -442,9 +442,22 @@
         bind:target={$appSettings.persistent.messageIdDebugEnabled}
         title={"Activate message ID debugging"}
       />
+      <BlockTitle>Console Error Overlay</BlockTitle>
+      <BlockBody>
+        Mirror console.error output into an on-screen overlay bar.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.consoleErrorOverlayEnabled}
+        title={"Enabled"}
+      />
+
+      <BlockTitle>Send heartbeat immediate</BlockTitle>
+      <BlockBody>
+        Skip the heartbeat delay and send it as soon as it's queued.
+      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.sendHeartbeatImmediate}
-        title={"Send heartbeat immediate"}
+        title={"Enabled"}
       />
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>
