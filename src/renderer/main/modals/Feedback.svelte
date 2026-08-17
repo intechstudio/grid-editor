@@ -37,7 +37,7 @@
 <div id="modal-copy-placeholder" />
 
 <MoltenModal {data}>
-  <div slot="content">
+  <div slot="content" class="p-6">
     <div class="flex flex-col gap-4 flex-grow">
       <div class="flex-row w-full flex justify-between">
         <div class="flex flex-col">

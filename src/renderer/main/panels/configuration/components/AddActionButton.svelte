@@ -1,27 +1,29 @@
 <script lang="ts">
   import { GridEvent } from "../../../../runtime/runtime";
   import ActionPicker from "./ActionPicker.svelte";
+  import { Modal } from "../../../modals/modal.store";
   import { createEventDispatcher } from "svelte";
 
   export let target: { event: GridEvent; index: number };
 
-  let showActionPicker = false;
-  let referenceElement = undefined;
+  let referenceElement: HTMLElement;
 
   const dispatch = createEventDispatcher();
 
-  function handleNewConfig(e) {
-    dispatch("new-config", e.detail);
+  function handleNewConfig(payload) {
+    dispatch("new-config", payload);
   }
   function handleShowActionPicker(e) {
-    showActionPicker = true;
+    new Modal.Window(ActionPicker, Modal.Snap.Full).show({
+      event: target.event,
+      index: target.index,
+      anchorElement: referenceElement,
+      onNewConfig: handleNewConfig,
+      onPaste: handlePaste,
+    });
   }
-  function handleCloseActionPicker(e) {
-    showActionPicker = false;
-  }
-  function handlePaste(e: any) {
-    const { index } = e.detail;
-    dispatch("paste", { index: index });
+  function handlePaste(payload) {
+    dispatch("paste", { index: payload.index });
   }
 </script>
 
@@ -36,14 +38,3 @@
   <span class=" leading-none" style="font-size: 1.3em;">+</span>
   <span style="font-size: 1em;">Add action block</span>
 </button>
-
-{#if showActionPicker}
-  <ActionPicker
-    event={target.event}
-    index={target.index}
-    {referenceElement}
-    on:close={handleCloseActionPicker}
-    on:new-config={handleNewConfig}
-    on:paste={handlePaste}
-  />
-{/if}

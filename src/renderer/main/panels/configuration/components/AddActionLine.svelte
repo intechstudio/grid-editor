@@ -1,29 +1,31 @@
 <script lang="ts">
   import { GridEvent } from "./../../../../runtime/runtime";
   import ActionPicker from "./ActionPicker.svelte";
+  import { Modal } from "../../../modals/modal.store";
   import { createEventDispatcher } from "svelte";
 
   export let target: { index: number; event: GridEvent } = undefined;
 
-  let showActionPicker = false;
-  let referenceElement = undefined;
+  let referenceElement: HTMLElement;
 
   const dispatch = createEventDispatcher();
 
-  function handleNewConfig(e) {
-    dispatch("new-config", e.detail);
+  function handleNewConfig(payload) {
+    dispatch("new-config", payload);
   }
 
-  function handlePaste(e) {
-    dispatch("paste", e.detail);
+  function handlePaste(payload) {
+    dispatch("paste", payload);
   }
 
   function handleShowActionPicker(e) {
-    showActionPicker = true;
-  }
-
-  function handleCloseActionPicker(e) {
-    showActionPicker = false;
+    new Modal.Window(ActionPicker, Modal.Snap.Full).show({
+      event: target.event,
+      index: target.index,
+      anchorElement: referenceElement,
+      onNewConfig: handleNewConfig,
+      onPaste: handlePaste,
+    });
   }
 </script>
 
@@ -52,14 +54,3 @@
     </svg>
   </div>
 </add-line>
-
-{#if showActionPicker}
-  <ActionPicker
-    event={target.event}
-    index={target.index}
-    {referenceElement}
-    on:close={handleCloseActionPicker}
-    on:new-config={handleNewConfig}
-    on:paste={handlePaste}
-  />
-{/if}

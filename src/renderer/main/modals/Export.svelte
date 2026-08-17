@@ -39,7 +39,7 @@
 </script>
 
 <MoltenModal {data} width="700px">
-  <div slot="content" class="flex flex-col gap-2 items-center">
+  <div slot="content" class="flex flex-col gap-2 items-center p-6">
     <div class="w-full flex justify-between items-center">
       <div class="text-foreground-muted text-sm pb-1">
         Export Configurations

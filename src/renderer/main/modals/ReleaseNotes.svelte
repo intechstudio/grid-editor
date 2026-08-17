@@ -32,7 +32,7 @@
 </script>
 
 <MoltenModal {data}>
-  <div slot="content" class="flex flex-col max-h-[80vh] gap-2">
+  <div slot="content" class="flex flex-col max-h-[80vh] gap-2 p-6">
     <span class="flex w-full text-4xl opacity-90">
       {`${$manager.info?.releaseName} (${$manager.info?.version})`}
     </span>

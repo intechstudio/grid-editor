@@ -227,7 +227,7 @@
 <MoltenModal {data} onkeydown={handleKeydown}>
   <div
     slot="content"
-    class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
+    class="h-full w-full relative flex flex-col gap-2 items-start text-foreground p-6"
     use:watchResize={handleResize}
   >
     <div class="flex flex-col w-full gap-2">

@@ -54,7 +54,7 @@
 </script>
 
 <MoltenModal {data} width="400px">
-  <div slot="content" class="class flex flex-col gap-2 items-center">
+  <div slot="content" class="class flex flex-col gap-2 items-center p-6">
     <span class="text-xl self-start">Rename Action</span>
     <MoltenInput
       bind:this={input}

@@ -130,7 +130,7 @@
 <MoltenModal {data} width={"500px"}>
   <div
     slot="content"
-    class="grid grid-rows-[auto_1fr_auto] max-h-[50vh] h-full"
+    class="grid grid-rows-[auto_1fr_auto] max-h-[50vh] h-full p-6"
   >
     <div>
       <div class="flex w-full text-4xl opacity-90 pb-2">Add Virtual Module</div>

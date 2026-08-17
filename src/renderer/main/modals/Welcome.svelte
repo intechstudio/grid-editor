@@ -56,7 +56,10 @@
 <div id="modal-copy-placeholder"></div>
 
 <MoltenModal {data} width={"800px"}>
-  <div slot="content" class="flex max-h-[82vh] flex-col gap-5 overflow-y-auto">
+  <div
+    slot="content"
+    class="flex max-h-[82vh] flex-col gap-5 overflow-y-auto p-6"
+  >
     <header class="flex w-full items-start justify-between gap-6">
       <div class="flex flex-col gap-1">
         <div class="text-3xl text-foreground">
