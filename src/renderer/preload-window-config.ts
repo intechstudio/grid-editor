@@ -34,7 +34,7 @@ if (
   // mock Web Serial API if not available (e.g. Firefox)
   if (!("serial" in navigator)) {
     navigator.serial = {
-      addEventListener: () => {},
+      addEventListener: () => { },
     };
   }
   window.ctxProcess = {
@@ -47,28 +47,31 @@ if (
   };
   window.electron = {
     persistentStorage: {
-      set: () => {},
+      set: () => { },
       get: async () => {
         return {
           key: "value",
         };
       },
     },
+    theme: {
+      set: () => { },
+    },
     serial: {
-      restartSerialCheckInterval: async () => {},
+      restartSerialCheckInterval: async () => { },
     },
     websocket: {
-      onReceive: async () => {},
-      onTransmit: async () => {},
+      onReceive: async () => { },
+      onTransmit: async () => { },
     },
     auth: {
-      onExternalResponse: async () => {},
+      onExternalResponse: async () => { },
     },
     configs: {
-      onExternalResponse: async () => {},
-      startConfigsWatch: async () => {},
-      stopConfigsWatch: async () => {},
-      onSendConfigsToRenderer: async () => {},
+      onExternalResponse: async () => { },
+      startConfigsWatch: async () => { },
+      stopConfigsWatch: async () => { },
+      onSendConfigsToRenderer: async () => { },
       saveConfig: () => {
         return new Promise((resolve, reject) => {
           reject("This feature is not yet supported in web mode.");
@@ -76,12 +79,12 @@ if (
       },
     },
     updater: {
-      onAppUpdate: async () => {},
+      onAppUpdate: async () => { },
     },
     firmware: {
-      onFirmwareUpdate: async () => {},
-      findBootloaderPathNative: async () => {},
-      writeFirmwareToBootloader: async () => {},
+      onFirmwareUpdate: async () => { },
+      findBootloaderPathNative: async () => { },
+      writeFirmwareToBootloader: async () => { },
     },
     fetchUrlJSON: async () => {
       return [];
@@ -93,15 +96,15 @@ if (
       };
     },
 
-    restartPackageManager: () => {},
-    resetAppSettings: () => {},
+    restartPackageManager: () => { },
+    resetAppSettings: () => { },
     openInBrowser: (url) => {
       window.open(url, "_blank").focus();
     },
-    overlay: () => {},
-    appLoaded: () => {},
-    showQuitDialog: () => {},
+    overlay: () => { },
+    appLoaded: () => { },
+    showQuitDialog: () => { },
   };
 }
 
-export {};
+export { };

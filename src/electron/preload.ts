@@ -93,6 +93,9 @@ contextBridge.exposeInMainWorld("electron", {
     get: (request) => ipcRenderer.invoke("getPersistentStore", request),
     set: (object) => ipcRenderer.invoke("setPersistentStore", object),
   },
+  theme: {
+    set: (theme) => ipcRenderer.invoke("setNativeTheme", theme),
+  },
   activeWindow: () => ipcRenderer.invoke("activeWindow"),
   websocket: {
     onReceive: (callback) => ipcRenderer.on("onWebsocketReceive", callback),
@@ -119,4 +122,4 @@ ipcRenderer.on("package-manager-port", async (event) => {
   window.postMessage("package-manager-port", "*", event.ports);
 });
 
-export {};
+export { };

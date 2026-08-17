@@ -77,6 +77,7 @@
 
   function applyTheme(theme: string) {
     document.documentElement.setAttribute("color-scheme", theme);
+    window.electron.theme.set(theme);
   }
 
   function resize() {

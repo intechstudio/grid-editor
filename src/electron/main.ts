@@ -11,6 +11,7 @@ import {
   screen,
   protocol,
   net,
+  nativeTheme,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -42,13 +43,13 @@ function setupRendererLogTransport() {
       const logLevel = message.level;
       const logData = message.data;
       const scope = message.scope ? `[${message.scope}]` : "";
-      
+
       // Map electron-log levels to console methods
       const consoleMethod = logLevel === 'error' ? 'error' :
-                           logLevel === 'warn' ? 'warn' :
-                           logLevel === 'debug' ? 'debug' :
-                           'log';
-      
+        logLevel === 'warn' ? 'warn' :
+          logLevel === 'debug' ? 'debug' :
+            'log';
+
       // Format the message with [ELECTRON] prefix to distinguish from renderer logs
       const prefix = `[ELECTRON]${scope ? " " + scope : ""}`;
 
@@ -314,17 +315,17 @@ app.on('web-contents-created', (event, contents) => {
   // Handle regular <a> tag clicks and navigation attempts
   contents.on('will-navigate', (event, navigationUrl) => {
     const url = new URL(navigationUrl);
-    
+
     // Allow file:// protocol (for production builds)
     if (url.protocol === 'file:') {
       return;
     }
-    
+
     // Allow localhost (for development)
     if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
       return;
     }
-    
+
     // Block and open external http/https links in browser
     if (url.protocol === 'http:' || url.protocol === 'https:') {
       event.preventDefault();
@@ -1129,6 +1130,13 @@ ipcMain.handle("setPersistentStore", (event, arg) => {
   });
   return "saved";
 });
+
+ipcMain.handle(
+  "setNativeTheme",
+  (_event, theme: string) => {
+    nativeTheme.themeSource = theme === "dark" ? "dark" : "light";
+  },
+);
 
 // configuration variables
 ipcMain.on("getConfiguration", (event) => {
