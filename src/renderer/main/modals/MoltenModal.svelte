@@ -9,7 +9,6 @@
   export let onkeydown: (e: KeyboardEvent) => void = () => {};
 
   function onkeydown_handle(e) {
-    console.log("onkeydown_handle", e.key);
     handleModalClose(e);
     onkeydown?.(e);
   }
