@@ -49,7 +49,11 @@
   <Pages />
   <div class="flex flex-row gap-2">
     {#if typeof $moduleOverlay !== "undefined"}
-      <MoltenPushButton text="Close Overlay" click={handleCloseOverlay} />
+      <MoltenPushButton
+        text="Close Overlay"
+        style="outlined"
+        click={handleCloseOverlay}
+      />
     {/if}
     {#if selectedModule?.architecture === Architecture.VIRTUAL}
       <MoltenPushButton

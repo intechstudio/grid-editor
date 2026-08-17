@@ -25,7 +25,6 @@
   import CodeEditor from "../user-interface/CodeEditor.svelte";
   import CommitStatus from "../user-interface/CommitStatus.svelte";
   import CharacterCount from "../user-interface/CharacterCount.svelte";
-  import SendFeedback from "../user-interface/SendFeedback.svelte";
   import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
   import ConfirmModal from "./ConfirmModal.svelte";
 
@@ -311,7 +310,6 @@
     </div>
 
     <div class="flex flex-row items-center gap-2 w-full">
-      <SendFeedback feedback_context="CodeBlock" />
       <div class="flex-grow" />
       <div class="text-gray-500 font-bold">Powered by Lua</div>
       <div class="h-12 w-12">

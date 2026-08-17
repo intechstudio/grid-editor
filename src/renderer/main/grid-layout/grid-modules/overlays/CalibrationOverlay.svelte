@@ -41,11 +41,6 @@
         onCalibrate={handleCalibrate}
         compact={false}
       />
-      <MoltenPushButton
-        text="Close Overlay"
-        style="outlined"
-        click={handleClose}
-      />
     </div>
   </container>
 {/if}

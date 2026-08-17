@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { scale } from "svelte/transition";
+  import { fade, scale } from "svelte/transition";
   import { Modal, modalManager } from "./modal.store";
   import { onMount, onDestroy, tick } from "svelte";
+  import { appSettings } from "../../runtime/app-helper.store";
+  import { reduced_motion_store } from "../../runtime/animations";
 
   export let data: Modal.Instance;
   export let width: string = "600px";
@@ -20,6 +22,11 @@
   export let anchor: HTMLElement | undefined = undefined;
 
   const anchorName = `--molten-modal-anchor-${Math.random().toString(36).slice(2)}`;
+
+  $: animationsDisabled =
+    $appSettings.persistent.disableAnimations === "disabled" ||
+    ($appSettings.persistent.disableAnimations !== "enabled" &&
+      $reduced_motion_store);
 
   onMount(() => {
     anchor?.style.setProperty("anchor-name", anchorName);
@@ -83,9 +90,11 @@
        lives elsewhere in the app's DOM tree, so it would otherwise be
        invalid and silently fall back to the top-left corner. -->
   <div
-    class="z-40 absolute left-0 top-0 w-full h-full bg-gray-800/50"
+    class="z-40 absolute left-0 top-0 w-full h-full"
+    style="background-color: color-mix(in srgb, var(--background) 40%, transparent);"
     on:mousedown|self={close}
     aria-hidden="true"
+    transition:fade={{ duration: animationsDisabled ? 0 : 100 }}
   ></div>
   <div
     bind:this={modalElement}
@@ -99,7 +108,7 @@
     class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
     class:docked={data.target === Modal.Snap.GridLayout}
     class:anchored={!!anchor}
-    transition:scale={{ duration: 500, start: 0.95 }}
+    transition:scale={{ duration: animationsDisabled ? 0 : 150, start: 0.95 }}
     style="--width: {width}; border-color: var(--border); border-radius: var(--radius); {anchor
       ? `position-anchor: ${anchorName}; --height: ${height ?? '0px'};`
       : ''}"
