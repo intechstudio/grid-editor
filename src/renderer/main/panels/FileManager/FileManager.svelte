@@ -183,11 +183,12 @@
     typeof monaco.editor.createModel
   > | null = null;
 
-  // Ctrl/Cmd+S saves the file when focus is somewhere in this section but
-  // outside Monaco. Triggers the Save button, which no-ops on its own when
-  // disabled. Focus inside Monaco is handled separately by the `onSave`
-  // Monaco command registered below, since a DOM listener here can't
-  // observe keydowns that originate inside the editor.
+  // Ctrl/Cmd+S saves the file, whether focus is somewhere in this section
+  // outside Monaco or inside it: Monaco's own keybinding service consumes
+  // the native keydown before it can bubble here on its own, so
+  // MonacoEditor.create re-dispatches it as a synthetic, bubbling `keydown`
+  // from the editor's DOM node, which this listener also catches. Either
+  // way it triggers the Save button, which no-ops on its own when disabled.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
@@ -263,13 +264,6 @@
       wordWrap: "on",
       minimap: { enabled: false },
       lineNumbers: "on",
-      // Ctrl/Cmd+S saves the file, no-op'ing when there's nothing to save
-      // (matches the disabled Save button).
-      onSave: () => {
-        if (fileDirty && !savingFile && !luaSyntaxError) {
-          saveFile();
-        }
-      },
     });
     editor.onDidChangeModelContent(() => {
       if (fileContent !== null) {

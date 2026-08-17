@@ -182,11 +182,12 @@
     clickedOutside = true;
   }
 
-  // Ctrl/Cmd+S commits the editor when focus is somewhere in the modal but
-  // outside Monaco (e.g. the Name field). Triggers the Commit button, which
-  // no-ops on its own when disabled. Focus inside Monaco is handled
-  // separately by CodeEditor's `onSave` Monaco command, since a DOM listener
-  // here can't observe keydowns that originate inside the editor.
+  // Ctrl/Cmd+S commits the editor, whether focus is somewhere in the modal
+  // outside Monaco (e.g. the Name field) or inside it: Monaco's own
+  // keybinding service consumes the native keydown before it can bubble here
+  // on its own, so CodeEditor's Monaco instance re-dispatches it as a
+  // synthetic, bubbling `keydown` from the editor's DOM node, which this
+  // listener (wired up via MoltenModal's `onkeydown` prop) also catches.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
