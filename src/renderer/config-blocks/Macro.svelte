@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -8,24 +9,15 @@
     short: "gks",
     name: "Macro",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/keyboard-and-mouse/keyboard",
     category: "hid",
-    color: "#9D95AD",
+    color: categoryColors["hid"],
     displayName: "Keyboard",
+    description: "Type a keyboard shortcut or macro",
     defaultLua: "gks()",
-    icon: `
-      <svg width="100%" height="100%" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0H16C16.5523 0 17 0.447715 17 1V16C17 16.5523 16.5523 17 16 17H1C0.447715 17 0 16.5523 0 16V1C0 0.447715 0.447715 0 1 0ZM14 1H3C2.44772 1 2 1.44772 2 2V13C2 13.5523 2.44772 14 3 14H14C14.5523 14 15 13.5523 15 13V2C15 1.44772 14.5523 1 14 1Z" fill="black"/>
-        <path d="M4.5 12C4.22386 12 4 12.2239 4 12.5C4 12.7761 4.22386 13 4.5 13H12.5C12.7761 13 13 12.7761 13 12.5C13 12.2239 12.7761 12 12.5 12H4.5Z" fill="black"/>
-        <path d="M4.66667 10.318V8.49984H3L5.5 5.31802L8 8.49984H6.33333V10.318H4.66667Z" fill="black"/>
-      </svg>
-    `,
-    blockIcon: `
-      <svg width="100%" height="100%" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0H16C16.5523 0 17 0.447715 17 1V16C17 16.5523 16.5523 17 16 17H1C0.447715 17 0 16.5523 0 16V1C0 0.447715 0.447715 0 1 0ZM14 1H3C2.44772 1 2 1.44772 2 2V13C2 13.5523 2.44772 14 3 14H14C14.5523 14 15 13.5523 15 13V2C15 1.44772 14.5523 1 14 1Z" fill="black"/>
-        <path d="M4.5 12C4.22386 12 4 12.2239 4 12.5C4 12.7761 4.22386 13 4.5 13H12.5C12.7761 13 13 12.7761 13 12.5C13 12.2239 12.7761 12 12.5 12H4.5Z" fill="black"/>
-        <path d="M4.66667 10.318V8.49984H3L5.5 5.31802L8 8.49984H6.33333V10.318H4.66667Z" fill="black"/>
-      </svg>
-    `,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect x="2.8" y="6.8" width="18.4" height="10.8" rx="2"/><path d="M6.2 10.2h.01M9.5 10.2h.01M12.8 10.2h.01M16.1 10.2h.01M18.6 10.2h.01M6.2 14h.01M18.6 14h.01M9 14h6.5"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -310,21 +302,21 @@
 
       if (arg.type == "keydownup") {
         coloredKeys.push(
-          `<div class="text-green-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-green-500 rounded-md">${displayname}</div>`,
+          `<div class="text-green-500 px-2 m-0.5 text-sm flex items-center border cursor-default border-green-500" style="background-color: var(--background-muted); border-radius: var(--radius);">${displayname}</div>`,
         );
       } else if (arg.type == "keydown") {
         coloredKeys.push(
-          `<div class="text-red-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-red-500 rounded-md">${displayname} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` +
+          `<div class="text-red-500 px-2 m-0.5 text-sm flex items-center border cursor-default border-red-500" style="background-color: var(--background-muted); border-radius: var(--radius);">${displayname} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` +
             "  ",
         );
       } else if (arg.type == "keyup") {
         coloredKeys.push(
-          `<div class="text-yellow-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${displayname} <span class="h-4 w-4 ml-1">${svg}</span></div>` +
+          `<div class="text-yellow-500 px-2 m-0.5 text-sm flex items-center border cursor-default border-yellow-500" style="background-color: var(--background-muted); border-radius: var(--radius);">${displayname} <span class="h-4 w-4 ml-1">${svg}</span></div>` +
             "  ",
         );
       } else if (arg.type == "delay") {
         coloredKeys.push(
-          `<div class="text-purple-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-purple-500 rounded-md">${
+          `<div class="text-purple-500 px-2 m-0.5 text-sm flex items-center border cursor-default border-purple-500" style="background-color: var(--background-muted); border-radius: var(--radius);">${
             arg.info + ": " + arg.value
           }</div>` + "  ",
         );
@@ -412,18 +404,23 @@
 <div class="flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto">
   <div class="flex flex-col">
     <div class="flex flex-row justify-between mb-2">
-      <div class="text-gray-500 text-sm truncate">Macro Input Field</div>
+      <div class="text-foreground-muted text-sm truncate">
+        Macro Input Field
+      </div>
 
       <!-- Layout Selector -->
       <div class="flex flex-row gap-2">
-        <div class="text-gray-500 text-sm">Layout:</div>
+        <div class="text-foreground-muted text-sm">Layout:</div>
         <select
-          class="rounded bg-secondary text-white focus:outline-none border-select"
+          class="focus:outline-none"
+          style="background-color: var(--background-muted); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
           bind:value={selectedLayout}
           on:change={change_layout}
         >
           {#each layouts as layout}
-            <option value={layout.name} class="text-white bg-secondary py-1"
+            <option
+              value={layout.name}
+              style="background-color: var(--background-muted); color: var(--foreground);"
               >{layout.name}</option
             >
           {/each}
@@ -439,7 +436,8 @@
       }}
       bind:this={macroInputField}
       class="
-        focus:border-select-desaturate-20 border-select editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
+        editableDiv border p-2 flex flex-row flex-wrap focus:outline-none"
+      style="background-color: var(--background-muted); color: var(--foreground); border-color: var(--border); border-radius: var(--radius);"
       on:keydown|preventDefault={handleKeyboardInput}
       on:keyup|preventDefault={handleKeyboardInput}
       on:blur={onBlur}
@@ -470,16 +468,20 @@
     </div>
   </div>
 
-  <span class="text-gray-500 text-sm col-span-4">Add Key</span>
+  <span class="text-foreground-muted text-sm col-span-4">Add Key</span>
 
   <div class="grid grid-cols-[auto_1fr] w-full h-fit gap-x-2">
     <div class="grid grid-cols-3 gap-y-1 gap-x-2">
       <select
         bind:value={selectedKey}
-        class="text-white focus:outline-none border-select bg-primary flex col-span-3"
+        data-testid="macro-key-select"
+        class="focus:outline-none flex col-span-3"
+        style="background-color: var(--background-muted); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
       >
         {#each layout.lookup as key}
-          <option value={key} class="text-white bg-secondary py-1"
+          <option
+            value={key}
+            style="background-color: var(--background-muted); color: var(--foreground);"
             >{key.display}</option
           >
         {/each}
@@ -488,10 +490,12 @@
         on:click={() => {
           addonKeyType = "keyup";
         }}
-        class="truncate text-sm text-center border rounded-md px-1
-          {addonKeyType == 'keyup'
-          ? 'border-yellow-500 text-yellow-500'
-          : 'text-select-desaturate-20 border-select-desaturate-20'} "
+        class="truncate text-sm text-center border px-1"
+        style="border-radius: var(--radius); color: {addonKeyType == 'keyup'
+          ? '#eab308'
+          : 'var(--foreground-muted)'}; border-color: {addonKeyType == 'keyup'
+          ? '#eab308'
+          : 'var(--border)'};"
       >
         keyup
       </button>
@@ -499,10 +503,12 @@
         on:click={() => {
           addonKeyType = "keydown";
         }}
-        class="truncate text-sm text-center border rounded-md px-1
-          {addonKeyType == 'keydown'
-          ? 'border-red-500 text-red-500'
-          : 'text-select-desaturate-20 border-select-desaturate-20'}"
+        class="truncate text-sm text-center border px-1"
+        style="border-radius: var(--radius); color: {addonKeyType == 'keydown'
+          ? '#ef4444'
+          : 'var(--foreground-muted)'}; border-color: {addonKeyType == 'keydown'
+          ? '#ef4444'
+          : 'var(--border)'};"
       >
         keydown
       </button>
@@ -510,10 +516,13 @@
         on:click={() => {
           addonKeyType = "keydownup";
         }}
-        class="truncate text-sm text-center border rounded-md px-1
-          {addonKeyType == 'keydownup'
-          ? 'border-green-500 text-green-500'
-          : 'text-select-desaturate-20 border-select-desaturate-20'}"
+        class="truncate text-sm text-center border px-1"
+        style="border-radius: var(--radius); color: {addonKeyType == 'keydownup'
+          ? '#22c55e'
+          : 'var(--foreground-muted)'}; border-color: {addonKeyType ==
+        'keydownup'
+          ? '#22c55e'
+          : 'var(--border)'};"
       >
         keydownup
       </button>
@@ -525,14 +534,15 @@
     />
   </div>
   <div class="flex flex-col">
-    <div class="text-gray-500 text-sm">Delay Key</div>
+    <div class="text-foreground-muted text-sm">Delay Key</div>
     <div class="flex flex-row gap-2">
       <input
         bind:value={delayKey}
         type="number"
         min="5"
         max="4000"
-        class="bg-secondary flex flex-grow text-white focus:outline-none border-select px-2 py-1"
+        class="flex flex-grow focus:outline-none px-2 py-1"
+        style="background-color: var(--background-muted); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
       />
 
       <MoltenPushButton
@@ -543,7 +553,7 @@
     </div>
   </div>
   <div class="flex flex-col">
-    <div class="text-gray-500 text-sm">Default Delay</div>
+    <div class="text-foreground-muted text-sm">Default Delay</div>
 
     <input
       bind:value={defaultDelay}
@@ -553,7 +563,8 @@
       type="number"
       min="5"
       max="4000"
-      class="bg-secondary flex text-white focus:outline-none border-select px-2 py-1"
+      class="flex focus:outline-none px-2 py-1"
+      style="background-color: var(--background-muted); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
     />
   </div>
 
@@ -593,7 +604,7 @@
 
   .caret {
     opacity: 0.5;
-    background-color: white;
+    background-color: var(--foreground);
   }
 
   .focus {

@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import { type ActionBlockInformation } from "./ActionBlockInformation";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,22 +11,11 @@
     rendering: "standard",
     category: "code",
     displayName: "Code Block",
-    color: "#887880",
+    description: "Write Lua code by hand",
+    documentationUrl: "https://docs.intech.studio/wiki/actions/code/code-block",
+    color: categoryColors["code"],
     defaultLua: 'print("hello")',
-    icon: `
-    <svg width="100%" height="100%" viewBox="0 0 333 265" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M329.594 123.925L252.587 42.2591C247.854 37.2344 239.954 37.0052 234.934 41.7467C229.922 46.4843 229.689 54.3964 234.426 59.4172L303.345 132.5L234.426 205.591C229.689 210.612 229.922 218.52 234.934 223.262C237.349 225.541 240.433 226.67 243.505 226.67C246.823 226.67 250.136 225.354 252.588 222.757L329.595 141.087C334.135 136.267 334.135 128.742 329.594 123.925Z" fill="black"/>
-      <path d="M98.5775 205.588L29.6629 132.5L98.5775 59.4133C103.31 54.3925 103.082 46.4798 98.0657 41.7428C93.0537 37.0052 85.1449 37.2344 80.4126 42.2552L3.4058 123.921C-1.13527 128.738 -1.13527 136.267 3.4058 141.084L80.4165 222.754C82.8724 225.358 86.1816 226.671 89.4993 226.671C92.5711 226.671 95.656 225.537 98.0657 223.258C103.086 218.52 103.31 210.608 98.5775 205.588Z" fill="black"/>
-      <path d="M186.703 0.142824C179.889 -0.890373 173.512 3.79254 172.471 10.6135L135.841 250.612C134.8 257.437 139.483 263.816 146.301 264.858C146.942 264.954 147.574 265 148.203 265C154.268 265 159.588 260.571 160.533 254.387L197.163 14.3888C198.204 7.56336 193.521 1.18448 186.703 0.142824Z" fill="black"/>
-    </svg>
-    `,
-    blockIcon: `
-    <svg width="100%" height="100%" viewBox="0 0 333 265" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M329.594 123.925L252.587 42.2591C247.854 37.2344 239.954 37.0052 234.934 41.7467C229.922 46.4843 229.689 54.3964 234.426 59.4172L303.345 132.5L234.426 205.591C229.689 210.612 229.922 218.52 234.934 223.262C237.349 225.541 240.433 226.67 243.505 226.67C246.823 226.67 250.136 225.354 252.588 222.757L329.595 141.087C334.135 136.267 334.135 128.742 329.594 123.925Z" fill="black"/>
-      <path d="M98.5775 205.588L29.6629 132.5L98.5775 59.4133C103.31 54.3925 103.082 46.4798 98.0657 41.7428C93.0537 37.0052 85.1449 37.2344 80.4126 42.2552L3.4058 123.921C-1.13527 128.738 -1.13527 136.267 3.4058 141.084L80.4165 222.754C82.8724 225.358 86.1816 226.671 89.4993 226.671C92.5711 226.671 95.656 225.537 98.0657 223.258C103.086 218.52 103.31 210.608 98.5775 205.588Z" fill="black"/>
-      <path d="M186.703 0.142824C179.889 -0.890373 173.512 3.79254 172.471 10.6135L135.841 250.612C134.8 257.437 139.483 263.816 146.301 264.858C146.942 264.954 147.574 265 148.203 265C154.268 265 159.588 260.571 160.533 254.387L197.163 14.3888C198.204 7.56336 193.521 1.18448 186.703 0.142824Z" fill="black"/>
-    </svg>
-    `,
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m9 8.2-3.8 3.8L9 15.8M15 8.2l3.8 3.8L15 15.8"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -60,11 +50,11 @@
   let commitEnabled = false;
   let errorMessage = "";
 
-  // Ctrl/Cmd+S commits the block when focus is somewhere in it but outside
-  // Monaco (e.g. nothing focused inside the editor). Triggers the Commit
-  // button, which no-ops on its own when disabled. Focus inside Monaco is
-  // handled separately by CodeEditor's `onSave` Monaco command, since a DOM
-  // listener here can't observe keydowns that originate inside the editor.
+  // Ctrl/Cmd+S commits the block, whether focus is outside Monaco or inside
+  // it: Monaco's own keybinding service consumes the native keydown before
+  // it can bubble here on its own, so CodeEditor's Monaco instance
+  // re-dispatches it as a synthetic, bubbling `keydown` from the editor's
+  // DOM node, which this listener also catches.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
@@ -159,6 +149,7 @@
 <code-block
   class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto"
   on:keydown={handleKeydown}
+  tabindex="-1"
 >
   <div
     class="w-full flex flex-col"

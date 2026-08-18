@@ -1,14 +1,18 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import { MeltSelect } from "@intechstudio/grid-uikit";
+  import { MeltSelect, MoltenInput } from "@intechstudio/grid-uikit";
   import { user_input } from "./../../../runtime/user-input.store";
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { GridPage, PageData } from "../../../runtime/runtime";
+  import { tick } from "svelte";
 
   export let page: GridPage;
+  export let isEditingName: boolean = false;
+  export let elementName: string = "";
 
   let selectedElementNumber = -1;
   let options = [{ title: "No Device", value: -1 }];
+  let nameInput: MoltenInput;
 
   $: handleSelectedChange(selectedElementNumber);
 
@@ -60,8 +64,31 @@
     }
     selectedElementNumber = get(user_input).elementnumber;
   }
+
+  $: if (isEditingName) {
+    tick().then(() => {
+      if (nameInput) nameInput.focus();
+    });
+  }
 </script>
 
-{#key options}
-  <MeltSelect bind:target={selectedElementNumber} {options} disabled={false} />
-{/key}
+<div class="w-full" data-testid="element-name-input-field">
+  {#if isEditingName}
+    <MoltenInput
+      bind:this={nameInput}
+      target={elementName}
+      on:input={(e) => (elementName = e.detail.value)}
+      on:change
+      on:blur
+      on:keydown
+    />
+  {:else}
+    {#key options}
+      <MeltSelect
+        bind:target={selectedElementNumber}
+        {options}
+        disabled={false}
+      />
+    {/key}
+  {/if}
+</div>

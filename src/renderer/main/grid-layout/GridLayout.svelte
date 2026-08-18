@@ -2,7 +2,7 @@
   export const DEVICE_GAP = 0;
   export const DEVICE_WIDTH = 225;
   export const LAYOUT_CELL_WIDTH = DEVICE_WIDTH + DEVICE_GAP + 1;
-  export const GRID_GAP = 4; // 0.25rem gap between modules (4px)
+  export const GRID_GAP = 0; // 0.25rem gap between modules (4px)
 </script>
 
 <script lang="ts">

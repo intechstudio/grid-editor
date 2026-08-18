@@ -27,7 +27,7 @@ export const tooltip_content = {
   configuration_header_clear_dropdown:
     "Select the profile template to be loaded.",
   configuration_header_store:
-    "Store the configuration of the currently active Page into Grid module memory.",
+    "Write the configuration into the module's persistent memory. Once stored, the module works standalone.",
   configuration_header_discard:
     "Discard the unstored configuration of the currently active Page from Grid module memory.",
 

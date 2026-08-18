@@ -25,8 +25,7 @@
   // preview's auto channel value updates live when the page default changes.
   const channelStore = moduleMidiChannelState(
     ((action.parent as GridEvent)?.parent as GridElement)?.parent as
-      | GridPage
-      | undefined,
+      GridPage | undefined,
   );
 
   let scriptSegments: string[] = [];
@@ -91,14 +90,16 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
   class="flex items-center flex-row w-full pr-2"
-  style="background-color: {action.information.color}"
+  style=""
   on:click={handleClick}
 >
   <div
-    class="grid grid-cols-[auto_1fr_auto] gap-2 items-center justify-center h-full w-full py-1"
+    class="grid grid-cols-[auto_1fr_auto] gap-2 pl-2 items-center justify-center h-full w-full py-1"
   >
     <slot name="name" />
-    <InfoBox value={channelPreview} />
+    <div class="justify-self-end">
+      <InfoBox value={channelPreview} />
+    </div>
     <slot name="edit-name-trigger" />
   </div>
 </div>

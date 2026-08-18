@@ -20,7 +20,7 @@
       {isLeftCut ? 'corner-cut-l' : ''}"
     style="   {$element.elementIndex == 255
       ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
-      : 'border-radius: var(--grid-rounding);'}   "
+      : 'border-radius: var(--grid-rounding);'}"
     on:click={() => {
       dispatch("click", {
         elementNumber: $element.elementIndex,

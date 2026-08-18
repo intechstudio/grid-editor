@@ -339,12 +339,6 @@ export namespace MonacoEditor {
 
   export type CustomOptions = {
     restrictScope?: ElementType;
-    // Called when Ctrl/Cmd+S is pressed while this editor (or one of its
-    // widgets) has focus. Must be registered as a Monaco command via
-    // `editor.addCommand`, not a DOM `keydown` listener on an ancestor
-    // element: @codingame/monaco-vscode-api's keybinding service consumes
-    // the native keydown itself, so it never reaches ancestor DOM nodes.
-    onSave?: () => void;
   };
   export type CustomCodeEditor = monaco_editor.ICodeEditor & CustomOptions;
 
@@ -361,13 +355,33 @@ export namespace MonacoEditor {
 
     editor.restrictScope = options.restrictScope;
 
-    if (options.onSave) {
-      editor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => {
-        options.onSave?.();
-      });
-    }
-
     const editorDomNode = editor.getDomNode();
+
+    // Monaco's own keybinding service consumes the native Ctrl/Cmd+S keydown
+    // itself, so it never reaches ancestor DOM nodes as a regular `keydown`
+    // event. Catch it via onKeyDown - a per-editor-instance event, unlike
+    // `editor.addCommand`, which registers into a process-wide dynamic
+    // keybinding list shared by every editor on the page and resolves to
+    // whichever editor registered last, regardless of which one has focus -
+    // then replay it as a synthetic, bubbling `keydown` from the editor's
+    // own DOM node (which carries the `.monaco-editor` class other code keys
+    // off of) so it naturally bubbles up to, and is handled by, whichever
+    // Svelte component owns this editor, the same as a real keydown would.
+    editor.onKeyDown((e) => {
+      if (!e.equals(KeyMod.CtrlCmd | KeyCode.KeyS)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      editorDomNode?.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "s",
+          code: "KeyS",
+          ctrlKey: true,
+          metaKey: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    });
 
     if (editorDomNode) {
       editorDomNode.addEventListener("mousedown", () => {

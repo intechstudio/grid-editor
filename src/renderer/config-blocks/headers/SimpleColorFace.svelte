@@ -28,7 +28,7 @@
 <div
   role="button"
   tabindex="0"
-  class="w-full gap-2 px-2 py-1 items-center justify-between overflow-hidden pointer-events-none bg-background-muted"
+  class="w-full gap-2 px-2 py-1 items-center justify-between overflow-hidden pointer-events-none"
   style="display: grid; grid-template-columns: minmax(0, 33%) 1fr auto;"
   on:click={handleClick}
 >

@@ -15,29 +15,31 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import Indentation from "./Indentation.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-
-  let showActionPicker = false;
-  let referenceElement = undefined;
+  import { Modal } from "../../../modals/modal.store";
 
   export let text: string;
   export let target: { event: GridEvent; index: number };
   export let indentation: number = 0;
 
+  let referenceElement: HTMLElement;
+
   function handleShowActionPicker(e) {
-    showActionPicker = true;
+    new Modal.Window(ActionPicker, Modal.Snap.Full).show({
+      event: target.event,
+      index: target.index,
+      anchorElement: referenceElement,
+      onNewConfig: handleNewConfig,
+      onPaste: handlePaste,
+    });
   }
 
-  function handleCloseActionPicker(e) {
-    showActionPicker = false;
-  }
-
-  function handleNewConfig(e: any) {
-    const { configs, index } = e.detail;
+  function handleNewConfig(payload: { configs: any[]; index: number }) {
+    const { configs, index } = payload;
     addActions(target.event, index, ...configs);
   }
 
-  function handlePaste(e: any) {
-    const { index } = e?.detail ?? { index: undefined };
+  function handlePaste(payload: { index: number }) {
+    const { index } = payload ?? { index: undefined };
     pasteActions(target.event, index);
   }
 
@@ -63,7 +65,7 @@
         text="Paste"
         style="accept"
         disabled={!$isPasteActionsEnabled}
-        click={() => handlePaste({ detail: { index: target.index } })}
+        click={() => handlePaste({ index: target.index })}
       />
       {#if !$appSettings.persistent.userLevelMinimalist}
         <MoltenPushButton
@@ -80,14 +82,3 @@
     </div>
   </div>
 </container>
-
-{#if showActionPicker}
-  <ActionPicker
-    event={target.event}
-    index={target.index}
-    {referenceElement}
-    on:close={handleCloseActionPicker}
-    on:new-config={handleNewConfig}
-    on:paste={handlePaste}
-  />
-{/if}

@@ -59,7 +59,6 @@
     : ''} {action.information.rounding === 'bottom'
     ? 'rounded-br-xl'
     : ''} text-white flex items-center"
-  style="background-color:{action.information.color}"
   on:click={handleClick}
 >
   {#if action.information.short === "bstn"}

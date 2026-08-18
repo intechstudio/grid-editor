@@ -3,6 +3,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Stroke-only icons: prevent fill from being inherited from parent containers */
+.stroke-icon,
+.stroke-icon path,
+.stroke-icon rect,
+.stroke-icon circle,
+.stroke-icon ellipse,
+.stroke-icon polygon,
+.stroke-icon polyline,
+.stroke-icon line {
+  fill: none !important;
+}
+
+/* Allow explicit fill="currentColor" overrides for dot/marker elements */
+.stroke-icon [fill="currentColor"] {
+  fill: currentColor !important;
+}
+
 @font-face {
   font-family: "GT Pressura Pro M Trial";
   src: url("/fonts/GT-Pressura-Pro-Mono-Trial-Light.otf") format("opentype");
@@ -111,11 +128,26 @@
 
 html {
   font-size: 12px;
+
+  /* Action block category colors */
+  --category-midi: #ff9cf6;
+  --category-hid: #c0e4f6;
+  --category-led: #1181c8;
+  --category-variables: #ebece6;
+  --category-condition: #fff4d1;
+  --category-loop: #fdffe4;
+  --category-code: #7bf1a8;
+  --category-element-settings: #e5ffcf;
+  --category-timer: #90f1ef;
+  --category-function: #f2eae0;
+  --category-special: #b8b8ff;
+  --category-deprecated: #545454;
 }
 
 body {
   @apply select-none;
-  @apply m-0 flex h-screen flex-col bg-secondary p-0 font-roboto;
+  @apply m-0 flex h-screen flex-col p-0 font-roboto;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar {
@@ -125,7 +157,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #286787;
+  background: var(--accent-soft);
   box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }
 
@@ -158,12 +190,15 @@ img[src*="mixpanel.com"] {
   font-weight: 600;
   margin: 0.5em 0 0.25em;
 }
+
 .monaco-editor .overflowingContentWidgets h1 {
   font-size: 1.4em;
 }
+
 .monaco-editor .overflowingContentWidgets h2 {
   font-size: 1.25em;
 }
+
 .monaco-editor .overflowingContentWidgets h3 {
   font-size: 1.1em;
 }
@@ -198,16 +233,19 @@ img[src*="mixpanel.com"] {
 .monaco-editor .overflowingContentWidgets .hover-contents {
   line-height: 1.5;
 }
+
 .monaco-editor .overflowingContentWidgets .hover-contents p,
 .monaco-editor .overflowingContentWidgets .hover-contents ul,
 .monaco-editor .overflowingContentWidgets .hover-contents ol {
   margin: 8px 0;
 }
+
 .monaco-editor .overflowingContentWidgets .hover-contents p:first-child,
 .monaco-editor .overflowingContentWidgets .hover-contents ul:first-child,
 .monaco-editor .overflowingContentWidgets .hover-contents ol:first-child {
   margin-top: 0;
 }
+
 .monaco-editor .overflowingContentWidgets .hover-contents p:last-child,
 .monaco-editor .overflowingContentWidgets .hover-contents ul:last-child,
 .monaco-editor .overflowingContentWidgets .hover-contents ol:last-child {

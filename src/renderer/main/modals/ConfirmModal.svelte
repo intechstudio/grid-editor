@@ -29,7 +29,7 @@
 </script>
 
 <MoltenModal {data} width={"25%"}>
-  <div slot="content" class="flex flex-col flex-wrap gap-2 w-full">
+  <div slot="content" class="flex flex-col flex-wrap gap-2 w-full p-6">
     <span class="text-2xl">Unsaved Changes</span>
     <p>
       You have unsaved changes in the editor. Are you sure you want to close

@@ -125,13 +125,6 @@
       fontSize: $appSettings.persistent.fontSize,
       restrictScope,
       readOnly,
-      // Ctrl/Cmd+S commits the editor, no-op'ing when there's nothing to
-      // commit or an unresolved error (matches the disabled Commit button).
-      onSave: () => {
-        if (!readOnly && commitEnabled && !errorMessage) {
-          commit();
-        }
-      },
       folding: false,
       renderLineHighlight: "none",
       contextmenu: false,
@@ -248,6 +241,7 @@
   $: handleNameChange(name);
 
   // Persist the current content to the action and sync it to the grid.
+  // TODO: This is a bit of a hack, CodeEditor.svelte should be just a dumb text area, and the parent component should handle the commit logic. This will make it easier to test and maintain.
   export function commit() {
     return updateAction(
       action,

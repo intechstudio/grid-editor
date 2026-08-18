@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,15 +11,14 @@
     name: "ResetEncoder",
     category: "special",
     rendering: "standard",
-    color: "#4A4AA7",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/encoder-mode",
+    color: categoryColors["special"],
     displayName: "Reset Encoder",
+    description: "",
     defaultLua: "self:eva(0) self:get(2)",
-    icon: `
-    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" viewBox="2 2 17 17"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g fill="none" fill-rule="evenodd" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0 1 1 0 2.5 2.5)"> <path d="m3.98652376 1.07807068c-2.38377179 1.38514556-3.98652376 3.96636605-3.98652376 6.92192932 0 4.418278 3.581722 8 8 8s8-3.581722 8-8-3.581722-8-8-8"></path> <circle cx="8" cy="8" fill="#000000" r="2"></circle> <path d="m4 1v4h-4" transform="matrix(1 0 0 -1 0 6)"></path> </g> </g></svg>
-    `,
-    blockIcon: `
-    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" viewBox="2 2 17 17"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g fill="none" fill-rule="evenodd" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" transform="matrix(0 1 1 0 2.5 2.5)"> <path d="m3.98652376 1.07807068c-2.38377179 1.38514556-3.98652376 3.96636605-3.98652376 6.92192932 0 4.418278 3.581722 8 8 8s8-3.581722 8-8-3.581722-8-8-8"></path> <circle cx="8" cy="8" fill="#000000" r="2"></circle> <path d="m4 1v4h-4" transform="matrix(1 0 0 -1 0 6)"></path> </g> </g></svg>
-    `,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 12a9 9 0 1 0 9-9c-2.52 0-4.93 1-6.74 2.74L3 8"/><path d="M3 3v5h5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -32,7 +32,6 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo, MeltCheckbox } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { GridAction } from "./../runtime/runtime";
   import { get } from "svelte/store";
   import { ResetEncoder } from "./ResetEncoder";
@@ -109,5 +108,4 @@
       preProcessor={GridScript.humanize}
     />
   </div>
-  <SendFeedback feedback_context="LedColor" class="text-sm text-gray-500" />
 </config-led-color>

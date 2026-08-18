@@ -15,7 +15,7 @@
 <div
   role="button"
   tabindex="0"
-  class="justify-between gap-2 w-full px-2 py-1 flex-row flex items-center overflow-hidden pointer-events-none bg-background-muted"
+  class="justify-between gap-2 w-full px-2 py-1 flex-row flex items-center overflow-hidden pointer-events-none"
   on:click={handleClick}
 >
   <slot name="name" />

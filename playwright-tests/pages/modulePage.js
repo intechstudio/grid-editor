@@ -109,7 +109,9 @@ export class ModulePage {
       name: "Confirm",
       exact: true,
     });
-    this.discardAllButton = page.getByRole("button", { name: "Discard All" });
+    this.discardAllButton = page.getByRole("button", {
+      name: "Discard Changes",
+    });
   }
 
   async storeConfig() {
@@ -127,6 +129,12 @@ export class ModulePage {
 
   async changeModule() {
     await this.changeModuleButton.click();
+  }
+  async changeModuleTo(moduleName) {
+    await this.changeModule();
+    await this.page.getByTestId(moduleName).click();
+    await this.page.getByRole("button", { name: "Add Module" }).click();
+    await this.assertModuleAdded(moduleName);
   }
   async removeModule() {
     await this.removeModuleButton.click();

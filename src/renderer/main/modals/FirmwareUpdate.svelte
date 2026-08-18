@@ -222,7 +222,7 @@
     width={"350px"}
     style={getModalStyle($appSettings.firmwareNotificationState)}
   >
-    <div class="flex w-full flex-col gap-2 items-center" slot="content">
+    <div class="flex w-full flex-col gap-2 items-center p-6" slot="content">
       {#if $appSettings.firmwareNotificationState === 2}
         <span class="text-lg">Waiting for module...</span>
         <!-- Masked container -->

@@ -46,13 +46,6 @@ if (
     },
   };
   window.electron = {
-    window: {
-      close: () => {},
-      maximize: () => {},
-      minimize: () => {},
-      restore: () => {},
-      isMaximized: () => {},
-    },
     persistentStorage: {
       set: () => {},
       get: async () => {
@@ -60,6 +53,9 @@ if (
           key: "value",
         };
       },
+    },
+    theme: {
+      set: () => {},
     },
     serial: {
       restartSerialCheckInterval: async () => {},

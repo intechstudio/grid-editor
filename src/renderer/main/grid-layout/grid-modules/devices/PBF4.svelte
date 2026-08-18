@@ -177,12 +177,12 @@
         </cell>
       {:else}
         <div
-          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
+          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] system-cell-underlay-container"
         >
           <slot name="cell-underlay" {elementNumber} />
         </div>
         <div
-          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-overlay-container"
+          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] system-cell-overlay-container"
         >
           <slot name="cell-overlay" {elementNumber} />
         </div>

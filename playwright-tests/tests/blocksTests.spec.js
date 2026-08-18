@@ -20,6 +20,7 @@ test.describe("Issues", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.turnOffMinimalistMode();
@@ -132,6 +133,7 @@ test.describe("NRPN converting", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.turnOffMinimalistMode();
@@ -212,6 +214,7 @@ test.describe("Element Mode MAX value", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EF44");
     await configPage.turnOffMinimalistMode();
@@ -258,11 +261,13 @@ test.describe("Input field keyboard shortcuts", () => {
     configPage = new ConfigPage(page);
     keyboardActions = new KeyboardActions(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.removeAllActions();
     await configPage.turnOffMinimalistMode();
   });
+  // select all keyboard not working on macOS
   test("Monaco Field", async ({ page }) => {
     const category = "condition";
     const blockName = "If";
@@ -314,6 +319,7 @@ test.describe("Code block closes Modal", () => {
     configPage = new ConfigPage(page);
     keyboardActions = new KeyboardActions(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.turnOffMinimalistMode();
@@ -346,6 +352,7 @@ test.describe("Code block closes Modal", () => {
     await configPage.closeCode();
     await expect(await configPage.codeBlockModalDiscardButton).toBeVisible();
   });
+  // select all keyboard not working on macOS
   test("Modal not appear if no changes", async () => {
     await configPage.addAndEditCodeBlock(`print("hello")`);
     await configPage.closeCode();
@@ -360,6 +367,7 @@ test.describe("Element naming", () => {
     configPage = new ConfigPage(page);
     keyboardActions = new KeyboardActions(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.turnOffMinimalistMode();
@@ -367,6 +375,7 @@ test.describe("Element naming", () => {
   test("Element naming add 'element name' action block", async () => {
     const name = "happy path";
     await configPage.fillElementName(name);
+    await keyboardActions.enter();
     await configPage.selectElementEvent("Setup");
     await configPage.clickActionBlock(0);
     expect(await configPage.getTextFromNameBlock()).toBe(name);

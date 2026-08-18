@@ -22,7 +22,7 @@
 </script>
 
 <MoltenModal {data} width={"300px"}>
-  <div slot="content">
+  <div slot="content" class="p-6">
     {#if $userStore}
       <UserLoggedIn {data} />
     {:else if currentNavigationTarget === "login"}

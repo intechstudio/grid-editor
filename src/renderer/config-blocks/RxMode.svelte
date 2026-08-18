@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  import { categoryColors } from "./categoryColors";
   export const header = RegularActionBlockFace;
 
   export const information: ActionBlockInformation = {
@@ -9,10 +10,12 @@
     rendering: "standard",
     category: "function",
     displayName: "RX Mode",
-    color: "#4A6FA5",
+    description: "React to incoming MIDI",
+    documentationUrl: "https://docs.intech.studio/wiki/actions/midi/midi-rx",
+    color: categoryColors["function"],
     defaultLua: "grxm(0,3) grxm(1,3) grxm(2,0) grxm(3,0)",
-    icon: `<span class="block w-full text-center font-gt-pressura text-sm font-bold">RX</span>`,
-    blockIcon: `<span class="block w-full text-center font-gt-pressura text-sm font-bold">RX</span>`,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 21v-9.3"/><circle cx="12" cy="9.6" r="1.8"/><path d="M8.4 6a6.2 6.2 0 0 1 7.2 0M5.8 3.2a10.4 10.4 0 0 1 12.4 0"/></svg>`,
     selectable: true,
     hiddenInMinimalist: true,
     movable: true,
@@ -28,7 +31,6 @@
   import { createEventDispatcher } from "svelte";
   import { MeltCheckbox, MeltSelect } from "@intechstudio/grid-uikit";
   import { GridAction, ActionData } from "./../runtime/runtime";
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import { tooltip } from "../main/_actions/tooltip.ts";
 
   export let action: GridAction;
@@ -213,5 +215,4 @@
       </div>
     {/each}
   </div>
-  <SendFeedback feedback_context="RxMode" />
 </action-rx-mode>

@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -8,12 +9,14 @@
     short: "l",
     name: "VarLocals",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/local-variables",
     category: "variables",
     displayName: "Locals",
+    description: "Define variables for this event",
     defaultLua: "local num = self:ind()",
-    color: "#78BC61",
-    icon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
-    blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
+    color: categoryColors["variables"],
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 4.2c-1.9 0-2.6 1-2.6 2.4v2.5c0 1.1-.6 1.8-1.9 1.9v2c1.3.1 1.9.8 1.9 1.9v2.5c0 1.4.7 2.4 2.6 2.4M14.5 4.2c1.9 0 2.6 1 2.6 2.4v2.5c0 1.1.6 1.8 1.9 1.9v2c-1.3.1-1.9.8-1.9 1.9v2.5c0 1.4-.7 2.4-2.6 2.4"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,

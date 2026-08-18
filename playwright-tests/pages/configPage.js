@@ -11,11 +11,16 @@ export class ConfigPage {
       "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
     );
 
+    this.welcomeModalCloseButton = page.getByTestId("welcome-close-button");
+    this.closeModuleOverlayButton = page.getByRole("button", {
+      name: "Close Overlay",
+    });
+
     this.eventPanel = page.getByTestId("event-panel");
 
     // Common Locators
     this.selectAllCheckbox = page.getByTestId("select_all");
-    this.addActionBlockButton = page.getByText("Add action block...");
+    this.addActionBlockButton = page.getByTestId("add-action-button");
     this.addActionLineFirst = page.locator("add-line").first();
     this.noActionAddActionButton = page.getByRole("button", {
       name: "Add Action",
@@ -95,6 +100,10 @@ export class ConfigPage {
     this.elementMaxResolution14Bit = page.getByRole("option", {
       name: "14 bit MIDI",
     });
+
+    this.elementNameEditButton = page.getByRole("button", {
+      name: "Rename element",
+    });
     this.elementNametextbox = page
       .getByTestId("element-name-input-field")
       .getByRole("textbox");
@@ -106,6 +115,10 @@ export class ConfigPage {
 
   async turnOnMinimalistMode() {
     await this.minimalistCheckbox.check();
+  }
+
+  async closeWelcomeModal() {
+    await this.welcomeModalCloseButton.click();
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -225,6 +238,9 @@ export class ConfigPage {
     await this.page
       .evaluate(() => window.__gridTest?.resetLogStream?.())
       .catch(() => {});
+    if (await this.closeModuleOverlayButton.isVisible()) {
+      await this.closeModuleOverlayButton.click();
+    }
     // Close any leftover-open action menu. Its search input is auto-focused and
     // swallows Escape, so blur first to let the key reach the menu's
     // document-level Escape handler.
@@ -333,10 +349,12 @@ export class ConfigPage {
   }
 
   async fillElementName(name) {
+    await this.elementNameEditButton.click();
     await this.elementNametextbox.fill(name);
   }
 
   async getElementNameFromMainTextbox() {
+    await this.elementNameEditButton.click();
     return await this.elementNametextbox.inputValue();
   }
 }

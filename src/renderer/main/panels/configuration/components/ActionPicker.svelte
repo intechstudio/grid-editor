@@ -10,14 +10,11 @@
     ClipboardKey,
     appClipboard,
   } from "./../../../../runtime/clipboard.store";
-  import Popover from "svelte-easy-popover";
-  import { createEventDispatcher } from "svelte";
-  import { clickOutside } from "../../../_actions/click-outside.action";
   import { Analytics } from "../../../../runtime/analytics.js";
   import { getAllComponents } from "../../../../lib/_configs";
   import { toggledBlocks } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
     MoltenInput,
@@ -25,44 +22,41 @@
   } from "@intechstudio/grid-uikit";
   import { get } from "svelte/store";
   import { appSettings } from "../../../../runtime/app-helper.store";
+  import MoltenModal from "../../../modals/MoltenModal.svelte";
+  import { Modal } from "../../../modals/modal.store";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
+  export let data: Modal.Instance;
   export let index: number;
-  export let referenceElement = undefined;
   export let event: GridEvent;
+  // Element the modal opens anchored next to (the "+" trigger that opened it).
+  export let anchorElement: HTMLElement | undefined = undefined;
+  // The modal is mounted outside the caller's component tree (Modal.Window
+  // portals it to document.body), so a dispatched Svelte event would never
+  // reach it - callers pass their existing new-config/paste handlers in as
+  // callback props instead.
+  export let onNewConfig: (payload: {
+    configs: GridAction[];
+    index: number;
+  }) => void = () => {};
+  export let onPaste: (payload: { index: number }) => void = () => {};
 
-  let offset = 0;
-  const dispatch = createEventDispatcher();
   let actionPickerTimestamp = 0;
   let options = [];
   let filteredOptions = [];
   let searchValue = "";
   let searchBar;
 
-  function handleEscapePress(e) {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      handleClose();
-    }
-  }
-
-  onMount(() => {
-    referenceElement.addEventListener("click", handleReferenceElementClick);
+  onMount(async () => {
     actionPickerTimestamp = Date.now();
-    const focusSearchBar = searchBar?.focus;
-    if (typeof focusSearchBar !== "undefined") {
-      focusSearchBar();
-    }
-
-    document.addEventListener("keydown", handleEscapePress);
+    await tick();
+    searchBar?.focus();
   });
 
-  // Clean up the event listener when the component is destroyed
   onDestroy(() => {
-    referenceElement.removeEventListener("click", handleReferenceElementClick);
     Analytics.track({
       event: "Config Action",
       payload: {
@@ -71,8 +65,6 @@
       },
       mandatory: false,
     });
-
-    document.removeEventListener("keydown", handleEscapePress);
   });
 
   //////////////////////////////////////////////////////////////////////////////
@@ -83,7 +75,7 @@
     try {
       options = getAvailableOptions($event);
     } catch (e) {
-      handleClose();
+      data.close();
     }
   }
 
@@ -291,23 +283,8 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function handlePaste() {
-    dispatch("paste", {
-      index: index,
-    });
-    handleClose();
-  }
-
-  function handleReferenceElementClick(e) {
-    const width = e.target.clientWidth;
-    offset = -width;
-  }
-
-  function handleClickOutside(e) {
-    handleClose();
-  }
-
-  function handleClose() {
-    dispatch("close");
+    onPaste({ index });
+    data.close();
   }
 
   function replaceToLocalDefinition(script, segment, localDefinition) {
@@ -355,12 +332,8 @@
       }
     }
 
-    dispatch("new-config", {
-      configs: configs,
-      index: index,
-    });
-
-    handleClose();
+    onNewConfig({ configs, index });
+    data.close();
   }
 
   function handleSearchValueChange(value) {
@@ -406,99 +379,119 @@
   }
 </script>
 
-<container style="z-index: 666;">
-  <Popover isOpen={true} {referenceElement} placement={"left"}>
-    <pick-action
-      use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
-      class="flex w-96"
-      style={`max-height: calc(100vh - 27px); width: 20vw;`}
-    >
-      <menu id="action-menu" class="action-menu shadow-md rounded-md p-4">
-        <wrapper class="flex flex-col w-full h-full gap-2">
-          <div class="flex flex-col flex-grow">
-            <div class="flex flex-row justify-between">
-              <span class="text-gray-500 text-sm self-end"> Search: </span>
-              <button
-                on:click={handleClose}
-                id="close-btn"
-                class="hover:bg-secondary fill-gray-500 p-1 rounded mb-1"
-              >
-                <SvgIcon width={10} height={10} iconPath={"close"} />
-              </button>
-            </div>
+<MoltenModal {data} width="28vw" height="35rem" anchor={anchorElement}>
+  <div slot="content" class="flex">
+    <menu id="action-menu" class="action-menu p-4">
+      <wrapper class="flex flex-col w-full h-full gap-2">
+        <div class="flex flex-col flex-grow gap-1">
+          <div class="flex flex-row items-center justify-end">
             <MoltenInput
               bind:this={searchBar}
               bind:target={searchValue}
               on:keydown={handleSearchBarKeyDown}
+              placeholder={$appSettings.persistent.userLevelMinimalist
+                ? "Search Essentials Blocks..."
+                : "Search..."}
             />
+            <button
+              on:click={() => data.close()}
+              id="close-btn"
+              style="color: var(--foreground-muted)"
+              class="fill-current pl-3 flex items-center justify-center"
+            >
+              <SvgIcon scale={0.8} iconPath={"close"} />
+            </button>
           </div>
+        </div>
 
-          <div class="flex flex-col w-full h-full overflow-y-auto">
-            {#if filteredOptions.length > 0}
-              {#each filteredOptions as option}
-                <div class="text-gray-500 text-sm">
-                  {option.category[0].toUpperCase() + option.category.slice(1)}
-                </div>
+        <div class="flex flex-col w-full h-full overflow-y-auto">
+          {#if filteredOptions.length > 0}
+            {#each filteredOptions as option}
+              <div
+                style="color: var(--foreground-muted)"
+                class="text-l font-semibold uppercase tracking-widest pt-2 pb-0.5"
+              >
+                {option.category[0].toUpperCase() + option.category.slice(1)}
+              </div>
 
-                <div class="w-full flex justify-start py-1 flex-wrap gap-1">
-                  {#each option.components as component}
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    <button
-                      style="--action-color: {component.information.color};"
-                      on:click={() => handleAddAction({ component })}
-                      class="action-card hover:border-pick cursor-pointer py-0.5 px-1 flex items-center rounded-md text-white"
+              <div class="w-full flex flex-col gap-1">
+                {#each option.components as component}
+                  <!-- svelte-ignore a11y-click-events-have-key-events -->
+                  <!-- svelte-ignore a11y-no-static-element-interactions -->
+                  <button
+                    on:click={() => handleAddAction({ component })}
+                    class="action-card hover:border-pick cursor-pointer w-full flex items-center h-10"
+                    data-testid={component.information.name}
+                  >
+                    <div
+                      style="background-color: {component.information.color};"
+                      class="w-2 h-full flex-shrink-0"
+                    ></div>
+                    <div
+                      class="flex-shrink-0 [&_svg]:fill-foreground [&_svg_path]:fill-foreground [&_span]:text-foreground pl-1 pr-3"
                     >
-                      <div class="w-6 h-6 p-0.5 m-0.5">
-                        {@html component.information.icon}
-                      </div>
-                      <div
-                        class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
-                      >
+                      <SvgIcon
+                        scale={1.3}
+                        iconData={component.information.blockIcon}
+                      />
+                    </div>
+                    <div
+                      class="flex-1 min-w-0 truncate flex items-center gap-1"
+                    >
+                      <span class="text-l">
                         {#if typeof component.information.menuName === "undefined"}
                           {component.information.displayName}
                         {:else}
                           {component.information.menuName}
                         {/if}
-                      </div>
-                    </button>
-                  {/each}
-                </div>
-              {/each}
-            {:else}
-              <div class="flex items-center justify-center w-full h-full">
-                <span class="text-gray-500">No results</span>
+                      </span>
+                      {#if typeof component.information.description != "undefined"}
+                        <span
+                          class=" truncate"
+                          style="color: var(--foreground-muted); font-size: .9em;"
+                        >
+                          -- {component.information.description}
+                        </span>
+                      {/if}
+                    </div>
+                  </button>
+                {/each}
               </div>
-            {/if}
-          </div>
+            {/each}
+          {:else}
+            <div class="flex items-center justify-center w-full h-full">
+              <span class="text-gray-500">No results</span>
+            </div>
+          {/if}
+        </div>
 
-          <MoltenPushButton
-            click={handlePaste}
-            disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
-            style={"accept"}
-            text={"Paste"}
-            snap={"full"}
-          />
-        </wrapper>
-      </menu>
-    </pick-action>
-  </Popover>
-</container>
+        <MoltenPushButton
+          click={handlePaste}
+          disabled={$appClipboard?.key !== ClipboardKey.ACTION_BLOCKS}
+          style={"accept"}
+          text={"Paste"}
+          snap={"full"}
+        />
+      </wrapper>
+    </menu>
+  </div>
+</MoltenModal>
 
 <style>
   .action-card {
-    background-color: var(--action-color);
+    background-color: var(--background-muted);
   }
 
   .action-card:hover {
-    background-color: rgba(95, 120, 133, 1);
+    background-color: var(--background-soft);
   }
 
   .action-menu {
     background-color: var(--background);
-    border: 1px solid var(--background-soft);
     height: 35rem;
-    width: 20vw;
+    width: 28vw;
+    min-width: 320px;
+    --focus-outline: 1px solid var(--border);
+    --focus-offset: 0px;
   }
 </style>

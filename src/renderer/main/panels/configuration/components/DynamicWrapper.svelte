@@ -28,8 +28,10 @@
   import { Runtime } from "../../../../runtime/string-table";
   import { get } from "svelte/store";
   import { information } from "../../../../config-blocks/CodeBlock.svelte";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
+  import { tooltip } from "../../../_actions/tooltip";
 
   const dispatch = createEventDispatcher();
 
@@ -247,11 +249,10 @@
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     id="cfg-{index}"
+    style="background-color: var(--background); color: var(--foreground); "
     class="flex flex-grow min-w-0 overflow-x-auto h-auto min-h-[32px] {!$action.isValid()
       ? 'border border-error'
-      : 'border border-background-soft'} cursor-pointer"
-    class:rounded-tr-xl={$action.information.rounding === "top"}
-    class:rounded-br-xl={$action.information.rounding === "bottom"}
+      : ' '} cursor-pointer"
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
@@ -281,16 +282,19 @@
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
-      {#if $action.information.hideIcon !== true}
+      <div class="flex flex-row justify-center items-center">
         <div
           style="background-color:{$action.information.color}"
-          class="flex items-center p-2 w-min text-center"
-        >
-          <div class="w-6 h-6 whitespace-nowrap">
-            {@html $action.information.blockIcon}
+          class="flex items-center p-1 w-min text-center h-full"
+        ></div>
+        {#if $action.information.hideIcon !== true}
+          <div
+            class=" pl-1 whitespace-nowrap flex items-center justify-center [&_svg]:fill-foreground [&_svg_path]:fill-foreground"
+          >
+            <SvgIcon scale={1.2} iconData={action.information.blockIcon} />
           </div>
-        </div>
-      {/if}
+        {/if}
+      </div>
 
       <!-- Body of the config block -->
       <div
@@ -331,13 +335,36 @@
                 />
               </div>
 
-              <button
-                slot="edit-name-trigger"
-                on:click|stopPropagation={handleEditClicked}
-                class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded pointer-events-auto"
-              >
-                <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
-              </button>
+              <div slot="edit-name-trigger" class="flex items-center gap-1">
+                {#if !$appSettings.persistent.userLevelMinimalist}
+                  <button
+                    on:click|stopPropagation={handleEditClicked}
+                    class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
+                    style="border-radius: var(--radius);"
+                  >
+                    <SvgIcon iconPath="edit" fill="var(--foreground)" />
+                  </button>
+                {/if}
+
+                {#if $action.information.documentationUrl}
+                  <a
+                    href={$action.information.documentationUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    use:tooltip={{
+                      text: $action.information.description,
+                      duration: 0,
+                      delay: 0,
+                    }}
+                    on:click|stopPropagation
+                    class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
+                    style="border-radius: var(--radius);"
+                    aria-label={`Open documentation for ${$action.information.displayName}`}
+                  >
+                    <SvgIcon iconPath="info" fill="var(--foreground)" />
+                  </a>
+                {/if}
+              </div>
             </svelte:component>
           </div>
         {/if}

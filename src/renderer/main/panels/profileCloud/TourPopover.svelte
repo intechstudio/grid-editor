@@ -51,7 +51,7 @@
           on:click={handleClose}
           class="hover:bg-primary fill-white/30 p-1 rounded"
         >
-          <SvgIcon width={10} height={10} iconPath={"close"} />
+          <SvgIcon iconPath={"close"} />
         </button>
       </div>
       <div class="bg-primary p-2 text-white mb-2">

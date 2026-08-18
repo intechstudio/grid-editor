@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { ElementType } from "@intechstudio/grid-protocol";
   import { get } from "svelte/store";
   import {
     GridElement,
@@ -92,6 +93,7 @@
     class="pointer-events-auto {isSelected
       ? 'selected-element'
       : 'selectable-element'} {$$props.class} 
+      {element.type === ElementType.LCD ? 'lcd-element' : ''}
       element
       {isRightCut ? 'corner-cut-r' : ''}
       {isLeftCut ? 'corner-cut-l' : ''}
@@ -106,7 +108,7 @@
         elementNumber: $element.elementIndex,
       });
     }}
-  />
+  ></div>
 {/if}
 
 <style>
@@ -124,6 +126,22 @@
   div.selectable-element:hover:before {
     content: "";
     box-shadow: 0px 300px 0px 1000px
+      color-mix(in srgb, var(--foreground) 10%, var(--background));
+  }
+
+  /* LCD content sits beneath this interaction layer, so use an outline instead
+     of the full-surface selection shadow. */
+  div.lcd-element.selected-element::before {
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 4px
+      color-mix(in srgb, var(--foreground) 20%, var(--background));
+  }
+
+  div.lcd-element.selectable-element:hover:before {
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 1px
       color-mix(in srgb, var(--foreground) 10%, var(--background));
   }
 

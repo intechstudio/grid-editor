@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import { grid } from "@intechstudio/grid-protocol";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -9,12 +10,15 @@
     short: "sbc",
     name: "SettingsButton",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/button-mode",
     category: "element settings",
     displayName: "Button Mode",
-    color: "#5F416D",
+    description: "Configure how the button responds",
+    color: categoryColors["element settings"],
     defaultLua: "self:bmo(0) self:bmi(0) self:bma(127)",
-    icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
-    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.8"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -204,8 +208,10 @@
   </Block>
 
   <div class="flex flex-row gap-2" class:invisible={Number(bmo) === 0}>
-    <span class="text-gray-500 text-sm">Step values:</span>
-    <div class="text-white text-sm">
+    <span class="text-sm" style="color: var(--foreground-soft)"
+      >Step values:</span
+    >
+    <div class="text-sm" style="color: var(--foreground-soft)">
       {#each stepValues as step, i}
         <span>{step}</span>
         <span class:hidden={i === stepValues.length - 1} class="mr-2">,</span>

@@ -14,7 +14,7 @@
 </script>
 
 <MoltenModal {data}>
-  <div slot="content">
+  <div slot="content" class="p-6">
     <p class="text-lg font-medium">Packages are still running!</p>
     <p class="pt-2">
       Quitting stops all packages that are running in the background! Minimizing

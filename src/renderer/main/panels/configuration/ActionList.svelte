@@ -6,6 +6,7 @@
   import { GridEvent, GridRuntime } from "./../../../runtime/runtime";
   import { fade } from "svelte/transition";
   import * as eases from "svelte/easing";
+  import { reduced_motion_store } from "../../../runtime/animations";
 
   // FLIP-style animation that only translates (unlike svelte/animate's `flip`,
   // which also scales). Scaling squishes the contents of any block whose height
@@ -56,6 +57,16 @@
   let runtime: GridRuntime;
 
   $: runtime = $runtime_manager.active.runtime;
+
+  // The Preferences > Animations setting only disables CSS animations/
+  // transitions globally (see setDocumentAnimationsEnabled); it has no
+  // effect on Svelte's JS-driven transition/animate directives used below,
+  // so mirror the same tri-state logic ModuleBorder.svelte uses to gate
+  // those directly.
+  $: animationsDisabled =
+    $appSettings.persistent.disableAnimations === "disabled" ||
+    ($appSettings.persistent.disableAnimations !== "enabled" &&
+      $reduced_motion_store);
 
   function handleNewConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -151,7 +162,7 @@
     tabindex="0"
     use:Focus.on={focusTrigger}
     on:keydown={handleKeyDown}
-    class=" pb-4 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
+    class=" pb-0 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     {#if $appSettings.isMultiView}
       <div class="flex flex-row gap-2 px-3 text-sm">
@@ -171,7 +182,7 @@
           return dragged && dragged.length > 0;
         },
       }}
-      class="overflow-y-scroll overflow-x-hidden justify-start w-full h-full pl-2 pr-3"
+      class="overflow-y-scroll overflow-x-hidden justify-start w-full h-full px-1"
     >
       {#if $event?.config.length === 0 && $draggedActions.length === 0 && $profileCloudConfigDrag?.configType !== "snippet"}
         <SeparatorLine target={{ event: event, index: 0 }} />
@@ -194,10 +205,13 @@
 
         <div
           data-testid="action-block"
-          animate:reflow={{ duration: 300, easing: eases.cubicOut }}
-          in:fade|global={{ delay: 0 }}
+          animate:reflow={{
+            duration: animationsDisabled ? 0 : 300,
+            easing: eases.cubicOut,
+          }}
+          in:fade|global={{ delay: 0, duration: animationsDisabled ? 0 : 400 }}
         >
-          <div class="flex flex-row gap-2">
+          <div class="flex flex-row gap-1">
             {#key $latestComponentVersionKeys.get(action.short)}
               <DynamicWrapper
                 {index}

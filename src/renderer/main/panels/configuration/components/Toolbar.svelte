@@ -107,19 +107,22 @@
 </script>
 
 <div class="flex flex-col w-full">
-  <div class="grid grid-cols-[1fr_auto_auto] items-center">
+  <div class="grid grid-cols-[1fr_auto_auto] items-end">
     <!-- When any of the array elements is true -->
-    <div class="flex flex-col truncate">
+    <div class="flex flex-col truncate gap-1">
       <span class="text-sm truncate">
         {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
-          {($event?.getName() ?? "No Device") + " Event"}
+          <!-- {($event?.getName() ?? "No Device") + " Event"} -->
         {:else}
           {selectedAction?.at(0) ?? ""}
+          <span style="color: var(--foreground-muted)"
+            >{selectedAction?.at(1) ?? ""}</span
+          >
         {/if}
       </span>
       <span class="text-sm truncate">
-        {#if typeof selectedAction === "undefined" && $appSettings.isMultiView !== true}
-          <span style="color: var(--foreground-disabled)">Script length: </span>
+        {#if $appSettings.isMultiView !== true}
+          <span style="color: var(--foreground-muted)">Script length: </span>
           <span
             data-testid="charCount"
             class={($event?.toLua().length ?? 0) >=
@@ -129,12 +132,12 @@
                   (Grid.Protocol.maxScriptLength / 3) * 2
                 ? "text-yellow-400"
                 : ""}
+            style={($event?.toLua().length ?? 0) >=
+            (Grid.Protocol.maxScriptLength / 3) * 2
+              ? ""
+              : "color: var(--foreground-muted)"}
             >{$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength -
               1}</span
-          >
-        {:else}
-          <span style="color: var(--foreground-disabled)"
-            >{selectedAction?.at(1) ?? ""}</span
           >
         {/if}
       </span>

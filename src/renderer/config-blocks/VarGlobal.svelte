@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -8,12 +9,14 @@
     short: "g",
     name: "VarGlobal",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/global-variables",
     category: "variables",
     displayName: "Global",
+    description: "Define variables shared by the module",
     defaultLua: "test = self:ind()",
-    color: "#78BC61",
-    icon: `<span class="block w-full text-black text-center italic font-gt-pressura">G</span>`,
-    blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">G</span>`,
+    color: categoryColors["variables"],
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.9 2.8 2.9 14.2 0 17-2.9-2.8-2.9-14.2 0-17Z"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,

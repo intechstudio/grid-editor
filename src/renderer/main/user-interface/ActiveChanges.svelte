@@ -8,6 +8,7 @@
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../panels/profileCloud/ProfileCloud";
   import {
+    Block,
     MoltenPushButton,
     MoltenPushButtonGroup,
   } from "@intechstudio/grid-uikit";
@@ -75,7 +76,7 @@
 
   // Options for MeltSelect — "Clear to Default" always first, then profile types
   const profileTypeOptions = [
-    { value: "", title: "Default Config" },
+    { value: "", title: "Clear to Default" },
     ...availableProfileTypes.map((type) => ({
       value: type,
       title: formatProfileTypeTitle(type),
@@ -260,8 +261,9 @@
 <container
   in:fade={{ delay: 300, duration: 1000 }}
   out:blur={{ duration: 150 }}
+  class="w-full"
 >
-  <div class="flex flex-row justify-center items-center gap-2">
+  <div class="flex flex-row items-center h-full justify-center gap-2 w-full">
     <div class="flex flex-col">
       <div class="mx-4 font-medium">
         {changes} active changes
@@ -294,26 +296,10 @@
       <MoltenPushButton
         click={() => {}}
         disabled={!isChanges}
-        text="Discard All"
+        text="Discard Changes"
+        snap="wide"
       />
     </div>
-    <div
-      use:tooltip={{
-        key: "configuration_header_store",
-        placement: "top",
-        class: "w-60 p-4",
-      }}
-      use:configTour.registerStaticTarget={ConfigTour.Target
-        .StaticElementIdentifier.STORE}
-    >
-      <MoltenPushButton
-        click={handleStore}
-        disabled={!isChanges || !$runtime.isValid()}
-        text="Store"
-        style="accept"
-      />
-    </div>
-
     <MoltenPushButtonGroup
       options={profileTypeOptions}
       bind:target={$selectedProfileType}
@@ -350,9 +336,29 @@
           click={() => {}}
           disabled={noModules}
           grouped={true}
+          snap="wide"
         />
       </div>
     </MoltenPushButtonGroup>
+    <div>
+      <div
+        use:tooltip={{
+          key: "configuration_header_store",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
+        use:configTour.registerStaticTarget={ConfigTour.Target
+          .StaticElementIdentifier.STORE}
+      >
+        <MoltenPushButton
+          click={handleStore}
+          disabled={!isChanges || !$runtime.isValid()}
+          text="Store"
+          snap="wide"
+          style="accept"
+        />
+      </div>
+    </div>
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <MoltenPushButton
         text="Connect"

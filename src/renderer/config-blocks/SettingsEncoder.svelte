@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -8,13 +9,16 @@
     short: "sec",
     name: "SettingsEncoder",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/encoder-mode",
     category: "element settings",
-    color: "#5F416D",
+    color: categoryColors["element settings"],
     displayName: "Encoder Mode",
+    description: "Configure how the encoder responds",
     defaultLua:
       "self:emo(0) self:ev0(50) self:emi(0) self:ema(127) self:ese(100)",
-    icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
-    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><path d="m12 12 3.4-4.6"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,

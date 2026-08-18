@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -8,12 +9,15 @@
     short: "spc",
     name: "SettingsPotmeter",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/element-settings/potmeter-mode/",
     category: "element settings",
-    color: "#5F416D",
+    color: categoryColors["element settings"],
     displayName: "Potmeter Mode",
+    description: "Configure the potentiometer range",
     defaultLua: "self:pmo(7) self:pmi(0) self:pma(127)",
-    icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
-    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M6 18.2a8.5 8.5 0 1 1 12 0"/><path d="M12 12 8.6 15.4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,
@@ -175,7 +179,10 @@
   </Block>
 
   <div class="flex flex-row gap-2">
-    <span class="text-gray-500 text-sm">Step size:</span>
-    <span class="text-white text-sm">{stepSize}</span>
+    <span class="text-sm" style="color: var(--foreground-soft)">Step size:</span
+    >
+    <span class="text-sm" style="color: var(--foreground-muted)"
+      >{stepSize}</span
+    >
   </div>
 </potmeter-settings>

@@ -25,7 +25,6 @@
   import CodeEditor from "../user-interface/CodeEditor.svelte";
   import CommitStatus from "../user-interface/CommitStatus.svelte";
   import CharacterCount from "../user-interface/CharacterCount.svelte";
-  import SendFeedback from "../user-interface/SendFeedback.svelte";
   import DebugTextList from "../panels/DebugMonitor/DebugTextList.svelte";
   import ConfirmModal from "./ConfirmModal.svelte";
 
@@ -182,20 +181,20 @@
     clickedOutside = true;
   }
 
-  // Ctrl/Cmd+S commits the editor when focus is somewhere in the modal but
-  // outside Monaco (e.g. the Name field). Triggers the Commit button, which
-  // no-ops on its own when disabled. Focus inside Monaco is handled
-  // separately by CodeEditor's `onSave` Monaco command, since a DOM listener
-  // here can't observe keydowns that originate inside the editor.
+  // Ctrl/Cmd+S commits the editor, whether focus is somewhere in the modal
+  // outside Monaco (e.g. the Name field) or inside it: Monaco's own
+  // keybinding service consumes the native keydown before it can bubble here
+  // on its own, so CodeEditor's Monaco instance re-dispatches it as a
+  // synthetic, bubbling `keydown` from the editor's DOM node, which this
+  // listener (wired up via MoltenModal's `onkeydown` prop) also catches.
   function handleKeydown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault();
       e.stopPropagation();
       commitButton?.querySelector("button")?.click();
+      return;
     }
-  }
 
-  function handleWindowKeydown(e: KeyboardEvent) {
     if (modalManager.getTop() !== data) {
       return;
     }
@@ -223,14 +222,12 @@
 </script>
 
 <div id="modal-copy-placeholder" />
-<svelte:window on:keydown={handleWindowKeydown} />
 
-<MoltenModal {data}>
+<MoltenModal {data} onkeydown={handleKeydown}>
   <div
     slot="content"
-    class="h-full w-full relative flex flex-col gap-2 items-start text-foreground"
+    class="h-full w-full relative flex flex-col gap-2 items-start text-foreground p-6"
     use:watchResize={handleResize}
-    on:keydown={handleKeydown}
   >
     <div class="flex flex-col w-full gap-2">
       <div class="flex flex-row w-full items-center gap-4">
@@ -250,7 +247,7 @@
             on:click={handleEditClicked}
             class="cursor-pointer pointer-events-auto"
           >
-            <SvgIcon iconPath="edit" fill="#FFF" width={13} height={13} />
+            <SvgIcon iconPath="edit" fill="#FFF" />
           </button>
         </div>
 
@@ -313,7 +310,6 @@
     </div>
 
     <div class="flex flex-row items-center gap-2 w-full">
-      <SendFeedback feedback_context="CodeBlock" />
       <div class="flex-grow" />
       <div class="text-gray-500 font-bold">Powered by Lua</div>
       <div class="h-12 w-12">

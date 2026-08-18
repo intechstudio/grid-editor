@@ -62,6 +62,7 @@ function buildPart(
     // Optional fields.
     menuName: data.menuName,
     helperText: data.helper,
+    description: data.description,
   };
 
   return { information: info, header: CompositeFace };

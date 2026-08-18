@@ -18,6 +18,7 @@ test.describe("Action Block Operations", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
     await configPage.removeAllActions();
@@ -26,9 +27,9 @@ test.describe("Action Block Operations", () => {
 
   test("Add Action Block to empty element", async () => {
     await configPage.openActionsOnEmptyElement();
-    await configPage.addActionBlock("led", "Simple Color");
+    await configPage.addActionBlock("led", "Color");
     await expect(
-      configPage.blocks["led"]["Simple Color"]["elements"]["Blue"],
+      configPage.blocks["led"]["Color"]["elements"]["Blue"],
     ).toBeVisible();
   });
 
@@ -103,6 +104,7 @@ test.describe("Element Operations", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("BU16");
     await configPage.turnOffMinimalistMode();
@@ -220,6 +222,7 @@ test.describe("Character limit", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
     await configPage.turnOffMinimalistMode();
@@ -290,6 +293,7 @@ test.describe("Syntax error", () => {
     modulePage = new ModulePage(page);
     configPage = new ConfigPage(page);
     await page.goto(PAGE_PATH);
+    await configPage.closeWelcomeModal();
     await connectModulePage.openVirtualModules();
     await connectModulePage.addModule("EN16");
     await configPage.removeAllActions();

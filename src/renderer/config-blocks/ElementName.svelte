@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -10,14 +11,13 @@
     rendering: "standard",
     category: "code",
     displayName: "Element Name",
+    description: "Name this control element",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/code/element-name",
     defaultLua: `self:gen("Custom Name")`,
-    icon: `
-    <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
-    `,
-    blockIcon: `
-    <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
-    `,
-    color: "#887880",
+
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M11.6 2.6H5a2.4 2.4 0 0 0-2.4 2.4v6.6a2.4 2.4 0 0 0 .7 1.7l8 8a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4l-8-8a2.4 2.4 0 0 0-1.7-.7Z"/><circle cx="7.8" cy="7.8" r="1.1" fill="currentColor" stroke="none"/></svg>`,
+    color: categoryColors["code"],
     selectable: true,
     movable: true,
     hideIcon: false,

@@ -10,7 +10,6 @@
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
-  import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
 
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
@@ -63,12 +62,22 @@
     name = $appSettings.persistent.helperName;
   }
 
-  $: handleColorModeChange($appSettings.persistent.lightMode);
-  function handleColorModeChange(value: boolean) {
-    document.documentElement.setAttribute(
-      "color-scheme",
-      value ? "light" : "dark",
-    );
+  $: isLightMode = $appSettings.persistent.theme !== "dark";
+  $: syncLightMode(isLightMode);
+  $: applyTheme($appSettings.persistent.theme);
+
+  function syncLightMode(value: boolean) {
+    if ($appSettings.persistent.lightMode !== value) {
+      appSettings.update((settings) => {
+        settings.persistent.lightMode = value;
+        return settings;
+      });
+    }
+  }
+
+  function applyTheme(theme: string) {
+    document.documentElement.setAttribute("color-scheme", theme);
+    window.electron.theme.set(theme);
   }
 
   function resize() {
@@ -320,17 +329,36 @@
       }),
     );
   }
-</script>
 
-{#if import.meta.env.VITE_BUILD_TARGET !== "web"}
-  <Titlebar />
-{/if}
+  function handleWindowKeyDown(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s") {
+      return;
+    }
+
+    if (e.target instanceof Element && e.target.closest(".monaco-editor")) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    const storeButton = document.querySelector<HTMLElement>(
+      '[data-tour-static-target-id="store-button"] button',
+    );
+    if (!storeButton) {
+      console.error("Could not find the Store button for Cmd/Ctrl+S.");
+      return;
+    }
+
+    storeButton.click();
+  }
+</script>
 
 <AnimationToggle />
 <Analytics />
 
 <main
   use:watchResize={resize}
+  on:keydown={handleWindowKeyDown}
   on:mousewheel={(e) => {
     if (event.ctrlKey) {
       event.preventDefault();
@@ -338,7 +366,7 @@
   }}
   id="app"
   spellcheck="false"
-  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden app-svelte"
   style="font-size:{$appSettings.persistent.fontSize}px;"
 >
   <!-- Switch between tabs for different application features. -->
@@ -365,9 +393,6 @@
 
         <Pane class="overflow-clip w-full h-full">
           <div class="flex w-full h-full">
-            <div class="absolute top-0 right-0 m-2 z-50">
-              <PanelToggleButton target={"right"} />
-            </div>
             <MiddlePanelContainer />
           </div>
         </Pane>
@@ -387,13 +412,13 @@
 <style global>
   .activator-button {
     text-align: left;
-    border: 1px solid rgba(0, 0, 0, 0);
+    border: 0px solid rgba(0, 0, 0, 0);
     outline: 0px solid rgba(0, 0, 0, 0);
   }
 
   .activator-button:focus {
-    border-color: rgb(68, 68, 209) !important;
-    outline-color: rgb(68, 68, 209) !important;
+    border-color: var(--border) !important;
+    outline-color: var(--border) !important;
   }
 
   .splitpanes.modern-theme .splitpanes__pane {
@@ -408,22 +433,24 @@
   }
 
   .splitpanes.modern-theme .splitpanes__splitter {
-    background-color: #4c4c4c;
+    background-color: transparent !important;
+    border: none !important;
     position: relative;
+    min-width: 0 !important;
+    min-height: 0 !important;
   }
   .splitpanes.modern-theme .splitpanes__splitter:before {
     content: "";
     position: absolute;
     left: 0;
     top: 0;
-    transition: opacity 0.3s;
-    background-color: #2db9d2;
-    width: 200;
-    opacity: 0;
+    background-color: transparent !important;
+    width: 4px;
+    opacity: 0 !important;
     z-index: 1;
   }
   .splitpanes.modern-theme .splitpanes__splitter:hover:before {
-    opacity: 1;
+    opacity: 0 !important;
   }
   .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
     z-index: 2;

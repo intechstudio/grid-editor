@@ -9,8 +9,8 @@
   export let title: string;
   export let downloadUrl: string;
   export let fileFilter:
-    | ((file: { filename: string; data: any }) => boolean)
-    | undefined = undefined;
+    ((file: { filename: string; data: any }) => boolean) | undefined =
+    undefined;
   export let fileLabel: ((filename: string) => string) | undefined = undefined;
 
   let files: { filename: string; data: any }[] = [];
@@ -21,7 +21,9 @@
 </script>
 
 <BlockRow>
-  <BlockTitle>{title}</BlockTitle>
+  <div style="color: var(--foreground-muted);">
+    <BlockTitle>{title}</BlockTitle>
+  </div>
 
   {#if files.length === 0}
     <MoltenPushButton

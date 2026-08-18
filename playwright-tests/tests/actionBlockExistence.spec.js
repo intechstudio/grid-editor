@@ -20,6 +20,7 @@ let context;
 let page;
 let keyboardActions;
 let navbarPage;
+let currentModuleName = "EF44";
 
 async function setupModule(moduleName) {
   await connectModulePage.openVirtualModules();
@@ -29,13 +30,15 @@ async function changeModuleIfNeeded(category) {
   // A prior test can leave the action menu open / a toast up on the shared
   // page, which would intercept the "Remove Module" click below.
   await configPage.resetTransientUi();
-  if (category === "specialButton") {
-    await modulePage.removeModule();
-    await setupModule("BU16");
-  }
-  if (category == "Press/Release") {
-    await modulePage.removeModule();
-    await setupModule("BU16");
+
+  const moduleByCategory = {
+    specialButton: "BU16",
+  };
+  const moduleName = moduleByCategory[category] ?? "EF44";
+
+  if (moduleName !== currentModuleName) {
+    await modulePage.changeModuleTo(moduleName);
+    currentModuleName = moduleName;
   }
 }
 
@@ -56,6 +59,7 @@ test.beforeAll(async () => {
   connectModulePage = new ConnectModulePage(page);
 
   await page.goto(PAGE_PATH);
+  await configPage.closeWelcomeModal();
   await setupModule("EF44");
 });
 
@@ -108,9 +112,7 @@ test.describe("Interactable input field", () => {
     test.describe(`${category} category`, () => {
       for (const blockName of blockList) {
         test(`${blockName} block`, async () => {
-          if (category == "specialButton") {
-            await configPage.selectElementEvent("Button");
-          }
+          await changeModuleIfNeeded(category);
           await configPage.turnOffMinimalistMode();
           await configPage.removeAllActions();
           await configPage.openAndAddActionBlock(category, blockName);

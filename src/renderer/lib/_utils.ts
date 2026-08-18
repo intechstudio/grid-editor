@@ -35,10 +35,7 @@ export namespace Grid {
     export function getMidi(
       action: GridAction,
       param:
-        | Value.MIDI_CHANNEL
-        | Value.MIDI_COMMAND
-        | Value.MIDI_P1
-        | Value.MIDI_P2,
+        Value.MIDI_CHANNEL | Value.MIDI_COMMAND | Value.MIDI_P1 | Value.MIDI_P2,
     ): number {
       const event = action.parent as GridEvent;
       const element = event.parent as GridElement;

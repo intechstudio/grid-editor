@@ -29,6 +29,7 @@ const persistentDefaultValues = {
   writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
   messageIdDebugEnabled: false,
+  consoleErrorOverlayEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
@@ -60,6 +61,7 @@ const persistentDefaultValues = {
   allowDevBlocks: false,
   lastActiveVersion: undefined,
   lightMode: false,
+  theme: "dark",
   userLevelMinimalist: true,
   minimapToggled: false,
   eventsLoaded: false,
@@ -195,6 +197,14 @@ async function init_appsettings() {
             value = persistentDefaultValues[key];
           }
 
+          if (
+            key === "theme" &&
+            (typeof value !== "string" ||
+              !["dark", "moss", "sunset", "icy"].includes(value))
+          ) {
+            value = "dark";
+          }
+
           if (key === "pageActivatorInterval" && value === undefined) {
             value = 1000;
           }
@@ -220,10 +230,7 @@ async function init_appsettings() {
           s.persistent.welcomeOnStartup = true;
           return s;
         });
-        // updated Modal call to match rest of codebase, moved out of store callback as it is not valid in svelte-5
-        if (import.meta.env.VITE_BUILD_TARGET !== "web") {
-          new Modal.Window(Welcome).show();
-        }
+        new Modal.Window(Welcome).show();
       }
 
       //TODO

@@ -6,6 +6,7 @@ export class NavbarPage {
     this.profileCloud = page.getByTestId("nav-profile-cloud");
     this.debugMonitor = page.getByTestId("nav-debug-monitor");
     this.midiMonitor = page.getByTestId("nav-midi-monitor");
+    this.packageManager = page.getByTestId("nav-packages");
   }
 
   async clickNavItem(itemName) {
@@ -15,6 +16,7 @@ export class NavbarPage {
       profileCloud: this.profileCloud,
       debugMonitor: this.debugMonitor,
       midiMonitor: this.midiMonitor,
+      packageManager: this.packageManager,
     };
 
     if (navItems[itemName]) {

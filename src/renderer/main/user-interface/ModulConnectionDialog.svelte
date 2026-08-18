@@ -35,18 +35,18 @@
 
 <div class={$$props.class}>
   <div
-    style="background-color: var(--background); color: var(--foreground)"
+    style="background-color: var(--background); color: var(--foreground); border: solid var(--border); border-radius: var(--radius);"
     class="flex flex-col rounded-md shadow-xl w-64 p-4 relative"
   >
     {#if import.meta.env.VITE_BUILD_TARGET === "web"}
       <div class="flex flex-col">
         <span class="text-xl text-center mb-4">Connect your modules!</span>
-        <SvgIcon width={"100%"} height={25} fill={"#FFF"} iconPath="disabled" />
+        <SvgIcon width={10} height={10} fill={"#FFF"} iconPath="disabled" />
         <span class="text-sm mt-4">
           To connect modules, press Connect to enable Grid Editor access USB.
           Each module must be enabled separately.
         </span>
-        <span style="color: (--foreground-muted)" lass="text-sm"
+        <span style="color: var(--foreground-muted)" class="text-sm"
           >(Only supported in Edge, Opera and Google Chrome)</span
         >
       </div>
@@ -62,72 +62,71 @@
       <div class="flex flex-col">
         <span class="text-xl text-center">No connected modules!</span>
         <div class="flex flex-row items-center scale-75 gap-8 -my-12 -ml-3">
-          <div class="w-32 test">
+          <div class="w-10 h-40 mt-16">
             <svg
               style="color: var(--foreground-muted)"
               xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
               version="1.1"
-              class="fill-current rotate-90 mt-2"
-              viewBox="0 0 100 125"
-              enable-background="new 0 0 100 100"
+              class="fill-current"
+              width="200"
+              viewBox="0 0 190 80"
               xml:space="preserve"
-              ><path
-                d="M56.776,2.204h-21.02v23.232h21.02V2.204z M45.16,14.373h-6.638V7.735h6.638V14.373z M54.01,14.373h-6.637V7.735h6.637  V14.373z"
-              /><polygon
-                points="62.446,25.989 30.086,25.989 30.086,48.945 45.505,48.945 45.852,48.945 62.377,48.945 62.377,49.774   62.446,49.774 "
-              /><path
-                d="M40.401,61.719l5.104-0.38V49.774H30.086v8.298l3.319,11.616h8.17c-0.065-0.378-0.132-0.756-0.199-1.138  C40.979,66.308,40.569,63.99,40.401,61.719z"
-              /><rect
-                x="30.086"
-                y="48.945"
-                width="15.419"
-                height="0.829"
-              /><path
-                d="M45.852,61.313l3.377-0.25c0.134,1.826,0.488,3.827,0.863,5.946c0.156,0.877,0.311,1.772,0.458,2.679h8.508l3.319-11.616  v-8.298H45.852V61.313z"
-              /><rect
-                x="45.852"
-                y="48.945"
-                width="16.525"
-                height="0.829"
-              /><polygon
-                points="45.505,61.339 45.852,61.313 45.852,49.774 45.505,49.774 "
-              /><rect x="45.505" y="48.945" width="0.346" height="0.829" /><path
-                d="M45.505,69.688h-3.93c0.839,4.818,1.445,9.323-0.575,12.691c-1.267,2.154-7.34,5.248-11.233,6.652l2.991,8.33  c2.053-0.736,12.465-4.705,15.851-10.463c3.324-5.539,2.85-11.605,1.941-17.211h-4.698H45.505z"
-              /><path
-                d="M45.505,61.339l-5.104,0.38c0.168,2.271,0.578,4.589,0.975,6.832c0.067,0.382,0.134,0.76,0.199,1.138h3.93V61.339z"
-              /><path
-                d="M49.229,61.063l-3.377,0.25v8.375h4.698c-0.147-0.906-0.303-1.802-0.458-2.679C49.716,64.891,49.363,62.89,49.229,61.063z"
-              /><polygon
-                points="45.505,69.688 45.852,69.688 45.852,61.313 45.505,61.339 "
-              /></svg
             >
+              <!-- cable -->
+              <g
+                transform="translate(112,-10) rotate(90) scale(1.8) translate(-25.5,-8.6)"
+              >
+                <g transform="translate(45,13)">
+                  <path
+                    fill-rule="evenodd"
+                    d="M3.5,24 L2,24 L2,13.5 L8,13.5 L8,24 L6.5,24 L3.5,24 Z M3.5,24.5 L6.5,24.5 L6.5,87 L3.5,87 L3.5,24.5 Z M2,13 L0,13 L0,0 L10,0 L10,13 L8,13 L2,13 Z"
+                  />
+                </g>
+                <path
+                  fill-rule="nonzero"
+                  d="M53.75,12.75 L53.75,6 C53.75,5.58578644 53.4142136,5.25 53,5.25 L47,5.25 C46.5857864,5.25 46.25,5.58578644 46.25,6 L46.25,12.75 L53.75,12.75 Z M47,4.75 L53,4.75 C53.6903559,4.75 54.25,5.30964406 54.25,6 L54.25,13.25 L45.75,13.25 L45.75,6 C45.75,5.30964406 46.3096441,4.75 47,4.75 Z"
+                />
+              </g>
+              <!-- USB-C port-->
+              <g
+                transform="translate(150,40) rotate(90) scale(1.5) translate(-12,-8.6)"
+              >
+                <g transform="translate(0,-280.06665)">
+                  <path
+                    d="m 3.5585938,285.24023 c -1.6689716,0 -3.02929692,1.36033 -3.02929692,3.0293 v 0.52735 c 0,1.66897 1.36032532,3.02929 3.02929692,3.02929 H 13.375 c 1.668972,0 3.029297,-1.36032 3.029297,-3.02929 v -0.52735 c 0,-1.66897 -1.360325,-3.0293 -3.029297,-3.0293 z m 0,1.0586 H 13.375 c 1.100961,0 1.970703,0.86974 1.970703,1.9707 v 0.52735 c 0,1.10096 -0.869742,1.9707 -1.970703,1.9707 H 3.5585938 c -1.1009611,0 -1.9707032,-0.86974 -1.9707032,-1.9707 v -0.52735 c 0,-1.10096 0.8697421,-1.9707 1.9707032,-1.9707 z"
+                  />
+                  <path
+                    d="m 3.7089844,288.00391 a 0.529295,0.529295 0 1 0 0,1.05859 h 9.5156246 a 0.529295,0.529295 0 1 0 0,-1.05859 z"
+                  />
+                </g>
+              </g>
+            </svg>
           </div>
-          <div class="w-12">
+          <div class="w-0">
             <svg
               style="color: var(--foreground-muted)"
               xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
               version="1.1"
               class="fill-current rotate-90"
               viewBox="0 0 100 125"
-              enable-background="new 0 0 100 100"
               xml:space="preserve"
-              ><g
-                ><path
-                  d="M14,59.25h72c0.414,0,0.75-0.336,0.75-0.75V50h-73.5v8.5C13.25,58.914,13.587,59.25,14,59.25z"
-                /><path
-                  d="M10.5,67.25h79c2.895,0,5.25-2.355,5.25-5.25V38c0-2.895-2.355-5.25-5.25-5.25h-79c-2.895,0-5.25,2.355-5.25,5.25v24   C5.25,64.895,7.605,67.25,10.5,67.25z M11.75,41.5c0-1.24,1.01-2.25,2.25-2.25h72c1.241,0,2.25,1.01,2.25,2.25v17   c0,1.241-1.009,2.25-2.25,2.25H14c-1.24,0-2.25-1.009-2.25-2.25V41.5z"
-                /></g
-              ></svg
             >
+              <!-- port housing (outer pill minus inner cavity) -->
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M18 36 h64 a14 14 0 0 1 0 28 h-64 a14 14 0 0 1 0 -28 z
+         M22 43 a7 7 0 0 0 0 14 h56 a7 7 0 0 0 0 -14 z"
+              />
+              <!-- tongue -->
+              <rect x="30" y="46" width="40" height="8" rx="4" />
+            </svg>
           </div>
         </div>
         <span class="text-sm">
           Try reconnecting your Grid module by unplugging it, then plugging it
           in.
         </span>
-        <SendFeedback feedback_context="Module not responding" />
       </div>
       <div class="flex flex-col gap-2 mt-4">
         <MoltenPushButton
@@ -148,19 +147,4 @@
 </div>
 
 <style>
-  .test {
-    animation-name: test-animate;
-    animation-duration: 1s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate-reverse;
-  }
-
-  @keyframes test-animate {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(18px, 0);
-    }
-  }
 </style>

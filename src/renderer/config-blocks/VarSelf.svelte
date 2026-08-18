@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import { categoryColors } from "./categoryColors";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -8,12 +9,14 @@
     short: "s",
     name: "VarSelf",
     rendering: "standard",
+    documentationUrl:
+      "https://docs.intech.studio/wiki/actions/variables/self-variables/",
     category: "variables",
     displayName: "Self",
+    description: "Define variables for this element",
     defaultLua: "self.num = 0",
-    color: "#78BC61",
-    icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
-    blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
+    color: categoryColors["variables"],
+    blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/></svg>`,
     selectable: true,
     movable: true,
     hideIcon: false,

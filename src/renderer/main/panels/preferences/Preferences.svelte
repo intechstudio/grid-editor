@@ -94,7 +94,7 @@
   let activePreferenceMenu = PreferenceMenu.GENERAL;
 </script>
 
-<div class="flex flex-col h-full w-full px-2 py-2 overflow-y-auto">
+<div class="flex flex-col h-full w-full px-0 py-2 overflow-y-auto">
   <Block>
     <MeltSelect
       bind:target={activePreferenceMenu}
@@ -104,10 +104,16 @@
   </Block>
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
-      <BlockTitle>Light Color Theme</BlockTitle>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.lightMode}
-        title={"Light Mode Enabled"}
+      <BlockTitle>Color Theme</BlockTitle>
+      <MeltRadio
+        bind:target={$appSettings.persistent.theme}
+        orientation={"horizontal"}
+        options={[
+          { title: "Dark", value: "dark" },
+          { title: "Moss", value: "moss" },
+          { title: "Sunset", value: "sunset" },
+          { title: "Icy", value: "icy" },
+        ]}
       />
 
       <BlockTitle>Control surface rotation</BlockTitle>
@@ -436,9 +442,22 @@
         bind:target={$appSettings.persistent.messageIdDebugEnabled}
         title={"Activate message ID debugging"}
       />
+      <BlockTitle>Console Error Overlay</BlockTitle>
+      <BlockBody>
+        Mirror console.error output into an on-screen overlay bar.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.consoleErrorOverlayEnabled}
+        title={"Enabled"}
+      />
+
+      <BlockTitle>Send heartbeat immediate</BlockTitle>
+      <BlockBody>
+        Skip the heartbeat delay and send it as soon as it's queued.
+      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.sendHeartbeatImmediate}
-        title={"Send heartbeat immediate"}
+        title={"Enabled"}
       />
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>

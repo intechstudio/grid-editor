@@ -93,12 +93,8 @@ contextBridge.exposeInMainWorld("electron", {
     get: (request) => ipcRenderer.invoke("getPersistentStore", request),
     set: (object) => ipcRenderer.invoke("setPersistentStore", object),
   },
-  window: {
-    close: () => ipcRenderer.invoke("closeWindow"),
-    minimize: () => ipcRenderer.invoke("minimizeWindow"),
-    maximize: () => ipcRenderer.invoke("maximizeWindow"),
-    restore: () => ipcRenderer.invoke("restoreWindow"),
-    isMaximized: () => ipcRenderer.invoke("isMaximized"),
+  theme: {
+    set: (theme) => ipcRenderer.invoke("setNativeTheme", theme),
   },
   activeWindow: () => ipcRenderer.invoke("activeWindow"),
   websocket: {

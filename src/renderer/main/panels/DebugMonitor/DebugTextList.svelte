@@ -11,7 +11,7 @@
   <div
     use:scrollToBottom={debug_monitor_store}
     use:copyContextMenu
-    class="flex flex-col font-mono text-white bg-secondary p-2 flex-grow overflow-y-auto select-text"
+    class="flex flex-col font-mono text-foreground bg-background-muted p-2 flex-grow overflow-y-auto select-text"
   >
     {#each $debug_monitor_store as message}
       {#each message.split("\n") as part}

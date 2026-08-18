@@ -18,7 +18,7 @@
 
 <div class="w-full h-full" use:watchResize={resize}>
   <div
-    style="background-color: var(--background); color: var(--foreground);"
+    style="background-color: var(--background); color: var(--foreground); border-left: 1px solid var(--border); border-radius: var(--radius);"
     class="w-full h-full"
   >
     <Configuration />

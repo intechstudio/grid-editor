@@ -1452,7 +1452,7 @@ export class GridElement extends RuntimeNode<ElementData> {
     this.setField("events", value);
   }
 
-  set name(value: string) {
+  set name(value: string | undefined) {
     this.setField("name", value);
   }
 
