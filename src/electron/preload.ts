@@ -122,4 +122,4 @@ ipcRenderer.on("package-manager-port", async (event) => {
   window.postMessage("package-manager-port", "*", event.ports);
 });
 
-export { };
+export {};
