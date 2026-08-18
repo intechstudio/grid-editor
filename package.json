@@ -50,7 +50,7 @@
     "electron-dl": "^3.4.1",
     "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",
-    "electron-updater": "^6.3.0",
+    "electron-updater": "^6.8.9",
     "eslint": "^9.39.2",
     "firebase": "^11.4.0",
     "fs-extra": "^10.0.0",
