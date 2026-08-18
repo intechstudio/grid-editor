@@ -474,6 +474,7 @@
     <div class="grid grid-cols-3 gap-y-1 gap-x-2">
       <select
         bind:value={selectedKey}
+        data-testid="macro-key-select"
         class="focus:outline-none flex col-span-3"
         style="background-color: var(--background-muted); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
       >

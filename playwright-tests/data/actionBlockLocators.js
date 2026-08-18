@@ -146,7 +146,7 @@ export const blocks = (page) => {
       Keyboard: {
         block: pickerById("Macro"),
         elements: {
-          Macro: page.locator(".focus\\:border-select-desaturate-20"),
+          Macro: page.getByTestId("macro-key-select"),
           "Add Key": page.getByRole("combobox").nth(3),
           "Delay Key": page.getByRole("spinbutton").first(),
           "Add Delay": page.getByRole("button", { name: "Add Delay" }),
