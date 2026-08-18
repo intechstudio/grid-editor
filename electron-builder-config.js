@@ -17,6 +17,20 @@ const config = {
   productName: productNameByWorkflow(),
   copyright: "Copyright © Intech Studio Ltd.",
   generateUpdatesFilesForAllChannels: true,
+  // Use the modern AppImage toolset/runtime (electron-builder "1.0.2",
+  // runtime 20251108) instead of the legacy default ("0.0.0").
+  //
+  // The legacy runtime dynamically links libfuse.so.2 to self-mount its
+  // squashfs. Manjaro/Arch and current Ubuntu (23.10 / 24.04+) no longer
+  // ship libfuse2 by default, so the mount fails and the runtime dies with
+  // "execv error: Transport endpoint is not connected" (ENOTCONN) or
+  // "execv error: Input/output error" (EIO) before the app ever starts.
+  // The 1.0.2 toolset bundles the FUSE libraries inside the AppImage
+  // (usr/lib), removing the host libfuse2 dependency. Flatpak was never
+  // affected because it doesn't use the AppImage/FUSE runtime.
+  toolsets: {
+    appimage: "1.0.2",
+  },
   directories: {
     output: "build/",
     buildResources: "build-assets",
@@ -70,7 +84,14 @@ const config = {
     // `electron-builder --linux flatpak` (see e:builder:flatpak script),
     // so it never runs implicitly on machines without flatpak-builder.
     target: "AppImage",
-    artifactName: "${name}-linux-${version}.${ext}",
+    // ${arch} is required: the matrix builds AppImages on both x64
+    // (ubuntu-22.04) and arm64 (ubuntu-22.04-arm) runners, and the release
+    // publish step downloads every artifact into one directory with
+    // merge-multiple. Without the arch token both builds share a filename
+    // and silently overwrite each other, so users can receive the wrong-arch
+    // binary. The per-arch update channels (latest-linux.yml /
+    // latest-linux-arm64.yml) also each reference their own file this way.
+    artifactName: "${name}-linux-${version}-${arch}.${ext}",
     category: "Audio",
     synopsis: "Editor software for Intech Studio Grid controllers",
     desktop: {

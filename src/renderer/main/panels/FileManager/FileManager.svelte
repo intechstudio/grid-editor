@@ -18,12 +18,16 @@
     renameEntry,
     copyFile,
     deleteFile,
+    type DirEntry,
   } from "./FileManager";
   import * as monaco from "monaco-editor";
   import {
     openEditorContext,
     closeEditorContext,
   } from "../../../lib/monaco-luals-client";
+
+  // Monaco language id for Grid Lua files.
+  const LUA_LANGUAGE_ID = "intech_lua";
 
   let selectedModule: string = "";
   let moduleOptions: Array<{ title: string; value: string }> = [];
@@ -162,7 +166,7 @@
     if (!fileContent || !selectedEntry) return null;
     try {
       const content =
-        selectedLanguage === "lua"
+        selectedLanguage === LUA_LANGUAGE_ID
           ? GridScript.compressScript(fileContent)
           : fileContent;
       luaSyntaxError = null;
@@ -199,12 +203,12 @@
 
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
-    { title: "Lua", value: "intech_lua" },
+    { title: "Lua", value: LUA_LANGUAGE_ID },
     { title: "TOML", value: "ini" },
   ];
 
   const extLanguageMap: Record<string, string> = {
-    lua: "intech_lua",
+    lua: LUA_LANGUAGE_ID,
     toml: "ini",
   };
 
@@ -221,7 +225,7 @@
     if (rawContent !== null) {
       try {
         const recalculated =
-          selectedLanguage === "lua"
+          selectedLanguage === LUA_LANGUAGE_ID
             ? GridScript.expandScript(rawContent)
             : rawContent;
         fileContent = recalculated;
@@ -231,7 +235,7 @@
         luaSyntaxError = String(e);
       }
     }
-    if (selectedLanguage === "intech_lua") {
+    if (selectedLanguage === LUA_LANGUAGE_ID) {
       if (!lualsContextUri) {
         openEditorContext("").then((uri) => {
           lualsContextUri = uri;
@@ -314,7 +318,7 @@
       selectedLanguage = detectLanguage(entry);
       try {
         fileContent =
-          selectedLanguage === "lua"
+          selectedLanguage === LUA_LANGUAGE_ID
             ? GridScript.expandScript(rawContent)
             : rawContent;
         luaSyntaxError = null;
@@ -345,7 +349,7 @@
       let content: string;
       try {
         content =
-          selectedLanguage === "lua"
+          selectedLanguage === LUA_LANGUAGE_ID
             ? GridScript.compressScript(fileContent)
             : fileContent;
       } catch (e) {
