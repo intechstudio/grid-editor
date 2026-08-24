@@ -1,6 +1,5 @@
 <script>
   export let value = 0;
-  export let info = "";
   export let color;
   export let trackColor;
   export let textColor;

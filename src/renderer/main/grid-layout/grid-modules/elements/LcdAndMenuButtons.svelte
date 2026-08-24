@@ -2,7 +2,6 @@
   import Button from "./Button.svelte";
 
   export let elementNumberList;
-  export let elementposition_array;
 </script>
 
 <container

@@ -8,7 +8,6 @@
   import { grid } from "@intechstudio/grid-protocol";
 
   export let id = "PBF4";
-  export let rotation = 0;
   export let moduleWidth;
   export let device: GridModule;
 
