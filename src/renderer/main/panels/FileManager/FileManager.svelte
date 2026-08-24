@@ -659,6 +659,7 @@
     <p class="text-base opacity-50">No modules connected.</p>
   {/if}
 
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     onkeydown={handleKeydown}
     class="border-t border-white/10 pt-2 flex flex-col gap-1 flex-grow min-h-0 {(fileContent ===
@@ -712,7 +713,7 @@
       class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile
         ? 'hidden'
         : ''}"
-    />
+    ></div>
     {#if luaSyntaxError}
       <p
         class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"

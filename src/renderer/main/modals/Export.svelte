@@ -63,7 +63,7 @@
           readonly
           rows="18"
           class="font-mono w-full p-1 rounded bg-background-muted whitespace-pre-wrap resize"
-        />
+        ></textarea>
         <div class="flex justify-end">
           <MoltenPushButton
             click={() => copyToClipboard(rawCode)}
@@ -82,7 +82,7 @@
           readonly
           rows="18"
           class="font-mono w-full p-1 rounded bg-background-muted whitespace-pre-wrap resize"
-        />
+        ></textarea>
         <div class="flex justify-end">
           <MoltenPushButton
             click={() => copyToClipboard(humanReadable)}

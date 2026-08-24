@@ -96,7 +96,7 @@
 
         <div
           style="background-color: var(--background); color: var(--foreground); border: 1px solid var(--border);  border-radius: var(--radius); border-top:none;"
-          class="absolute top-0 w-fit mx-auto self-center z-[1] items-center flex gap-2 h-24 px-4"
+          class="absolute top-0 w-fit mx-auto self-center z-[1] items-center flex gap-2 min-h-24 px-4"
         >
           <ActiveChanges />
         </div>

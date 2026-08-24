@@ -94,7 +94,7 @@
       id="arrow"
       data-popper-arrow
     >
-      <div class="tooltip-absolute" id="arrow_face" />
+      <div class="tooltip-absolute" id="arrow_face"></div>
     </div>
   </Popover>
 {/key}

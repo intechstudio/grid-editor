@@ -156,7 +156,7 @@
           elementDescriptor.index - 1,
           elementDescriptor.index,
         ]}
-        <LcdAndMenuButtons {elementNumberList} {elementposition_array}>
+        <LcdAndMenuButtons {elementNumberList}>
           <!-- Dynamic underlay workaround-->
           <svelte:fragment slot="cell-underlay-0">
             <slot name="cell-underlay" elementNumber={elementNumberList[0]} />

@@ -141,7 +141,7 @@
     spellcheck="false"
     bind:value={websocketMessage}
     class="w-full cursor-default min-h-36 h-36 bg-secondary rounded px-1 my-2 text-white font-mono"
-  />
+  ></textarea>
 
   <MoltenPushButton text="Send" click={sendMessage} />
 

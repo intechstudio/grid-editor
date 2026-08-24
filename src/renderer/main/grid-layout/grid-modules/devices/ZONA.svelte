@@ -62,7 +62,7 @@
       <div
         class="absolute inset-0"
         style="background: color-mix(in srgb, var(--background-soft) 30%, transparent);"
-      />
+      ></div>
       <svg class="absolute inset-0 w-full h-full pointer-events-none">
         {#each pctPositions as pct}
           {#each segments as seg}

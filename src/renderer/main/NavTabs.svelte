@@ -93,7 +93,7 @@
       clickHandler={changeLeftTab}
     />
   {/if}
-  <div class="grow" />
+  <div class="grow"></div>
 
   <NavTabsButton
     {selectedLeftTab}

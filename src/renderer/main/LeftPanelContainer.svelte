@@ -61,8 +61,3 @@
 </div>
 
 <!-- {/if} -->
-<style>
-  .splitpanes.modern-theme .splitpanes__pane {
-    overflow: visible;
-  }
-</style>

@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, webContents, dialog } from "electron";
+import { BrowserWindow, ipcMain, dialog } from "electron";
 import AdmZip from "adm-zip";
 import { download } from "electron-dl";
 import log from "electron-log";

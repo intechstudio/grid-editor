@@ -152,13 +152,14 @@ function createAppSettingsStore(persistent) {
 
 export const appSettings = createAppSettingsStore(persistentDefaultValues);
 
-init_appsettings();
-
-appSettings.subscribe((store) => {
+// Persists a persistent-setting change to disk. Registered only after the
+// initial disk read has hydrated the store (see init_appsettings), so the
+// values we just loaded aren't immediately written straight back out.
+function persistChangedSettings(store) {
   let instore = store.persistent;
 
   Object.entries(persistentDefaultValues).forEach((entry) => {
-    const [key, value] = entry;
+    const [key] = entry;
 
     if (persistentDefaultValues[key] !== instore[key]) {
       persistentDefaultValues[key] = instore[key];
@@ -167,7 +168,9 @@ appSettings.subscribe((store) => {
       window.electron.persistentStorage.set(settings);
     }
   });
-});
+}
+
+init_appsettings();
 
 async function init_appsettings() {
   let request = [];
@@ -210,12 +213,27 @@ async function init_appsettings() {
           }
 
           if (value !== undefined) {
+            // If something already changed this setting before hydration
+            // finished, it's diverged from its default - that change is
+            // more recent than the value we just read from disk, so don't
+            // clobber it. It'll get persisted once we subscribe below.
+            if (s.persistent[key] !== persistentDefaultValues[key]) {
+              return;
+            }
+
             s.persistent[key] = value;
+            // Keep the comparison cache in sync with what we just loaded so
+            // that subscribing below doesn't treat hydration as a change.
+            persistentDefaultValues[key] = value;
           }
         });
 
         return s;
       });
+
+      // Only now start watching for real changes to persist, now that the
+      // cache above matches the freshly hydrated store.
+      appSettings.subscribe(persistChangedSettings);
 
       // show welcome modal if it is not disabled, but always show after version update
       if (

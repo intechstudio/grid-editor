@@ -252,6 +252,7 @@
             removeLine(i);
           }}
           class="flex group cursor-pointer"
+          aria-label="Remove line"
         >
           <svg
             class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500"

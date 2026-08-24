@@ -4,7 +4,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let action: GridAction;
+  export const action: GridAction = undefined;
 
   function handleClick(e) {
     dispatch("toggle");

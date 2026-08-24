@@ -368,12 +368,4 @@
         0.5em 0 0 white;
     }
   }
-
-  table {
-    border-collapse: collapse;
-  }
-  th {
-    font-weight: normal;
-    text-align: start;
-  }
 </style>

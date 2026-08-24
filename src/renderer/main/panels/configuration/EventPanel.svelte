@@ -136,11 +136,12 @@
           class="absolute left-0 top-0 w-full h-full"
           on:mouseenter={() => handleMouseEnter(event)}
           on:mouseleave={handleMouseLeave}
+          aria-label="Event preview"
         >
           <unsaved-changes-marker
             class:hidden={!event?.hasChanges()}
             class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
-          />
+          ></unsaved-changes-marker>
         </button>
       {/key}
     </svelte:fragment>

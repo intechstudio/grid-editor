@@ -257,7 +257,7 @@
       <div
         class="absolute w-full h-full"
         style="border-radius: var(--grid-rounding);"
-      />
+      ></div>
       <PortState
         {device}
         visible={$appSettings.persistent.portstateOverlayEnabled}
@@ -429,7 +429,7 @@
               on:dragenter={() => handleDragEnter(element)}
               on:dragleave|preventDefault={handleDragLeave}
               on:dragover|preventDefault
-            />
+            ></div>
           </div>
         {/if}
       {/if}
@@ -463,7 +463,7 @@
                 handleDragEnter(device.findPage($user_input.pagenumber))}
               on:dragleave|preventDefault={handleDragLeave}
               on:dragover|preventDefault
-            />
+            ></div>
           </div>
         {/if}
       {/if}

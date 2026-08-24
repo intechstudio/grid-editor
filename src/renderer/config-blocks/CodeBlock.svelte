@@ -146,6 +146,7 @@
   }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <code-block
   class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto"
   on:keydown={handleKeydown}
@@ -158,7 +159,7 @@
   >
     <div class="flex flex-row gap-2 items-center mb-2 flex-wrap">
       <CommitStatus {commitEnabled} />
-      <div class="flex-grow" />
+      <div class="flex-grow"></div>
       <div class="flex flex-row gap-2 items-center">
         <MoltenPushButton
           click={open_monaco}

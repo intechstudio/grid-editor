@@ -34,7 +34,7 @@
   let feedbackSubmitted = false;
 </script>
 
-<div id="modal-copy-placeholder" />
+<div id="modal-copy-placeholder"></div>
 
 <MoltenModal {data}>
   <div slot="content" class="p-6">
@@ -52,6 +52,7 @@
           id="close-btn"
           class="cursor-pointer rounded not-draggable
         hover:bg-secondary w-7 h-7 p-1"
+          aria-label="Close feedback dialog"
         >
           <svg
             class="fill-current text-foreground-muted"
@@ -86,7 +87,7 @@
           <textarea
             bind:this={textArea}
             class="bg-background-muted p-2 w-full h-32 outline-none"
-          />
+          ></textarea>
           {#if feedbackSubmitted}
             <div
               in:fade|global={{ duration: 100 }}
@@ -112,6 +113,6 @@
       />
     </div>
 
-    <div />
+    <div></div>
   </div>
 </MoltenModal>

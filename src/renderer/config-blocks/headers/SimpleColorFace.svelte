@@ -40,7 +40,7 @@
       style="background-image: linear-gradient(to right, {$cssColors.join(
         ',',
       )}); background-size: 100% 100%; background-repeat: no-repeat;"
-    />
+    ></div>
   </div>
 
   <slot name="edit-name-trigger" />
