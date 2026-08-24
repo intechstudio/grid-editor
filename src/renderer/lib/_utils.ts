@@ -368,7 +368,7 @@ export namespace Grid {
       PBF4 = "PBF4",
       EF44 = "EF44",
       VSNX = "VSNX",
-      XY = "XY",
+      ZONA = "ZONA",
     }
 
     const typeToArchetypeMap = {
@@ -383,7 +383,7 @@ export namespace Grid {
       [ModuleType.VSN1L]: Module.Archetype.VSNX,
       [ModuleType.VSN1R]: Module.Archetype.VSNX,
       [ModuleType.VSN2]: Module.Archetype.VSNX,
-      [ModuleType.XY]: Module.Archetype.XY,
+      [ModuleType.ZONA]: Module.Archetype.ZONA,
     };
 
     export function toArchetype(type: ModuleType): Module.Archetype {

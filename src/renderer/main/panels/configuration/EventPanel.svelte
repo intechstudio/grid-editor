@@ -40,11 +40,15 @@
       return;
     }
 
-    const prefiltered = element.events.filter(
-      (e) =>
-        (e.getName() !== "Setup" && e.getName() !== "Timer") ||
-        $appSettings.persistent.userLevelMinimalist === false,
+    const withoutSetupAndTimer = element.events.filter(
+      (e) => e.getName() !== "Setup" && e.getName() !== "Timer",
     );
+
+    const prefiltered =
+      $appSettings.persistent.userLevelMinimalist === false ||
+      withoutSetupAndTimer.length === 0
+        ? element.events
+        : withoutSetupAndTimer;
 
     options = prefiltered.map((e: GridEvent) =>
       Object({
