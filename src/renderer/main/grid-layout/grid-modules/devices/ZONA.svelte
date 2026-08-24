@@ -3,7 +3,7 @@
   import { GridModule, GridRuntime } from "../../../../runtime/runtime.js";
 
   export let moduleWidth;
-  export let id = "XY";
+  export let id = "ZONA";
   export let device: GridModule;
 
   let runtime = device.parent as GridRuntime;

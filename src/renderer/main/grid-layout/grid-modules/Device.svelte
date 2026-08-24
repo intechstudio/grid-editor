@@ -19,7 +19,7 @@
   import EF44 from "./devices/EF44.svelte";
   import VSNX from "./devices/VSNX.svelte";
   import OCTV from "./devices/OCTV.svelte";
-  import XY from "./devices/XY.svelte";
+  import ZONA from "./devices/ZONA.svelte";
 
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
@@ -99,7 +99,7 @@
     VSN1R: VSNX,
     VSN2: VSNX,
     OCTV: OCTV,
-    XY: XY,
+    ZONA: ZONA,
   };
 
   // Reactive (not onMount-only) so the preview updates if `device.type`
