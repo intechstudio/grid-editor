@@ -35,7 +35,9 @@ async function attemptSerialConnection() {
 }
 
 export function restartSerialCheckInterval() {
-  clearIntervalAsync(port_disovery_interval);
+  if (port_disovery_interval) {
+    clearIntervalAsync(port_disovery_interval);
+  }
   port_disovery_interval = setIntervalAsync(
     attemptSerialConnection,
     RECONNECT_INTERVAL,
