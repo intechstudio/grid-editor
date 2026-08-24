@@ -659,6 +659,7 @@
     <p class="text-base opacity-50">No modules connected.</p>
   {/if}
 
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     onkeydown={handleKeydown}
     class="border-t border-white/10 pt-2 flex flex-col gap-1 flex-grow min-h-0 {(fileContent ===

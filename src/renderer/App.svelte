@@ -356,6 +356,7 @@
 <AnimationToggle />
 <Analytics />
 
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <main
   use:watchResize={resize}
   on:keydown={handleWindowKeyDown}

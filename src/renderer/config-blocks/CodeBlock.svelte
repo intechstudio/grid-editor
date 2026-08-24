@@ -146,6 +146,7 @@
   }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <code-block
   class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto"
   on:keydown={handleKeydown}

@@ -52,6 +52,7 @@
           id="close-btn"
           class="cursor-pointer rounded not-draggable
         hover:bg-secondary w-7 h-7 p-1"
+          aria-label="Close feedback dialog"
         >
           <svg
             class="fill-current text-foreground-muted"

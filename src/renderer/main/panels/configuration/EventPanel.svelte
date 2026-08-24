@@ -132,6 +132,7 @@
           class="absolute left-0 top-0 w-full h-full"
           on:mouseenter={() => handleMouseEnter(event)}
           on:mouseleave={handleMouseLeave}
+          aria-label="Event preview"
         >
           <unsaved-changes-marker
             class:hidden={!event?.hasChanges()}
