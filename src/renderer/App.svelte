@@ -200,7 +200,7 @@
         const enabledPackages = data.packages.filter((e) => e.isEnabled);
         for (const _package of enabledPackages) {
           if (_package.componentsPath) {
-            import(`package://${_package.componentsPath}`);
+            import(/* @vite-ignore */ `package://${_package.componentsPath}`);
           }
         }
         appSettings.update((s) => {
@@ -237,7 +237,9 @@
         if (!packageInfo.componentsPath) return;
 
         let versionKey = new Date().getTime();
-        await import(`package://v${versionKey}/${packageInfo.componentsPath}`);
+        await import(
+          /* @vite-ignore */ `package://v${versionKey}/${packageInfo.componentsPath}`
+        );
         appSettings.update((s) => {
           s.packageComponentKeys[data.id] = versionKey;
           return s;

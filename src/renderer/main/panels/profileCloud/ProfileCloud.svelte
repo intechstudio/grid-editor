@@ -463,7 +463,7 @@
     if (offlineMode) {
       profileCloudWebComponentName = "profile-cloud-offline";
     } else {
-      import(fixedUrl)
+      import(/* @vite-ignore */ fixedUrl)
         .then(() => {
           if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
             profileCloudWebComponentName = "profile-cloud-nightly";
