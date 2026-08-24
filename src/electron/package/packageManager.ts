@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import AdmZip from "adm-zip";
-import os, { version } from "os";
+import os from "os";
 import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
@@ -9,7 +9,6 @@ import chokidar from "chokidar";
 import configuration from "../../../configuration.json";
 import Progress from "node-fetch-progress";
 import yauzl from "yauzl";
-import { Transform } from "stream";
 
 interface RecommendedGithubPackage {
   gitHubRepositoryOwner: string;

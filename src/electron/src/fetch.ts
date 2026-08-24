@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 import axios from "axios";
 import cheerio from "cheerio";
-import { marked } from "marked";
 
 // using the measurement protocol
 export async function fetchUrlJSON(url) {
