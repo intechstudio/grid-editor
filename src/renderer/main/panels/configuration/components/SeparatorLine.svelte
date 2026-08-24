@@ -52,7 +52,7 @@
         on:dragenter={() => handleDragEnter(target.event, target.index)}
         on:dragleave|preventDefault={handleDragLeave}
         on:dragover|preventDefault
-      />
+      ></div>
     </div>
   {:else}
     <AddActionLine

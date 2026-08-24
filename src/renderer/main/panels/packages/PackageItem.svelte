@@ -81,7 +81,7 @@
       <div
         class="w-full h-full absolute"
         style="background-color: #1e262870;"
-      />
+      ></div>
       <div class="w-full h-full p-1 absolute flex items-center content-center">
         <CircularBar
           value={data.installProgress * 100}

@@ -236,7 +236,7 @@
           <!-- Scrolling blurred band -->
           <div
             class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-foreground to-transparent animate-waiting"
-          />
+          ></div>
         </div>
         <MoltenPushButton
           text={"Dismiss"}
@@ -262,7 +262,7 @@
             mask-size: contain;
             -webkit-mask-size: contain;
           "
-        />
+        ></div>
         <div class="flex flex-col gap-2 w-full items-center">
           <div class="flex flex-row gap-2">
             <MoltenPushButton
@@ -311,7 +311,7 @@
           -webkit-mask-size: contain;
         "
         >
-          <div class="flex h-full bg-intech-yellow animate-loading" />
+          <div class="flex h-full bg-intech-yellow animate-loading"></div>
         </div>
         <span class="text-sm text-foreground-soft"
           >Do not disconnect the module!</span

@@ -120,7 +120,10 @@
 </script>
 
 <Block>
-  <div class="flex w-full h-28 border border-black" bind:this={monacoElement} />
+  <div
+    class="flex w-full h-28 border border-black"
+    bind:this={monacoElement}
+  ></div>
   <BlockRow>
     <MoltenPushButton
       click={handleSendEvaluate}

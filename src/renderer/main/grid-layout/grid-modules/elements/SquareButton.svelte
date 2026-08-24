@@ -16,7 +16,7 @@
   height: {size * buttonSize + 'px'};"
 >
   <div class="relative background">
-    <div class="flex w-full h-full" />
+    <div class="flex w-full h-full"></div>
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2"
       style="margin-top: 4px;"
@@ -29,7 +29,7 @@
         <div
           class="flex w-full bg-white/20"
           style="height: {(100 / 127) * value}%;"
-        />
+        ></div>
       </div>
     {/if}
   </div>

@@ -221,7 +221,7 @@
   }
 </script>
 
-<div id="modal-copy-placeholder" />
+<div id="modal-copy-placeholder"></div>
 
 <MoltenModal {data} onkeydown={handleKeydown}>
   <div
@@ -310,7 +310,7 @@
     </div>
 
     <div class="flex flex-row items-center gap-2 w-full">
-      <div class="flex-grow" />
+      <div class="flex-grow"></div>
       <div class="text-gray-500 font-bold">Powered by Lua</div>
       <div class="h-12 w-12">
         {@html lualogo}

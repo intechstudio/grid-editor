@@ -61,7 +61,7 @@
     leftSize != 0
       ? 'h-8'
       : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-  />
+  ></div>
 </button>
 
 <style>

@@ -55,7 +55,7 @@
       <div
         class="absolute inset-0"
         style="background: color-mix(in srgb, var(--background-soft) 30%, transparent);"
-      />
+      ></div>
       <svg class="absolute inset-0 w-full h-full pointer-events-none">
         {#each [10, 30, 50, 70, 90] as pct}
           {#each [0, 1, 2, 3] as seg}

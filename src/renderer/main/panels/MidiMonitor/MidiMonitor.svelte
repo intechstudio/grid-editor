@@ -243,7 +243,7 @@
                 class="ml-2 flex place-self-end self-center {activity
                   ? 'bg-yellow-500'
                   : ' '} rounded-full w-3 h-3"
-              />
+              ></div>
             </div>
           {/if}
         </div>

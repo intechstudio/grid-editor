@@ -26,7 +26,7 @@
         elementNumber: $element.elementIndex,
       });
     }}
-  />
+  ></div>
 {/if}
 
 <style>

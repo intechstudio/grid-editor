@@ -121,7 +121,7 @@
   <MoltenPushButton text="Register" snap="full" click={signUp} />
 
   <div class="px-8 py-2 w-full">
-    <div class="border-b border-neutral-700 w-full" />
+    <div class="border-b border-neutral-700 w-full"></div>
   </div>
   <MoltenPushButton
     click={() =>

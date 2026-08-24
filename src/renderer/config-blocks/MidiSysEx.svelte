@@ -85,7 +85,7 @@
       on:input={() => {
         commitState = 1;
       }}
-    />
+    ></div>
   </div>
 
   <div class="flex justify-between items-center mt-2">

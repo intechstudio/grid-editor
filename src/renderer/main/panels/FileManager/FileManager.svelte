@@ -712,7 +712,7 @@
       class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile
         ? 'hidden'
         : ''}"
-    />
+    ></div>
     {#if luaSyntaxError}
       <p
         class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"

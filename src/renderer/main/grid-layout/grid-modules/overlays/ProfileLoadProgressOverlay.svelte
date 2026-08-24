@@ -25,7 +25,7 @@
         <div
           class="w-5 h-5 border-2 rounded-full animate-spin"
           style="border-color: var(--foreground); border-top-color: transparent;"
-        />
+        ></div>
       {:else}
         <span>Done</span>
       {/if}

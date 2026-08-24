@@ -158,7 +158,7 @@
   >
     <div class="flex flex-row gap-2 items-center mb-2 flex-wrap">
       <CommitStatus {commitEnabled} />
-      <div class="flex-grow" />
+      <div class="flex-grow"></div>
       <div class="flex flex-row gap-2 items-center">
         <MoltenPushButton
           click={open_monaco}
