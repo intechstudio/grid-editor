@@ -4,7 +4,7 @@
   import EF44 from "./../grid-layout/grid-modules/devices/EF44.svelte";
   import VSNX from "./../grid-layout/grid-modules/devices/VSNX.svelte";
   import OCTV from "./../grid-layout/grid-modules/devices/OCTV.svelte";
-  import XY from "./../grid-layout/grid-modules/devices/XY.svelte";
+  import ZONA from "./../grid-layout/grid-modules/devices/ZONA.svelte";
 
   import { ModuleType } from "@intechstudio/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
@@ -79,9 +79,9 @@
       hwcfg: 123,
     },
     {
-      id: ModuleType.XY,
-      type: ModuleType.XY,
-      component: XY,
+      id: ModuleType.ZONA,
+      type: ModuleType.ZONA,
+      component: ZONA,
       hwcfg: 161,
     },
   ];
