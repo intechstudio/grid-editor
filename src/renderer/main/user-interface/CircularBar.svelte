@@ -103,17 +103,6 @@
     stroke: var(--circlebar-track, var(--def-circlebar-track));
   }
 
-  svg > circle.btn {
-    stroke-width: 0;
-    fill: var(--circlebar-track, var(--def-circlebar-track));
-    cursor: pointer;
-  }
-
-  svg > circle.btn.sel {
-    stroke: var(--circlebar-color, var(--def-circlebar-color));
-    fill: var(--circlebar-color, var(--def-circlebar-color));
-  }
-
   svg > circle:nth-child(2) {
     stroke: var(--circlebar-color, var(--def-circlebar-color));
   }
