@@ -23,8 +23,7 @@
   import MoltenModal from "./MoltenModal.svelte";
   import { Modal } from "./modal.store";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
-  import logo from "../../assets/svgs/logo.svg?raw";
-  import logoBroken from "../../assets/svgs/logo-broken.svg?raw";
+  import logo from "../../lib/assets/svgs/logo.svg?raw";
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { onDestroy } from "svelte";
@@ -38,7 +37,6 @@
   export let data: Modal.Instance;
 
   const logoURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logo)}")`;
-  const logoBrokenURI = `url("data:image/svg+xml;utf8,${encodeURIComponent(logoBroken)}")`;
 
   const configuration = window.ctxProcess.configuration();
 
