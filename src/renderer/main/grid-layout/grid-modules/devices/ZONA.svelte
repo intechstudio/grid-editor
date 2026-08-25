@@ -86,8 +86,9 @@
         {/each}
       </svg>
       {#each ledcolor_array as color, i}
-        {@const col = i % gridSize}
         {@const row = Math.floor(i / gridSize)}
+        {@const rawCol = i % gridSize}
+        {@const col = row % 2 === 0 ? gridSize - 1 - rawCol : rawCol}
         <div
           class="absolute"
           style="left: {pctPositions[col]}%; top: {pctPositions[
