@@ -94,6 +94,10 @@
     "package-ableton-mixer-and-launch-control": {
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-ableton-mixer-and-launch-control"
+    },
+    "package-OSC-Control": {
+      "gitHubRepositoryOwner": "Greg-Orca",
+      "gitHubRepositoryName": "package-osc"
     }
   },
   "EDITOR_PACKAGES": {
