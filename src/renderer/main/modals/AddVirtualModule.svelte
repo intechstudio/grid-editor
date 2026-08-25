@@ -82,6 +82,7 @@
       id: ModuleType.ZONA,
       type: ModuleType.ZONA,
       component: ZONA,
+      unrelease: true,
       hwcfg: 161,
     },
   ];
