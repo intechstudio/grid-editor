@@ -60,7 +60,7 @@
     try {
       await runtime.connection.buffer.sendRawDataToGrid(
         new Uint8Array(messageArray),
-        { dx: target.dx, dy: target.dy },
+        { dx: target.dx, dy: target.dy, virtual: runtime.virtual },
       );
     } catch (e) {
       console.warn("Failed to send raw packet:", e);

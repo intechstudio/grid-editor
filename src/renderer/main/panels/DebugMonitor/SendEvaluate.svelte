@@ -99,6 +99,7 @@
         {
           dx: target.dx,
           dy: target.dy,
+          virtual: runtime.virtual,
           responseRequired: true,
           filter: {
             class_name: "EVALUATE",
