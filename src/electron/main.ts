@@ -128,6 +128,11 @@ function getBootloaderPairs() {
       name: "Grid ESP32",
     },
     {
+      vid: parseInt(configuration.BOOTLOADER_GRID_RP2350_VID, 16),
+      pid: parseInt(configuration.BOOTLOADER_GRID_RP2350_PID, 16),
+      name: "Grid RP2350",
+    },
+    {
       vid: parseInt(configuration.BOOTLOADER_KNOT_VID, 16),
       pid: parseInt(configuration.BOOTLOADER_KNOT_PID, 16),
       name: "Knot",
