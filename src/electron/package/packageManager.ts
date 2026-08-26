@@ -299,6 +299,22 @@ async function unloadPackage(packageName: string) {
 
 async function downloadPackage(packageName: string) {
   if (downloadingPackages.has(packageName)) return;
+
+  // The package:// protocol is registered as a "standard" scheme, so browsers
+  // parse the id as a URL host and ASCII-lowercase it before every request.
+  // packageName also becomes the extracted folder name on disk (case-sensitive
+  // on Linux/macOS), so any uppercase letters in the id make its own
+  // components unreachable after install. Reject those ids up front rather
+  // than downloading a package that can never load.
+  if (packageName !== packageName.toLowerCase()) {
+    process.parentPort?.postMessage({
+      type: "show-message",
+      message: `Can't install "${packageName}": package ids must be lowercase (browsers normalize package:// URLs to lowercase, so an uppercase id can never load its components). Fix the id in its catalog entry.`,
+      messageType: "fail",
+    });
+    return;
+  }
+
   downloadingPackages.add(packageName);
   notifyListener();
 

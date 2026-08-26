@@ -99,7 +99,7 @@
       "gitHubRepositoryOwner": "intechstudio",
       "gitHubRepositoryName": "package-ableton-mixer-and-launch-control"
     },
-    "package-OSC-Control": {
+    "package-osc-control": {
       "gitHubRepositoryOwner": "Greg-Orca",
       "gitHubRepositoryName": "package-osc"
     }
