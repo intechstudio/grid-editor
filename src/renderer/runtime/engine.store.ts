@@ -266,6 +266,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     options?: {
       dx?: number;
       dy?: number;
+      virtual?: boolean;
       responseRequired?: boolean;
       filter?: any;
       responseTimeout?: number;
@@ -273,7 +274,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
   ): Promise<any> {
     const bufferElement: BufferElement = {
       id: 0,
-      virtual: false,
+      virtual: options?.virtual ?? false,
       rawBytes: data,
       descr: {
         brc_parameters: { DX: options?.dx ?? -127, DY: options?.dy ?? -127 },

@@ -542,6 +542,7 @@ export namespace GridInstruction {
         .sendRawDataToGrid(new Uint8Array(messageArray), {
           dx: this.dx,
           dy: this.dy,
+          virtual: this.simulate,
           responseRequired: true,
           filter: {
             class_name: "EVALUATE",
