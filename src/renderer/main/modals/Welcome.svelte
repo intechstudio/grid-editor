@@ -8,28 +8,20 @@
     MoltenPushButton,
     Toggle,
   } from "@intechstudio/grid-uikit";
+  import welcomeImage from "../../assets/imgs/welcome.jpg";
 
   export let data: Modal.Instance;
 
   const configuration = window.ctxProcess.configuration();
 
-  let video_link = "";
-  let video_id = "";
+  const video_link =
+    "https://www.youtube.com/watch?v=lc8iNTaFwT0&list=PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu";
   let analyticsEnabled = false;
   let initialized = false;
 
-  onMount(async () => {
+  onMount(() => {
     const firstLaunch = $appSettings.persistent.firstLaunch;
     analyticsEnabled = firstLaunch || $appSettings.persistent.analyticsEnabled;
-
-    video_link = configuration["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
-
-    const { videoLink, videoId } = await window.electron.getLatestVideo();
-
-    if (videoLink && videoId) {
-      video_link = videoLink;
-      video_id = videoId;
-    }
 
     initialized = true;
   });
@@ -177,12 +169,29 @@
         <div class="flex items-baseline justify-between gap-3">
           <h2 class="m-0 text-xl text-foreground">Latest release</h2>
         </div>
-        <iframe
-          title="Grid Editor playlist"
-          class="aspect-video w-full border shadow-sm"
+
+        <div
+          class="group relative aspect-video w-full overflow-hidden border shadow-sm"
           style="border-color: var(--border); border-radius: var(--radius);"
-          src="https://www.youtube.com/embed/videoseries?si=HinU7FppyIM8_6lI&list=PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu"
-        ></iframe>
+        >
+          <img
+            src={welcomeImage}
+            alt="Grid Editor latest release"
+            class="h-full w-full object-cover"
+          />
+          <button
+            type="button"
+            on:click={() => openExternal(video_link)}
+            class="not-draggable absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/30"
+          >
+            <span
+              class="flex items-center gap-2 border bg-background px-4 py-2 text-sm text-foreground shadow-sm transition-transform group-hover:scale-105"
+              style="border-color: var(--border); border-radius: var(--radius);"
+            >
+              ▶ Watch tutorial
+            </span>
+          </button>
+        </div>
       </section>
     </div>
 
