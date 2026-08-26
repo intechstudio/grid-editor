@@ -357,17 +357,24 @@ export namespace MonacoEditor {
 
     const editorDomNode = editor.getDomNode();
 
-    // Monaco's own keybinding service consumes the native Ctrl/Cmd+S keydown
-    // itself, so it never reaches ancestor DOM nodes as a regular `keydown`
-    // event. Catch it via onKeyDown - a per-editor-instance event, unlike
-    // `editor.addCommand`, which registers into a process-wide dynamic
-    // keybinding list shared by every editor on the page and resolves to
-    // whichever editor registered last, regardless of which one has focus -
-    // then replay it as a synthetic, bubbling `keydown` from the editor's
-    // own DOM node (which carries the `.monaco-editor` class other code keys
-    // off of) so it naturally bubbles up to, and is handled by, whichever
-    // Svelte component owns this editor, the same as a real keydown would.
+    // Keep editor-specific shortcuts out of the process-wide dynamic
+    // keybinding list so simultaneous Monaco instances cannot hijack them.
     editor.onKeyDown((e) => {
+      const clipboardCommand = e.equals(KeyMod.CtrlCmd | KeyCode.KeyC)
+        ? "editor.action.clipboardCopyAction"
+        : e.equals(KeyMod.CtrlCmd | KeyCode.KeyX)
+          ? "editor.action.clipboardCutAction"
+          : e.equals(KeyMod.CtrlCmd | KeyCode.KeyV)
+            ? "editor.action.clipboardPasteAction"
+            : undefined;
+
+      if (clipboardCommand) {
+        e.preventDefault();
+        e.stopPropagation();
+        editor.trigger("keyboard", clipboardCommand, undefined);
+        return;
+      }
+
       if (!e.equals(KeyMod.CtrlCmd | KeyCode.KeyS)) return;
       e.preventDefault();
       e.stopPropagation();
