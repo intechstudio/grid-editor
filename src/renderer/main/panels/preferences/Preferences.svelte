@@ -368,117 +368,78 @@
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
-      <BlockTitle>Enable events loaded</BlockTitle>
-      <BlockBody
-        >Display on modules the number of events that are loaded and synced with
-        editor.</BlockBody
-      >
+      <BlockTitle>Nightly options</BlockTitle>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.nightlyFirmware}
+        title={"Show nightly firmware options"}
+      />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.nightlyEditor}
+        title={"Update to nightly editor versions"}
+      />
+
+      <BlockTitle>Display additional debug information</BlockTitle>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.variantLabelEnabled}
+        title={"Activate variant name overlay"}
+      />
       <MeltCheckbox
         bind:target={$appSettings.persistent.eventsLoaded}
-        title={"Enabled"}
-      />
-      <BlockTitle>Multi Event View</BlockTitle>
-      <BlockBody
-        >This feature allows editing all events of a Grid control element. Once
-        enabled, resize the configuration panel to create enough space, and all
-        events will be displayed side by side for editing.
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.multiViewEnabled}
-        title={"Enabled"}
-      />
-      <BlockTitle>NVM Erase</BlockTitle>
-      <BlockBody>
-        Erase the NVM memory of the module. This will take some time.
-      </BlockBody>
-      <MoltenPushButton
-        text="Erase"
-        style="normal"
-        click={() => {
-          runtime_manager.NVMErase();
-        }}
-      />
-      <BlockTitle>Unreleased Virtual Modules</BlockTitle>
-      <BlockBody>Enable/Disable adding unrelease virtual modules.</BlockBody>
-
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.unreleasedVirtualModules}
-        title={"Activate unreleased modules"}
-      />
-      <BlockTitle>Unreleased Action Blocks</BlockTitle>
-      <BlockBody>Enable/Disable adding unrelease action blocks.</BlockBody>
-
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.allowDevBlocks}
-        title={"Enabled"}
+        title={"Show events loaded overlay"}
       />
 
-      <BlockTitle>Port state overlay</BlockTitle>
-      <BlockBody>
-        Enable/Disable the port state overlay. This will show the port state on
-        the module.
-      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.portstateOverlayEnabled}
-        title={"Activate port sate overlay"}
+        title={"Activate port state overlay"}
       />
-      <BlockTitle>writeBuffer state indicator</BlockTitle>
-      <BlockBody>
-        Enable/Disable the writeBuffer state indicator. This will show the
-        buffer length in the middle panel.
-      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.writeBufferDebugEnabled}
         title={"writeBuffer debug state"}
       />
-      <BlockTitle>Graph based debugging</BlockTitle>
-      <BlockBody>Enable/Disable heartbeat debug graphs</BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.heartbeatDebugEnabled}
         title={"Activate heartbeat debugging"}
       />
-      <BlockBody>Enable/Disable message ID debug graphs</BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.messageIdDebugEnabled}
         title={"Activate message ID debugging"}
       />
-      <BlockTitle>Console Error Overlay</BlockTitle>
-      <BlockBody>
-        Mirror console.error output into an on-screen overlay bar.
-      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.consoleErrorOverlayEnabled}
-        title={"Enabled"}
+        title={"Enable console error overlay"}
       />
-
-      <BlockTitle>Send heartbeat immediate</BlockTitle>
-      <BlockBody>
-        Skip the heartbeat delay and send it as soon as it's queued.
-      </BlockBody>
+      <BlockTitle>Additional developer content</BlockTitle>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.unreleasedVirtualModules}
+        title={"Activate unreleased modules"}
+      />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.multiViewEnabled}
+        title={"Enable multi event view"}
+      />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.allowDevBlocks}
+        title={"Activate unreleased action blocks"}
+      />
       <MeltCheckbox
         bind:target={$appSettings.persistent.sendHeartbeatImmediate}
-        title={"Enabled"}
+        title={"Skip heatbeat delay and send it immediately"}
       />
-      <BlockTitle>Nightly Firmware Update</BlockTitle>
-      <BlockBody>
-        The Nightly Firmware version contains new, but potentially unstable
-        features and fixes. We suggest staying on a Stable Firmware!
-      </BlockBody>
       <MeltCheckbox
-        bind:target={$appSettings.persistent.nightlyFirmware}
-        title={"Enabled"}
-      />
-      <BlockTitle>Nightly Editor Update</BlockTitle>
-      <BlockBody>
-        The Nightly Editor version contains new, but potentially unstable
-        features and fixes. We suggest staying on a Stable Editor version!
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.nightlyEditor}
-        title={"Enabled"}
+        bind:target={$appSettings.persistent.midiTesterEnabled}
+        title={"Activate WebMIDI based test panel in MIDI Monitor"}
       />
 
-      <!-- Radio Select for profileCloudUrl -->
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.websocketNotificationEnabled}
+        title={"Activate WebSocket based transport"}
+      />
+
+      <BlockTitle>Package Developer Mode</BlockTitle>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.packageDeveloper}
+        title={"Enabled"}
+      />
 
       <BlockTitle>Profile cloud URL</BlockTitle>
       <BlockBody>Change the url used in the Profile Cloud Iframe.</BlockBody>
@@ -489,6 +450,7 @@
           {
             title: "Development (localhost)",
             value: configuration.PROFILE_CLOUD_URL_LOCAL,
+            disabled: !$appSettings.persistent.packageDeveloper,
           },
           {
             title: "Nightly (profile-cloud-dev)",
@@ -500,46 +462,16 @@
           },
         ]}
       />
-
-      <!-- Checkbox for packageDeveloper -->
-
-      <BlockTitle>Package Developer Mode</BlockTitle>
+      <BlockTitle>NVM Erase</BlockTitle>
       <BlockBody>
-        Starts a developer websocket in Editor allowing hot reload functionality
-        for packages.
+        Erase the NVM memory of the module. This will take some time.
       </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.packageDeveloper}
-        title={"Enabled"}
-      />
-
-      <BlockTitle>Midi Tester</BlockTitle>
-      <BlockBody>
-        Enables the WebMIDI based MIDI tester panel in MIDI Monitor.
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.midiTesterEnabled}
-        title={"Enabled"}
-      />
-
-      <BlockTitle>WebSocket Notification Bar</BlockTitle>
-      <BlockBody>
-        Enables the WebSocket notification bar for connecting to external
-        devices.
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.websocketNotificationEnabled}
-        title={"Enabled"}
-      />
-
-      <BlockTitle>Variant Label</BlockTitle>
-      <BlockBody>
-        Display a variant label (e.g. "Center", "Smooth") on modules that have a
-        hardware variant identifier.
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.variantLabelEnabled}
-        title={"Enabled"}
+      <MoltenPushButton
+        text="Erase"
+        style="normal"
+        click={() => {
+          runtime_manager.NVMErase();
+        }}
       />
     </Block>
   {/if}

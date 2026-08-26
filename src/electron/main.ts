@@ -222,7 +222,15 @@ let tray = null;
 let packageManagerProcess: Electron.UtilityProcess | undefined = undefined;
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: "package", privileges: { bypassCSP: true, standard: true } },
+  {
+    scheme: "package",
+    privileges: {
+      bypassCSP: true,
+      standard: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
 ]);
 
 if (process.defaultApp) {

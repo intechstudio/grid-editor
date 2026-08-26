@@ -152,6 +152,17 @@ function createAppSettingsStore(persistent) {
 
 export const appSettings = createAppSettingsStore(persistentDefaultValues);
 
+// structuredClone (used both to seed store.persistent and by update handlers
+// that clone-then-mutate) always produces a new object/array reference, so a
+// `!==` check is true even when the content is identical. Compare by value
+// instead, or every object/array-valued setting looks "changed" on every
+// unrelated store update.
+function valuesDiffer(a, b) {
+  if (a === b) return false;
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b) return true;
+  return JSON.stringify(a) !== JSON.stringify(b);
+}
+
 // Persists a persistent-setting change to disk. Registered only after the
 // initial disk read has hydrated the store (see init_appsettings), so the
 // values we just loaded aren't immediately written straight back out.
@@ -161,7 +172,7 @@ function persistChangedSettings(store) {
   Object.entries(persistentDefaultValues).forEach((entry) => {
     const [key] = entry;
 
-    if (persistentDefaultValues[key] !== instore[key]) {
+    if (valuesDiffer(persistentDefaultValues[key], instore[key])) {
       persistentDefaultValues[key] = instore[key];
       let settings = {};
       settings[key] = instore[key];
@@ -217,7 +228,7 @@ async function init_appsettings() {
             // finished, it's diverged from its default - that change is
             // more recent than the value we just read from disk, so don't
             // clobber it. It'll get persisted once we subscribe below.
-            if (s.persistent[key] !== persistentDefaultValues[key]) {
+            if (valuesDiffer(s.persistent[key], persistentDefaultValues[key])) {
               return;
             }
 
