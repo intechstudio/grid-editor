@@ -22,16 +22,21 @@ import chokidar from "chokidar";
 import configuration from "../../configuration.json";
 
 
-function isManagedLinuxPackage(): boolean {
-  // Flatpak: `container=flatpak` is set for every flatpak'd process;
+function isFlatpak(): boolean {
+  // `FLATPAK_ID` and `container=flatpak` are set for every flatpak'd process;
   // /.flatpak-info is the filesystem fallback.
-  const isFlatpak =
-    process.env.container === "flatpak" || fs.existsSync("/.flatpak-info");
+  return (
+    !!process.env.FLATPAK_ID ||
+    process.env.container === "flatpak" ||
+    fs.existsSync("/.flatpak-info")
+  );
+}
 
+function isManagedLinuxPackage(): boolean {
   // Snap: snapd exports SNAP (mount dir) and SNAP_NAME for confined apps.
   const isSnap = !!process.env.SNAP && !!process.env.SNAP_NAME;
 
-  return isFlatpak || isSnap;
+  return isFlatpak() || isSnap;
 }
 
 // Add custom transport to forward logs to renderer DevTools console
@@ -1206,6 +1211,19 @@ function restartApp() {
     restartPackageManagerOnShutdown = false;
     stopPackageManager();
     app.relaunch(options);
+    app.exit(0);
+  } else if (isFlatpak()) {
+    // On Flatpak the app is launched through zypak-wrapper (see
+    // flatpak_launch_app.sh and electron-builder's electron-wrapper), which
+    // sets up Chromium's sandbox inside the container. A bare app.relaunch()
+    // re-executes process.execPath directly, skipping that wrapper, so the
+    // relaunched instance fails its sandbox init and the app never comes back.
+    restartPackageManagerOnShutdown = false;
+    stopPackageManager();
+    app.relaunch({
+      execPath: "/app/bin/zypak-wrapper",
+      args: [process.execPath, ...process.argv.slice(1)],
+    });
     app.exit(0);
   } else {
     restartPackageManagerOnShutdown = false;
