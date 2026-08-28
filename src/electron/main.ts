@@ -1197,7 +1197,7 @@ function restartApp() {
   log.info("main", "App restart requested");
 
   if (process.env.APPIMAGE) {
-    let options;
+    let options = {};
     options.args = process.argv.slice(1).concat(["--relaunch"]);
     options.execPath = process.execPath;
     options.execPath = process.env.APPIMAGE;
