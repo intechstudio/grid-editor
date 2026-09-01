@@ -8,7 +8,11 @@
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
-  import { appSettings, splitpanes } from "./runtime/app-helper.store";
+  import {
+    appSettings,
+    splitpanes,
+    THEME_PRESET_CSS,
+  } from "./runtime/app-helper.store";
 
   import NavTabs from "./main/NavTabs.svelte";
 
@@ -24,6 +28,7 @@
   import QuitApp from "./main/modals/QuitApp.svelte";
 
   import { windowSize } from "./runtime/window-size.svelte";
+  import { MonacoEditor } from "./lib/monaco";
 
   import { authStore } from "$lib/auth.store";
   import { configLinkStore } from "$lib/configlink.store";
@@ -62,11 +67,30 @@
     name = $appSettings.persistent.helperName;
   }
 
-  $: isLightMode = $appSettings.persistent.theme !== "dark";
-  $: syncLightMode(isLightMode);
   $: applyTheme($appSettings.persistent.theme);
+  $: applyThemeCss(
+    $appSettings.persistent.theme,
+    $appSettings.persistent.customThemeCss,
+  );
+  // Declared after applyTheme/applyThemeCss above: Svelte preserves
+  // source order for reactive statements with no interdependencies, and
+  // this one needs the DOM already carrying the new theme's CSS variables
+  // by the time it reads --foreground. Keyed off theme/customThemeCss
+  // (rather than reading the DOM eagerly) so it reruns whenever either
+  // changes, not just once at startup.
+  $: syncLightMode(
+    $appSettings.persistent.theme,
+    $appSettings.persistent.customThemeCss,
+  );
 
-  function syncLightMode(value: boolean) {
+  // lightMode really means "pick Monaco's light predefined theme" — derived
+  // from the theme's actual computed --foreground color (dark foreground =>
+  // light background => Monaco light theme), not the theme's name, so a
+  // custom theme with a light foreground on a dark background still gets
+  // Monaco's dark theme.
+  function syncLightMode(_theme: string, _customThemeCss: string) {
+    const value =
+      MonacoEditor.themeForCurrentPalette() === MonacoEditor.Theme.LIGHT;
     if ($appSettings.persistent.lightMode !== value) {
       appSettings.update((settings) => {
         settings.persistent.lightMode = value;
@@ -78,6 +102,35 @@
   function applyTheme(theme: string) {
     document.documentElement.setAttribute("color-scheme", theme);
     window.electron.theme.set(theme);
+  }
+
+  let themeStyleEl: HTMLStyleElement | undefined;
+
+  // grid-uikit's theme.css only ships "dark" (:root, no attribute needed)
+  // and "light" (which the editor doesn't use) — every named preset the
+  // editor offers (Moss/Sunset/Icy, same as Custom) is defined entirely on
+  // this side (THEME_PRESET_CSS) and applied by injecting it as a style
+  // element appended after grid-uikit's theme.css, so plain source-order
+  // (equal :root specificity) lets it win without needing !important.
+  function applyThemeCss(theme: string, customThemeCss: string) {
+    const css =
+      theme === "dark"
+        ? undefined
+        : theme === "custom"
+          ? customThemeCss
+          : THEME_PRESET_CSS[theme];
+
+    if (!css) {
+      themeStyleEl?.remove();
+      themeStyleEl = undefined;
+      return;
+    }
+    if (!themeStyleEl) {
+      themeStyleEl = document.createElement("style");
+      themeStyleEl.id = "theme-overrides";
+      document.head.appendChild(themeStyleEl);
+    }
+    themeStyleEl.textContent = css;
   }
 
   function resize() {
