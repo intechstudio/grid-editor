@@ -24,6 +24,7 @@
   import QuitApp from "./main/modals/QuitApp.svelte";
 
   import { windowSize } from "./runtime/window-size.svelte";
+  import { MonacoEditor } from "./lib/monaco";
 
   import { authStore } from "$lib/auth.store";
   import { configLinkStore } from "$lib/configlink.store";
@@ -62,11 +63,30 @@
     name = $appSettings.persistent.helperName;
   }
 
-  $: isLightMode = $appSettings.persistent.theme !== "dark";
-  $: syncLightMode(isLightMode);
   $: applyTheme($appSettings.persistent.theme);
+  $: applyCustomThemeCss(
+    $appSettings.persistent.theme,
+    $appSettings.persistent.customThemeCss,
+  );
+  // Declared after applyTheme/applyCustomThemeCss above: Svelte preserves
+  // source order for reactive statements with no interdependencies, and
+  // this one needs the DOM already carrying the new theme's CSS variables
+  // by the time it reads --foreground. Keyed off theme/customThemeCss
+  // (rather than reading the DOM eagerly) so it reruns whenever either
+  // changes, not just once at startup.
+  $: syncLightMode(
+    $appSettings.persistent.theme,
+    $appSettings.persistent.customThemeCss,
+  );
 
-  function syncLightMode(value: boolean) {
+  // lightMode really means "pick Monaco's light predefined theme" — derived
+  // from the theme's actual computed --foreground color (dark foreground =>
+  // light background => Monaco light theme), not the theme's name, so a
+  // custom theme with a light foreground on a dark background still gets
+  // Monaco's dark theme.
+  function syncLightMode(_theme: string, _customThemeCss: string) {
+    const value =
+      MonacoEditor.themeForCurrentPalette() === MonacoEditor.Theme.LIGHT;
     if ($appSettings.persistent.lightMode !== value) {
       appSettings.update((settings) => {
         settings.persistent.lightMode = value;
@@ -78,6 +98,25 @@
   function applyTheme(theme: string) {
     document.documentElement.setAttribute("color-scheme", theme);
     window.electron.theme.set(theme);
+  }
+
+  let customThemeStyleEl: HTMLStyleElement | undefined;
+
+  // Injects the user's CSS-variable overrides as a style element appended
+  // after grid-uikit's theme.css, so plain source-order (equal :root
+  // specificity) lets it win without needing !important.
+  function applyCustomThemeCss(theme: string, css: string) {
+    if (theme !== "custom") {
+      customThemeStyleEl?.remove();
+      customThemeStyleEl = undefined;
+      return;
+    }
+    if (!customThemeStyleEl) {
+      customThemeStyleEl = document.createElement("style");
+      customThemeStyleEl.id = "custom-theme-overrides";
+      document.head.appendChild(customThemeStyleEl);
+    }
+    customThemeStyleEl.textContent = css;
   }
 
   function resize() {

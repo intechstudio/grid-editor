@@ -17,6 +17,7 @@
   import { reduced_motion_store } from "../../../runtime/animations.js";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import { Grid } from "../../../lib/_utils";
+  import CustomThemeEditor from "./CustomThemeEditor.svelte";
   const configuration = window.ctxProcess.configuration();
 
   // "Open hidden in the tray" only works reliably on Windows. macOS has no tray
@@ -113,8 +114,20 @@
           { title: "Moss", value: "moss" },
           { title: "Sunset", value: "sunset" },
           { title: "Icy", value: "icy" },
+          { title: "Custom", value: "custom" },
         ]}
       />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.showThemeSource}
+        title={"Show theme source"}
+      />
+      {#if $appSettings.persistent.showThemeSource}
+        <BlockBody>
+          CSS source for the selected theme. Editing it switches Color Theme to
+          Custom.
+        </BlockBody>
+        <CustomThemeEditor />
+      {/if}
 
       <BlockTitle>Control surface rotation</BlockTitle>
       <BlockBody>

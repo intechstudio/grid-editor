@@ -11,6 +11,143 @@ export enum ColorPickerModel {
   Circle,
 }
 
+// Sensible starting point for the "Custom" theme editor in Preferences —
+// mirrors the dark `:root` block in @intechstudio/grid-uikit's theme.css, so
+// the user edits real, currently-applied values instead of a blank slate.
+export const DEFAULT_CUSTOM_THEME_CSS = `:root {
+  --foreground: #e3e3e3;
+  --background: #1f1f1f;
+  --shadow: #000;
+
+  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
+  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
+  --foreground-disabled: color-mix(in srgb, var(--foreground) 30%, var(--background) 70%);
+
+  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
+  --background-soft: color-mix(in srgb, var(--background), var(--shadow) 50%);
+
+  --border: #6a6a6a;
+  --accent: #0ba484;
+  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
+  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
+
+  --focus: #ffffff6a;
+  --focus-outline: 1px solid var(--focus);
+  --focus-offset: 1px;
+
+  --error: #ff0000;
+
+  --popover-background: color-mix(in srgb, var(--background), rgba(0, 0, 0, 1) 70%);
+  --popover-selection: var(--background-muted);
+  --popover-reference: var(--background-soft);
+
+  --radius: 0em;
+  --border-thickness: 1px;
+}
+`;
+
+// Real per-preset source, copied from the `html[color-scheme="X"]` override
+// blocks in @intechstudio/grid-uikit's theme.css. Each only overrides a
+// subset of variables — the rest (derived color-mix() values included) fall
+// through to the dark `:root` block above via the normal CSS cascade, which
+// is why these read shorter than DEFAULT_CUSTOM_THEME_CSS.
+export const THEME_PRESET_CSS: Record<string, string> = {
+  dark: DEFAULT_CUSTOM_THEME_CSS,
+  moss: `:root {
+  --foreground: #24352c;
+  --background: #e1ebdf;
+  --shadow: #8ca08d;
+
+  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
+  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
+  --foreground-disabled: #5c715f;
+
+  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
+  --background-soft: #b7c9b5;
+
+  --border: #6e8473;
+  --accent: #16735f;
+  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
+  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
+
+  --focus: #16735f80;
+  --focus-outline: 1px solid var(--focus);
+  --focus-offset: 1px;
+
+  --error: #af4355;
+
+  --popover-background: color-mix(in srgb, var(--background), rgba(255, 255, 255, 1) 70%);
+  --popover-selection: var(--background-soft);
+  --popover-reference: var(--background-muted);
+
+  --radius: 0em;
+  --border-thickness: 1px;
+}
+`,
+  sunset: `:root {
+  --foreground: #30194d;
+  --background: #fffaf2;
+  --shadow: #76519a;
+
+  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
+  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
+  --foreground-disabled: #c7bcd2;
+
+  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
+  --background-soft: #d2cac0;
+
+  --border: #69458b;
+  --accent: #e76f2d;
+  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
+  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
+
+  --focus: #69458b80;
+  --focus-outline: 1px solid var(--focus);
+  --focus-offset: 1px;
+
+  --error: #bd3b4c;
+
+  --popover-background: color-mix(in srgb, var(--background), rgba(255, 255, 255, 1) 78%);
+  --popover-selection: var(--background-soft);
+  --popover-reference: var(--background-muted);
+
+  --radius: 0em;
+  --border-thickness: 1px;
+}
+`,
+  icy: `:root {
+  --foreground: #000000;
+  --background: #ffffff;
+  --shadow: #3d5899;
+
+  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
+  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
+  --foreground-disabled: #818282;
+
+  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
+  --background-soft: #d1f6fe;
+
+  --border: #5d8d9b;
+  --accent: #087ea4;
+  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
+  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
+
+  --focus: #087ea480;
+  --focus-outline: 1px solid var(--focus);
+  --focus-offset: 1px;
+
+  --error: #b74c61;
+
+  --popover-background: color-mix(in srgb, var(--background), rgba(255, 255, 255, 1) 82%);
+  --popover-selection: var(--background-soft);
+  --popover-reference: var(--background-muted);
+
+  --radius: 0em;
+  --border-thickness: 1px;
+}
+`,
+};
+
 const persistentDefaultValues = {
   userId: "",
   size: 1.0,
@@ -62,6 +199,8 @@ const persistentDefaultValues = {
   lastActiveVersion: undefined,
   lightMode: false,
   theme: "dark",
+  customThemeCss: DEFAULT_CUSTOM_THEME_CSS,
+  showThemeSource: false,
   userLevelMinimalist: true,
   minimapToggled: false,
   eventsLoaded: false,
@@ -214,9 +353,16 @@ async function init_appsettings() {
           if (
             key === "theme" &&
             (typeof value !== "string" ||
-              !["dark", "moss", "sunset", "icy"].includes(value))
+              !["dark", "moss", "sunset", "icy", "custom"].includes(value))
           ) {
             value = "dark";
+          }
+
+          if (
+            key === "customThemeCss" &&
+            (typeof value !== "string" || value.trim() === "")
+          ) {
+            value = DEFAULT_CUSTOM_THEME_CSS;
           }
 
           if (key === "pageActivatorInterval" && value === undefined) {
