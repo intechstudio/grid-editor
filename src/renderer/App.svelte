@@ -8,7 +8,11 @@
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
-  import { appSettings, splitpanes } from "./runtime/app-helper.store";
+  import {
+    appSettings,
+    splitpanes,
+    THEME_PRESET_CSS,
+  } from "./runtime/app-helper.store";
 
   import NavTabs from "./main/NavTabs.svelte";
 
@@ -64,11 +68,11 @@
   }
 
   $: applyTheme($appSettings.persistent.theme);
-  $: applyCustomThemeCss(
+  $: applyThemeCss(
     $appSettings.persistent.theme,
     $appSettings.persistent.customThemeCss,
   );
-  // Declared after applyTheme/applyCustomThemeCss above: Svelte preserves
+  // Declared after applyTheme/applyThemeCss above: Svelte preserves
   // source order for reactive statements with no interdependencies, and
   // this one needs the DOM already carrying the new theme's CSS variables
   // by the time it reads --foreground. Keyed off theme/customThemeCss
@@ -100,23 +104,33 @@
     window.electron.theme.set(theme);
   }
 
-  let customThemeStyleEl: HTMLStyleElement | undefined;
+  let themeStyleEl: HTMLStyleElement | undefined;
 
-  // Injects the user's CSS-variable overrides as a style element appended
-  // after grid-uikit's theme.css, so plain source-order (equal :root
-  // specificity) lets it win without needing !important.
-  function applyCustomThemeCss(theme: string, css: string) {
-    if (theme !== "custom") {
-      customThemeStyleEl?.remove();
-      customThemeStyleEl = undefined;
+  // grid-uikit's theme.css only ships "dark" (:root, no attribute needed)
+  // and "light" (which the editor doesn't use) — every named preset the
+  // editor offers (Moss/Sunset/Icy, same as Custom) is defined entirely on
+  // this side (THEME_PRESET_CSS) and applied by injecting it as a style
+  // element appended after grid-uikit's theme.css, so plain source-order
+  // (equal :root specificity) lets it win without needing !important.
+  function applyThemeCss(theme: string, customThemeCss: string) {
+    const css =
+      theme === "dark"
+        ? undefined
+        : theme === "custom"
+          ? customThemeCss
+          : THEME_PRESET_CSS[theme];
+
+    if (!css) {
+      themeStyleEl?.remove();
+      themeStyleEl = undefined;
       return;
     }
-    if (!customThemeStyleEl) {
-      customThemeStyleEl = document.createElement("style");
-      customThemeStyleEl.id = "custom-theme-overrides";
-      document.head.appendChild(customThemeStyleEl);
+    if (!themeStyleEl) {
+      themeStyleEl = document.createElement("style");
+      themeStyleEl.id = "theme-overrides";
+      document.head.appendChild(themeStyleEl);
     }
-    customThemeStyleEl.textContent = css;
+    themeStyleEl.textContent = css;
   }
 
   function resize() {

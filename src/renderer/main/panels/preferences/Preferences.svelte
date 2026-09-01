@@ -1,6 +1,6 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import { appSettings } from "../../../runtime/app-helper.store";
+  import { appSettings, THEME_NAMES } from "../../../runtime/app-helper.store";
 
   import {
     BlockBody,
@@ -19,6 +19,15 @@
   import { Grid } from "../../../lib/_utils";
   import CustomThemeEditor from "./CustomThemeEditor.svelte";
   const configuration = window.ctxProcess.configuration();
+
+  // Derived from THEME_NAMES (app-helper.store.ts) so the radio always
+  // matches the actual set of valid theme values — no separate hardcoded
+  // list to keep in sync. Every name here is a single lowercase word, so a
+  // plain capitalize is enough for the display title.
+  const themeOptions = THEME_NAMES.map((value) => ({
+    title: value.charAt(0).toUpperCase() + value.slice(1),
+    value,
+  }));
 
   // "Open hidden in the tray" only works reliably on Windows. macOS has no tray
   // (only the dock) and many Linux desktops (e.g. GNOME/Wayland) have no system
@@ -109,13 +118,7 @@
       <MeltRadio
         bind:target={$appSettings.persistent.theme}
         orientation={"horizontal"}
-        options={[
-          { title: "Dark", value: "dark" },
-          { title: "Moss", value: "moss" },
-          { title: "Sunset", value: "sunset" },
-          { title: "Icy", value: "icy" },
-          { title: "Custom", value: "custom" },
-        ]}
+        options={themeOptions}
       />
       <MeltCheckbox
         bind:target={$appSettings.persistent.showThemeSource}

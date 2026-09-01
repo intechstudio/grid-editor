@@ -2,6 +2,9 @@ import { writable, get, readable, type Writable } from "svelte/store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
 import { Modal } from "../main/modals/modal.store";
+import mossThemeCss from "../../content/theme/moss.css?raw";
+import sunsetThemeCss from "../../content/theme/sunset.css?raw";
+import icyThemeCss from "../../content/theme/icy.css?raw";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -46,107 +49,31 @@ export const DEFAULT_CUSTOM_THEME_CSS = `:root {
 }
 `;
 
-// Real per-preset source, copied from the `html[color-scheme="X"]` override
-// blocks in @intechstudio/grid-uikit's theme.css. Each only overrides a
-// subset of variables — the rest (derived color-mix() values included) fall
-// through to the dark `:root` block above via the normal CSS cascade, which
-// is why these read shorter than DEFAULT_CUSTOM_THEME_CSS.
+// The editor's own named theme presets, each a real .css file under
+// src/content/theme/ (imported as raw text via Vite's `?raw` suffix — no
+// custom module declaration needed, vite/client already declares `*?raw`).
+// grid-uikit's theme.css only ships "dark" (the :root defaults
+// DEFAULT_CUSTOM_THEME_CSS mirrors) and "light" (which the editor doesn't
+// use) — Moss/Sunset/Icy are defined and owned entirely here, applied at
+// runtime by App.svelte's applyThemeCss(), same mechanism as Custom. Each
+// is a full, self-contained :root block (every variable explicit, not just
+// what differs from dark) so it doesn't depend on cascading from
+// grid-uikit's :root, and so every variable is visible and editable in the
+// "Show theme source" editor regardless of which preset is selected.
 export const THEME_PRESET_CSS: Record<string, string> = {
   dark: DEFAULT_CUSTOM_THEME_CSS,
-  moss: `:root {
-  --foreground: #24352c;
-  --background: #e1ebdf;
-  --shadow: #8ca08d;
-
-  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
-  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
-  --foreground-disabled: #5c715f;
-
-  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
-  --background-soft: #b7c9b5;
-
-  --border: #6e8473;
-  --accent: #16735f;
-  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
-  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
-
-  --focus: #16735f80;
-  --focus-outline: 1px solid var(--focus);
-  --focus-offset: 1px;
-
-  --error: #af4355;
-
-  --popover-background: color-mix(in srgb, var(--background), rgba(255, 255, 255, 1) 70%);
-  --popover-selection: var(--background-soft);
-  --popover-reference: var(--background-muted);
-
-  --radius: 0em;
-  --border-thickness: 1px;
-}
-`,
-  sunset: `:root {
-  --foreground: #30194d;
-  --background: #fffaf2;
-  --shadow: #76519a;
-
-  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
-  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
-  --foreground-disabled: #c7bcd2;
-
-  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
-  --background-soft: #d2cac0;
-
-  --border: #69458b;
-  --accent: #e76f2d;
-  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
-  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
-
-  --focus: #69458b80;
-  --focus-outline: 1px solid var(--focus);
-  --focus-offset: 1px;
-
-  --error: #bd3b4c;
-
-  --popover-background: color-mix(in srgb, var(--background), rgba(255, 255, 255, 1) 78%);
-  --popover-selection: var(--background-soft);
-  --popover-reference: var(--background-muted);
-
-  --radius: 0em;
-  --border-thickness: 1px;
-}
-`,
-  icy: `:root {
-  --foreground: #000000;
-  --background: #ffffff;
-  --shadow: #3d5899;
-
-  --foreground-muted: color-mix(in srgb, var(--foreground) 70%, var(--background) 30%);
-  --foreground-soft: color-mix(in srgb, var(--foreground) 50%, var(--background) 50%);
-  --foreground-disabled: #818282;
-
-  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
-  --background-soft: #d1f6fe;
-
-  --border: #5d8d9b;
-  --accent: #087ea4;
-  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
-  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
-
-  --focus: #087ea480;
-  --focus-outline: 1px solid var(--focus);
-  --focus-offset: 1px;
-
-  --error: #b74c61;
-
-  --popover-background: color-mix(in srgb, var(--background), rgba(255, 255, 255, 1) 82%);
-  --popover-selection: var(--background-soft);
-  --popover-reference: var(--background-muted);
-
-  --radius: 0em;
-  --border-thickness: 1px;
-}
-`,
+  moss: mossThemeCss,
+  sunset: sunsetThemeCss,
+  icy: icyThemeCss,
 };
+
+// Single source of truth for every valid `persistent.theme` value — the
+// named presets above the editor owns, plus "custom" (not a preset, so not
+// a THEME_PRESET_CSS key: its source is the user-owned customThemeCss).
+// Drives both the Color Theme radio's options (Preferences.svelte) and the
+// stored-value validation below, so adding/removing/renaming a preset only
+// means touching THEME_PRESET_CSS.
+export const THEME_NAMES = [...Object.keys(THEME_PRESET_CSS), "custom"];
 
 const persistentDefaultValues = {
   userId: "",
@@ -352,8 +279,7 @@ async function init_appsettings() {
 
           if (
             key === "theme" &&
-            (typeof value !== "string" ||
-              !["dark", "moss", "sunset", "icy", "custom"].includes(value))
+            (typeof value !== "string" || !THEME_NAMES.includes(value))
           ) {
             value = "dark";
           }

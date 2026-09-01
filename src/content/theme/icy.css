@@ -1,0 +1,42 @@
+:root {
+  --foreground: #000000;
+  --background: #ffffff;
+  --shadow: #3d5899;
+
+  --foreground-muted: color-mix(
+    in srgb,
+    var(--foreground) 70%,
+    var(--background) 30%
+  );
+  --foreground-soft: color-mix(
+    in srgb,
+    var(--foreground) 50%,
+    var(--background) 50%
+  );
+  --foreground-disabled: #818282;
+
+  --background-muted: color-mix(in srgb, var(--background), var(--shadow) 20%);
+  --background-soft: #d1f6fe;
+
+  --border: #5d8d9b;
+  --accent: #087ea4;
+  --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%);
+  --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);
+
+  --focus: #087ea480;
+  --focus-outline: 1px solid var(--focus);
+  --focus-offset: 1px;
+
+  --error: #b74c61;
+
+  --popover-background: color-mix(
+    in srgb,
+    var(--background),
+    rgba(255, 255, 255, 1) 82%
+  );
+  --popover-selection: var(--background-soft);
+  --popover-reference: var(--background-muted);
+
+  --radius: 0em;
+  --border-thickness: 1px;
+}
