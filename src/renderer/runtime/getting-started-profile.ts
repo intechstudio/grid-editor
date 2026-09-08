@@ -17,7 +17,7 @@ import { profileLoadProgress } from "./profileLoadProgress";
 import type { GridRuntime } from "./runtime";
 
 // Constants
-const PROFILE_PATTERN = "../../content/*.json";
+const PROFILE_PATTERN = "../../content/preset/*.json";
 const CLASSNAME = "gettingstarted";
 
 // Types

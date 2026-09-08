@@ -35,14 +35,14 @@
   }
 
   // Load profiles from JSON files on component initialization
-  const profileModules = import.meta.glob("../../../content/*.json", {
+  const profileModules = import.meta.glob("../../../content/preset/*.json", {
     eager: true,
     import: "default",
   });
 
   for (const path in profileModules) {
     // Extract profile type and module type from filename
-    // Example: "../../../content/pressure-sensitive-defaults-bu16.json" -> profileType: "pressure-sensitive-defaults", moduleType: "BU16"
+    // Example: "../../../content/preset/pressure-sensitive-defaults-bu16.json" -> profileType: "pressure-sensitive-defaults", moduleType: "BU16"
     const filename = path.split("/").pop();
     const lastHyphen = filename.lastIndexOf("-");
     const dotJson = filename.lastIndexOf(".json");

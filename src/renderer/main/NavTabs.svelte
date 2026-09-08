@@ -60,7 +60,7 @@
         }}
         class="m-1 my-2 w-14 h-14 rounded-lg flex justify-center items-center bg-background-muted"
       >
-        <div class="fill-foreground-muted opacity-75 animate-spin h-5 w-5">
+        <div class="text-foreground-muted opacity-75 animate-spin h-5 w-5">
           <svg
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
