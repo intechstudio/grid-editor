@@ -2,9 +2,7 @@ import { writable, get, readable, type Writable } from "svelte/store";
 import Welcome from "../main/modals/Welcome.svelte";
 import { Grid } from "../lib/_utils";
 import { Modal } from "../main/modals/modal.store";
-import mossThemeCss from "../../content/theme/moss.css?raw";
 import sunsetThemeCss from "../../content/theme/sunset.css?raw";
-import icyThemeCss from "../../content/theme/icy.css?raw";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -54,17 +52,15 @@ export const DEFAULT_CUSTOM_THEME_CSS = `:root {
 // custom module declaration needed, vite/client already declares `*?raw`).
 // grid-uikit's theme.css only ships "dark" (the :root defaults
 // DEFAULT_CUSTOM_THEME_CSS mirrors) and "light" (which the editor doesn't
-// use) — Moss/Sunset/Icy are defined and owned entirely here, applied at
-// runtime by App.svelte's applyThemeCss(), same mechanism as Custom. Each
-// is a full, self-contained :root block (every variable explicit, not just
-// what differs from dark) so it doesn't depend on cascading from
-// grid-uikit's :root, and so every variable is visible and editable in the
-// "Show theme source" editor regardless of which preset is selected.
+// use) — Sunset is defined and owned entirely here, applied at runtime by
+// App.svelte's applyThemeCss(), same mechanism as Custom. It's a full,
+// self-contained :root block (every variable explicit, not just what
+// differs from dark) so it doesn't depend on cascading from grid-uikit's
+// :root, and so every variable is visible and editable in the "Show theme
+// source" editor. (Moss and Icy were removed per QA — 2026-09-08.)
 export const THEME_PRESET_CSS: Record<string, string> = {
   dark: DEFAULT_CUSTOM_THEME_CSS,
-  moss: mossThemeCss,
   sunset: sunsetThemeCss,
-  icy: icyThemeCss,
 };
 
 // Single source of truth for every valid `persistent.theme` value — the

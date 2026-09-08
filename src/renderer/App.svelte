@@ -108,10 +108,10 @@
 
   // grid-uikit's theme.css only ships "dark" (:root, no attribute needed)
   // and "light" (which the editor doesn't use) — every named preset the
-  // editor offers (Moss/Sunset/Icy, same as Custom) is defined entirely on
-  // this side (THEME_PRESET_CSS) and applied by injecting it as a style
-  // element appended after grid-uikit's theme.css, so plain source-order
-  // (equal :root specificity) lets it win without needing !important.
+  // editor offers (Sunset, same as Custom) is defined entirely on this side
+  // (THEME_PRESET_CSS) and applied by injecting it as a style element
+  // appended after grid-uikit's theme.css, so plain source-order (equal
+  // :root specificity) lets it win without needing !important.
   function applyThemeCss(theme: string, customThemeCss: string) {
     const css =
       theme === "dark"

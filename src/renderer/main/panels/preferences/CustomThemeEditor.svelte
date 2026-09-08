@@ -19,8 +19,8 @@
   // itself look like an edit and jump the radio to Custom.
   let isProgrammaticChange = false;
   // "custom" has a persisted, user-owned source (customThemeCss); the named
-  // presets (dark/moss/sunset/icy) show their own real override block from
-  // grid-uikit's theme.css (see THEME_PRESET_CSS).
+  // presets (dark/sunset) show their own editor-owned CSS (see
+  // THEME_PRESET_CSS in app-helper.store.ts).
   function sourceForTheme(theme: string): string {
     if (theme === "custom") {
       return $appSettings.persistent.customThemeCss || DEFAULT_CUSTOM_THEME_CSS;
