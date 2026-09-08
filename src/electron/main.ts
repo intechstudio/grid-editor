@@ -481,6 +481,13 @@ function createApplicationMenu() {
         { role: "quit" },
       ],
     },
+    // Electron's default menu supplies this on its own; since we replace the
+    // whole application menu above, we have to bring it back explicitly.
+    // Without it, Cmd+C/Cmd+V/Cmd+X/Cmd+A/Cmd+Z in any native text input
+    // silently do nothing on macOS: those shortcuts are dispatched through
+    // this OS-level menu's Edit role, not through DOM keydown handling (which
+    // is why the same inputs work fine on Linux/Windows without this menu).
+    { role: "editMenu" },
     {
       label: "View",
       submenu: [
