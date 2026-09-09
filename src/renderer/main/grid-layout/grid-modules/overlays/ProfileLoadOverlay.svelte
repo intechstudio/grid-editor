@@ -189,52 +189,53 @@
             GridProfileData.createFromCloudData($selectedConfigStore),
           )}
           <div class="w-fit relative flex flex-col gap-2 items-center">
-            <button
-              on:click={handleProfileLoad}
+            <MoltenPushButton
+              style="accept"
+              click={handleProfileLoad}
               disabled={[
                 ProfileCloudLoad.State.READY,
                 ProfileCloudLoad.State.LOADED,
               ].includes($model.step) === false ||
                 $model.step === ProfileCloudLoad.State.BUSY}
-              class="flex flex-row px-4 py-2 rounded gap-2"
-              class:loaded-element={loaded}
-              class:error-element={$model.step == ProfileCloudLoad.State.ERROR}
             >
-              {#if $model.step === ProfileCloudLoad.State.BUSY && device.dx == $model.target.parent.dx && device.dy == $model.target.parent.dy}
-                {#if $model.phase === "files"}
-                  <span class="text-white mr-1">
-                    Uploading file... {Math.min(
-                      $model.completed + 1,
-                      $model.total,
-                    )}/{$model.total}
-                    {#if $model.fileChunkTotal && $model.fileChunkTotal > 1}
-                      {Math.round(
-                        ($model.fileChunkCurrent / $model.fileChunkTotal) * 100,
-                      )}%
-                    {/if}
-                  </span>
+              <div slot="content" class="flex flex-row items-center gap-2">
+                {#if $model.step === ProfileCloudLoad.State.BUSY && device.dx == $model.target.parent.dx && device.dy == $model.target.parent.dy}
+                  {#if $model.phase === "files"}
+                    <span class="mr-1">
+                      Uploading file... {Math.min(
+                        $model.completed + 1,
+                        $model.total,
+                      )}/{$model.total}
+                      {#if $model.fileChunkTotal && $model.fileChunkTotal > 1}
+                        {Math.round(
+                          ($model.fileChunkCurrent / $model.fileChunkTotal) *
+                            100,
+                        )}%
+                      {/if}
+                    </span>
+                  {:else}
+                    <span>Uploading config...</span>
+                    <span
+                      >{Math.round(
+                        ($model.completed / $model.total) * 100,
+                      )}%</span
+                    >
+                  {/if}
+                {:else if $model.step === ProfileCloudLoad.State.ERROR}
+                  <span>Error!</span>
+                {:else if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
+                  {#if loaded}
+                    <span class="mr-2">Re-Load Profile</span>
+                    <SvgIcon fill="currentColor" iconPath={"download"} />
+                  {:else}
+                    <span class="mr-2">Load Profile</span>
+                    <SvgIcon fill="currentColor" iconPath={"download"} />
+                  {/if}
                 {:else}
-                  <span class="text-white">Uploading config...</span>
-                  <span
-                    >{Math.round(
-                      ($model.completed / $model.total) * 100,
-                    )}%</span
-                  >
+                  System is busy...
                 {/if}
-              {:else if $model.step === ProfileCloudLoad.State.ERROR}
-                <span class="text-white">Error!</span>
-              {:else if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
-                {#if loaded}
-                  <span class="text-white mr-2">Re-Load Profile</span>
-                  <SvgIcon fill="#FFF" iconPath={"download"} />
-                {:else}
-                  <span class="text-white mr-2">Load Profile</span>
-                  <SvgIcon fill="#FFF" iconPath={"download"} />
-                {/if}
-              {:else}
-                System is busy...
-              {/if}
-            </button>
+              </div>
+            </MoltenPushButton>
 
             {#if isTourAvailable($page, $selectedConfigStore) && $model.step !== ProfileCloudLoad.State.BUSY}
               <MoltenPushButton
@@ -279,28 +280,3 @@
     </div>
   {/if}
 </container>
-
-<style>
-  :root {
-    --profile-load-color: rgb(28, 138, 114);
-    --profile-load-hover-color: rgba(11, 164, 132, 1);
-    --profile-load-success-color: rgba(100, 100, 100, 1);
-    --profile-load-error-color: #dc2626;
-  }
-
-  button {
-    background-color: var(--profile-load-color);
-  }
-
-  button:not(:disabled):hover {
-    background-color: var(--profile-load-hover-color);
-  }
-
-  button.loaded-element {
-    background-color: var(--profile-load-success-color);
-  }
-
-  button.error-element {
-    background-color: var(--profile-load-error-color);
-  }
-</style>
