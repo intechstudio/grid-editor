@@ -91,6 +91,12 @@
 
     appSettings.update((s) => {
       s.firmwareNotificationState = value.code;
+      if (state === 3 && typeof value.message === "string") {
+        s.firmwareBootloaderLabel = value.message.replace(
+          /\s+is detected!?$/i,
+          "",
+        );
+      }
       return s;
     });
 

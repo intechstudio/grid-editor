@@ -51,6 +51,10 @@ function getSerialFilter(): SerialPortFilter[] {
       usbProductId: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID),
     },
     {
+      usbVendorId: parseInt(configuration.BOOTLOADER_RP2350_GENERIC_VID),
+      usbProductId: parseInt(configuration.BOOTLOADER_RP2350_GENERIC_PID),
+    },
+    {
       usbVendorId: parseInt(configuration.BOOTLOADER_GRID_RP2350_VID),
       usbProductId: parseInt(configuration.BOOTLOADER_GRID_RP2350_PID),
     },
