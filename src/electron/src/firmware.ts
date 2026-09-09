@@ -7,10 +7,34 @@ export const firmware = {
   mainWindow: undefined,
 };
 
+export type BootloaderInfo = {
+  path: string;
+  architecture: "d51" | "esp32" | "rp2350";
+  product: "grid" | "knot";
+  label: string;
+};
+
 /**
- * Find bootloader path using pure Node.js (no native dependencies)
+ * Send the "a bootloader was just found" UI notification. Only call this for
+ * a genuinely fresh detection (see main.ts's USB-connect trigger and startup
+ * check) — findBootloaderPathNative itself is a pure lookup and must not be
+ * relied on to broadcast this as a side effect of being called.
  */
-export async function findBootloaderPathNative() {
+export function notifyBootloaderDetected(info: BootloaderInfo) {
+  firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+    message: `${info.label} bootloader is detected!`,
+    code: 3,
+    path: info.path,
+  });
+}
+
+/**
+ * Find bootloader path using pure Node.js (no native dependencies).
+ * Pure lookup — does not send any UI notification as a side effect.
+ */
+export async function findBootloaderPathNative(): Promise<
+  BootloaderInfo | undefined
+> {
   const platform = os.platform();
   let potentialPaths: string[] = [];
 
@@ -79,45 +103,45 @@ export async function findBootloaderPathNative() {
       // Identify Grid D51 bootloader
       if (data.indexOf("SAMD51N20A-GRID") !== -1) {
         log.info(`Grid D51 bootloader detected at ${mountPath}`);
-        firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-          message: "Grid D51 bootloader is detected!",
-          code: 3,
+        return {
           path: mountPath,
-        });
-        return { path: mountPath, architecture: "d51", product: "grid" };
+          architecture: "d51",
+          product: "grid",
+          label: "Grid D51",
+        };
       }
 
       // Identify Grid ESP32 bootloader
       else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Grid") !== -1) {
         log.info(`Grid ESP32 bootloader detected at ${mountPath}`);
-        firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-          message: "Grid ESP32 bootloader is detected!",
-          code: 3,
+        return {
           path: mountPath,
-        });
-        return { path: mountPath, architecture: "esp32", product: "grid" };
+          architecture: "esp32",
+          product: "grid",
+          label: "Grid ESP32",
+        };
       }
 
       // Identify Knot ESP32 bootloader
       else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Knot") !== -1) {
         log.info(`Knot ESP32 bootloader detected at ${mountPath}`);
-        firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-          message: "Knot ESP32 bootloader is detected!",
-          code: 3,
+        return {
           path: mountPath,
-        });
-        return { path: mountPath, architecture: "esp32", product: "knot" };
+          architecture: "esp32",
+          product: "knot",
+          label: "Knot ESP32",
+        };
       }
 
       // Identify RP2350 bootloader (stock RP2350 ROM UF2 bootloader, no "Grid" marker in INFO_UF2.TXT)
       else if (data.indexOf("RP2350") !== -1) {
         log.info(`Generic RP2350 bootloader detected at ${mountPath}`);
-        firmware.mainWindow.webContents.send("onFirmwareUpdate", {
-          message: "Generic RP2350 bootloader is detected!",
-          code: 3,
+        return {
           path: mountPath,
-        });
-        return { path: mountPath, architecture: "rp2350", product: "grid" };
+          architecture: "rp2350",
+          product: "grid",
+          label: "Generic RP2350",
+        };
       }
 
       // INFO_UF2.TXT exists but not a Grid/Knot device

@@ -89,7 +89,12 @@ import { developerWebsocket } from "./developer_websocket";
 import { startLuaLSServer, stopLuaLSServer } from "./ipcmain_luals";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
-import { firmware, findBootloaderPathNative, writeFirmwareToBootloader } from "./src/firmware";
+import {
+  firmware,
+  findBootloaderPathNative,
+  notifyBootloaderDetected,
+  writeFirmwareToBootloader,
+} from "./src/firmware";
 import { updater, restartAfterUpdate, forceQuitForUpdate } from "./src/updater";
 import {
   libraryDownload,
@@ -104,6 +109,7 @@ import {
 } from "./src/profiles";
 import { fetchReleaseNotes, fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
+import { usb } from "usb";
 
 log.info("App starting...");
 log.info("BUILD ENVS:", import.meta.env);
@@ -117,54 +123,54 @@ let bootloaderDetectionTimeout: NodeJS.Timeout | null = null;
 let bootloaderDetectionRunning = false;
 
 /**
- * Get bootloader VID/PID pairs from configuration
- * @returns Array of bootloader device definitions
+ * Bootloader VID/PID pairs, parsed once from configuration
  */
-function getBootloaderPairs() {
-  return [
-    {
-      vid: parseInt(configuration.BOOTLOADER_GRID_D51_VID, 16),
-      pid: parseInt(configuration.BOOTLOADER_GRID_D51_PID, 16),
-      name: "Grid D51",
-    },
-    {
-      vid: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID, 16),
-      pid: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID, 16),
-      name: "Grid ESP32",
-    },
-    {
-      vid: parseInt(configuration.BOOTLOADER_RP2350_GENERIC_VID, 16),
-      pid: parseInt(configuration.BOOTLOADER_RP2350_GENERIC_PID, 16),
-      name: "Grid RP2350 (Generic)",
-    },
-    {
-      vid: parseInt(configuration.BOOTLOADER_GRID_RP2350_VID, 16),
-      pid: parseInt(configuration.BOOTLOADER_GRID_RP2350_PID, 16),
-      name: "Grid RP2350",
-    },
-    {
-      vid: parseInt(configuration.BOOTLOADER_KNOT_VID, 16),
-      pid: parseInt(configuration.BOOTLOADER_KNOT_PID, 16),
-      name: "Knot",
-    },
-  ];
+const bootloaderPairs = [
+  {
+    vid: parseInt(configuration.BOOTLOADER_GRID_D51_VID, 16),
+    pid: parseInt(configuration.BOOTLOADER_GRID_D51_PID, 16),
+    name: "Grid D51",
+  },
+  {
+    vid: parseInt(configuration.BOOTLOADER_GRID_ESP32_VID, 16),
+    pid: parseInt(configuration.BOOTLOADER_GRID_ESP32_PID, 16),
+    name: "Grid ESP32",
+  },
+  {
+    vid: parseInt(configuration.BOOTLOADER_RP2350_GENERIC_VID, 16),
+    pid: parseInt(configuration.BOOTLOADER_RP2350_GENERIC_PID, 16),
+    name: "Grid RP2350 (Generic)",
+  },
+  {
+    vid: parseInt(configuration.BOOTLOADER_GRID_RP2350_VID, 16),
+    pid: parseInt(configuration.BOOTLOADER_GRID_RP2350_PID, 16),
+    name: "Grid RP2350",
+  },
+  {
+    vid: parseInt(configuration.BOOTLOADER_KNOT_VID, 16),
+    pid: parseInt(configuration.BOOTLOADER_KNOT_PID, 16),
+    name: "Knot",
+  },
+];
+
+/**
+ * Check if a raw USB vendor/product id pair is a bootloader device
+ * @param vid - USB vendor id
+ * @param pid - USB product id
+ * @returns Bootloader info if match found, undefined otherwise
+ */
+function isBootloaderVidPid(vid: number, pid: number) {
+  return bootloaderPairs.find((pair) => {
+    return vid === pair.vid && pid === pair.pid;
+  });
 }
 
 /**
- * Check if a serial port is a bootloader device
- * @param port - Serial port to check
- * @returns Bootloader info if match found, undefined otherwise
+ * Format a USB vendor/product id pair as standard "0xVVVV:0xPPPP" hex
  */
-function isBootloaderPort(port: Electron.SerialPort) {
-  const bootloaderPairs = getBootloaderPairs();
-
-  // Port VID/PID are decimal strings, convert to numbers for comparison
-  const portVid = parseInt(port.vendorId, 10);
-  const portPid = parseInt(port.productId, 10);
-
-  return bootloaderPairs.find((pair) => {
-    return portVid === pair.vid && portPid === pair.pid;
-  });
+function toHexVidPid(vid: number, pid: number) {
+  const hex = (n: number) => `0x${n.toString(16).padStart(4, "0")}`;
+  return `${hex(vid)}:${hex(pid)}`;
 }
 
 /**
@@ -190,6 +196,7 @@ function startBootloaderDetectionService() {
 
     if (result) {
       log.info("Bootloader drive detected successfully, stopping service");
+      notifyBootloaderDetected(result);
       stopBootloaderDetectionService();
       return;
     }
@@ -222,6 +229,55 @@ function stopBootloaderDetectionService() {
     clearTimeout(bootloaderDetectionTimeout);
     bootloaderDetectionTimeout = null;
   }
+}
+
+/**
+ * Raw USB connect/disconnect (backed by native libusb attach/detach) — fires
+ * for any USB device, mass storage included. `usb` is configured with
+ * allowAllDevices, so this is the single trigger for bootloader detection.
+ * Only registered for the surviving primary instance (see gotTheLock below).
+ */
+function registerUsbHotplugListeners() {
+  usb.addEventListener("connect", (event) => {
+    const { vendorId, productId } = event.device;
+
+    // productName/serialNumber read the device's string descriptors, which
+    // aren't guaranteed available for every random device on every platform.
+    let productName: string | null = null;
+    let serialNumber: string | null = null;
+    try {
+      ({ productName, serialNumber } = event.device);
+    } catch (e) {
+      log.warn("Failed to read USB string descriptors:", e);
+    }
+
+    log.info(
+      "USB device connected:",
+      toHexVidPid(vendorId, productId),
+      productName,
+      serialNumber,
+      event.device.deviceClass,
+    );
+
+    const bootloaderInfo = isBootloaderVidPid(vendorId, productId);
+
+    if (bootloaderInfo) {
+      // VID/PID match only means "possibly this bootloader" — Grid RP2350's
+      // bootloader reuses its normal-firmware VID/PID (see USB_PID_3 in
+      // configuration.json), so this fires on every normal boot too.
+      // startBootloaderDetectionService logs the real confirmation once
+      // findBootloaderPathNative verifies the mounted UF2 drive.
+      log.info(
+        `Possible ${bootloaderInfo.name} bootloader, checking for drive...`,
+      );
+      startBootloaderDetectionService();
+    }
+  });
+
+  usb.addEventListener("disconnect", (event) => {
+    const { vendorId, productId } = event.device;
+    log.info("USB device disconnected:", toHexVidPid(vendorId, productId));
+  });
 }
 
 // To avoid context aware flag.
@@ -372,6 +428,8 @@ function handleDeeplinkReturnData(returnData: string) {
 if (!gotTheLock) {
   app.quit();
 } else {
+  registerUsbHotplugListeners();
+
   app.on(
     "second-instance",
     (event, commandLine, workingDirectory, additionalData) => {
@@ -630,24 +688,14 @@ function createWindow() {
   // Setup custom log transport to forward logs to renderer
   setupRendererLogTransport();
 
-  // Check for bootloader and trigger detection
-  mainWindow.webContents.session.on("serial-port-added", (event, port) => {
-    log.info("Serial port added:", port);
-
-    // Check if this port is a bootloader
-    const bootloaderInfo = isBootloaderPort(port);
-
-    if (bootloaderInfo) {
-      log.info(`Found ${bootloaderInfo.name} bootloader`);
-      startBootloaderDetectionService();
+  // Initial check, covers a bootloader device already plugged in before the
+  // app started (so no USB connect event ever fired for it).
+  setTimeout(async () => {
+    const result = await findBootloaderPathNative();
+    if (result) {
+      notifyBootloaderDetected(result);
     }
-  });
-
-  mainWindow.webContents.session.on("serial-port-removed", (event, port) => {
-    log.info("Serial port removed:", port);
-  });
-
-  setTimeout(findBootloaderPathNative, 10000); // Initial check
+  }, 10000);
 
   ipcMain.on("restartAfterUpdate", () => {
     log.info('Calling "restartAfterUpdate" from main.ts');

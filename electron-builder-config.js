@@ -13,6 +13,12 @@ function productNameByWorkflow() {
 
 const config = {
   asar: true,
+  // The `usb` native dependency ships prebuilt binaries per platform; these
+  // three settings stop electron-builder from recompiling it (required by
+  // the package's own docs — a rebuild here can produce a broken binary).
+  buildDependenciesFromSource: true,
+  nodeGypRebuild: false,
+  npmRebuild: false,
   appId: "intechstudio.grid-editor.app",
   productName: productNameByWorkflow(),
   copyright: "Copyright © Intech Studio Ltd.",
