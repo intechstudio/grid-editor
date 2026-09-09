@@ -138,6 +138,14 @@
           ) {
             firmwareFile = file;
             break;
+          } else if (
+            !useMultiarch &&
+            architecture === "rp2350" &&
+            filename.includes("rp2350") &&
+            filename.includes("grid")
+          ) {
+            firmwareFile = file;
+            break;
           }
         } else if (product === "knot") {
           if (filename.includes("knot")) {
@@ -250,7 +258,11 @@
       {/if}
       {#if $appSettings.firmwareNotificationState === 3}
         <div class="flex flex-col items-center">
-          <span class="text-foreground-soft">An update is available</span>
+          <span class="text-foreground-soft"
+            >{$appSettings.firmwareBootloaderLabel
+              ? `${$appSettings.firmwareBootloaderLabel} detected`
+              : "An update is available"}</span
+          >
           <span class="text-lg">Do you want to update your firmware?</span>
         </div>
 

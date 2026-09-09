@@ -76,36 +76,31 @@ async function fetchBinaryFile(url: string): Promise<ArrayBuffer> {
 
 /**
  * Get the recommended Grid firmware URL for a specific architecture
- * @param architecture - 'esp32' or 'd51'
+ * @param architecture - 'esp32', 'd51', or 'rp2350'
  * @returns URL string for the recommended firmware version
  */
 export function getGridRecommendedFirmwareUrl(
-  architecture: "esp32" | "d51",
+  architecture: "esp32" | "d51" | "rp2350",
 ): string {
   const configuration = window.ctxProcess.configuration();
 
-  let version: string;
-  if (architecture === "esp32") {
-    version = `v${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH}`;
-  } else {
-    version = `v${configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH}`;
-  }
-
-  return `${configuration.FIRMWARE_GRID_URL_BEGINING}${version}${configuration.FIRMWARE_GRID_URL_END}`;
+  return `${configuration.FIRMWARE_GRID_URL_BEGINING}${getGridRecommendedVersion(architecture)}${configuration.FIRMWARE_GRID_URL_END}`;
 }
 
 /**
  * Get the recommended Grid firmware version string for a specific architecture
- * @param architecture - 'esp32' or 'd51'
+ * @param architecture - 'esp32', 'd51', or 'rp2350'
  * @returns Version string (e.g., "v1.4.1")
  */
 export function getGridRecommendedVersion(
-  architecture: "esp32" | "d51",
+  architecture: "esp32" | "d51" | "rp2350",
 ): string {
   const configuration = window.ctxProcess.configuration();
 
   if (architecture === "esp32") {
     return `v${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH}`;
+  } else if (architecture === "rp2350") {
+    return `v${configuration.FIRMWARE_GRID_RP2350_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_RP2350_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_RP2350_REQUIRED_PATCH}`;
   } else {
     return `v${configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR}.${configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH}`;
   }

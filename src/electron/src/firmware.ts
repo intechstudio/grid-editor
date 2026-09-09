@@ -109,6 +109,17 @@ export async function findBootloaderPathNative() {
         return { path: mountPath, architecture: "esp32", product: "knot" };
       }
 
+      // Identify RP2350 bootloader (stock RP2350 ROM UF2 bootloader, no "Grid" marker in INFO_UF2.TXT)
+      else if (data.indexOf("RP2350") !== -1) {
+        log.info(`Generic RP2350 bootloader detected at ${mountPath}`);
+        firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+          message: "Generic RP2350 bootloader is detected!",
+          code: 3,
+          path: mountPath,
+        });
+        return { path: mountPath, architecture: "rp2350", product: "grid" };
+      }
+
       // INFO_UF2.TXT exists but not a Grid/Knot device
       else {
         log.debug(`Found UF2 device at ${mountPath} but not Grid/Knot`);

@@ -21,6 +21,12 @@
   fileFilter={(file) => file.filename.startsWith("grid_d51")}
 />
 
+<FirmwareDownloadOption
+  title={`Grid RP2350 Recommended (${getGridRecommendedVersion("rp2350")})`}
+  downloadUrl={getGridRecommendedFirmwareUrl("rp2350")}
+  fileFilter={(file) => file.filename.startsWith("grid_rp2350")}
+/>
+
 {#if $appSettings.persistent.nightlyFirmware}
   <FirmwareDownloadOption
     title="Grid Nightly"
