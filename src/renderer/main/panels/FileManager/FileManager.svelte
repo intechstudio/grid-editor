@@ -29,6 +29,11 @@
   // Monaco language id for Grid Lua files.
   const LUA_LANGUAGE_ID = "intech_lua";
 
+  // Electron's sandbox blocks File System Access API writes even where the
+  // API exists, so imports there fall back to hidden <input type="file">
+  // pickers — same split as theme CSS import/export (CustomThemeEditor.svelte).
+  const isElectron = import.meta.env.VITE_BUILD_TARGET !== "web";
+
   let selectedModule: string = "";
   let moduleOptions: Array<{ title: string; value: string }> = [];
 
@@ -381,6 +386,224 @@
     }
   }
 
+  // ── File export (to OS) ─────────────────────────────────────────────────
+
+  let exporting = false;
+
+  // Exports rawContent (the exact on-device bytes, before any Lua
+  // expand/compress transform) so the downloaded file matches what's
+  // actually stored — same byte-per-char convention as writeFileContent's
+  // reverse, readBytesAsString.
+  async function exportFile() {
+    if (!selectedEntry || rawContent === null) return;
+    exporting = true;
+    error = null;
+    try {
+      const bytes = new Uint8Array(rawContent.length);
+      for (let i = 0; i < rawContent.length; i++) {
+        bytes[i] = rawContent.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "application/octet-stream" });
+      const filename = selectedEntry;
+
+      if (!isElectron && window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      }
+      // Electron (and any browser without the File System Access API): the
+      // same anchor-tag download trick used for firmware saves
+      // (firmware_update.ts saveFile()) and theme CSS export
+      // (CustomThemeEditor.svelte) — Electron's sandbox blocks
+      // createWritable() even when showSaveFilePicker is available.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      if ((e as DOMException)?.name !== "AbortError") error = String(e);
+    } finally {
+      exporting = false;
+    }
+  }
+
+  // ── File import (from OS) ────────────────────────────────────────────────
+
+  let importing = false;
+  let importProgress: {
+    current: number;
+    total: number;
+    name: string;
+    chunkCurrent: number;
+    chunkTotal: number;
+  } | null = null;
+  let importFileInput: HTMLInputElement;
+  let importFolderInput: HTMLInputElement;
+
+  // Any subfolders an import needs (from relative paths like "sub/file.lua")
+  // must exist on the module before writeFileContent can target them.
+  async function ensureDirectories(relPaths: string[]) {
+    const dirs = new Set<string>();
+    for (const relPath of relPaths) {
+      const segments = relPath.split("/").slice(0, -1);
+      let acc = "";
+      for (const segment of segments) {
+        acc = acc ? `${acc}/${segment}` : segment;
+        dirs.add(acc);
+      }
+    }
+    for (const dir of [...dirs].sort(
+      (a, b) => a.split("/").length - b.split("/").length,
+    )) {
+      try {
+        await createDir(currentPath + dir, target!);
+      } catch {
+        // Already exists — fine, directories are created top-down anyway.
+      }
+    }
+  }
+
+  // The module's protocol is byte-oriented — evaluate-parser.ts decodes
+  // replies with String.fromCharCode(byte) for every byte — so content
+  // handed to writeFileContent must use that same one-char-per-byte mapping.
+  // file.text() UTF-8-decodes instead, which turns non-UTF-8 bytes (any
+  // binary file) into replacement characters that corrupt the Lua command
+  // sent over serial and hang the write in an infinite retry loop. Reading
+  // raw bytes and mapping them directly avoids that for both text and
+  // binary files.
+  async function readBytesAsString(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let content = "";
+    const CHUNK = 0x2000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      content += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return content;
+  }
+
+  async function importItems(items: { relPath: string; file: File }[]) {
+    if (!target || items.length === 0) return;
+    importing = true;
+    error = null;
+    const failures: string[] = [];
+    try {
+      await ensureDirectories(items.map((i) => i.relPath));
+      for (let i = 0; i < items.length; i++) {
+        const { relPath, file } = items[i];
+        importProgress = {
+          current: i + 1,
+          total: items.length,
+          name: relPath,
+          chunkCurrent: 0,
+          chunkTotal: 0,
+        };
+        try {
+          const bytes = await readBytesAsString(file);
+          // Match saveFile(): .lua content is authored/edited in expanded
+          // (human-readable) form but the module only runs the compressed
+          // syntax, so it needs the same transform on the way in.
+          const content =
+            detectLanguage(relPath) === LUA_LANGUAGE_ID
+              ? GridScript.compressScript(bytes)
+              : bytes;
+          await writeFileContent(
+            currentPath + relPath,
+            content,
+            target,
+            CHUNK_SIZE,
+            (chunkCurrent, chunkTotal) => {
+              importProgress = { ...importProgress!, chunkCurrent, chunkTotal };
+            },
+          );
+        } catch (e) {
+          failures.push(`${relPath}: ${e}`);
+        }
+      }
+      if (failures.length > 0) {
+        error = `Failed to import:\n${failures.join("\n")}`;
+      }
+    } finally {
+      importing = false;
+      importProgress = null;
+      await listDirectory();
+    }
+  }
+
+  async function importFiles() {
+    if (!isElectron && window.showOpenFilePicker) {
+      try {
+        const handles = await window.showOpenFilePicker({ multiple: true });
+        const files = await Promise.all(handles.map((h) => h.getFile()));
+        await importItems(files.map((f) => ({ relPath: f.name, file: f })));
+      } catch (e) {
+        if ((e as DOMException)?.name !== "AbortError") error = String(e);
+      }
+      return;
+    }
+    // Electron (and any browser without the File System Access API): a
+    // hidden native file input, same fallback used for theme CSS import
+    // (CustomThemeEditor.svelte).
+    importFileInput.click();
+  }
+
+  function handleImportFileInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = "";
+    importItems(files.map((f) => ({ relPath: f.name, file: f })));
+  }
+
+  async function importFolder() {
+    if (!isElectron && window.showDirectoryPicker) {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        const items: { relPath: string; file: File }[] = [];
+        async function walk(handle: any, prefix: string) {
+          for await (const [name, entry] of handle.entries()) {
+            if (entry.kind === "file") {
+              items.push({
+                relPath: prefix + name,
+                file: await entry.getFile(),
+              });
+            } else {
+              await walk(entry, `${prefix}${name}/`);
+            }
+          }
+        }
+        await walk(dirHandle, "");
+        await importItems(items);
+      } catch (e) {
+        if ((e as DOMException)?.name !== "AbortError") error = String(e);
+      }
+      return;
+    }
+    // Electron fallback: webkitdirectory input yields a flat FileList where
+    // each entry's webkitRelativePath is "<pickedFolderName>/sub/file.ext" —
+    // strip that leading segment to match the web picker's relative paths.
+    importFolderInput.click();
+  }
+
+  function handleImportFolderInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = "";
+    const items = files.map((f) => {
+      const parts = (f as any).webkitRelativePath.split("/");
+      parts.shift();
+      return { relPath: parts.join("/"), file: f };
+    });
+    importItems(items);
+  }
+
   // ── File operations ────────────────────────────────────────────────────────
 
   type OpType = "newFile" | "newFolder" | "copy" | "rename";
@@ -548,6 +771,21 @@
   </div>
 
   {#if target}
+    <input
+      bind:this={importFileInput}
+      type="file"
+      multiple
+      class="hidden"
+      onchange={handleImportFileInput}
+    />
+    <input
+      bind:this={importFolderInput}
+      type="file"
+      webkitdirectory
+      multiple
+      class="hidden"
+      onchange={handleImportFolderInput}
+    />
     <!-- Operations row -->
     {#if activeOp}
       <div class="flex flex-col gap-1">
@@ -581,6 +819,20 @@
           text="New Folder"
         />
         <MoltenPushButton
+          click={importFiles}
+          text={importing
+            ? `${importProgress?.current ?? 0}/${importProgress?.total ?? 0}`
+            : "Import File(s)"}
+          disabled={importing}
+        />
+        <MoltenPushButton
+          click={importFolder}
+          text={importing
+            ? `${importProgress?.current ?? 0}/${importProgress?.total ?? 0}`
+            : "Import Folder"}
+          disabled={importing}
+        />
+        <MoltenPushButton
           click={() => startOp("copy")}
           text="Copy"
           disabled={!selectedEntry ||
@@ -602,6 +854,15 @@
             selectedEntry === ".."}
         />
       </div>
+    {/if}
+
+    {#if importProgress}
+      <p class="text-base opacity-50 font-mono truncate">
+        Importing {importProgress.current}/{importProgress.total}: {importProgress.name}
+        {#if importProgress.chunkTotal > 0}
+          ({importProgress.chunkCurrent}/{importProgress.chunkTotal} chunks)
+        {/if}
+      </p>
     {/if}
 
     <!-- Path breadcrumb -->
@@ -681,6 +942,11 @@
       <div class="w-28">
         <MeltSelect bind:target={selectedLanguage} options={languageOptions} />
       </div>
+      <MoltenPushButton
+        click={exportFile}
+        text={exporting ? "..." : "Export"}
+        disabled={rawContent === null || exporting}
+      />
       <MoltenPushButton
         click={() => {
           fileContent = savedContent;

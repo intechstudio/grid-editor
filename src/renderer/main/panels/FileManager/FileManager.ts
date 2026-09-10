@@ -13,8 +13,14 @@ function luaEscape(s: string): string {
     .replace(/"/g, '\\"')
     .replace(/\n/g, "\\n")
     .replace(/\r/g, "\\r")
-    .replace(/\0/g, "\\0")
-    .replace(/[\x01-\x1f\x7f-\xff]/g, (c) => `\\${c.charCodeAt(0)}`);
+    .replace(
+      /[\x00-\x1f\x7f-\xff]/g,
+      // Zero-padded to exactly 3 digits: Lua's \ddd escape greedily reads up
+      // to 3 decimal digits, so an unpadded "\0" (or "\5") followed by a
+      // literal digit byte would misparse as one escape covering both bytes
+      // (e.g. "\05" = byte 5) instead of two separate bytes.
+      (c) => `\\${c.charCodeAt(0).toString().padStart(3, "0")}`,
+    );
 }
 
 export async function writeFileContent(
@@ -33,10 +39,26 @@ export async function writeFileContent(
   }
   if (rawChunks.length === 0) rawChunks.push("");
 
+  // Explicitly clear any stale tmp file before writing — chunk 0 opens
+  // with "w", but relying on that alone to truncate a pre-existing file
+  // (rather than just opening it at position 0) depends on unverified
+  // platform fopen semantics. os.remove on a path that doesn't exist is a
+  // safe no-op, and idempotent under sendToGrid's blind retry-on-timeout.
+  await module.execLUAImmediateAndEvalaute(
+    `os.remove(${JSON.stringify(tmpPath)})`,
+  );
+
   for (let i = 0; i < rawChunks.length; i++) {
-    const mode = i === 0 ? "w" : "a";
+    const offset = i * chunkSize;
+    const mode = i === 0 ? "w" : "r+";
     const escaped = luaEscape(rawChunks[i]);
-    const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:write("${escaped}") f:close() collectgarbage("collect") return true`;
+    // Absolute-offset seek+write, not append: engine.store.ts's sendToGrid
+    // blindly resends a command on response timeout (the write may have
+    // already landed and only the reply was lost), which is only safe for
+    // idempotent operations. Appending would duplicate the chunk on such a
+    // retry; seeking to a fixed offset makes a retry just overwrite the
+    // same bytes.
+    const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:seek("set",${offset}) f:write("${escaped}") f:close() collectgarbage("collect") return true`;
     const result = await module.execLUAImmediateAndEvalaute(lua, false);
     if (result[0] !== true) {
       throw new Error(`Write failed at chunk ${i + 1}/${rawChunks.length}`);
