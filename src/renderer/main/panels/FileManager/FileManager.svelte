@@ -206,22 +206,60 @@
     }
   }
 
+  // Not a real Monaco language — a marker value meaning "don't render this
+  // as text". Files are readable/writable byte-for-byte regardless of type,
+  // but shoving arbitrary bytes into Monaco as text is just noise for
+  // anything we don't know is text — this is the default for any
+  // extension not in extLanguageMap below. Switching the dropdown to
+  // Plain Text always overrides it and shows the raw source.
+  const NO_PREVIEW_LANGUAGE_ID = "no-preview";
+
+  // Also not a real Monaco language — renders rawContent as an <img> via a
+  // Blob URL instead of showing the editor at all.
+  const IMAGE_LANGUAGE_ID = "image";
+
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
     { title: "Lua", value: LUA_LANGUAGE_ID },
     { title: "TOML", value: "ini" },
+    { title: "Image", value: IMAGE_LANGUAGE_ID },
+    { title: "No Preview", value: NO_PREVIEW_LANGUAGE_ID },
   ];
 
+  const IMAGE_MIME_BY_EXT: Record<string, string> = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    bmp: "image/bmp",
+    webp: "image/webp",
+  };
+
+  // Allowlist of extensions known to be text or image — anything else
+  // defaults to NO_PREVIEW_LANGUAGE_ID (see detectLanguage).
   const extLanguageMap: Record<string, string> = {
     lua: LUA_LANGUAGE_ID,
     toml: "ini",
+    txt: "plaintext",
+    md: "plaintext",
+    json: "plaintext",
+    ini: "plaintext",
+    cfg: "plaintext",
+    log: "plaintext",
+    csv: "plaintext",
+    png: IMAGE_LANGUAGE_ID,
+    jpg: IMAGE_LANGUAGE_ID,
+    jpeg: IMAGE_LANGUAGE_ID,
+    gif: IMAGE_LANGUAGE_ID,
+    bmp: IMAGE_LANGUAGE_ID,
+    webp: IMAGE_LANGUAGE_ID,
   };
 
   let selectedLanguage = "plaintext";
 
   function detectLanguage(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-    return extLanguageMap[ext] ?? "plaintext";
+    return extLanguageMap[ext] ?? NO_PREVIEW_LANGUAGE_ID;
   }
 
   $: if (editor && selectedLanguage) {
@@ -249,6 +287,32 @@
     } else if (lualsContextUri) {
       closeEditorContext(lualsContextUri);
       lualsContextUri = null;
+    }
+  }
+
+  let imagePreviewUrl: string | null = null;
+
+  function revokeImagePreviewUrl() {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      imagePreviewUrl = null;
+    }
+  }
+
+  // Rebuilds the Blob URL whenever the file, its raw bytes, or the chosen
+  // preview mode changes. rawContent is the same byte-per-char string
+  // writeFileContent/fetchFileContent use, so this decodes exactly what's
+  // on the device, not whatever Monaco's model happens to hold.
+  $: {
+    revokeImagePreviewUrl();
+    if (selectedLanguage === IMAGE_LANGUAGE_ID && rawContent !== null) {
+      const bytes = new Uint8Array(rawContent.length);
+      for (let i = 0; i < rawContent.length; i++) {
+        bytes[i] = rawContent.charCodeAt(i);
+      }
+      const ext = selectedEntry?.split(".").pop()?.toLowerCase() ?? "";
+      const blob = new Blob([bytes], { type: IMAGE_MIME_BY_EXT[ext] ?? "" });
+      imagePreviewUrl = URL.createObjectURL(blob);
     }
   }
 
@@ -288,6 +352,7 @@
       lualsContextUri = null;
     }
     fileManagerEditorModel?.dispose();
+    revokeImagePreviewUrl();
   });
 
   $: if (editor) {
@@ -310,6 +375,11 @@
     fileContent = null;
     savedContent = null;
     rawContent = null;
+    // Only depends on the filename, not the fetched bytes — set it before
+    // the await so the dropdown (and the no-preview/image placeholder that
+    // key off it) reflect the new file immediately, not only once the
+    // download finishes.
+    selectedLanguage = detectLanguage(entry);
     try {
       const assembled = await fetchFileContent(
         path,
@@ -320,7 +390,6 @@
         }, // pass callback function to update the downloadProgress
       );
       rawContent = assembled;
-      selectedLanguage = detectLanguage(entry);
       try {
         fileContent =
           selectedLanguage === LUA_LANGUAGE_ID
@@ -973,10 +1042,30 @@
           ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
           : "Reading..."}
       </p>
+    {:else if selectedLanguage === NO_PREVIEW_LANGUAGE_ID}
+      <div
+        class="w-full flex-grow min-h-0 border border-white/20 rounded flex items-center justify-center text-base opacity-50"
+      >
+        No preview available
+      </div>
+    {:else if selectedLanguage === IMAGE_LANGUAGE_ID}
+      <div
+        class="w-full flex-grow min-h-0 border border-white/20 rounded flex items-center justify-center overflow-auto"
+      >
+        {#if imagePreviewUrl}
+          <img
+            src={imagePreviewUrl}
+            alt={selectedEntry ?? ""}
+            class="max-w-full max-h-full object-contain"
+          />
+        {/if}
+      </div>
     {/if}
     <div
       bind:this={monacoElement}
-      class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile
+      class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile ||
+      selectedLanguage === NO_PREVIEW_LANGUAGE_ID ||
+      selectedLanguage === IMAGE_LANGUAGE_ID
         ? 'hidden'
         : ''}"
     ></div>
