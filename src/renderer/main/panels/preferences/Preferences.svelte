@@ -176,13 +176,6 @@
         title={"Enabled"}
       />
 
-      <BlockTitle>Colorful Toolbar</BlockTitle>
-      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.colorfulToolbar}
-        title={"Enabled"}
-      />
-
       <BlockTitle>Scale UI</BlockTitle>
       <BlockBody
         >Scales the font size and control elements dimensions by keeping their

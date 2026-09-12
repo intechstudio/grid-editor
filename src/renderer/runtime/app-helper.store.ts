@@ -111,7 +111,6 @@ const persistentDefaultValues = {
   disableAutoUpdate: false,
   changeOnEvent: "event",
   disableAnimations: false,
-  colorfulToolbar: false,
   packageDeveloper: false,
   actionHelperText: true,
   unreleasedVirtualModules: false,
