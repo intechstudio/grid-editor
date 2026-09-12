@@ -1,7 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { get } from "svelte/store";
-  import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MeltSelect,
+    contextTarget,
+    SvgIcon,
+  } from "@intechstudio/grid-uikit";
+  import { tooltip } from "../../_actions/tooltip";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import type { GridRuntime } from "../../../runtime/runtime";
   import { grid, GridScript } from "@intechstudio/grid-protocol";
@@ -28,6 +34,9 @@
 
   // Monaco language id for Grid Lua files.
   const LUA_LANGUAGE_ID = "intech_lua";
+
+  const iconButtonClass =
+    "flex items-center justify-center p-2 rounded cursor-pointer hover:bg-background-muted disabled:opacity-30 disabled:cursor-default disabled:hover:bg-transparent";
 
   // Electron's sandbox blocks File System Access API writes even where the
   // API exists, so imports there fall back to hidden <input type="file">
@@ -881,47 +890,74 @@
       </div>
     {:else}
       <div class="flex flex-row gap-2 flex-wrap">
-        <MoltenPushButton click={listDirectory} text="Refresh" />
-        <MoltenPushButton click={() => startOp("newFile")} text="New File" />
-        <MoltenPushButton
-          click={() => startOp("newFolder")}
-          text="New Folder"
-        />
-        <MoltenPushButton
-          click={importFiles}
-          text={importing
-            ? `${importProgress?.current ?? 0}/${importProgress?.total ?? 0}`
-            : "Import File(s)"}
-          disabled={importing}
-        />
-        <MoltenPushButton
-          click={importFolder}
-          text={importing
-            ? `${importProgress?.current ?? 0}/${importProgress?.total ?? 0}`
-            : "Import Folder"}
-          disabled={importing}
-        />
-        <MoltenPushButton
-          click={() => startOp("copy")}
-          text="Copy"
+        <button
+          class={iconButtonClass}
+          onclick={listDirectory}
+          use:tooltip={{ text: "Refresh" }}
+        >
+          <SvgIcon iconPath="rotate" fill="var(--foreground)" />
+        </button>
+        <button
+          class={iconButtonClass}
+          onclick={() => startOp("newFile")}
+          use:tooltip={{ text: "New File" }}
+        >
+          <SvgIcon iconPath="file" fill="var(--foreground)" />
+        </button>
+        <button
+          class={iconButtonClass}
+          onclick={() => startOp("newFolder")}
+          use:tooltip={{ text: "New Folder" }}
+        >
+          <SvgIcon iconPath="folder_closed" fill="var(--foreground)" />
+        </button>
+        <div
+          use:tooltip={{
+            text: importing
+              ? `Importing ${importProgress?.current ?? 0}/${importProgress?.total ?? 0}`
+              : "Import one or more files",
+            class: "w-40 p-2",
+            buttons: [
+              { label: "File(s)", handler: importFiles },
+              { label: "Folder", handler: importFolder },
+            ],
+            triggerEvents: ["show-buttons", "hover"],
+          }}
+        >
+          <button class={iconButtonClass} disabled={importing}>
+            <SvgIcon iconPath="importIcon" fill="var(--foreground)" />
+          </button>
+        </div>
+        <button
+          class={iconButtonClass}
+          onclick={() => startOp("copy")}
           disabled={!selectedEntry ||
             selectedEntry === "." ||
             selectedEntry === ".."}
-        />
-        <MoltenPushButton
-          click={() => startOp("rename")}
-          text="Rename"
+          use:tooltip={{ text: "Copy" }}
+        >
+          <SvgIcon iconPath="copy" fill="var(--foreground)" />
+        </button>
+        <button
+          class={iconButtonClass}
+          onclick={() => startOp("rename")}
           disabled={!selectedEntry ||
             selectedEntry === "." ||
             selectedEntry === ".."}
-        />
-        <MoltenPushButton
-          click={deleteSelected}
-          text="Delete"
+          use:tooltip={{ text: "Rename" }}
+        >
+          <SvgIcon iconPath="edit" fill="var(--foreground)" />
+        </button>
+        <button
+          class={iconButtonClass}
+          onclick={deleteSelected}
           disabled={!selectedEntry ||
             selectedEntry === "." ||
             selectedEntry === ".."}
-        />
+          use:tooltip={{ text: "Delete" }}
+        >
+          <SvgIcon iconPath="deleteIcon" fill="var(--foreground)" />
+        </button>
       </div>
     {/if}
 
@@ -972,9 +1008,37 @@
             <button
               class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
               entry.name
-                ? 'bg-white/20'
-                : 'hover:bg-white/10'}"
+                ? 'bg-popover-selection'
+                : 'hover:bg-background-muted'}"
               onclick={() => onEntryClick(entry)}
+              use:contextTarget={{
+                items: [
+                  {
+                    text: ["Rename"],
+                    handler: () => {
+                      selectedEntry = entry.name;
+                      startOp("rename");
+                    },
+                    isDisabled: () => entry.name === "." || entry.name === "..",
+                  },
+                  {
+                    text: ["Copy"],
+                    handler: () => {
+                      selectedEntry = entry.name;
+                      startOp("copy");
+                    },
+                    isDisabled: () => entry.name === "." || entry.name === "..",
+                  },
+                  {
+                    text: ["Delete"],
+                    handler: () => {
+                      selectedEntry = entry.name;
+                      deleteSelected();
+                    },
+                    isDisabled: () => entry.name === "." || entry.name === "..",
+                  },
+                ],
+              }}
             >
               <span class="opacity-50 shrink-0"
                 >{entry.type === "dir" ? "📁" : "📄"}</span
@@ -1022,7 +1086,7 @@
           editor?.setValue(savedContent ?? "");
         }}
         text="Discard"
-        disabled={!fileDirty}
+        disabled={!fileDirty || selectedLanguage === IMAGE_LANGUAGE_ID}
       />
       <div bind:this={saveButton} class="contents">
         <MoltenPushButton
@@ -1032,7 +1096,10 @@
               ? `${uploadProgress.current}/${uploadProgress.total}`
               : "..."
             : "Save"}
-          disabled={!fileDirty || savingFile || !!luaSyntaxError}
+          disabled={!fileDirty ||
+            savingFile ||
+            !!luaSyntaxError ||
+            selectedLanguage === IMAGE_LANGUAGE_ID}
         />
       </div>
     </div>
