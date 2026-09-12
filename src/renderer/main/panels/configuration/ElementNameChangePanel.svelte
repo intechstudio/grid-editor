@@ -1,5 +1,6 @@
 <script lang="ts">
   import { SvgIcon } from "@intechstudio/grid-uikit";
+  import { tooltip } from "../../_actions/tooltip";
   import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import {
     ActionData,
@@ -158,7 +159,7 @@
   </div>
   <div class="flex flex-row items-center justify-end gap-2">
     <button
-      title="Rename element"
+      use:tooltip={{ text: "Rename element" }}
       on:click={() => (isEditingName = !isEditingName)}
       class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded"
     >
