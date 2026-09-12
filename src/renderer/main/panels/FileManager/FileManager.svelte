@@ -992,7 +992,7 @@
                   selectedEntry === "." ||
                   selectedEntry === ".."}
                 iconPath="copy"
-                tooltipText="Copy"
+                tooltipText="Create a copy"
               />
               <IconButton
                 onClick={() => selectedEntry && startRename(selectedEntry)}
@@ -1112,7 +1112,7 @@
                               entry.name === "." || entry.name === "..",
                           },
                           {
-                            text: ["Copy"],
+                            text: ["Create a copy"],
                             handler: () => {
                               selectedEntry = entry.name;
                               startOp("copy");
