@@ -13,8 +13,14 @@ function luaEscape(s: string): string {
     .replace(/"/g, '\\"')
     .replace(/\n/g, "\\n")
     .replace(/\r/g, "\\r")
-    .replace(/\0/g, "\\0")
-    .replace(/[\x01-\x1f\x7f-\xff]/g, (c) => `\\${c.charCodeAt(0)}`);
+    .replace(
+      /[\x00-\x1f\x7f-\xff]/g,
+      // Zero-padded to exactly 3 digits: Lua's \ddd escape greedily reads up
+      // to 3 decimal digits, so an unpadded "\0" (or "\5") followed by a
+      // literal digit byte would misparse as one escape covering both bytes
+      // (e.g. "\05" = byte 5) instead of two separate bytes.
+      (c) => `\\${c.charCodeAt(0).toString().padStart(3, "0")}`,
+    );
 }
 
 export async function writeFileContent(
@@ -22,7 +28,12 @@ export async function writeFileContent(
   content: string,
   module: GridModule,
   chunkSize: number,
-  onProgress?: (current: number, total: number) => void,
+  onProgress?: (
+    current: number,
+    total: number,
+    retries: number,
+    responseTimeout: number,
+  ) => void,
 ): Promise<void> {
   const tmpPath = path + ".tmp";
   const expectedSize = content.length;
@@ -33,25 +44,45 @@ export async function writeFileContent(
   }
   if (rawChunks.length === 0) rawChunks.push("");
 
+  // Explicitly clear any stale tmp file before writing — chunk 0 opens
+  // with "w", but relying on that alone to truncate a pre-existing file
+  // (rather than just opening it at position 0) depends on unverified
+  // platform fopen semantics. os.remove on a path that doesn't exist is a
+  // safe no-op, and idempotent under sendToGrid's blind retry-on-timeout.
+  await module.execLUAImmediateAndEvalaute(
+    `os.remove(${JSON.stringify(tmpPath)})`,
+  );
+
   for (let i = 0; i < rawChunks.length; i++) {
-    const mode = i === 0 ? "w" : "a";
+    const offset = i * chunkSize;
+    const mode = i === 0 ? "w" : "r+";
     const escaped = luaEscape(rawChunks[i]);
-    const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:write("${escaped}") f:close() collectgarbage("collect") return true`;
-    const result = await module.execLUAImmediateAndEvalaute(lua, false);
+    // Absolute-offset seek+write, not append: engine.store.ts's sendToGrid
+    // blindly resends a command on response timeout (the write may have
+    // already landed and only the reply was lost), which is only safe for
+    // idempotent operations. Appending would duplicate the chunk on such a
+    // retry; seeking to a fixed offset makes a retry just overwrite the
+    // same bytes.
+    const lua = `local f=io.open(${JSON.stringify(tmpPath)},"${mode}") if not f then return false end f:seek("set",${offset}) f:write("${escaped}") f:close() collectgarbage("collect") return true`;
+    const {
+      value: result,
+      retries,
+      responseTimeout,
+    } = await module.execLUAImmediateAndEvalaute(lua, false);
     if (result[0] !== true) {
       throw new Error(`Write failed at chunk ${i + 1}/${rawChunks.length}`);
     }
-    onProgress?.(i + 1, rawChunks.length);
+    onProgress?.(i + 1, rawChunks.length, retries, responseTimeout);
   }
 
-  const renameResult = await module.execLUAImmediateAndEvalaute(
+  const { value: renameResult } = await module.execLUAImmediateAndEvalaute(
     `return os.rename(${JSON.stringify(tmpPath)}, ${JSON.stringify(path)})`,
   );
   if (renameResult[0] !== true) {
     throw new Error(`Rename failed: ${String(renameResult[1] ?? "unknown")}`);
   }
 
-  const sizeResult = await module.execLUAImmediateAndEvalaute(
+  const { value: sizeResult } = await module.execLUAImmediateAndEvalaute(
     `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local n=0 local c=f:read(256) while c do n=n+#c c=f:read(256) end f:close() return n`,
   );
   if (sizeResult[0] !== expectedSize) {
@@ -74,9 +105,15 @@ export async function fetchFileContent(
   path: string,
   module: GridModule,
   chunkSize: number,
-  onProgress?: (current: number, total: number) => void,
+  onProgress?: (
+    current: number,
+    total: number,
+    retries: number,
+    responseTimeout: number,
+  ) => void,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const sizeResult = await module.execLUAImmediateAndEvalaute(
+  const { value: sizeResult } = await module.execLUAImmediateAndEvalaute(
     `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local n=0 local c=f:read(256) while c do n=n+#c c=f:read(256) end f:close() return n`,
   );
   if (sizeResult[0] == null) {
@@ -87,8 +124,19 @@ export async function fetchFileContent(
   if (fileSize > 0) {
     const totalChunks = Math.ceil(fileSize / chunkSize);
     for (let i = 0; i < totalChunks; i++) {
+      // Can't interrupt a chunk request already in flight (the serial
+      // transport has no cancel primitive), but checking before each new
+      // one stops the read from issuing any further round-trips once the
+      // caller has moved on to a different file.
+      if (signal?.aborted) {
+        throw new DOMException("Read aborted", "AbortError");
+      }
       const offset = i * chunkSize;
-      const result = await module.execLUAImmediateAndEvalaute(
+      const {
+        value: result,
+        retries,
+        responseTimeout,
+      } = await module.execLUAImmediateAndEvalaute(
         `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end f:seek("set",${offset}) local c=f:read(${chunkSize}) f:close() collectgarbage("collect") return c`,
         false,
       );
@@ -96,7 +144,7 @@ export async function fetchFileContent(
         throw new Error(`Read failed at chunk ${i + 1}/${totalChunks}`);
       }
       assembled += String(result[0]);
-      onProgress?.(i + 1, totalChunks);
+      onProgress?.(i + 1, totalChunks, retries, responseTimeout);
     }
   }
   return assembled;
@@ -106,7 +154,7 @@ export async function createFile(
   path: string,
   module: GridModule,
 ): Promise<void> {
-  const result = await module.execLUAImmediateAndEvalaute(
+  const { value: result } = await module.execLUAImmediateAndEvalaute(
     `local f=io.open(${JSON.stringify(path)},"w") if not f then return false end f:close() return true`,
   );
   if (result[0] !== true) {
@@ -118,7 +166,7 @@ export async function createDir(
   path: string,
   module: GridModule,
 ): Promise<void> {
-  const result = await module.execLUAImmediateAndEvalaute(
+  const { value: result } = await module.execLUAImmediateAndEvalaute(
     `return dirent.mkdir(${JSON.stringify(path)})`,
   );
   if (result[0] !== true) {
@@ -133,7 +181,7 @@ export async function renameEntry(
   newPath: string,
   module: GridModule,
 ): Promise<void> {
-  const result = await module.execLUAImmediateAndEvalaute(
+  const { value: result } = await module.execLUAImmediateAndEvalaute(
     `return os.rename(${JSON.stringify(oldPath)}, ${JSON.stringify(newPath)})`,
   );
   if (result[0] !== true) {
@@ -147,7 +195,7 @@ export async function copyFile(
   module: GridModule,
 ): Promise<void> {
   const lua = `local s=io.open(${JSON.stringify(srcPath)},"r") if not s then return false,"open src failed" end local d=io.open(${JSON.stringify(dstPath)},"w") if not d then s:close() return false,"open dst failed" end local c=s:read(256) while c do d:write(c) c=s:read(256) end s:close() d:close() return true`;
-  const result = await module.execLUAImmediateAndEvalaute(lua);
+  const { value: result } = await module.execLUAImmediateAndEvalaute(lua);
   if (result[0] !== true) {
     throw new Error(`Copy failed: ${String(result[1] ?? "unknown error")}`);
   }
@@ -157,7 +205,7 @@ export async function deleteFile(
   path: string,
   module: GridModule,
 ): Promise<void> {
-  const result = await module.execLUAImmediateAndEvalaute(
+  const { value: result } = await module.execLUAImmediateAndEvalaute(
     `return os.remove(${JSON.stringify(path)})`,
   );
   if (result[0] !== true) {
@@ -195,7 +243,7 @@ export async function fetchDirEntries(
       `end ` +
       `return i,o`;
 
-    const result = await module.execLUAImmediateAndEvalaute(script);
+    const { value: result } = await module.execLUAImmediateAndEvalaute(script);
 
     const nextIndex = result[0] as number | null;
 

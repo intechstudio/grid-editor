@@ -110,7 +110,6 @@ const persistentDefaultValues = {
   nightlyEditor: false,
   disableAutoUpdate: false,
   changeOnEvent: "event",
-  sendHeartbeatImmediate: false,
   disableAnimations: false,
   colorfulToolbar: false,
   packageDeveloper: false,

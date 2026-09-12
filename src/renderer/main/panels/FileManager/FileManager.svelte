@@ -1,7 +1,16 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { get } from "svelte/store";
-  import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MeltSelect,
+    contextTarget,
+  } from "@intechstudio/grid-uikit";
+  import { tooltip } from "../../_actions/tooltip";
+  import IconButton from "../../user-interface/IconButton.svelte";
+  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import importFileIcon from "../../../assets/icons/importFile.svg?raw";
+  import exportFileIcon from "../../../assets/icons/ExportFile.svg?raw";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
   import type { GridRuntime } from "../../../runtime/runtime";
   import { grid, GridScript } from "@intechstudio/grid-protocol";
@@ -28,6 +37,11 @@
 
   // Monaco language id for Grid Lua files.
   const LUA_LANGUAGE_ID = "intech_lua";
+
+  // Electron's sandbox blocks File System Access API writes even where the
+  // API exists, so imports there fall back to hidden <input type="file">
+  // pickers — same split as theme CSS import/export (CustomThemeEditor.svelte).
+  const isElectron = import.meta.env.VITE_BUILD_TARGET !== "web";
 
   let selectedModule: string = "";
   let moduleOptions: Array<{ title: string; value: string }> = [];
@@ -93,6 +107,7 @@
       : ["/", ...currentPath.replace(/^\/|\/$/g, "").split("/")];
 
   function navigateTo(path: string) {
+    readAbortController?.abort();
     currentPath = path;
     selectedEntry = null;
     fileContent = null;
@@ -100,6 +115,7 @@
     rawContent = null;
     editor?.setValue("");
     cancelOp();
+    cancelRename();
     listDirectory();
   }
 
@@ -152,8 +168,16 @@
   let rawContent: string | null = null;
   let readingFile = false;
   let downloadProgress: { current: number; total: number } | null = null;
+  // Aborts the chunk-fetch loop of whichever readFile() call is currently in
+  // flight, so switching selection stops issuing further chunk requests for
+  // a file the user no longer has open, instead of letting it run to
+  // completion in the background.
+  let readAbortController: AbortController | null = null;
   let savingFile = false;
-  let uploadProgress: { current: number; total: number } | null = null;
+  let uploadProgress: {
+    current: number;
+    total: number;
+  } | null = null;
 
   $: fileDirty = fileContent !== null && fileContent !== savedContent;
 
@@ -201,22 +225,65 @@
     }
   }
 
+  // Not a real Monaco language — a marker value meaning "don't render this
+  // as text". Files are readable/writable byte-for-byte regardless of type,
+  // but shoving arbitrary bytes into Monaco as text is just noise for
+  // anything we don't know is text — this is the default for any
+  // extension not in extLanguageMap below. Switching the dropdown to
+  // Plain Text always overrides it and shows the raw source.
+  const NO_PREVIEW_LANGUAGE_ID = "no-preview";
+
+  // Also not a real Monaco language — renders rawContent as an <img> via a
+  // Blob URL instead of showing the editor at all.
+  const IMAGE_LANGUAGE_ID = "image";
+
   const languageOptions = [
     { title: "Plain Text", value: "plaintext" },
     { title: "Lua", value: LUA_LANGUAGE_ID },
     { title: "TOML", value: "ini" },
+    { title: "Image", value: IMAGE_LANGUAGE_ID },
+    { title: "No Preview", value: NO_PREVIEW_LANGUAGE_ID },
   ];
 
+  const IMAGE_MIME_BY_EXT: Record<string, string> = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    bmp: "image/bmp",
+    webp: "image/webp",
+  };
+
+  // Allowlist of extensions known to be text or image — anything else
+  // defaults to NO_PREVIEW_LANGUAGE_ID (see detectLanguage).
   const extLanguageMap: Record<string, string> = {
     lua: LUA_LANGUAGE_ID,
     toml: "ini",
+    txt: "plaintext",
+    md: "plaintext",
+    json: "plaintext",
+    ini: "plaintext",
+    cfg: "plaintext",
+    log: "plaintext",
+    csv: "plaintext",
+    png: IMAGE_LANGUAGE_ID,
+    jpg: IMAGE_LANGUAGE_ID,
+    jpeg: IMAGE_LANGUAGE_ID,
+    gif: IMAGE_LANGUAGE_ID,
+    bmp: IMAGE_LANGUAGE_ID,
+    webp: IMAGE_LANGUAGE_ID,
   };
 
   let selectedLanguage = "plaintext";
 
   function detectLanguage(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-    return extLanguageMap[ext] ?? "plaintext";
+    return extLanguageMap[ext] ?? NO_PREVIEW_LANGUAGE_ID;
+  }
+
+  function formatBps(bytes: number, ms: number): string {
+    if (ms <= 0) return "n/a";
+    return `${(bytes / (ms / 1000)).toFixed(1)} B/s`;
   }
 
   $: if (editor && selectedLanguage) {
@@ -247,6 +314,32 @@
     }
   }
 
+  let imagePreviewUrl: string | null = null;
+
+  function revokeImagePreviewUrl() {
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      imagePreviewUrl = null;
+    }
+  }
+
+  // Rebuilds the Blob URL whenever the file, its raw bytes, or the chosen
+  // preview mode changes. rawContent is the same byte-per-char string
+  // writeFileContent/fetchFileContent use, so this decodes exactly what's
+  // on the device, not whatever Monaco's model happens to hold.
+  $: {
+    revokeImagePreviewUrl();
+    if (selectedLanguage === IMAGE_LANGUAGE_ID && rawContent !== null) {
+      const bytes = new Uint8Array(rawContent.length);
+      for (let i = 0; i < rawContent.length; i++) {
+        bytes[i] = rawContent.charCodeAt(i);
+      }
+      const ext = selectedEntry?.split(".").pop()?.toLowerCase() ?? "";
+      const blob = new Blob([bytes], { type: IMAGE_MIME_BY_EXT[ext] ?? "" });
+      imagePreviewUrl = URL.createObjectURL(blob);
+    }
+  }
+
   onMount(() => {
     fileManagerEditorModel = monaco.editor.createModel(
       "",
@@ -267,7 +360,10 @@
       automaticLayout: true,
       wordWrap: "on",
       minimap: { enabled: false },
-      lineNumbers: "on",
+      lineNumbers: "off",
+      lineNumbersMinChars: 0,
+      glyphMargin: false,
+      lineDecorationsWidth: 0,
     });
     editor.onDidChangeModelContent(() => {
       if (fileContent !== null) {
@@ -283,6 +379,7 @@
       lualsContextUri = null;
     }
     fileManagerEditorModel?.dispose();
+    revokeImagePreviewUrl();
   });
 
   $: if (editor) {
@@ -294,28 +391,59 @@
   }
 
   async function readFile(entry: string) {
+    // Stop any read still in flight for a previously-selected item before
+    // starting a new one.
+    readAbortController?.abort();
     if (!target || entry === "." || entry === "..") {
       fileContent = null;
       savedContent = null;
       return;
     }
+    const controller = new AbortController();
+    readAbortController = controller;
     const path = currentPath + entry;
     readingFile = true;
     downloadProgress = null;
     fileContent = null;
     savedContent = null;
     rawContent = null;
+    // Only depends on the filename, not the fetched bytes — set it before
+    // the await so the dropdown (and the no-preview/image placeholder that
+    // key off it) reflect the new file immediately, not only once the
+    // download finishes.
+    selectedLanguage = detectLanguage(entry);
+    let totalChunks = 0;
+    let totalRetries = 0;
+    let lastResponseTimeout = 0;
+    const startTime = performance.now();
     try {
       const assembled = await fetchFileContent(
         path,
         target,
         READ_CHUNK_SIZE,
-        (current, total) => {
+        (current, total, retries, responseTimeout) => {
+          totalChunks = total;
+          totalRetries += retries;
+          lastResponseTimeout = responseTimeout;
           downloadProgress = { current, total };
         }, // pass callback function to update the downloadProgress
+        controller.signal,
       );
+      if (controller.signal.aborted) return;
       rawContent = assembled;
-      selectedLanguage = detectLanguage(entry);
+      const elapsedMs = Math.round(performance.now() - startTime);
+      const retryWaitMs = totalRetries * lastResponseTimeout;
+      const theoreticalMs = Math.max(elapsedMs - retryWaitMs, 0);
+      console.log(
+        `File read complete: ${entry}\n` +
+          `  size: ${assembled.length} B\n` +
+          `  chunks: ${totalChunks}\n` +
+          `  retries: ${totalRetries}\n` +
+          `  timeout: ${lastResponseTimeout} ms\n` +
+          `  duration: ${elapsedMs} ms\n` +
+          `  bytes/sec (effective): ${formatBps(assembled.length, elapsedMs)}\n` +
+          `  bytes/sec (theoretical, excl. retry waits): ${formatBps(assembled.length, theoreticalMs)}`,
+      );
       try {
         fileContent =
           selectedLanguage === LUA_LANGUAGE_ID
@@ -329,12 +457,15 @@
       savedContent = fileContent;
       editor?.setValue(fileContent ?? "");
     } catch (e) {
+      if (controller.signal.aborted) return;
       fileContent = null;
       savedContent = null;
       rawContent = null;
     } finally {
-      readingFile = false;
-      downloadProgress = null;
+      if (!controller.signal.aborted) {
+        readingFile = false;
+        downloadProgress = null;
+      }
     }
   }
 
@@ -357,14 +488,34 @@
         return;
       }
 
+      let totalChunks = 0;
+      let totalRetries = 0;
+      let lastResponseTimeout = 0;
+      const startTime = performance.now();
       await writeFileContent(
         path,
         content,
         target,
         CHUNK_SIZE,
-        (current, total) => {
+        (current, total, retries, responseTimeout) => {
           uploadProgress = { current, total };
+          totalChunks = total;
+          totalRetries += retries;
+          lastResponseTimeout = responseTimeout;
         },
+      );
+      const elapsedMs = Math.round(performance.now() - startTime);
+      const retryWaitMs = totalRetries * lastResponseTimeout;
+      const theoreticalMs = Math.max(elapsedMs - retryWaitMs, 0);
+      console.log(
+        `File write complete: ${selectedEntry}\n` +
+          `  size: ${content.length} B\n` +
+          `  chunks: ${totalChunks}\n` +
+          `  retries: ${totalRetries}\n` +
+          `  timeout: ${lastResponseTimeout} ms\n` +
+          `  duration: ${elapsedMs} ms\n` +
+          `  bytes/sec (effective): ${formatBps(content.length, elapsedMs)}\n` +
+          `  bytes/sec (theoretical, excl. retry waits): ${formatBps(content.length, theoreticalMs)}`,
       );
 
       savedContent = fileContent;
@@ -381,9 +532,239 @@
     }
   }
 
+  // ── File export (to OS) ─────────────────────────────────────────────────
+
+  let exporting = false;
+
+  // Exports rawContent (the exact on-device bytes, before any Lua
+  // expand/compress transform) so the downloaded file matches what's
+  // actually stored — same byte-per-char convention as writeFileContent's
+  // reverse, readBytesAsString.
+  async function exportFile() {
+    if (!selectedEntry || rawContent === null) return;
+    exporting = true;
+    error = null;
+    try {
+      const bytes = new Uint8Array(rawContent.length);
+      for (let i = 0; i < rawContent.length; i++) {
+        bytes[i] = rawContent.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "application/octet-stream" });
+      const filename = selectedEntry;
+
+      if (!isElectron && window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      }
+      // Electron (and any browser without the File System Access API): the
+      // same anchor-tag download trick used for firmware saves
+      // (firmware_update.ts saveFile()) and theme CSS export
+      // (CustomThemeEditor.svelte) — Electron's sandbox blocks
+      // createWritable() even when showSaveFilePicker is available.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      if ((e as DOMException)?.name !== "AbortError") error = String(e);
+    } finally {
+      exporting = false;
+    }
+  }
+
+  // Loads the given entry's content (if not already the open file) before
+  // exporting it — exportFile() reads from rawContent, which only reflects
+  // whatever was last opened via readFile(), not necessarily the entry the
+  // user just right-clicked.
+  async function exportEntry(entry: DirEntry) {
+    if (entry.type === "dir") return;
+    if (selectedEntry !== entry.name) {
+      await readFile(entry.name);
+    }
+    await exportFile();
+  }
+
+  // ── File import (from OS) ────────────────────────────────────────────────
+
+  let importing = false;
+  let importProgress: {
+    current: number;
+    total: number;
+    name: string;
+    chunkCurrent: number;
+    chunkTotal: number;
+  } | null = null;
+  let importFileInput: HTMLInputElement;
+  let importFolderInput: HTMLInputElement;
+
+  // Any subfolders an import needs (from relative paths like "sub/file.lua")
+  // must exist on the module before writeFileContent can target them.
+  async function ensureDirectories(relPaths: string[]) {
+    const dirs = new Set<string>();
+    for (const relPath of relPaths) {
+      const segments = relPath.split("/").slice(0, -1);
+      let acc = "";
+      for (const segment of segments) {
+        acc = acc ? `${acc}/${segment}` : segment;
+        dirs.add(acc);
+      }
+    }
+    for (const dir of [...dirs].sort(
+      (a, b) => a.split("/").length - b.split("/").length,
+    )) {
+      try {
+        await createDir(currentPath + dir, target!);
+      } catch {
+        // Already exists — fine, directories are created top-down anyway.
+      }
+    }
+  }
+
+  // The module's protocol is byte-oriented — evaluate-parser.ts decodes
+  // replies with String.fromCharCode(byte) for every byte — so content
+  // handed to writeFileContent must use that same one-char-per-byte mapping.
+  // file.text() UTF-8-decodes instead, which turns non-UTF-8 bytes (any
+  // binary file) into replacement characters that corrupt the Lua command
+  // sent over serial and hang the write in an infinite retry loop. Reading
+  // raw bytes and mapping them directly avoids that for both text and
+  // binary files.
+  async function readBytesAsString(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let content = "";
+    const CHUNK = 0x2000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      content += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return content;
+  }
+
+  async function importItems(items: { relPath: string; file: File }[]) {
+    if (!target || items.length === 0) return;
+    importing = true;
+    error = null;
+    const failures: string[] = [];
+    try {
+      await ensureDirectories(items.map((i) => i.relPath));
+      for (let i = 0; i < items.length; i++) {
+        const { relPath, file } = items[i];
+        importProgress = {
+          current: i + 1,
+          total: items.length,
+          name: relPath,
+          chunkCurrent: 0,
+          chunkTotal: 0,
+        };
+        try {
+          const bytes = await readBytesAsString(file);
+          // Match saveFile(): .lua content is authored/edited in expanded
+          // (human-readable) form but the module only runs the compressed
+          // syntax, so it needs the same transform on the way in.
+          const content =
+            detectLanguage(relPath) === LUA_LANGUAGE_ID
+              ? GridScript.compressScript(bytes)
+              : bytes;
+          await writeFileContent(
+            currentPath + relPath,
+            content,
+            target,
+            CHUNK_SIZE,
+            (chunkCurrent, chunkTotal) => {
+              importProgress = { ...importProgress!, chunkCurrent, chunkTotal };
+            },
+          );
+        } catch (e) {
+          failures.push(`${relPath}: ${e}`);
+        }
+      }
+      if (failures.length > 0) {
+        error = `Failed to import:\n${failures.join("\n")}`;
+      }
+    } finally {
+      importing = false;
+      importProgress = null;
+      await listDirectory();
+    }
+  }
+
+  async function importFiles() {
+    if (!isElectron && window.showOpenFilePicker) {
+      try {
+        const handles = await window.showOpenFilePicker({ multiple: true });
+        const files = await Promise.all(handles.map((h) => h.getFile()));
+        await importItems(files.map((f) => ({ relPath: f.name, file: f })));
+      } catch (e) {
+        if ((e as DOMException)?.name !== "AbortError") error = String(e);
+      }
+      return;
+    }
+    // Electron (and any browser without the File System Access API): a
+    // hidden native file input, same fallback used for theme CSS import
+    // (CustomThemeEditor.svelte).
+    importFileInput.click();
+  }
+
+  function handleImportFileInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = "";
+    importItems(files.map((f) => ({ relPath: f.name, file: f })));
+  }
+
+  async function importFolder() {
+    if (!isElectron && window.showDirectoryPicker) {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        const items: { relPath: string; file: File }[] = [];
+        async function walk(handle: any, prefix: string) {
+          for await (const [name, entry] of handle.entries()) {
+            if (entry.kind === "file") {
+              items.push({
+                relPath: prefix + name,
+                file: await entry.getFile(),
+              });
+            } else {
+              await walk(entry, `${prefix}${name}/`);
+            }
+          }
+        }
+        await walk(dirHandle, "");
+        await importItems(items);
+      } catch (e) {
+        if ((e as DOMException)?.name !== "AbortError") error = String(e);
+      }
+      return;
+    }
+    // Electron fallback: webkitdirectory input yields a flat FileList where
+    // each entry's webkitRelativePath is "<pickedFolderName>/sub/file.ext" —
+    // strip that leading segment to match the web picker's relative paths.
+    importFolderInput.click();
+  }
+
+  function handleImportFolderInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = "";
+    const items = files.map((f) => {
+      const parts = (f as any).webkitRelativePath.split("/");
+      parts.shift();
+      return { relPath: parts.join("/"), file: f };
+    });
+    importItems(items);
+  }
+
   // ── File operations ────────────────────────────────────────────────────────
 
-  type OpType = "newFile" | "newFolder" | "copy" | "rename";
+  type OpType = "newFile" | "newFolder" | "copy";
   let activeOp: OpType | null = null;
   let opValue = "";
   let opInProgress = false;
@@ -393,12 +774,11 @@
     newFile: "new file name",
     newFolder: "new folder name",
     copy: "copy name",
-    rename: "new name",
   };
 
   function startOp(op: OpType) {
     opError = null;
-    opValue = op === "copy" || op === "rename" ? (selectedEntry ?? "") : "";
+    opValue = op === "copy" ? (selectedEntry ?? "") : "";
     activeOp = op;
   }
 
@@ -417,17 +797,6 @@
         await createFile(currentPath + opValue.trim(), target);
       } else if (activeOp === "newFolder") {
         await createDir(currentPath + opValue.trim(), target);
-      } else if (activeOp === "rename") {
-        if (!selectedEntry || opValue.trim() === selectedEntry) {
-          cancelOp();
-          return;
-        }
-        await renameEntry(
-          currentPath + selectedEntry,
-          currentPath + opValue.trim(),
-          target,
-        );
-        selectedEntry = null;
       } else if (activeOp === "copy") {
         if (!selectedEntry || opValue.trim() === selectedEntry) {
           cancelOp();
@@ -445,6 +814,53 @@
       opError = String(e);
     } finally {
       opInProgress = false;
+    }
+  }
+
+  // ── Inline rename ──────────────────────────────────────────────────────────
+  // Renaming edits the entry in place in the file list (see the {#each}
+  // below) instead of the shared newFile/newFolder/copy input row above.
+
+  let renamingEntry: string | null = null;
+  let renameValue = "";
+  let renameInProgress = false;
+  let renameError: string | null = null;
+
+  function startRename(name: string) {
+    cancelOp();
+    renamingEntry = name;
+    renameValue = name;
+    renameError = null;
+  }
+
+  function cancelRename() {
+    renamingEntry = null;
+    renameValue = "";
+    renameError = null;
+  }
+
+  async function confirmRename() {
+    if (!target || !renamingEntry) return;
+    const newName = renameValue.trim();
+    if (!newName || newName === renamingEntry) {
+      cancelRename();
+      return;
+    }
+    renameInProgress = true;
+    renameError = null;
+    try {
+      await renameEntry(
+        currentPath + renamingEntry,
+        currentPath + newName,
+        target,
+      );
+      if (selectedEntry === renamingEntry) selectedEntry = newName;
+      cancelRename();
+      await listDirectory();
+    } catch (e) {
+      renameError = String(e);
+    } finally {
+      renameInProgress = false;
     }
   }
 
@@ -520,206 +936,390 @@
   });
 </script>
 
-<container data-testid="file-manager" class="flex flex-col h-full p-4">
-  <!-- Docs link -->
-  <div class="flex flex-row mb-3">
-    <button
-      onclick={() =>
-        window.electron.openInBrowser(
-          "https://docs.intech.studio/wiki/more/file-manager/",
-        )}
-      class=" text-foreground-soft hover:text-foreground underline underline-offset-2 transition-colors"
-    >
-      Read the docs about File Manager
-    </button>
-  </div>
-  <!-- Module selector -->
-  <div class="flex flex-row gap-2 mb-2">
-    <div class="flex-grow">
-      {#key moduleOptions}
-        <MeltSelect
-          bind:target={selectedModule}
-          options={moduleOptions}
-          disabled={moduleOptions.length === 0}
-        />
-      {/key}
-    </div>
-    <MoltenPushButton click={refreshModuleList} text="Refresh" />
-  </div>
-
-  {#if target}
-    <!-- Operations row -->
-    {#if activeOp}
-      <div class="flex flex-col gap-1">
-        <div class="flex flex-row gap-2">
-          <input
-            class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-base outline-none focus:border-white/50"
-            placeholder={opPlaceholder[activeOp]}
-            bind:value={opValue}
-            onkeydown={(e) => {
-              if (e.key === "Enter") confirmOp();
-              else if (e.key === "Escape") cancelOp();
-            }}
-          />
-          <MoltenPushButton
-            click={confirmOp}
-            text={opInProgress ? "..." : "OK"}
-            disabled={!opValue.trim() || opInProgress}
-          />
-          <MoltenPushButton click={cancelOp} text="Cancel" />
-        </div>
-        {#if opError}
-          <p class="text-base text-red-400">{opError}</p>
-        {/if}
-      </div>
-    {:else}
-      <div class="flex flex-row gap-2 flex-wrap">
-        <MoltenPushButton click={listDirectory} text="Refresh" />
-        <MoltenPushButton click={() => startOp("newFile")} text="New File" />
-        <MoltenPushButton
-          click={() => startOp("newFolder")}
-          text="New Folder"
-        />
-        <MoltenPushButton
-          click={() => startOp("copy")}
-          text="Copy"
-          disabled={!selectedEntry ||
-            selectedEntry === "." ||
-            selectedEntry === ".."}
-        />
-        <MoltenPushButton
-          click={() => startOp("rename")}
-          text="Rename"
-          disabled={!selectedEntry ||
-            selectedEntry === "." ||
-            selectedEntry === ".."}
-        />
-        <MoltenPushButton
-          click={deleteSelected}
-          text="Delete"
-          disabled={!selectedEntry ||
-            selectedEntry === "." ||
-            selectedEntry === ".."}
-        />
-      </div>
-    {/if}
-
-    <!-- Path breadcrumb -->
-    <div
-      class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
-    >
-      {#each breadcrumbs as segment, i}
-        {#if i > 0}
-          <span class="opacity-40">/</span>
-        {/if}
-        <button
-          class="hover:opacity-100 hover:underline px-1 py-0.5 rounded {i ===
-          breadcrumbs.length - 1
-            ? 'opacity-100'
-            : 'opacity-60'}"
-          onclick={() => onBreadcrumbClick(i)}
-        >
-          {i === 0 ? "root" : segment}
-        </button>
-      {/each}
-    </div>
-
-    <!-- File list -->
-    <div class="min-h-0">
-      {#if error}
-        <p
-          class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto select-text"
-        >
-          {error}
-        </p>
-      {:else if loading}
-        <p class="text-base opacity-50">Loading...</p>
-      {:else if entries.length === 0}
-        <p class="text-base opacity-50">Empty directory.</p>
-      {:else}
-        <div class="flex flex-col overflow-y-auto gap-0.5 font-mono text-base">
-          {#each entries as entry}
-            <button
-              class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
-              entry.name
-                ? 'bg-white/20'
-                : 'hover:bg-white/10'}"
-              onclick={() => onEntryClick(entry)}
-            >
-              <span class="opacity-50 shrink-0"
-                >{entry.type === "dir" ? "📁" : "📄"}</span
-              >
-              <span class="truncate">{entry.name}</span>
-            </button>
-          {/each}
-        </div>
-      {/if}
-    </div>
-  {:else}
-    <p class="text-base opacity-50">No modules connected.</p>
-  {/if}
-
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div
-    onkeydown={handleKeydown}
-    class="border-t border-white/10 pt-2 flex flex-col gap-1 flex-grow min-h-0 {(fileContent ===
-      null &&
-      !readingFile) ||
-    entries.find((e) => e.name === selectedEntry)?.type === 'dir'
-      ? 'hidden'
-      : ''}"
-  >
-    <div class="flex items-center gap-2">
-      <p class="text-base opacity-50 font-mono flex-grow">
-        {selectedEntry ?? ""}{fileDirty ? " •" : ""}
-      </p>
-      {#if contentInfo !== null}
-        <span class="text-base font-mono opacity-50"
-          >{contentInfo.bytes} B · {contentInfo.chunks} chunks</span
-        >
-      {/if}
-      <div class="w-28">
-        <MeltSelect bind:target={selectedLanguage} options={languageOptions} />
-      </div>
-      <MoltenPushButton
-        click={() => {
-          fileContent = savedContent;
-          editor?.setValue(savedContent ?? "");
-        }}
-        text="Discard"
-        disabled={!fileDirty}
-      />
-      <div bind:this={saveButton} class="contents">
-        <MoltenPushButton
-          click={saveFile}
-          text={savingFile
-            ? uploadProgress
-              ? `${uploadProgress.current}/${uploadProgress.total}`
-              : "..."
-            : "Save"}
-          disabled={!fileDirty || savingFile || !!luaSyntaxError}
-        />
-      </div>
-    </div>
-    {#if readingFile}
-      <p class="text-base opacity-50">
-        {downloadProgress
-          ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
-          : "Reading..."}
-      </p>
-    {/if}
-    <div
-      bind:this={monacoElement}
-      class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile
-        ? 'hidden'
-        : ''}"
-    ></div>
-    {#if luaSyntaxError}
-      <p
-        class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"
+<container data-testid="file-manager" class="flex flex-col h-full">
+  <div class="flex flex-col px-4 pt-4">
+    <!-- Docs link -->
+    <div class="flex flex-row mb-3">
+      <button
+        onclick={() =>
+          window.electron.openInBrowser(
+            "https://docs.intech.studio/wiki/more/file-manager/",
+          )}
+        class=" text-foreground-soft hover:text-foreground underline underline-offset-2 transition-colors"
       >
-        {luaSyntaxError}
-      </p>
-    {/if}
+        Read the docs about File Manager
+      </button>
+    </div>
+    <!-- Module selector -->
+    <div class="flex flex-row gap-2 mb-2">
+      <div class="flex-grow">
+        {#key moduleOptions}
+          <MeltSelect
+            bind:target={selectedModule}
+            options={moduleOptions}
+            disabled={moduleOptions.length === 0}
+          />
+        {/key}
+      </div>
+      <MoltenPushButton click={refreshModuleList} text="Refresh" />
+    </div>
   </div>
+
+  <input
+    bind:this={importFileInput}
+    type="file"
+    multiple
+    class="hidden"
+    onchange={handleImportFileInput}
+  />
+  <input
+    bind:this={importFolderInput}
+    type="file"
+    webkitdirectory
+    multiple
+    class="hidden"
+    onchange={handleImportFolderInput}
+  />
+  <Splitpanes
+    theme="modern-theme"
+    horizontal={true}
+    class="flex-grow min-h-0 w-full file-manager-splitpanes"
+  >
+    <Pane class="overflow-hidden">
+      <div class="p-4 h-full flex flex-col gap-1 overflow-hidden">
+        {#if target}
+          <!-- Operations row -->
+          {#if activeOp}
+            <div class="flex flex-col gap-1">
+              <div class="flex flex-row gap-2">
+                <input
+                  class="flex-grow bg-transparent border border-white/20 rounded px-2 py-1 font-mono text-base outline-none focus:border-white/50"
+                  placeholder={opPlaceholder[activeOp]}
+                  bind:value={opValue}
+                  onkeydown={(e) => {
+                    if (e.key === "Enter") confirmOp();
+                    else if (e.key === "Escape") cancelOp();
+                  }}
+                />
+                <MoltenPushButton
+                  click={confirmOp}
+                  text={opInProgress ? "..." : "OK"}
+                  disabled={!opValue.trim() || opInProgress}
+                />
+                <MoltenPushButton click={cancelOp} text="Cancel" />
+              </div>
+              {#if opError}
+                <p class="text-base text-red-400">{opError}</p>
+              {/if}
+            </div>
+          {:else}
+            <div class="flex flex-row gap-2 flex-wrap">
+              <IconButton
+                onClick={listDirectory}
+                iconPath="rotate"
+                tooltipText="Refresh"
+              />
+              <IconButton
+                onClick={() => startOp("newFile")}
+                iconPath="file"
+                tooltipText="New File"
+              />
+              <IconButton
+                onClick={() => startOp("newFolder")}
+                iconPath="folder_closed"
+                tooltipText="New Folder"
+              />
+              <div
+                use:tooltip={{
+                  text: importing
+                    ? `Importing ${importProgress?.current ?? 0}/${importProgress?.total ?? 0}`
+                    : "Import one or more files",
+                  class: "w-40 p-2",
+                  buttons: [
+                    { label: "File(s)", handler: importFiles },
+                    { label: "Folder", handler: importFolder },
+                  ],
+                  triggerEvents: ["show-buttons", "hover"],
+                }}
+              >
+                <IconButton disabled={importing} iconData={importFileIcon} />
+              </div>
+              <IconButton
+                onClick={exportFile}
+                disabled={rawContent === null || exporting}
+                iconData={exportFileIcon}
+                tooltipText="Export"
+              />
+              <IconButton
+                onClick={() => startOp("copy")}
+                disabled={!selectedEntry ||
+                  selectedEntry === "." ||
+                  selectedEntry === ".."}
+                iconPath="copy"
+                tooltipText="Create a copy"
+              />
+              <IconButton
+                onClick={() => selectedEntry && startRename(selectedEntry)}
+                disabled={!selectedEntry ||
+                  selectedEntry === "." ||
+                  selectedEntry === ".."}
+                iconPath="edit"
+                tooltipText="Rename"
+              />
+              <IconButton
+                onClick={deleteSelected}
+                disabled={!selectedEntry ||
+                  selectedEntry === "." ||
+                  selectedEntry === ".."}
+                iconPath="deleteIcon"
+                tooltipText="Delete"
+              />
+            </div>
+          {/if}
+
+          {#if importProgress}
+            <p class="text-base opacity-50 font-mono truncate">
+              Importing {importProgress.current}/{importProgress.total}: {importProgress.name}
+              {#if importProgress.chunkTotal > 0}
+                ({importProgress.chunkCurrent}/{importProgress.chunkTotal} chunks)
+              {/if}
+            </p>
+          {/if}
+
+          <!-- Path breadcrumb -->
+          <div
+            class="flex flex-row items-center gap-0.5 font-mono opacity-70 flex-wrap"
+          >
+            {#each breadcrumbs as segment, i}
+              {#if i > 0}
+                <span class="opacity-40">/</span>
+              {/if}
+              <button
+                class="hover:opacity-100 hover:underline px-1 py-0.5 rounded {i ===
+                breadcrumbs.length - 1
+                  ? 'opacity-100'
+                  : 'opacity-60'}"
+                onclick={() => onBreadcrumbClick(i)}
+              >
+                {i === 0 ? "root" : segment}
+              </button>
+            {/each}
+          </div>
+
+          <!-- File list -->
+          <div class="min-h-0 flex-grow overflow-y-auto">
+            {#if error}
+              <p
+                class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto select-text"
+              >
+                {error}
+              </p>
+            {:else if loading}
+              <p class="text-base opacity-50">Loading...</p>
+            {:else if entries.length === 0}
+              <p class="text-base opacity-50">Empty directory.</p>
+            {:else}
+              <div
+                class="flex flex-col overflow-y-auto gap-0.5 font-mono text-base"
+              >
+                {#each entries as entry}
+                  {#if renamingEntry === entry.name}
+                    <div class="flex flex-col gap-0.5">
+                      <div
+                        class="flex items-center gap-2 px-2 py-1 rounded w-full bg-popover-selection"
+                      >
+                        <span class="opacity-50 shrink-0"
+                          >{entry.type === "dir" ? "📁" : "📄"}</span
+                        >
+                        <input
+                          class="flex-grow min-w-0 bg-transparent border border-white/20 rounded px-1 outline-none focus:border-white/50"
+                          bind:value={renameValue}
+                          autofocus
+                          onblur={confirmRename}
+                          onkeydown={(e) => {
+                            if (e.key === "Enter") confirmRename();
+                            else if (e.key === "Escape") cancelRename();
+                          }}
+                        />
+                        <IconButton
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={cancelRename}
+                          iconPath="close"
+                          tooltipText="Cancel"
+                        />
+                      </div>
+                      {#if renameError}
+                        <p class="text-sm text-error px-2">{renameError}</p>
+                      {/if}
+                    </div>
+                  {:else}
+                    <button
+                      class="flex items-center gap-2 px-2 py-1 rounded text-left w-full {selectedEntry ===
+                      entry.name
+                        ? 'bg-popover-selection'
+                        : 'hover:bg-background-muted'}"
+                      onclick={() => onEntryClick(entry)}
+                      use:contextTarget={{
+                        items: [
+                          {
+                            text: ["Export"],
+                            handler: () => exportEntry(entry),
+                            isDisabled: () =>
+                              entry.name === "." ||
+                              entry.name === ".." ||
+                              entry.type === "dir",
+                          },
+                          {
+                            text: ["Rename"],
+                            handler: () => startRename(entry.name),
+                            isDisabled: () =>
+                              entry.name === "." || entry.name === "..",
+                          },
+                          {
+                            text: ["Create a copy"],
+                            handler: () => {
+                              selectedEntry = entry.name;
+                              startOp("copy");
+                            },
+                            isDisabled: () =>
+                              entry.name === "." || entry.name === "..",
+                          },
+                          {
+                            text: ["Delete"],
+                            handler: () => {
+                              selectedEntry = entry.name;
+                              deleteSelected();
+                            },
+                            isDisabled: () =>
+                              entry.name === "." || entry.name === "..",
+                          },
+                        ],
+                      }}
+                    >
+                      <span class="opacity-50 shrink-0"
+                        >{entry.type === "dir" ? "📁" : "📄"}</span
+                      >
+                      <span class="truncate">{entry.name}</span>
+                    </button>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {:else}
+          <p class="text-base opacity-50">No modules connected.</p>
+        {/if}
+      </div>
+    </Pane>
+    <Pane class="overflow-hidden">
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div
+        onkeydown={handleKeydown}
+        class="p-4 flex flex-col gap-1 h-full {(fileContent === null &&
+          !readingFile) ||
+        entries.find((e) => e.name === selectedEntry)?.type === 'dir'
+          ? 'hidden'
+          : ''}"
+      >
+        <div class="flex items-center gap-2">
+          <p class="text-base opacity-50 font-mono flex-grow">
+            {selectedEntry ?? ""}{fileDirty ? " •" : ""}
+          </p>
+          {#if readingFile}
+            <span class="text-base font-mono opacity-50">
+              {downloadProgress
+                ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
+                : "Reading..."}
+            </span>
+          {:else if contentInfo !== null}
+            <span class="text-base font-mono opacity-50"
+              >{contentInfo.bytes} B · {contentInfo.chunks} chunks</span
+            >
+          {/if}
+          <div class="w-28">
+            <MeltSelect
+              bind:target={selectedLanguage}
+              options={languageOptions}
+            />
+          </div>
+        </div>
+        {#if readingFile}
+          <div class="w-full flex-grow min-h-0"></div>
+        {:else if selectedLanguage === NO_PREVIEW_LANGUAGE_ID}
+          <div
+            class="w-full flex-grow min-h-0 border border-white/20 rounded flex items-center justify-center text-base opacity-50"
+          >
+            No preview available
+          </div>
+        {:else if selectedLanguage === IMAGE_LANGUAGE_ID}
+          <div
+            class="w-full flex-grow min-h-0 border border-white/20 rounded flex items-center justify-center overflow-auto"
+          >
+            {#if imagePreviewUrl}
+              <img
+                src={imagePreviewUrl}
+                alt={selectedEntry ?? ""}
+                class="max-w-full max-h-full object-contain"
+              />
+            {/if}
+          </div>
+        {:else}
+          <div class="flex items-center justify-end gap-2">
+            <MoltenPushButton
+              click={() => {
+                fileContent = savedContent;
+                editor?.setValue(savedContent ?? "");
+              }}
+              text="Discard"
+              disabled={!fileDirty}
+            />
+            <div bind:this={saveButton} class="contents">
+              <MoltenPushButton
+                click={saveFile}
+                text={savingFile
+                  ? uploadProgress
+                    ? `${uploadProgress.current}/${uploadProgress.total}`
+                    : "..."
+                  : "Commit"}
+                disabled={!fileDirty || savingFile || !!luaSyntaxError}
+                style="accept"
+              />
+            </div>
+          </div>
+        {/if}
+        <div
+          bind:this={monacoElement}
+          class="w-full flex-grow min-h-0 border border-white/20 rounded {readingFile ||
+          selectedLanguage === NO_PREVIEW_LANGUAGE_ID ||
+          selectedLanguage === IMAGE_LANGUAGE_ID
+            ? 'hidden'
+            : ''}"
+        ></div>
+        {#if luaSyntaxError}
+          <p
+            class="text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto font-mono"
+          >
+            {luaSyntaxError}
+          </p>
+        {/if}
+      </div>
+    </Pane>
+  </Splitpanes>
 </container>
+
+<style>
+  /* modern-theme (defined globally in App.svelte, shared by every
+     Splitpanes instance in the app) makes the splitter fully transparent
+     and collapses it to zero size, relying only on a wider invisible
+     hit-area for dragging. Override it here — scoped to this component's
+     own Splitpanes via the extra file-manager-splitpanes class — with a
+     visible 1px line, without touching the shared theme used elsewhere. */
+  :global(
+    .file-manager-splitpanes.splitpanes.modern-theme .splitpanes__splitter
+  ) {
+    background-color: var(--foreground-soft) !important;
+    border: none !important;
+    height: 1px !important;
+    min-height: 1px !important;
+  }
+</style>

@@ -438,10 +438,6 @@
         title={"Activate unreleased action blocks"}
       />
       <MeltCheckbox
-        bind:target={$appSettings.persistent.sendHeartbeatImmediate}
-        title={"Skip heatbeat delay and send it immediately"}
-      />
-      <MeltCheckbox
         bind:target={$appSettings.persistent.midiTesterEnabled}
         title={"Activate WebMIDI based test panel in MIDI Monitor"}
       />

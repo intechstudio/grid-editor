@@ -60,7 +60,7 @@ export namespace GridInstruction {
         return Promise.reject();
       }
 
-      return connection.buffer.add_last(this.buffer_element);
+      return connection.buffer.add_first(this.buffer_element);
     }
   }
 
@@ -504,7 +504,11 @@ export namespace GridInstruction {
       this.compress = compress;
     }
 
-    public executeOn(connection: GridConnection): Promise<LuaValue[]> {
+    public executeOn(
+      connection: GridConnection,
+    ): Promise<{ value: LuaValue[]; retries: number; responseTimeout: number }> {
+      let retries = 0;
+      const responseTimeout = 5000;
       const script = this.compress
         ? GridScript.compressScript(this.code)
         : this.code;
@@ -549,9 +553,14 @@ export namespace GridInstruction {
             brc_parameters: {},
             class_parameters: {},
           },
-          responseTimeout: 5000,
+          responseTimeout,
+          onRetry: () => retries++,
         })
-        .then(parseEvaluateResponse);
+        .then((data) => ({
+          value: parseEvaluateResponse(data),
+          retries,
+          responseTimeout,
+        }));
     }
   }
 }
