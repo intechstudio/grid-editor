@@ -346,7 +346,10 @@
       automaticLayout: true,
       wordWrap: "on",
       minimap: { enabled: false },
-      lineNumbers: "on",
+      lineNumbers: "off",
+      lineNumbersMinChars: 0,
+      glyphMargin: false,
+      lineDecorationsWidth: 0,
     });
     editor.onDidChangeModelContent(() => {
       if (fileContent !== null) {
@@ -1169,28 +1172,6 @@
               options={languageOptions}
             />
           </div>
-          <MoltenPushButton
-            click={() => {
-              fileContent = savedContent;
-              editor?.setValue(savedContent ?? "");
-            }}
-            text="Discard"
-            disabled={!fileDirty || selectedLanguage === IMAGE_LANGUAGE_ID}
-          />
-          <div bind:this={saveButton} class="contents">
-            <MoltenPushButton
-              click={saveFile}
-              text={savingFile
-                ? uploadProgress
-                  ? `${uploadProgress.current}/${uploadProgress.total}`
-                  : "..."
-                : "Save"}
-              disabled={!fileDirty ||
-                savingFile ||
-                !!luaSyntaxError ||
-                selectedLanguage === IMAGE_LANGUAGE_ID}
-            />
-          </div>
         </div>
         {#if readingFile}
           <p class="text-base opacity-50">
@@ -1215,6 +1196,29 @@
                 class="max-w-full max-h-full object-contain"
               />
             {/if}
+          </div>
+        {:else}
+          <div class="flex items-center justify-end gap-2">
+            <MoltenPushButton
+              click={() => {
+                fileContent = savedContent;
+                editor?.setValue(savedContent ?? "");
+              }}
+              text="Discard"
+              disabled={!fileDirty}
+            />
+            <div bind:this={saveButton} class="contents">
+              <MoltenPushButton
+                click={saveFile}
+                text={savingFile
+                  ? uploadProgress
+                    ? `${uploadProgress.current}/${uploadProgress.total}`
+                    : "..."
+                  : "Commit"}
+                disabled={!fileDirty || savingFile || !!luaSyntaxError}
+                style="accept"
+              />
+            </div>
           </div>
         {/if}
         <div
