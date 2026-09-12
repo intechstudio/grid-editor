@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { tooltip } from "../../_actions/tooltip";
+  import IconButton from "../../user-interface/IconButton.svelte";
   import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import {
     ActionData,
@@ -158,13 +157,12 @@
     />
   </div>
   <div class="flex flex-row items-center justify-end gap-2">
-    <button
-      use:tooltip={{ text: "Rename element" }}
+    <IconButton
       on:click={() => (isEditingName = !isEditingName)}
-      class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 rounded"
-    >
-      <SvgIcon iconPath="edit" fill="var(--foreground)" />
-    </button>
+      iconPath="edit"
+      compact
+      tooltipText="Rename element"
+    />
     <slot name="controls" />
   </div>
 </div>
