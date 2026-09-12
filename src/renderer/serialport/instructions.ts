@@ -60,7 +60,7 @@ export namespace GridInstruction {
         return Promise.reject();
       }
 
-      return connection.buffer.add_last(this.buffer_element);
+      return connection.buffer.add_first(this.buffer_element);
     }
   }
 

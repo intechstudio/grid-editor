@@ -8,7 +8,6 @@ import {
 } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
 import { type GridTransport } from "../serialport/transport.js";
-import { appSettings } from "./app-helper.store";
 import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 import { logger } from "./runtime.store";
@@ -358,9 +357,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
 
   public processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      const sendImmediate =
-        (current.sendImmediate ?? false) &&
-        get(appSettings).persistent.sendHeartbeatImmediate;
+      const sendImmediate = current.sendImmediate ?? false;
 
       while (
         this._transport.isWriteLocked() ||
@@ -494,7 +491,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
         })
         .finally(() => {
           this.update((s) => {
-            s.array.shift();
+            s.array = s.array.filter((e) => e.id !== obj.id);
             return s;
           });
         });
