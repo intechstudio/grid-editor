@@ -107,6 +107,7 @@
       : ["/", ...currentPath.replace(/^\/|\/$/g, "").split("/")];
 
   function navigateTo(path: string) {
+    readAbortController?.abort();
     currentPath = path;
     selectedEntry = null;
     fileContent = null;
@@ -167,8 +168,16 @@
   let rawContent: string | null = null;
   let readingFile = false;
   let downloadProgress: { current: number; total: number } | null = null;
+  // Aborts the chunk-fetch loop of whichever readFile() call is currently in
+  // flight, so switching selection stops issuing further chunk requests for
+  // a file the user no longer has open, instead of letting it run to
+  // completion in the background.
+  let readAbortController: AbortController | null = null;
   let savingFile = false;
-  let uploadProgress: { current: number; total: number } | null = null;
+  let uploadProgress: {
+    current: number;
+    total: number;
+  } | null = null;
 
   $: fileDirty = fileContent !== null && fileContent !== savedContent;
 
@@ -270,6 +279,11 @@
   function detectLanguage(filename: string): string {
     const ext = filename.split(".").pop()?.toLowerCase() ?? "";
     return extLanguageMap[ext] ?? NO_PREVIEW_LANGUAGE_ID;
+  }
+
+  function formatBps(bytes: number, ms: number): string {
+    if (ms <= 0) return "n/a";
+    return `${(bytes / (ms / 1000)).toFixed(1)} B/s`;
   }
 
   $: if (editor && selectedLanguage) {
@@ -377,11 +391,16 @@
   }
 
   async function readFile(entry: string) {
+    // Stop any read still in flight for a previously-selected item before
+    // starting a new one.
+    readAbortController?.abort();
     if (!target || entry === "." || entry === "..") {
       fileContent = null;
       savedContent = null;
       return;
     }
+    const controller = new AbortController();
+    readAbortController = controller;
     const path = currentPath + entry;
     readingFile = true;
     downloadProgress = null;
@@ -393,16 +412,38 @@
     // key off it) reflect the new file immediately, not only once the
     // download finishes.
     selectedLanguage = detectLanguage(entry);
+    let totalChunks = 0;
+    let totalRetries = 0;
+    let lastResponseTimeout = 0;
+    const startTime = performance.now();
     try {
       const assembled = await fetchFileContent(
         path,
         target,
         READ_CHUNK_SIZE,
-        (current, total) => {
+        (current, total, retries, responseTimeout) => {
+          totalChunks = total;
+          totalRetries += retries;
+          lastResponseTimeout = responseTimeout;
           downloadProgress = { current, total };
         }, // pass callback function to update the downloadProgress
+        controller.signal,
       );
+      if (controller.signal.aborted) return;
       rawContent = assembled;
+      const elapsedMs = Math.round(performance.now() - startTime);
+      const retryWaitMs = totalRetries * lastResponseTimeout;
+      const theoreticalMs = Math.max(elapsedMs - retryWaitMs, 0);
+      console.log(
+        `File read complete: ${entry}\n` +
+          `  size: ${assembled.length} B\n` +
+          `  chunks: ${totalChunks}\n` +
+          `  retries: ${totalRetries}\n` +
+          `  timeout: ${lastResponseTimeout} ms\n` +
+          `  duration: ${elapsedMs} ms\n` +
+          `  bytes/sec (effective): ${formatBps(assembled.length, elapsedMs)}\n` +
+          `  bytes/sec (theoretical, excl. retry waits): ${formatBps(assembled.length, theoreticalMs)}`,
+      );
       try {
         fileContent =
           selectedLanguage === LUA_LANGUAGE_ID
@@ -416,12 +457,15 @@
       savedContent = fileContent;
       editor?.setValue(fileContent ?? "");
     } catch (e) {
+      if (controller.signal.aborted) return;
       fileContent = null;
       savedContent = null;
       rawContent = null;
     } finally {
-      readingFile = false;
-      downloadProgress = null;
+      if (!controller.signal.aborted) {
+        readingFile = false;
+        downloadProgress = null;
+      }
     }
   }
 
@@ -444,14 +488,34 @@
         return;
       }
 
+      let totalChunks = 0;
+      let totalRetries = 0;
+      let lastResponseTimeout = 0;
+      const startTime = performance.now();
       await writeFileContent(
         path,
         content,
         target,
         CHUNK_SIZE,
-        (current, total) => {
+        (current, total, retries, responseTimeout) => {
           uploadProgress = { current, total };
+          totalChunks = total;
+          totalRetries += retries;
+          lastResponseTimeout = responseTimeout;
         },
+      );
+      const elapsedMs = Math.round(performance.now() - startTime);
+      const retryWaitMs = totalRetries * lastResponseTimeout;
+      const theoreticalMs = Math.max(elapsedMs - retryWaitMs, 0);
+      console.log(
+        `File write complete: ${selectedEntry}\n` +
+          `  size: ${content.length} B\n` +
+          `  chunks: ${totalChunks}\n` +
+          `  retries: ${totalRetries}\n` +
+          `  timeout: ${lastResponseTimeout} ms\n` +
+          `  duration: ${elapsedMs} ms\n` +
+          `  bytes/sec (effective): ${formatBps(content.length, elapsedMs)}\n` +
+          `  bytes/sec (theoretical, excl. retry waits): ${formatBps(content.length, theoreticalMs)}`,
       );
 
       savedContent = fileContent;
@@ -1161,7 +1225,13 @@
           <p class="text-base opacity-50 font-mono flex-grow">
             {selectedEntry ?? ""}{fileDirty ? " •" : ""}
           </p>
-          {#if contentInfo !== null}
+          {#if readingFile}
+            <span class="text-base font-mono opacity-50">
+              {downloadProgress
+                ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
+                : "Reading..."}
+            </span>
+          {:else if contentInfo !== null}
             <span class="text-base font-mono opacity-50"
               >{contentInfo.bytes} B · {contentInfo.chunks} chunks</span
             >
@@ -1174,11 +1244,7 @@
           </div>
         </div>
         {#if readingFile}
-          <p class="text-base opacity-50">
-            {downloadProgress
-              ? `Reading ${downloadProgress.current}/${downloadProgress.total}`
-              : "Reading..."}
-          </p>
+          <div class="w-full flex-grow min-h-0"></div>
         {:else if selectedLanguage === NO_PREVIEW_LANGUAGE_ID}
           <div
             class="w-full flex-grow min-h-0 border border-white/20 rounded flex items-center justify-center text-base opacity-50"

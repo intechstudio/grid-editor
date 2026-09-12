@@ -1909,7 +1909,7 @@ export class GridModule extends RuntimeNode<ModuleData> {
   public execLUAImmediateAndEvalaute(
     code: string,
     compress = true,
-  ): Promise<LuaValue[]> {
+  ): Promise<{ value: LuaValue[]; retries: number; responseTimeout: number }> {
     const runtime = this.parent as GridRuntime;
     const instruction = new GridInstruction.SendLuaImmediateAndEvaluate(
       this.dx,
