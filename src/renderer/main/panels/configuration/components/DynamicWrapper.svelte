@@ -31,7 +31,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
-  import { tooltip } from "../../../_actions/tooltip";
+  import IconButton from "../../../user-interface/IconButton.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -337,32 +337,28 @@
 
               <div slot="edit-name-trigger" class="flex items-center gap-1">
                 {#if !$appSettings.persistent.userLevelMinimalist}
-                  <button
-                    on:click|stopPropagation={handleEditClicked}
-                    class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
-                    style="border-radius: var(--radius);"
-                  >
-                    <SvgIcon iconPath="edit" fill="var(--foreground)" />
-                  </button>
+                  <IconButton
+                    onClick={handleEditClicked}
+                    stopPropagation
+                    compact
+                    iconPath="edit"
+                    tooltipText="Rename"
+                  />
                 {/if}
 
                 {#if $action.information.documentationUrl}
-                  <a
+                  <IconButton
                     href={$action.information.documentationUrl}
                     target="_blank"
                     rel="noreferrer"
-                    use:tooltip={{
-                      text: $action.information.description,
-                      duration: 0,
-                      delay: 0,
-                    }}
-                    on:click|stopPropagation
-                    class="cursor-pointer hover:bg-black/25 flex w-fit h-fit p-1.5 pointer-events-auto"
-                    style="border-radius: var(--radius);"
-                    aria-label={`Open documentation for ${$action.information.displayName}`}
-                  >
-                    <SvgIcon iconPath="info" fill="var(--foreground)" />
-                  </a>
+                    stopPropagation
+                    compact
+                    iconPath="info"
+                    tooltipText={$action.information.description}
+                    tooltipDelay={0}
+                    tooltipDuration={0}
+                    ariaLabel={`Open documentation for ${$action.information.displayName}`}
+                  />
                 {/if}
               </div>
             </svelte:component>
