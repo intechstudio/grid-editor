@@ -21,6 +21,16 @@ import chokidar from "chokidar";
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 
+// An unhandled rejection (e.g. a throw inside an async function nobody
+// awaits/catches) doesn't trigger Electron's default "A JavaScript error
+// occurred in the main process" dialog the way a synchronous uncaught
+// exception does — it silently logs a warning instead. Rethrowing here
+// converts it into a genuine uncaught exception so it gets the same visible
+// dialog and log entry as any other main-process crash.
+process.on("unhandledRejection", (reason) => {
+  log.error("Unhandled promise rejection in main process:", reason);
+  throw reason;
+});
 
 function isFlatpak(): boolean {
   // `FLATPAK_ID` and `container=flatpak` are set for every flatpak'd process;
@@ -414,7 +424,14 @@ app.on('web-contents-created', (event, contents) => {
 });
 
 function handleDeeplinkReturnData(returnData: string) {
-  const url = new URL(returnData);
+  let url: URL;
+  try {
+    url = new URL(returnData);
+  } catch {
+    // A relaunch (e.g. resetAppSettings, restartApp) can pass along argv
+    // that isn't a deeplink at all — ignore it instead of crashing.
+    return;
+  }
   if (url.searchParams.get("credential") !== null) {
     const credential = url.searchParams.get("credential");
     mainWindow.webContents.send("onExternalAuthResponse", credential);
@@ -439,10 +456,11 @@ if (!gotTheLock) {
       if (mainWindow) {
         showMainWindow();
 
-        // Only treat the last arg as a deeplink when it actually is a URL;
-        // a plain relaunch passes a file path that new URL() would reject.
+        // Only treat the last arg as a deeplink when it's actually our
+        // protocol; a relaunch (resetAppSettings, restartApp) passes plain
+        // flags/paths that new URL() would reject.
         const lastArg = commandLine.pop()?.toString();
-        if (lastArg && lastArg.includes("://")) {
+        if (lastArg && lastArg.startsWith("grid-editor://")) {
           handleDeeplinkReturnData(lastArg);
         }
       }
@@ -499,7 +517,7 @@ if (!gotTheLock) {
       );
 
       // Override package path for local dev packages
-      let localPackages = store.get("localPackages");
+      let localPackages = store.get("localPackages") ?? {};
       if (localPackages[packageName]) {
         packageFolder = localPackages[packageName];
       }
@@ -869,8 +887,8 @@ function startPackageManager(
       type: "init",
       packageFolder: packageFolder,
       version: configuration.EDITOR_VERSION,
-      githubPackages: store.get("githubPackages"),
-      localPackages: store.get("localPackages"),
+      githubPackages: store.get("githubPackages") ?? {},
+      localPackages: store.get("localPackages") ?? {},
       updatePackageOnStartName,
       cachedData: packageManagerCachedData,
     });
@@ -879,7 +897,7 @@ function startPackageManager(
       packageManagerProcess.postMessage({
         type: "load-package",
         id: _package,
-        payload: store.get("packagesDataStorage")[_package],
+        payload: (store.get("packagesDataStorage") ?? {})[_package],
       });
     }
   }
@@ -903,7 +921,7 @@ function stopPackageManager(stopGracefully: boolean = false) {
 
 function handleDeveloperWebsocketMessage(data: any) {
   if (data.type === "developer-package") {
-    let developerPackages = store.get("localPackages");
+    let developerPackages = store.get("localPackages") ?? {};
     if (
       developerPackages[data.id] &&
       path.resolve(developerPackages[data.id]) === path.resolve(data.rootPath)
@@ -917,7 +935,7 @@ function handleDeveloperWebsocketMessage(data: any) {
         packageManagerProcess?.postMessage({
           type: "restart-package",
           id: data.id,
-          payload: store.get("packagesDataStorage")[data.id],
+          payload: (store.get("packagesDataStorage") ?? {})[data.id],
         });
       }
     } else {

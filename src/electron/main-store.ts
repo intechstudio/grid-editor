@@ -10,5 +10,8 @@ export const store = new Store({
     packageDeveloper: false,
     nightlyEditor: false,
     disableAutoUpdate: false,
+    localPackages: {},
+    packagesDataStorage: {},
+    githubPackages: {},
   },
 });
