@@ -1023,7 +1023,7 @@
             <div class="flex flex-row gap-2 flex-wrap">
               <IconButton
                 onClick={listDirectory}
-                iconPath="rotate"
+                iconPath="refresh"
                 tooltipText="Refresh"
               />
               <IconButton
