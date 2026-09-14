@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   id="Réteg_2"
+   x="0px"
+   y="0px"
+   viewBox="0 0 26.9 21"
+   style="enable-background:new 0 0 26.9 21;"
+   xml:space="preserve"
+   sodipodi:docname="import.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs2" /><sodipodi:namedview
+   id="namedview2"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:zoom="31.895911"
+   inkscape:cx="13.45"
+   inkscape:cy="10.487238"
+   inkscape:window-width="1916"
+   inkscape:window-height="1153"
+   inkscape:window-x="1920"
+   inkscape:window-y="22"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="g2" />
+	<g
+   transform="rotate(90 13.45 13.45)"
+   id="g2">
+		<path
+   id="path1"
+   d="M 0 18.099219 C 0 19.699219 1.3003906 20.999609 2.9003906 20.999609 L 4.2011719 20.999609 L 9.5996094 20.999609 L 9.5996094 25.601172 C 9.5996094 26.101172 9.9999999 26.499609 10.5 26.499609 C 11 26.499609 11.400391 26.101172 11.400391 25.601172 L 11.400391 20.999609 L 15.550781 20.999609 L 18.099609 20.999609 C 19.699609 20.999609 21 19.699219 21 18.099219 L 21 2.9 C 21 1.3 19.699609 -0.000390625 18.099609 -0.000390625 L 2.9003906 -0.000390625 C 1.3003906 -0.000390625 -5.9211895e-16 1.3 0 2.9 L 0 18.099219 z M 1.8007812 18.099219 L 1.8007812 2.9 C 1.8007812 2.3 2.3003906 1.8003906 2.9003906 1.8003906 L 18.099609 1.8003906 C 18.699609 1.8003906 19.199219 2.3 19.199219 2.9 L 19.199219 18.099219 C 19.199219 18.699219 18.699609 19.200781 18.099609 19.200781 L 15.550781 19.200781 L 11.400391 19.200781 L 11.400391 16.4 L 12.300781 17.300391 C 12.700781 17.700391 13.199609 17.700391 13.599609 17.300391 C 13.999609 16.900391 13.999609 16.399609 13.599609 15.999609 L 11.099609 13.499609 C 10.999609 13.299611 10.7 13.200781 10.5 13.200781 C 10.3 13.200781 10.100391 13.299609 9.9003906 13.499609 L 7.4003906 15.999609 C 7.0003906 16.399609 7.0003906 16.900391 7.4003906 17.300391 C 7.8003906 17.700391 8.2992187 17.700391 8.6992188 17.300391 L 9.5996094 16.4 L 9.5996094 19.200781 L 4.2011719 19.200781 L 2.9003906 19.200781 C 2.3003906 19.200781 1.8007813 18.699219 1.8007812 18.099219 z " />
+		
+	</g>
+</svg>

@@ -8,7 +8,6 @@ import {
 } from "svelte/store";
 import { grid } from "@intechstudio/grid-protocol";
 import { type GridTransport } from "../serialport/transport.js";
-import { appSettings } from "./app-helper.store";
 import { ConnectionSimulator } from "./connection-simulator";
 import { MessageStream } from "../serialport/message-stream.store";
 import { logger } from "./runtime.store";
@@ -73,6 +72,10 @@ export type BufferElement = {
   sendImmediate?: boolean;
   // If set, these bytes are sent as-is instead of encoding via grid.encode_packet.
   rawBytes?: Uint8Array;
+  // Fires once per retry attempt for this exact request (see the TIMEOUT case in
+  // sendToGrid) — lets a caller learn how many retries its own request needed,
+  // as opposed to the connection-wide retryCount below.
+  onRetry?: () => void;
   filter?: {
     PAGEDISCARD_ACKNOWLEDGE?: {
       LASTHEADER: unknown;
@@ -270,12 +273,14 @@ export class WriteBuffer implements Readable<WriteBufferData> {
       responseRequired?: boolean;
       filter?: any;
       responseTimeout?: number;
+      onRetry?: () => void;
     },
   ): Promise<any> {
     const bufferElement: BufferElement = {
       id: 0,
       virtual: options?.virtual ?? false,
       rawBytes: data,
+      onRetry: options?.onRetry,
       descr: {
         brc_parameters: { DX: options?.dx ?? -127, DY: options?.dy ?? -127 },
         class_name: InstructionClassName.IMMEDIATE,
@@ -332,6 +337,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
               }
               case ResponseStatus.TIMEOUT: {
                 this.update((s) => ({ ...s, retryCount: s.retryCount + 1 }));
+                bufferElement.onRetry?.();
                 console.error(
                   `Timeout on ${bufferElement.descr.class_name}, retrying...`,
                 );
@@ -351,9 +357,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
 
   public processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      const sendImmediate =
-        (current.sendImmediate ?? false) &&
-        get(appSettings).persistent.sendHeartbeatImmediate;
+      const sendImmediate = current.sendImmediate ?? false;
 
       while (
         this._transport.isWriteLocked() ||
@@ -487,7 +491,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
         })
         .finally(() => {
           this.update((s) => {
-            s.array.shift();
+            s.array = s.array.filter((e) => e.id !== obj.id);
             return s;
           });
         });

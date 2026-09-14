@@ -4,7 +4,6 @@
   import { Modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
-  import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
   import {
     user_input,
     type UserInputValue,
@@ -69,9 +68,7 @@
             click={() => copyToClipboard(rawCode)}
             text="Copy"
             style="accept"
-          >
-            <MoltenPopup slot="popup" text="Copied to clipboard!" />
-          </MoltenPushButton>
+          />
         </div>
       </div>
 
@@ -88,9 +85,7 @@
             click={() => copyToClipboard(humanReadable)}
             text="Copy"
             style="accept"
-          >
-            <MoltenPopup slot="popup" text="Copied to clipboard!" />
-          </MoltenPushButton>
+          />
         </div>
       </div>
     </div>

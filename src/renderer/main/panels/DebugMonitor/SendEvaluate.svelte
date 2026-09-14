@@ -24,6 +24,7 @@
   let status: "ACK" | "NACK" | null = null;
   let messageId: string | null = null;
   let responseValues: LuaValue[] | null = null;
+  let retries = 0;
 
   onMount(() => {
     editor = MonacoEditor.create(monacoElement, {
@@ -92,6 +93,7 @@
     status = null;
     messageId = null;
     responseValues = null;
+    retries = 0;
 
     try {
       const descr = await runtime.connection.buffer.sendRawDataToGrid(
@@ -107,6 +109,7 @@
             class_parameters: {},
           },
           responseTimeout: 2000,
+          onRetry: () => retries++,
         },
       );
       status = descr.class_instr === "REPORT" ? "ACK" : "NACK";
@@ -147,6 +150,9 @@
         </span>
         {#if messageId !== null}
           <span class="text-gray-400">id: {messageId}</span>
+        {/if}
+        {#if retries > 0}
+          <span class="text-gray-400">retries: {retries}</span>
         {/if}
       </div>
       {#if responseValues !== null}

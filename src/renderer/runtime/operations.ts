@@ -61,13 +61,6 @@ function handleError(e: GridOperationResult) {
 
 //Clipboard handlers
 export async function copyElement(element: GridElement) {
-  logger.set({
-    type: "progress",
-    mode: 0,
-    classname: "elementcopy",
-    message: `Copying events from element...`,
-  });
-
   appClipboard
     .copyElement(element)
     .then((result) => {
@@ -138,13 +131,6 @@ export async function overwriteElement(target: GridElement) {
 }
 
 export async function discardElement(target: GridElement) {
-  logger.set({
-    type: "progress",
-    mode: 0,
-    classname: "elementdiscard",
-    message: `Discarding element configuration...`,
-  });
-
   target
     .discardChanges()
     .then((result) => {
@@ -167,13 +153,6 @@ export async function discardElement(target: GridElement) {
 }
 
 export async function clearElement(target: GridElement) {
-  logger.set({
-    type: "progress",
-    mode: 0,
-    classname: "elementclear",
-    message: `Clearing element configuration...`,
-  });
-
   target
     .resetDefault()
     .then((result) => {

@@ -176,13 +176,6 @@
         title={"Enabled"}
       />
 
-      <BlockTitle>Colorful Toolbar</BlockTitle>
-      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.colorfulToolbar}
-        title={"Enabled"}
-      />
-
       <BlockTitle>Scale UI</BlockTitle>
       <BlockBody
         >Scales the font size and control elements dimensions by keeping their
@@ -436,10 +429,6 @@
       <MeltCheckbox
         bind:target={$appSettings.persistent.allowDevBlocks}
         title={"Activate unreleased action blocks"}
-      />
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.sendHeartbeatImmediate}
-        title={"Skip heatbeat delay and send it immediately"}
       />
       <MeltCheckbox
         bind:target={$appSettings.persistent.midiTesterEnabled}

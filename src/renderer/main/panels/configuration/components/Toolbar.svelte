@@ -13,7 +13,7 @@
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
   import { selected_actions } from "./../../../../runtime/selected-actions.store";
-  import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
+  import IconButton from "../../../user-interface/IconButton.svelte";
   import { get } from "svelte/store";
   import {
     mergeActionsToCode,
@@ -145,31 +145,31 @@
     <div class="flex flex-col">
       <div class="flex flex-wrap justify-end">
         <div data-testid="copy_all">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleCopyElement}
             on:mouseenter={() =>
               setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
             iconPath={"copy_all"}
             disabled={$isCopyElementEnabled === false}
-            color={"#03cb00"}
+            compact
           />
         </div>
 
         <div data-testid="paste_all">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleOverwriteElement}
             on:mouseenter={() =>
               setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
             on:mouseleave={handleToolbarButtonBlur}
             iconPath={"paste_all"}
             disabled={!isOverwriteElementEnabled($element, $appClipboard)}
-            color={"#006cb7"}
+            compact
           />
         </div>
 
         <div data-testid="discard_changes">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleDiscardElement}
             on:mouseenter={() =>
               setToolbarHoverText(
@@ -179,63 +179,63 @@
             on:mouseleave={handleToolbarButtonBlur}
             iconPath={"clear_from_device_01"}
             disabled={!isDiscardElementEnabled($element)}
-            color={"#ff2323"}
+            compact
           />
         </div>
 
         <div data-testid="clear_element">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleClearElement}
             on:mouseenter={() =>
               setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
             on:mouseleave={handleToolbarButtonBlur}
             iconPath={"clear_element"}
             disabled={!isClearElementEnabled($element)}
-            color={"#A020F0"}
+            compact
           />
         </div>
       </div>
       <div class="flex flex-wrap justify-end">
         <div data-testid="copy_action">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleCopy}
             on:mouseenter={() =>
               setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
             disabled={$isCopyActionsEnabled === false}
             iconPath={"copy"}
-            color={"#03cb00"}
+            compact
           />
         </div>
 
         {#if !$appSettings.isMultiView}
           <div data-testid="paste_action">
-            <MoltenToolbarButton
+            <IconButton
               on:click={handlePaste}
               on:mouseenter={() =>
                 setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
               on:mouseleave={handleToolbarButtonBlur}
               disabled={$isPasteActionsEnabled === false}
               iconPath={"paste"}
-              color={"#006cb7"}
+              compact
             />
           </div>
         {/if}
 
         <div data-testid="cut_action">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleCut}
             on:mouseenter={() =>
               setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
             on:mouseleave={handleToolbarButtonBlur}
             disabled={$isCutActionsEnabled === false}
             iconPath={"cut"}
-            color={"#ff6100"}
+            compact
           />
         </div>
 
         <div data-testid="merge_code">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleConvertToCodeBlock}
             on:mouseenter={() =>
               setToolbarHoverText(
@@ -245,19 +245,19 @@
             on:mouseleave={handleToolbarButtonBlur}
             disabled={$isMergeActionsEnabled === false}
             iconPath={"merge_as_code"}
-            color={"#ffcc33"}
+            compact
           />
         </div>
 
         <div data-testid="remove_action">
-          <MoltenToolbarButton
+          <IconButton
             on:click={handleRemove}
             on:mouseenter={() =>
               setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
             on:mouseleave={handleToolbarButtonBlur}
             disabled={$isRemoveActionsEnabled === false}
             iconPath={"remove"}
-            color={"#ff2323"}
+            compact
           />
         </div>
       </div>

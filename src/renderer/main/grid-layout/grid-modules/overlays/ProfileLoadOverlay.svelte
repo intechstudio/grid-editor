@@ -4,7 +4,7 @@
     type SelectedProfileCloudConfig,
   } from "../../../panels/profileCloud/ProfileCloud";
   import { appSettings } from "../../../../runtime/app-helper.store";
-  import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { ModuleType } from "@intechstudio/grid-protocol";
   import {
     GridModule,
@@ -90,6 +90,49 @@
   }
 
   $: handleViewModelChange($model);
+
+  $: loaded =
+    $selectedConfigStore !== undefined &&
+    isCompatible(device.type, $selectedConfigStore.type) &&
+    $page.isProfileLoaded(
+      GridProfileData.createFromCloudData($selectedConfigStore),
+    );
+
+  $: buttonLabel = (() => {
+    if (
+      $model.step === ProfileCloudLoad.State.BUSY &&
+      $model.target?.parent &&
+      $model.target.parent.dx == device.dx &&
+      $model.target.parent.dy == device.dy
+    ) {
+      if ($model.phase === "files") {
+        let label = `Uploading file... ${Math.min(
+          $model.completed + 1,
+          $model.total,
+        )}/${$model.total}`;
+        if ($model.fileChunkTotal && $model.fileChunkTotal > 1) {
+          label += ` ${Math.round(
+            ($model.fileChunkCurrent / $model.fileChunkTotal) * 100,
+          )}%`;
+        }
+        return label;
+      } else {
+        return `Uploading config... ${Math.round(
+          ($model.completed / $model.total) * 100,
+        )}%`;
+      }
+    } else if ($model.step === ProfileCloudLoad.State.ERROR) {
+      return "Error!";
+    } else if (
+      [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes(
+        $model.step,
+      )
+    ) {
+      return loaded ? "Re-Load Profile" : "Load Profile";
+    } else {
+      return "System is busy...";
+    }
+  })();
 
   async function handleViewModelChange(data: ProfileLoadOverlay.ViewModel) {
     const { config, target } = data;
@@ -197,45 +240,8 @@
                 ProfileCloudLoad.State.LOADED,
               ].includes($model.step) === false ||
                 $model.step === ProfileCloudLoad.State.BUSY}
-            >
-              <div slot="content" class="flex flex-row items-center gap-2">
-                {#if $model.step === ProfileCloudLoad.State.BUSY && device.dx == $model.target.parent.dx && device.dy == $model.target.parent.dy}
-                  {#if $model.phase === "files"}
-                    <span class="mr-1">
-                      Uploading file... {Math.min(
-                        $model.completed + 1,
-                        $model.total,
-                      )}/{$model.total}
-                      {#if $model.fileChunkTotal && $model.fileChunkTotal > 1}
-                        {Math.round(
-                          ($model.fileChunkCurrent / $model.fileChunkTotal) *
-                            100,
-                        )}%
-                      {/if}
-                    </span>
-                  {:else}
-                    <span>Uploading config...</span>
-                    <span
-                      >{Math.round(
-                        ($model.completed / $model.total) * 100,
-                      )}%</span
-                    >
-                  {/if}
-                {:else if $model.step === ProfileCloudLoad.State.ERROR}
-                  <span>Error!</span>
-                {:else if [ProfileCloudLoad.State.READY, ProfileCloudLoad.State.LOADED].includes($model.step)}
-                  {#if loaded}
-                    <span class="mr-2">Re-Load Profile</span>
-                    <SvgIcon fill="currentColor" iconPath={"download"} />
-                  {:else}
-                    <span class="mr-2">Load Profile</span>
-                    <SvgIcon fill="currentColor" iconPath={"download"} />
-                  {/if}
-                {:else}
-                  System is busy...
-                {/if}
-              </div>
-            </MoltenPushButton>
+              text={buttonLabel}
+            />
 
             {#if isTourAvailable($page, $selectedConfigStore) && $model.step !== ProfileCloudLoad.State.BUSY}
               <MoltenPushButton
