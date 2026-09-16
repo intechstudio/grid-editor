@@ -5,9 +5,9 @@
     MoltenPushButton,
     MeltSelect,
     contextTarget,
+    IconButton,
   } from "@intechstudio/grid-uikit";
   import { tooltip } from "../../_actions/tooltip";
-  import IconButton from "../../user-interface/IconButton.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import importFileIcon from "../../../assets/icons/importFile.svg?raw";
   import exportFileIcon from "../../../assets/icons/ExportFile.svg?raw";

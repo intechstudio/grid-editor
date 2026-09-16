@@ -13,7 +13,7 @@
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
   import { selected_actions } from "./../../../../runtime/selected-actions.store";
-  import IconButton from "../../../user-interface/IconButton.svelte";
+  import { IconButton } from "@intechstudio/grid-uikit";
   import { get } from "svelte/store";
   import {
     mergeActionsToCode,
