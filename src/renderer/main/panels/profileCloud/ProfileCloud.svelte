@@ -204,6 +204,14 @@
     return await window.electron.configs.deleteConfig(path, "configs", config);
   }
 
+  async function handleShowConfigInFolder(event) {
+    const path = $appSettings.persistent.profileFolder;
+    const config = event.data?.config;
+
+    const filePath = `${path}/configs/${config.fileName}`;
+    return await window.electron.library.showItemInFolder(filePath);
+  }
+
   async function handleGetCurrentConfigurationFromEditor(event): Promise<any> {
     const active = get(runtime_manager).active.runtime;
     if (active.modules.length === 0) {
@@ -391,6 +399,9 @@
           break;
         case "deleteLocalConfig":
           channelMessageWrapper(event, handleDeleteLocalConfig);
+          break;
+        case "showConfigInFolder":
+          channelMessageWrapper(event, handleShowConfigInFolder);
           break;
         case "getCurrenConfigurationFromEditor":
           channelMessageWrapper(event, handleGetCurrentConfigurationFromEditor);

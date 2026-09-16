@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.invoke("download", { targetFolder, packageToDownload }),
     viewDirectory: (targetFolder) =>
       ipcRenderer.invoke("viewDirectory", { targetFolder }),
+    showItemInFolder: (targetPath) =>
+      ipcRenderer.invoke("showItemInFolder", { targetPath }),
     selectDirectory: () => ipcRenderer.invoke("selectDirectory"),
     resetDirectory: () => ipcRenderer.invoke("resetDirectory"),
     defaultDirectory: () => ipcRenderer.invoke("defaultDirectory"),
