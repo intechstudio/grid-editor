@@ -152,43 +152,51 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
 }
 
 export async function saveConfig(configPath, rootDirectory, config) {
-  const path = configPath;
+  const dir = `${configPath}/${rootDirectory}`;
 
-  if (!fs.existsSync(`${path}/${rootDirectory}`))
-    await fs.promises.mkdir(`${path}/${rootDirectory}`, { recursive: true });
-
-  const fileNameBase = `${config.name ?? `New local ${config.configType}`}`;
-  let fileName = fileNameBase;
-  let fileNameCounter = 1;
-  fileName = `${fileNameBase} ${fileNameCounter}`;
-  while (fs.existsSync(`${path}/${rootDirectory}/${fileName}.json`)) {
-    fileNameCounter++;
-    fileName = `${fileNameBase} ${fileNameCounter}`;
-  }
-
-  if (!config.name) {
-    config.name = `New local ${config.configType} ${fileNameCounter}`;
-  }
+  if (!fs.existsSync(dir)) await fs.promises.mkdir(dir, { recursive: true });
 
   if (!config.id) {
     config.id = uuidv4();
   }
 
-  await fs.promises
-    .writeFile(
-      `${path}/${rootDirectory}/${fileName}.json`,
+  const nameBase = config.name || `New local ${config.configType}`;
+  const oldFileName = config.fileName;
+
+  // Try the bare name first; only fall back to a numbered variant on an
+  // actual collision with a DIFFERENT file (excluded via the fileName !==
+  // oldFileName check so editing a config never "collides" with itself).
+  let fileName = `${nameBase}.json`;
+  let counter = 1;
+  while (fileName !== oldFileName && fs.existsSync(`${dir}/${fileName}`)) {
+    counter++;
+    fileName = `${nameBase} ${counter}.json`;
+  }
+
+  if (!config.name) {
+    config.name = counter > 1 ? `${nameBase} ${counter}` : nameBase;
+  }
+  config.fileName = fileName;
+
+  try {
+    if (oldFileName && oldFileName !== fileName) {
+      // Renaming an existing file: move it in one atomic step so the old
+      // and new paths are never simultaneously on disk, then write the
+      // updated content. Writing a new file and deleting the old one left
+      // a window where a concurrent directory scan (e.g. several renames
+      // saving in parallel) could see, then fail to read, a file that only
+      // existed for an instant.
+      await fs.promises.rename(`${dir}/${oldFileName}`, `${dir}/${fileName}`);
+    }
+    await fs.promises.writeFile(
+      `${dir}/${fileName}`,
       JSON.stringify(config, null, 4),
-    )
-    .then((data) => {
-      console.log("Saved!");
-      if (config.fileName) {
-        deleteConfig(configPath, rootDirectory, config);
-      }
-    })
-    .catch((err) => {
-      console.log("Error:", err);
-      throw err;
-    });
+    );
+    console.log("Saved!");
+  } catch (err) {
+    console.log("Error:", err);
+    throw err;
+  }
 }
 
 export async function deleteConfig(configPath, configFolder, config) {
