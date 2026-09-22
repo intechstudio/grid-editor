@@ -506,7 +506,11 @@ export namespace GridInstruction {
 
     public executeOn(
       connection: GridConnection,
-    ): Promise<{ value: LuaValue[]; retries: number; responseTimeout: number }> {
+    ): Promise<{
+      value: LuaValue[];
+      retries: number;
+      responseTimeout: number;
+    }> {
       let retries = 0;
       const responseTimeout = 5000;
       const script = this.compress
