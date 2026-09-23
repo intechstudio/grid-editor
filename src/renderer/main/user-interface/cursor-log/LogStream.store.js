@@ -1,83 +1,27 @@
-import { writable, get } from "svelte/store";
+import { createLogStream } from "@intechstudio/grid-uikit";
 import { logger } from "../../../runtime/runtime.store";
 
-export let logStreamStore = createLogStream();
+export const logStreamStore = createLogStream();
 
-let logClearTimeout = undefined;
+// Approximates the old rule "clear the stream when a strict-validation log
+// follows a pagechange log" using just the most recently pushed log's
+// classname, rather than mirroring every currently-visible entry — the
+// uikit store doesn't carry `classname` through, and a parallel array would
+// drift out of sync with dismiss-by-click and count aggregation happening
+// inside it.
+let lastClassname;
 
-function createLogStream() {
-  const logStream = writable([]);
-  let isTimeoutEnabled = true;
+logger.subscribe((l) => {
+  if (typeof l === "undefined") return;
 
-  function clearLogs(force = false) {
-    if (isTimeoutEnabled || force) {
-      logStream.set([]);
-      logger.set(undefined);
-    } else {
-      logClearTimeout = setTimeout(clearLogs, 500);
-    }
+  if (lastClassname === "pagechange" && l.classname === "strict") {
+    logStreamStore.reset();
   }
+  lastClassname = l.classname;
 
-  function dismissLog({ index }) {
-    logStream.update((s) => {
-      s.splice(index, 1);
-      return s;
-    });
-  }
-
-  function enableTimeout(value) {
-    isTimeoutEnabled = value;
-  }
-
-  const unsubscribe = logger.subscribe((l) => {
-    if (typeof l !== "undefined") {
-      if (
-        get(logStream)
-          .map((l) => l.classname)
-          .includes("pagechange") &&
-        l.classname == "strict"
-      ) {
-        logStream.set([]);
-      }
-
-      clearTimeout(logClearTimeout);
-
-      logStream.update((ls) => {
-        const last = ls.at(-1);
-        if (typeof last !== "undefined" && last.data.message === l.message) {
-          last.count++;
-          return ls;
-        } else {
-          if (ls.length >= 3) {
-            ls.shift();
-          }
-
-          return [
-            ...ls,
-            {
-              data: get(logger),
-              count: 1,
-            },
-          ];
-        }
-      });
-
-      logClearTimeout = setTimeout(clearLogs, 5000);
-    }
+  // grid-editor logs use "info" where uikit's LogMessageType uses "normal".
+  logStreamStore.push({
+    type: l.type === "info" ? "normal" : l.type,
+    message: l.message,
   });
-
-  // Force the log stream (and the underlying logger) back to an empty state,
-  // cancelling any pending auto-clear. Used to get rid of "bleeding" toasts
-  // that would otherwise linger for up to 5s and overlay later interactions.
-  function reset() {
-    clearTimeout(logClearTimeout);
-    clearLogs(true);
-  }
-
-  return {
-    ...logStream,
-    dismissLog: dismissLog,
-    enableTimeout: enableTimeout,
-    reset: reset,
-  };
-}
+});
