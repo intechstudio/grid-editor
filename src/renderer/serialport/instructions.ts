@@ -504,9 +504,7 @@ export namespace GridInstruction {
       this.compress = compress;
     }
 
-    public executeOn(
-      connection: GridConnection,
-    ): Promise<{
+    public executeOn(connection: GridConnection): Promise<{
       value: LuaValue[];
       retries: number;
       responseTimeout: number;
