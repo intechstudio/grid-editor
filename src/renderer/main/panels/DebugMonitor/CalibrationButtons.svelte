@@ -3,6 +3,7 @@
   import { grid } from "@intechstudio/grid-protocol";
   import type { GridModule } from "../../../runtime/runtime";
   import { Analytics } from "../../../runtime/analytics";
+  import { Grid } from "../../../lib/_utils";
 
   export let module: GridModule | undefined = undefined;
   export let onCalibrate: (code: string) => void;
@@ -11,7 +12,7 @@
   // Check what calibrations the selected module supports
   // - Potmeters: Center, Range, Detent Low, Detent High
   // - Faders: Range only
-  // - Buttons: Range only (RevH revision only)
+  // - Buttons: Range only (hall-effect buttons only)
   // - Other elements: no calibration
 
   // Cache element list to avoid multiple lookups
@@ -19,14 +20,18 @@
   $: hasPotmeter = elementList.some((element) => element === "potmeter");
   $: hasFader = elementList.some((element) => element === "fader");
   $: hasButton = elementList.some((element) => element === "button");
-  $: isRevH = module?.revision === "RevH";
+  $: isHallEffectButton =
+    !!module &&
+    Grid.Module.isHallEffectCapable(module.type) &&
+    !Grid.Module.isButtonLegacy(module.hwcfg);
 
   // Center and Detent calibrations are only for potmeters
   $: hasCenterCalibration = hasPotmeter;
   $: hasDetentCalibration = hasPotmeter;
 
-  // Range calibration is for potmeters, faders, or RevH buttons
-  $: hasRangeCalibration = hasPotmeter || hasFader || (hasButton && isRevH);
+  // Range calibration is for potmeters, faders, or hall-effect buttons
+  $: hasRangeCalibration =
+    hasPotmeter || hasFader || (hasButton && isHallEffectButton);
 
   // Button configurations
   $: buttons = [

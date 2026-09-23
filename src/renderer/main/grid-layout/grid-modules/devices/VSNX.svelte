@@ -8,6 +8,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime";
   import SquareButton from "../elements/SquareButton.svelte";
+  import { Grid } from "../../../../lib/_utils";
 
   export let moduleWidth;
   export let device: GridModule;
@@ -247,7 +248,7 @@
             />
           </div>
           <div class="normal-cell-ui-container">
-            {#if [27, 59, 91, 123].includes(device.hwcfg)}
+            {#if Grid.Module.isHallEffectCapable(moduleType) && !Grid.Module.isButtonLegacy(device.hwcfg)}
               <SquareButton
                 {elementNumber}
                 size={4.2}

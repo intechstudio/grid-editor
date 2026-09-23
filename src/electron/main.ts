@@ -1105,6 +1105,12 @@ ipcMain.handle("viewDirectory", async (event, arg) => {
   return;
 });
 
+ipcMain.handle("showItemInFolder", async (event, arg) => {
+  const normalizedPath = path.normalize(arg.targetPath); // handle mixed '/' and '\' characters on windows
+  shell.showItemInFolder(normalizedPath);
+  return;
+});
+
 ipcMain.handle("resetDirectory", async (event, arg) => {
   const defaultPath = app.getPath("documents") + "/grid-userdata";
   // Create the folder if it does not exist

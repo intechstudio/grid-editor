@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconButton from "../../user-interface/IconButton.svelte";
+  import { IconButton } from "@intechstudio/grid-uikit";
   import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import {
     ActionData,

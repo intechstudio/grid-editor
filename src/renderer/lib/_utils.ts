@@ -389,6 +389,52 @@ export namespace Grid {
     export function toArchetype(type: ModuleType): Module.Archetype {
       return typeToArchetypeMap[type];
     }
+
+    // Hall-effect hardware (square button, pressure/velocity sensitive)
+    // replaced the legacy mechanical round button on each module line at
+    // the hwcfg revisions below. Every later revision of these lines is
+    // hall-effect, so this legacy list is closed and never needs to grow -
+    // unlike a list of hall-effect hwcfgs, which would need a new entry
+    // every time a line gets a new revision.
+    const legacyButtonHwcfgs: number[] = [
+      grid.getProperty("HWCFG").BU16_RevB,
+      grid.getProperty("HWCFG").BU16_RevC,
+      grid.getProperty("HWCFG").BU16_RevD,
+      grid.getProperty("HWCFG").TEK2_RevA,
+      grid.getProperty("HWCFG").TEK2_RevB,
+      grid.getProperty("HWCFG").VSN1L_RevA,
+      grid.getProperty("HWCFG").VSN1L_RevB,
+      grid.getProperty("HWCFG").VSN1R_RevA,
+      grid.getProperty("HWCFG").VSN1R_RevB,
+      grid.getProperty("HWCFG").VSN2_RevA,
+      grid.getProperty("HWCFG").VSN2_RevB,
+      grid.getProperty("HWCFG").PBF4_RevA,
+      grid.getProperty("HWCFG").PBF4_RevD,
+    ];
+
+    export function isButtonLegacy(hwcfg: number): boolean {
+      return legacyButtonHwcfgs.includes(hwcfg);
+    }
+
+    // Module lines that have a hall-effect hardware revision at all (per
+    // legacyButtonHwcfgs above). isButtonLegacy alone isn't enough to gate
+    // hall-effect-only UI/behavior: it only tells the legacy revision of a
+    // line apart from the modern one, so it reads as "modern" for hwcfgs
+    // belonging to lines - like TEK1, VSN0, PB44 - that have BUTTON
+    // elements but never got a hall-effect revision in the first place.
+    const hallEffectCapableModuleTypes = [
+      ModuleType.BU16,
+      ModuleType.TEK2,
+      ModuleType.VSN1L,
+      ModuleType.VSN1R,
+      ModuleType.VSN2,
+      ModuleType.PBF4,
+      ModuleType.OCTV,
+    ];
+
+    export function isHallEffectCapable(type: ModuleType): boolean {
+      return hallEffectCapableModuleTypes.includes(type);
+    }
   }
 
   export namespace Link {

@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import { get } from "svelte/store";
   import {
     MoltenPushButton,
     MeltSelect,
+    MoltenInput,
     contextTarget,
+    IconButton,
   } from "@intechstudio/grid-uikit";
   import { tooltip } from "../../_actions/tooltip";
-  import IconButton from "../../user-interface/IconButton.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import importFileIcon from "../../../assets/icons/importFile.svg?raw";
   import exportFileIcon from "../../../assets/icons/ExportFile.svg?raw";
@@ -832,12 +833,15 @@
   let renameValue = "";
   let renameInProgress = false;
   let renameError: string | null = null;
+  let renameInput: MoltenInput;
 
-  function startRename(name: string) {
+  async function startRename(name: string) {
     cancelOp();
     renamingEntry = name;
     renameValue = name;
     renameError = null;
+    await tick();
+    renameInput?.focus();
   }
 
   function cancelRename() {
@@ -1138,16 +1142,18 @@
                         <span class="opacity-50 shrink-0"
                           >{entry.type === "dir" ? "📁" : "📄"}</span
                         >
-                        <input
-                          class="flex-grow min-w-0 bg-transparent border border-white/20 rounded px-1 outline-none focus:border-white/50"
-                          bind:value={renameValue}
-                          autofocus
-                          onblur={confirmRename}
-                          onkeydown={(e) => {
-                            if (e.key === "Enter") confirmRename();
-                            else if (e.key === "Escape") cancelRename();
-                          }}
-                        />
+                        <div class="flex-grow min-w-0">
+                          <MoltenInput
+                            bind:this={renameInput}
+                            bind:target={renameValue}
+                            on:blur={confirmRename}
+                            on:keydown={(e) => {
+                              if (e.detail.key === "Enter") confirmRename();
+                              else if (e.detail.key === "Escape")
+                                cancelRename();
+                            }}
+                          />
+                        </div>
                         <IconButton
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={cancelRename}
@@ -1166,6 +1172,12 @@
                         ? 'bg-popover-selection'
                         : 'hover:bg-background-muted'}"
                       onclick={() => onEntryClick(entry)}
+                      oncontextmenu={() => {
+                        selectedEntry = entry.name;
+                        if (entry.type !== "dir") {
+                          readFile(entry.name);
+                        }
+                      }}
                       use:contextTarget={{
                         items: [
                           {

@@ -1,5 +1,5 @@
 <script>
-  import IconButton from "../../../user-interface/IconButton.svelte";
+  import { IconButton } from "@intechstudio/grid-uikit";
   import { Modal } from "../../../modals/modal.store";
   import Export from "../../../modals/Export.svelte";
 </script>

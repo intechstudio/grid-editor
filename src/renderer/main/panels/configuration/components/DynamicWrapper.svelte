@@ -20,7 +20,7 @@
     removeActions,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
-  import { contextTarget, SvgIcon } from "@intechstudio/grid-uikit";
+  import { contextTarget, SvgIcon, IconButton } from "@intechstudio/grid-uikit";
   import Indentation from "./Indentation.svelte";
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
   import { selected_actions } from "../../../../runtime/selected-actions.store";
@@ -31,7 +31,6 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { Modal } from "../../../modals/modal.store";
   import RenameActionBlock from "../../../modals/RenameActionBlock.svelte";
-  import IconButton from "../../../user-interface/IconButton.svelte";
 
   const dispatch = createEventDispatcher();
 
