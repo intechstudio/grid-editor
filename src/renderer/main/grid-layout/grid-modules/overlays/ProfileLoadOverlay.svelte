@@ -1,21 +1,18 @@
 <script lang="ts">
-  import {
-    selectedConfigStore,
-    type SelectedProfileCloudConfig,
-  } from "../../../panels/profileCloud/ProfileCloud";
+  import { ProfileLoadOverlay } from "./ProfileLoadOverlay.store";
+  import { selectedConfigStore } from "../../../panels/profileCloud/ProfileCloud";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { ModuleType } from "@intechstudio/grid-protocol";
   import {
     GridModule,
-    GridPage,
     GridProfileData,
     GridRuntime,
     ProfileCloudLoad,
   } from "../../../../runtime/runtime.js";
   import { loadProfile } from "../../../../runtime/operations";
   import { user_input } from "../../../../runtime/user-input.store";
-  import { derived, get, writable, type Writable } from "svelte/store";
+  import { derived, get } from "svelte/store";
   import {
     ConfigTour,
     configTour,
@@ -25,19 +22,6 @@
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
-
-  export namespace ProfileLoadOverlay {
-    export interface ViewModel extends ProfileCloudLoad.Status {
-      target: GridPage | undefined;
-      config: SelectedProfileCloudConfig;
-    }
-
-    export const viewModel: Writable<ViewModel> = writable({
-      step: ProfileCloudLoad.State.READY,
-      target: undefined,
-      config: undefined,
-    });
-  }
 
   const model = ProfileLoadOverlay.viewModel;
 

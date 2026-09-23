@@ -11,7 +11,7 @@ import {
 } from "../../../runtime/runtime";
 import { moduleOverlay, ModuleOverlay } from "../../../runtime/moduleOverlay";
 import { runtime_manager } from "../../../runtime/runtime-manager.store";
-import { type ProfileLoadOverlay } from "../../grid-layout/grid-modules/overlays/ProfileLoadOverlay.svelte";
+import { ProfileLoadOverlay } from "../../grid-layout/grid-modules/overlays/ProfileLoadOverlay.store";
 
 export const profileCloudConfigDrag: Writable<any> = writable(undefined);
 
