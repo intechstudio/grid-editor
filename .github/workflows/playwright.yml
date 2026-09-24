@@ -94,6 +94,68 @@ jobs:
           projectId: grid-editor-web
           target: playwright-preview
           expires: 3d
+  # Parallel to publish_report while Firebase is still live. Serves the report
+  # from a Coolify preview container instead of a Firebase channel.
+  publish_report_coolify:
+    name: Publish HTML Report (Coolify)
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    needs: [test]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download zipped HTML report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Derive image tag
+        id: meta
+        run: |
+          echo "tag=pr-${{ github.event.pull_request.number }}-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/preview/Dockerfile
+          build-args: CONTENT_DIR=playwright-report
+          push: true
+          tags: ghcr.io/${{ github.repository }}-reports:${{ steps.meta.outputs.tag }}
+
+      - name: Trigger Coolify preview deployment
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          curl --fail-with-body -sS -G "$COOLIFY_URL/api/v1/deploy" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            --data-urlencode "uuid=${{ vars.COOLIFY_REPORTS_UUID }}" \
+            --data-urlencode "pr=${{ github.event.pull_request.number }}" \
+            --data-urlencode "docker_tag=${{ steps.meta.outputs.tag }}"
+
+      - name: Comment report URL
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coolify-report
+          message: |
+            **Playwright report** — https://pr-${{ github.event.pull_request.number }}-reports.${{ vars.COOLIFY_PREVIEW_DOMAIN }}
+
 # # HEADED MODE
 #  name: Playwright Tests
 

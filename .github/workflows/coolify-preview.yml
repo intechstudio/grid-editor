@@ -1,0 +1,136 @@
+# Per-PR preview deployments on Coolify.
+#
+# The build runs here, never on the VPS: Actions builds dist-web, bakes it
+# into an nginx image, pushes to GHCR, and tells Coolify to deploy that exact
+# tag as this PR's preview. Triggering the deploy *after* the push is what
+# avoids racing a webhook against the build.
+#
+# Images live for the life of the PR, so Coolify's Redeploy button keeps
+# working -- it pulls from the registry. They are deleted when the PR closes,
+# with a weekly sweep as the backstop.
+#
+# Required repository secrets:
+#   COOLIFY_URL            base URL of the Coolify instance
+#   COOLIFY_TOKEN          API token with write scope
+# Required repository variables:
+#   COOLIFY_APP_UUID       the Docker Image application for the editor
+#   COOLIFY_REPORTS_UUID   the Docker Image application for test reports
+#   COOLIFY_PREVIEW_DOMAIN e.g. grid-editor.app
+
+name: Coolify Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+concurrency:
+  group: coolify-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}-web
+  PACKAGE: grid-editor-web
+
+jobs:
+  deploy:
+    name: Build and deploy preview
+    # Fork PRs and dependabot cannot be given the deploy credentials.
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.14.1"
+          cache: "npm"
+
+      - run: npm ci && npm run web-build
+
+      - name: Derive image tag
+        id: meta
+        run: |
+          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "tag=pr-${{ github.event.pull_request.number }}-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/preview/Dockerfile
+          build-args: CONTENT_DIR=dist-web
+          push: true
+          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+
+      - name: Trigger Coolify preview deployment
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          curl --fail-with-body -sS -G "$COOLIFY_URL/api/v1/deploy" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            --data-urlencode "uuid=${{ vars.COOLIFY_APP_UUID }}" \
+            --data-urlencode "pr=${{ github.event.pull_request.number }}" \
+            --data-urlencode "docker_tag=${{ steps.meta.outputs.tag }}"
+
+      - name: Comment preview URL
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coolify-preview
+          message: |
+            **Preview** — https://pr-${{ github.event.pull_request.number }}.${{ vars.COOLIFY_PREVIEW_DOMAIN }}
+
+            Deployed from `${{ steps.meta.outputs.sha }}`. The URL stays the
+            same for the life of this PR; each push replaces what it serves.
+
+  teardown:
+    name: Tear down preview
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # Coolify's automatic preview removal is driven by a Git source webhook.
+      # A Docker Image application has no Git source, so nothing deletes the
+      # container unless we ask.
+      - name: Delete Coolify previews
+        continue-on-error: true
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/coollabsio/coolify-cli/main/scripts/install.sh | bash -s -- --user
+          export PATH="$HOME/.local/bin:$PATH"
+          # The CLI authenticates from ~/.config/coolify/config.json, not from
+          # environment variables, so the context is registered per run.
+          coolify context add ci "${{ secrets.COOLIFY_URL }}" "${{ secrets.COOLIFY_TOKEN }}"
+          PR="${{ github.event.pull_request.number }}"
+          coolify app previews delete "${{ vars.COOLIFY_APP_UUID }}"     "$PR" --force --context ci
+          coolify app previews delete "${{ vars.COOLIFY_REPORTS_UUID }}" "$PR" --force --context ci
+
+      - name: Delete preview images from GHCR
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          PREFIX: pr-${{ github.event.pull_request.number }}-
+        run: |
+          for pkg in grid-editor-web grid-editor-reports; do
+            gh api --paginate "/orgs/$OWNER/packages/container/$pkg/versions" \
+              --jq ".[] | select(any(.metadata.container.tags[]?; startswith(\"$PREFIX\"))) | .id" \
+            | while read -r id; do
+                echo "deleting $pkg version $id"
+                gh api -X DELETE "/orgs/$OWNER/packages/container/$pkg/versions/$id"
+              done
+          done

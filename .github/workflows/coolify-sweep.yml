@@ -1,0 +1,69 @@
+# Backstop for preview cleanup.
+#
+# The PR-close hook is best effort: it does not run if a job is cancelled, if
+# the runner dies, or if a PR is closed while Actions is degraded. That is the
+# exact failure mode that let Firebase storage accumulate past the free tier,
+# so cleanup cannot depend on it alone. This job reconciles against the list
+# of open PRs rather than reacting to an event.
+#
+# Coolify has no read-only API for listing active previews, so GHCR is
+# reconciled exactly and preview containers are re-deleted best effort for
+# recently closed PRs, which is idempotent and cheap.
+# See https://github.com/coollabsio/coolify/discussions/10976
+
+name: Coolify Preview Sweep
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: read
+    steps:
+      - name: Collect open PR numbers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr list --repo "${{ github.repository }}" --state open --limit 500 \
+            --json number --jq '.[].number' | sort -n > open.txt
+          echo "open PRs: $(tr '\n' ' ' < open.txt)"
+
+      - name: Delete GHCR versions for closed PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          for pkg in grid-editor-web grid-editor-reports; do
+            gh api --paginate "/orgs/$OWNER/packages/container/$pkg/versions" \
+              --jq '.[] | select((.metadata.container.tags | length) > 0) | "\(.id) \(.metadata.container.tags[0])"' \
+            | while read -r id tag; do
+                case "$tag" in pr-*) ;; *) continue ;; esac
+                pr="${tag#pr-}"; pr="${pr%%-*}"
+                if grep -qx "$pr" open.txt; then continue; fi
+                echo "deleting $pkg $tag (PR #$pr closed)"
+                gh api -X DELETE "/orgs/$OWNER/packages/container/$pkg/versions/$id"
+              done
+          done
+
+      - name: Delete preview containers for recently closed PRs
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/coollabsio/coolify-cli/main/scripts/install.sh | bash -s -- --user
+          export PATH="$HOME/.local/bin:$PATH"
+          coolify context add ci "${{ secrets.COOLIFY_URL }}" "${{ secrets.COOLIFY_TOKEN }}"
+          since=$(date -u -d '30 days ago' +%Y-%m-%d)
+          gh pr list --repo "${{ github.repository }}" --state closed --limit 200 \
+            --json number,closedAt \
+            --jq ".[] | select(.closedAt >= \"$since\") | .number" \
+          | while read -r pr; do
+              coolify app previews delete "${{ vars.COOLIFY_APP_UUID }}"     "$pr" --force --context ci || true
+              coolify app previews delete "${{ vars.COOLIFY_REPORTS_UUID }}" "$pr" --force --context ci || true
+            done
