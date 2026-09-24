@@ -20,7 +20,7 @@
     "directory": "dist-web",
     // The editor is a single-page app, so unknown paths must serve index.html
     // rather than 404.
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
   },
   "routes": [{ "pattern": "grid-editor.app", "custom_domain": true }],
   "env": {
@@ -29,11 +29,13 @@
     // a deployed Worker and version preview URLs cannot carry one.
     "stable": {
       // Inherits the `assets` block above; only the domain differs.
-      "routes": [{ "pattern": "stable.grid-editor.app", "custom_domain": true }],
+      "routes": [
+        { "pattern": "stable.grid-editor.app", "custom_domain": true },
+      ],
       // Reachable only at stable.grid-editor.app: always deployed, never
       // uploaded as a preview, so it needs neither of these.
       "workers_dev": false,
-      "preview_urls": false
+      "preview_urls": false,
     },
     // Playwright HTML reports for a pull request. Only ever uploaded as a
     // version with a preview alias -- a test report has no production
@@ -44,8 +46,8 @@
       "routes": [],
       "assets": {
         "directory": "playwright-report",
-        "not_found_handling": "none"
-      }
-    }
-  }
+        "not_found_handling": "none",
+      },
+    },
+  },
 }
