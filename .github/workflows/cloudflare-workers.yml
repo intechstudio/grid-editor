@@ -5,10 +5,12 @@
 # Deploy targets:
 #   pull request     versions upload --preview-alias pr-<number>
 #                    -> pr-<number>-grid-editor.<subdomain>.workers.dev
-#   push to stable   deploy --config wrangler.stable.jsonc
+#   push to stable   deploy --env stable
 #                    -> stable.grid-editor.app
-#   tag push         deploy --config wrangler.jsonc
+#   tag push         deploy --env ""
 #                    -> grid-editor.app
+#
+# The environments live in wrangler.jsonc.
 #
 # A preview alias is stable for the life of the PR, so each push replaces
 # what that URL serves rather than minting a new one. Uploading a version
@@ -66,7 +68,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             alias="pr-${{ github.event.pull_request.number }}"
             npx --yes "wrangler@$WRANGLER_VERSION" versions upload \
-              --config wrangler.jsonc --preview-alias "$alias" 2>&1 | tee out.txt
+              --env "" --preview-alias "$alias" 2>&1 | tee out.txt
             # wrangler prints the alias URL; take it from the output rather
             # than reconstructing it, since the workers.dev subdomain is an
             # account setting this workflow does not otherwise know.
@@ -75,9 +77,9 @@ jobs:
             [ -n "$url" ] || { echo "could not find preview URL in wrangler output" >&2; exit 1; }
             echo "url=$url" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.ref_type }}" = "tag" ]; then
-            npx --yes "wrangler@$WRANGLER_VERSION" deploy --config wrangler.jsonc
+            npx --yes "wrangler@$WRANGLER_VERSION" deploy --env ""
           else
-            npx --yes "wrangler@$WRANGLER_VERSION" deploy --config wrangler.stable.jsonc
+            npx --yes "wrangler@$WRANGLER_VERSION" deploy --env stable
           fi
           echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 

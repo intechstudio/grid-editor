@@ -1,16 +1,51 @@
 {
-  // Static-assets-only Worker for the web editor. No `main`: nothing runs
-  // server side, so every request is a free static asset request.
+  // Three static-asset Workers, one per deploy target, sharing this file
+  // through Wrangler environments. `--env <name>` targets the Worker named
+  // `grid-editor-<name>`; `--env ""` targets `grid-editor` itself.
   //
-  // Tagged releases deploy here and serve grid-editor.app. Pull requests are
-  // uploaded as versions with a preview alias and never touch the deployed
-  // version -- see .github/workflows/cloudflare-workers.yml.
+  //   env        Worker                 serves                   shipped by
+  //   --env ""   grid-editor            grid-editor.app          tag push
+  //   stable     grid-editor-stable     stable.grid-editor.app   push to stable
+  //   reports    grid-editor-reports    preview alias only       PR test reports
+  //
+  // Pull requests upload the editor as a *version* of `grid-editor` with a
+  // preview alias, which never activates and so cannot affect the live site.
+  // See .github/workflows/cloudflare-workers.yml and playwright.yml.
+  //
+  // No `main` anywhere: nothing runs server side, so every request is a free
+  // static asset request.
   "name": "grid-editor",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "dist-web",
-    // Replaces firebase.json's rewrite and the earlier _redirects file.
+    // The editor is a single-page app, so unknown paths must serve index.html
+    // rather than 404.
     "not_found_handling": "single-page-application"
   },
-  "routes": [{ "pattern": "grid-editor.app", "custom_domain": true }]
+  "routes": [{ "pattern": "grid-editor.app", "custom_domain": true }],
+  "env": {
+    // Always tracks the head of the stable branch. A Worker of its own rather
+    // than a preview alias of the one above, because a custom domain requires
+    // a deployed Worker and version preview URLs cannot carry one.
+    "stable": {
+      // Inherits the `assets` block above; only the domain differs.
+      "routes": [{ "pattern": "stable.grid-editor.app", "custom_domain": true }],
+      // Reachable only at stable.grid-editor.app: always deployed, never
+      // uploaded as a preview, so it needs neither of these.
+      "workers_dev": false,
+      "preview_urls": false
+    },
+    // Playwright HTML reports for a pull request. Only ever uploaded as a
+    // version with a preview alias -- a test report has no production
+    // counterpart, so this Worker is never deployed and must not inherit the
+    // grid-editor.app route.
+    "reports": {
+      // Do not inherit custom domain, using empty routes.
+      "routes": [],
+      "assets": {
+        "directory": "playwright-report",
+        "not_found_handling": "none"
+      }
+    }
+  }
 }

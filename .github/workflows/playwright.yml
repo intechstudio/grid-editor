@@ -127,7 +127,7 @@ jobs:
           set -o pipefail
           alias="pr-${{ github.event.pull_request.number }}"
           npx --yes wrangler@4.138.0 versions upload \
-            --config wrangler.reports.jsonc --preview-alias "$alias" 2>&1 | tee out.txt
+            --env reports --preview-alias "$alias" 2>&1 | tee out.txt
           url=$(grep -oE 'https://[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev' out.txt \
                 | grep -m1 "$alias" || true)
           [ -n "$url" ] || { echo "could not find preview URL in wrangler output" >&2; exit 1; }
