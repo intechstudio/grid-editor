@@ -3,7 +3,7 @@
 # monthly build limit does not apply.
 #
 # Deploy targets, by wrangler --branch:
-#   pull request     pr-<number>   pr-<number>.grid-editor.pages.dev
+#   pull request     pr-<number>   pr-<number>.grid-editor-cg4.pages.dev
 #   push to stable   stable        stable.grid-editor.app
 #   tag push         release       grid-editor.app
 #
@@ -15,6 +15,12 @@
 #   CLOUDFLARE_ACCOUNT_ID
 
 name: Cloudflare Pages
+
+# The pages.dev subdomain is global and "grid-editor" was already taken, so
+# the project is named grid-editor but serves from grid-editor-cg4.pages.dev.
+env:
+  PAGES_PROJECT: grid-editor
+  PAGES_DOMAIN: grid-editor-cg4.pages.dev
 
 on:
   push:
@@ -60,7 +66,7 @@ jobs:
             branch="stable"
           fi
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          echo "url=https://$branch.grid-editor.pages.dev" >> "$GITHUB_OUTPUT"
+          echo "url=https://$branch.$PAGES_DOMAIN" >> "$GITHUB_OUTPUT"
           echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "deploying to $branch"
 
@@ -71,7 +77,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
             pages deploy dist-web
-            --project-name=grid-editor
+            --project-name=${{ env.PAGES_PROJECT }}
             --branch=${{ steps.target.outputs.branch }}
 
       - name: Comment preview URL
