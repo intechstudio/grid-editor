@@ -95,8 +95,7 @@ jobs:
           target: playwright-preview
           expires: 3d
   # Runs alongside publish_report while Firebase is still live. Traces are
-  # already limited to failures by playwright.config.js (retain-on-failure),
-  # which keeps reports under the Pages 25 MiB per-file limit.
+  # already limited to failures by playwright.config.js (retain-on-failure).
   publish_report_cloudflare:
     name: Publish HTML Report (Cloudflare)
     if: >-
@@ -119,29 +118,27 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
-      - name: Resolve deploy target
-        id: target
+      - name: Upload report to Cloudflare
+        id: ship
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          branch="pr-${{ github.event.pull_request.number }}"
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          echo "url=https://$branch.grid-editor-reports.pages.dev" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy report to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            pages deploy playwright-report
-            --project-name=grid-editor-reports
-            --branch=${{ steps.target.outputs.branch }}
+          set -o pipefail
+          alias="pr-${{ github.event.pull_request.number }}"
+          npx --yes wrangler@4.138.0 versions upload \
+            --config wrangler.reports.jsonc --preview-alias "$alias" 2>&1 | tee out.txt
+          url=$(grep -oE 'https://[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev' out.txt \
+                | grep -m1 "$alias" || true)
+          [ -n "$url" ] || { echo "could not find preview URL in wrangler output" >&2; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Comment report URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: cloudflare-report
           message: |
-            **Playwright report** — ${{ steps.target.outputs.url }}
+            **Playwright report** — ${{ steps.ship.outputs.url }}
 
 # # HEADED MODE
 #  name: Playwright Tests

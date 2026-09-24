@@ -1,0 +1,12 @@
+{
+  // Always-on target tracking the head of the stable branch. Separate Worker
+  // rather than a preview alias, because version preview URLs cannot use a
+  // custom domain.
+  "name": "grid-editor-stable",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "dist-web",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [{ "pattern": "stable.grid-editor.app", "custom_domain": true }]
+}

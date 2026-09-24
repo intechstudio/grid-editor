@@ -1,0 +1,16 @@
+{
+  // Static-assets-only Worker for the web editor. No `main`: nothing runs
+  // server side, so every request is a free static asset request.
+  //
+  // Tagged releases deploy here and serve grid-editor.app. Pull requests are
+  // uploaded as versions with a preview alias and never touch the deployed
+  // version -- see .github/workflows/cloudflare-workers.yml.
+  "name": "grid-editor",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "dist-web",
+    // Replaces firebase.json's rewrite and the earlier _redirects file.
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [{ "pattern": "grid-editor.app", "custom_domain": true }]
+}
