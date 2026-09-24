@@ -94,6 +94,55 @@ jobs:
           projectId: grid-editor-web
           target: playwright-preview
           expires: 3d
+  # Runs alongside publish_report while Firebase is still live. Traces are
+  # already limited to failures by playwright.config.js (retain-on-failure),
+  # which keeps reports under the Pages 25 MiB per-file limit.
+  publish_report_cloudflare:
+    name: Publish HTML Report (Cloudflare)
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    needs: [test]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download zipped HTML report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Resolve deploy target
+        id: target
+        run: |
+          branch="pr-${{ github.event.pull_request.number }}"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "url=https://$branch.grid-editor-reports.pages.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy report to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy playwright-report
+            --project-name=grid-editor-reports
+            --branch=${{ steps.target.outputs.branch }}
+
+      - name: Comment report URL
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: cloudflare-report
+          message: |
+            **Playwright report** — ${{ steps.target.outputs.url }}
+
 # # HEADED MODE
 #  name: Playwright Tests
 

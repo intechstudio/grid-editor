@@ -1,0 +1,4 @@
+# Cloudflare Pages SPA fallback. Copied to the root of dist-web by vite's
+# publicDir. Note the target is /index.html -- firebase.json rewrites to
+# /src/renderer/index.html, a path the build has never produced.
+/*  /index.html  200
