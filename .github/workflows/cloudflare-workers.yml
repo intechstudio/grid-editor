@@ -1,0 +1,95 @@
+# Builds the web editor in Actions and ships it to Cloudflare Workers as a
+# static-assets-only Worker. Nothing is built on Cloudflare, and static asset
+# requests are free and unlimited.
+#
+# Deploy targets:
+#   pull request     versions upload --preview-alias pr-<number>
+#                    -> pr-<number>-grid-editor.<subdomain>.workers.dev
+#   push to stable   deploy --env stable
+#                    -> stable.grid-editor.app
+#   tag push         deploy --env ""
+#                    -> grid-editor.app
+#
+# The environments live in wrangler.jsonc.
+#
+# A preview alias is stable for the life of the PR, so each push replaces
+# what that URL serves rather than minting a new one. Uploading a version
+# never activates it, so PR builds cannot affect grid-editor.app.
+#
+# Required repository secrets:
+#   CLOUDFLARE_API_TOKEN   Workers Scripts: Edit
+#   CLOUDFLARE_ACCOUNT_ID
+
+name: Cloudflare Workers
+
+on:
+  push:
+    branches: ["stable"]
+    tags: ["*"]
+  pull_request:
+
+concurrency:
+  group: cloudflare-workers-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  WRANGLER_VERSION: "4.138.0"
+
+jobs:
+  deploy:
+    name: Build and deploy
+    # Fork PRs and dependabot cannot be given the deploy credentials.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.14.1"
+          cache: "npm"
+
+      - run: npm ci && npm run web-build
+
+      - name: Ship to Cloudflare
+        id: ship
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -o pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            alias="pr-${{ github.event.pull_request.number }}"
+            npx --yes "wrangler@$WRANGLER_VERSION" versions upload \
+              --env "" --preview-alias "$alias" 2>&1 | tee out.txt
+            # wrangler prints the alias URL; take it from the output rather
+            # than reconstructing it, since the workers.dev subdomain is an
+            # account setting this workflow does not otherwise know.
+            url=$(grep -oE 'https://[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev' out.txt \
+                  | grep -m1 "$alias" || true)
+            [ -n "$url" ] || { echo "could not find preview URL in wrangler output" >&2; exit 1; }
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            npx --yes "wrangler@$WRANGLER_VERSION" deploy --env ""
+          else
+            npx --yes "wrangler@$WRANGLER_VERSION" deploy --env stable
+          fi
+          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: cloudflare-preview
+          message: |
+            **Editor preview** — ${{ steps.ship.outputs.url }}
+
+            Deployed from `${{ steps.ship.outputs.sha }}`. The URL stays the
+            same for the life of this PR; each push replaces what it serves.
