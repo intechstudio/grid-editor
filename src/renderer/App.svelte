@@ -422,7 +422,7 @@
   }}
   id="app"
   spellcheck="false"
-  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden app-svelte"
+  class="dark relative flex w-full h-full shrink-0 flex-row justify-between overflow-hidden app-svelte"
   style="font-size:{$appSettings.persistent.fontSize}px;"
 >
   <!-- Switch between tabs for different application features. -->

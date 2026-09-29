@@ -165,10 +165,23 @@ body {
   background: var(--background-soft);
 }
 
-/* 
-  Mixpanel img-transport tracking pixels must never intercept pointer events. This is required for the test suite to run.
+/*
+  The web build sends Mixpanel events over an <img> GET transport (see
+  analytics.js), and every tracked event appends a bare 1x1 pixel straight to
+  <body>. `body` is a column flex container, so such an image is stretched to
+  the full window width, and its 1:1 intrinsic ratio then makes it as tall as
+  the window is wide -- which squeezes #app, whose `overflow: hidden` lets its
+  automatic minimum size collapse, down to zero height. Keep the pixels out of
+  the flow entirely. They must also never intercept pointer events, or the
+  test suite cannot run.
 */
 img[src*="mixpanel.com"] {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
   pointer-events: none !important;
 }
 
