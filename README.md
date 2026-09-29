@@ -78,6 +78,20 @@ npm i
 npm run web-dev
 ```
 
+## Where the web editor is deployed
+
+GitHub Actions builds it and uploads it to Cloudflare Workers as static assets; nothing is built on Cloudflare. Hosting is no longer on Firebase -- Firebase is only used for authentication (see below).
+
+| Trigger          | Deploys to                                         |
+| ---------------- | -------------------------------------------------- |
+| Pull request     | `pr-<number>-grid-editor.intechstudio.workers.dev` |
+| Push to `stable` | `stable.grid-editor.app`                           |
+| Tag push         | `grid-editor.app`                                  |
+
+A pull request only uploads a Worker _version_ behind a preview alias and never activates it, so it cannot touch the live site. The alias carries the PR number alone, so the URL stays the same for the life of the PR. Playwright reports land on `pr-<number>-grid-editor-reports.intechstudio.workers.dev`.
+
+Targets are defined in `wrangler.jsonc`, the workflows in `.github/workflows/cloudflare-workers.yml` and `playwright.yml`.
+
 ## Start local Profile Cloud development
 
 1. Open Editor with `npm run electron-dev`
