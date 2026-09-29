@@ -46,58 +46,10 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+  # Pull requests only. On a plain push the report stays available as the
+  # workflow artifact uploaded above.
   publish_report:
     name: Publish HTML Report
-    # using always() is not ideal here, because it would also run if the workflow was cancelled
-    if: "success() || needs.test.result == 'failure'"
-    needs: [test]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup NodeJs
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24.14.1"
-      - name: Download zipped HTML report
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-      - name: Derive Channel ID from Commit SHA
-        if: ${{ github.event_name == 'push' }}
-        id: derive_channel
-        run: |
-          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
-          echo "channel=sha-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-      - name: Report to Firebase Hosting on Push
-        if: ${{ github.event_name == 'push' }}
-        id: firebase_deploy
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
-          projectId: grid-editor-web
-          target: playwright-preview
-          channelId: ${{ steps.derive_channel.outputs.channel }}
-          expires: 1d
-      - name: Output Preview URL
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          echo "::notice title=📋 Playwright Report Preview::${{ steps.firebase_deploy.outputs.details_url }}"
-      - name: Report to Firebase Hosting on Pull Request
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
-          projectId: grid-editor-web
-          target: playwright-preview
-          expires: 3d
-  # Runs alongside publish_report while Firebase is still live. Traces are
-  # already limited to failures by playwright.config.js (retain-on-failure).
-  publish_report_cloudflare:
-    name: Publish HTML Report (Cloudflare)
     if: >-
       always() &&
       github.event_name == 'pull_request' &&

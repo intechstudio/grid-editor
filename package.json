@@ -102,9 +102,7 @@
     "format": "prettier --write .",
     "web:dev": "vite dev --mode web",
     "web:build": "vite build --mode web",
-    "web:deploy": "firebase deploy --only hosting",
     "web-dev": "cross-env VITE_BUILD_TARGET=web VITE_BUILD_ENV=development npm run web:dev",
-    "web-build": "cross-env VITE_BUILD_TARGET=web VITE_BUILD_ENV=production run-s clean-up web:build",
-    "web-deploy": "run-s web-build web:deploy"
+    "web-build": "cross-env VITE_BUILD_TARGET=web VITE_BUILD_ENV=production run-s clean-up web:build"
   }
 }
