@@ -52,6 +52,7 @@
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
   import { Validator } from "./validators";
   import { Grid } from "../lib/_utils.js";
+  import { appSettings } from "../runtime/app-helper.store";
 
   export let action: GridAction;
 
@@ -62,8 +63,13 @@
   const channelStore = moduleMidiChannelState(
     (event.parent as GridElement)?.parent as GridPage | undefined,
   );
+  // 360px at the default 12px font size — converted to em so the breakpoint
+  // scales with the user's font size setting instead of a fixed pixel width.
+  const WIDE_BREAKPOINT_EM = 30;
+
   let containerWidth = 0;
-  $: isWide = containerWidth > 360;
+  $: containerWidthEm = containerWidth / $appSettings.persistent.fontSize;
+  $: isWide = containerWidthEm > WIDE_BREAKPOINT_EM;
 
   const dispatch = createEventDispatcher();
 

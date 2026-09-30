@@ -440,6 +440,12 @@
         title={"Activate WebSocket based transport"}
       />
 
+      <BlockTitle>Layout testing</BlockTitle>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.disableSidebarMinWidth}
+        title={"Disable sidebar minimum width (for extreme resize testing)"}
+      />
+
       <BlockTitle>Package Developer Mode</BlockTitle>
       <MeltCheckbox
         bind:target={$appSettings.persistent.packageDeveloper}
