@@ -112,6 +112,7 @@ const persistentDefaultValues = {
   changeOnEvent: "event",
   disableAnimations: false,
   packageDeveloper: false,
+  disableSidebarMinWidth: false,
   actionHelperText: true,
   unreleasedVirtualModules: false,
   multiViewEnabled: false,

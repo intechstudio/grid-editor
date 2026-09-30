@@ -249,7 +249,7 @@
   <carousel
     id="cfg-{index}"
     style="background-color: var(--background); color: var(--foreground); "
-    class="flex flex-grow min-w-0 overflow-x-auto h-auto min-h-[32px] {!$action.isValid()
+    class="flex flex-grow min-w-0 h-auto min-h-[32px] {!$action.isValid()
       ? 'border border-error'
       : ' '} cursor-pointer"
     class:opacity-20={$draggedActions.includes(action)}
