@@ -37,10 +37,6 @@
   export let index = undefined;
   export let action: GridAction;
   export let selected = false;
-  // Non-zero only when rendering a VirtualGridEvent's actions, which keep
-  // action.parent === the real host event — see virtual-event.ts's
-  // INDENTATION_OFFSET for why.
-  export let indentationOffset = 0;
 
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
@@ -247,9 +243,7 @@
   class="dynamicWrapper activator-button flex flex-grow min-w-0 outline-none"
   class:cursor-pointer={ctrlIsDown}
 >
-  <Indentation
-    level={Math.max(($action?.indentation ?? 0) + indentationOffset, 0)}
-  />
+  <Indentation level={$action?.indentation ?? 0} />
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel

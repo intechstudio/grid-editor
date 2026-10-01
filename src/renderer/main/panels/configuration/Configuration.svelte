@@ -15,12 +15,6 @@
     GridPage,
     GridRuntime,
   } from "../../../runtime/runtime";
-  import {
-    listVirtualEvents,
-    getVirtualEvent,
-    type VirtualGridEvent,
-  } from "../../../runtime/virtual-event";
-  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
   import {
@@ -73,37 +67,12 @@
       ui.elementnumber,
     );
 
-    const realEvent = runtime.findEvent(
+    event = runtime.findEvent(
       ui.dx,
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
       ui.eventtype,
-    );
-
-    if (typeof ui.virtualEventName === "string" && realEvent) {
-      const match = listVirtualEvents(realEvent).find(
-        (d) => d.name === ui.virtualEventName,
-      );
-      event = match ? getVirtualEvent(realEvent, match.fstAction) : realEvent;
-    } else {
-      event = realEvent;
-    }
-  }
-
-  let virtualEvents: VirtualGridEvent[] = [];
-
-  $: virtualEvents = computeVirtualEvents($element);
-
-  function computeVirtualEvents(elementData: unknown): VirtualGridEvent[] {
-    const setup = element?.events.find(
-      (e) => e.type === EventTypeToNumber(EventType.SETUP),
-    );
-    if (!setup) {
-      return [];
-    }
-    return listVirtualEvents(setup).map((d) =>
-      getVirtualEvent(setup, d.fstAction),
     );
   }
 
@@ -317,12 +286,6 @@
           {#if $appSettings.isMultiView}
             {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
               <ActionList {event} focusTrigger={`action-list-${i}`} />
-            {/each}
-            {#each virtualEvents as event (event.getName())}
-              <ActionList
-                {event}
-                focusTrigger={`action-list-virtual-${event.getName()}`}
-              />
             {/each}
           {:else}
             <ActionList {event} focusTrigger={"action-list-0"} />

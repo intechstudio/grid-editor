@@ -49,10 +49,6 @@
   import { autoScroll } from "../../_actions/autoscroll.action";
   import { Focus } from "../../_actions/focus.action";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
-  import {
-    VirtualGridEvent,
-    INDENTATION_OFFSET,
-  } from "../../../runtime/virtual-event";
 
   export let event: GridEvent;
   export let focusTrigger: string;
@@ -61,8 +57,6 @@
   let runtime: GridRuntime;
 
   $: runtime = $runtime_manager.active.runtime;
-  $: indentationOffset =
-    event instanceof VirtualGridEvent ? INDENTATION_OFFSET : 0;
 
   // The Preferences > Animations setting only disables CSS animations/
   // transitions globally (see setDocumentAnimationsEnabled); it has no
@@ -222,7 +216,6 @@
               <DynamicWrapper
                 {index}
                 {action}
-                {indentationOffset}
                 selected={typeof $selected_actions.find(
                   (e) => e.id === action.id,
                 ) !== "undefined"}

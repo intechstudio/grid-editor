@@ -18,10 +18,6 @@ export type UserInputValue = {
   pagenumber: number;
   elementnumber: number;
   eventtype: number;
-  // Name of the selected virtual event (a top-level Function block on
-  // `eventtype`'s event), when the user is viewing one instead of the real
-  // event itself. See runtime/virtual-event.ts.
-  virtualEventName?: string;
 };
 
 export class UserInput implements Writable<UserInputValue> {
