@@ -51,6 +51,9 @@ async function prepareForBlockTest(category, blockName) {
 }
 
 test.beforeAll(async () => {
+  // Page load + module setup can exceed the global 15s test timeout when
+  // workers run in parallel and compete for CPU.
+  test.setTimeout(60 * 1000);
   ({ browser, context, page } = await initializeBrowserContext());
 
   configPage = new ConfigPage(page);
@@ -139,8 +142,10 @@ test.describe("Interactable input field", () => {
           }
 
           // Locate input fields that are not of type "checkbox"
+          // Visible only: Monaco's keybinding service injects a hidden
+          // "Press desired key combination" text input into the block.
           const inputFields = actionBlock.locator(
-            "input[type='text']:not(.rename-input)",
+            "input[type='text']:not(.rename-input):visible",
           );
 
           const monacoFields = actionBlock.locator("div#line-editor");

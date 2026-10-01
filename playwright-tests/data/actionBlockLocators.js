@@ -71,7 +71,7 @@ export const blocks = (page) => {
       Color: {
         block: pickerById("SimpleColor"),
         elements: {
-          ledNumber: page.getByLabel("Element"),
+          ledNumber: page.getByLabel("Element", { exact: true }),
           Layer: page.getByLabel("Layer"),
           Red: page.getByLabel("Red"),
           Green: page.getByLabel("Green"),
@@ -81,7 +81,7 @@ export const blocks = (page) => {
       Intensity: {
         block: pickerById("SimpleIntensity"),
         elements: {
-          Element: page.getByLabel("Element"),
+          Element: page.getByLabel("Element", { exact: true }),
           Layer: page.getByLabel("Layer"),
           Intensity: page.getByLabel("Intensity"),
         },
