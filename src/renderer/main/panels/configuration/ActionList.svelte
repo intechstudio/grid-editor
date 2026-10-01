@@ -165,10 +165,20 @@
     class=" pb-0 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     {#if $appSettings.isMultiView}
+      {@const length = $event?.toLua().length ?? 0}
       <div class="flex flex-row gap-2 px-3 text-sm">
         {($event?.getName() ?? "No Device") + " Event"}
-        <div style="color: var(--foreground-disabled);">
-          {$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength - 1}
+        <div
+          class={length >= Grid.Protocol.maxScriptLength * 0.98
+            ? "text-error"
+            : length >= (Grid.Protocol.maxScriptLength / 3) * 2
+              ? "text-yellow-400"
+              : ""}
+          style={length >= (Grid.Protocol.maxScriptLength / 3) * 2
+            ? ""
+            : "color: var(--foreground-muted)"}
+        >
+          {length}/{Grid.Protocol.maxScriptLength - 1}
         </div>
       </div>
     {/if}
