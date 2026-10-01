@@ -4,6 +4,7 @@
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import {
+    IconButton,
     MeltCheckbox,
     MoltenPushButton,
     Toggle,
@@ -66,27 +67,15 @@
         <div class="text-base text-foreground-muted">Intech Studio</div>
       </div>
 
-      <button
-        aria-label="Close welcome screen"
-        title="Close"
-        on:click={() => data.close()}
-        class="not-draggable flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border hover:bg-background-muted"
-        style="border-color: var(--border); border-radius: var(--radius);"
-        data-testid="welcome-close-button"
-      >
-        <svg
-          class="h-4 w-4 fill-current text-foreground-muted"
-          viewBox="0 0 29 29"
-          aria-hidden="true"
-        >
-          <path
-            d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-          />
-          <path
-            d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-          />
-        </svg>
-      </button>
+      <div class="shrink-0">
+        <IconButton
+          id="welcome-close-button"
+          iconPath="close"
+          tooltipText="Close"
+          ariaLabel="Close welcome screen"
+          on:click={() => data.close()}
+        />
+      </div>
     </header>
 
     <div

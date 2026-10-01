@@ -467,7 +467,14 @@ export async function dropActions(
   index: number,
   actions: GridAction[],
 ): Promise<InsertActionsResult> {
-  let targetActions = actions.filter((e) => e.parent === target);
+  // Membership in `target` must be checked against its live `.config`, not
+  // `e.parent === target`: a VirtualGridEvent's body actions always keep
+  // `.parent` pointing at the real host event (see virtual-event.ts), so an
+  // identity check against the proxy here would always miss, silently
+  // skipping the movingDown index correction below for every in-place
+  // reorder inside a virtual event.
+  const targetIds = new Set(target.config.map((e) => e.id));
+  let targetActions = actions.filter((e) => targetIds.has(e.id));
   let targetIndexes = targetActions.map((action) =>
     target.config.findIndex((e) => e.id === action.id),
   );
@@ -503,9 +510,13 @@ export async function dropActions(
   try {
     await target.insert(index, ...actions);
 
-    // Send all updates only after successful insert
+    // Send all updates only after successful insert. Compare via
+    // .realEvent, not raw `!==`: a VirtualGridEvent target is always a
+    // distinct object from the real event a dragged action's `.parent`
+    // points at, even when they're the same underlying event — a raw
+    // identity check would double-send in that case.
     for (const sourceEvent of sourceEvents) {
-      if (sourceEvent !== target) {
+      if (sourceEvent.realEvent !== target.realEvent) {
         sourceEvent.sendToGrid();
       }
     }

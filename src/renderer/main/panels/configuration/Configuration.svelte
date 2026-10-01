@@ -15,6 +15,12 @@
     GridPage,
     GridRuntime,
   } from "../../../runtime/runtime";
+  import {
+    listVirtualEvents,
+    getVirtualEvent,
+    type VirtualGridEvent,
+  } from "../../../runtime/virtual-event";
+  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { onDestroy } from "svelte";
   import {
@@ -35,7 +41,10 @@
     pasteActions,
   } from "../../../runtime/operations";
   import { isPasteActionsEnabled } from "./components/Toolbar";
-  import { MeltRadio, Toggle } from "@intechstudio/grid-uikit";
+  import { MeltRadio, Toggle, IconButton } from "@intechstudio/grid-uikit";
+  import addIcon from "../../../assets/icons/add.svg?raw";
+  import { Modal } from "../../modals/modal.store";
+  import AddVirtualEvent from "../../modals/AddVirtualEvent.svelte";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -67,12 +76,37 @@
       ui.elementnumber,
     );
 
-    event = runtime.findEvent(
+    const realEvent = runtime.findEvent(
       ui.dx,
       ui.dy,
       ui.pagenumber,
       ui.elementnumber,
       ui.eventtype,
+    );
+
+    if (typeof ui.virtualEventName === "string" && realEvent) {
+      const match = listVirtualEvents(realEvent).find(
+        (d) => d.name === ui.virtualEventName,
+      );
+      event = match ? getVirtualEvent(realEvent, match.fstAction) : realEvent;
+    } else {
+      event = realEvent;
+    }
+  }
+
+  let virtualEvents: VirtualGridEvent[] = [];
+
+  $: virtualEvents = computeVirtualEvents($element);
+
+  function computeVirtualEvents(elementData: unknown): VirtualGridEvent[] {
+    const setup = element?.events.find(
+      (e) => e.type === EventTypeToNumber(EventType.SETUP),
+    );
+    if (!setup) {
+      return [];
+    }
+    return listVirtualEvents(setup).map((d) =>
+      getVirtualEvent(setup, d.fstAction),
     );
   }
 
@@ -168,6 +202,16 @@
   function handlePaste(e: CustomEvent) {
     const { index } = e?.detail ?? { index: undefined };
     pasteActions(event, index);
+  }
+
+  function handleAddVirtualEvent() {
+    if (!element) {
+      return;
+    }
+    new Modal.Window(AddVirtualEvent).show({
+      element,
+      existingNames: virtualEvents.map((e) => e.getName()),
+    });
   }
 </script>
 
@@ -287,6 +331,21 @@
             {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
               <ActionList {event} focusTrigger={`action-list-${i}`} />
             {/each}
+            {#each virtualEvents as event (event.getName())}
+              <ActionList
+                {event}
+                focusTrigger={`action-list-virtual-${event.getName()}`}
+              />
+            {/each}
+            <div class="flex flex-col items-center pt-3 px-1 shrink-0">
+              <IconButton
+                on:click={handleAddVirtualEvent}
+                iconData={addIcon}
+                compact
+                tooltipText="Add virtual event"
+                ariaLabel="Add virtual event"
+              />
+            </div>
           {:else}
             <ActionList {event} focusTrigger={"action-list-0"} />
           {/if}
