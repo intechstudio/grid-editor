@@ -176,7 +176,7 @@
     size={"full"}
   />
   {#if $appSettings.persistent.userLevelMinimalist == false}
-    <BlockRow>
+    <BlockRow even>
       <MeltCombo
         title={"Element"}
         value={$data.element.value}
@@ -281,7 +281,7 @@
       >
     </BlockColumn>
   </BlockRow>
-  <BlockRow>
+  <BlockRow even>
     {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
       <MeltCombo
         title={channel.charAt(0).toUpperCase() + channel.slice(1)}

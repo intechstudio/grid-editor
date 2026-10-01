@@ -146,7 +146,7 @@
 
 <endless-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <Block
-    ><BlockRow>
+    ><BlockRow even>
       <MeltCombo
         title={"Endless Mode"}
         value={epmo}
@@ -179,7 +179,7 @@
         preProcessor={GridScript.humanize}
       />
     </BlockRow>
-    <BlockRow>
+    <BlockRow even>
       <MeltCombo
         title={"Min"}
         value={epmi}

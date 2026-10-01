@@ -166,7 +166,7 @@
       preProcessor={GridScript.humanize}
     />
 
-    <BlockRow>
+    <BlockRow even>
       <MeltCombo
         title={"Min"}
         value={bmi}
