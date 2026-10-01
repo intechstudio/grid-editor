@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mixpanel's img-beacon transport (analytics.js) appends a bare <img> directly
+   to <body> with no sizing/display, which Chrome renders as a visible broken-image
+   icon. Hide any such stray tracking pixel. */
+body > img {
+  display: none !important;
+}
+
 /* Stroke-only icons: prevent fill from being inherited from parent containers */
 .stroke-icon,
 .stroke-icon path,
