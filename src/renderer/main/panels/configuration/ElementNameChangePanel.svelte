@@ -162,6 +162,7 @@
       iconPath="edit"
       compact
       tooltipText="Rename element"
+      ariaLabel="Rename element"
     />
     <slot name="controls" />
   </div>

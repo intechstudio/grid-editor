@@ -25,6 +25,7 @@ export default defineConfig({
   use: {
     //click() wait
     actionTimeout: 10 * 1000,
+    permissions: ["clipboard-read", "clipboard-write"],
 
     expect: {
       timeout: 5 * 1000,
