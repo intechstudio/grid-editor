@@ -3,6 +3,7 @@
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { get } from "svelte/store";
   import { MeltRadio } from "@intechstudio/grid-uikit";
+  import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import {
     GridEvent,
     GridElement,
@@ -10,6 +11,12 @@
     GridPage,
     GridModule,
   } from "../../../runtime/runtime";
+  import {
+    listVirtualEvents,
+    type VirtualEventDescriptor,
+  } from "../../../runtime/virtual-event";
+  import { Modal } from "../../modals/modal.store";
+  import AddVirtualEvent from "../../modals/AddVirtualEvent.svelte";
   import { Grid } from "../../../lib/_utils";
   import { draggedActions } from "../../_actions/move.action";
 
@@ -17,16 +24,19 @@
 
   type EventPanelOption = {
     title: string;
-    value: number;
+    value: number | string;
   };
   const defaultOptions: EventPanelOption[] = Array.from(Array(3).keys()).map(
     (i) => ({ title: undefined, value: i }) as EventPanelOption,
   );
 
   const defaultSelected = -1;
+  const VIRTUAL_PREFIX = "virtual:";
+  const virtualValue = (name: string) => `${VIRTUAL_PREFIX}${name}`;
 
   let options = defaultOptions;
-  let selected = defaultSelected;
+  let selected: number | string = defaultSelected;
+  let virtualEvents: VirtualEventDescriptor[] = [];
   let eventChangetimeout: NodeJS.Timeout = undefined;
 
   $: handleElementChange($element, $appSettings);
@@ -37,6 +47,7 @@
     if (typeof element === "undefined") {
       options = defaultOptions;
       selected = defaultSelected;
+      virtualEvents = [];
       return;
     }
 
@@ -50,15 +61,34 @@
         ? element.events
         : withoutSetupAndTimer;
 
-    options = prefiltered.map((e: GridEvent) =>
+    const realOptions: EventPanelOption[] = prefiltered.map((e: GridEvent) =>
       Object({
         title: e.getName(),
         value: e.type,
       }),
     );
 
+    const setup = element.events.find(
+      (e) => e.type === EventTypeToNumber(EventType.SETUP),
+    );
+    virtualEvents = listVirtualEvents(setup);
+    const virtualOptions: EventPanelOption[] = virtualEvents.map((d) => ({
+      title: d.name,
+      value: virtualValue(d.name),
+    }));
+
+    options = [...realOptions, ...virtualOptions];
+
+    if (
+      typeof ui.virtualEventName === "string" &&
+      virtualEvents.some((d) => d.name === ui.virtualEventName)
+    ) {
+      selected = virtualValue(ui.virtualEventName);
+      return;
+    }
+
     const closestEvent = Grid.getClosestEvent(
-      options.map((e) => e.value),
+      realOptions.map((e) => e.value as number),
       ui.eventtype,
     );
     selected = closestEvent;
@@ -66,9 +96,26 @@
 
   $: handleSelectEvent(selected);
 
-  function handleSelectEvent(value: any) {
+  function handleSelectEvent(value: number | string) {
     const ui = get(user_input);
-    if (value === -1 || ui.eventtype === value) {
+
+    if (typeof value === "string" && value.startsWith(VIRTUAL_PREFIX)) {
+      const name = value.slice(VIRTUAL_PREFIX.length);
+      if (ui.virtualEventName === name) {
+        return;
+      }
+      user_input.set({
+        dx: ui.dx,
+        dy: ui.dy,
+        pagenumber: ui.pagenumber,
+        elementnumber: ui.elementnumber,
+        eventtype: EventTypeToNumber(EventType.SETUP),
+        virtualEventName: name,
+      });
+      return;
+    }
+
+    if (value === -1 || (ui.eventtype === value && !ui.virtualEventName)) {
       return;
     }
 
@@ -77,7 +124,18 @@
       dy: ui.dy,
       pagenumber: ui.pagenumber,
       elementnumber: ui.elementnumber,
-      eventtype: selected,
+      eventtype: value as number,
+      virtualEventName: undefined,
+    });
+  }
+
+  function handleAddVirtualEvent() {
+    if (!element) {
+      return;
+    }
+    new Modal.Window(AddVirtualEvent).show({
+      element,
+      existingNames: virtualEvents.map((d) => d.name),
     });
   }
 
@@ -86,7 +144,7 @@
   }
 
   function handleMouseEnter(event: GridEvent) {
-    if (options === defaultOptions) {
+    if (options === defaultOptions || !event) {
       return;
     }
 
@@ -121,7 +179,7 @@
   }
 </script>
 
-<div class="flex flex-col w-full justify-center items-center relative">
+<div class="flex flex-row w-full justify-center items-center gap-1 relative">
   <MeltRadio
     bind:target={selected}
     style="button"
@@ -146,4 +204,13 @@
       {/key}
     </svelte:fragment>
   </MeltRadio>
+  <button
+    type="button"
+    class="flex items-center justify-center shrink-0 w-6 h-6 rounded text-foreground-muted hover:text-foreground hover:bg-background-soft"
+    on:click={handleAddVirtualEvent}
+    title="Add virtual event"
+    aria-label="Add virtual event"
+  >
+    +
+  </button>
 </div>

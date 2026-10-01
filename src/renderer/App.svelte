@@ -73,6 +73,8 @@
   }
 
   $: applyTheme($appSettings.persistent.theme);
+  // On <html> (not #app) so body-portaled popovers inherit the UI scale too.
+  $: document.documentElement.style.fontSize = `${$appSettings.persistent.fontSize}px`;
   $: applyThemeCss(
     $appSettings.persistent.theme,
     $appSettings.persistent.customThemeCss,
@@ -428,7 +430,6 @@
   id="app"
   spellcheck="false"
   class="dark relative flex w-full h-full shrink-0 flex-row justify-between overflow-hidden app-svelte"
-  style="font-size:{$appSettings.persistent.fontSize}px;"
 >
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
