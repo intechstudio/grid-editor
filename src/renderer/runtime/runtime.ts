@@ -1115,6 +1115,24 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.getField("stored");
   }
 
+  // The real, hardware-backed event this one represents. For every ordinary
+  // GridEvent that's itself; VirtualGridEvent (runtime/virtual-event.ts)
+  // overrides this to return the host event it wraps. Code that needs to
+  // compare two GridEvents for "same underlying event" (e.g. operations.ts's
+  // dropActions deciding whether a sourceEvent still needs its own
+  // sendToGrid()) must compare `.realEvent`, not raw object identity — a
+  // VirtualGridEvent is always a distinct object from its host even when it
+  // represents the same real event. Defined here on the base class (rather
+  // than as a helper in virtual-event.ts) so operations.ts never needs to
+  // import virtual-event.ts: that edge, combined with virtual-event.ts's own
+  // import of this file, closes a real circular-import cycle in dev mode
+  // (runtime.ts's otherwise-type-only import of ProfileCloud.ts survives
+  // esbuild's transform as an empty side-effect import, and ProfileCloud.ts
+  // imports operations.ts for real).
+  public get realEvent(): GridEvent {
+    return this;
+  }
+
   // Setters
   private set state(value: GridNodeState) {
     this.setField("state", value);

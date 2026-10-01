@@ -32,6 +32,20 @@
   export let element: GridElement;
   export let event: GridEvent;
 
+  // usedChars is this event's own content (for a VirtualGridEvent, just its
+  // function body — toLua() is already scoped that way). budget is the
+  // ceiling that content could grow to: usedChars plus whatever room is
+  // actually left in the shared host event. For a real event usedChars
+  // already equals the host's total, so budget collapses to exactly
+  // maxScriptLength - 1 (unchanged from before). For a virtual event it
+  // shrinks by however much everything else on the host already uses, so
+  // the counter reflects this function's own real headroom instead of
+  // conflating it with unrelated content sharing the same event.
+  $: usedChars = $event?.toLua().length ?? 0;
+  $: budget = $event
+    ? usedChars + $event.getAvailableChars()
+    : Grid.Protocol.maxScriptLength - 1;
+
   function handleOverwriteElement() {
     overwriteElement(element);
   }
@@ -125,19 +139,14 @@
           <span style="color: var(--foreground-muted)">Script length: </span>
           <span
             data-testid="charCount"
-            class={($event?.toLua().length ?? 0) >=
-            Grid.Protocol.maxScriptLength * 0.98
+            class={usedChars >= budget * 0.98
               ? "text-error"
-              : ($event?.toLua().length ?? 0) >=
-                  (Grid.Protocol.maxScriptLength / 3) * 2
+              : usedChars >= (budget / 3) * 2
                 ? "text-yellow-400"
                 : ""}
-            style={($event?.toLua().length ?? 0) >=
-            (Grid.Protocol.maxScriptLength / 3) * 2
+            style={usedChars >= (budget / 3) * 2
               ? ""
-              : "color: var(--foreground-muted)"}
-            >{$event?.toLua().length ?? 0}/{Grid.Protocol.maxScriptLength -
-              1}</span
+              : "color: var(--foreground-muted)"}>{usedChars}/{budget}</span
           >
         {/if}
       </span>

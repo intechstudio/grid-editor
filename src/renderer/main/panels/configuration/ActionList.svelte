@@ -49,6 +49,10 @@
   import { autoScroll } from "../../_actions/autoscroll.action";
   import { Focus } from "../../_actions/focus.action";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
+  import {
+    VirtualGridEvent,
+    INDENTATION_OFFSET,
+  } from "../../../runtime/virtual-event";
 
   export let event: GridEvent;
   export let focusTrigger: string;
@@ -57,6 +61,17 @@
   let runtime: GridRuntime;
 
   $: runtime = $runtime_manager.active.runtime;
+  $: indentationOffset =
+    event instanceof VirtualGridEvent ? INDENTATION_OFFSET : 0;
+  // usedChars is this event's own content (for a VirtualGridEvent, just its
+  // function body). budget is usedChars plus the room actually left in the
+  // shared host event, so a virtual event's counter reflects its own real
+  // headroom instead of the whole host's unrelated content. For a real
+  // event this collapses to exactly maxScriptLength - 1, unchanged.
+  $: usedChars = $event?.toLua().length ?? 0;
+  $: budget = $event
+    ? usedChars + $event.getAvailableChars()
+    : Grid.Protocol.maxScriptLength - 1;
 
   // The Preferences > Animations setting only disables CSS animations/
   // transitions globally (see setDocumentAnimationsEnabled); it has no
@@ -165,20 +180,19 @@
     class=" pb-0 flex flex-col h-full w-full overflow-hidden actionlist activator-button"
   >
     {#if $appSettings.isMultiView}
-      {@const length = $event?.toLua().length ?? 0}
       <div class="flex flex-row gap-2 px-3 text-sm">
         {($event?.getName() ?? "No Device") + " Event"}
         <div
-          class={length >= Grid.Protocol.maxScriptLength * 0.98
+          class={usedChars >= budget * 0.98
             ? "text-error"
-            : length >= (Grid.Protocol.maxScriptLength / 3) * 2
+            : usedChars >= (budget / 3) * 2
               ? "text-yellow-400"
               : ""}
-          style={length >= (Grid.Protocol.maxScriptLength / 3) * 2
+          style={usedChars >= (budget / 3) * 2
             ? ""
             : "color: var(--foreground-muted)"}
         >
-          {length}/{Grid.Protocol.maxScriptLength - 1}
+          {usedChars}/{budget}
         </div>
       </div>
     {/if}
@@ -226,6 +240,7 @@
               <DynamicWrapper
                 {index}
                 {action}
+                {indentationOffset}
                 selected={typeof $selected_actions.find(
                   (e) => e.id === action.id,
                 ) !== "undefined"}

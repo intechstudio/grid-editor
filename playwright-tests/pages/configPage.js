@@ -11,7 +11,7 @@ export class ConfigPage {
       "#app > div.flex.flex-col.w-full.h-full.s-d5Zigoma649a > div > div > div:nth-child(5) > div > div.h-full > div > div > configs > div.flex.flex-row.h-full.w-full.max-h-full.overflow-auto",
     );
 
-    this.welcomeModalCloseButton = page.getByTestId("welcome-close-button");
+    this.welcomeModalCloseButton = page.locator("#welcome-close-button");
     this.closeModuleOverlayButton = page.getByRole("button", {
       name: "Close Overlay",
     });
@@ -118,7 +118,9 @@ export class ConfigPage {
   }
 
   async closeWelcomeModal() {
-    await this.welcomeModalCloseButton.click();
+    // First paint of the app (Monaco/LuaLS init) can take well over the
+    // default action timeout, especially with parallel workers.
+    await this.welcomeModalCloseButton.click({ timeout: 30 * 1000 });
   }
 
   async openAndAddActionBlock(category, blockName) {
