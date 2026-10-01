@@ -147,7 +147,7 @@
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
-  <BlockRow>
+  <BlockRow even>
     <MeltCombo
       title={"Encoder Mode"}
       value={emo}
@@ -182,7 +182,7 @@
   </BlockRow>
 
   <Block>
-    <BlockRow>
+    <BlockRow even>
       <MeltCombo
         title={"Min"}
         value={emi}

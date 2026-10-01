@@ -32,10 +32,12 @@
   import {
     Block,
     BlockRow,
+    BlockColumn,
     BlockTitle,
     MeltCombo,
     MeltCheckbox,
     MeltRadio,
+    MeltSelect,
   } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { midiCC } from "./_midi.js";
@@ -342,13 +344,17 @@
   class="flex flex-col w-full py-2 px-2 pointer-events-auto"
 >
   <BlockRow>
-    <MeltRadio
-      options={modes}
-      bind:target={mode}
-      orientation={isWide ? "horizontal" : "vertical"}
-      style="button"
-      size={isWide ? "full" : "auto"}
-    />
+    {#if isWide}
+      <MeltRadio
+        options={modes}
+        bind:target={mode}
+        orientation="horizontal"
+        style="button"
+        size="full"
+      />
+    {:else}
+      <MeltSelect options={modes} bind:target={mode} size="full" />
+    {/if}
   </BlockRow>
   <Block>
     <BlockTitle>Send MIDI</BlockTitle>
@@ -495,10 +501,17 @@
 
   <Block>
     <BlockTitle>Receive MIDI</BlockTitle>
-    <BlockRow>
-      <MeltCheckbox bind:target={feature1} title="Sync value" />
-      <MeltCheckbox bind:target={feature2} title="Sync LED intensity" />
-    </BlockRow>
+    {#if isWide}
+      <BlockRow even>
+        <MeltCheckbox bind:target={feature1} title="Sync value" />
+        <MeltCheckbox bind:target={feature2} title="Sync LED intensity" />
+      </BlockRow>
+    {:else}
+      <BlockColumn>
+        <MeltCheckbox bind:target={feature1} title="Sync value" />
+        <MeltCheckbox bind:target={feature2} title="Sync LED intensity" />
+      </BlockColumn>
+    {/if}
   </Block>
 
   <div class="mt-2"></div>

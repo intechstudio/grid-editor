@@ -55,6 +55,10 @@
   let colorSelected;
   let name;
   let splitpanesWidth = 0;
+  $: leftPanePx = Math.round((splitpanesWidth * $splitpanes.left.size) / 100);
+  $: rightPanePx = Math.round((splitpanesWidth * $splitpanes.right.size) / 100);
+  $: leftPaneEm = (leftPanePx / $appSettings.persistent.fontSize).toFixed(1);
+  $: rightPaneEm = (rightPanePx / $appSettings.persistent.fontSize).toFixed(1);
 
   $: {
     if ($appSettings.persistent.helperShape !== undefined) {
@@ -445,14 +449,12 @@
         <div
           class="absolute top-0 left-0 z-50 pointer-events-none bg-background/80 px-1 py-0.5 text-xs text-foreground"
         >
-          {Math.round((splitpanesWidth * $splitpanes.left.size) / 100)}px ({$splitpanes.left.size.toFixed(
-            1,
-          )}%)
+          {leftPanePx}px / {leftPaneEm}em ({$splitpanes.left.size.toFixed(1)}%)
         </div>
         <div
           class="absolute top-0 right-0 z-50 pointer-events-none bg-background/80 px-1 py-0.5 text-xs text-foreground"
         >
-          {Math.round((splitpanesWidth * $splitpanes.right.size) / 100)}px ({$splitpanes.right.size.toFixed(
+          {rightPanePx}px / {rightPaneEm}em ({$splitpanes.right.size.toFixed(
             1,
           )}%)
         </div>
