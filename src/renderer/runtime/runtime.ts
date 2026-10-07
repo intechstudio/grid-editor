@@ -2266,7 +2266,9 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
         const firmware_required =
           controller.architecture === "esp32"
             ? as.firmware_esp32_required
-            : as.firmware_d51_required;
+            : controller.architecture === "rp2350"
+              ? as.firmware_rp2350_required
+              : as.firmware_d51_required;
         controller.fwMismatch = this.isFirmwareMismatch(
           controller.fwVersion,
           firmware_required,
