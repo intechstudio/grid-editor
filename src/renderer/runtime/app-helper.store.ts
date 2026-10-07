@@ -194,6 +194,11 @@ function createAppSettingsStore(persistent) {
       minor: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
       patch: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
     },
+    firmware_rp2350_required: {
+      major: parseInt(configuration.FIRMWARE_GRID_RP2350_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_RP2350_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_RP2350_REQUIRED_PATCH),
+    },
     sizeChange: 0,
     activeWindowResult: {
       title: undefined,

@@ -54,6 +54,8 @@
       <span>E-32 </span>
     {:else if device?.architecture === "d51"}
       <span>D-51 </span>
+    {:else if device?.architecture === "rp2350"}
+      <span>RP2 </span>
     {/if}
     {#if device?.architecture !== Architecture.VIRTUAL}
       <span
