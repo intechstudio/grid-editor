@@ -17,7 +17,7 @@
 | Mapping mode | Needed a utility-release event, with a "touch first" fallback. | No firmware change. A utility press opens a short window, timed by the existing touch tick. A touch in the window enters mapping mode, otherwise the page changes. A second utility press exits (4.7). |
 | RX sync | Separate `rx={v,l}` keys. | The MIDI block's existing "Receive MIDI" section, unchanged. `Z.start` builds the index with a muted dry run of each body (4.8). Data load addressed. |
 | Tick | Fixed 20 ms guess. | Interval and LED divider are options on the Touch Tick block. |
-| Resolution | — | Act on 7-bit sensor data. The sensor resolution is one library constant, so higher firmware resolution needs no API change. |
+| Resolution | — | The sensor is **10-bit** (0–1023, firmware 1.5.5, `txma`/`tyma`). `Z.start` sets the full range; the sensor resolution is one library constant. |
 | Registry | `version` and `api`. | `version` only. Semver major means breaking block syntax. `Z.API` is gone. |
 | Open questions | 5 open. | `Z.util` ownership: manual step. Mapping exit: second press. Pressure: not a question, future argument. Library scope: global. Defaults table: hand-written copies plus a test. Knob default: absolute. Press/release composite: not in v1. |
 
@@ -37,7 +37,7 @@ The action strings on the module (and in the editor) are the single source of tr
 - Touch input is a callback, not an event: `self.touch_cb(self, id, evt, x, y)`, assigned in Setup.
   - `id` 0–4 is a contact slot. The firmware gives the lowest free slot on touch-down, so a slot is stable for one contact but is not a stable finger.
   - `evt` is the raw sensor nibble (1 move, 4 down, 5 up; 9 tap is inferred).
-  - `x`, `y` are 0–127 across the **whole** surface today (7-bit). A zone 3 cells wide therefore sees only about 43 raw positions across its width. Higher sensor resolution may come in firmware later (4.2). No pressure today.
+  - `x`, `y` span the **whole** surface. The range is set per element with `self:txma(max)` and `self:tyma(max)` (touch x/y maximum). The sensor resolution is **10-bit**: with `txma(1023)`/`tyma(1023)`, as set by the configuration on the test module (firmware 1.5.5), coordinates are 0–1023. A zone 3 cells wide sees about 341 raw positions across its width. No pressure today.
 - 81 LEDs, 9×9, serpentine (see `ZONA.svelte`).
 - **Action string limit: 909 characters per event** (`GRID_PARAMETER_ACTIONSTRING_maxlength`, `grid_protocol.h:131`). The `--[[@short]]` block markers count toward it.
 - **File system:** littlefs. Files are loaded with `require`. Page folders are hex (`/00/`, `/01/` …). Profiles save the top-level files of a page folder, and loading a profile clears that folder first (docs: *File Manager → File saving under profiles*). The documented way to load a page-local module:
@@ -172,7 +172,7 @@ Resolution belongs to the **zone value**, set in the zone block's options. This 
 - The MIDI block's auto mode follows `res` (4.1). A user who picks a mode by hand gets that mode.
 - Gamepad and mouse blocks receive the value through the getter and scale it as the user writes it. The gamepad axis range is documented next to the getter (phase 0).
 
-**What higher resolution really gives.** The sensor reports 7 bits across the whole surface today. In `abs` mode a small zone has fewer raw positions than 128, and a higher `res` only interpolates. Real extra resolution comes from smoothing, `glide` and `rel` with `speed < 1`. The block face shows the raw positions the zone has ("about 43 positions across"), computed from the library constant `Z.has.sres` (sensor bits, 7 today). If firmware raises the sensor resolution, that constant changes and nothing else.
+**What higher resolution really gives.** The sensor reports 10 bits across the whole surface. `Z.start(self)` sets `self:txma(1023)` and `self:tyma(1023)` so the library always gets the full range (phase 0 confirms the firmware default). A zone gets its share of those 1024 positions: a full-width fader has about 1024, a 3-cell fader about 341 (≈8.4 bits). A 7-bit `res` is therefore always real; above the zone's share, a higher `res` only interpolates, and extra resolution comes from smoothing, `glide` and `rel` with `speed < 1`. The block face shows the raw positions the zone has ("about 341 positions across"), computed from the library constant `Z.has.sres` (sensor bits, 10).
 
 ### 4.3 Contacts and capture: focus mode and live mode
 
@@ -206,7 +206,7 @@ The zone knob mimics the Radial:
 - `drag="v"` or `drag="h"` swaps the reader for vertical or horizontal drag, the DAW way (Ableton and Bitwig drag vertically, many plugins offer both). The arc painter stays. Because kinds are option presets, this is one option, not a new kind.
 - An endless variant (`endless=1`, the TouchOSC Encoder) is a later addition. It fits the same reader.
 
-Resolution note: a 3×3 knob has about 43 raw positions across, so roughly 130 around its ring. Relative mode with `speed < 1` or vertical drag gives finer control than absolute angle on small knobs. The block face says so.
+Resolution note: a 3×3 knob has about 341 raw positions across, so roughly 1000 around its ring, which is enough for a 7-bit absolute knob. For 14-bit output on a small knob, relative mode with `speed < 1` or vertical drag still gives finer control than absolute angle.
 
 ### 4.5 Shared stages
 
@@ -511,6 +511,7 @@ Not needed any more: `ZoneOutput`, output keys, `rx` keys, the `on` callback opt
 
 0. **Firmware facts (hardware spike, short).** Check each of these:
    - Does `gms` with `mode` 1/3 send correct 14-bit CC and NRPN?
+   - The default `txma`/`tyma` value, so `Z.start` knows whether it must set them.
    - The gamepad axis range.
    - Does the touch element's `midirx_cb` receive voice messages?
    - `require` from a page folder after a page change, and after re-upload plus `invalidateLuaModule`.
@@ -539,7 +540,7 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 - **Library load on every page change.** The VM restarts, so `require` reads and compiles the file each time. Measure page switch time.
 - **Output flood.** The rate limit protects USB MIDI. Test 14-bit output and RX sync on several zones at once.
 - **RX data load.** `midirx_cb` is only set when a zone registered RX; unmatched messages cost one lookup; LED sync repaints at most once per tick. Measure with dense automation.
-- **Resolution expectations.** The sensor gives 7 bits today. Mitigated by the positions hint (4.2). Higher firmware resolution only changes `Z.has.sres`.
+- **Resolution expectations.** The sensor gives 10 bits across the whole surface, so small zones get 8–9 bits of real position. 14-bit absolute output on a small zone is interpolated. Mitigated by the positions hint (4.2).
 - **Mapping window delays page change.** Every page change waits for the window. If 300 ms feels slow, shorten it.
 - **Copies per page.** Several versions of the library can be in flash at once. That's acceptable at ~15 KB each.
 - **Edit vs device drift.** A user can edit `zona.lua` in the FileManager. Version read-back catches a different version but not local edits. A checksum could be added later.
