@@ -1,7 +1,12 @@
 import { initLuaFormatter } from "@intechstudio/grid-protocol";
 import { test, expect, describe, beforeAll } from "vitest";
 import { createZonaVM, DOWN, MOVE, UP } from "./zona-vm";
-import { zoneDefaults, zoneKinds } from "../config-blocks/touch/zone-model";
+import {
+  zoneDefaults,
+  zoneGroupDefaults,
+  zoneKinds,
+} from "../config-blocks/touch/zone-model";
+import { SettingsButton } from "../config-blocks/SettingsButton";
 
 beforeAll(async () => {
   await initLuaFormatter();
@@ -365,6 +370,7 @@ describe("defaults", () => {
     const vm = await createZonaVM();
     expect(vm.run("return Z.def")).toEqual(zoneDefaults);
     expect(vm.run("return Z.kind")).toEqual(zoneKinds);
+    expect(vm.run("return Z.gdef")).toEqual(zoneGroupDefaults);
   });
 
   test("kind presets apply over the defaults, options over both", async () => {
@@ -374,5 +380,395 @@ describe("defaults", () => {
       ...zoneKinds.button,
       res: 8,
     });
+  });
+});
+
+// Records every body run as [src, auto value, d, index].
+const REC =
+  'function(self) _rec("run",4,self:src(),self:get_auto_value(),self:d(),self:ind()) end';
+const runs = (vm) => vm.calls("run").map((e) => e.args);
+const values = (vm, src = "v") =>
+  runs(vm)
+    .filter((e) => e[0] === src)
+    .map((e) => e[1]);
+
+describe("modes", () => {
+  test("rel: the first touch changes nothing, drags move by speed", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{mode="rel"},${REC})`);
+    vm.touch([0, DOWN, 50, 512]);
+    expect(values(vm)).toEqual([]);
+    vm.touch([0, MOVE, 50, 0], [0, MOVE, 50, 1023]);
+    expect(values(vm)).toEqual([64, 0]);
+  });
+
+  test("rel: speed scales the drag", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{mode="rel",speed=0.5},${REC})`,
+    );
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0]);
+    expect(values(vm)).toEqual([64]);
+  });
+
+  test("glide: the value follows the target on each tick", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{mode="glide"},${REC})`);
+    vm.touch([0, DOWN, 50, 0]);
+    expect(values(vm)).toEqual([]);
+    vm.tick();
+    expect(values(vm)).toEqual([3]);
+    vm.tick(48);
+    expect(values(vm).at(-1)).toBeLessThan(127);
+    vm.tick();
+    expect(values(vm).at(-1)).toBe(127);
+    const n = runs(vm).length;
+    vm.tick(5);
+    expect(runs(vm).length).toBe(n);
+  });
+
+  test("glide: ease adds a share of the distance left", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{mode="glide",speed=0,ease=0.5},${REC})`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick(3);
+    expect(values(vm)).toEqual([64, 95, 111]);
+  });
+
+  test("glide: the target moves with the finger, also after lift", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{mode="glide"},${REC})`);
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
+    vm.tick(50);
+    expect(values(vm).at(-1)).toBe(127);
+    vm.touch([0, DOWN, 50, 1023]);
+    vm.tick(50);
+    expect(values(vm).at(-1)).toBe(0);
+  });
+
+  test("d() is the change since the last run, with the fraction carried", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{max=2},${REC})`);
+    vm.touch([0, DOWN, 50, 1023]);
+    // positions 0.26, 0.76, 1, 0 of the travel
+    vm.touch([0, MOVE, 50, 757], [0, MOVE, 50, 245]);
+    vm.touch([0, MOVE, 50, 0], [0, MOVE, 50, 1023]);
+    const v = runs(vm).filter((e) => e[0] === "v");
+    // value 1 at 0.52 units moved: d 0, the 0.52 carried; value 2 at 1.52:
+    // d 1; back at 0: d -1, so the reported total returns to 0
+    expect(v.map((e) => [e[1], e[2]])).toEqual([
+      [1, 0],
+      [2, 1],
+      [0, -1],
+    ]);
+    // gate runs report 0
+    expect(runs(vm).find((e) => e[0] === "g")[2]).toBe(0);
+  });
+});
+
+describe("live capture", () => {
+  const live = `Z.fader("a",0,0,1,9,{grab="live"},${MIDI}) Z.fader("b",1,0,1,9,{grab="live"},${MIDI})`;
+
+  test("leaving a live zone releases it, entering another presses it", async () => {
+    const vm = await zones(
+      `Z.fader("a",0,0,1,9,{grab="live"},${REC}) Z.fader("b",1,0,1,9,{grab="live"},${REC})`,
+    );
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 150, 0], [0, UP, 150, 0]);
+    expect(runs(vm).map((e) => [e[3], e[0]])).toEqual([
+      [0, "g"], // a pressed (value already 0)
+      [0, "g"], // a released
+      [1, "v"], // b pressed at the entry position
+      [1, "g"],
+      [1, "g"], // b released
+    ]);
+  });
+
+  test("a drag across live faders sets each at the entry position", async () => {
+    const vm = await zones(live);
+    vm.touch([0, DOWN, 50, 0], [0, MOVE, 150, 512], [0, UP, 150, 512]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 127],
+      [0, 176, 33, 63],
+    ]);
+  });
+
+  test("an unowned contact is picked up by a live zone", async () => {
+    const vm = await zones(live);
+    vm.touch([0, DOWN, 600, 600], [0, MOVE, 50, 0]);
+    expect(wire(vm)).toEqual([[0, 176, 32, 127]]);
+  });
+
+  test("a focus contact never reaches a live zone", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{},${MIDI}) Z.fader("b",1,0,1,9,{grab="live"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 150, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 0],
+      [0, 176, 32, 127],
+    ]);
+  });
+
+  test("a focus zone doesn't take a contact moving into it", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
+    vm.touch([0, DOWN, 600, 600], [0, MOVE, 50, 0]);
+    expect(wire(vm)).toEqual([]);
+  });
+
+  test("entering a gliding zone reads abs and ends the glide", async () => {
+    const vm = await zones(
+      `Z.fader("a",0,0,1,9,{grab="live",mode="glide"},${REC})`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick(5);
+    vm.touch([0, MOVE, 600, 1023], [0, MOVE, 50, 1023]);
+    expect(values(vm).at(-1)).toBe(0);
+    const n = runs(vm).length;
+    vm.tick(10);
+    expect(runs(vm).length).toBe(n);
+  });
+
+  test("entering reads abs, then the zone's mode applies", async () => {
+    const vm = await zones(
+      `Z.fader("a",0,0,1,9,{grab="live",mode="rel"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 600, 0], [0, MOVE, 50, 0], [0, MOVE, 50, 512]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 127],
+      [0, 176, 32, 63],
+    ]);
+  });
+});
+
+describe("contact policy", () => {
+  const fader = (contact) =>
+    zones(`Z.fader("f",0,0,1,9,{contact="${contact}"},${REC})`);
+
+  test("new: each contact acts, the last active one wins", async () => {
+    const vm = await fader("new");
+    vm.touch([0, DOWN, 50, 1023], [1, DOWN, 50, 0], [0, MOVE, 50, 1022]);
+    expect(values(vm)).toEqual([127, 0]);
+  });
+
+  test("move: a second contact re-targets through glide", async () => {
+    const vm = await fader("move");
+    vm.touch([0, DOWN, 50, 1023], [1, DOWN, 50, 0]);
+    expect(values(vm)).toEqual([]);
+    vm.tick(50);
+    expect(values(vm).at(-1)).toBe(127);
+  });
+
+  test("move: a later abs reading cancels the glide target", async () => {
+    const vm = await fader("move");
+    vm.touch([0, DOWN, 50, 512], [1, DOWN, 50, 0]);
+    vm.tick(5);
+    vm.touch([0, MOVE, 50, 700]);
+    expect(values(vm).at(-1)).toBe(40);
+    const n = runs(vm).length;
+    vm.tick(10);
+    expect(runs(vm).length).toBe(n);
+  });
+
+  test("grab: a second contact continues from the current value", async () => {
+    const vm = await fader("grab");
+    vm.touch([0, DOWN, 50, 512], [1, DOWN, 50, 1023]);
+    expect(values(vm)).toEqual([63]);
+    vm.touch([1, MOVE, 50, 512]);
+    expect(values(vm)).toEqual([63, 127]);
+  });
+
+  test("the press and release follow the first and last contact", async () => {
+    const vm = await fader("grab");
+    vm.touch([0, DOWN, 50, 512], [1, DOWN, 50, 1023], [0, UP, 50, 512]);
+    expect(runs(vm).filter((e) => e[0] === "g").length).toBe(1);
+    vm.touch([1, UP, 50, 1023]);
+    expect(runs(vm).filter((e) => e[0] === "g").length).toBe(2);
+  });
+});
+
+describe("knob", () => {
+  // cells 0-4 x 0-4: raw 0-568, centre 284
+  const knob = (opt = "") => zones(`Z.knob("k",0,0,5,5,{${opt}},${REC})`);
+  const TOP = [284, 34];
+  const LEFT = [34, 284];
+  const RIGHT = [534, 284];
+  const BOTTOM = [284, 534]; // in the gap
+  const LOW_RIGHT = [434, 434]; // 315 degrees
+  const LOW_LEFT = [134, 434]; // 45 degrees
+
+  test("abs: the angle sets the value, min lower left, max lower right", async () => {
+    const vm = await knob();
+    vm.touch([0, DOWN, ...LEFT], [0, MOVE, ...TOP], [0, MOVE, ...RIGHT]);
+    vm.touch([0, MOVE, ...LOW_RIGHT]);
+    expect(values(vm)).toEqual([25, 64, 102, 121]);
+  });
+
+  test("abs: the value doesn't jump across the gap", async () => {
+    const vm = await knob();
+    vm.touch([0, DOWN, ...LOW_RIGHT], [0, MOVE, ...BOTTOM]);
+    vm.touch([0, MOVE, ...LOW_LEFT], [0, MOVE, ...LOW_RIGHT]);
+    expect(values(vm)).toEqual([121]);
+  });
+
+  test("abs: past the gap it holds until the finger returns to the end", async () => {
+    const vm = await knob();
+    vm.touch([0, DOWN, ...LOW_RIGHT], [0, MOVE, ...BOTTOM]);
+    vm.touch([0, MOVE, ...LOW_LEFT], [0, MOVE, ...LEFT], [0, MOVE, ...TOP]);
+    vm.touch([0, MOVE, ...RIGHT]);
+    expect(values(vm)).toEqual([121]);
+    vm.touch([0, MOVE, ...LOW_RIGHT], [0, MOVE, 501, 409]); // 300 degrees
+    expect(values(vm)).toEqual([121, 114]);
+  });
+
+  test("abs: a press in the gap reads the nearest end", async () => {
+    const vm = await knob();
+    vm.touch([0, DOWN, 294, 540]); // just right of the bottom
+    expect(values(vm)).toEqual([127]);
+  });
+
+  test("the centre is ignored", async () => {
+    const vm = await knob();
+    vm.touch([0, DOWN, 284, 284], [0, MOVE, ...TOP]);
+    expect(values(vm)).toEqual([64]);
+  });
+
+  test("rel: angular change times speed, also through the gap", async () => {
+    const vm = await knob('mode="rel"');
+    vm.touch([0, DOWN, ...TOP], [0, MOVE, ...RIGHT]);
+    vm.touch([0, MOVE, ...LOW_RIGHT], [0, MOVE, ...LOW_LEFT]);
+    // +90, +45, +90 degrees of 300
+    expect(values(vm)).toEqual([38, 57, 95]);
+  });
+
+  test('drag="v" reads a vertical drag, drag="h" a horizontal one', async () => {
+    const v = await knob('drag="v"');
+    v.touch([0, DOWN, 284, 0]);
+    expect(values(v)).toEqual([127]);
+    const h = await knob('drag="h"');
+    h.touch([0, DOWN, 568, 284]);
+    expect(values(h)).toEqual([127]);
+  });
+
+  test("drag is a knob option: a fader ignores it", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{drag="h"},${REC})`);
+    vm.touch([0, DOWN, 100, 0]);
+    expect(values(vm)).toEqual([127]);
+  });
+});
+
+describe("steps", () => {
+  // the values a series of presses gives, read on each press
+  async function presses(opt, n) {
+    const vm = await zones(`Z.button("b",2,0,2,2,{${opt}},${REC})`);
+    for (let i = 0; i < n; i++) {
+      vm.touch([0, 9, 300, 100]);
+    }
+    return runs(vm)
+      .filter((_, i) => i % 2 === 0)
+      .map((e) => e[1]);
+  }
+
+  test.each([
+    [1, 0, 127],
+    [2, 0, 127],
+    [3, 10, 100],
+    [5, 0, 16383],
+    [4, 127, 0],
+  ])(
+    "bmo=%i over %i-%i matches the firmware step values",
+    async (bmo, min, max) => {
+      const steps = SettingsButton.calculateStepValuesFirmwareStyle(
+        bmo + 1,
+        min,
+        max,
+      );
+      const got = await presses(`bmo=${bmo},min=${min},max=${max}`, bmo + 2);
+      expect(got).toEqual([...steps.slice(1), steps[0], steps[1]]);
+    },
+  );
+
+  test("toggle: note on, then off on the next press", async () => {
+    const vm = await zones(`Z.button("b",2,0,2,2,{bmo=1},${MIDI})`);
+    vm.touch([0, 9, 300, 100], [0, 9, 300, 100]);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 127],
+      [0, 144, 32, 0],
+    ]);
+  });
+
+  test("step() and count()", async () => {
+    const vm = await zones(`Z.button("b",2,0,2,2,{bmo=2})`);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(0);
+    expect(vm.run("local c=Z.zs[1]:count() return c")).toBe(3);
+    vm.touch([0, 9, 300, 100]);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(1);
+    expect(
+      await zones(`Z.button("b",2,0,2,2,{})`).then((m) =>
+        m.run("return Z.zs[1]:count()"),
+      ),
+    ).toBe(2);
+  });
+});
+
+describe("groups", () => {
+  const three = (opt, group = "") =>
+    zones(
+      `${group} Z.button("a",0,0,1,1,{${opt}},${MIDI}) Z.button("b",1,0,1,1,{${opt}},${MIDI}) Z.button("c",2,0,1,1,{${opt}},${MIDI})`,
+    );
+  const A = [0, 9, 50, 50];
+  const B = [0, 9, 150, 50];
+
+  test("a press turns the other members off first, then this one on", async () => {
+    const vm = await three("bmo=1,group=1");
+    vm.touch(A, B);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 127],
+      [0, 144, 32, 0],
+      [0, 144, 33, 127],
+    ]);
+  });
+
+  test("empty=1 (default) lets the last member go off", async () => {
+    const vm = await three("bmo=1,group=1");
+    vm.touch(A, A);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 127],
+      [0, 144, 32, 0],
+    ]);
+  });
+
+  test("empty=0 keeps one member on, and its re-press sends nothing", async () => {
+    const vm = await three("bmo=1,group=1", "Z.group(1,{empty=0})");
+    vm.touch(A, A);
+    expect(wire(vm)).toEqual([[0, 144, 32, 127]]);
+  });
+
+  test("empty=0 latches momentary members", async () => {
+    const vm = await three("group=1", "Z.group(1,{empty=0})");
+    vm.touch(A);
+    expect(wire(vm)).toEqual([[0, 144, 32, 127]]);
+    vm.touch(B);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 127],
+      [0, 144, 32, 0],
+      [0, 144, 33, 127],
+    ]);
+  });
+
+  test("zones in other groups are not affected", async () => {
+    const vm = await zones(
+      `Z.button("a",0,0,1,1,{bmo=1,group=1},${MIDI}) Z.button("b",1,0,1,1,{bmo=1,group=2},${MIDI})`,
+    );
+    vm.touch(A, B);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 127],
+      [0, 144, 33, 127],
+    ]);
+  });
+});
+
+describe("Z.tick", () => {
+  test("does nothing without glide", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${REC})`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.clear();
+    vm.tick(10);
+    expect(runs(vm)).toEqual([]);
   });
 });

@@ -1,7 +1,7 @@
 // Zone options as the zona.lua library reads them (RFC 4, 6.2). Blocks write
-// only options that differ from these defaults, so they must equal Z.def and
-// Z.kind in libraries/zona/zona.lua; a test checks they match. A default may
-// only change in a major library version.
+// only options that differ from these defaults, so they must equal Z.def,
+// Z.kind and Z.gdef in libraries/zona/zona.lua; a test checks they match. A
+// default may only change in a major library version.
 
 export type ZoneKind = "fader" | "button" | "xy" | "knob";
 
@@ -12,6 +12,16 @@ export type ZoneOptions = {
   grab: "focus" | "live";
   leave: 0 | 1; // 1: leaving a focus zone releases, re-entry ignored until next down
   mode: "abs" | "rel" | "glide";
+  speed: number; // rel: drag factor; glide: 1 = full range in 50 ticks
+  ease: number; // glide: share of the remaining distance added per tick
+  contact: "new" | "move" | "grab"; // more contacts in one zone
+  drag: "n" | "v" | "h"; // knob: read a straight drag instead of the angle
+  bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
+  group: number; // gate: radio group 1-8, 0 none
+};
+
+export type ZoneGroupOptions = {
+  empty: 0 | 1; // 0 keeps one member on
 };
 
 export const zoneDefaults: ZoneOptions = {
@@ -21,6 +31,17 @@ export const zoneDefaults: ZoneOptions = {
   grab: "focus",
   leave: 0,
   mode: "abs",
+  speed: 1,
+  ease: 0,
+  contact: "new",
+  drag: "n",
+  bmo: 0,
+  group: 0,
+};
+
+// Z.gdef: group settings (Z.group).
+export const zoneGroupDefaults: ZoneGroupOptions = {
+  empty: 1,
 };
 
 // Kinds are option presets over the defaults.

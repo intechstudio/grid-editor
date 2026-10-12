@@ -60,6 +60,12 @@ export async function createZonaVM(env = {}) {
         lua.doStringSync(`el:touch_cb(${id},${evt},${x},${y})`);
       }
     },
+    // Runs Z.tick n times, as the touch Timer would.
+    tick(n = 1) {
+      for (let i = 0; i < n; i++) {
+        lua.doStringSync("Z.tick(el,{led=1,win=300})");
+      }
+    },
     // Recorded calls of one firmware function since the last clear().
     calls(fn) {
       return log.filter((e) => e.fn === fn);
