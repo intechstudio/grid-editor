@@ -143,7 +143,7 @@ The body runs whenever the zone has something to report: press, value change, re
 - `p2`: the triggering source's value. On a continuous zone, a press or release run (`src()` is `g`) uses the main value (`v`, or `x` for an XY pad), so the default MIDI block sends no gate CC on press and release; the duplicate filter drops it.
 - `mode`: `get_auto_mode()`, so `res=10` sends 14-bit CC with the default block.
 
-**Other targets** need no zone support at all: Gamepad Axis (`ggms`), Gamepad Button (`ggbs`), Mouse Move (`gmms`), Mouse Button (`gmbs`) and Keyboard (`gks`) are global functions. Their value field takes a zone getter, for example `ggms(0,self:v())` or `gmms(1,self:d())`, where `d()` is the relative change since the last run with a fractional carry. The editor offers these getters as suggestions in those fields when the block is inside a zone.
+**Other targets** need no zone support at all: Gamepad Axis (`ggms`), Gamepad Button (`ggbs`), Mouse Move (`gmms`), Mouse Button (`gmbs`) and Keyboard (`gks`) are global functions. Their value field takes a zone getter, for example `ggms(0,self:v())` or `gmms(1,self:d())`, where `d()` is the relative change since the last run with a fractional carry, in the zone's value units (a full swipe on a 7-bit fader is 127; scale with `min`/`max`). The editor offers these getters as suggestions in those fields when the block is inside a zone.
 
 **Several outputs** are several blocks. A fader with a "touched" note for DAW automation:
 
@@ -211,7 +211,7 @@ The zone knob mimics the Radial:
 - `read="angle"`, with `mode="abs"` (jump) or `mode="rel"` (angular change × `speed`, the counterpart of TouchOSC's Factor). The default is `abs`, as in TouchOSC.
 - The usable arc is about 300°, with a dead gap at the bottom, the same as a physical pot.
 - The painter draws an **arc on the zone's outer ring** of LEDs, so the indicator follows the value around the knob whatever the input style.
-- `drag="v"` or `drag="h"` swaps the reader for vertical or horizontal drag, the DAW way (Ableton and Bitwig drag vertically, many plugins offer both). The arc painter stays. Because kinds are option presets, this is one option, not a new kind.
+- `drag="v"` or `drag="h"` swaps the reader for vertical or horizontal drag, the DAW way (Ableton and Bitwig drag vertically, many plugins offer both). The arc painter stays. Because kinds are option presets, this is one option, not a new kind. `drag` doesn't change `mode`: DAW-style drag also needs `mode="rel"`, which the block face writes together with `drag`.
 - An endless variant (`endless=1`, the TouchOSC Encoder) is a later addition. It fits the same reader.
 
 Resolution note: a 3×3 knob has about 341 raw positions across, so roughly 1000 around its ring, which is enough for a 7-bit absolute knob. For 14-bit output on a small knob, relative mode with `speed < 1` or vertical drag still gives finer control than absolute angle.
@@ -219,9 +219,9 @@ Resolution note: a 3×3 knob has about 341 raw positions across, so roughly 1000
 ### 4.5 Shared stages
 
 - **Mode** (`mode`): `abs` (jump), `rel` (drag delta with `speed`), `glide` (move toward the finger with `speed` and `ease`).
-- **Approach:** one tick-driven "move value toward target" function. Spring, glide and smoothing all use it.
+- **Approach:** one tick-driven "move value toward target" function. Spring, glide and smoothing all use it. Glide `speed` is per tick, so glide time scales with the Touch Tick interval.
 - **Sensitivity:** deadband, then smoothing, then change detection, then rate limit (flushed by the tick). In the UI this is one select (Low / Normal / High), with raw numbers under Advanced.
-- **Steps:** the same meaning as Grid's button mode `bmo` (0 momentary, 1 toggle, n = n+1 steps), with the same step maths (`SettingsButton.calculateStepValuesFirmwareStyle`).
+- **Steps:** the same meaning as Grid's button mode `bmo` (0 momentary, 1 toggle, n = n+1 steps), with the same step maths (`SettingsButton.calculateStepValuesFirmwareStyle`), so a zone cycles through the values the Button Mode block shows. The firmware's own stepping (`grid_ui_button.c`) has more states when `floor(range/bmo)*(bmo+1) <= range` (bmo=16 on 0–127: 19, not 17); that mismatch is an editor issue of its own.
 - **Groups:** radio groups 1–8. A press runs the other members' bodies with their "off" value first, then this zone's "on". `empty` decides whether every member can be off.
 - **Painters:** `fill`, `dot`, `comet`, `crosshair`, `target`, `arc`. They draw the **value**, not the finger, so relative, glide, spring and clamping display correctly. Only changed LED cells are sent.
 - **Release** (`release`): `clear`, `fade`, `keep`.
