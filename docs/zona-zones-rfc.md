@@ -37,7 +37,7 @@ The action strings on the module (and in the editor) are the single source of tr
 - Two elements: **touch (0)** and **system (255)**. The touch element has **only Setup (0) and Timer (6)**. The touch Timer is the only tick the zone system uses.
 - Touch input is a callback, not an event: `self.touch_cb(self, id, evt, x, y)`, assigned in Setup.
   - `id` 0–4 is a contact slot. The firmware gives the lowest free slot on touch-down, so a slot is stable for one contact but is not a stable finger.
-  - `evt` is the raw sensor nibble (1 move, 4 down, 5 up; 9 tap is inferred).
+  - `evt` is the raw sensor nibble (1 move, 4 down, 5 up; 9 is a tap: down and up in one scan, with no separate 4 or 5). The library treats 9 as a down then an up at the same position, and 3 and 7 as an up, so no contact is left held.
   - `x`, `y` span the **whole** surface. The range is set per element with `self:txma(max)` and `self:tyma(max)` (touch x/y maximum). The sensor resolution is **10-bit**: with `txma(1023)`/`tyma(1023)`, as set by the configuration on the test module (firmware 1.5.5), coordinates are 0–1023. A zone 3 cells wide sees about 341 raw positions across its width. No pressure today.
 - 81 LEDs, 9×9, serpentine (see `ZONA.svelte`).
 - **Action string limit: 909 characters per event** (`GRID_PARAMETER_ACTIONSTRING_maxlength`, `grid_protocol.h:131`). The `--[[@short]]` block markers count toward it.
@@ -57,7 +57,8 @@ The action strings on the module (and in the editor) are the single source of tr
 - **Page change restarts the Lua VM.** All Lua state is lost, including `package.loaded`. Encoder and button values survive because they live in C template buffers. Zone values do not.
 - **Utility button:** the system element's utility event runs on press and holds `gpl(gpn())` (next page). There is no release event and no hold time (button elapsed time) on it today. Mapping mode is designed around that (4.7).
 - **Element methods with autos** (grid-fw `simplemidi.lua`, `autovalue.lua`): every element gets Lua methods such as `self:gms(ch, cmd, p1, p2)` where `-1` means "auto". Autos come from the element and the running event (`midi_auto_ch`, `midi_auto_cmd`, `midi_auto_p1`, `midi_auto_p2`, `get_auto_value`, `get_auto_mode`). The MIDI block's default is `self:gms(-1,-1,-1,-1)`; Simple Color is `self:glc(-1,…) self:glp(-1,-1)`. These are plain Lua methods on a table, so **any table that answers them can stand in for `self`**. The zone design relies on this.
-- **MIDI output:** `gms(ch, cmd, p1, p2, mode)` takes a 5th `mode` argument (0 7-bit, 1 CC 14-bit, 2 NRPN, 3 NRPN 14-bit). The MIDI block uses it today.
+- **MIDI output:** the element method `self:gms(ch, cmd, p1, p2, mode)` takes a 5th `mode` argument (0 7-bit, 1 CC 14-bit, 2 NRPN, 3 NRPN 14-bit). The MIDI block uses it today. On firmware 1.5.5 the mode is handled in Lua (`simplemidi.lua`): mode 1 sends the MSB on `p1` and the LSB on `p1+32` (an auto `p1` is reduced `% 32`), modes 2/3 send NRPN 99/98/6(/38). The global C `gms` takes exactly 4 arguments and sends nothing with 5, so the zone `gms` expands the mode itself the same way.
+- **Lua version:** firmware 1.5.5 runs Lua 5.5.0. In 5.5, for-loop control variables are read-only, so the library never assigns to one.
 - **MIDI input:**
   - Each incoming voice message is passed to **every** element's `midirx_cb(self, header, event)` (`decode.lua`, `_decode_process`). `event` is `{ch, cmd, p1, p2}`. SysEx goes to `sysexrx_cb`, which the zone library does not set.
   - The RX Mode block (`grxm`) must have MIDI Voice enabled. It is on by default.
@@ -127,7 +128,7 @@ The body runs whenever the zone has something to report: press, value change, re
 
 | Method | On a zone |
 |--------|-----------|
-| `self:gms(ch, cmd, p1, p2, mode)` | Sends MIDI. `-1` autos are resolved from the zone (below). Repeated sends of the same value to the same `(ch, cmd, p1)` are dropped, so a body that sends on every event only puts changes on the wire. |
+| `self:gms(ch, cmd, p1, p2, mode)` | Sends MIDI. `-1` autos are resolved from the zone (below). Repeated sends of the same value to the same `(ch, cmd, p1)` are dropped, so a body that sends on every event only puts changes on the wire. The filter is reset on each press, so a message meant to repeat per press (a program change) still goes out. |
 | `self:gmrr(-1, ch, cmd, p1, {v, l}, mode)` | Registers RX sync for that message (4.8). |
 | `self:glc(...)`, `self:glp(...)` | Sets the painter's colour and intensity, so Simple Color and Simple Intensity work. |
 | `self:get_auto_value()`, `self:get_auto_mode()` | The value of the source that triggered this run, and `1` when `res > 7`. |
@@ -138,8 +139,8 @@ The body runs whenever the zone has something to report: press, value change, re
 
 - `ch`: the same as an element, `(gmy()*4+gpc())%16`.
 - `cmd`: 144 for a button, 176 for continuous kinds.
-- `p1`: `(32 + gmx()*16 + base + offset) % 128`, where `base` is the zone's index and `offset` is 0 for `x`/`v` and 1 for `y`. An XY pad with one default MIDI block sends x and y on two neighbouring CCs.
-- `p2`: the triggering source's value.
+- `p1`: `(32 + gmx()*16 + base + offset) % 128`, where `base` is the zone's first CC slot and `offset` is 0 for `x`/`v` and 1 for `y`. Slots are counted over the zones defined before it: an XY pad takes 2, every other kind 1. An XY pad with one default MIDI block sends x and y on two neighbouring CCs, and the next zone continues after them (`self:ind()` stays the definition index).
+- `p2`: the triggering source's value. On a continuous zone, a press or release run (`src()` is `g`) uses the main value (`v`, or `x` for an XY pad), so the default MIDI block sends no gate CC on press and release; the duplicate filter drops it.
 - `mode`: `get_auto_mode()`, so `res=10` sends 14-bit CC with the default block.
 
 **Other targets** need no zone support at all: Gamepad Axis (`ggms`), Gamepad Button (`ggbs`), Mouse Move (`gmms`), Mouse Button (`gmbs`) and Keyboard (`gks`) are global functions. Their value field takes a zone getter, for example `ggms(0,self:v())` or `gmms(1,self:d())`, where `d()` is the relative change since the last run with a fractional carry. The editor offers these getters as suggestions in those fields when the block is inside a zone.
@@ -175,7 +176,7 @@ The CC goes out when the value moves, the note on press and release. The duplica
 Resolution belongs to the **zone value**, set in the zone block's options. This follows the potentiometer settings (`pmo` resolution bits, `pmi`/`pma` range), so users meet the same idea twice.
 
 - `res` sets the number of steps, from 7 to 14 bits (default 7).
-- `min` and `max` set the value range. They default to the full range for `res`: 0–127 for 7-bit, 0–16383 for 14-bit.
+- `min` and `max` set the value range. They default to the wire range of the auto mode: 0–127 for `res=7`, 0–16383 for any `res > 7`. `res` sets the number of steps (2^res) inside `[min, max]`, so `res=10` gives 1024 values spread across 0–16383 and a 14-bit receiver sees full scale.
 - The MIDI block's auto mode follows `res` (4.1). A user who picks a mode by hand gets that mode.
 - Gamepad and mouse blocks receive the value through the getter and scale it as the user writes it. The gamepad axis range is documented next to the getter (phase 0).
 
@@ -455,7 +456,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
   - Major: block syntax or defaults change, and the editor migrates blocks.
 - Uploaded the way the File Manager saves `.lua` files: `GridScript.compressScript(source)`, which minifies and **keeps comments** (2.1). Opened in the File Manager, it shows expanded, like any other page file. No upload transform of its own. The ~15 KB guideline applies to the compressed size, comments included, so keep comments short.
 - Because `compressScript` runs `shortify`, the source uses the firmware's short names and never uses a human name (`GridScript.validator.lookup`) as its own identifier, table key or string content. Those would be rewritten on upload.
-- Unit tests run the library in a Lua VM under vitest (wasmoon or fengari; whichever is added as a dev dependency). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still contains `Z.VERSION="x.y.z"`, so the version survives.
+- Unit tests run the library in a Lua VM under vitest (wasmoon, Lua 5.4; the firmware runs 5.5, so the compressed library is also checked with a 5.5 `luac -p` before release). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still contains `Z.VERSION="x.y.z"`, so the version survives.
 
 **Per page, on purpose**
 
