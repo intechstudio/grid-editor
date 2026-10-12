@@ -4,7 +4,10 @@ import zonaSource from "../libraries/zona/zona.lua?raw";
 
 // Firmware globals the library may touch. Each stub records its call; the
 // position getters answer from `env` (module at 0,0 on page 0 by default).
-const RECORDED = ["gms", "gtt", "glc", "glp", "gln", "gld", "glx", "glag"];
+const RECORDED = ["gms", "gtt", "glc", "glp", "gln", "gld", "glx"];
+
+// Module default colour (glr/glg/glb) in the VM.
+export const DEFAULT_COLOR = [10, 20, 30];
 
 // The firmware runs Lua 5.5 (grid-fw 1.5.5), wasmoon runs 5.4. Code that only
 // 5.5 rejects passes here, such as assigning to a for-loop variable.
@@ -37,7 +40,35 @@ export async function createZonaVM(env = {}) {
     for _, fn in ipairs({ ${RECORDED.map((e) => `"${e}"`).join(",")} }) do
       _G[fn] = function(...) rec(fn, ...) end
     end
+    -- ZONA LED lookup (grid_module.c on the ZONA branch): rows of 9 cells,
+    -- serpentine, row 0 = LEDs 8..0
+    function glag(e, i)
+      local r, c = i // 9, i % 9
+      return r * 9 + (r % 2 == 0 and 8 - c or c)
+    end
+    function glr() return ${DEFAULT_COLOR[0]} end
+    function glg() return ${DEFAULT_COLOR[1]} end
+    function glb() return ${DEFAULT_COLOR[2]} end
+    -- as simplecolor.lua: -1 = default, 1 entry = max (min /20, mid /2),
+    -- 2 = min and max (mid between), 3 = min, mid, max
+    function color_curve(c)
+      for _, e in ipairs(c) do
+        for i, f in ipairs({ glr, glg, glb }) do
+          if e[i] == -1 then e[i] = f() end
+        end
+      end
+      local x, y, z = c[1], c[2], c[#c]
+      if #c == 1 then
+        x = { z[1] // 20, z[2] // 20, z[3] // 20, z[4] }
+        y = { z[1] // 2, z[2] // 2, z[3] // 2, z[4] }
+      elseif #c == 2 then
+        y = {}
+        for i = 1, 4 do y[i] = (x[i] + z[i]) // 2 end
+      end
+      return x, y, z
+    end
     el = {}
+    function el:ind() return 0 end
     function el:txma(v) rec("txma", v) end
     function el:tyma(v) rec("tyma", v) end
     package.preload.zona = load(_src)

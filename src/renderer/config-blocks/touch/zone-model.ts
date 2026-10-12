@@ -18,7 +18,15 @@ export type ZoneOptions = {
   drag: "n" | "v" | "h"; // knob: read a straight drag instead of the angle
   bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
   group: number; // gate: radio group 1-8, 0 none
+  led: "fill" | "dot" | "comet" | "crosshair" | "target" | "arc" | "n";
+  release: "keep" | "clear" | "fade"; // LEDs on release
+  sens: ZoneSens;
+  db: number; // raw overrides, -1 = from sens: deadband (raw units)
+  sm: number; // smoothing, 0-1 share of the old position kept
+  rt: number; // rate limit, ticks between runs of a source
 };
+
+export type ZoneSens = "l" | "n" | "h";
 
 export type ZoneGroupOptions = {
   empty: 0 | 1; // 0 keeps one member on
@@ -37,6 +45,19 @@ export const zoneDefaults: ZoneOptions = {
   drag: "n",
   bmo: 0,
   group: 0,
+  led: "fill",
+  release: "keep",
+  sens: "n",
+  db: -1,
+  sm: -1,
+  rt: -1,
+};
+
+// Z.sens: sensitivity presets as [db, sm, rt].
+export const zoneSens: Record<ZoneSens, [number, number, number]> = {
+  l: [4, 0.5, 1],
+  n: [2, 0, 0],
+  h: [0, 0, 0],
 };
 
 // Z.gdef: group settings (Z.group).
@@ -48,6 +69,6 @@ export const zoneGroupDefaults: ZoneGroupOptions = {
 export const zoneKinds: Record<ZoneKind, Partial<ZoneOptions>> = {
   fader: { read: "axis" },
   button: { read: "gate", leave: 1 },
-  xy: { read: "point" },
-  knob: { read: "angle" },
+  xy: { read: "point", led: "crosshair" },
+  knob: { read: "angle", led: "arc" },
 };

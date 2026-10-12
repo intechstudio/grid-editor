@@ -1,35 +1,44 @@
--- ZONA touch zones (docs/zona-zones-rfc.md). VERSION: semver, major = block syntax.
--- compressScript rewrites firmware human names, even in strings: short names only.
--- Lua 5.5 (firmware 1.5.5): never assign to a for-loop variable.
+-- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
+-- rewrites firmware human names, even in strings. Lua 5.5: never assign to a
+-- for-loop variable.
 
 local Z = {}
 
-Z.VERSION = "0.3.0"
+Z.VERSION = "0.4.0"
 Z.has = { sres = 10 } -- sensor bits
 
--- Defaults: blocks omit them, so they change only in a major version. Mirrored
--- in zone-model.ts (tested). min/max default to 0-127 (res 7) or 0-16383.
+-- Defaults (meanings in zone-model.ts, tested to match) change only in a major
+-- version: blocks omit them. min/max: 0-127 for res 7, else 0-16383.
 Z.def = {
-  read = "axis", -- axis, gate, point, angle
-  dir = "v", -- v: bottom = min, h: left = min
-  res = 7, -- 2^res steps inside min-max, 7 to 14
-  grab = "focus", -- focus, live
-  leave = 0, -- 1: leaving releases, re-entry ignored until next down
-  mode = "abs", -- abs, rel, glide
-  speed = 1, -- rel: drag factor; glide: 1 = full range in 50 ticks
-  ease = 0, -- glide: share of the remaining distance added per tick
-  contact = "new", -- later contacts: new, move (glide), grab (rel)
-  drag = "n", -- knob: v or h reads a straight drag
-  bmo = 0, -- gate: 0 momentary, 1 toggle, n = n+1 steps
-  group = 0, -- gate: radio group 1-8, 0 none
+  read = "axis",
+  dir = "v",
+  res = 7,
+  grab = "focus",
+  leave = 0,
+  mode = "abs",
+  speed = 1,
+  ease = 0,
+  contact = "new",
+  drag = "n",
+  bmo = 0,
+  group = 0,
+  led = "fill",
+  release = "keep",
+  sens = "n",
+  db = -1,
+  sm = -1,
+  rt = -1,
 }
 
 Z.kind = {
   fader = { read = "axis" },
   button = { read = "gate", leave = 1 },
-  xy = { read = "point" },
-  knob = { read = "angle" },
+  xy = { read = "point", led = "crosshair" },
+  knob = { read = "angle", led = "arc" },
 }
+
+-- sens presets {db, sm, rt}; rt needs Z.tick
+Z.sens = { l = { 4, 0.5, 1 }, n = { 2, 0, 0 }, h = { 0, 0, 0 } }
 
 -- Z.group defaults; empty=0 keeps one member on.
 Z.gdef = { empty = 1 }
@@ -38,17 +47,21 @@ Z.zs = {} -- active zones, index = position - 1; Z.start swaps in pending Z.nz
 Z.nz = {}
 Z.gp = {} -- group settings, pending in Z.ng
 Z.ng = {}
-Z.ct = {} -- slot -> {z = owner, m = mode, p = last readings}, false after leave
+Z.ct = {} -- slot -> {z = owner, m = mode, p = readings}, false after leave
+Z.tn = 0 -- ticks
+-- per cell x+y*9: physical LED, last colour key, last phase (send changes only)
+Z.li = {}
+Z.lk = {}
+Z.lc = {}
 
 local S = 1024 / 9 -- raw 0-1023 over 9 cells
 local KS = { "v", "x", "y" } -- continuous sources
 
--- Zone self: answers the element methods action blocks call.
+-- Zone self: answers the methods action blocks call on a control.
 local M = {}
 M.__index = M
 
--- route -> pos (clamp) -> read -> mode -> put/gate -> run. Sources keep a
--- position q (0-1); values are q in steps.
+-- route -> pos -> read -> mode -> put/gate -> run; q is a 0-1 position
 
 local function tr(a)
   return a < 0 and math.ceil(a) or math.floor(a)
@@ -73,14 +86,31 @@ local function run(z, s)
   end
 end
 
+-- Once Z.tick runs, a run within rt ticks of the last one waits for it.
 local function put(z, k, val)
   if z.u[k] ~= val then
     z.u[k] = val
-    run(z, k)
+    z.dt = 1
+    if z.rt > 0 and Z.tn > 0 and Z.tn - (z.lr[k] or -99) < z.rt then
+      z.pd[k] = 1
+    else
+      z.lr[k] = Z.tn
+      run(z, k)
+    end
   end
 end
 
--- 0-1 to one of 2^res steps over min-max.
+-- Pending runs whose rt has passed, or all (a: before a release).
+local function fl(z, a)
+  for k in pairs(z.pd) do
+    if a or Z.tn - z.lr[k] >= z.rt then
+      z.pd[k] = nil
+      z.lr[k] = Z.tn
+      run(z, k)
+    end
+  end
+end
+
 local function sc(z, t)
   local n = (1 << z.o.res) - 1
   return math.floor(z.mi + math.floor(t * n + 0.5) * (z.ma - z.mi) / n + 0.5)
@@ -90,7 +120,7 @@ local function frac(p, a, b)
   return (p - a) / (b - a)
 end
 
--- a toward b by s plus e of the distance left (glide; spring, smoothing later).
+-- a toward b by s plus e of the distance left
 local function ap(a, b, s, e)
   local d = b - a
   local m = math.abs(d) * e + s
@@ -100,10 +130,10 @@ local function ap(a, b, s, e)
   return a + (d > 0 and m or -m)
 end
 
--- Mode stage: t along source k (0-1; an angle wraps every w), contact c.
+-- t along source k (an angle wraps every w), contact c
 local function md(z, c, k, t, w)
   local p = c.p[k]
-  if c.m == "rel" then -- the first reading only sets the reference
+  if c.m == "rel" then
     if p then
       local d = t - p
       if w and math.abs(d) > w / 2 then
@@ -145,8 +175,7 @@ rd.point = function(z, c, x, y)
   md(z, c, "x", frac(x, a[1], a[2]))
   md(z, c, "y", 1 - frac(y, a[3], a[4]))
 end
--- Clockwise from the bottom, 300 degree arc from 30: min lower left, max lower
--- right. Within 1/8 of the side from the centre the angle is noise: ignored.
+-- Clockwise from the bottom, 300 degrees from 30; the centre (1/8 side) is noise
 rd.angle = function(z, c, x, y)
   local a = z.a
   local dx, dy = x - (a[1] + a[2]) / 2, y - (a[3] + a[4]) / 2
@@ -156,7 +185,7 @@ rd.angle = function(z, c, x, y)
   end
   md(z, c, "v", (math.deg(math.atan(-dx, dy)) % 360 - 30) / 300, 1.2)
 end
-rd.gate = function() end -- press and release only
+rd.gate = function() end
 
 local function inside(z, x, y)
   local a = z.a
@@ -171,8 +200,24 @@ local function find(x, y)
   end
 end
 
--- Clamped: a focus contact that leaves stays at the edge.
-local function pos(z, c, x, y)
+-- Deadband and smoothing on raw, then clamp (focus stays at the edge). On a
+-- tick (t) a rest position within the deadband is taken exactly.
+local function pos(z, c, x, y, t)
+  c.rx, c.ry = x, y
+  if not t then
+    z.lm = c -- the zone's last moving contact
+  end
+  if c.x then
+    if math.abs(x - c.x) <= z.db and math.abs(y - c.y) <= z.db then
+      if not t or x == c.x and y == c.y then
+        return
+      end
+    else
+      x = x + (c.x - x) * z.sm
+      y = y + (c.y - y) * z.sm
+    end
+  end
+  c.x, c.y = x, y
   local a = z.a
   x = math.max(a[1], math.min(a[2], x))
   y = math.max(a[3], math.min(a[4], y))
@@ -183,11 +228,16 @@ local function pos(z, c, x, y)
   r(z, c, x, y)
 end
 
--- Sets gate and button value, no body run (on press value runs see g=1). A
--- press clears the duplicate filter (on a gate zone only if the step changes),
--- so per-press messages repeat. A press moves to the next step value, wrapping.
+-- No body run here, so value runs on press see g=1. A press clears the
+-- duplicate filter (gate zones: on a step change) so per-press messages repeat.
 local function gate(z, g)
   z.u.g = g
+  z.dt = 1
+  if g == 1 then
+    z.br = 1
+  elseif z.o.release == "clear" then
+    z.br = 0
+  end
   if z.o.read ~= "gate" then
     if g == 1 then
       z.l = {}
@@ -203,13 +253,14 @@ local function gate(z, g)
   local n = z.o.group
   if n > 0 then
     if st == 0 and z.st > 0 and (Z.gp[n] or Z.gdef).empty == 0 then
-      st = 1 -- the last member on stays on
+      st = 1
     end
-    if st > 0 then -- the others go off first
+    if st > 0 then
       for _, o in ipairs(Z.zs) do
         if o ~= z and o.o.group == n and o.o.read == "gate" and o.st > 0 then
           o.st = 0
           o.u.v = o.sv[1]
+          o.dt = 1
           run(o, "g")
         end
       end
@@ -222,11 +273,11 @@ local function gate(z, g)
   z.u.v = z.sv[st + 1]
 end
 
--- The first contact presses with the zone's mode, later ones follow contact.
--- Entering a live zone (e) reads abs.
+-- Later contacts follow o.contact; entering a live zone (e) reads abs
 local function take(c, z, x, y, e)
   c.z = z
   c.p = {}
+  c.x = nil
   z.k = z.k + 1
   local p = z.k == 1
   local o = z.o
@@ -248,8 +299,88 @@ end
 local function lift(z)
   z.k = z.k - 1
   if z.k == 0 then
+    fl(z, 1)
     gate(z, 0)
     run(z, "g")
+  end
+end
+
+-- Painters: level 0-1 of zone cell (i,j) for value position n
+local function ax(z, i, j) -- cell along the axis, axis length
+  local c = z.c
+  local h = (z.o.read == "angle" and z.o.drag or z.o.dir) == "h"
+  return h and i or c[4] - 1 - j, h and c[3] or c[4]
+end
+local P = {}
+P.fill = function(z, i, j, n)
+  if z.o.read == "gate" then
+    return n
+  end
+  local k, l = ax(z, i, j)
+  return cl(n * l - k)
+end
+P.dot = function(z, i, j, n)
+  local k, l = ax(z, i, j)
+  return cl(1 - math.abs(n * (l - 1) - k))
+end
+P.comet = function(z, i, j, n) -- Z.tick decays the trail
+  local e = i + j * 9
+  local v = math.max(P.dot(z, i, j, n), z.tl[e] or 0)
+  z.tl[e] = v
+  return v
+end
+local function xy(z, i, j)
+  local c = z.c
+  return math.abs(z.q.x * (c[3] - 1) - i), math.abs((1 - z.q.y) * (c[4] - 1) - j)
+end
+P.crosshair = function(z, i, j)
+  local a, b = xy(z, i, j)
+  return (cl(1 - a) + cl(1 - b)) / 2
+end
+P.target = function(z, i, j)
+  local a, b = xy(z, i, j)
+  return cl(1 - math.sqrt(a * a + b * b))
+end
+P.arc = function(z, i, j, n)
+  local c = z.c
+  if i > 0 and j > 0 and i < c[3] - 1 and j < c[4] - 1 then
+    return 0
+  end
+  local dx, dy = i - (c[3] - 1) / 2, j - (c[4] - 1) / 2
+  if dx == 0 and dy == 0 then -- a 1x1 knob
+    return n
+  end
+  local t = (math.deg(math.atan(-dx, dy)) % 360 - 30) / 300
+  return n > 0 and t >= 0 and t <= n and 1 or 0
+end
+
+local function lit(e, k, cc, ph)
+  local x = Z.li[e]
+  if Z.lk[e] ~= k then
+    Z.lk[e] = k
+    local u = table.unpack
+    gln(x, 1, u(cc[1]))
+    gld(x, 1, u(cc[2]))
+    glx(x, 1, u(cc[3]))
+  end
+  if Z.lc[e] ~= ph then
+    Z.lc[e] = ph
+    glp(x, 1, ph)
+  end
+end
+
+local function paint(z)
+  z.dt = nil
+  local p = P[z.o.led]
+  if not p then
+    return
+  end
+  local c = z.c
+  local n = z.o.read == "gate" and z.st / math.max(#z.sv - 1, 1) or z.q[z.o.read == "point" and "x" or "v"]
+  for j = 0, c[4] - 1 do
+    for i = 0, c[3] - 1 do
+      lit(c[1] + i + (c[2] + j) * 9, z.ck, z.cc, math.floor(p(z, i, j, n) * z.br * z.iv + 0.5))
+    end
   end
 end
 
@@ -267,8 +398,8 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
   end
   local mi = o.min or 0
   local ma = o.max or (o.res > 7 and 16383 or 127)
-  -- the editor's step values (SettingsButton.calculateStepValuesFirmwareStyle);
-  -- the firmware has more when floor(range/bmo)*(bmo+1) <= range
+  -- editor step values (calculateStepValuesFirmwareStyle); the firmware has
+  -- more when floor(range/bmo)*(bmo+1) <= range
   local sv = { mi }
   if o.read == "gate" then
     local c = math.max(o.bmo, 1)
@@ -285,7 +416,6 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     b = b,
     o = o,
     f = f,
-    -- raw bounds, inclusive, no overlap
     a = {
       math.ceil(x * S),
       math.ceil((x + w) * S) - 1,
@@ -302,7 +432,18 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     q = { v = 0, x = 0, y = 0 }, -- positions
     r = { v = mi, x = mi, y = mi }, -- for d()
     tg = {}, -- glide targets
+    c = { x, y, w, h },
+    br = o.release == "keep" and 1 or 0, -- brightness
+    iv = 255, -- intensity
+    tl = {}, -- comet trail
+    lr = {}, -- tick of the last run
+    pd = {}, -- pending runs
   }, M)
+  local p = Z.sens[o.sens] or Z.sens.n
+  z.db = o.db >= 0 and o.db or p[1]
+  z.sm = o.sm >= 0 and o.sm or p[2]
+  z.rt = o.rt >= 0 and o.rt or p[3]
+  z:glc(1, { { -1, -1, -1, 1 } }) -- module default colour
   Z.nz[#Z.nz + 1] = z
   return z
 end
@@ -323,17 +464,19 @@ function Z.group(n, opt)
   Z.ng[n] = g
 end
 
--- Known limit: zones of a Setup that errors before this stay pending.
+-- Caveat: zones of a Setup that errors before this stay pending.
 function Z.start(self)
   self:txma(1023)
   self:tyma(1023)
   for _, z in ipairs(Z.zs) do -- release held zones: no stuck notes
     if z.k > 0 then
       z.k = 0
+      fl(z, 1)
       gate(z, 0)
       run(z, "g")
     end
   end
+  Z.tn = 0 -- runs are not held until Z.tick runs again
   Z.zs = Z.nz
   Z.nz = {}
   Z.lv = nil
@@ -345,13 +488,37 @@ function Z.start(self)
   Z.gp = Z.ng
   Z.ng = {}
   Z.ct = {}
+  Z.lk = {} -- repaint all: LEDs may have changed outside the library
+  Z.lc = {}
   self.touch_cb = Z.touch
-  -- later: RX dry run, midirx_cb, first paint
+  -- first paint, uncovered cells dark. Later: RX dry run, midirx_cb.
+  local own = {}
+  for e = 0, 80 do
+    Z.li[e] = glag(self:ind(), e) or e
+  end
+  for _, z in ipairs(Z.zs) do
+    local c = z.c
+    for e = 0, c[3] * c[4] - 1 do
+      own[c[1] + e % c[3] + (c[2] + e // c[3]) * 9] = 1
+    end
+    paint(z)
+  end
+  for e = 0, 80 do
+    if not own[e] then
+      lit(e, Z.lk[e], nil, 0)
+    end
+  end
 end
 
--- From the touch Timer; cfg.led and cfg.win are for later slices.
+-- Touch Timer: glide, pending runs, fade, trails; repaint every cfg.led ticks
 function Z.tick(self, cfg)
+  Z.tn = Z.tn + 1
+  local d = cfg and cfg.led or 1
   for _, z in ipairs(Z.zs) do
+    local c = z.lm
+    if c and c.z == z and z.sm > 0 then -- smoothing reaches a finger at rest
+      pos(z, c, c.rx, c.ry, 1)
+    end
     for _, k in ipairs(KS) do
       local t = z.tg[k]
       if t then
@@ -363,17 +530,31 @@ function Z.tick(self, cfg)
         put(z, k, sc(z, q))
       end
     end
+    fl(z)
+    if z.k == 0 and z.br > 0 and z.o.release == "fade" then
+      z.br = ap(z.br, 0, 0.05, 0) -- 20 ticks
+      z.dt = 1
+    end
+    for e, v in pairs(z.tl) do
+      z.tl[e] = v > 0.05 and v * 0.7 or nil -- trail: 70% per tick
+      z.dt = 1
+    end
+    if z.dt and Z.tn % d == 0 then
+      paint(z)
+    end
   end
 end
 
--- Ends: 5 up, 3 suppressed, 7 unsuppressed up. Unowned contacts (empty cell,
--- or left a live zone) can be picked up by a live zone.
+-- Ends: 5 up, 3 suppressed, 7 unsuppressed up. Live zones pick up unowned
+-- contacts.
 local function route(id, evt, x, y)
   local c = Z.ct[id]
   if evt == 4 or evt == 5 or evt == 3 or evt == 7 then
     Z.ct[id] = nil
     if c and c.z then -- also a down on a busy slot
-      lift(c.z)
+      local z = c.z
+      c.z = nil
+      lift(z)
     end
   end
   if evt == 4 then
@@ -416,8 +597,7 @@ function Z.touch(self, id, evt, x, y)
   route(id, evt, x, y)
 end
 
--- Gate runs on a continuous zone report the main value, so the default block
--- sends no gate CC.
+-- Gate runs on continuous zones report the main value: no gate CC
 function M:get_auto_value()
   local s = self.s
   if s == "g" then
@@ -434,8 +614,8 @@ function M:ind()
   return self.i
 end
 
--- Autos as simplemidi.lua, p1 from the CC slot. The global gms takes exactly 4
--- args, so modes expand here. Repeats per (ch,cmd,p1) drop until a press.
+-- Autos as simplemidi.lua, p1 from the CC slot. Global gms takes exactly 4
+-- args: modes expand here. Repeats per (ch,cmd,p1) drop until a press.
 function M:gms(ch, cmd, p1, p2, mode)
   if mode == nil or mode == -1 then
     mode = self:get_auto_mode()
@@ -477,10 +657,24 @@ function M:gms(ch, cmd, p1, p2, mode)
   end
 end
 
--- RX sync and painters: later.
 function M:gmrr() end
-function M:glc() end
-function M:glp() end
+
+-- Simple Color shape, through the firmware's color_curve; layer is always 1
+function M:glc(l, c)
+  local x, y, w = color_curve(c)
+  local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
+  if k ~= self.ck then
+    self.ck = k
+    self.cc = { x, y, w }
+    self.dt = 1
+  end
+end
+
+-- Simple Intensity: 0-255, -1 full
+function M:glp(l, v)
+  self.iv = (v == nil or v == -1) and 255 or math.max(0, math.min(255, v))
+  self.dt = 1
+end
 
 function M:v()
   return self.u.v

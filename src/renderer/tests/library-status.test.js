@@ -144,6 +144,13 @@ describe("Library source on upload", () => {
     expect(literals(code(compressed()))).toEqual(literals(code(zonaSource)));
   });
 
+  test("comments survive compression word for word", () => {
+    // shortify rewrites human names in comments too ("limit" -> "glim").
+    const words = (src) =>
+      (src.match(/--[^\n]*/g) ?? []).join(" ").match(/[A-Za-z_]\w*/g);
+    expect(words(compressed())).toEqual(words(zonaSource));
+  });
+
   test("the source uses no firmware human name as a word", () => {
     const code = zonaSource.replace(/--[^\n]*/g, "");
     const words = new Set(code.match(/[A-Za-z_]\w*/g));

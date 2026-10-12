@@ -1,10 +1,11 @@
 import { initLuaFormatter } from "@intechstudio/grid-protocol";
 import { test, expect, describe, beforeAll } from "vitest";
-import { createZonaVM, DOWN, MOVE, UP } from "./zona-vm";
+import { createZonaVM, DEFAULT_COLOR, DOWN, MOVE, UP } from "./zona-vm";
 import {
   zoneDefaults,
   zoneGroupDefaults,
   zoneKinds,
+  zoneSens,
 } from "../config-blocks/touch/zone-model";
 import { SettingsButton } from "../config-blocks/SettingsButton";
 
@@ -153,7 +154,7 @@ describe("fader", () => {
 
   test("res=10 gives 1024 steps over the full 14-bit range", async () => {
     const vm = await zones(
-      `Z.fader("f",0,0,1,9,{res=10},function(self) _rec("v",1,self:v()) end)`,
+      `Z.fader("f",0,0,1,9,{res=10,sens="h"},function(self) _rec("v",1,self:v()) end)`,
     );
     vm.touch([0, DOWN, 50, 1023]);
     for (let y = 1022; y >= 0; y--) {
@@ -176,7 +177,7 @@ describe("fader", () => {
 
   test("res=8 gives exactly 256 values", async () => {
     const vm = await zones(
-      `Z.fader("f",0,0,1,9,{res=8},function(self) _rec("v",1,self:v()) end)`,
+      `Z.fader("f",0,0,1,9,{res=8,sens="h"},function(self) _rec("v",1,self:v()) end)`,
     );
     vm.touch([0, DOWN, 50, 1023]);
     for (let y = 1022; y >= 0; y--) {
@@ -371,6 +372,7 @@ describe("defaults", () => {
     expect(vm.run("return Z.def")).toEqual(zoneDefaults);
     expect(vm.run("return Z.kind")).toEqual(zoneKinds);
     expect(vm.run("return Z.gdef")).toEqual(zoneGroupDefaults);
+    expect(vm.run("return Z.sens")).toEqual(zoneSens);
   });
 
   test("kind presets apply over the defaults, options over both", async () => {
@@ -542,8 +544,8 @@ describe("contact policy", () => {
 
   test("new: each contact acts, the last active one wins", async () => {
     const vm = await fader("new");
-    vm.touch([0, DOWN, 50, 1023], [1, DOWN, 50, 0], [0, MOVE, 50, 1022]);
-    expect(values(vm)).toEqual([127, 0]);
+    vm.touch([0, DOWN, 50, 1023], [1, DOWN, 50, 0], [0, MOVE, 50, 1000]);
+    expect(values(vm)).toEqual([127, 3]);
   });
 
   test("move: a second contact re-targets through glide", async () => {
@@ -770,5 +772,377 @@ describe("Z.tick", () => {
     vm.clear();
     vm.tick(10);
     expect(runs(vm)).toEqual([]);
+  });
+});
+
+// Last phase per cell "x,y" from the glp calls (physical LED mapped back
+// through the ZONA's serpentine rows).
+function leds(vm) {
+  const m = {};
+  for (const {
+    args: [p, , ph],
+  } of vm.calls("glp")) {
+    const r = Math.floor(p / 9);
+    m[`${r % 2 === 0 ? 8 - (p % 9) : p % 9},${r}`] = ph;
+  }
+  return m;
+}
+// Phases of a column of cells, top to bottom.
+const column = (m, x, h = 9) =>
+  Array.from({ length: h }, (_, y) => m[`${x},${y}`]);
+
+describe("LEDs", () => {
+  test("cell (x,y) is LED glag(0, x+y*9): serpentine rows, row 0 on top", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.clear();
+    vm.tick();
+    const lit = vm
+      .calls("glp")
+      .filter((e) => e.args[2] === 255)
+      .map((e) => e.args[0]);
+    expect(lit).toEqual([8, 9, 26, 27, 44, 45, 62, 63, 80]);
+  });
+
+  test("the first paint sets every cell once, colour only on zone cells", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.fader("f",0,0,1,9,{},${MIDI}) Z.start(self)`);
+    expect(vm.calls("glp").length).toBe(81);
+    expect(vm.calls("glp").every((e) => e.args[2] === 0)).toBe(true);
+    const [r, g, b] = DEFAULT_COLOR;
+    expect(vm.calls("glx").length).toBe(9);
+    expect(vm.calls("glx")[0].args).toEqual([8, 1, r, g, b, 1]);
+    expect(vm.calls("gld")[0].args).toEqual([8, 1, r >> 1, g >> 1, b >> 1, 1]);
+    expect(vm.calls("gln")[0].args).toEqual([
+      8,
+      1,
+      Math.floor(r / 20),
+      Math.floor(g / 20),
+      Math.floor(b / 20),
+      1,
+    ]);
+  });
+
+  test("every Setup run repaints all cells, then only changed cells are sent", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{sens="h"},${MIDI})`);
+    vm.setup(`Z.fader("f",0,0,1,9,{sens="h"},${MIDI}) Z.start(self)`);
+    expect(vm.calls("glp").length).toBe(81);
+    expect(vm.calls("glx").length).toBe(9);
+    vm.touch([0, DOWN, 50, 512]);
+    vm.tick();
+    vm.clear();
+    vm.touch([0, MOVE, 50, 500]);
+    vm.tick();
+    expect(vm.calls("glp").length).toBe(1);
+    expect(vm.calls("glx")).toEqual([]);
+  });
+
+  test("a new Setup darkens the cells no zone covers", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
+    vm.tick();
+    vm.clear();
+    vm.setup(`Z.fader("f",1,0,1,9,{},${MIDI}) Z.start(self)`);
+    expect(column(leds(vm), 0)).toEqual(Array(9).fill(0));
+  });
+
+  test("repaints wait for the divider", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.run("Z.tick(el,{led=2})");
+    expect(vm.calls("glp")).toEqual([]);
+    vm.run("Z.tick(el,{led=2})");
+    expect(vm.calls("glp").length).toBe(9);
+  });
+
+  test("glc and glp in the body set colour and intensity", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{},function(self) self:glc(-1,{{255,0,0,1}}) self:glp(-1,100) end)`,
+    );
+    vm.touch([0, DOWN, 50, 0], [0, MOVE, 50, 100]);
+    vm.tick();
+    expect(vm.calls("glx").length).toBe(9);
+    expect(vm.calls("glx")[0].args).toEqual([8, 1, 255, 0, 0, 1]);
+    expect(vm.calls("gln")[0].args).toEqual([8, 1, 12, 0, 0, 1]);
+    expect(column(leds(vm), 0)[8]).toBe(100);
+  });
+
+  test("glp intensity is clamped to 0-255", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{res=14},function(self) self:glp(-1,self:v()) end)`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick();
+    expect(Math.max(...vm.calls("glp").map((e) => e.args[2]))).toBe(255);
+  });
+});
+
+describe("painters", () => {
+  // keeps the first paint in the log
+  const fresh = async (code) => {
+    const vm = await createZonaVM();
+    vm.setup(`${code} Z.start(self)`);
+    return vm;
+  };
+  // value 63 of 127: position 0.4995 of the travel
+  const mid = async (led, opt = "") => {
+    const vm = await fresh(`Z.fader("f",0,0,1,9,{led="${led}"${opt}},${MIDI})`);
+    vm.touch([0, DOWN, 50, 512]);
+    vm.tick();
+    return vm;
+  };
+
+  test("fill: from the bottom, the partial cell dimmed", async () => {
+    expect(column(leds(await mid("fill")), 0)).toEqual([
+      0, 0, 0, 0, 126, 255, 255, 255, 255,
+    ]);
+  });
+
+  test('fill: horizontal with dir="h"', async () => {
+    const vm = await fresh(`Z.fader("f",0,0,9,1,{dir="h"},${MIDI})`);
+    vm.touch([0, DOWN, 512, 50]);
+    vm.tick();
+    const m = leds(vm);
+    expect(Array.from({ length: 9 }, (_, x) => m[`${x},0`])).toEqual([
+      255, 255, 255, 255, 129, 0, 0, 0, 0,
+    ]);
+  });
+
+  test("dot: the value cell, shared with its neighbour", async () => {
+    expect(column(leds(await mid("dot")), 0)).toEqual([
+      0, 0, 0, 0, 254, 1, 0, 0, 0,
+    ]);
+  });
+
+  test("comet: the trail decays on each tick", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{led="comet"},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick();
+    vm.touch([0, MOVE, 50, 1023]);
+    vm.tick();
+    expect(column(leds(vm), 0)[0]).toBe(179);
+    expect(column(leds(vm), 0)[8]).toBe(255);
+    vm.tick();
+    expect(column(leds(vm), 0)[0]).toBe(125);
+    vm.tick(10);
+    expect(column(leds(vm), 0)[0]).toBe(0);
+  });
+
+  test("button fill: lit when on, by step", async () => {
+    const vm = await zones(`Z.button("b",0,0,2,2,{bmo=2},${MIDI})`);
+    const cells = () => {
+      const m = leds(vm);
+      return [m["0,0"], m["1,0"], m["0,1"], m["1,1"]];
+    };
+    vm.touch([0, 9, 50, 50]);
+    vm.tick();
+    expect(cells()).toEqual([128, 128, 128, 128]);
+    vm.touch([0, 9, 50, 50]);
+    vm.tick();
+    expect(cells()).toEqual([255, 255, 255, 255]);
+    vm.touch([0, 9, 50, 50]);
+    vm.tick();
+    expect(cells()).toEqual([0, 0, 0, 0]);
+  });
+
+  // 3x3 at the top left: raw 0-341
+  const corner = async (kind, led) => {
+    const vm = await fresh(`Z.${kind}("p",0,0,3,3,{${led}},${MIDI})`);
+    vm.touch([0, DOWN, 341, 341]);
+    vm.tick();
+    const m = leds(vm);
+    return [0, 1, 2].map((y) => [0, 1, 2].map((x) => m[`${x},${y}`]));
+  };
+
+  test("crosshair: the value's row and column, brighter where they meet", async () => {
+    expect(await corner("xy", "")).toEqual([
+      [0, 0, 128],
+      [0, 0, 128],
+      [128, 128, 255],
+    ]);
+  });
+
+  test("target: a dot at the xy value", async () => {
+    expect(await corner("xy", 'led="target"')).toEqual([
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 255],
+    ]);
+  });
+
+  test("arc: the outer ring up to the value, the gap and centre dark", async () => {
+    // lower right, 315 degrees: everything up to there
+    expect(await corner("knob", "")).toEqual([
+      [255, 255, 255],
+      [255, 0, 255],
+      [255, 0, 255],
+    ]);
+    const vm = await fresh(`Z.knob("k",0,0,3,3,{},${MIDI})`);
+    vm.touch([0, DOWN, 171, 20]); // just past the top: half
+    vm.tick();
+    const m = leds(vm);
+    expect([0, 1, 2].map((y) => [0, 1, 2].map((x) => m[`${x},${y}`]))).toEqual([
+      [255, 255, 0],
+      [255, 0, 0],
+      [255, 0, 0],
+    ]);
+  });
+
+  test('led="n" paints nothing', async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{led="n"},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick();
+    expect(vm.calls("glp")).toEqual([]);
+  });
+});
+
+describe("release", () => {
+  const swipe = async (release) => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{release="${release}"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick();
+    vm.touch([0, UP, 50, 0]);
+    return vm;
+  };
+  const top = (vm) => column(leds(vm), 0)[8];
+
+  test("keep: the value stays lit", async () => {
+    const vm = await swipe("keep");
+    vm.tick(30);
+    expect(top(vm)).toBe(255);
+  });
+
+  test("clear: dark on release, and before the first press", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.fader("f",0,0,1,9,{release="clear"},${MIDI}) Z.start(self)`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick();
+    expect(top(vm)).toBe(255);
+    vm.touch([0, UP, 50, 0]);
+    vm.tick();
+    expect(top(vm)).toBe(0);
+  });
+
+  test("fade: dims over 20 ticks", async () => {
+    const vm = await swipe("fade");
+    vm.tick();
+    expect(top(vm)).toBe(242);
+    vm.tick(18);
+    expect(top(vm)).toBeGreaterThan(0);
+    vm.tick();
+    expect(top(vm)).toBe(0);
+  });
+});
+
+describe("sensitivity", () => {
+  const fader = (opt) => zones(`Z.fader("f",0,0,1,9,{${opt}},${REC})`);
+
+  test("deadband: moves within 2 raw (normal) are dropped", async () => {
+    const vm = await fader("");
+    vm.touch([0, DOWN, 50, 512], [0, MOVE, 51, 510]);
+    expect(values(vm)).toEqual([63]);
+    vm.touch([0, MOVE, 50, 509]);
+    expect(values(vm)).toEqual([63, 64]);
+  });
+
+  test("smoothing keeps a share of the old position", async () => {
+    const vm = await fader("db=0,sm=0.5");
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0], [0, MOVE, 50, 0]);
+    expect(values(vm)).toEqual([64, 95]);
+  });
+
+  test("smoothing reaches a finger at rest on the ticks", async () => {
+    const vm = await fader('sens="l"');
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 600]);
+    vm.touch([0, MOVE, 50, 200], [0, MOVE, 50, 0]);
+    expect(vm.run("return Z.zs[1]:v()")).toBeLessThan(127);
+    vm.tick(20);
+    expect(vm.run("return Z.zs[1]:v()")).toBe(127);
+    expect(values(vm).at(-1)).toBe(127);
+  });
+
+  test.each([
+    [7, 127],
+    [14, 16383],
+  ])(
+    "smoothing on a 1x3 fader at res=%i reaches both ends",
+    async (res, max) => {
+      // rows 3-5: raw y 342-682
+      const vm = await zones(`Z.fader("f",0,3,1,3,{sens="l",res=${res}})`);
+      const v = () => vm.run("return Z.zs[1]:v()");
+      vm.touch([0, DOWN, 50, 682], [0, MOVE, 50, 500], [0, MOVE, 50, 342]);
+      vm.tick(40);
+      expect(v()).toBe(max);
+      vm.touch([0, MOVE, 50, 500], [0, MOVE, 50, 682]);
+      vm.tick(40);
+      expect(v()).toBe(0);
+    },
+  );
+
+  test("smoothing only moves the zone's last moving contact", async () => {
+    const vm = await fader('sens="l"');
+    const v = () => vm.run("return Z.zs[1]:v()");
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 600], [0, MOVE, 50, 0]);
+    vm.touch([1, DOWN, 50, 818]);
+    const b = v();
+    vm.tick(20);
+    expect(v()).toBe(b);
+  });
+
+  test("Z.start stops the rate limit until the next tick", async () => {
+    const vm = await fader("db=0,rt=1");
+    vm.tick();
+    vm.setup(`Z.fader("f",0,0,1,9,{db=0,rt=1},${REC}) Z.start(self)`);
+    vm.clear();
+    vm.touch([0, DOWN, 50, 1023]);
+    for (let y = 950; y >= 0; y -= 50) {
+      vm.touch([0, MOVE, 50, y]);
+    }
+    expect(values(vm).length).toBe(20);
+  });
+
+  test("rate limit: nothing is held before the first tick", async () => {
+    const vm = await fader("db=0,rt=1");
+    vm.touch([0, DOWN, 50, 1023]);
+    for (let y = 950; y >= 0; y -= 50) {
+      vm.touch([0, MOVE, 50, y]);
+    }
+    expect(values(vm).length).toBe(20);
+    expect(values(vm).at(-1)).toBe(127);
+  });
+
+  test("rate limit: a pending run goes out before the release", async () => {
+    const vm = await fader("db=0,rt=1");
+    vm.tick();
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0], [0, MOVE, 50, 512]);
+    vm.touch([0, UP, 50, 512]);
+    expect(runs(vm).map((e) => [e[0], e[1]])).toEqual([
+      ["g", 0],
+      ["v", 127],
+      ["v", 63],
+      ["g", 63],
+    ]);
+  });
+
+  test("rate limit: runs wait for the tick, with the latest value", async () => {
+    const vm = await fader("db=0,rt=1");
+    vm.tick();
+    vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0]);
+    vm.touch([0, MOVE, 50, 512], [0, MOVE, 50, 600]);
+    expect(values(vm)).toEqual([127]);
+    expect(vm.run("return Z.zs[1]:v()")).toBe(53);
+    vm.tick();
+    expect(values(vm)).toEqual([127, 53]);
+  });
+
+  test("sens presets, with raw overrides", async () => {
+    const vm = await zones(
+      `Z.fader("a",0,0,1,9,{sens="l"}) Z.fader("b",1,0,1,9,{sens="l",sm=0})`,
+    );
+    const get = (i, k) => vm.run(`return Z.zs[${i}].${k}`);
+    expect([get(1, "db"), get(1, "sm"), get(1, "rt")]).toEqual(zoneSens.l);
+    expect([get(2, "db"), get(2, "sm"), get(2, "rt")]).toEqual([4, 0, 1]);
   });
 });
