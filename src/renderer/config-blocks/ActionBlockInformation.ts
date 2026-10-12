@@ -1,3 +1,5 @@
+import type { ElementType, EventType } from "@intechstudio/grid-protocol";
+
 export interface LuaScript {
   short: string;
   script: string;
@@ -53,4 +55,7 @@ interface Information {
   version?: string;
   description?: string;
   documentationUrl?: string;
+  // Where the block may be added from the action picker; undefined = everywhere.
+  elementTypes?: ElementType[];
+  eventTypes?: EventType[];
 }

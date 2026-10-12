@@ -13,7 +13,11 @@
   import { Analytics } from "../../../../runtime/analytics.js";
   import { getAllComponents } from "../../../../lib/_configs";
   import { toggledBlocks } from "../Configuration";
-  import { NumberToEventType } from "@intechstudio/grid-protocol";
+  import {
+    NumberToEventType,
+    type ElementType,
+  } from "@intechstudio/grid-protocol";
+  import { isAllowedIn } from "./ActionPickerFilter";
   import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
@@ -230,6 +234,15 @@
           ].includes(e.information.short),
       );
     }
+
+    //Filter out components restricted to other element or event types, or
+    //to the top level of a real event (not a function body tab)
+    const pickerTarget = {
+      elementType: target.getInfo().element.type as ElementType,
+      eventType: eventString,
+      isVirtual: event.realEvent !== event,
+    };
+    comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
 
     //Filter out dev blocks
     if (!get(appSettings).persistent.allowDevBlocks) {

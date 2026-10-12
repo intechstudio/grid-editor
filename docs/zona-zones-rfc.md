@@ -322,7 +322,7 @@ A new block that loads Lua modules from the **current page folder**. It is not s
 
 | Short | Name | Event | Category |
 |-------|------|-------|----------|
-| `lib` | Library | any Setup | `code` |
+| `lib` | Library | any Setup (top level) | `code` |
 
 **Lua form.** One canonical line that the parser reads back exactly:
 
@@ -417,6 +417,8 @@ The model has no outputs. They are child actions between the zone block and its 
 elementTypes?: ElementType[];   // where this block may be added; undefined = everywhere
 eventTypes?: EventType[];
 ```
+
+A block that declares `elementTypes` or `eventTypes` is placed at the top level of a real event. The picker does not offer it in virtual-event tabs, which are function bodies (a `require` there would only run when the function is called). Inside composites in the same event (an If, a function) it is not enforced yet; that is a known limit.
 
 Inside a zone body, the picker offers the output blocks (MIDI, Gamepad, Mouse, Keyboard, LED, Code, Condition) and hides element-settings blocks that make no sense there.
 

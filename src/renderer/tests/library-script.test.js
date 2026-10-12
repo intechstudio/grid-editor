@@ -5,6 +5,11 @@ import {
   libraryScriptToLua,
   isValidGlobal,
   isValidFile,
+  globalNameProblem,
+  fileNameProblem,
+  shadowsBuiltinGlobal,
+  formatLibraryScript,
+  RESERVED_GLOBALS,
 } from "../libraries/library-script";
 import {
   bundledLibraries,
@@ -256,5 +261,100 @@ describe("Library registry", () => {
     expect(readLibraryVersion(`L.VERSION="10.0.1"`)).toBe("10.0.1");
     expect(readLibraryVersion(`-- Z.VERSION = "1.2.3"`)).toBeUndefined();
     expect(readLibraryVersion(`Z.VERSION = "1.2"`)).toBeUndefined();
+  });
+});
+
+describe("Library row messages", () => {
+  const globals = [
+    "Z",
+    "",
+    "1Z",
+    "end",
+    "p",
+    "self",
+    "string",
+    "led_value",
+    "glp",
+    "print",
+  ];
+  const files = [
+    "zona",
+    "",
+    "zona.lua",
+    "sub/zona",
+    "a-b",
+    "zo na",
+    "led_value",
+    "gms",
+  ];
+
+  test.each(globals)(
+    "globalNameProblem agrees with isValidGlobal for %j",
+    (name) => {
+      expect(typeof globalNameProblem(name) === "undefined").toBe(
+        isValidGlobal(name),
+      );
+    },
+  );
+
+  test.each(files)("fileNameProblem agrees with isValidFile for %j", (name) => {
+    expect(typeof fileNameProblem(name) === "undefined").toBe(
+      isValidFile(name),
+    );
+  });
+
+  test("reasons name the cause", () => {
+    expect(globalNameProblem("led_value")).toContain('"glp"');
+    expect(globalNameProblem("gms")).toContain("firmware");
+    expect(globalNameProblem("end")).toContain("keyword");
+    expect(globalNameProblem("self")).toContain("local");
+    expect(fileNameProblem("led_value")).toContain('"glp"');
+    expect(fileNameProblem("a-b")).toContain("hyphen");
+    expect(fileNameProblem("zona.lua")).toContain(".lua");
+  });
+});
+
+describe("Built-in shadowing", () => {
+  test.each(["print", "table", "math", "_G", "pairs", "EFN", "dirent"])(
+    "%s shadows a built-in",
+    (name) => {
+      expect(shadowsBuiltinGlobal(name)).toBe(true);
+      expect(isValidGlobal(name)).toBe(true);
+    },
+  );
+
+  // Hard-rejected names are invalid, not shadowing warnings.
+  test.each(["Z", "L", "zona", "string", "require", "ele", "self", "glp"])(
+    "%s is not a shadowing warning",
+    (name) => {
+      expect(shadowsBuiltinGlobal(name)).toBe(false);
+    },
+  );
+});
+
+describe("Unchecked format", () => {
+  test("matches libraryScriptToLua for valid rows", () => {
+    const rows = [
+      { global: "Z", file: "zona" },
+      { global: "L", file: "layout" },
+    ];
+    expect(formatLibraryScript(rows)).toBe(libraryScriptToLua(rows));
+    expect(formatLibraryScript([])).toBe(libraryScriptToLua([]));
+  });
+
+  test("writes rows that are still being edited", () => {
+    expect(formatLibraryScript([{ global: "Z", file: "" }])).toBe(
+      `${PREFIX}Z=require(p.."")`,
+    );
+  });
+});
+
+describe("Reserved globals", () => {
+  test.each([...RESERVED_GLOBALS])("%s is rejected with a reason", (name) => {
+    expect(isValidGlobal(name)).toBe(false);
+    expect(globalNameProblem(name)).toEqual(expect.any(String));
+    expect(
+      parseLibraryScript(`${PREFIX}${name}=require(p.."zona")`),
+    ).toBeNull();
   });
 });

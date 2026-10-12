@@ -49,7 +49,7 @@ const LUA_KEYWORDS = new Set([
 //   in `function (self) local _efn = EFN; ... end` (grid_ui.c).
 // - `require`, `string`, `gpc` and `_ENV` are what the line itself calls;
 //   rebinding them breaks the rows after it and the next Library block.
-const RESERVED_GLOBALS = new Set([
+export const RESERVED_GLOBALS: ReadonlySet<string> = new Set([
   "p",
   "self",
   "_efn",
@@ -61,30 +61,141 @@ const RESERVED_GLOBALS = new Set([
 
 // Firmware function names, human and short. compressScript (shortify) rewrites
 // human names to short ones everywhere, even inside strings, and a short name
-// is a firmware function a row must not overwrite.
+// is a firmware function a row must not overwrite. Some lookup entries lack
+// one of the two names.
+const FIRMWARE_LOOKUP: { human?: string; short?: string }[] =
+  GridScript.validator.lookup;
+
 const FIRMWARE_NAMES = new Set(
-  GridScript.validator.lookup.flatMap((e: { human: string; short: string }) => [
-    e.human,
-    e.short,
-  ]),
+  FIRMWARE_LOOKUP.flatMap((e) => [e.human, e.short]),
 );
 
+// Only for the rejection message: which short name a human name becomes.
+const FIRMWARE_SHORT_NAMES = new Map<string, string>();
+for (const { human, short } of FIRMWARE_LOOKUP) {
+  if (
+    typeof human !== "undefined" &&
+    typeof short !== "undefined" &&
+    human !== short
+  ) {
+    FIRMWARE_SHORT_NAMES.set(human, short);
+  }
+}
+
+function firmwareNameProblem(name: string): string | undefined {
+  if (!FIRMWARE_NAMES.has(name)) {
+    return undefined;
+  }
+  const short = FIRMWARE_SHORT_NAMES.get(name);
+  return typeof short !== "undefined"
+    ? `"${name}" is a firmware function name, sent to the module as "${short}"`
+    : `"${name}" is a firmware function`;
+}
+
+const RESERVED_GLOBAL_REASONS: Record<string, string> = {
+  p: `"p" holds the page folder path in this line`,
+  self: `"self" is a local in every event, not a global`,
+  _efn: `"_efn" is a local in every event, not a global`,
+  require: `"require" is used by this line`,
+  string: `"string" is used by this line`,
+  gpc: `"gpc" is used by this line`,
+  _ENV: `"_ENV" is used by this line`,
+};
+
+// Why a global name is rejected, or undefined when it is valid.
+export function globalNameProblem(name: string): string | undefined {
+  if (name.length === 0) {
+    return "Enter a global name";
+  }
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+    return "Use letters, digits and _, not starting with a digit";
+  }
+  if (LUA_KEYWORDS.has(name)) {
+    return `"${name}" is a Lua keyword`;
+  }
+  if (RESERVED_GLOBALS.has(name)) {
+    return RESERVED_GLOBAL_REASONS[name] ?? `"${name}" is reserved`;
+  }
+  return firmwareNameProblem(name);
+}
+
 export function isValidGlobal(name: string): boolean {
-  return (
-    /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) &&
-    !LUA_KEYWORDS.has(name) &&
-    !RESERVED_GLOBALS.has(name) &&
-    !FIRMWARE_NAMES.has(name)
-  );
+  return typeof globalNameProblem(name) === "undefined";
 }
 
 // A bare module name: no ".lua", no slashes (it is always in the page folder),
 // no dots (require maps them to directory separators), no hyphens (the
 // minifier turns "a--b" into "a- -b", even inside strings), nothing that would
 // need escaping inside the Lua string literal, and no firmware name (see
-// FIRMWARE_NAMES).
+// FIRMWARE_NAMES). Returns why a file name is rejected, or undefined when it
+// is valid.
+export function fileNameProblem(name: string): string | undefined {
+  if (name.length === 0) {
+    return "Enter a file name";
+  }
+  if (name.endsWith(".lua")) {
+    return 'Leave out ".lua"';
+  }
+  if (name.includes("/")) {
+    return "Files load from the page folder, no paths";
+  }
+  if (name.includes("-")) {
+    return "No hyphens: the module rewrites -- inside strings";
+  }
+  if (!/^[A-Za-z0-9_]+$/.test(name)) {
+    return "Use letters, digits and _ only";
+  }
+  return firmwareNameProblem(name);
+}
+
 export function isValidFile(name: string): boolean {
-  return /^[A-Za-z0-9_]+$/.test(name) && !FIRMWARE_NAMES.has(name);
+  return typeof fileNameProblem(name) === "undefined";
+}
+
+// Lua standard globals, plus firmware globals that are not in the firmware
+// function lookup (FIRMWARE_NAMES) or RESERVED_GLOBALS. Binding one is valid
+// Lua, but replaces it for every script on the module, so the block warns.
+const BUILTIN_GLOBALS = new Set([
+  "_G",
+  "_VERSION",
+  "assert",
+  "collectgarbage",
+  "coroutine",
+  "debug",
+  "dofile",
+  "error",
+  "getmetatable",
+  "io",
+  "ipairs",
+  "load",
+  "loadfile",
+  "math",
+  "next",
+  "os",
+  "package",
+  "pairs",
+  "pcall",
+  "print",
+  "rawequal",
+  "rawget",
+  "rawlen",
+  "rawset",
+  "select",
+  "setmetatable",
+  "table",
+  "tonumber",
+  "tostring",
+  "type",
+  "utf8",
+  "warn",
+  "xpcall",
+  "EFN", // current event function name, saved and restored around every event
+  "dirent", // firmware file system listing
+]);
+
+// True for a valid global name that replaces a Lua or firmware built-in.
+export function shadowsBuiltinGlobal(name: string): boolean {
+  return BUILTIN_GLOBALS.has(name) && isValidGlobal(name);
 }
 
 const ROW_PATTERN = /^( ?)([A-Za-z_][A-Za-z0-9_]*)=require\(p\.\."([^"]*)"\)/;
@@ -124,6 +235,12 @@ export function libraryScriptToLua(rows: LibraryRow[]): string {
       throw new Error(`Invalid library file name: "${row.file}"`);
     }
   }
+  return formatLibraryScript(rows);
+}
+
+// The same line without validation, for rows that are still being edited.
+// The block marks such a script invalid, so it is never sent to the module.
+export function formatLibraryScript(rows: LibraryRow[]): string {
   return [
     PREFIX,
     ...rows.map((e) => `${e.global}=require(p.."${e.file}")`),
