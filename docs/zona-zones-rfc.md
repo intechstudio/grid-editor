@@ -1,40 +1,45 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Draft, revision 2
-- **Date:** 2026-10-09 (rev 1: 2026-10-06)
+- **Status:** Draft, revision 3
+- **Date:** 2026-10-12 (rev 1: 2026-10-06, rev 2: 2026-10-09)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
 
-## 0. What changed since revision 1
+## 0. What changed since revision 2
 
-| Area | Rev 1 | Rev 2 |
+| Area | Rev 2 | Rev 3 |
 |------|-------|-------|
-| Zone hooks | Every zone had Press, Change and Release **virtual events** in Setup. | Out of the core. Zones are **declarative**: their outputs are block settings. One optional callback per zone is the escape hatch (4.7). If it shows up as a virtual event tab, that is a side effect of PR #1645, not a design goal. |
-| Event panel | A selected zone swapped the event tabs to Settings, Press, Change, Release. | Removed. The touch element keeps Setup and Timer. The Lua code and the action strings stay the only source of truth. |
-| Library loading | A ZONA-only `zlib` block that also set `touch_cb`. | A generic **Library** block that `require`s files from the current page folder (6.1). It will also load the VSN1 layout library later. `touch_cb` is set by `Z.start(self)`. |
-| Library location | One `/zona.lua` at the root, profile `requires` field. | One copy **per page folder** (`/PP/zona.lua`). Profiles already carry page files, so no new profile field. |
-| Surface editor | Interactive overlay: drag to create, move, resize. | A **read-only** overlay rendered from the zone blocks (6.3). Interactive editing is a stretch goal. |
-| State persistence | Goal 5, a state file per page. | Stretch goal (section 11). The API must not bend for it. |
-| HANGAR | "Code can be ported with the copyright headers kept." | Behaviour reference only. No HANGAR code is copied. Everything is written new to Editor conventions (2.3). |
-| New requirements | — | Multiple outputs per zone (4.1), resolution up to 14-bit for every target (4.2), contact capture and clamping (4.3), utility-button mapping mode (4.5), MIDI RX sync (4.6), a home for parsers and validators (6.2). |
+| Outputs | Declarative output tables inside the zone call (`{x={cc=10},g={note=60}}`), with their own keys per target. | **Ordinary action blocks inside the zone.** A zone block is a container, like the Function block. MIDI, Gamepad, Mouse, Keyboard and Code blocks go inside it unchanged. Inside the container `self` is the zone, and the zone answers the same `self:` methods the blocks already call (`gms` with `-1` autos, `gmrr`, `glc`, `glp`, `get_auto_value`). The default MIDI block works with no edits (4.1). |
+| Zone settings | Mixed into the output tables. | The zone block's own options play the role of the Encoder Mode / Button Mode blocks: resolution, range, mode, capture, steps, group, LEDs. |
+| Callback | One optional `on="name"` callback per zone. | Dropped. The container body *is* the callback. Custom logic is just more blocks in it (4.6). |
+| Capture names | `hold` / `leave` / `swipe` | **focus** / **live**. "Release on leave" is a focus sub-option (4.3). |
+| Knob | Angle around the centre, absolute only. | Follows TouchOSC's Radial: angular, absolute or relative with a factor. DAW-style vertical/horizontal drag is an option (4.4). |
+| Mapping mode | Needed a utility-release event, with a "touch first" fallback. | No firmware change. A utility press opens a short window, timed by the existing touch tick. A touch in the window enters mapping mode, otherwise the page changes. A second utility press exits (4.7). |
+| RX sync | Separate `rx={v,l}` keys. | The MIDI block's existing "Receive MIDI" section, unchanged. `Z.start` builds the index with a muted dry run of each body (4.8). Data load addressed. |
+| Tick | Fixed 20 ms guess. | Interval and LED divider are options on the Touch Tick block. |
+| Resolution | — | Act on 7-bit sensor data. The sensor resolution is one library constant, so higher firmware resolution needs no API change. |
+| Registry | `version` and `api`. | `version` only. Semver major means breaking block syntax. `Z.API` is gone. |
+| Open questions | 5 open. | `Z.util` ownership: manual step. Mapping exit: second press. Pressure: not a question, future argument. Library scope: global. Defaults table: hand-written copies plus a test. Knob default: absolute. Press/release composite: not in v1. |
 
 ## 1. Summary
 
-The user describes **zones** (faders, buttons, XY pads, knobs) on the 9×9 ZONA surface. Each zone is an ordinary **action block** on the touch element's Setup event, and the user edits it in the action list like any other block. A versioned Lua library, `zona.lua`, lives in the page folder and is loaded by a generic **Library** action block. The library does the work: touch routing, contact capture, value maths, outputs (MIDI, gamepad, mouse), MIDI RX sync, mapping mode and LED drawing.
+The user describes **zones** (faders, buttons, XY pads, knobs) on the 9×9 ZONA surface. Each zone is a **container action block** on the touch element's Setup event. Its own options say how touch becomes a value (resolution, range, mode, capture, steps, LEDs). Its body holds **ordinary action blocks** (MIDI, Gamepad, Mouse, Code…) that run when the zone changes, exactly as they run in a button or encoder event today.
 
-The action strings on the module (and in the editor) are the single source of truth. Every editor view, including the read-only zone overlay, is derived from them.
+A versioned Lua library, `zona.lua`, lives in the page folder and is loaded by a generic **Library** action block. It does the work behind the blocks: touch routing, contact capture, value maths, the zone `self` object, MIDI RX sync, mapping mode and LED drawing.
+
+The action strings on the module (and in the editor) are the single source of truth. Every editor view, including the zone overlay, is derived from them.
 
 ## 2. Background: what we know
 
 ### 2.1 ZONA hardware and firmware
 
-- Two elements: **touch (0)** and **system (255)**. The touch element has **only Setup (0) and Timer (6)**.
+- Two elements: **touch (0)** and **system (255)**. The touch element has **only Setup (0) and Timer (6)**. The touch Timer is the only tick the zone system uses.
 - Touch input is a callback, not an event: `self.touch_cb(self, id, evt, x, y)`, assigned in Setup.
   - `id` 0–4 is a contact slot. The firmware gives the lowest free slot on touch-down, so a slot is stable for one contact but is not a stable finger.
   - `evt` is the raw sensor nibble (1 move, 4 down, 5 up; 9 tap is inferred).
-  - `x`, `y` are 0–127 across the **whole** surface. A zone 3 cells wide therefore sees only about 43 raw positions across its width. No pressure today.
+  - `x`, `y` are 0–127 across the **whole** surface today (7-bit). A zone 3 cells wide therefore sees only about 43 raw positions across its width. Higher sensor resolution may come in firmware later (4.2). No pressure today.
 - 81 LEDs, 9×9, serpentine (see `ZONA.svelte`).
-- **Action string limit: 909 characters per event** (`GRID_PARAMETER_ACTIONSTRING_maxlength`, `grid_protocol.h:131`).
+- **Action string limit: 909 characters per event** (`GRID_PARAMETER_ACTIONSTRING_maxlength`, `grid_protocol.h:131`). The `--[[@short]]` block markers count toward it.
 - **File system:** littlefs. Files are loaded with `require`. Page folders are hex (`/00/`, `/01/` …). Profiles save the top-level files of a page folder, and loading a profile clears that folder first (docs: *File Manager → File saving under profiles*). The documented way to load a page-local module:
 
   ```lua
@@ -43,39 +48,38 @@ The action strings on the module (and in the editor) are the single source of tr
   ```
 
 - **Page change restarts the Lua VM.** All Lua state is lost, including `package.loaded`. Encoder and button values survive because they live in C template buffers. Zone values do not.
-- **Utility button:** the system element's utility event runs on press. Today it holds `gpl(gpn())` (next page). Whether it also runs on release, or whether the press state can be read, has to be checked on ZONA firmware (section 7, phase 0).
+- **Utility button:** the system element's utility event runs on press and holds `gpl(gpn())` (next page). There is no release event and no hold time (button elapsed time) on it today. Mapping mode is designed around that (4.7).
+- **Element methods with autos** (grid-fw `simplemidi.lua`, `autovalue.lua`): every element gets Lua methods such as `self:gms(ch, cmd, p1, p2)` where `-1` means "auto". Autos come from the element and the running event (`midi_auto_ch`, `midi_auto_cmd`, `midi_auto_p1`, `midi_auto_p2`, `get_auto_value`, `get_auto_mode`). The MIDI block's default is `self:gms(-1,-1,-1,-1)`; Simple Color is `self:glc(-1,…) self:glp(-1,-1)`. These are plain Lua methods on a table, so **any table that answers them can stand in for `self`**. The zone design relies on this.
 - **MIDI output:** `gms(ch, cmd, p1, p2, mode)` takes a 5th `mode` argument (0 7-bit, 1 CC 14-bit, 2 NRPN, 3 NRPN 14-bit). The MIDI block uses it today.
 - **MIDI input:**
-  - Each incoming voice message is passed to **every** element's `midirx_cb(self, header, event)` (`decode.lua`, `_decode_process`). `event` is `{ch, cmd, p1, p2}`.
+  - Each incoming voice message is passed to **every** element's `midirx_cb(self, header, event)` (`decode.lua`, `_decode_process`). `event` is `{ch, cmd, p1, p2}`. SysEx goes to `sysexrx_cb`, which the zone library does not set.
   - The RX Mode block (`grxm`) must have MIDI Voice enabled. It is on by default.
-  - Real elements have firmware-side sync: `self:gmrr(-1, ch, cmd, p1, {value_sync, led_sync}, mode)`, written by the MIDI block's "Receive MIDI" section. It updates the element's value template and LED. Zones have no value template, so `gmrr` can't target them as it is.
+  - The MIDI block's "Receive MIDI" section appends `self:gmrr(-1, ch, cmd, p1, {value_sync, led_sync}, mode)` after the `gms`. On a real element it updates the value template and LED in firmware. On a zone, `self:gmrr` is a library method (4.8).
 
 ### 2.2 PR #1645 (virtual events) and this RFC
 
 A virtual event is a top-level named Function block (`fst`/`fen`) on Setup, and it is shown as its own tab. All virtual events share Setup's 909 characters.
 
-In revision 1, every zone hook was a virtual event. That does not scale. Three hooks for each of ten zones don't fit in 909 characters, and the touch element is still one element with one Setup. Showing per-zone event tabs would mean a new "virtual element" concept in the event panel, and that view would no longer be a plain reading of the action string.
-
-**Revision 2:** nothing in this RFC depends on virtual events. If a user writes a zone callback as a named function on Setup (4.7), PR #1645 already shows it as a tab. That is welcome, but no API choice here is made for it.
+Rev 1 used virtual events for zone hooks. That does not scale, and per-zone event tabs would need a "virtual element" concept in the event panel. **Nothing in this RFC depends on virtual events.** A zone body is a container in the action list, like an If or Function block, not a tab.
 
 ### 2.3 HANGAR
 
 HANGAR's Sandbox (`src/lib/sandbox/`) proved the idea: regions on the 9×9 grid, one runtime, minified Lua packed across several events to fit the 909 limit. Its output is `--[[@cb]]` code that the editor can only show as raw code.
 
-HANGAR is a throwaway prototype without code quality standards. **No HANGAR code is copied or adapted.** It is used only as a behaviour reference (which modes, painters and groups feel right). Everything in this RFC is written new and follows the editor's APIs and conventions, so a reviewer can review all of it as new code. The packing scheme is not needed, because the library lives in a file.
+HANGAR is a throwaway prototype without code quality standards. **No HANGAR code is copied or adapted.** It is used only as a behaviour reference (which modes, painters and groups feel right). Everything in this RFC is written new and follows the editor's APIs and conventions. The packing scheme is not needed, because the library lives in a file.
 
 ## 3. Goals and non-goals
 
 **Goals**
 
-1. Each zone is an action block on the touch Setup, edited in the action list with grid-uikit controls.
-2. One shared zone library, versioned, installed by the editor into the page folder, and loaded by a generic **Library** block that VSN1 can reuse.
-3. Zones with **several outputs** (an XY pad sends x and y, a fader can also send a touch gate), each to MIDI, gamepad or mouse.
-4. **Resolution** from 7-bit up to 14-bit for every output.
-5. **Contact capture and clamping**, chosen per zone: fine-tuning (clamp to the zone) or performance (swipe across zones).
-6. **Mapping mode:** hold the utility button and touch a zone to send exactly one of its messages, for DAW MIDI learn.
-7. **MIDI RX sync:** incoming MIDI that matches a zone's output updates its value and LEDs.
-8. A **read-only overlay** on the ZONA module that shows the zones described by the action chain.
+1. Each zone is a container action block on the touch Setup, edited in the action list with grid-uikit controls.
+2. **Outputs are the existing action blocks**, placed inside the zone. The default MIDI block works inside a zone with no edits, and the editor's minimalist defaults apply as they do elsewhere.
+3. One shared zone library, versioned, installed by the editor into the page folder, and loaded by a generic **Library** block that VSN1 can reuse.
+4. **Resolution** from 7-bit up to 14-bit, set on the zone like `pmo` on a potentiometer.
+5. **Capture per zone:** **focus mode** (the contact stays in its zone and clamps to the edge) or **live mode** (swipe across zones).
+6. **Mapping mode:** press the utility button, then touch a zone, to send exactly one of its messages, for DAW MIDI learn. A second utility press exits.
+7. **MIDI RX sync** with the MIDI block's existing Receive section.
+8. Zones drawn on the ZONA module in the **control name overlay**.
 9. Profiles, presets, copy and paste, undo and the unsaved-changes markers work with no new mechanism.
 
 **Stretch goals** (section 11): state that survives page changes, an interactive surface editor, zone-scoped event navigation, cross-zone rules such as overlap, Profile Cloud thumbnails.
@@ -83,173 +87,225 @@ HANGAR is a throwaway prototype without code quality standards. **No HANGAR code
 **Non-goals (for now)**
 
 - A browser preview that runs Lua.
-- Pressure. There is room for it later (10.4).
+- Pressure. When firmware adds it, it arrives as an extra `touch_cb` argument and gets a getter. Nothing is designed for it now.
 - Importing HANGAR catalog entries.
-- Firmware changes. The design works on current firmware. Phase 0 may show that mapping mode needs a utility-release event; 4.5 has a fallback that doesn't.
+- Firmware changes. The design works on current firmware.
 
 ## 4. Core concepts
 
-### 4.1 A zone is a rectangle, a reader and a list of outputs
+### 4.1 A zone is an element-like container
 
 ```
-contact → capture → position → read → value(s) → outputs
-                                               ↘ paint
+contact → capture → position → read → value(s) ──→ body (ordinary action blocks, self = zone)
+                                              ↘ paint
 ```
 
-The **kind** only decides how the position is read, and which **sources** the zone offers:
+A zone block has two parts, matching how a real element is configured:
 
-| Kind   | Reader  | Sources | Notes |
-|--------|---------|---------|-------|
-| xy     | `point` | `x`, `y`, `g` | two continuous values |
-| fader  | `axis`  | `v`, `g` | vertical or horizontal |
-| knob   | `angle` | `v`, `g` | angle around the zone centre |
-| button | `gate`  | `g` | down or up; toggle and steps on top |
+| Real element | Zone |
+|--------------|------|
+| Settings block on Setup (Encoder Mode, Button Mode, Potmeter Mode) | The zone block's own options |
+| Action blocks in the element's event (MIDI, Gamepad, LED…) | Action blocks in the zone's body |
+| `self` = the element | `self` = the zone |
 
-`g` is the contact gate, and every zone has it. It allows, for example, a fader that sends a "touched" note for DAW automation as well as its value.
-
-A kind is **a preset of options**, not a separate implementation. Every option works on every kind where it makes sense.
-
-An **output** connects one source to one target. A zone has 0 to n outputs, keyed by source:
+In Lua, the zone block is an opening line and an end line, the same shape as the Function block:
 
 ```lua
-Z.xy("pad",4,0,5,5,{x={cc=10},y={cc=11,res=10},g={note=60}})
+--[[@zfd]]Z.fader("f1",0,0,1,9,{res=10},function(self)
+--[[@gms]]self:gms(-1,-1,-1,-1)
+--[[@zen]]end)
 ```
 
-| Target | Keys | Container |
-|--------|------|-----------|
-| MIDI CC | `cc`, `ch` | 7-bit, or 14-bit CC (`cc` and `cc+32`) when the range needs it |
-| MIDI note | `note`, `ch` | gate: note on/off; continuous: velocity |
-| MIDI NRPN | `nrpn`, `ch` | 7- or 14-bit NRPN |
-| Pitch bend | `pb=1`, `ch` | always 14-bit |
-| Gamepad | `gpa` (axis) or `gpb` (button) | firmware axis range (phase 0) |
-| Mouse | `mx`, `my`, `mw` (move or wheel axis), `mb` (button) | relative deltas |
+The body runs whenever the zone has something to report: press, value change, release. Inside it, `self` is the zone object, which answers the element methods the existing blocks call:
 
-MIDI is sent with `gms(...)` and its `mode` argument, so 14-bit CC and NRPN bytes come from the firmware and match what the MIDI block sends.
+| Method | On a zone |
+|--------|-----------|
+| `self:gms(ch, cmd, p1, p2, mode)` | Sends MIDI. `-1` autos are resolved from the zone (below). Repeated sends of the same value to the same `(ch, cmd, p1)` are dropped, so a body that sends on every event only puts changes on the wire. |
+| `self:gmrr(-1, ch, cmd, p1, {v, l}, mode)` | Registers RX sync for that message (4.8). |
+| `self:glc(...)`, `self:glp(...)` | Sets the painter's colour and intensity, so Simple Color and Simple Intensity work. |
+| `self:get_auto_value()`, `self:get_auto_mode()` | The value of the source that triggered this run, and `1` when `res > 7`. |
+| `self:ind()` | The zone's index on the surface. |
+| `self:v() self:x() self:y() self:g() self:step() self:count() self:src()` | Zone getters for Code, If and Gamepad/Mouse value fields. `src()` tells which source triggered the run. |
+
+**Autos on a zone**, mirroring `simplemidi.lua`:
+
+- `ch`: the same as an element, `(gmy()*4+gpc())%16`.
+- `cmd`: 144 for a button, 176 for continuous kinds.
+- `p1`: `(32 + gmx()*16 + base + offset) % 128`, where `base` is the zone's index and `offset` is 0 for `x`/`v` and 1 for `y`. An XY pad with one default MIDI block sends x and y on two neighbouring CCs.
+- `p2`: the triggering source's value.
+- `mode`: `get_auto_mode()`, so `res=10` sends 14-bit CC with the default block.
+
+**Other targets** need no zone support at all: Gamepad Axis (`ggms`), Gamepad Button (`ggbs`), Mouse Move (`gmms`), Mouse Button (`gmbs`) and Keyboard (`gks`) are global functions. Their value field takes a zone getter, for example `ggms(0,self:v())` or `gmms(1,self:d())`, where `d()` is the relative change since the last run with a fractional carry. The editor offers these getters as suggestions in those fields when the block is inside a zone.
+
+**Several outputs** are several blocks. A fader with a "touched" note for DAW automation:
+
+```lua
+--[[@zfd]]Z.fader("f1",0,0,1,9,{},function(self)
+--[[@gms]]self:gms(-1,-1,-1,-1)
+--[[@gms]]self:gms(-1,144,60,self:g()*127)
+--[[@zen]]end)
+```
+
+The CC goes out when the value moves, the note on press and release. The duplicate filter on `self:gms` does the sorting, so no If block is needed. For finer control, the usual If block with `self:src()` works.
+
+**Defaults when a zone is added** (minimalist pattern, like the MIDI block's `-1` autos): the zone block arrives with one MIDI block inside, `self:gms(-1,-1,-1,-1)`. A button arrives with a note on/off; a fader, knob or XY with CC. The user gets a working zone in one click and changes only what they need.
+
+**Kinds** only decide how the position is read:
+
+| Kind | Reader | Sources | Notes |
+|------|--------|---------|-------|
+| xy | `point` | `x`, `y`, `g` | two continuous values |
+| fader | `axis` | `v`, `g` | vertical or horizontal |
+| knob | `angle` | `v`, `g` | see 4.4 |
+| button | `gate` | `g` | down or up; toggle and steps on top |
+
+`g` is the contact gate, and every zone has it. A kind is **a preset of options**, not a separate implementation.
+
+**Zone-specific output blocks** are not planned for v1. The MIDI block already covers 7-bit, 14-bit CC and NRPN through its mode select, so a "Touch MIDI" block would duplicate it. If a pattern later turns out to need several blocks every time, a composite (like the existing button-step composites) is the place for it, not a new output type.
 
 ### 4.2 Values and resolution
 
-Resolution belongs to the **value**, not to the target. This follows the potentiometer settings (`pmo` resolution bits, `pmi`/`pma` range), so users meet the same idea twice.
+Resolution belongs to the **zone value**, set in the zone block's options. This follows the potentiometer settings (`pmo` resolution bits, `pmi`/`pma` range), so users meet the same idea twice.
 
 - `res` sets the number of steps, from 7 to 14 bits (default 7).
-- `min` and `max` set the output range. They default to the container's full range: 0–127 for 7-bit and 0–16383 for 14-bit.
-- Each target maps the value into its container:
-  - **MIDI:** 7-bit when `max ≤ 127`, otherwise the 14-bit form of that message type.
-  - **Gamepad:** scaled to the firmware's axis range. If that range is smaller than `res`, the editor shows the cap.
-  - **Mouse:** the change between two values becomes a relative move. A fractional accumulator keeps fine resolution, so a 10-bit fader moves the cursor in smaller steps than a 7-bit one.
+- `min` and `max` set the value range. They default to the full range for `res`: 0–127 for 7-bit, 0–16383 for 14-bit.
+- The MIDI block's auto mode follows `res` (4.1). A user who picks a mode by hand gets that mode.
+- Gamepad and mouse blocks receive the value through the getter and scale it as the user writes it. The gamepad axis range is documented next to the getter (phase 0).
 
-**What higher resolution really gives.** The sensor reports 7 bits across the whole surface. In `abs` mode a small zone has fewer raw positions than 128, and a higher `res` there only interpolates. Real extra resolution comes from smoothing, `glide` and `rel` with `speed < 1`. The block face shows a hint with the raw positions the zone has ("about 43 positions across"), so users aren't misled.
+**What higher resolution really gives.** The sensor reports 7 bits across the whole surface today. In `abs` mode a small zone has fewer raw positions than 128, and a higher `res` only interpolates. Real extra resolution comes from smoothing, `glide` and `rel` with `speed < 1`. The block face shows the raw positions the zone has ("about 43 positions across"), computed from the library constant `Z.has.sres` (sensor bits, 7 today). If firmware raises the sensor resolution, that constant changes and nothing else.
 
-### 4.3 Contacts, capture and clamping
+### 4.3 Contacts and capture: focus mode and live mode
 
-When a contact lands, the library decides which zone **owns** it. Each zone has a `grab` option that sets what happens while the finger stays down:
+When a contact lands, the library decides which zone **owns** it. Each zone sets `grab`:
 
 | `grab` | Owner | Leaving the zone | Use |
 |--------|-------|------------------|-----|
-| `hold` | the zone where the contact landed, until lift | Position **clamps to the zone's edge**: value and LEDs stay at the boundary on the side the finger left. | Fine-tuning. Default for fader, knob, xy. |
-| `leave` | the zone where the contact landed | Counts as release. Re-entering does nothing until the next touch-down. | Default for button (slide off to cancel, like a real button). |
-| `swipe` | whichever `swipe` zone is under the finger right now | Leaving releases this zone. **Entering** another `swipe` zone presses it at the entry position (`abs` read). | Performance: drag across several faders to pull them all down. |
+| `focus` | the zone where the contact landed, until lift | Position **clamps to the zone's edge**: value and LEDs stay at the boundary on the side the finger left. | Fine-tuning. Default for every kind. |
+| `live` | whichever `live` zone is under the finger right now | Leaving releases this zone. Entering another `live` zone presses it at the entry position (`abs` read). | Performance: drag across several faders to pull them all down. |
+
+`leave=1` is a focus sub-option: leaving the zone counts as release instead of clamping, and re-entering does nothing until the next touch-down. It is on by default for buttons (slide off to cancel, like a real button).
+
+Names are provisional and may change after user feedback. Only the option values in the block would change.
 
 Rules:
 
-- A contact owned by a `hold` or `leave` zone never reaches another zone, even if it passes over a `swipe` zone.
-- A contact that lands on an empty cell is not owned. If it later moves into a `swipe` zone, that zone picks it up. `hold` and `leave` zones only take contacts that land inside them.
-- Several contacts in one zone: `contact` decides, as before. `new` lets each contact act, `move` re-targets the value (glide), `grab` continues from the current value (relative). The last active contact wins.
-- Clamping applies to the **position** before the reader runs, so it works the same way for every kind. For `angle` it clamps the radius, not the angle.
+- A contact owned by a `focus` zone never reaches another zone, even if it passes over a `live` zone.
+- A contact that lands on an empty cell is not owned. If it moves into a `live` zone, that zone picks it up. `focus` zones only take contacts that land inside them.
+- Several contacts in one zone: `contact` decides. `new` lets each contact act, `move` re-targets the value (glide), `grab` continues from the current value (relative). The last active contact wins.
+- Clamping applies to the **position** before the reader runs, so it works the same way for every kind.
 
-### 4.4 Shared stages (unchanged in spirit from rev 1)
+### 4.4 Knob
+
+TouchOSC is the reference. Its **Radial** control maps angular movement around the centre to the value. *Response* is **Absolute** (jump to the touched angle) or **Relative** (the first touch changes nothing, later movement is applied relative to it, scaled by *Factor*). Its **Encoder** control is the endless version, emitting position and direction.
+
+The zone knob mimics the Radial:
+
+- `read="angle"`, with `mode="abs"` (jump) or `mode="rel"` (angular change × `speed`, the counterpart of TouchOSC's Factor). The default is `abs`, as in TouchOSC.
+- The usable arc is about 300°, with a dead gap at the bottom, the same as a physical pot.
+- The painter draws an **arc on the zone's outer ring** of LEDs, so the indicator follows the value around the knob whatever the input style.
+- `drag="v"` or `drag="h"` swaps the reader for vertical or horizontal drag, the DAW way (Ableton and Bitwig drag vertically, many plugins offer both). The arc painter stays. Because kinds are option presets, this is one option, not a new kind.
+- An endless variant (`endless=1`, the TouchOSC Encoder) is a later addition. It fits the same reader.
+
+Resolution note: a 3×3 knob has about 43 raw positions across, so roughly 130 around its ring. Relative mode with `speed < 1` or vertical drag gives finer control than absolute angle on small knobs. The block face says so.
+
+### 4.5 Shared stages
 
 - **Mode** (`mode`): `abs` (jump), `rel` (drag delta with `speed`), `glide` (move toward the finger with `speed` and `ease`).
 - **Approach:** one tick-driven "move value toward target" function. Spring, glide and smoothing all use it.
-- **Sensitivity:** deadband, then smoothing, then send only on change, then rate limit (flushed by the tick). In the UI this is one select (Low / Normal / High), with raw numbers under Advanced.
+- **Sensitivity:** deadband, then smoothing, then change detection, then rate limit (flushed by the tick). In the UI this is one select (Low / Normal / High), with raw numbers under Advanced.
 - **Steps:** the same meaning as Grid's button mode `bmo` (0 momentary, 1 toggle, n = n+1 steps), with the same step maths (`SettingsButton.calculateStepValuesFirmwareStyle`).
-- **Groups:** radio groups 1–8. A press sends the other members' "off" first, then this zone's "on". `empty` decides whether every member can be off.
-- **Painters:** `fill`, `dot`, `comet`, `crosshair`, `target`. They draw the **value**, not the finger, so relative, glide, spring and clamping display correctly. The library sends only the LED cells that changed.
+- **Groups:** radio groups 1–8. A press runs the other members' bodies with their "off" value first, then this zone's "on". `empty` decides whether every member can be off.
+- **Painters:** `fill`, `dot`, `comet`, `crosshair`, `target`, `arc`. They draw the **value**, not the finger, so relative, glide, spring and clamping display correctly. Only changed LED cells are sent.
 - **Release** (`release`): `clear`, `fade`, `keep`.
 
-### 4.5 Mapping mode (utility button + touch)
+### 4.6 Custom logic
 
-**Goal:** a DAW's MIDI learn must see exactly one message stream, and those must be the same bytes the zone sends in normal use.
+The body is the hook. Anything an element event can do, a zone body can do: If blocks on `self:src()` or `self:step()`, Code blocks, locals, timers.
 
-**Design:** mapping mode is a **filter on the normal output stage**, not a separate table. While it is on:
+- To keep large logic out of the 909-character Setup, put it in a function in the user's own page file, loaded with the Library block, and call it from a Code block in the body: `myfx(self)`.
+- If the user writes such a function as a Function block on Setup, PR #1645 shows it as a tab. Nothing more is built for it.
+- Advanced: `Z.raw = function(self, id, evt, x, y)` gets every raw touch before routing.
 
-1. Only the **first** contact is processed. Other contacts are ignored.
-2. Every output except the **selected** one is muted, on all zones. Callbacks (4.7) don't run.
-3. The selected output sends through the normal path (same `gms` call, `mode`, channel and range), so 14-bit CC pairs, NRPN and note on/off come out byte-for-byte as in normal use.
-4. Values and LEDs update as usual, so the user sees what is being sent.
+### 4.7 Mapping mode (utility button + touch)
 
-**Choosing the output** within the touched zone:
+**Goal:** a DAW's MIDI learn must see exactly one message stream, with the same bytes the zone sends in normal use.
 
-- One output: that output.
-- Two continuous outputs (`x`, `y`): the **dominant axis** of the first movement past a small threshold picks one, and it stays locked until lift. The LEDs draw a horizontal or vertical bar to show which.
-- A gate output (`g`) next to continuous ones: a **tap** without movement sends the gate.
-- More than that is not needed for the kinds in this RFC. The rule is "movement axis picks a continuous source, tap picks the gate", so new kinds only have to declare their sources.
+**Entering, without release detection.** The utility event only fires on press, and there's no hold time. A `Z.util(self)` block on the utility event replaces `gpl(gpn())` and uses a short window instead:
 
-**Entering and leaving:** a `Z.util(self)` block on the system element's utility event replaces `gpl(gpn())`:
+1. Utility press: set an "armed" flag and note the tick count. The page does **not** change yet.
+2. The existing touch tick (`Z.tick`) watches the window (default 300 ms, a Touch Tick option).
+3. A touch inside the window: mapping mode **on**. That touch is already the first mapping touch. The page doesn't change.
+4. The window ends with no touch: change page (`gpl(gpn())`), as today.
+5. In mapping mode, a **second utility press** turns it off. It doesn't change page.
 
-- **Preferred (if the firmware reports utility release):** press arms mapping mode. A touch while the button is held turns mapping mode on and the page doesn't change. Releasing without a touch changes page, so the page change moves from press to release.
-- **Fallback (no firmware change):** touch and hold a zone first, then press the utility button. That zone enters mapping mode until lift. A utility press with no active contact changes page at once, as today.
+Mapping mode stays on across touches, so the user can map zone after zone: click learn in the DAW, touch a zone, repeat. The LEDs show that mapping mode is on (a dim frame around the surface).
 
-Phase 0 decides which one ships. The `Z.util` block hides the difference from the user.
+Using the touch tick for the window means no second timer and nothing on the system element besides `Z.util(self)`. The cost: a normal page change is delayed by the window. 300 ms is a starting point for phase 0.
 
-### 4.6 MIDI RX sync
+**Filtering, so one stream comes out.** Mapping mode is a filter on the normal path, not a separate table:
 
-Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync). Zone outputs get the same two switches, with the same labels and meaning: `rx={v=1,l=1}` in Lua.
+1. Only the **first** contact is processed.
+2. The gesture picks the source:
+   - **Movement** past a small threshold: the dominant axis picks `x` or `y` (or `v`), locked until lift. Only that source's change events run the body. Press and release don't run it.
+   - **Tap** without movement: the value is frozen (no `abs` jump), and only press and release run the body. That sends the gate.
+   - The press is held back until movement or lift decides which of the two it is.
+3. Of the messages the body sends during that touch, only the **first `(ch, cmd, p1)` identity** goes out. Other blocks in the body are muted, and so are other zones.
+4. Values and LEDs update as usual, so the user sees what is sent.
 
-**How it works:**
+Because the message still goes through `self:gms` with the same arguments, 14-bit CC pairs, NRPN and note on/off come out byte-for-byte as in normal use. Gamepad, mouse and keyboard calls are muted in mapping mode.
 
-- `Z.start(self)` sets `self.midirx_cb` on the touch element. Firmware already calls every element's `midirx_cb` (2.1).
-- When zones are created, the library builds an index from `(ch, cmd, p1)` to `(zone, source)`.
-- The decoder in the library handles the containers the outputs use:
-  - 7-bit CC and note.
-  - 14-bit CC: MSB on `cc`, LSB on `cc+32`. The MSB is applied at once and refined when the LSB arrives.
-  - NRPN: a per-channel 99/98/6/38 state machine.
-  - Pitch bend.
-- **Value sync** sets the zone value (scaled into `res`) and, in `glide`/`rel`, the target too. **LED sync** repaints. Neither one sends MIDI, so there is no echo.
-- **Touch wins:** RX for a zone is ignored while a contact owns that zone, so the DAW and the finger don't fight.
+**Utility ownership** stays manual for now: to use mapping mode, the user removes the default `gpl(gpn())` block from the utility event and adds the Touch Utility block. The Touch Start block shows a hint when the utility event has no `Z.util`.
+
+### 4.8 MIDI RX sync
+
+Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync). It works inside a zone body with **no change to the MIDI block**: it writes `self:gmrr(...)` after the `gms`, and `self` is the zone.
+
+**Building the index.** A body only runs on touch, so `gmrr` calls inside it wouldn't register until the first touch. `Z.start(self)` therefore does a **dry run**: it calls each zone body once per source with every output function muted (`gms`, `ggms`, `ggbs`, `gmms`, `gmbs`, `gks`, LED calls). The `gmrr` calls register `(ch, cmd, p1, mode) → (zone, source)`, with autos resolved. `self:dry()` is true during the dry run, for user code that has other side effects.
+
+**Handling a message:**
+
+- `Z.start` sets `self.midirx_cb` on the touch element **only if** something registered. With no RX in any zone, incoming MIDI costs nothing.
+- An unmatched message costs one table lookup on a numeric key. Most traffic stops there.
+- The decoder handles what the MIDI block can send: 7-bit CC and note; 14-bit CC (MSB on `cc`, LSB on `cc+32`, MSB applied at once and refined by the LSB); NRPN (a per-channel 99/98/6/38 state machine); pitch bend. The 14-bit and NRPN paths are only active when such an output is registered.
+- **Value sync** sets the zone value (scaled into `res`) and, in `glide`/`rel`, the target too. **LED sync** marks the zone dirty; the next tick repaints. Dense automation therefore costs at most one repaint per zone per tick, not one per message. Neither sends MIDI, so there is no echo.
+- **Touch wins:** RX for a zone is ignored while a contact owns it.
 - **Toggles, steps and groups:** an incoming "on" for a group member makes it the active member, with no output.
+- **SysEx is an advanced concept, left to user code.** The library doesn't set `sysexrx_cb` or `eventrx_cb`, so they stay free: a user who needs SysEx sets `self.sysexrx_cb` in a Code block on Setup, as on any element, and can update zones from it with `Z.set(name, value)`, the same path value sync uses. That user also takes on the processing cost of the SysEx traffic they choose to handle. If a common SysEx use shows up later (a DAW sending values or names as SysEx), it can become an opt-in library feature that chains the user's callback the same way `midirx_cb` does. Nothing in v1 blocks that.
 - If the user's own Setup code assigns `self.midirx_cb` before `Z.start`, the library calls it after its own handling. `Z.start` is always the last block, so this order holds.
 
 **Later, optional firmware help:** a `gmrr` variant that calls a Lua function with the decoded 14-bit/NRPN value would remove the NRPN parser from Lua. It isn't needed for v1.
-
-### 4.7 Custom logic: one optional callback per zone
-
-Declarative outputs cover the usual cases (CC, note, NRPN, gamepad, mouse, groups, steps), so most zones need no code.
-
-For the rest, a zone can name a callback:
-
-```lua
-Z.fader("f1",0,0,1,9,{v={cc=1},on="f1cb"})
-f1cb = function(z, e) ... end   -- e: 1 press, 2 change, 3 release
-```
-
-- `on` is a **name**, resolved when it is called. The function can be anywhere: later in Setup, or in the user's own page file loaded with the Library block. That keeps hook bodies out of the 909-character Setup if needed.
-- `z` has getters that read like element getters: `z:v()`, `z:x()`, `z:y()`, `z:g()`, `z:step()`, `z:count()`, and later `z:p()`.
-- One signature for every kind, with an event code, instead of three named hooks per zone. The cost is about 10 characters per zone instead of a function header per event.
-- **Side effect:** if `f1cb = function(z, e)` is written as a Function block on Setup, PR #1645 shows it as a virtual event tab. Nothing more is built for it.
-- Advanced: `Z.raw = function(self, id, evt, x, y)` gets every raw touch before routing.
 
 ## 5. Device layout
 
 ```lua
 -- touch element, Setup (must stay under 909 characters)
---[[@lib]]  local p=string.format("/%02X/",gpc()) Z=require(p.."zona")
---[[@zfd]]  Z.fader("f1",0,0,1,9,{v={cc=1,res=10,rx={v=1,l=1}},g={note=1}})
---[[@zfd]]  Z.fader("f2",1,0,1,9,{v={cc=2},grab="swipe"})
---[[@zbt]]  Z.button("b1",2,0,2,2,{g={note=60},bmo=1,group=1})
---[[@zxy]]  Z.xy("pad",4,0,5,5,{x={cc=10},y={cc=11},mode="glide",led={"crosshair","target"}})
---[[@zst]]  Z.start(self)                    -- sets touch_cb and midirx_cb, first paint; always last
+--[[@lib]]local p=string.format("/%02X/",gpc()) Z=require(p.."zona")
+--[[@zfd]]Z.fader("f1",0,0,1,9,{res=10},function(self)
+--[[@gms]]self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},1)
+--[[@gms]]self:gms(-1,144,1,self:g()*127)
+--[[@zen]]end)
+--[[@zfd]]Z.fader("f2",1,0,1,9,{grab="live"},function(self)
+--[[@gms]]self:gms(-1,-1,-1,-1)
+--[[@zen]]end)
+--[[@zbt]]Z.button("b1",2,0,2,2,{bmo=1,group=1},function(self)
+--[[@gms]]self:gms(-1,-1,-1,-1)
+--[[@zen]]end)
+--[[@zxy]]Z.xy("pad",4,0,5,5,{mode="glide",led="crosshair"},function(self)
+--[[@gms]]self:gms(-1,-1,-1,-1)
+--[[@zen]]end)
+--[[@zst]]Z.start(self)                   -- sets touch_cb, dry run, midirx_cb if needed, first paint; always last
 
 -- touch element, Timer
---[[@ztk]]  Z.tick(self) gtt(0,20)          -- spring, glide, rate-limit flush, LED fades
+--[[@ztk]]Z.tick(self,{led=1,win=300}) gtt(0,20)   -- spring, glide, flush, LED, mapping window
 
--- system element, utility event
---[[@zut]]  Z.util(self)                    -- mapping mode, otherwise next page
+-- system element, utility event (manual step, 4.7)
+--[[@zut]]Z.util(self)                    -- arm mapping window; second press exits mapping mode
 
 -- file system (page 00)
 /00/zona.lua            -- the library, a copy per page
 ```
 
-**Setup budget:** about 60 characters for the Library block, 45–110 per zone depending on outputs, about 15 for `Z.start`. That is roughly 8–12 zones. Section 8 covers growing past that.
+**Setup budget.** The container costs more than rev 2's tables: about 50 characters for the opening line, 30 for a default MIDI block and 14 for the end line, so about **95 per zone** with one output, plus about 45 per extra output and 50 for RX on an output. With the Library block (~70) and `Z.start` (~25), that is roughly **7–9 simple zones**, fewer with RX or several outputs. That is the price of using the normal blocks. Section 8 covers growing past it.
 
 ## 6. Concerns by code area
 
@@ -267,14 +323,12 @@ A new block that loads Lua modules from the **current page folder**. It is not s
 local p=string.format("/%02X/",gpc()) Z=require(p.."zona") L=require(p.."layout")
 ```
 
-- Each row binds a **global name** to a **file in the page folder** (without `.lua`).
+- Each row binds a **global name** to a **file in the page folder** (without `.lua`). Globals only, since locals would vanish after Setup.
 - `gpc()` is `page_current()`, so the same block works on any page and in any profile.
 
 **Block face:**
 
-- Rows of *global name* and *file*. File suggestions come from:
-  - the **library registry** (libraries the editor ships, such as `zona → Z`);
-  - the `.lua` files in the page folder (`fetchDirEntries`).
+- Rows of *global name* and *file*. File suggestions come from the **library registry** (libraries the editor ships, such as `zona → Z`) and the `.lua` files in the page folder (`fetchDirEntries`).
 - Per-row status from the connected module: *present*, *missing*, or, for registry libraries, *older than bundled* or *newer than bundled*.
 - **Install** and **Update** buttons for registry libraries: `writeFileContent` into the page folder, then `invalidateLuaModule("/PP/zona")`. A Setup re-run is needed afterwards (phase 0 checks the cleanest way).
 - A missing file is a **warning**, not an error. Offline and virtual modules can't check files.
@@ -286,8 +340,7 @@ export type BundledLibrary = {
   id: string;          // "zona"
   file: string;        // "zona.lua"
   global: string;      // suggested global name: "Z"
-  version: string;     // semver, read from the source
-  api: number;         // bumped on breaking block syntax
+  version: string;     // semver, read from the source; major = breaking block syntax
   source: string;      // imported with ?raw
 };
 ```
@@ -298,59 +351,50 @@ The library itself sets nothing up beyond returning its table. Library-specific 
 
 **Blocks** in `src/renderer/config-blocks/`, category **`touch`** (new entry in `ActionBlockInformation.category`, `categoryColors.ts`, and a `--category-touch` CSS variable):
 
-| Short | Name | Event | Notes |
-|-------|------|-------|-------|
-| `zfd` | Touch Fader | touch Setup | preset `read="axis"` |
-| `zbt` | Touch Button | touch Setup | preset `read="gate"` |
-| `zxy` | Touch XY Pad | touch Setup | preset `read="point"` |
-| `zkn` | Touch Knob | touch Setup | preset `read="angle"` |
-| `zgr` | Touch Group | touch Setup | group settings (`empty`) |
-| `zst` | Touch Start | touch Setup | `Z.start(self)`, kept last |
-| `ztk` | Touch Tick | touch Timer | `Z.tick(self) gtt(0,N)` |
-| `zut` | Touch Utility | system utility | `Z.util(self)` |
+| Short | Name | Event | Type | Notes |
+|-------|------|-------|------|-------|
+| `zfd` | Touch Fader | touch Setup | `composite_open` | preset `read="axis"` |
+| `zbt` | Touch Button | touch Setup | `composite_open` | preset `read="gate"` |
+| `zxy` | Touch XY Pad | touch Setup | `composite_open` | preset `read="point"` |
+| `zkn` | Touch Knob | touch Setup | `composite_open` | preset `read="angle"` |
+| `zen` | Touch End | touch Setup | `composite_close` | `end)`, added through `compositeLua` like `fen` |
+| `zgr` | Touch Group | touch Setup | single | group settings (`empty`) |
+| `zst` | Touch Start | touch Setup | single | `Z.start(self)`, kept last |
+| `ztk` | Touch Tick | touch Timer | single | interval, LED divider, mapping window |
+| `zut` | Touch Utility | system utility | single | `Z.util(self)` |
 
-The Zone Step blocks from rev 1 (`zsi`/`zse`/`zsn`) are dropped. They only made sense inside zone hooks. Inside a callback, the normal If block with `z:step()` does the job.
+The zone blocks follow `Function_Start.svelte`: `compositeLua: [{ short: "zen", script: "end)" }]` plus the default MIDI block, so adding a zone inserts three actions.
 
 **Module layout** (`src/renderer/config-blocks/touch/`):
 
 | File | Holds |
 |------|-------|
-| `zone-model.ts` | `Zone`, `ZoneOutput`, `ZoneKind`, kind presets, defaults, the option schema per kind |
-| `zone-parse.ts` | `parseZone(script)`, `zoneToLua(zone)`, `parseLibraryRows` / `libraryRowsToLua` for 6.1 |
+| `zone-model.ts` | `Zone`, `ZoneKind`, kind presets, defaults, the option schema per kind |
+| `zone-parse.ts` | `parseZone(script)`, `zoneToLua(zone)` for the opening line, `parseLibraryRows` / `libraryRowsToLua` for 6.1 |
 | `zone-validate.ts` | validators (below) |
 | `ZoneBlock.svelte` | one face for all four kinds, rendered from the schema |
 
 ```ts
 type ZoneKind = "fader" | "button" | "xy" | "knob";
-type Source = "v" | "x" | "y" | "g";
-
-type ZoneOutput = {
-  target: "cc" | "note" | "nrpn" | "pb" | "gpa" | "gpb" | "mx" | "my" | "mw" | "mb";
-  param?: number;      // cc, note, nrpn number, gamepad axis or button
-  ch?: number;
-  res?: number;        // 7–14
-  min?: number;
-  max?: number;
-  rx?: { v: boolean; l: boolean };
-};
 
 type Zone = {
   name: string;
   kind: ZoneKind;
   x: number; y: number; w: number; h: number;     // cells, 0-based
-  outputs: Partial<Record<Source, ZoneOutput>>;
   opt: Record<string, ZoneOptionValue>;            // only non-defaults are written
   unknown?: string;                                // options this editor doesn't know, kept as-is
 };
 ```
 
+The model has no outputs. They are child actions between the zone block and its `zen`, and the editor treats them like any other actions.
+
 **Validators** (`zone-validate.ts`). They follow `config-blocks/validators.ts`: an invalid value keeps the last valid one and shows an inline message.
 
-- **Per zone (v1):** inside 9×9, `w,h ≥ 1`, name is a Lua identifier, MIDI numbers in range, `res` 7–14, `min < max`, the source is valid for the kind, the gamepad range cap.
+- **Per zone (v1):** inside 9×9, `w,h ≥ 1`, name is a Lua identifier, `res` 7–14, `min < max`.
 - **Per surface (shape defined in v1, rules later):** `(zones: Zone[]) => ZoneIssue[]`, run on the whole touch Setup:
-  - duplicate zone names (v1, error, since names become Lua fields);
+  - duplicate zone names (v1, error);
   - **overlap** (later; an error unless a zone sets `overlap=1`);
-  - the same MIDI identity on two outputs (later, information only);
+  - the same MIDI identity in two zones (later, information only);
   - order: `lib` before zones, `zst` last (v1, warning).
 - An issue points at a zone name. The block face and the overlay both show it.
 
@@ -362,39 +406,40 @@ elementTypes?: ElementType[];   // where this block may be added; undefined = ev
 eventTypes?: EventType[];
 ```
 
+Inside a zone body, the picker offers the output blocks (MIDI, Gamepad, Mouse, Keyboard, LED, Code, Condition) and hides element-settings blocks that make no sense there.
+
 **UI rules:**
 
 - grid-uikit controls only, the same as `SettingsButton.svelte`.
-- Simple defaults: a plain fader shows Outputs and LED, with Behaviour, Capture and Input collapsed.
-- The Outputs section has one row per source the kind offers. Each row has a target select, its fields, Resolution, and Receive (value / LED), laid out the same way as the MIDI block.
+- Simple defaults: the zone face shows Geometry, Resolution and LED, with Behaviour, Capture and Sensitivity collapsed.
+- The MIDI block inside a zone is the normal MIDI block. Its suggestions show the resolved autos for that zone ("auto: CC 33").
 
-### 6.3 Read-only zone overlay
+### 6.3 Zones in the control name overlay
 
-The precedent is `ControlNameOverlay`. The element name shown there comes from the `sn` block in Setup (`GridElement.load`, `runtime.ts:1432`). Zones work the same way: they are read from the action chain, with no separate state and no write path.
+The precedent is `ControlNameOverlay`: the element name it shows comes from the `sn` block in Setup (`GridElement.load`, `runtime.ts:1432`). Zones work the same way. They are read from the action chain, with no separate state and no write path.
 
-- `ModuleOverlay.Types.TOUCH_ZONES` in `runtime/moduleOverlay.ts`, rendered in `Device.svelte`'s `module-overlay` slot.
-- `main/grid-layout/grid-modules/overlays/TouchZonesOverlay.svelte`, which reuses the grid maths in `ZONA.svelte` (`gridSize`, `pctPositions`).
+- On ZONA, the existing **control name overlay** (`ModuleOverlay.Types.CONTROL_NAME`) draws the zones. No new overlay type or toggle in v1.
+- `main/grid-layout/grid-modules/overlays/TouchZonesOverlay.svelte`, used by the control name overlay for ZONA, reuses the grid maths in `ZONA.svelte` (`gridSize`, `pctPositions`).
 - Derived on every render:
 
   ```ts
   $: setup = touchElement.findEvent(EventType.SETUP);
-  $: zones = $setup.config.filter(isZoneAction).map((a) => parseZone(a.script));
+  $: zones = $setup.config.filter(isZoneOpen).map((a) => parseZone(a.script));
   $: issues = validateSurface(zones);
   ```
 
-- It draws a rectangle per zone, with its name and kind icon, a group badge, an issue outline, and a highlight for the zone whose block is in `selected_actions`.
-- It's turned on with the existing overlay toggle, or automatically while a touch block is selected.
+- It draws a rectangle per zone, with its name and kind icon, a group badge, an issue outline, and a highlight for the zone whose block (or a block in its body) is in `selected_actions`.
 - **v1 doesn't write.** Clicking a zone may select its block; that only sets the existing selection store. Drag-to-create, move and resize are stretch goals.
 
 ### 6.4 The library file
 
 **Source and versioning**
 
-- In the repo: `src/renderer/libraries/zona/zona.lua`, with `Z.VERSION` (semver) and `Z.API` (integer, bumped when block syntax breaks).
-  - Minor: new options or painters. Old blocks keep working.
-  - Major: block syntax changes, and the editor migrates blocks.
+- In the repo: `src/renderer/libraries/zona/zona.lua`, with `Z.VERSION` (semver).
+  - Minor: new options or painters. Old blocks keep working. Defaults don't change.
+  - Major: block syntax or defaults change, and the editor migrates blocks.
 - Comments are stripped before upload, but the code is **not minified**. Keep it under the documented ~15 KB guideline.
-- Unit tests run the library in a Lua VM under vitest (wasmoon or fengari; whichever is added as a dev dependency). They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs.
+- Unit tests run the library in a Lua VM under vitest (wasmoon or fengari; whichever is added as a dev dependency). They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals.
 
 **Per page, on purpose**
 
@@ -414,8 +459,8 @@ The precedent is `ControlNameOverlay`. The element name shown there comes from t
 ### 6.5 Source of truth and round-trip
 
 - The action strings are the config. The editor has no other zone store.
-- `parseZone` and `zoneToLua` round-trip exactly: `zoneToLua(parseZone(s)) === s` for anything the editor wrote.
-- Only non-default options are written. Defaults live in `zone-model.ts`; a test checks that the library's defaults match.
+- `parseZone` and `zoneToLua` round-trip the opening line exactly: `zoneToLua(parseZone(s)) === s` for anything the editor wrote. Body blocks round-trip as they do today.
+- Only non-default options are written. Defaults are written by hand in `zone-model.ts` and in `zona.lua`; a unit test checks they match (10).
 - **Unknown options are kept** (`Zone.unknown`), so a block written by a newer editor loses nothing in an older one.
 - A script that doesn't parse is shown as a code block with a warning. Nothing is deleted.
 - Config travels through `GridEvent.load()` and `sendToGrid()` unchanged. Zone blocks are just actions.
@@ -423,7 +468,7 @@ The precedent is `ControlNameOverlay`. The element name shown there comes from t
 ### 6.6 Grid profiles and presets
 
 - **Profiles:** touch blocks are in the touch Setup text and `zona.lua` is in the page folder, so profiles carry both with no format change.
-- **Presets:** a touch element preset carries its zone blocks. The library is installed on demand (6.4).
+- **Presets:** a touch element preset carries its zone blocks and their bodies. The library is installed on demand (6.4).
 - **Profile Cloud preview:** stretch goal (zones drawn on the thumbnail using `parseZone`).
 
 ### 6.7 New APIs
@@ -432,18 +477,19 @@ The precedent is `ControlNameOverlay`. The element name shown there comes from t
 
 | API | Purpose |
 |-----|---------|
-| `Z.fader/button/xy/knob(name, x, y, w, h, opt)` | Create a zone (presets over `Z.zone`) |
-| `Z.zone(name, x, y, w, h, opt)` | Generic zone; `opt.read` decides the kind |
+| `Z.fader/button/xy/knob(name, x, y, w, h, opt, body)` | Create a zone (presets over `Z.zone`); `body(self)` runs on press, change, release |
+| `Z.zone(name, x, y, w, h, opt, body)` | Generic zone; `opt.read` decides the kind |
 | `Z.group(n, opt)` | Group settings |
-| `Z.start(self)` | Sets `touch_cb` and `midirx_cb` (chaining any existing one), first paint |
-| `Z.touch(self, id, evt, x, y, p)` | The `touch_cb` |
+| `Z.start(self)` | Sets `touch_cb`, dry run for RX, `midirx_cb` if needed (chaining any existing one), first paint |
+| `Z.touch(self, id, evt, x, y)` | The `touch_cb` |
 | `Z.rx(self, header, event)` | The `midirx_cb` |
-| `Z.tick(self)` | Called from the Timer |
-| `Z.util(self)` | Utility button: mapping mode or next page |
-| `opt.on = "name"` → `name(z, e)` | Optional zone callback |
-| `z:v() z:x() z:y() z:g() z:step() z:count() z:p()` | Getters |
+| `Z.tick(self, cfg)` | Called from the Timer; `cfg.led` LED divider, `cfg.win` mapping window in ms |
+| `Z.util(self)` | Utility button: arm the mapping window, or exit mapping mode |
+| zone `self:gms self:gmrr self:glc self:glp self:get_auto_value self:get_auto_mode self:ind` | Element-compatible methods for ordinary blocks |
+| zone `self:v() x() y() g() d() step() count() src() dry()` | Getters |
+| `Z.set(name, value, src)` | Set a zone value and repaint without sending, the same path as RX value sync; for user code such as a SysEx handler |
 | `Z.raw = function(self, id, evt, x, y)` | Advanced: raw touch |
-| `Z.VERSION`, `Z.API`, `Z.has` | Version and capabilities |
+| `Z.VERSION`, `Z.has` | Version and capabilities (`Z.has.sres` sensor bits) |
 
 **Editor (TypeScript)**
 
@@ -453,84 +499,96 @@ The precedent is `ControlNameOverlay`. The element name shown there comes from t
 | `config-blocks/touch/zone-model.ts`, `zone-parse.ts`, `zone-validate.ts` | Types, schema, parse and serialize, validators |
 | `config-blocks/touch/ZoneBlock.svelte` + block files | Touch blocks |
 | `ActionBlockInformation.elementTypes / eventTypes` | Declarative picker filtering |
-| `ModuleOverlay.Types.TOUCH_ZONES` + `TouchZonesOverlay.svelte` | Read-only overlay |
+| `TouchZonesOverlay.svelte` in the control name overlay | Zone drawing |
 | `ConnectionSimulator` in-memory files | Virtual module support |
+| MIDI / Gamepad / Mouse block suggestions | Zone autos and getters when inside a zone |
 
-Not needed any more: `UserInputValue.zoneName`, zone-hook classifiers in `virtual-event.ts`, the profile `requires` field.
+Not needed any more: `ZoneOutput`, output keys, `rx` keys, the `on` callback option, `Z.API`, `UserInputValue.zoneName`, zone-hook classifiers in `virtual-event.ts`, the profile `requires` field.
 
-**Firmware:** none required (but see 4.5 and phase 0).
+**Firmware:** none required.
 
 ## 7. Phases
 
 0. **Firmware facts (hardware spike, short).** Check each of these:
-   - Does the utility event fire on release, or can its state be read? This picks the 4.5 variant.
    - Does `gms` with `mode` 1/3 send correct 14-bit CC and NRPN?
    - The gamepad axis range.
    - Does the touch element's `midirx_cb` receive voice messages?
    - `require` from a page folder after a page change, and after re-upload plus `invalidateLuaModule`.
-   - Tick CPU cost with 5 contacts at 20 ms.
+   - Tick CPU cost with 5 contacts at 20 ms, and with an LED divider of 2.
+   - Mapping window: does 300 ms feel right for page changes?
 1. **Library block.** Registry, `lib` parse and serialize, page-folder file status, install and update. Useful on its own, and VSN1 can start using it.
-2. **Library v1 + Lua tests.** Pipeline, outputs and resolution, capture and clamping, modes, sensitivity, steps, groups, painters, RX sync, mapping mode.
-3. **Touch blocks.** Zone model, parse and serialize, per-zone and surface validators, `ZoneBlock.svelte`, picker filtering, the `touch` category.
-4. **Read-only overlay.**
+2. **Library v1 + Lua tests.** Defaults-match test against `zone-model.ts`, pipeline, zone `self` and autos, duplicate filter, resolution, capture, modes, sensitivity, steps, groups, painters, dry run and RX sync, mapping mode.
+3. **Touch blocks.** Zone model, parse and serialize, composite open/close, default body, per-zone and surface validators, `ZoneBlock.svelte`, picker filtering, suggestions inside zones, the `touch` category.
+4. **Overlay** in the control name overlay.
 5. **Docs.** Library docs, a mapping mode guide, and an RX sync section next to the MIDI RX docs.
 6. **Stretch goals** (section 11) as separate RFCs or PRs.
 
 ## 8. When Setup runs out of room
 
-The library itself is in a file. Setup holds the Library block, the zones and `Z.start`.
+The library itself is in a file. Setup holds the Library block, the zones with their bodies, and `Z.start`.
 
-1. **Callbacks first.** Callback bodies can already live in a user's own page file, loaded with the Library block (4.7). This needs no new editor feature.
-2. **Zones in a file.** This is not planned. Moving zone blocks into a generated page file would make a file part of the config. That breaks "action strings are the source of truth" unless unsaved changes, store and profiles all learn about files. If it is ever needed, it gets its own RFC.
+1. **Logic first.** Large body logic can live in a user's own page file, loaded with the Library block, and be called from a one-line Code block (4.6). This needs no new editor feature.
+2. **Zones in a file.** Not planned. Moving zone blocks into a generated page file would make a file part of the config. That breaks "action strings are the source of truth" unless unsaved changes, store and profiles all learn about files. If it is ever needed, it gets its own RFC.
 
 ## 9. Risks
 
-- **Tick cost.** 20 ms is a guess. Measure on ESP32-S3 with 5 contacts and comet trails. If needed, use a slower LED tick than the output tick.
+- **Setup budget.** Containers with normal blocks cost about twice rev 2's tables (section 5). 7–9 simple zones covers the common layouts (a row of faders, a pad, a few buttons) but not 16 pads with RX. Measure against real layouts in phase 3.
+- **Dry run side effects.** User code in a body runs once at `Z.start` with outputs muted. Code that writes globals or starts timers would do so too. Mitigated by `self:dry()` and docs.
+- **Implicit duplicate filter.** `self:gms` drops repeated values per identity. A user who wants to resend the same value (rare) needs plain `gms(...)` instead of `self:gms`. Document it.
+- **Tick cost.** Interval and LED divider are options on the Touch Tick block. Measure on ESP32-S3 with 5 contacts and comet trails to pick defaults.
 - **Library load on every page change.** The VM restarts, so `require` reads and compiles the file each time. Measure page switch time.
 - **Output flood.** The rate limit protects USB MIDI. Test 14-bit output and RX sync on several zones at once.
-- **Resolution expectations.** A 7-bit sensor can't give real 14-bit absolute positions. Mitigated by the hint in 4.2 and good defaults.
-- **Mapping mode without release detection.** The fallback order (touch first, then utility) is less obvious. It needs docs, and LED feedback when it starts.
-- **RX parsing in Lua.** NRPN and 14-bit pairing cost CPU per message for every element's `midirx_cb`. Keep the index lookup cheap, and measure with dense automation.
+- **RX data load.** `midirx_cb` is only set when a zone registered RX; unmatched messages cost one lookup; LED sync repaints at most once per tick. Measure with dense automation.
+- **Resolution expectations.** The sensor gives 7 bits today. Mitigated by the positions hint (4.2). Higher firmware resolution only changes `Z.has.sres`.
+- **Mapping window delays page change.** Every page change waits for the window. If 300 ms feels slow, shorten it.
 - **Copies per page.** Several versions of the library can be in flash at once. That's acceptable at ~15 KB each.
 - **Edit vs device drift.** A user can edit `zona.lua` in the FileManager. Version read-back catches a different version but not local edits. A checksum could be added later.
 
 ## 10. Open questions
 
-**Resolved in this revision**
+**Resolved**
 
 - *Library location:* per page folder (`/PP/zona.lua`).
 - *Category name:* `touch`.
-- *Hook creation UX:* no hooks are created. One optional `on` callback.
 - *Library loading:* the generic Library block, shared with VSN1.
+- *Library block scope:* global names.
+- *Outputs:* ordinary action blocks inside the zone container (4.1). Pending review.
+- *Capture names:* focus mode and live mode, provisional.
+- *`Z.util` ownership:* a manual step for now (4.7).
+- *Mapping mode entry and exit:* window after a utility press, second press exits (4.7).
+- *Pressure:* a future `touch_cb` argument. Not designed now.
+- *Overlay toggle:* the existing control name overlay.
+- *Defaults table:* written by hand in both `zone-model.ts` and `zona.lua`, with a unit test that fails when they differ. The editor leaves defaults out when it writes a block (`{}` instead of `{mode="abs",grab="focus",res=7,…}`, which saves Setup characters), and the library fills them in, so the two copies must agree. `zona.lua` stays a plain hand-written file that reads well on the device and in the FileManager. Generating the Lua table from TypeScript at build time was the alternative, and can be revisited if drift becomes a problem. A default may only change in a major library version, because blocks written by older editors rely on it.
+- *Knob default response:* absolute, as in TouchOSC.
+- *Press/release composite:* not in v1, and possibly never. Separate press and release branches mattered for mechanical elements, whose events always fire on both. A zone body sends only what changed (the duplicate filter on `self:gms`), so the plain If block on `self:g()` or `self:src()` covers the rare case that needs it.
 
 **Still open**
 
-1. **`Z.util` ownership.** Should adding the first zone replace the system utility event's `gpl(gpn())` with `Z.util(self)`? It changes existing behaviour, so it probably needs a confirm.
-2. **Mapping mode exit:** release of the utility button, a second press, or a timeout? That depends on phase 0.
-3. **Defaults table:** generate the library defaults from `zone-model.ts` at build time, or keep two copies checked by a test?
-4. **Pressure** (future firmware): `p` as an optional 6th `touch_cb` argument, with `Z.has.pressure` set when the first value arrives.
-5. **Library block scope:** global names only, or also `local`? Locals would vanish after Setup, so globals seem right. Confirm with the VSN1 layout needs.
+None at the moment.
 
 ## 11. Stretch goals
 
 Each of these is welcome if it fits cleanly later. None of them may change the v1 API.
 
-- **State that survives page changes and power-up** (values, steps, active group member) in `/PP/zona.state`. If done, it must be left out of profiles, it must not be marked as a config change, and it needs a save before page change in `Z.util`.
+- **State that survives page changes and power-up** (values, steps, active group member) in `/PP/zona.state`. If done, it must be left out of profiles, it must not be marked as a config change, and it needs a save before the page change in `Z.util`.
 - **Interactive surface editor:** drag to create, move, resize, writing back through the same block update path, so history and unsaved changes keep working.
-- **Zone-scoped navigation:** selecting a zone on the overlay jumps to its block and its callback.
+- **Zone-scoped navigation:** selecting a zone on the overlay jumps to its block.
 - **Cross-zone rules:** overlap errors, shared MIDI identity hints.
+- **Endless knob** (TouchOSC Encoder).
+- **Build-time defaults:** generate the Lua defaults table from `zone-model.ts`, if the two hand-written copies prove hard to keep in step.
 - **Profile Cloud thumbnails** with zones.
 - **HANGAR converter** from a `Surface` JSON to touch blocks.
 
 ## 12. References
 
 - `src/renderer/runtime/virtual-event.ts` (PR #1645)
-- `src/renderer/config-blocks/Midi.svelte` (`gms` mode, "Receive MIDI" and `gmrr`), `RxMode.svelte` (`grxm`), `SettingsPotmeter.svelte` (`pmo`/`pmi`/`pma`), `SettingsButton.svelte`, `SettingsButton.ts`, `GamePadAxis.svelte`, `MouseMove.svelte`, `ElementName.svelte`, `ActionBlockInformation.ts`, `categoryColors.ts`, `validators.ts`
+- `src/renderer/config-blocks/Midi.svelte` (`self:gms` default, `gms` mode, "Receive MIDI" and `gmrr`), `Function_Start.svelte` / `Function_End.svelte` (composite open/close, `compositeLua`), `_composite-factory.ts`, `RxMode.svelte` (`grxm`), `SettingsPotmeter.svelte` (`pmo`/`pmi`/`pma`), `SettingsButton.svelte`, `SettingsButton.ts`, `GamePadAxis.svelte`, `MouseMove.svelte`, `SimpleColor.svelte`, `ElementName.svelte`, `ActionBlockInformation.ts`, `categoryColors.ts`, `validators.ts`
 - `src/renderer/main/panels/configuration/components/ActionPicker.svelte`
 - `src/renderer/main/grid-layout/grid-modules/devices/ZONA.svelte`, `Device.svelte`, `overlays/ControlNameOverlay.svelte`, `runtime/moduleOverlay.ts`
 - `src/renderer/runtime/runtime.ts` (`GridElement.load` name derivation, `GridPage.sendFiles`)
 - `src/renderer/main/panels/FileManager/FileManager.ts`: `writeFileContent`, `invalidateLuaModule`, `fetchDirEntries`, `pageNumberToFolderPath`
 - `src/renderer/runtime/connection-simulator.ts`
-- grid-fw: `grid_lua.c` (package.path), `grid_protocol.h:131` (909), `grid_ui.c` `grid_ui_bulk_page_load` (VM restart), `lua_src/decode.lua` (`midirx_cb` dispatch to every element), `lua_src/simplemidi.lua`
+- grid-fw: `grid_lua.c` (package.path), `grid_protocol.h:131` (909), `grid_ui.c` `grid_ui_bulk_page_load` (VM restart), `lua_src/decode.lua` (`midirx_cb` dispatch to every element), `lua_src/simplemidi.lua` (`self:gms` autos), `lua_src/autovalue.lua` (`get_auto_value`, `get_auto_mode`)
+- TouchOSC manual, *Control Reference*: Radial (angular, Absolute/Relative response, Factor) and Encoder — https://hexler.net/touchosc/manual/controls
 - docs.intech.studio: *File Manager* (page-folder `require`, profiles with files), *MIDI RX*, *RX Mode*, *Utility Event*
 - HANGAR `src/lib/sandbox/` (behaviour reference only)
