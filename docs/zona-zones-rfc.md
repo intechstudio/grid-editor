@@ -19,6 +19,7 @@
 | Tick | Fixed 20 ms guess. | Interval and LED divider are options on the Touch Tick block. |
 | Resolution | — | The sensor is **10-bit** (0–1023, firmware 1.5.5, `txma`/`tyma`). `Z.start` sets the full range; the sensor resolution is one library constant. |
 | Registry | `version` and `api`. | `version` only. Semver major means breaking block syntax. `Z.API` is gone. |
+| Send path | Not described. Comments stripped from the library, no minify. | The existing editor and grid-protocol path, unchanged: `compressScript` for actions and for the library file (minified, comments kept). Canonical lines are written in compressed form. Names that `shortify` or the minifier would rewrite are invalid (2.1, 6.1, 6.4). |
 | Open questions | 5 open. | `Z.util` ownership: manual step. Mapping exit: second press. Pressure: not a question, future argument. Library scope: global. Defaults table: hand-written copies plus a test. Knob default: absolute. Press/release composite: not in v1. |
 
 ## 1. Summary
@@ -40,6 +41,12 @@ The action strings on the module (and in the editor) are the single source of tr
   - `x`, `y` span the **whole** surface. The range is set per element with `self:txma(max)` and `self:tyma(max)` (touch x/y maximum). The sensor resolution is **10-bit**: with `txma(1023)`/`tyma(1023)`, as set by the configuration on the test module (firmware 1.5.5), coordinates are 0–1023. A zone 3 cells wide sees about 341 raw positions across its width. No pressure today.
 - 81 LEDs, 9×9, serpentine (see `ZONA.svelte`).
 - **Action string limit: 909 characters per event** (`GRID_PARAMETER_ACTIONSTRING_maxlength`, `grid_protocol.h:131`). The `--[[@short]]` block markers count toward it.
+- **Event wrapper:** the firmware runs each event as `ele[i].<fn> = function (self) local _efn = EFN; EFN = "<fn>"; <script> end EFN = _efn` (`grid_ui.c`, `grid_ui_actionstring_header`). `self` and `_efn` are locals of that function, not globals.
+- **How action strings travel today (editor and grid-protocol):**
+  - **Send:** `GridEvent.sendToGrid()` runs `GridScript.compressScript(event.toLua())` and sends the result with `GridInstruction.SendConfig`, which refuses 909 or more characters. `sendToGrid` also refuses events whose actions fail `GridScript.checkSyntax`.
+  - **Read back:** `FetchConfig` returns the stored string, and `GridAction.parse` splits it into actions. It collapses runs of whitespace and trims each action. It does not expand the script.
+  - **What `compressScript` does:** it first runs `shortify`, which replaces every firmware human name with its short name (`page_current` → `gpc`, `led_value` → `glp`, the `GridScript.validator.lookup` table). This applies to every word that matches, **including words inside string literals**. Then it minifies: StyLua with double quotes and parentheses forced, statements joined with no space between them, spaces around operators and punctuation removed, `x--y` rewritten to `x- -y`. Comments are kept. Firmware default action strings are stored in this same form.
+  - **Files:** `writeFileContent` (`FileManager.ts`) writes the content bytes unchanged, in chunks, through `SendLuaImmediateAndEvaluate`. Its own path commands (`os.remove`, `os.rename`, the size check) go through `compressScript`. Content is transformed by the caller: the File Manager runs `compressScript` on `.lua` files when saving and importing, and `expandScript` when opening one. `GridPage.sendFiles` (profiles) writes content unchanged.
 - **File system:** littlefs. Files are loaded with `require`. Page folders are hex (`/00/`, `/01/` …). Profiles save the top-level files of a page folder, and loading a profile clears that folder first (docs: *File Manager → File saving under profiles*). The documented way to load a page-local module:
 
   ```lua
@@ -279,7 +286,7 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 
 ```lua
 -- touch element, Setup (must stay under 909 characters)
---[[@lib]]local p=string.format("/%02X/",gpc()) Z=require(p.."zona")
+--[[@lib]]local p=string.format("/%02X/",gpc())Z=require(p.."zona")
 --[[@zfd]]Z.fader("f1",0,0,1,9,{res=10},function(self)
 --[[@gms]]self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},1)
 --[[@gms]]self:gms(-1,144,1,self:g()*127)
@@ -320,17 +327,22 @@ A new block that loads Lua modules from the **current page folder**. It is not s
 **Lua form.** One canonical line that the parser reads back exactly:
 
 ```lua
-local p=string.format("/%02X/",gpc()) Z=require(p.."zona") L=require(p.."layout")
+local p=string.format("/%02X/",gpc())Z=require(p.."zona")L=require(p.."layout")
 ```
 
+- The canonical form has no spaces between statements, because that is what `GridScript.compressScript` stores on the module. Editor-written and device-stored text are then the same string, so change tracking and the character count agree. The parser also accepts one space before each row (the hand-written form).
 - Each row binds a **global name** to a **file in the page folder** (without `.lua`). Globals only, since locals would vanish after Setup.
+- Global names are Lua identifiers, not keywords, and not a name that breaks the line or the event: `p`, `self`, `_efn` (locals in the firmware's event wrapper, 2.1), `require`, `string`, `gpc`, `_ENV`. Such a script is shown as code (6.5). Names that shadow other built-ins get a warning on the block face.
+- Neither a global nor a file may be a name in `GridScript.validator.lookup`, human or short. `compressScript` rewrites human names everywhere, even inside the file string, so `led_value=require(p.."led_value")` would be stored as `glp=require(p.."glp")`. The short names are firmware functions, and a row must not overwrite them.
+- File names are bare: `[A-Za-z0-9_]+`, without `.lua`, slashes, dots or hyphens. A hyphen would let `--` through, and the minifier rewrites that to `- -`. Zero rows is the prefix alone, which is still a Library block.
+- Rule for the tests: every line the editor writes must survive the send path unchanged. That means `compressScript(toLua(rows)) === toLua(rows)`, checked on a whole event with other blocks around the Library block, and the rows read back through the `GridAction.parse` split must equal the rows written.
 - `gpc()` is `page_current()`, so the same block works on any page and in any profile.
 
 **Block face:**
 
 - Rows of *global name* and *file*. File suggestions come from the **library registry** (libraries the editor ships, such as `zona → Z`) and the `.lua` files in the page folder (`fetchDirEntries`).
 - Per-row status from the connected module: *present*, *missing*, or, for registry libraries, *older than bundled* or *newer than bundled*.
-- **Install** and **Update** buttons for registry libraries: `writeFileContent` into the page folder, then `invalidateLuaModule("/PP/zona")`. A Setup re-run is needed afterwards (phase 0 checks the cleanest way).
+- **Install** and **Update** buttons for registry libraries: the same path the File Manager uses to save a `.lua` file (2.1). That is `writeFileContent` of `GridScript.compressScript(source)` into the page folder, then `invalidateLuaModule("/PP/zona")`. The key must be the full `require` path. The File Manager's save passes the bare file name, which doesn't clear a page-folder module, so don't copy that call. A Setup re-run is needed afterwards (phase 0 checks the cleanest way).
 - A missing file is a **warning**, not an error. Offline and virtual modules can't check files.
 
 **Registry** (`src/renderer/libraries/registry.ts`):
@@ -370,7 +382,7 @@ The zone blocks follow `Function_Start.svelte`: `compositeLua: [{ short: "zen", 
 | File | Holds |
 |------|-------|
 | `zone-model.ts` | `Zone`, `ZoneKind`, kind presets, defaults, the option schema per kind |
-| `zone-parse.ts` | `parseZone(script)`, `zoneToLua(zone)` for the opening line, `parseLibraryRows` / `libraryRowsToLua` for 6.1 |
+| `zone-parse.ts` | `parseZone(script)`, `zoneToLua(zone)` for the opening line (the Library line lives in `libraries/library-script.ts`: `parseLibraryScript` / `libraryScriptToLua`) |
 | `zone-validate.ts` | validators (below) |
 | `ZoneBlock.svelte` | one face for all four kinds, rendered from the schema |
 
@@ -390,7 +402,7 @@ The model has no outputs. They are child actions between the zone block and its 
 
 **Validators** (`zone-validate.ts`). They follow `config-blocks/validators.ts`: an invalid value keeps the last valid one and shows an inline message.
 
-- **Per zone (v1):** inside 9×9, `w,h ≥ 1`, name is a Lua identifier, `res` 7–14, `min < max`.
+- **Per zone (v1):** inside 9×9, `w,h ≥ 1`, name is a Lua identifier and not a `GridScript.validator.lookup` name (it sits in a string that `compressScript` would rewrite, 2.1), `res` 7–14, `min < max`.
 - **Per surface (shape defined in v1, rules later):** `(zones: Zone[]) => ZoneIssue[]`, run on the whole touch Setup:
   - duplicate zone names (v1, error);
   - **overlap** (later; an error unless a zone sets `overlap=1`);
@@ -438,8 +450,9 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 - In the repo: `src/renderer/libraries/zona/zona.lua`, with `Z.VERSION` (semver).
   - Minor: new options or painters. Old blocks keep working. Defaults don't change.
   - Major: block syntax or defaults change, and the editor migrates blocks.
-- Comments are stripped before upload, but the code is **not minified**. Keep it under the documented ~15 KB guideline.
-- Unit tests run the library in a Lua VM under vitest (wasmoon or fengari; whichever is added as a dev dependency). They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals.
+- Uploaded the way the File Manager saves `.lua` files: `GridScript.compressScript(source)`, which minifies and **keeps comments** (2.1). Opened in the File Manager, it shows expanded, like any other page file. No upload transform of its own. The ~15 KB guideline applies to the compressed size, comments included, so keep comments short.
+- Because `compressScript` runs `shortify`, the source uses the firmware's short names and never uses a human name (`GridScript.validator.lookup`) as its own identifier, table key or string content. Those would be rewritten on upload.
+- Unit tests run the library in a Lua VM under vitest (wasmoon or fengari; whichever is added as a dev dependency). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still contains `Z.VERSION="x.y.z"`, so the version survives.
 
 **Per page, on purpose**
 
@@ -460,6 +473,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 
 - The action strings are the config. The editor has no other zone store.
 - `parseZone` and `zoneToLua` round-trip the opening line exactly: `zoneToLua(parseZone(s)) === s` for anything the editor wrote. Body blocks round-trip as they do today.
+- Editor-written lines are already in the form the send path stores (2.1): no space between statements, double quotes, no optional spaces. A test compresses a whole event (zone opening line, body, `zen`, `lib`, `zst`) with `GridScript.compressScript`, splits it the way `GridAction.parse` does, and checks that every editor-written block comes back unchanged. The opening line can't be compressed alone, because it isn't complete Lua. This is the same rule as for the Library line (6.1).
 - Only non-default options are written. Defaults are written by hand in `zone-model.ts` and in `zona.lua`; a unit test checks they match (10).
 - **Unknown options are kept** (`Zone.unknown`), so a block written by a newer editor loses nothing in an older one.
 - A script that doesn't parse is shown as a code block with a warning. Nothing is deleted.
@@ -495,7 +509,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 
 | Module | Purpose |
 |--------|---------|
-| `config-blocks/Library.svelte` + `libraries/registry.ts` | Generic page-folder `require`, install and update |
+| `config-blocks/Library.svelte` + `libraries/registry.ts` + `libraries/library-script.ts` | Generic page-folder `require`, the Library line format, install and update |
 | `config-blocks/touch/zone-model.ts`, `zone-parse.ts`, `zone-validate.ts` | Types, schema, parse and serialize, validators |
 | `config-blocks/touch/ZoneBlock.svelte` + block files | Touch blocks |
 | `ActionBlockInformation.elementTypes / eventTypes` | Declarative picker filtering |
@@ -553,6 +567,7 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 - *Category name:* `touch`.
 - *Library loading:* the generic Library block, shared with VSN1.
 - *Library block scope:* global names.
+- *Send path:* blocks and the library file use the editor's existing transforms, with no handling of their own. Actions go through `sendToGrid` (`compressScript` + `SendConfig`). The library file goes through the File Manager's `.lua` save (`compressScript` + `writeFileContent`). The editor writes lines already in compressed form, and the name rules exclude anything those transforms would rewrite (2.1, 6.1, 6.4).
 - *Outputs:* ordinary action blocks inside the zone container (4.1). Pending review.
 - *Capture names:* focus mode and live mode, provisional.
 - *`Z.util` ownership:* a manual step for now (4.7).
@@ -587,7 +602,9 @@ Each of these is welcome if it fits cleanly later. None of them may change the v
 - `src/renderer/main/panels/configuration/components/ActionPicker.svelte`
 - `src/renderer/main/grid-layout/grid-modules/devices/ZONA.svelte`, `Device.svelte`, `overlays/ControlNameOverlay.svelte`, `runtime/moduleOverlay.ts`
 - `src/renderer/runtime/runtime.ts` (`GridElement.load` name derivation, `GridPage.sendFiles`)
-- `src/renderer/main/panels/FileManager/FileManager.ts`: `writeFileContent`, `invalidateLuaModule`, `fetchDirEntries`, `pageNumberToFolderPath`
+- `src/renderer/main/panels/FileManager/FileManager.ts`: `writeFileContent`, `invalidateLuaModule`, `fetchDirEntries`, `pageNumberToFolderPath`; `FileManager.svelte` (`.lua` save and import with `compressScript`, open with `expandScript`)
+- `src/renderer/serialport/instructions.ts` (`SendConfig`, `FetchConfig`, `SendLuaImmediateAndEvaluate`), `runtime.ts` (`GridEvent.sendToGrid`, `GridEvent.load`, `GridAction.parse`)
+- grid-protocol: `GridScript.compressScript` (`shortify` + `minifyLua`), `GridScript.expandScript`, `GridScript.checkSyntax`, `GridScript.validator.lookup`
 - `src/renderer/runtime/connection-simulator.ts`
 - grid-fw: `grid_lua.c` (package.path), `grid_protocol.h:131` (909), `grid_ui.c` `grid_ui_bulk_page_load` (VM restart), `lua_src/decode.lua` (`midirx_cb` dispatch to every element), `lua_src/simplemidi.lua` (`self:gms` autos), `lua_src/autovalue.lua` (`get_auto_value`, `get_auto_mode`)
 - TouchOSC manual, *Control Reference*: Radial (angular, Absolute/Relative response, Factor) and Encoder — https://hexler.net/touchosc/manual/controls
