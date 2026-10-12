@@ -59,9 +59,19 @@
   } from "../libraries/library-script";
   import { bundledLibraries, findLibraryByFile } from "../libraries/registry";
   import {
-    fetchDirEntries,
-    pageNumberToFolderPath,
-  } from "../main/panels/FileManager/FileManager";
+    type LibraryBinding,
+    type LibraryStatus,
+    deriveLibraryStatus,
+    libraryAction,
+  } from "../libraries/library-status";
+  import {
+    installLibrary,
+    listPageLibraries,
+    logLibraryVersion,
+    readBoundLibraries,
+    rerunSetup,
+  } from "../libraries/library-device";
+  import { pageNumberToFolderPath } from "../main/panels/FileManager/FileManager";
   import { mergeActionsToCode } from "../runtime/operations";
 
   export let action: GridAction;
@@ -166,26 +176,124 @@
     mergeActionsToCode(event, false, action);
   }
 
-  let folderFiles: string[] = [];
+  // Lua files in the page folder; undefined when the module can't be asked
+  // (offline, virtual or the listing failed), which shows no status.
+  let folderFiles: string[] | undefined = undefined;
+  // What Setup bound to each row's global, by global name.
+  let bindings: Record<string, LibraryBinding> = {};
+  // Per row file: an action is running, or the last one failed.
+  let busy: Record<string, boolean> = {};
+  let actionErrors: Record<string, string | undefined> = {};
+  let refreshToken = 0;
 
-  onMount(async () => {
-    // Offline and virtual modules can't be asked; registry suggestions only.
+  // Asks the module on mount, after Install/Update/Reload and after a file
+  // name is committed. A page change mounts the blocks of the new page, so it
+  // refreshes too. No polling.
+  async function refresh() {
     if (module.architecture === Architecture.VIRTUAL) {
       return;
     }
+    const token = ++refreshToken;
     try {
-      const entries = await fetchDirEntries(
-        pageNumberToFolderPath(page.pageNumber),
-        module,
+      const files = (await listPageLibraries(page.pageNumber, module)).filter(
+        isValidFile,
       );
-      folderFiles = entries
-        .filter((e) => e.type === "file" && e.name.endsWith(".lua"))
-        .map((e) => e.name.slice(0, -".lua".length))
-        .filter(isValidFile);
+      const globals = [
+        ...new Set(rows.map((e) => e.global).filter(isValidGlobal)),
+      ];
+      const next = await readBoundLibraries(globals, module);
+      if (token !== refreshToken) {
+        return;
+      }
+      folderFiles = files;
+      bindings = next;
+      // Only a global Setup bound counts as loaded, so the log line is true.
+      for (const row of rows) {
+        const binding = next[row.global];
+        if (
+          files.includes(row.file) &&
+          binding?.bound &&
+          typeof binding.version !== "undefined"
+        ) {
+          logLibraryVersion(module, page.pageNumber, row.file, binding.version);
+        }
+      }
     } catch {
-      folderFiles = [];
+      if (token === refreshToken) {
+        folderFiles = undefined;
+        bindings = {};
+      }
     }
-  });
+  }
+
+  onMount(refresh);
+
+  function rowStatus(
+    row: EditRow,
+    files: string[] | undefined,
+    bound: Record<string, LibraryBinding>,
+  ): LibraryStatus {
+    if (!isValidFile(row.file) || !isValidGlobal(row.global)) {
+      return { kind: "unknown" };
+    }
+    return deriveLibraryStatus(
+      row.file,
+      files,
+      bound[row.global],
+      findLibraryByFile(row.file),
+    );
+  }
+
+  function statusText(status: LibraryStatus, file: string): string {
+    switch (status.kind) {
+      case "missing":
+        return `${file}.lua is missing in ${pageNumberToFolderPath(page.pageNumber)}`;
+      case "not loaded":
+        return `${file}.lua is there but not loaded`;
+      case "present":
+        return `present ${status.version ?? "(no version)"}`;
+      case "older":
+        return `older ${status.version} (bundled ${status.bundled})`;
+      case "newer":
+        return `newer ${status.version} than bundled ${status.bundled}`;
+      default:
+        return "";
+    }
+  }
+
+  const ACTION_LABELS = {
+    install: ["Install", "Installing..."],
+    update: ["Update", "Updating..."],
+    reload: ["Reload", "Reloading..."],
+  };
+
+  // Install and Update write the bundled source; all three then re-run this
+  // element's Setup so the rows are bound without resending the config.
+  async function handleLibraryAction(
+    file: string,
+    kind: "install" | "update" | "reload",
+  ) {
+    busy = { ...busy, [file]: true };
+    actionErrors = { ...actionErrors, [file]: undefined };
+    let written = false;
+    try {
+      const library = findLibraryByFile(file);
+      if (kind !== "reload" && typeof library !== "undefined") {
+        await installLibrary(library, page.pageNumber, module);
+        written = true;
+      }
+      await rerunSetup(element.elementIndex, module);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      actionErrors = {
+        ...actionErrors,
+        [file]: written ? `Installed, but ${message}` : message,
+      };
+    } finally {
+      await refresh();
+      busy = { ...busy, [file]: false };
+    }
+  }
 
   let fileSuggestions: MeltComboSuggestion[];
   $: fileSuggestions = [
@@ -193,7 +301,7 @@
       value: e.file.slice(0, -".lua".length),
       info: `${e.id} (bundled v${e.version})`,
     })),
-    ...folderFiles
+    ...(folderFiles ?? [])
       .filter((e) => typeof findLibraryByFile(e) === "undefined")
       .map((e) => ({ value: e, info: `${e}.lua (page folder)` })),
   ];
@@ -246,7 +354,10 @@
               validator={(e) => e === "" || isValidFile(e)}
               valueInfoEnabled={false}
               on:input={(e) => handleFileInput(row, e.detail.value)}
-              on:change={syncWithGrid}
+              on:change={() => {
+                syncWithGrid();
+                refresh();
+              }}
             />
             <button
               on:click={() => removeRow(row.id)}
@@ -272,6 +383,41 @@
             <span class="text-xs text-error">{rowError(row)}</span>
           {:else if rowWarning(row, rows)}
             <span class="text-xs text-warning">{rowWarning(row, rows)}</span>
+          {/if}
+          {#if !rowError(row)}
+            {@const status = rowStatus(row, folderFiles, bindings)}
+            {@const buttonAction = libraryAction(
+              status,
+              findLibraryByFile(row.file),
+            )}
+            {#if status.kind !== "unknown"}
+              <div
+                class="flex flex-row items-center gap-2"
+                data-status={status.kind}
+              >
+                <span
+                  class="text-xs"
+                  class:text-warning={[
+                    "missing",
+                    "not loaded",
+                    "older",
+                  ].includes(status.kind)}
+                  class:text-gray-500={["present", "newer"].includes(
+                    status.kind,
+                  )}>{statusText(status, row.file)}</span
+                >
+                {#if typeof buttonAction !== "undefined"}
+                  <MoltenPushButton
+                    text={ACTION_LABELS[buttonAction][busy[row.file] ? 1 : 0]}
+                    disabled={busy[row.file] === true}
+                    click={() => handleLibraryAction(row.file, buttonAction)}
+                  />
+                {/if}
+              </div>
+            {/if}
+            {#if actionErrors[row.file]}
+              <span class="text-xs text-error">{actionErrors[row.file]}</span>
+            {/if}
           {/if}
         </div>
       {/each}

@@ -341,9 +341,10 @@ local p=string.format("/%02X/",gpc())Z=require(p.."zona")L=require(p.."layout")
 **Block face:**
 
 - Rows of *global name* and *file*. File suggestions come from the **library registry** (libraries the editor ships, such as `zona → Z`) and the `.lua` files in the page folder (`fetchDirEntries`).
-- Per-row status from the connected module: *present*, *missing*, or, for registry libraries, *older than bundled* or *newer than bundled*.
-- **Install** and **Update** buttons for registry libraries: the same path the File Manager uses to save a `.lua` file (2.1). That is `writeFileContent` of `GridScript.compressScript(source)` into the page folder, then `invalidateLuaModule("/PP/zona")`. The key must be the full `require` path. The File Manager's save passes the bare file name, which doesn't clear a page-folder module, so don't copy that call. A Setup re-run is needed afterwards (phase 0 checks the cleanest way).
-- A missing file is a **warning**, not an error. Offline and virtual modules can't check files.
+- Per-row status from the connected module: *missing* (not in the page folder), *not loaded* (in the folder, but the global is not bound, e.g. Setup failed before the file existed; **Reload**), *present*, or, for registry libraries, *older than bundled* or *newer than bundled*. Presence comes from the folder listing, the version from the bound global (6.4).
+- **Install** and **Update** buttons for registry libraries: the same path the File Manager uses to save a `.lua` file (2.1). That is `writeFileContent` of `GridScript.compressScript(source)` into the page folder, then `invalidateLuaModule("/PP/zona")`. The key must be the full `require` path. The File Manager's save passes the bare file name, which doesn't clear a page-folder module, so don't copy that call. Afterwards the editor re-runs that element's Setup in the running VM (`pcall(ele[i].ini, ele[i])`, the system element is `ele[#ele]`). Re-sending the config would mark the page as changed. The whole Setup runs again, so its side effects repeat (MIDI sent from Setup, timers, callbacks reassigned), and other elements keep the old table until the page reloads. Library-specific setup such as `Z.start` must be safe to run twice. **Reload** on a *not loaded* row is the same re-run without a write. Known v1 limit: a registry file that is present but broken shows *not loaded*, and Reload fails with the Setup error; the block offers no rewrite, so the user deletes the file in the File Manager to get **Install** back.
+- A missing file is a **warning** in the editor, not an error. Offline and virtual modules can't check files.
+- On the module, a missing (or failing) file is not harmless: the `require` throws, and the **rest of that Setup event does not run**. The line stays an unguarded `require` on purpose: it costs no extra characters, the error names the missing file in the debug log, and the blocks that use the global (zones, `Z.start`) could not work without it anyway. A guarded form (`pcall`) would hide the cause and leave the global unset or wrong. Instead the block makes the state visible at once: the row shows *missing* with **Install** as soon as it is added, and Install re-runs that element's Setup.
 
 **Registry** (`src/renderer/libraries/registry.ts`):
 
@@ -461,11 +462,13 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 - Each page folder has its own copy: `/PP/zona.lua`. A setup made with v1 and another made with v2 can sit on different pages, and both keep working.
 - Profiles already carry page-folder files, so sharing a profile shares the library version it was built with. No profile format change.
 - **Element presets** don't carry files. When a preset with touch blocks is applied to a page without the library, the Library block shows *missing* with **Install**.
-- **Version read-back** per page:
+- **Version read-back** per page reads the **bound global**, not the file:
 
   ```ts
-  `local ok,z=pcall(require,string.format("/%02X/zona",gpc())) return ok and z.VERSION or nil`
+  `local g=rawget(_G,"Z") return type(g)=="table", type(g)=="table" and g.VERSION or nil`
   ```
+
+  A `require` probe would load the file itself (running its top-level code) and report "loaded" even when Setup never bound the global. The bound table is what is actually in use, so its version is the one to show and log.
 
 - The editor never updates silently. A newer bundled version appears as **Update** on the Library block.
 

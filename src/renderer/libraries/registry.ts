@@ -8,11 +8,32 @@ export type BundledLibrary = {
   source: string; // imported with ?raw
 };
 
-// Matches `Z.VERSION = "1.2.3"` (any table name) in a library source.
-const VERSION_PATTERN = /^\s*[A-Za-z_]\w*\.VERSION\s*=\s*"(\d+\.\d+\.\d+)"/m;
+// Matches `Z.VERSION = "1.2.3"` (any table name) outside line comments. Not
+// anchored to the line start: compressScript joins statements, so the
+// uploaded source reads `local Z={}Z.VERSION="1.2.3"`.
+const VERSION_PATTERN =
+  /(?:^|[^\w.])[A-Za-z_]\w*\.VERSION\s*=\s*"(\d+\.\d+\.\d+)"/m;
 
+// Block comments (`--[[ ]]`, `--[==[ ]==]`) go first, then line comments.
+// A `--` inside a string literal also cuts the line; library sources don't
+// rely on that before their VERSION line.
 export function readLibraryVersion(source: string): string | undefined {
-  return VERSION_PATTERN.exec(source)?.[1];
+  const code = source
+    .replace(/--\[(=*)\[[\s\S]*?\]\1\]/g, "")
+    .replace(/--[^\n]*/g, "");
+  return VERSION_PATTERN.exec(code)?.[1];
+}
+
+// Semver order of two "x.y.z" versions: negative when a is older than b,
+// positive when newer, 0 when equal. Undefined when either doesn't parse.
+export function compareVersions(a: string, b: string): number | undefined {
+  const parse = (v: string) =>
+    /^(\d+)\.(\d+)\.(\d+)$/.exec(v)?.slice(1).map(Number);
+  const [x, y] = [parse(a), parse(b)];
+  if (typeof x === "undefined" || typeof y === "undefined") {
+    return undefined;
+  }
+  return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
 }
 
 function bundled(id: string, global: string, source: string): BundledLibrary {
