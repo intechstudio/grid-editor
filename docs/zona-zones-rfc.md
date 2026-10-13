@@ -504,8 +504,9 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 
 ### 6.6 Grid profiles and presets
 
-- **Profiles:** touch blocks are in the touch Setup text and `zona.lua` is in the page folder, so profiles carry both with no format change.
-- **Presets:** a touch element preset carries its zone blocks and their bodies. The library is installed on demand (6.4).
+- **Profiles:** touch blocks are in the touch Setup text and `zona.lua` is in the page folder, so profiles carry both with no format change. Checked on a ZONA (phase 4): a profile saved from a zone page includes `zona.lua` (the profile save reads the page folder's files), and loading it on another page clears that page folder, writes the file and sends the Setup; the zones run with no Install step.
+- **Presets:** a touch element preset carries its zone blocks and their bodies. The library is installed on demand (6.4). Checked on a ZONA: on a page without the file, the Library block shows *missing*, and Install makes the zones run.
+- **Undo:** the editor has no undo history, so there is nothing for zones to support. The unsaved-changes markers work as for any event, since zones are ordinary actions.
 - **Profile Cloud preview:** stretch goal (zones drawn on the thumbnail using `parseZone`).
 
 ### 6.7 New APIs
@@ -555,7 +556,7 @@ Not needed any more: `ZoneOutput`, output keys, `rx` keys, the `on` callback opt
    - Tick CPU cost with 5 contacts at 20 ms, and with an LED divider of 2.
    - Mapping window: does 300 ms feel right for page changes?
 
-   Phase 0 was skipped; phase 2 answered some of it on hardware (firmware 1.5.5). The touch element's `midirx_cb` receives CC voice messages, including 14-bit pairs. The library's own 14-bit expansion sends clean MSB/LSB pairs. The tick cost is in section 9. Still open: NRPN on hardware, `require` after a page change, 5 contacts, and how the window feels.
+   Phase 0 was skipped; phase 2 answered some of it on hardware (firmware 1.5.5). The touch element's `midirx_cb` receives CC voice messages, including 14-bit pairs. The library's own 14-bit expansion sends clean MSB/LSB pairs. The tick cost is in section 9. `require` from the page folder works after a stored page is left and re-entered (phase 4 check). Still open: NRPN on hardware, 5 contacts, and how the window feels.
 1. **Library block.** Registry, `lib` parse and serialize, page-folder file status, install and update. Useful on its own, and VSN1 can start using it.
 2. **Library v1 + Lua tests.** Defaults-match test against `zone-model.ts`, pipeline, zone `self` and autos, duplicate filter, resolution, capture, modes, sensitivity, steps, groups, painters, dry run and RX sync, mapping mode.
 3. **Touch blocks.** Zone model, parse and serialize, composite open/close, default body, per-zone and surface validators, `ZoneBlock.svelte`, picker filtering, suggestions inside zones, the `touch` category.
