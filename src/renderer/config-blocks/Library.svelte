@@ -14,6 +14,7 @@
     category: "code",
     displayName: "Library",
     description: "Load Lua libraries from the page folder",
+    documentationUrl: "https://docs.intech.studio/wiki/actions/code/library",
     // No rows: a fresh block loads nothing, so it can't break the Setup
     // with a require error before the file is on the module.
     defaultLua: libraryScriptToLua([]),

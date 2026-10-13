@@ -56,6 +56,15 @@ const DISPLAY_NAME: Record<ZoneKind, string> = {
   knob: "Touch Knob",
 };
 
+// docs.intech.studio page of the touch blocks; each block has an anchor.
+const DOCS = "https://docs.intech.studio/wiki/actions/touch/touch-zones";
+const ANCHOR: Record<ZoneKind, string> = {
+  fader: "touch-fader",
+  button: "touch-button",
+  xy: "touch-xy",
+  knob: "touch-knob",
+};
+
 // The default output: a MIDI block with autos (RFC 4.1).
 const DEFAULT_BODY = { short: "gms", script: "self:gms(-1,-1,-1,-1)" };
 
@@ -107,6 +116,7 @@ export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
     name: DISPLAY_NAME[kind].replace(/ /g, "_"),
     displayName: DISPLAY_NAME[kind],
     description: `A ${DISPLAY_NAME[kind].toLowerCase()} zone on the touch surface. The actions inside run with self = the zone.`,
+    documentationUrl: `${DOCS}#${ANCHOR[kind]}`,
     defaultLua: defaultZoneScript(kind, []),
     defaultLuaIn: (scripts) => defaultZoneScript(kind, scripts),
     compositeLua: [DEFAULT_BODY, { short: "zen", script: ZONE_END_SCRIPT }],
@@ -147,6 +157,7 @@ export const touchGroupInformation: ActionBlockInformation = {
   short: "zgr",
   name: "Touch_Group",
   displayName: "Touch Group",
+  documentationUrl: `${DOCS}#touch-group`,
   description:
     "Settings of a radio group: Touch Buttons with the same group number",
   defaultLua: zoneGroupToLua({ n: 1, opt: {} }),
@@ -161,6 +172,7 @@ export const touchStartInformation: ActionBlockInformation = {
   short: "zst",
   name: "Touch_Start",
   displayName: "Touch Start",
+  documentationUrl: `${DOCS}#touch-start`,
   description: "Starts the touch zones defined above it",
   defaultLua: ZONE_START_SCRIPT,
   blockIcon: touchIcons.start,
@@ -174,6 +186,7 @@ export const touchTickInformation: ActionBlockInformation = {
   short: "ztk",
   name: "Touch_Tick",
   displayName: "Touch Tick",
+  documentationUrl: `${DOCS}#touch-tick`,
   description:
     "Runs the touch zones' glide, flush and LEDs; the library re-arms the timer",
   defaultLua: zoneTickToLua({ opt: {} }),
@@ -189,6 +202,7 @@ export const touchUtilityInformation: ActionBlockInformation = {
   short: "zut",
   name: "Touch_Utility",
   displayName: "Touch Utility",
+  documentationUrl: `${DOCS}#touch-utility`,
   description:
     "Utility button: touch a zone within the window to send its MIDI for mapping, or change page",
   defaultLua: ZONE_UTIL_SCRIPT,
