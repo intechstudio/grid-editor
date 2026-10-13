@@ -241,7 +241,7 @@ The body is the hook. Anything an element event can do, a zone body can do: If b
 **Entering, without release detection.** The utility event only fires on press, and there's no hold time. A `Z.util(self)` block on the utility event replaces `gpl(gpn())` and uses a short window instead:
 
 1. Utility press: set an "armed" flag and note the tick count. The page does **not** change yet.
-2. The existing touch tick (`Z.tick`) watches the window (default 300 ms, a Touch Tick option). The firmware has no millisecond clock in Lua (and `os.clock()` is not a known wall clock on the module), so the window is counted in ticks: `Z.tick(self,{win=300,ms=20})`, where `ms` is the Timer period the Touch Tick block also writes into its `gtt`. If no tick has run since `Z.start` (no Touch Tick block), `Z.util` changes page at once, so the utility button never gets stuck.
+2. The existing touch tick (`Z.tick`) watches the window (default 300 ms, a Touch Tick option). The firmware has no millisecond clock in Lua (and `os.clock()` is not a known wall clock on the module), so the window is counted in ticks: `Z.tick(self,{ms=20,win=300})` (both defaults, so the editor writes `Z.tick(self,{})`), where `ms` is the Timer period; `Z.tick` re-arms the one-shot timer with it (section 5). If no tick has run since `Z.start` (no Touch Tick block), `Z.util` changes page at once, so the utility button never gets stuck.
 3. A touch inside the window: mapping mode **on**. That touch is already the first mapping touch. The page doesn't change.
 4. The window ends with no touch: change page (`gpl(gpn())`), as today.
 5. In mapping mode, a **second utility press** turns it off. It doesn't change page.
@@ -280,7 +280,7 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 - **Toggles, steps and groups:** an incoming "on" for a group member makes it the active member, with no output.
 - **SysEx is an advanced concept, left to user code.** The library doesn't set `sysexrx_cb` or `eventrx_cb`, so they stay free: a user who needs SysEx sets `self.sysexrx_cb` in a Code block on Setup, as on any element, and can update zones from it with `Z.set(name, value)`, the same path value sync uses, including "touch wins". That user also takes on the processing cost of the SysEx traffic they choose to handle. If a common SysEx use shows up later (a DAW sending values or names as SysEx), it can become an opt-in library feature that chains the user's callback the same way `midirx_cb` does. Nothing in v1 blocks that.
 - If the user's own Setup code assigns `self.midirx_cb` before `Z.start`, the library calls it after its own handling. `Z.start` is always the last block, so this order holds.
-- The firmware keeps an element's callbacks when a new config is sent to RAM. A `midirx_cb` left by the previous Setup (seen on hardware when a page switched from hand-written code to zones) therefore looks like the user's own and is chained until the page reloads. `Z.start` drops it from the second run on, because it then finds `Z.rx`. Open: whether phase 3 clears it (see 10).
+- The firmware keeps an element's callbacks when a new config is sent to RAM. A `midirx_cb` left by the previous Setup (seen on hardware when a page switched from hand-written code to zones) therefore looks like the user's own and is chained until the page reloads. `Z.start` drops it from the second run on, because it then finds `Z.rx`. Accepted for v1 (10).
 
 **Later, optional firmware help:** a `gmrr` variant that calls a Lua function with the decoded 14-bit/NRPN value would remove the NRPN parser from Lua. It isn't needed for v1.
 
@@ -299,13 +299,13 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 --[[@zbt]]Z.button("b1",2,0,2,2,{bmo=1,group=1},function(self)
 --[[@gms]]self:gms(-1,-1,-1,-1)
 --[[@zen]]end)
---[[@zxy]]Z.xy("pad",4,0,5,5,{mode="glide",led="crosshair"},function(self)
+--[[@zxy]]Z.xy("pad",4,0,5,5,{mode="glide",led="target"},function(self)
 --[[@gms]]self:gms(-1,-1,-1,-1)
 --[[@zen]]end)
---[[@zst]]Z.start(self)                   -- sets touch_cb, dry run, midirx_cb if needed, first paint; always last
+--[[@zst]]Z.start(self)                   -- sets touch_cb, dry run, midirx_cb if needed, first paint, starts the tick; always last
 
 -- touch element, Timer
---[[@ztk]]Z.tick(self,{led=1,win=300}) gtt(0,20)   -- spring, glide, flush, LED, mapping window
+--[[@ztk]]Z.tick(self,{})   -- spring, glide, flush, LED, mapping window; re-arms the timer. Defaults ms=20, led=1, win=300 are left out
 
 -- system element, utility event (manual step, 4.7)
 --[[@zut]]Z.util(self)                    -- arm mapping window; second press exits mapping mode
@@ -313,6 +313,10 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 -- file system (page 00)
 /00/zona.lua            -- the library, a copy per page
 ```
+
+**Global name.** Touch blocks always write `Z.` in v1. The Library block may bind other names, but the touch surface validator warns when no Library row before the zones binds `Z` to `zona`.
+
+**Timer.** `gtt` is one-shot: the firmware counts the element's timer down once and fires the Timer event (v1.5.5 `grid_ui.c`), and a page change resets it. The library therefore owns it: `Z.start` kicks it once (`gtt(self:ind(),1)`), and `Z.tick` re-arms it with `cfg.ms` at the start of every tick, so an error in a zone body can't stop it. The interval lives only in the Touch Tick block.
 
 **Setup budget.** The container costs more than rev 2's tables: about 50 characters for the opening line, 30 for a default MIDI block and 14 for the end line, so about **95 per zone** with one output, plus about 45 per extra output and 50 for RX on an output. With the Library block (~70) and `Z.start` (~25), that is roughly **7–9 simple zones**, fewer with RX or several outputs. That is the price of using the normal blocks. Section 8 covers growing past it.
 
@@ -407,7 +411,7 @@ The model has no outputs. They are child actions between the zone block and its 
 **Validators** (`zone-validate.ts`). They follow `config-blocks/validators.ts`: an invalid value keeps the last valid one and shows an inline message.
 
 - **Per zone (v1):** inside 9×9, `w,h ≥ 1`, name is a Lua identifier and not a `GridScript.validator.lookup` name (it sits in a string that `compressScript` would rewrite, 2.1), `res` 7–14, `min < max`.
-- **Per surface (shape defined in v1, rules later):** `(zones: Zone[]) => ZoneIssue[]`, run on the whole touch Setup:
+- **Per surface (shape defined in v1, rules later):** `(zones: Zone[], context) => ZoneIssue[]`, run on the whole touch Setup (`context` carries the Setup actions for the order rules):
   - duplicate zone names (v1, error);
   - **overlap** (later; an error unless a zone sets `overlap=1`);
   - the same MIDI identity in two zones (later, information only);
@@ -505,7 +509,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 | `Z.start(self)` | Sets `touch_cb`, dry run for RX, `midirx_cb` if needed (chaining any existing one), first paint |
 | `Z.touch(self, id, evt, x, y)` | The `touch_cb` |
 | `Z.rx(self, header, event)` | The `midirx_cb` |
-| `Z.tick(self, cfg)` | Called from the Timer; `cfg.led` LED divider, `cfg.win` mapping window in ms |
+| `Z.tick(self, cfg)` | Called from the Timer; `cfg.ms` interval (re-arms the one-shot timer), `cfg.led` LED divider, `cfg.win` mapping window in ms; defaults in `Z.tdef` |
 | `Z.util(self)` | Utility button: arm the mapping window, or exit mapping mode |
 | zone `self:gms self:gmrr self:glc self:glp self:get_auto_value self:get_auto_mode self:ind` | Element-compatible methods for ordinary blocks |
 | zone `self:v() x() y() g() d() step() count() src() dry()` | Getters |
@@ -588,9 +592,12 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 - *Knob default response:* absolute, as in TouchOSC.
 - *Press/release composite:* not in v1, and possibly never. Separate press and release branches mattered for mechanical elements, whose events always fire on both. A zone body sends only what changed (the duplicate filter on `self:gms`), so the plain If block on `self:g()` or `self:src()` covers the rare case that needs it.
 
+- *Stale `midirx_cb` after a config change (4.8):* accepted for v1. It only happens the first time a page switches from hand-written code that set `midirx_cb` to zones, in RAM, and ends at the next Setup re-run or page reload. Clearing it in Setup would cost characters and break user code placed before the zones.
+- *Touch block global name:* `Z`, fixed in v1 (section 5).
+
 **Still open**
 
-- *Stale `midirx_cb` after a config change (4.8):* clear `self.midirx_cb` in the first touch block of Setup (costs characters, and breaks user code placed before it), or accept that the stale callback runs until the page reloads.
+None at the moment.
 
 ## 11. Stretch goals
 
