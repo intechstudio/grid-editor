@@ -18,6 +18,7 @@ import {
 } from "../runtime/system-midi-channel";
 import {
   type ZoneMidiAutos,
+  gmsArg,
   gmsModeArg,
   type ZoneGetter,
   zoneContext,
@@ -59,6 +60,7 @@ export namespace Grid {
         context.index,
         { dx: module.dx, dy: module.dy, page: page.pageNumber },
         gmsModeArg(action.script),
+        gmsArg(action.script, 1),
       );
     }
 

@@ -153,6 +153,30 @@ describe("fader", () => {
     ]);
   });
 
+  test("zone default is 14-bit only for CC: a touched note stays 7-bit", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{res=14},function(self) self:gms(-1,-1,-1,-1) self:gms(-1,144,60,self:g()*127) end)`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 0, 127],
+      [0, 176, 32, 127],
+      [0, 144, 60, 127],
+    ]);
+  });
+
+  test("7-bit NRPN in a high-res zone sends the auto value at 7 bits", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{res=14},function(self) self:gms(-1,176,-1,-1,2) end)`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 99, 0],
+      [0, 176, 98, 32],
+      [0, 176, 6, 127],
+    ]);
+  });
+
   test("res=10 gives 1024 steps over the full 14-bit range", async () => {
     const vm = await zones(
       `Z.fader("f",0,0,1,9,{res=10,sens="h"},function(self) _rec("v",1,self:v()) end)`,
@@ -1377,7 +1401,9 @@ describe("RX sync", () => {
   });
 
   test("a 14-bit button registers on the CC pair it sends", async () => {
-    const vm = await zones(`Z.button("b",0,0,1,1,{res=14,bmo=1},${RX(1)})`);
+    const vm = await zones(
+      `Z.button("b",0,0,1,1,{res=14,bmo=1},function(self) self:gms(-1,-1,-1,-1,1) self:gmrr(-1,-1,-1,-1,{true,true},1) end)`,
+    );
     vm.touch([0, 9, 50, 50]);
     expect(wire(vm)).toEqual([
       [0, 176, 0, 127],
@@ -1386,6 +1412,41 @@ describe("RX sync", () => {
     vm.rx(0, 176, 0, 0);
     vm.rx(0, 176, 32, 0);
     expect(vm.run("return Z.zs[1]:step()")).toBe(0);
+  });
+
+  test("a high-res button sends and receives its note at 7 bits", async () => {
+    const vm = await zones(`Z.button("b",0,0,1,1,{res=14,bmo=1},${RX(-1)})`);
+    expect(vm.run("return Z.zs[1]:get_auto_mode()")).toBe(1);
+    vm.touch([0, 9, 50, 50]);
+    expect(wire(vm)).toEqual([[0, 144, 32, 127]]);
+    vm.clear();
+    vm.rx(0, 144, 32, 0);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(0);
+    vm.rx(0, 144, 32, 127);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(1);
+    expect(vm.calls("gms")).toEqual([]);
+  });
+
+  test("RX into a high-res button keeps the 7-bit value for the repeat filter", async () => {
+    const vm = await zones(
+      `Z.group(1,{empty=0}) Z.button("b1",0,0,1,1,{res=14,bmo=1,group=1},${RX(-1)}) Z.button("b2",1,0,1,1,{res=14,bmo=1,group=1},${RX(-1)})`,
+    );
+    vm.rx(0, 144, 32, 127);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(1);
+    vm.touch([0, 9, 50, 50]);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(1);
+    expect(wire(vm)).toEqual([]);
+  });
+
+  test("7-bit NRPN RX into a res=14 fader takes the full range", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{res=14},function(self) self:gms(-1,176,-1,-1,2) self:gmrr(-1,-1,176,-1,{true,false},2) end)`,
+    );
+    vm.rx(0, 176, 99, 0);
+    vm.rx(0, 176, 98, 32);
+    vm.rx(0, 176, 6, 127);
+    expect(v1(vm)).toBe(16383);
+    expect(vm.calls("gms")).toEqual([]);
   });
 
   test("Z.set yields to a finger", async () => {

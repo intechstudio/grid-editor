@@ -61,18 +61,27 @@ export type ZoneMidiAutos = {
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
-// The autos of zone `index` (au() in zona.lua). `mode` is the block's mode
-// argument; undefined or -1 means auto: 14-bit CC when res > 7.
+// The autos of zone `index` (au() in zona.lua). `mode` and `cmd` are the
+// block's arguments; undefined or -1 means auto. The auto mode is 14-bit when
+// res > 7 and the command is CC; other commands stay 7-bit.
 export function zoneMidiAutos(
   zones: Zone[],
   index: number,
   pos: ZonePosition,
   mode?: number,
+  cmd?: number,
 ): ZoneMidiAutos {
   const zone = zones[index];
   const read = readerOf(zone);
   const res = Number(zone.opt.res ?? zoneOptionDefault(zone.kind, "res"));
-  const m = typeof mode === "number" && mode !== -1 ? mode : res > 7 ? 1 : 0;
+  const autoCmd = read === "gate" ? 144 : 176;
+  const command = typeof cmd === "number" && cmd !== -1 ? cmd : autoCmd;
+  const m =
+    typeof mode === "number" && mode !== -1
+      ? mode
+      : res > 7 && command === 176
+        ? 1
+        : 0;
   let base = 0;
   for (const before of zones.slice(0, index)) {
     base += readerOf(before) === "point" ? 2 : 1;
@@ -80,7 +89,7 @@ export function zoneMidiAutos(
   const offsets = read === "point" ? [0, 1] : [0];
   return {
     ch: mod(pos.dy * 4 + pos.page, 16),
-    cmd: m > 0 ? 176 : read === "gate" ? 144 : 176,
+    cmd: m > 0 ? 176 : autoCmd,
     p1: offsets.map((o) => {
       const p = mod(32 + pos.dx * 16 + base + o, 128);
       return m === 1 ? p % 32 : p;
@@ -122,9 +131,9 @@ export function zoneGetterSuggestions(kind: ZoneKind): ZoneGetter[] {
   }
 }
 
-// The mode argument of a block's self:gms(ch,cmd,p1,p2,mode), or undefined
+// Argument `index` of a block's self:gms(ch,cmd,p1,p2,mode), or undefined
 // when there is none or it isn't a number (an expression).
-export function gmsModeArg(script: string): number | undefined {
+export function gmsArg(script: string, index: number): number | undefined {
   const start = script.indexOf("gms(");
   if (start === -1) {
     return undefined;
@@ -149,6 +158,10 @@ export function gmsModeArg(script: string): number | undefined {
     }
   }
   args.push(current);
-  const mode = args[4]?.trim();
-  return mode !== undefined && /^-?\d+$/.test(mode) ? Number(mode) : undefined;
+  const arg = args[index]?.trim();
+  return arg !== undefined && /^-?\d+$/.test(arg) ? Number(arg) : undefined;
+}
+
+export function gmsModeArg(script: string): number | undefined {
+  return gmsArg(script, 4);
 }

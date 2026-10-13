@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.7.1"
+Z.VERSION = "0.7.2"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -470,8 +470,8 @@ local function mm(on)
   end
 end
 
--- value sync (RX, Z.set): no body run, no output
-local function sy(z, s, v, r)
+-- value sync (RX, Z.set): no body run, no output; w: the value on the wire
+local function sy(z, s, v, r, w)
   if not r or r.f[1] then
     if z.o.read == "gate" then
       local b = 1
@@ -491,7 +491,7 @@ local function sy(z, s, v, r)
       z.r[s] = z.mi + q * (z.ma - z.mi)
     end
     if r then
-      z.l[r.k] = v
+      z.l[r.k] = w
     end
   end
   z.dt = 1
@@ -852,8 +852,12 @@ function Z.rx(self, h, e)
     v = p1 == r.p and v * 128 or (r.v or 0) // 128 * 128 + v
     r.v = v
   end
+  local w = v
+  if r and r.m % 2 == 0 and r.z.ma > 127 then -- 7-bit into a wide range
+    v = r.z.mi + v * (r.z.ma - r.z.mi) // 127
+  end
   if r and r.z.k == 0 then -- touch wins
-    sy(r.z, r.s, v, r)
+    sy(r.z, r.s, v, r, w)
   end
   if Z.uc then
     Z.uc(self, h, e)
@@ -877,15 +881,16 @@ function M:ind()
   return self.i
 end
 
+-- auto mode: 14-bit only for CC, other commands stay 7-bit
 local function au(z, ch, cmd, p1, mode)
-  if mode == nil or mode == -1 then
-    mode = z:get_auto_mode()
-  end
   if ch == -1 then
     ch = (gmy() * 4 + gpc()) % 16
   end
   if cmd == -1 then
     cmd = z.o.read == "gate" and 144 or 176
+  end
+  if mode == nil or mode == -1 then
+    mode = cmd == 176 and z:get_auto_mode() or 0
   end
   if p1 == -1 then
     p1 = (32 + gmx() * 16 + z.b + (z.s == "y" and 1 or 0)) % 128
@@ -904,6 +909,9 @@ function M:gms(ch, cmd, p1, p2, mode)
   ch, cmd, p1, mode = au(self, ch, cmd, p1, mode)
   if p2 == -1 then
     p2 = self:get_auto_value()
+    if mode % 2 == 0 and self.ma > 127 then -- 7-bit modes: scale to 0-127
+      p2 = (p2 - self.mi) * 127 // (self.ma - self.mi)
+    end
   end
   local k = ky(ch, cmd, p1)
   Z.mi = Z.mp and (Z.mi or k)

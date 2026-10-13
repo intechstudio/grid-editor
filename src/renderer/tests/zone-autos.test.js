@@ -94,6 +94,20 @@ describe("zone MIDI autos match zona.lua", () => {
     expect(msgs.map((m) => m[2])).toEqual([1, 33]);
   });
 
+  test("the auto mode is 14-bit only for CC", () => {
+    const pos = { dx: 0, dy: 0, page: 0 };
+    const button = [parseZone(`Z.button("b",0,0,1,1,{res=14},function(self)`)];
+    expect(zoneMidiAutos(button, 0, pos)).toEqual({
+      ch: 0,
+      cmd: 144,
+      p1: [32],
+      mode: 0,
+    });
+    const fader = [parseZone(`Z.fader("f",0,0,1,9,{res=14},function(self)`)];
+    expect(zoneMidiAutos(fader, 0, pos, undefined, 144).mode).toBe(0);
+    expect(zoneMidiAutos(fader, 0, pos, undefined, 176).mode).toBe(1);
+  });
+
   test("an explicit mode wins over the zone's auto mode", () => {
     const zones = [parseZone(`Z.fader("f",0,0,1,9,{res=14},function(self)`)];
     expect(zoneMidiAutos(zones, 0, { dx: 0, dy: 0, page: 0 }, 0).mode).toBe(0);
