@@ -1,6 +1,6 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Draft, revision 3
+- **Status:** Revision 3, v1 implemented on `feat/zona-sandbox` (phases 1–5, library 0.7.2); finger-feel checks open
 - **Date:** 2026-10-12 (rev 1: 2026-10-06, rev 2: 2026-10-09)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
@@ -141,9 +141,9 @@ The body runs whenever the zone has something to report: press, value change, re
 - `cmd`: 144 for a button, 176 for continuous kinds.
 - `p1`: `(32 + gmx()*16 + base + offset) % 128`, where `base` is the zone's first CC slot and `offset` is 0 for `x`/`v` and 1 for `y`. Slots are counted over the zones defined before it: an XY pad takes 2, every other kind 1. An XY pad with one default MIDI block sends x and y on two neighbouring CCs, and the next zone continues after them (`self:ind()` stays the definition index).
 - `p2`: the triggering source's value. On a continuous zone, a press or release run (`src()` is `g`) uses the main value (`v`, or `x` for an XY pad), so the default MIDI block sends no gate CC on press and release; the duplicate filter drops it.
-- `mode`: `get_auto_mode()`, so `res=10` sends 14-bit CC with the default block.
+- `mode`: `get_auto_mode()` for CC, so `res=10` sends 14-bit CC with the default block. Any other command (a note, for example) stays 7-bit (library 0.7.2). In the 7-bit modes (auto for non-CC, 0, NRPN), an auto value from a range above 127 is scaled to 0–127, and RX scales it back.
 
-**Other targets** need no zone support at all: Gamepad Axis (`ggms`), Gamepad Button (`ggbs`), Mouse Move (`gmms`), Mouse Button (`gmbs`) and Keyboard (`gks`) are global functions. Their value field takes a zone getter, for example `ggms(0,self:v())` or `gmms(1,self:d())`, where `d()` is the relative change since the last run with a fractional carry, in the zone's value units (a full swipe on a 7-bit fader is 127; scale with `min`/`max`). The editor offers these getters as suggestions in those fields when the block is inside a zone.
+**Other targets** need no zone support at all: Gamepad Axis (`ggms`), Gamepad Button (`ggbs`), Mouse Move (`gmms`), Mouse Button (`gmbs`) and Keyboard (`gks`) are global functions. The value fields of the gamepad and mouse blocks take a zone getter (Keyboard has none), for example `ggms(0,self:v())` or `gmms(1,self:d())`, where `d()` is the relative change since the last run with a fractional carry, in the zone's value units (a full swipe on a 7-bit fader is 127; scale with `min`/`max`). The editor offers these getters as suggestions in those fields when the block is inside a zone.
 
 **Several outputs** are several blocks. A fader with a "touched" note for DAW automation:
 
@@ -177,7 +177,7 @@ Resolution belongs to the **zone value**, set in the zone block's options. This 
 
 - `res` sets the number of steps, from 7 to 14 bits (default 7).
 - `min` and `max` set the value range. They default to the wire range of the auto mode: 0–127 for `res=7`, 0–16383 for any `res > 7`. `res` sets the number of steps (2^res) inside `[min, max]`, so `res=10` gives 1024 values spread across 0–16383 and a 14-bit receiver sees full scale.
-- The MIDI block's auto mode follows `res` (4.1). A user who picks a mode by hand gets that mode.
+- The MIDI block's auto mode follows `res` for CC (4.1); other commands stay 7-bit. A user who picks a 14-bit or NRPN mode by hand gets that mode. Inside a zone the mode list has no explicit 7-bit entry: "Zone default" covers notes, but a 7-bit CC from a zone above 7 bits needs a Code block, `self:gms(-1,176,-1,-1,0)`. A known gap in v1.
 - Gamepad and mouse blocks receive the value through the getter and scale it as the user writes it. The gamepad axis range is documented next to the getter (phase 0).
 
 **What higher resolution really gives.** The sensor reports 10 bits across the whole surface. `Z.start(self)` sets `self:txma(1023)` and `self:tyma(1023)` so the library always gets the full range (phase 0 confirms the firmware default). A zone gets its share of those 1024 positions: a full-width fader has about 1024, a 3-cell fader about 341 (≈8.4 bits). A 7-bit `res` is therefore always real; above the zone's share, a higher `res` only interpolates, and extra resolution comes from smoothing, `glide` and `rel` with `speed < 1`. The block face shows the raw positions the zone has ("about 341 positions across"), computed from the library constant `Z.has.sres` (sensor bits, 10).
@@ -275,7 +275,7 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 - `Z.start` sets `self.midirx_cb` on the touch element **only if** something registered. With no RX in any zone, incoming MIDI costs nothing.
 - An unmatched message costs one table lookup on a numeric key. Most traffic stops there.
 - The decoder handles what the MIDI block can send: 7-bit CC and note; 14-bit CC (MSB on `cc`, LSB on `cc+32`, MSB applied at once and refined by the LSB); NRPN (a per-channel 99/98/6/38 state machine); pitch bend. The 14-bit and NRPN paths are only active when such an output is registered.
-- **Value sync** sets the zone value (scaled into `res`) and, in `glide`/`rel`, the target too. **LED sync** marks the zone dirty; the next tick repaints. Dense automation therefore costs at most one repaint per zone per tick, not one per message. Neither sends MIDI, so there is no echo. Painters draw the zone value, so LED sync without value sync shows nothing in v1. Value sync also updates the duplicate filter, so moving back to the previously sent value is not dropped. The send and the `gmrr` registration must use the same `mode` (phase 3 writes it explicitly in both inside a zone); 14-bit and NRPN registrations key on CC 176 whatever `cmd` says, as `gms` sends them. NRPN uses CC 99/98/6/38 on its channel.
+- **Value sync** sets the zone value (scaled into `res`) and, in `glide`/`rel`, the target too. Value sync also marks the zone dirty, so its LEDs follow on the next tick; dense automation costs at most one repaint per zone per tick, not one per message. **LED sync** has no effect in a zone: painters always draw the zone value (implementation, phase 5). Neither sends MIDI, so there is no echo. Value sync also updates the duplicate filter, so moving back to the previously sent value is not dropped. The send and the `gmrr` registration must use the same `mode` (phase 3 writes it explicitly in both inside a zone); 14-bit and NRPN registrations key on CC 176 whatever `cmd` says, as `gms` sends them. NRPN uses CC 99/98/6/38 on its channel.
 - **Touch wins:** RX for a zone is ignored while a contact owns it.
 - **Toggles, steps and groups:** an incoming "on" for a group member makes it the active member, with no output.
 - **SysEx is an advanced concept, left to user code.** The library doesn't set `sysexrx_cb` or `eventrx_cb`, so they stay free: a user who needs SysEx sets `self.sysexrx_cb` in a Code block on Setup, as on any element, and can update zones from it with `Z.set(name, value)`, the same path value sync uses, including "touch wins". That user also takes on the processing cost of the SysEx traffic they choose to handle. If a common SysEx use shows up later (a DAW sending values or names as SysEx), it can become an opt-in library feature that chains the user's callback the same way `midirx_cb` does. Nothing in v1 blocks that.
@@ -318,7 +318,7 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 
 **Timer.** `gtt` is one-shot: the firmware counts the element's timer down once and fires the Timer event (v1.5.5 `grid_ui.c`), and a page change resets it. The library therefore owns it: `Z.start` kicks it once (`gtt(self:ind(),1)`), and `Z.tick` re-arms it with `cfg.ms` at the start of every tick, so an error in a zone body can't stop it. The interval lives only in the Touch Tick block.
 
-**Setup budget.** The container costs more than rev 2's tables: about 50 characters for the opening line, 30 for a default MIDI block and 14 for the end line, so about **95 per zone** with one output, plus about 45 per extra output and 50 for RX on an output. With the Library block (~70) and `Z.start` (~25), that is roughly **7–9 simple zones**, fewer with RX or several outputs. That is the price of using the normal blocks. Section 8 covers growing past it.
+**Setup budget.** The container costs more than rev 2's tables: about 50 characters for the opening line, 30 for a default MIDI block and 14 for the end line, so about **95 per zone** with one output, plus about 45 per extra output and 50 for RX on an output. With the Library block (~70) and `Z.start` (~25), that is roughly **7–9 simple zones**, fewer with RX or several outputs. That is the price of using the normal blocks. Section 8 covers growing past it. Measured on the device (V1): a mixed surface of 7 zones (two faders, XY, knob with RX, a radio pair, a toggle) plus Library, Group and Start used 865 of 909 characters; an eighth zone was refused. So plan for **about 7**. A factory-fresh ZONA's touch Setup holds a 642-character demo Code block that has to go first, and its touch Timer holds a `print` that floods the debug log once Touch Tick runs.
 
 ## 6. Concerns by code area
 
@@ -556,13 +556,15 @@ Not needed any more: `ZoneOutput`, output keys, `rx` keys, the `on` callback opt
    - Tick CPU cost with 5 contacts at 20 ms, and with an LED divider of 2.
    - Mapping window: does 300 ms feel right for page changes?
 
-   Phase 0 was skipped; phase 2 answered some of it on hardware (firmware 1.5.5). The touch element's `midirx_cb` receives CC voice messages, including 14-bit pairs. The library's own 14-bit expansion sends clean MSB/LSB pairs. The tick cost is in section 9. `require` from the page folder works after a stored page is left and re-entered (phase 4 check). Still open: NRPN on hardware, 5 contacts, and how the window feels.
+   Phase 0 was skipped; phase 2 answered some of it on hardware (firmware 1.5.5). The touch element's `midirx_cb` receives CC voice messages, including 14-bit pairs. The library's own 14-bit expansion sends clean MSB/LSB pairs. The tick cost is in section 9. `require` from the page folder works after a stored page is left and re-entered (phase 4 check). V1 (bring-up on a factory-clean ZONA, library 0.7.2) checked NRPN (99/98/6), 5 simultaneous contacts and the mapping window's entry and exit with synthetic touches. Still open, because they need a finger: how the window, glide, rel and knob drag feel, and the real sensor's direction.
 1. **Library block.** Registry, `lib` parse and serialize, page-folder file status, install and update. Useful on its own, and VSN1 can start using it.
 2. **Library v1 + Lua tests.** Defaults-match test against `zone-model.ts`, pipeline, zone `self` and autos, duplicate filter, resolution, capture, modes, sensitivity, steps, groups, painters, dry run and RX sync, mapping mode.
 3. **Touch blocks.** Zone model, parse and serialize, composite open/close, default body, per-zone and surface validators, `ZoneBlock.svelte`, picker filtering, suggestions inside zones, the `touch` category.
 4. **Overlay** in the control name overlay.
 5. **Docs.** Library docs, a mapping mode guide, and an RX sync section next to the MIDI RX docs.
 6. **Stretch goals** (section 11) as separate RFCs or PRs.
+
+Phases 1–5 are done. Docs live in grid-documentation: `wiki/actions/code/library`, `wiki/actions/touch/touch-zones`, `wiki/more/zona-mapping-mode` and a Touch zones section in `wiki/actions/midi/midi-rx`; the editor's blocks link to them.
 
 ## 8. When Setup runs out of room
 
@@ -573,10 +575,10 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 
 ## 9. Risks
 
-- **Setup budget.** Containers with normal blocks cost about twice rev 2's tables (section 5). 7–9 simple zones covers the common layouts (a row of faders, a pad, a few buttons) but not 16 pads with RX. Measure against real layouts in phase 3.
+- **Setup budget.** Containers with normal blocks cost about twice rev 2's tables (section 5). 7–9 simple zones covers the common layouts (a row of faders, a pad, a few buttons) but not 16 pads with RX. Measured in V1: about 7 mixed zones fit (5).
 - **Dry run side effects.** User code in a body runs once at `Z.start` with outputs muted. Code that writes globals or starts timers would do so too. Mitigated by `self:dry()` and docs.
 - **Implicit duplicate filter.** `self:gms` drops repeated values per identity. A user who wants to resend the same value (rare) needs plain `gms(...)` instead of `self:gms`. Document it.
-- **Tick cost.** Interval and LED divider are options on the Touch Tick block. Measure on ESP32-S3 with 5 contacts and comet trails to pick defaults. First measurement (phase 2, ZONA, firmware 1.5.5, 8 zones, timed as 100 calls in one Lua chunk): an idle `Z.tick` costs about 1.5 ms, about 5 ms when every zone repaints, so about 8% and 26% of a 20 ms tick. Idle cost grows with the zone count; skipping zones with nothing pending is the first optimisation if needed.
+- **Tick cost.** Interval and LED divider are options on the Touch Tick block. Measure on ESP32-S3 with 5 contacts and comet trails to pick defaults. First measurement (phase 2, ZONA, firmware 1.5.5, 8 zones, timed as 100 calls in one Lua chunk): an idle `Z.tick` costs about 1.5 ms, about 5 ms when every zone repaints, so about 8% and 26% of a 20 ms tick. Idle cost grows with the zone count; skipping zones with nothing pending is the first optimisation if needed. V1 (library 0.7.2, 7 zones, the same method): about 0.4 ms idle and 3.6 ms with every zone dirty (2% and 18%), unchanged with 5 contacts held.
 - **Library load on every page change.** The VM restarts, so `require` reads and compiles the file each time. Measure page switch time.
 - **Output flood.** The rate limit protects USB MIDI. Test 14-bit output and RX sync on several zones at once.
 - **RX data load.** `midirx_cb` is only set when a zone registered RX; unmatched messages cost one lookup; LED sync repaints at most once per tick. Measure with dense automation.
