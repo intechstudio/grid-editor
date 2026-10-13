@@ -156,11 +156,32 @@ describe("Setup re-run releases the previous surface", () => {
     expect(vm.midi()).toEqual([[0, 176, 34, 127]]);
   });
 
-  test("without a tick or touch in between, a failed Setup's zones stay pending", async () => {
+  test("a failed Setup's zones are dropped when the next run repeats a name", async () => {
     const vm = await createZonaVM();
     expect(() => vm.setup(`${faders(2)} error("half")`)).toThrow(/half/);
     vm.setup(`${faders(3)} Z.start(self)`);
-    expect(vm.run("return #Z.zs")).toBe(5); // the documented limit
+    expect(vm.run("return #Z.zs")).toBe(3);
+  });
+
+  // Building a Setup block by block: every edit re-runs it, and until Touch
+  // Start is added nothing activates (or clears) the pending zones.
+  test("Setup re-run 3 times without Touch Start, then with it: 3 zones", async () => {
+    const clean = await createZonaVM();
+    clean.setup(`${faders(3)} Z.start(self)`);
+    clean.clear();
+    clean.touch([0, DOWN, 250, 0]);
+
+    const vm = await createZonaVM();
+    for (let i = 0; i < 3; i++) {
+      vm.setup(faders(3));
+    }
+    expect(vm.run("return #Z.nz")).toBe(3);
+    vm.setup(`${faders(3)} Z.start(self)`);
+    expect(vm.run("return #Z.zs")).toBe(3);
+    vm.clear();
+    vm.touch([0, DOWN, 250, 0]); // third fader: CC slot 2
+    expect(vm.midi()).toEqual(clean.midi());
+    expect(vm.midi()).toEqual([[0, 176, 34, 127]]);
   });
 
   test("mapping mode ends with the surface: outputs are unmuted", async () => {
@@ -176,6 +197,61 @@ describe("Setup re-run releases the previous surface", () => {
     vm.clear();
     vm.run("gms(1,2,3,4)");
     expect(vm.midi()).toEqual([[1, 2, 3, 4]]);
+  });
+});
+
+describe("a zone defined inside a zone body", () => {
+  // the body sends, then (wrongly) defines a zone
+  const BAD = `Z.button("bad",2,0,2,2,{},function(self) self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},-1) Z.fader("x",8,8,1,1,{}) end)`;
+  const GOOD = `Z.fader("good",0,0,1,9,{},${RX})`;
+
+  async function surface() {
+    const vm = await createZonaVM();
+    vm.run("print=function(m) _rec('print',1,tostring(m)) end");
+    vm.setup(`${BAD} ${GOOD} Z.start(self)`);
+    return vm;
+  }
+
+  test("in the dry run: logged, the surface and its RX stay", async () => {
+    const vm = await surface();
+    expect(vm.calls("print").map((e) => e.args[0])).toEqual([
+      "zone inside a zone body",
+    ]);
+    expect(vm.run("return #Z.zs .. ',' .. #Z.nz")).toBe("2,0");
+    // both zones registered RX before the error
+    expect(vm.run("local n=0 for _ in pairs(Z.R) do n=n+1 end return n")).toBe(
+      2,
+    );
+    expect(vm.run("return el.midirx_cb == Z.rx")).toBe(true);
+  });
+
+  test("on a touch: an error, then everything still works", async () => {
+    const vm = await surface();
+    vm.clear();
+    expect(() => vm.touch([0, DOWN, 300, 100])).toThrow(
+      /zone inside a zone body/,
+    );
+    expect(vm.midi()).toEqual([[0, 144, 32, 127]]); // sent before the error
+    expect(vm.run("return #Z.zs .. ',' .. #Z.nz")).toBe("2,0");
+    vm.clear();
+    vm.touch([1, DOWN, 50, 0]);
+    expect(vm.midi()).toEqual([[0, 176, 33, 127]]);
+    vm.touch([1, UP, 50, 0]); // touch wins over RX while held
+    vm.clear();
+    vm.rx(0, 176, 33, 10);
+    expect(vm.run("return Z.zs[2]:v()")).toBe(10);
+  });
+
+  test("a group too", async () => {
+    const vm = await createZonaVM();
+    vm.run("print=function(m) _rec('print',1,tostring(m)) end");
+    vm.setup(
+      `${GOOD} Z.button("g",2,0,1,1,{},function(self) Z.group(1,{}) end) Z.start(self)`,
+    );
+    expect(vm.calls("print").map((e) => e.args[0])).toEqual([
+      "zone inside a zone body",
+    ]);
+    expect(vm.run("return #Z.zs")).toBe(2);
   });
 });
 
@@ -273,7 +349,7 @@ describe("Z.unload", () => {
   test("survives compressScript (RFC 2.1)", () => {
     const compressed = GridScript.compressScript(zonaSource);
     expect(compressed).toContain("function Z.unload(self)");
-    expect(compressed).toContain('Z.VERSION="0.7.0"');
+    expect(compressed).toContain('Z.VERSION="0.7.1"');
   });
 });
 

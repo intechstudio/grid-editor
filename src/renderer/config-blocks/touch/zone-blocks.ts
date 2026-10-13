@@ -1,0 +1,232 @@
+// What the Touch blocks need besides the model: block shorts, the script a new
+// zone block starts with, the untoggled header text, and the face's fields
+// from the option schema (RFC 6.2).
+
+import {
+  type OptionSchema,
+  type Zone,
+  type ZoneKind,
+  type ZoneOptionSchema,
+  type ZoneOptionValue,
+  type ZoneSection,
+  zoneOptionDefault,
+  zoneOptionSchema,
+  zoneSections,
+  zoneSectionsOpen,
+} from "./zone-model";
+import { parseZone, zoneToLua } from "./zone-parse";
+
+export const zoneBlockShort: Record<ZoneKind, string> = {
+  fader: "zfd",
+  button: "zbt",
+  xy: "zxy",
+  knob: "zkn",
+};
+
+// Default names are the prefix plus the next free number: f1, b1, p1, k1.
+const NAME_PREFIX: Record<ZoneKind, string> = {
+  fader: "f",
+  button: "b",
+  xy: "p",
+  knob: "k",
+};
+
+// Cells a new zone gets. Placing it on the first free spot is a later step.
+const DEFAULT_CELLS: Record<ZoneKind, [number, number]> = {
+  fader: [1, 9],
+  button: [2, 2],
+  xy: [4, 4],
+  knob: [3, 3],
+};
+
+// The first name prefix+n that no zone in these scripts uses.
+export function defaultZoneName(kind: ZoneKind, scripts: string[]): string {
+  const used = new Set(
+    scripts.map((e) => parseZone(e)?.name).filter((e) => e !== undefined),
+  );
+  let n = 1;
+  while (used.has(`${NAME_PREFIX[kind]}${n}`)) {
+    n++;
+  }
+  return `${NAME_PREFIX[kind]}${n}`;
+}
+
+export function defaultZone(kind: ZoneKind, scripts: string[]): Zone {
+  const [w, h] = DEFAULT_CELLS[kind];
+  return {
+    name: defaultZoneName(kind, scripts),
+    kind,
+    x: 0,
+    y: 0,
+    w,
+    h,
+    opt: {},
+  };
+}
+
+export function defaultZoneScript(kind: ZoneKind, scripts: string[]): string {
+  return zoneToLua(defaultZone(kind, scripts));
+}
+
+// Untoggled header: "f1 · 0,0 1×9".
+export function zoneHeaderText(zone: Zone): string {
+  return `${zone.name} · ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
+}
+
+export type ZoneFaceSection = {
+  section: ZoneSection;
+  open: boolean; // open by default
+  options: ZoneOptionSchema[];
+};
+
+// The face's option sections for a kind, in display order. Geometry is
+// listed even without options: the face puts x, y, w, h there.
+export function zoneFaceSections(kind: ZoneKind): ZoneFaceSection[] {
+  return zoneSections
+    .map((section) => ({
+      section,
+      open: zoneSectionsOpen.includes(section),
+      options: zoneOptionSchema.filter(
+        (e) => e.section === section && e.kinds.includes(kind),
+      ),
+    }))
+    .filter((e) => e.section === "geometry" || e.options.length > 0);
+}
+
+// Field text of an option: its value, or empty when the line leaves it out.
+export function optionText(value: ZoneOptionValue | undefined): string {
+  return typeof value === "undefined" ? "" : String(value);
+}
+
+// Shown in an empty field: what the zone uses without the option.
+export function optionPlaceholder(kind: ZoneKind, key: string): string {
+  if (key === "min") {
+    return "0";
+  }
+  if (key === "max") {
+    return "127 or 16383";
+  }
+  return optionText(zoneOptionDefault(kind, key));
+}
+
+export type EnumOption = { title: string; value: string };
+
+// Select entries of an enum option: the default first (value ""), then the
+// schema's values. A value the schema doesn't know (a newer editor's painter,
+// a hand-written line) is listed too, so the select shows what the line says
+// and nothing is rewritten until the user picks something.
+export function enumOptions(
+  schema: OptionSchema,
+  value: string,
+  placeholder: string,
+): EnumOption[] {
+  if (schema.type !== "enum") {
+    return [];
+  }
+  const options = [
+    { title: `default (${placeholder})`, value: "" },
+    ...schema.values.map((e) => ({ title: e, value: e })),
+  ];
+  if (value !== "" && !schema.values.includes(value)) {
+    options.push({ title: `${value} (unknown)`, value });
+  }
+  return options;
+}
+
+// Parses a field's text into an option value. Empty means "leave it out"
+// (undefined). A number field that isn't a number gives an error.
+export function parseOptionText(
+  schema: OptionSchema,
+  text: string,
+): { value?: ZoneOptionValue; error?: string } {
+  const trimmed = text.trim();
+  if (trimmed === "") {
+    return {};
+  }
+  if (schema.type === "enum") {
+    return { value: trimmed };
+  }
+  const value = Number(trimmed);
+  return Number.isFinite(value) ? { value } : { error: "Enter a number" };
+}
+
+// A zone, group or tick with one option set from field text, or an error when
+// the text can't be written at all (range and enum problems are the
+// validators' job).
+export function withOption<T extends { opt: Record<string, ZoneOptionValue> }>(
+  target: T,
+  schema: OptionSchema,
+  text: string,
+): { next?: T; error?: string } {
+  const { value, error } = parseOptionText(schema, text);
+  if (typeof error !== "undefined") {
+    return { error };
+  }
+  const opt = { ...target.opt };
+  if (typeof value === "undefined") {
+    delete opt[schema.key];
+  } else {
+    opt[schema.key] = value;
+  }
+  return { next: { ...target, opt } };
+}
+
+export type ZoneField = "name" | "x" | "y" | "w" | "h";
+
+// The zone with a name or geometry field set from text.
+export function withField(
+  zone: Zone,
+  field: ZoneField,
+  text: string,
+): { next?: Zone; error?: string } {
+  if (field === "name") {
+    return /["\\\n\r]/.test(text)
+      ? { error: "No quotes or backslashes" }
+      : { next: { ...zone, name: text } };
+  }
+  const value = Number(text.trim());
+  if (text.trim() === "" || !Number.isFinite(value)) {
+    return { error: "Enter a number" };
+  }
+  return { next: { ...zone, [field]: value } };
+}
+
+export const zoneSectionLabels: Record<ZoneSection, string> = {
+  geometry: "Geometry",
+  resolution: "Resolution",
+  led: "LED",
+  behaviour: "Behaviour",
+  capture: "Capture",
+  sensitivity: "Sensitivity",
+};
+
+// Field titles of the options, group and tick settings.
+export const optionLabels: Record<string, string> = {
+  read: "Reader",
+  dir: "Direction",
+  res: "Resolution bits",
+  min: "Min",
+  max: "Max",
+  mode: "Mode",
+  speed: "Speed",
+  ease: "Ease",
+  drag: "Knob drag",
+  bmo: "Button mode",
+  group: "Radio group",
+  grab: "Capture",
+  leave: "Release on leave",
+  contact: "More contacts",
+  led: "LED painter",
+  release: "LEDs on release",
+  sens: "Sensitivity",
+  db: "Deadband",
+  sm: "Smoothing",
+  rt: "Rate limit",
+  empty: "Allow none on",
+  ms: "Interval (ms)",
+  win: "Mapping window (ms)",
+};
+
+export function optionLabel(key: string): string {
+  return optionLabels[key] ?? key;
+}

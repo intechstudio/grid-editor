@@ -82,3 +82,24 @@ describe("Action picker filter", () => {
     ).toBe(false);
   });
 });
+
+describe("moduleTypes", () => {
+  const information = { moduleTypes: ["ZONA"] };
+  const target = (moduleType) => ({
+    ...at(ElementType.SYSTEM, EventType.UTILITY),
+    moduleType,
+  });
+
+  test("offered on the listed modules", () => {
+    expect(isAllowedIn(information, target("ZONA"))).toBe(true);
+  });
+
+  test("not on other modules, or when the module is unknown", () => {
+    expect(isAllowedIn(information, target("EN16"))).toBe(false);
+    expect(isAllowedIn(information, target(undefined))).toBe(false);
+  });
+
+  test("without moduleTypes, every module", () => {
+    expect(isAllowedIn({}, target("EN16"))).toBe(true);
+  });
+});

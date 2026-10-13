@@ -16,6 +16,7 @@
   import {
     NumberToEventType,
     type ElementType,
+    type ModuleType,
   } from "@intechstudio/grid-protocol";
   import { isAllowedIn } from "./ActionPickerFilter";
   import { onMount, onDestroy, tick } from "svelte";
@@ -241,6 +242,7 @@
       elementType: target.getInfo().element.type as ElementType,
       eventType: eventString,
       isVirtual: event.realEvent !== event,
+      moduleType: target.getInfo().module.type as ModuleType,
     };
     comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
 
@@ -270,6 +272,7 @@
 
     //Sort components by category
     const sorting_array = [
+      "touch",
       "midi",
       "led",
       "hid",
@@ -318,7 +321,10 @@
   }
 
   function handleAddAction({ component }) {
-    let defaultScript = component.information.defaultLua;
+    let defaultScript =
+      component.information.defaultLuaIn?.(
+        $event.config.map((e) => e.script),
+      ) ?? component.information.defaultLua;
     defaultScript = replaceToLocalDefinition(
       defaultScript,
       "self:ind()",

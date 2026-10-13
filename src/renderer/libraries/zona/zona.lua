@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.7.0"
+Z.VERSION = "0.7.1"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -97,7 +97,12 @@ local function run(z, s)
     z.dd = d
   end
   if z.f and (not Z.mp or Z.mz == z and Z.ms == s) then
-    z.f(z)
+    Z.rb = 1 -- a body is running: no zones may be defined (Z.zone)
+    local ok, e = pcall(z.f, z)
+    Z.rb = nil
+    if not ok then
+      error(e, 0)
+    end
   end
 end
 
@@ -513,8 +518,13 @@ local function stale()
   end
 end
 
--- the first zone or group of a Setup run drops the previous surface
+-- the first zone or group of a Setup run drops the previous surface. Zones
+-- are defined only by Setup: one inside a body (or its dry run) would drop
+-- the running surface, so it is an error and changes nothing.
 local function first()
+  if Z.rb or Z.dr then
+    error("zone inside a zone body", 0)
+  end
   if not (Z.nz[1] or next(Z.ng)) then
     drop()
   end
@@ -531,6 +541,14 @@ for kind, p in pairs(Z.kind) do
 end
 
 function Z.zone(n, x, y, w, h, opt, f, kind)
+  -- a name already pending: a new Setup run after one that never reached
+  -- Z.start (or failed) without a tick or touch in between
+  for _, q in ipairs(Z.nz) do
+    if q.n == n and not (Z.rb or Z.dr) then
+      Z.nz, Z.ng = {}, {}
+      break
+    end
+  end
   first()
   local o = setmetatable({}, KM[kind] or KM[""])
   for k, val in pairs(opt or {}) do
