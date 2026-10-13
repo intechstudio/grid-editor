@@ -4,7 +4,21 @@ import zonaSource from "../libraries/zona/zona.lua?raw";
 
 // Firmware globals the library may touch. Each stub records its call; the
 // position getters answer from `env` (module at 0,0 on page 0 by default).
-const RECORDED = ["gms", "gtt", "glc", "glp", "gln", "gld", "glx"];
+const RECORDED = [
+  "gms",
+  "gtt",
+  "glc",
+  "glp",
+  "gln",
+  "gld",
+  "glx",
+  "ggms",
+  "ggbs",
+  "gmms",
+  "gmbs",
+  "gks",
+  "gpl",
+];
 
 // Module default colour (glr/glg/glb) in the VM.
 export const DEFAULT_COLOR = [10, 20, 30];
@@ -67,6 +81,7 @@ export async function createZonaVM(env = {}) {
       end
       return x, y, z
     end
+    function gpn() return 1 end
     el = {}
     function el:ind() return 0 end
     function el:txma(v) rec("txma", v) end
@@ -90,6 +105,17 @@ export async function createZonaVM(env = {}) {
       for (const [id, evt, x, y] of steps) {
         lua.doStringSync(`el:touch_cb(${id},${evt},${x},${y})`);
       }
+    },
+    // An incoming MIDI message {ch, cmd, p1, p2}, from the host by default
+    // (header INSTR 13 = report).
+    rx(ch, cmd, p1, p2, instr = 13) {
+      lua.doStringSync(
+        `if el.midirx_cb then el:midirx_cb({${instr},0,0},{${ch},${cmd},${p1},${p2}}) end`,
+      );
+    },
+    // The utility event with a Touch Utility block.
+    util() {
+      lua.doStringSync("Z.util(el)");
     },
     // Runs Z.tick n times, as the touch Timer would.
     tick(n = 1) {
