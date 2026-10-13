@@ -6,10 +6,18 @@
   // that doesn't parse is shown as it is and never rewritten (RFC 6.5).
   import { createEventDispatcher } from "svelte";
   import { Block, BlockRow, MeltCombo } from "@intechstudio/grid-uikit";
-  import type { ActionData, GridAction } from "../../runtime/runtime";
+  import type {
+    ActionData,
+    GridAction,
+    GridEvent,
+  } from "../../runtime/runtime";
   import type { OptionSchema, Zone } from "./zone-model";
   import { parseZone, zoneToLua } from "./zone-parse";
-  import { zoneProblems } from "./zone-validate";
+  import {
+    surfaceIssues,
+    zoneProblems,
+    zoneSendProblem,
+  } from "./zone-validate";
   import {
     type ZoneField,
     optionLabel,
@@ -23,6 +31,9 @@
   import ZoneOptionField from "./ZoneOptionField.svelte";
 
   export let action: GridAction;
+
+  // The whole touch Setup, for issues that depend on other blocks.
+  const event = action.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -48,6 +59,20 @@
   }
 
   $: problems = zone !== null ? zoneProblems(zone) : [];
+  // Issues of this zone that no field shows (a duplicate name): errors stop
+  // the Setup from being sent until fixed.
+  $: sendProblem = zoneSendProblem(
+    $action.script,
+    $event.config.map((e) => e.script),
+  );
+  $: zoneIssues =
+    zone !== null
+      ? surfaceIssues($event.config.map((e) => e.script)).filter(
+          (e) =>
+            e.zone === zone?.name &&
+            !problems.some((p) => p.message === e.message),
+        )
+      : [];
   $: problemOf = (key: string) =>
     fieldErrors[key] ?? problems.find((e) => e.key === key)?.message;
 
@@ -73,9 +98,21 @@
     key: string,
     result: { next?: Zone; error?: string },
   ): string | undefined {
-    return typeof result.next === "undefined"
-      ? result.error
-      : zoneProblems(result.next).find((e) => e.key === key)?.message;
+    if (typeof result.next === "undefined") {
+      return result.error;
+    }
+    // Red right away for a name another zone has. Only the red state uses
+    // this text; the issue line above the fields says why.
+    if (key === "name" && otherZoneNames().includes(result.next.name)) {
+      return "duplicate";
+    }
+    return zoneProblems(result.next).find((e) => e.key === key)?.message;
+  }
+
+  function otherZoneNames(): (string | undefined)[] {
+    return event.config
+      .filter((e) => e.id !== action.id)
+      .map((e) => parseZone(e.script)?.name);
   }
 
   const fieldValid = (field: ZoneField) => (text: string) =>
@@ -114,6 +151,17 @@
 
 <zone-block class="flex flex-col w-full px-4 py-2 pointer-events-auto gap-2">
   {#if zone !== null}
+    {#each zoneIssues as issue}
+      <span
+        class="text-sm"
+        class:text-error={issue.level === "error"}
+        class:text-warning={issue.level === "warning"}
+        data-zone-issue={issue.level}
+        >{issue.message}{issue.message === sendProblem
+          ? ". The Setup is not sent until this is fixed."
+          : ""}</span
+      >
+    {/each}
     <Block>
       <MeltCombo
         title={"Name"}

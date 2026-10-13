@@ -4,6 +4,7 @@
     ActionData,
     GridEvent,
     EventData,
+    type GridElement,
   } from "./../../../../runtime/runtime";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
@@ -15,10 +16,17 @@
   import { toggledBlocks } from "../Configuration";
   import {
     NumberToEventType,
+    EventTypeToNumber,
     type ElementType,
     type ModuleType,
   } from "@intechstudio/grid-protocol";
-  import { isAllowedIn } from "./ActionPickerFilter";
+  import {
+    bodyRulesAt,
+    isAllowedIn,
+    pickerInsertIndex,
+  } from "./ActionPickerFilter";
+  import { addActions } from "../../../../runtime/operations";
+  import type { Companion } from "../../../../config-blocks/ActionBlockInformation";
   import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
@@ -243,6 +251,7 @@
       eventType: eventString,
       isVirtual: event.realEvent !== event,
       moduleType: target.getInfo().module.type as ModuleType,
+      bodies: bodyRulesAt(configs, index),
     };
     comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
 
@@ -351,8 +360,44 @@
       }
     }
 
-    onNewConfig({ configs, index });
+    const isReal = event.realEvent === event;
+    onNewConfig({
+      configs,
+      index: isReal ? pickerInsertIndex(event.config, index) : index,
+    });
     data.close();
+    // Only when the block landed: the insert runs synchronously inside
+    // onNewConfig (addActions → insert) and leaves the config unchanged when
+    // it fails (a full Setup).
+    if (isReal && event.config.includes(configs[0])) {
+      addCompanions(component.information.companions ?? []);
+    }
+  }
+
+  // Blocks that come with the added one (Touch Start and Touch Tick with the
+  // first zone), appended to the element's event of that type if missing.
+  // There is no undo history: each event is sent on its own.
+  async function addCompanions(companions: Companion[]) {
+    const element = event.parent as GridElement;
+    for (const { eventType, short, script } of companions) {
+      const target = element?.events.find(
+        (e) => e.type === EventTypeToNumber(eventType),
+      );
+      if (typeof target === "undefined") {
+        continue;
+      }
+      if (!target.isLoaded()) {
+        await target.load();
+      }
+      if (!target.config.some((e) => e.short === short)) {
+        // an explicit index: addActions without one calls an unbound push
+        await addActions(
+          target,
+          target.config.length,
+          new GridAction(target, new ActionData(short, script)),
+        );
+      }
+    }
   }
 
   function handleSearchValueChange(value) {

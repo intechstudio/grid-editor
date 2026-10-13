@@ -13,7 +13,12 @@ import {
 } from "../ActionBlockInformation";
 import { categoryColors } from "../categoryColors";
 import type { ZoneKind } from "./zone-model";
-import { defaultZoneScript, zoneBlockShort } from "./zone-blocks";
+import {
+  defaultZoneScript,
+  uniqueZoneScript,
+  zoneBlockShort,
+} from "./zone-blocks";
+import { zoneSendProblem } from "./zone-validate";
 import {
   ZONE_END_SCRIPT,
   ZONE_START_SCRIPT,
@@ -73,6 +78,25 @@ const COMMON = {
   version: "2.0",
 } as const;
 
+// What a zone body takes (RFC 6.2): outputs, Code, Comment, conditions and
+// variables. Not the Library or Element Name (code), nor LED animations,
+// which address the element's own LEDs, nor Self variables: self is the zone,
+// and self.x=… would shadow its getters and state.
+export const zoneBodyRule = {
+  categories: ["midi", "led", "hid", "code", "condition", "variables"],
+  excludeShorts: ["lib", "sn", "glat", "glap", "s"],
+};
+
+// The first zone brings Touch Start (end of Setup) and Touch Tick (Timer).
+const ZONE_COMPANIONS = [
+  { eventType: EventType.SETUP, short: "zst", script: ZONE_START_SCRIPT },
+  {
+    eventType: EventType.TIMER,
+    short: "ztk",
+    script: zoneTickToLua({ opt: {} }),
+  },
+];
+
 // A zone block: its opening line, a default MIDI block as the body and the
 // Touch End, inserted together by the action picker.
 export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
@@ -92,6 +116,10 @@ export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
     toggleable: true,
     // The opening line is not Lua on its own: close it to check the syntax.
     syntaxPreprocessor: new SyntaxPreprocessor(`$SCRIPT$ ${ZONE_END_SCRIPT}`),
+    bodyAccepts: zoneBodyRule,
+    companions: ZONE_COMPANIONS,
+    uniqueIn: uniqueZoneScript,
+    contextProblem: zoneSendProblem,
   };
 }
 
@@ -137,7 +165,8 @@ export const touchStartInformation: ActionBlockInformation = {
   defaultLua: ZONE_START_SCRIPT,
   blockIcon: touchIcons.start,
   type: "single",
-  toggleable: true,
+  toggleable: false,
+  keepLast: true,
 };
 
 export const touchTickInformation: ActionBlockInformation = {

@@ -230,3 +230,31 @@ export const optionLabels: Record<string, string> = {
 export function optionLabel(key: string): string {
   return optionLabels[key] ?? key;
 }
+
+// A zone line pasted, dropped or loaded next to these scripts: when its name
+// is already used by a zone there, it gets the next free name of its kind.
+// zona.lua treats a repeated pending name as a new Setup run, so a duplicate
+// would drop the zones before it (RFC 6.2).
+export function uniqueZoneScript(script: string, others: string[]): string {
+  const zone = parseZone(script);
+  if (zone === null) {
+    return script;
+  }
+  const used = others.map((e) => parseZone(e)?.name);
+  if (!used.includes(zone.name)) {
+    return script;
+  }
+  return zoneToLua({ ...zone, name: defaultZoneName(zone.kind, others) });
+}
+
+// Touch Start's hint when the system element's utility event (its block
+// shorts) has no Touch Utility. Mapping mode stays a manual step (RFC 4.7).
+// undefined while the utility event isn't known.
+export function utilityHint(
+  utilityShorts: string[] | undefined,
+): string | undefined {
+  if (typeof utilityShorts === "undefined" || utilityShorts.includes("zut")) {
+    return undefined;
+  }
+  return "Add Touch Utility to the utility button for mapping mode";
+}

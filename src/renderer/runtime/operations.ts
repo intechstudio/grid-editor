@@ -25,6 +25,10 @@ import {
   type GridOperationResult,
 } from "./runtime";
 import { get } from "svelte/store";
+import {
+  bodyRulesAt,
+  isAllowedInBodies,
+} from "../main/panels/configuration/components/ActionPickerFilter";
 import { user_input } from "./user-input.store";
 import { ConfigTour, configTour } from "../main/panels/profileCloud/ConfigTour";
 
@@ -497,6 +501,29 @@ export async function dropActions(
     index = movingDown ? index - targetIndexes.length : index;
   }
 
+  // The picker's rule for composite bodies (a touch zone's body takes outputs
+  // only), checked before anything moves. Parts and ends follow their opener.
+  const movedIds = new Set(actions.map((e) => e.id));
+  const rules = bodyRulesAt(
+    target.config.filter((e) => !movedIds.has(e.id)),
+    index,
+  );
+  const refused = actions.find(
+    (e) =>
+      ["single", "composite_open"].includes(e.information.type) &&
+      !isAllowedInBodies(e.information, rules),
+  );
+  if (typeof refused !== "undefined") {
+    const error = {
+      value: false,
+      text: `${refused.information.displayName} can't go inside this block.`,
+      type: GridOperationType.INSERT_ACTIONS,
+      info: target.getInfo(),
+    };
+    handleError(error);
+    return Promise.reject(error);
+  }
+
   const removed: Array<{ index: number; action: GridAction }> = [];
   const sourceEvents = new Set<GridEvent>();
 
@@ -508,6 +535,7 @@ export async function dropActions(
   }
 
   try {
+    target.makeUnique(actions);
     await target.insert(index, ...actions);
 
     // Send all updates only after successful insert. Compare via

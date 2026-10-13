@@ -3,18 +3,26 @@
   // zone has a problem, or a note when the line isn't a zone line.
   import { createEventDispatcher } from "svelte";
   import { InfoBox } from "@intechstudio/grid-uikit";
-  import type { GridAction } from "../../runtime/runtime";
+  import type { GridAction, GridEvent } from "../../runtime/runtime";
   import { parseZone } from "../touch/zone-parse";
-  import { zoneProblems } from "../touch/zone-validate";
+  import { zoneProblems, zoneSendProblem } from "../touch/zone-validate";
   import { zoneHeaderText } from "../touch/zone-blocks";
 
   export let action: GridAction;
+
+  const event = action.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
   $: zone = parseZone($action.script);
   $: summary = zone !== null ? zoneHeaderText(zone) : "not a zone line";
-  $: faulty = zone === null || zoneProblems(zone).length > 0;
+  $: faulty =
+    zone === null ||
+    zoneProblems(zone).length > 0 ||
+    typeof zoneSendProblem(
+      $action.script,
+      $event.config.map((e) => e.script),
+    ) !== "undefined";
 
   function handleClick() {
     dispatch("toggle");

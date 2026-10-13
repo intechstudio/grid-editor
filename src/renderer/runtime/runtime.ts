@@ -22,7 +22,10 @@ import { logger } from "./runtime.store";
 import { v4 as uuidv4 } from "uuid";
 import { getComponentInformation } from "../lib/_config-registry";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
-import { type ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
+import {
+  type ActionBlockInformation,
+  insertRewrites,
+} from "../config-blocks/ActionBlockInformation";
 import { Runtime } from "./string-table";
 import { Grid } from "../lib/_utils";
 import { type GridConnection } from "../serialport/serialport";
@@ -322,6 +325,21 @@ abstract class RuntimeNode<T extends NodeData> implements Writable<T> {
   }
 }
 
+// A problem an action has because of the rest of its event (a duplicate zone
+// name), derived on every check so it ends when the other block changes.
+// undefined when the block declares no such check.
+function contextProblemOf(data: ActionData): string | undefined {
+  const check = data.information?.contextProblem;
+  const event = data.parent as GridEvent | undefined;
+  if (typeof check === "undefined" || !Array.isArray(event?.config)) {
+    return undefined;
+  }
+  return check(
+    data.script,
+    event.config.map((e) => e.script),
+  );
+}
+
 export class ActionData extends NodeData {
   public short: string;
   public script: string;
@@ -351,7 +369,11 @@ export class ActionData extends NodeData {
   public isValid() {
     const code =
       this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
-    return GridScript.checkSyntax(code) && !this.invalid;
+    return (
+      GridScript.checkSyntax(code) &&
+      !this.invalid &&
+      typeof contextProblemOf(this) === "undefined"
+    );
   }
 
   public getTourIndex(): number | undefined {
@@ -574,6 +596,13 @@ export class GridAction extends RuntimeNode<ActionData> {
     this.setField("script", value);
   }
 
+  // The script a pasted or dropped action gets (GridEvent.makeUnique). Also
+  // its synced script: the block face reverts an untoggled action to it.
+  public setInsertScript(script: string) {
+    this.script = script;
+    this.synced = script;
+  }
+
   private set short(value: string) {
     this.setField("short", value);
   }
@@ -676,6 +705,7 @@ export class GridEvent extends RuntimeNode<EventData> {
     index: number,
   ): Promise<SnippetLoadResult> {
     try {
+      this.makeUnique(snippet.actions);
       await this.insert(index, ...snippet.actions);
       await this.sendToGrid();
       return Promise.resolve({
@@ -814,6 +844,22 @@ export class GridEvent extends RuntimeNode<EventData> {
     }
   }
 
+  // Existing actions inserted again (paste, snippet, drop) may collide with
+  // what the event holds, or with each other: blocks that declare uniqueIn
+  // rewrite their script (a pasted zone gets the next free name).
+  public makeUnique(actions: GridAction[]) {
+    const rewrites = insertRewrites(
+      this.realEvent.config.map((e) => e.script),
+      actions.map((e) => ({
+        script: e.script,
+        uniqueIn: e.information?.uniqueIn,
+      })),
+    );
+    for (const [i, script] of rewrites) {
+      actions[i].setInsertScript(script);
+    }
+  }
+
   public async pasteFromClipboard(index?: number): Promise<PasteActionsResult> {
     const clipboard = get(appClipboard);
 
@@ -850,6 +896,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       },
     );
 
+    this.makeUnique(actions);
     try {
       await this.insert(index, ...actions);
       return Promise.resolve({

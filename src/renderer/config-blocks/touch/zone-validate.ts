@@ -234,3 +234,32 @@ export function validateSurface(
   }
   return [...issues, ...orderIssues(context)];
 }
+
+// The surface issues of a touch Setup given as its action scripts.
+export function surfaceIssues(scripts: string[]): ZoneIssue[] {
+  const zones = scripts
+    .map((e) => parseZone(e))
+    .filter((e): e is Zone => e !== null);
+  return validateSurface(zones, {
+    actions: scripts.map((script) => ({ script })),
+  });
+}
+
+// What stops the touch Setup from being sent: a zone name used twice, since
+// zona.lua 0.7.1 would drop the zones before the second one. Other zone
+// problems (an unknown painter from a newer library, a value out of range)
+// show on the face but don't block a Setup that came from the module or a
+// profile; the face keeps the user's own invalid edits from being sent.
+export function zoneSendProblem(
+  script: string,
+  eventScripts: string[],
+): string | undefined {
+  const zone = parseZone(script);
+  if (zone === null) {
+    return undefined;
+  }
+  const uses = eventScripts.filter((e) => parseZone(e)?.name === zone.name);
+  return uses.length > 1
+    ? `Another zone is also named "${zone.name}"`
+    : undefined;
+}
