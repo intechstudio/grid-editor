@@ -211,7 +211,7 @@ The zone knob mimics the Radial:
 - `read="angle"`, with `mode="abs"` (jump) or `mode="rel"` (angular change × `speed`, the counterpart of TouchOSC's Factor). The default is `abs`, as in TouchOSC.
 - The usable arc is about 300°, with a dead gap at the bottom, the same as a physical pot.
 - The painter draws an **arc on the zone's outer ring** of LEDs, so the indicator follows the value around the knob whatever the input style.
-- `drag="v"` or `drag="h"` swaps the reader for vertical or horizontal drag, the DAW way (Ableton and Bitwig drag vertically, many plugins offer both). The arc painter stays. Because kinds are option presets, this is one option, not a new kind. `drag` doesn't change `mode`: DAW-style drag also needs `mode="rel"`, which the block face writes together with `drag`.
+- `drag="v"` or `drag="h"` swaps the reader for vertical or horizontal drag, the DAW way (Ableton and Bitwig drag vertically, many plugins offer both). The arc painter stays. Because kinds are option presets, this is one option, not a new kind. `drag` doesn't change `mode`: DAW-style drag also needs `mode="rel"`. In v1 the user sets both; the block face doesn't couple them (a feedback question, 13).
 - An endless variant (`endless=1`, the TouchOSC Encoder) is a later addition. It fits the same reader.
 
 Resolution note: a 3×3 knob has about 341 raw positions across, so roughly 1000 around its ring, which is enough for a 7-bit absolute knob. For 14-bit output on a small knob, relative mode with `speed < 1` or vertical drag still gives finer control than absolute angle.
@@ -644,3 +644,36 @@ Each of these is welcome if it fits cleanly later. None of them may change the v
 - TouchOSC manual, *Control Reference*: Radial (angular, Absolute/Relative response, Factor) and Encoder — https://hexler.net/touchosc/manual/controls
 - docs.intech.studio: *File Manager* (page-folder `require`, profiles with files), *MIDI RX*, *RX Mode*, *Utility Event*
 - HANGAR `src/lib/sandbox/` (behaviour reference only)
+
+## 13. Feedback round: v1 test profiles
+
+v1 is checked with synthetic touches. What's left is how it feels with a finger and how it works with a DAW. Six profiles, one scenario each, collect that feedback. Each profile:
+
+- is a normal ZONA page profile in the user's profile folder (`grid-userdata/configs`, `configType: "profile"`), named `ZONA test N – <scenario>`;
+- **carries `zona.lua` in `files`** (the compressed text, as the module holds it). Loading a profile with files clears the page folder before writing them, so a profile without the library would leave its zones with nothing to `require`;
+- replaces the whole page, including the factory demo code on the touch Setup and the `print` on the touch Timer (5);
+- has Touch Tick on the touch Timer and Touch Utility on the system utility event, so mapping mode and page changes work;
+- fits in the Setup budget (5): about 7 plain zones, 5–6 with extra options or Receive MIDI;
+- lists in its description what is on the surface (zone, cells, settings, MIDI) and the questions to answer.
+
+Load them on pages 1–4 and store, so the utility button also tests page changes and `require` from each page folder. Report per profile: what felt wrong, what was surprising, and anything you expected and didn't find.
+
+| # | Profile | Surface | Decision points |
+|---|---|---|---|
+| 1 | Faders | Five vertical faders: abs 7-bit with a touched note, abs 14-bit, rel (speed 0.5), glide (ease), NRPN; one horizontal fader. Painters fill, dot, comet. | Sensor direction and reach to the edges. Abs vs rel vs glide: right defaults for speed and ease? Is 14-bit smoother in a DAW? Touched note useful for automation? |
+| 2 | Pads | Three momentary pads, a radio group of three toggles, a 4-step button. | Tap reliability and `leave` on buttons. Radio and step LED states readable? Should buttons in a group default to toggle (5)? |
+| 3 | XY and knobs | Large XY pad (crosshair), knob absolute (angle), knob with vertical drag (`mode="rel"`, like a DAW knob), knob relative. | Angle vs drag: which should be the default, and should Knob drag set `rel` by itself? Drag speed (one knob height for the full range). Knob gap and pick-up after crossing it. XY crosshair readable? |
+| 4 | Live swipe | Six one-column faders with `grab=live`, release fade, low sensitivity on half (a seventh didn't fit: about 125 characters per zone with these options). | Swiping across faders, several fingers at once, fade on release, sensitivity presets (do `l`/`n`/`h` differ enough?). |
+| 5 | DAW sync | Three faders (one 14-bit) and two toggles with Receive MIDI on (about 140 characters per zone with Receive). | Feedback from the DAW (value and LEDs), touch wins, no echo. MIDI learn through mapping mode: window length (300 ms), the one-message rule, second press to exit, page change when the window runs out with no touch. |
+| 6 | HID | XY pad driving Mouse Move (relative, `res=14`, `speed=0.0125`, `d()` per axis), a fader on a Gamepad Axis, a button on a Keyboard key. | Do ordinary blocks inside a zone feel right? Mouse speed scaling. Is the getter suggestion enough, or do users need presets? |
+
+The answers decide the follow-ups after v1: defaults that may only change before release (4.2, 6.5), the editor hints from section 5 (factory demo code, momentary radio), and which stretch goal comes first.
+
+Found while building them (synthetic touches, to confirm with a finger):
+
+- A 4-step button's top step is 126, not 127: the step size is rounded before it is added up.
+- A relative zone clamps at its range, so a mouse driven by `self:d()` stops moving at the end of the range: about 80 full swipes in one direction at the profile's speed (0.0125). HID use may need a relative mode that doesn't clamp.
+- Low sensitivity (`sens=l`) stops smoothing at lift, so the value can stay a few steps short of where the finger left. Held still, it catches up within about 100 ms.
+- A new press resends the zone's current value (the duplicate filter resets per press, 4.1).
+- Mapping mode lets one identity through as a stream: a fader being mapped keeps sending its CC (4.7). Mapping a toggle also switches it.
+
