@@ -383,7 +383,13 @@ The library itself sets nothing up beyond returning its table. Library-specific 
 | `ztk` | Touch Tick | touch Timer | single | interval, LED divider, mapping window |
 | `zut` | Touch Utility | system utility | single | `Z.util(self)` |
 
-The zone blocks follow `Function_Start.svelte`: `compositeLua: [{ short: "zen", script: "end)" }]` plus the default MIDI block, so adding a zone inserts three actions.
+The zone blocks follow `Function_Start.svelte`: `compositeLua: [{ short: "gms", script: "self:gms(-1,-1,-1,-1)" }, { short: "zen", script: "end)" }]`, so adding a zone inserts three actions. The zone line itself comes from an optional `defaultLuaIn(scripts)` on the block information, so the picker can give the next free name (`f1`, `b2`, …) for the event it inserts into.
+
+- **Open lines and the bracket check.** `GridAction.updateData` refuses scripts with unclosed brackets, and a zone line leaves `(` open until its `end)`. The check therefore runs on the block's syntax preprocessor output (`$SCRIPT$ end)`) when the preprocessor wraps the script, and on the script itself otherwise, so every existing block is checked as before.
+- **Unknown values stay visible.** An enum value the editor doesn't know (a newer library's painter) is shown as "value (unknown)" with the validator's message; opening a face never writes.
+- **Module type.** Touch blocks declare `moduleTypes: [ZONA]`, so the picker doesn't offer them, Touch Utility included, on other modules' system element.
+- **Zones inside a zone body** are not allowed: the library raises "zone inside a zone body" and leaves the surface intact. The picker doesn't stop it yet (inside composites isn't filtered), which phase 3 adds.
+- **Duplicate zone names start a new run.** While Setup is built block by block before Touch Start exists, every send re-runs it and nothing activates the zones, so the library treats a zone name that is already pending as the start of a new run and drops the pending ones. The flip side: a duplicate name inside one Setup (a pasted zone block keeps its name) drops the zones before it. The editor must therefore rename pasted or duplicated zones and treat a duplicate name as an error that stops the send.
 
 **Module layout** (`src/renderer/config-blocks/touch/`):
 
