@@ -241,7 +241,7 @@ The body is the hook. Anything an element event can do, a zone body can do: If b
 **Entering, without release detection.** The utility event only fires on press, and there's no hold time. A `Z.util(self)` block on the utility event replaces `gpl(gpn())` and uses a short window instead:
 
 1. Utility press: set an "armed" flag and note the tick count. The page does **not** change yet.
-2. The existing touch tick (`Z.tick`) watches the window (default 300 ms, a Touch Tick option).
+2. The existing touch tick (`Z.tick`) watches the window (default 300 ms, a Touch Tick option). The firmware has no millisecond clock in Lua (and `os.clock()` is not a known wall clock on the module), so the window is counted in ticks: `Z.tick(self,{win=300,ms=20})`, where `ms` is the Timer period the Touch Tick block also writes into its `gtt`. If no tick has run since `Z.start` (no Touch Tick block), `Z.util` changes page at once, so the utility button never gets stuck.
 3. A touch inside the window: mapping mode **on**. That touch is already the first mapping touch. The page doesn't change.
 4. The window ends with no touch: change page (`gpl(gpn())`), as today.
 5. In mapping mode, a **second utility press** turns it off. It doesn't change page.
@@ -262,7 +262,7 @@ Using the touch tick for the window means no second timer and nothing on the sys
 
 Because the message still goes through `self:gms` with the same arguments, 14-bit CC pairs, NRPN and note on/off come out byte-for-byte as in normal use. Gamepad, mouse and keyboard calls are muted in mapping mode.
 
-**Utility ownership** stays manual for now: to use mapping mode, the user removes the default `gpl(gpn())` block from the utility event and adds the Touch Utility block. The Touch Start block shows a hint when the utility event has no `Z.util`.
+**Utility ownership** stays manual for now: to use mapping mode, the user removes the default `gpl(gpn())` block from the utility event and adds the Touch Utility block. The Touch Start block shows a hint when the utility event has no `Z.util`. Touch Utility needs Touch Tick; the editor adds it when missing. Contacts held when mapping mode starts are released first, so no note stays on. Buttons are mapped with a tap: a moving press on a button still counts as a tap.
 
 ### 4.8 MIDI RX sync
 
@@ -275,11 +275,12 @@ Users already know the MIDI block's "Receive MIDI" section (value sync, LED sync
 - `Z.start` sets `self.midirx_cb` on the touch element **only if** something registered. With no RX in any zone, incoming MIDI costs nothing.
 - An unmatched message costs one table lookup on a numeric key. Most traffic stops there.
 - The decoder handles what the MIDI block can send: 7-bit CC and note; 14-bit CC (MSB on `cc`, LSB on `cc+32`, MSB applied at once and refined by the LSB); NRPN (a per-channel 99/98/6/38 state machine); pitch bend. The 14-bit and NRPN paths are only active when such an output is registered.
-- **Value sync** sets the zone value (scaled into `res`) and, in `glide`/`rel`, the target too. **LED sync** marks the zone dirty; the next tick repaints. Dense automation therefore costs at most one repaint per zone per tick, not one per message. Neither sends MIDI, so there is no echo.
+- **Value sync** sets the zone value (scaled into `res`) and, in `glide`/`rel`, the target too. **LED sync** marks the zone dirty; the next tick repaints. Dense automation therefore costs at most one repaint per zone per tick, not one per message. Neither sends MIDI, so there is no echo. Painters draw the zone value, so LED sync without value sync shows nothing in v1. Value sync also updates the duplicate filter, so moving back to the previously sent value is not dropped. The send and the `gmrr` registration must use the same `mode` (phase 3 writes it explicitly in both inside a zone); 14-bit and NRPN registrations key on CC 176 whatever `cmd` says, as `gms` sends them. NRPN uses CC 99/98/6/38 on its channel.
 - **Touch wins:** RX for a zone is ignored while a contact owns it.
 - **Toggles, steps and groups:** an incoming "on" for a group member makes it the active member, with no output.
-- **SysEx is an advanced concept, left to user code.** The library doesn't set `sysexrx_cb` or `eventrx_cb`, so they stay free: a user who needs SysEx sets `self.sysexrx_cb` in a Code block on Setup, as on any element, and can update zones from it with `Z.set(name, value)`, the same path value sync uses. That user also takes on the processing cost of the SysEx traffic they choose to handle. If a common SysEx use shows up later (a DAW sending values or names as SysEx), it can become an opt-in library feature that chains the user's callback the same way `midirx_cb` does. Nothing in v1 blocks that.
+- **SysEx is an advanced concept, left to user code.** The library doesn't set `sysexrx_cb` or `eventrx_cb`, so they stay free: a user who needs SysEx sets `self.sysexrx_cb` in a Code block on Setup, as on any element, and can update zones from it with `Z.set(name, value)`, the same path value sync uses, including "touch wins". That user also takes on the processing cost of the SysEx traffic they choose to handle. If a common SysEx use shows up later (a DAW sending values or names as SysEx), it can become an opt-in library feature that chains the user's callback the same way `midirx_cb` does. Nothing in v1 blocks that.
 - If the user's own Setup code assigns `self.midirx_cb` before `Z.start`, the library calls it after its own handling. `Z.start` is always the last block, so this order holds.
+- The firmware keeps an element's callbacks when a new config is sent to RAM. A `midirx_cb` left by the previous Setup (seen on hardware when a page switched from hand-written code to zones) therefore looks like the user's own and is chained until the page reloads. `Z.start` drops it from the second run on, because it then finds `Z.rx`. Open: whether phase 3 clears it (see 10).
 
 **Later, optional firmware help:** a `gmrr` variant that calls a Lua function with the decoded 14-bit/NRPN value would remove the NRPN parser from Lua. It isn't needed for v1.
 
@@ -345,6 +346,7 @@ local p=string.format("/%02X/",gpc())Z=require(p.."zona")L=require(p.."layout")
 - Per-row status from the connected module: *missing* (not in the page folder), *not loaded* (in the folder, but the global is not bound, e.g. Setup failed before the file existed; **Reload**), *present*, or, for registry libraries, *older than bundled* or *newer than bundled*. Presence comes from the folder listing, the version from the bound global (6.4).
 - **Install** and **Update** buttons for registry libraries: the same path the File Manager uses to save a `.lua` file (2.1). That is `writeFileContent` of `GridScript.compressScript(source)` into the page folder, then `invalidateLuaModule("/PP/zona")`. The key must be the full `require` path. The File Manager's save passes the bare file name, which doesn't clear a page-folder module, so don't copy that call. Afterwards the editor re-runs that element's Setup in the running VM (`pcall(ele[i].ini, ele[i])`, the system element is `ele[#ele]`). Re-sending the config would mark the page as changed. The whole Setup runs again, so its side effects repeat (MIDI sent from Setup, timers, callbacks reassigned), and other elements keep the old table until the page reloads. Library-specific setup such as `Z.start` must be safe to run twice. **Reload** on a *not loaded* row is the same re-run without a write. Known v1 limit: a registry file that is present but broken shows *not loaded*, and Reload fails with the Setup error; the block offers no rewrite, so the user deletes the file in the File Manager to get **Install** back.
 - A missing file is a **warning** in the editor, not an error. Offline and virtual modules can't check files.
+- **Global name clashes.** Globals are shared by every element on the page, so the chosen name can overwrite a global that user code on another element defines. Seen on hardware: a system Timer defined `function Z(x,y)` for its own LED painter, `Z=require(…)` replaced it, and the old code failed with "attempt to call a table value (global 'Z')". The block should warn when another event on the page assigns the same global (a text check of the page's scripts for `Z=` or `function Z`).
 - On the module, a missing (or failing) file is not harmless: the `require` throws, and the **rest of that Setup event does not run**. The line stays an unguarded `require` on purpose: it costs no extra characters, the error names the missing file in the debug log, and the blocks that use the global (zones, `Z.start`) could not work without it anyway. A guarded form (`pcall`) would hide the cause and leave the global unset or wrong. Instead the block makes the state visible at once: the row shows *missing* with **Install** as soon as it is added, and Install re-runs that element's Setup.
 
 **Registry** (`src/renderer/libraries/registry.ts`):
@@ -454,7 +456,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 - In the repo: `src/renderer/libraries/zona/zona.lua`, with `Z.VERSION` (semver).
   - Minor: new options or painters. Old blocks keep working. Defaults don't change.
   - Major: block syntax or defaults change, and the editor migrates blocks.
-- Uploaded the way the File Manager saves `.lua` files: `GridScript.compressScript(source)`, which minifies and **keeps comments** (2.1). Opened in the File Manager, it shows expanded, like any other page file. No upload transform of its own. The ~15 KB guideline applies to the compressed size, comments included, so keep comments short.
+- Uploaded the way the File Manager saves `.lua` files: `GridScript.compressScript(source)`, which minifies and **keeps comments** (2.1). Opened in the File Manager, it shows expanded, like any other page file. No upload transform of its own. The size budget applies to the compressed size, comments included, so keep comments short. Phase 2 ended at 15 KB (0.5.0); from phase 3 the budget is 20 KB, and the hard ceiling is 30 KB (the user's limit; larger files have run fine so far). Every page folder holds its own copy, and `require` compiles it on each page change, so staying well below the ceiling still matters.
 - Because `compressScript` runs `shortify`, the source uses the firmware's short names and never uses a human name (`GridScript.validator.lookup`) as its own identifier, table key or string content. Those would be rewritten on upload.
 - Unit tests run the library in a Lua VM under vitest (wasmoon, Lua 5.4; the firmware runs 5.5, so the compressed library is also checked with a 5.5 `luac -p` before release). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still contains `Z.VERSION="x.y.z"`, so the version survives.
 
@@ -537,6 +539,8 @@ Not needed any more: `ZoneOutput`, output keys, `rx` keys, the `on` callback opt
    - `require` from a page folder after a page change, and after re-upload plus `invalidateLuaModule`.
    - Tick CPU cost with 5 contacts at 20 ms, and with an LED divider of 2.
    - Mapping window: does 300 ms feel right for page changes?
+
+   Phase 0 was skipped; phase 2 answered some of it on hardware (firmware 1.5.5). The touch element's `midirx_cb` receives CC voice messages, including 14-bit pairs. The library's own 14-bit expansion sends clean MSB/LSB pairs. The tick cost is in section 9. Still open: NRPN on hardware, `require` after a page change, 5 contacts, and how the window feels.
 1. **Library block.** Registry, `lib` parse and serialize, page-folder file status, install and update. Useful on its own, and VSN1 can start using it.
 2. **Library v1 + Lua tests.** Defaults-match test against `zone-model.ts`, pipeline, zone `self` and autos, duplicate filter, resolution, capture, modes, sensitivity, steps, groups, painters, dry run and RX sync, mapping mode.
 3. **Touch blocks.** Zone model, parse and serialize, composite open/close, default body, per-zone and surface validators, `ZoneBlock.svelte`, picker filtering, suggestions inside zones, the `touch` category.
@@ -556,13 +560,13 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 - **Setup budget.** Containers with normal blocks cost about twice rev 2's tables (section 5). 7–9 simple zones covers the common layouts (a row of faders, a pad, a few buttons) but not 16 pads with RX. Measure against real layouts in phase 3.
 - **Dry run side effects.** User code in a body runs once at `Z.start` with outputs muted. Code that writes globals or starts timers would do so too. Mitigated by `self:dry()` and docs.
 - **Implicit duplicate filter.** `self:gms` drops repeated values per identity. A user who wants to resend the same value (rare) needs plain `gms(...)` instead of `self:gms`. Document it.
-- **Tick cost.** Interval and LED divider are options on the Touch Tick block. Measure on ESP32-S3 with 5 contacts and comet trails to pick defaults.
+- **Tick cost.** Interval and LED divider are options on the Touch Tick block. Measure on ESP32-S3 with 5 contacts and comet trails to pick defaults. First measurement (phase 2, ZONA, firmware 1.5.5, 8 zones, timed as 100 calls in one Lua chunk): an idle `Z.tick` costs about 1.5 ms, about 5 ms when every zone repaints, so about 8% and 26% of a 20 ms tick. Idle cost grows with the zone count; skipping zones with nothing pending is the first optimisation if needed.
 - **Library load on every page change.** The VM restarts, so `require` reads and compiles the file each time. Measure page switch time.
 - **Output flood.** The rate limit protects USB MIDI. Test 14-bit output and RX sync on several zones at once.
 - **RX data load.** `midirx_cb` is only set when a zone registered RX; unmatched messages cost one lookup; LED sync repaints at most once per tick. Measure with dense automation.
 - **Resolution expectations.** The sensor gives 10 bits across the whole surface, so small zones get 8–9 bits of real position. 14-bit absolute output on a small zone is interpolated. Mitigated by the positions hint (4.2).
 - **Mapping window delays page change.** Every page change waits for the window. If 300 ms feels slow, shorten it.
-- **Copies per page.** Several versions of the library can be in flash at once. That's acceptable at ~15 KB each.
+- **Copies per page.** Several versions of the library can be in flash at once. That's acceptable at the 20 KB budget each (6.4).
 - **Edit vs device drift.** A user can edit `zona.lua` in the FileManager. Version read-back catches a different version but not local edits. A checksum could be added later.
 
 ## 10. Open questions
@@ -586,7 +590,7 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 
 **Still open**
 
-None at the moment.
+- *Stale `midirx_cb` after a config change (4.8):* clear `self.midirx_cb` in the first touch block of Setup (costs characters, and breaks user code placed before it), or accept that the stale callback runs until the page reloads.
 
 ## 11. Stretch goals
 
