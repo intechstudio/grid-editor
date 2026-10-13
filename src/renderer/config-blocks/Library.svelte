@@ -267,6 +267,18 @@
     reload: ["Reload", "Reloading..."],
   };
 
+  // Rows the module doesn't have yet: unfinished (the action is invalid, so
+  // the event isn't sent) or not dispatched. Install/Update/Reload re-run the
+  // Setup in module RAM and release the globals it binds, so they wait until
+  // the rows are sent: the editor doesn't track what module RAM holds.
+  let unsent = false;
+  $: unsent =
+    $action.invalid ||
+    !sameRows(
+      rows.map((e) => ({ global: e.global, file: e.file })),
+      parseLibraryScript($action.script) ?? [],
+    );
+
   // Install and Update write the bundled source; all three then re-run this
   // element's Setup so the rows are bound without resending the config.
   async function handleLibraryAction(
@@ -276,18 +288,29 @@
     busy = { ...busy, [file]: true };
     actionErrors = { ...actionErrors, [file]: undefined };
     let written = false;
+    let released = false;
     try {
       const library = findLibraryByFile(file);
       if (kind !== "reload" && typeof library !== "undefined") {
         await installLibrary(library, page.pageNumber, module);
         written = true;
       }
-      await rerunSetup(element.elementIndex, module);
+      // the globals of the sent script (the same as the rows, see unsent)
+      const globals = (parseLibraryScript(action.script) ?? []).map(
+        (e) => e.global,
+      );
+      released = true;
+      await rerunSetup(element.elementIndex, module, globals);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
+      // rerunSetup unbinds the globals before Setup runs, to free RAM; after
+      // a failed Setup they stay unbound until the page loads again
+      const recovery = released
+        ? ". Change to another page and back to reload it"
+        : "";
       actionErrors = {
         ...actionErrors,
-        [file]: written ? `Installed, but ${message}` : message,
+        [file]: `${written ? `Installed, but ${message}` : message}${recovery}`,
       };
     } finally {
       await refresh();
@@ -409,11 +432,17 @@
                 {#if typeof buttonAction !== "undefined"}
                   <MoltenPushButton
                     text={ACTION_LABELS[buttonAction][busy[row.file] ? 1 : 0]}
-                    disabled={busy[row.file] === true}
+                    disabled={busy[row.file] === true || unsent}
                     click={() => handleLibraryAction(row.file, buttonAction)}
                   />
                 {/if}
               </div>
+            {/if}
+            {#if unsent && typeof buttonAction !== "undefined"}
+              <span class="text-xs text-gray-500"
+                >Finish the rows first: {ACTION_LABELS[buttonAction][0]} runs the
+                Setup on the module.</span
+              >
             {/if}
             {#if actionErrors[row.file]}
               <span class="text-xs text-error">{actionErrors[row.file]}</span>

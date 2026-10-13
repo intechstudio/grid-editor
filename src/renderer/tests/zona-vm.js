@@ -123,6 +123,12 @@ export async function createZonaVM(env = {}) {
         lua.doStringSync("Z.tick(el,{led=1,win=300})");
       }
     },
+    // Lua memory in KB after full collections.
+    kb() {
+      return lua.doStringSync(
+        "collectgarbage() collectgarbage() return collectgarbage('count')",
+      );
+    },
     // Recorded calls of one firmware function since the last clear().
     calls(fn) {
       return log.filter((e) => e.fn === fn);

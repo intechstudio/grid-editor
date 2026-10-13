@@ -86,13 +86,27 @@ export async function installLibrary(
 // firmware defined (`ele[i].ini`, grid_ui.c) instead of resending the
 // config, which would mark the page as changed. The system element (255) is
 // the last entry of `ele`.
+//
+// Before that, each global in `globals` (the ones the block binds) is
+// released, so the old library and what it holds are freed before Setup
+// builds the new one: module RAM can't hold both. A library may export
+// `unload(self)`; it is called with the element first, then the global is set
+// to nil and a full collection runs. All in one chunk.
 export async function rerunSetup(
   elementIndex: number,
   module: GridModule,
+  globals: readonly string[] = [],
 ): Promise<void> {
   const element = elementIndex === 255 ? "ele[#ele]" : `ele[${elementIndex}]`;
+  const release =
+    globals.length === 0
+      ? ""
+      : `for _,n in ipairs({${globals.map((e) => JSON.stringify(e)).join(",")}}) do ` +
+        `local g=rawget(_G,n) if type(g)=="table" and type(g.unload)=="function" then pcall(g.unload,e) end ` +
+        `_G[n]=nil end collectgarbage() `;
   const { value } = await module.execLUAImmediateAndEvalaute(
     `local e=${element} if not(e and e.ini)then return false,"no Setup" end ` +
+      release +
       `local ok,err=pcall(e.ini,e) return ok,ok and nil or tostring(err):sub(1,120)`,
   );
   if (value[0] !== true) {

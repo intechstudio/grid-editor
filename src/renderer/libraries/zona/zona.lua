@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.6.0"
+Z.VERSION = "0.7.0"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -51,11 +51,10 @@ Z.gp = {}
 Z.ng = {}
 Z.ct = {}
 Z.tn = 0
--- per cell x+y*9: LED, last colour key, last phase
-Z.li = {}
+-- per cell x+y*9: last colour key, last phase; Z.el: the LEDs' owner index
 Z.lk = {}
 Z.lc = {}
-Z.ow = {}
+Z.el = 0
 Z.R = {}
 Z.og = {}
 -- muted: all in the dry run, the first 6 in mapping mode
@@ -102,7 +101,10 @@ local function run(z, s)
   end
 end
 
--- rate: a run within rt ticks of the last waits for Z.tick
+-- read-only stand-in for tables a zone creates only when it needs them
+local E = {}
+
+-- rate: a run within rt ticks of the last waits for Z.tick; lr/pd only with rt
 local function put(z, k, val)
   if z.u[k] ~= val then
     z.u[k] = val
@@ -110,14 +112,16 @@ local function put(z, k, val)
     if z.rt > 0 and Z.tn > 0 and Z.tn - (z.lr[k] or -99) < z.rt then
       z.pd[k] = 1
     else
-      z.lr[k] = Z.tn
+      if z.rt > 0 then
+        z.lr[k] = Z.tn
+      end
       run(z, k)
     end
   end
 end
 
 local function fl(z, a)
-  for k in pairs(z.pd) do
+  for k in pairs(z.pd or E) do
     if a or Z.tn - z.lr[k] >= z.rt then
       z.pd[k] = nil
       z.lr[k] = Z.tn
@@ -352,7 +356,8 @@ P.comet = function(z, i, j, n)
 end
 local function xy(z, i, j)
   local c = z.c
-  return math.abs(z.q.x * (c[3] - 1) - i), math.abs((1 - z.q.y) * (c[4] - 1) - j)
+  local q = z.q
+  return math.abs((q.x or 0) * (c[3] - 1) - i), math.abs((1 - (q.y or 0)) * (c[4] - 1) - j)
 end
 P.crosshair = function(z, i, j)
   local a, b = xy(z, i, j)
@@ -375,9 +380,11 @@ P.arc = function(z, i, j, n)
   return n > 0 and t >= 0 and t <= n and 1 or 0
 end
 
+-- LED x of cell e, looked up only when it is written
 local function lit(e, k, cc, ph)
-  local x = Z.li[e]
+  local x
   if Z.lk[e] ~= k then
+    x = glag(Z.el, e) or e
     Z.lk[e] = k
     local u = table.unpack
     gln(x, 1, u(cc[1]))
@@ -385,6 +392,7 @@ local function lit(e, k, cc, ph)
     glx(x, 1, u(cc[3]))
   end
   if Z.lc[e] ~= ph then
+    x = x or glag(Z.el, e) or e
     Z.lc[e] = ph
     glp(x, 1, ph)
   end
@@ -392,6 +400,19 @@ end
 
 local function bd(e)
   return e % 9 % 8 == 0 or e // 9 % 8 == 0
+end
+
+-- zone painting cell e (the last one, as painted)
+local function own(e)
+  local o
+  for _, z in ipairs(Z.zs) do
+    local c = z.c
+    local i, j = e % 9 - c[1], e // 9 - c[2]
+    if i >= 0 and j >= 0 and i < c[3] and j < c[4] then
+      o = z
+    end
+  end
+  return o
 end
 
 local function paint(z)
@@ -434,8 +455,9 @@ local function mm(on)
   mute(on and 6 or 0)
   for e = 0, 80 do
     if bd(e) then
-      if Z.ow[e] then
-        Z.ow[e].dt = 1
+      local z = own(e)
+      if z then
+        z.dt = 1
       else
         lit(e, Z.lk[e], nil, on and 24 or 0)
       end
@@ -470,12 +492,49 @@ local function sy(z, s, v, r)
   z.dt = 1
 end
 
+-- releases the running surface (held zones send their release) and keeps no
+-- reference to it: a new surface is built without the old one in RAM, and a
+-- Setup that fails before Z.start leaves an empty surface
+local function drop()
+  rl()
+  if Z.mp then
+    mm()
+  end
+  Z.zs, Z.ct, Z.R, Z.N, Z.ns = {}, {}, {}, {}, {}
+  Z.mz, Z.ms, Z.mi, Z.aw, Z.lv = nil
+end
+
+-- A Setup runs to its end before any tick or touch, so zones still pending
+-- then are left from a Setup that failed: drop them, or the next run would
+-- append to them
+local function stale()
+  if Z.nz[1] or next(Z.ng) then
+    Z.nz, Z.ng = {}, {}
+  end
+end
+
+-- the first zone or group of a Setup run drops the previous surface
+local function first()
+  if not (Z.nz[1] or next(Z.ng)) then
+    drop()
+  end
+end
+
+-- options read through: zone opt -> kind preset -> Z.def (no copy per zone)
+local KM = { [""] = { __index = Z.def } }
+for kind, p in pairs(Z.kind) do
+  local t = setmetatable({}, KM[""])
+  for k, val in pairs(p) do
+    t[k] = val
+  end
+  KM[kind] = { __index = t }
+end
+
 function Z.zone(n, x, y, w, h, opt, f, kind)
-  local o = {}
-  for _, t in ipairs({ Z.def, Z.kind[kind] or {}, opt or {} }) do
-    for k, val in pairs(t) do
-      o[k] = val
-    end
+  first()
+  local o = setmetatable({}, KM[kind] or KM[""])
+  for k, val in pairs(opt or {}) do
+    o[k] = val
   end
   -- CC slot: xy 2, others 1
   local b = 0
@@ -514,20 +573,22 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     k = 0,
     l = {},
     u = { v = mi, x = mi, y = mi, g = 0 },
-    q = { v = 0, x = 0, y = 0 },
-    r = { v = mi, x = mi, y = mi },
+    -- position and value carry: only the sources this reader has
+    q = o.read == "point" and { x = 0, y = 0 } or { v = 0 },
+    r = o.read == "point" and { x = mi, y = mi } or { v = mi },
     tg = {},
     c = { x, y, w, h },
     br = o.release == "keep" and 1 or 0,
     iv = 255,
-    tl = {},
-    lr = {},
-    pd = {},
+    tl = o.led == "comet" and {} or nil, -- trail
   }, M)
   local p = Z.sens[o.sens] or Z.sens.n
   z.db = o.db >= 0 and o.db or p[1]
   z.sm = o.sm >= 0 and o.sm or p[2]
   z.rt = o.rt >= 0 and o.rt or p[3]
+  if z.rt > 0 then
+    z.lr, z.pd = {}, {}
+  end
   z:glc(1, { { -1, -1, -1, 1 } })
   Z.nz[#Z.nz + 1] = z
   return z
@@ -540,6 +601,7 @@ for kind in pairs(Z.kind) do
 end
 
 function Z.group(n, opt)
+  first()
   local g = {}
   for _, t in ipairs({ Z.gdef, opt or {} }) do
     for k, val in pairs(t) do
@@ -549,7 +611,8 @@ function Z.group(n, opt)
   Z.ng[n] = g
 end
 
--- Caveat: zones of a Setup that errors before this stay pending
+-- zones of a Setup that errors before this stay pending until the next tick
+-- or touch (stale)
 function Z.start(self)
   self:txma(1023)
   self:tyma(1023)
@@ -568,7 +631,6 @@ function Z.start(self)
   Z.ct = {}
   Z.lk = {}
   Z.lc = {}
-  Z.ow = {}
   Z.R = {}
   Z.ns = {}
   Z.N = {}
@@ -592,19 +654,13 @@ function Z.start(self)
   local u = self.midirx_cb
   Z.uc = u ~= Z.rx and u or nil
   self.midirx_cb = next(Z.R) and Z.rx or Z.uc
-  for e = 0, 80 do
-    Z.li[e] = glag(self:ind(), e) or e
-  end
+  Z.el = self:ind()
   for _, z in ipairs(Z.zs) do
-    local c = z.c
-    for e = 0, c[3] * c[4] - 1 do
-      Z.ow[c[1] + e % c[3] + (c[2] + e // c[3]) * 9] = z
-    end
     paint(z)
   end
   local d = { color_curve({ { -1, -1, -1, 1 } }) } -- default colour for the frame
   for e = 0, 80 do
-    if not Z.ow[e] then
+    if not own(e) then
       lit(e, 0, d, 0)
     end
   end
@@ -616,6 +672,7 @@ function Z.tick(self, cfg)
   cfg = cfg or t
   local ms = cfg.ms or t.ms
   gtt(self:ind(), ms) -- re-arm first: a body error can't stop the tick
+  stale()
   Z.tn = Z.tn + 1
   local d = cfg.led or t.led
   if Z.aw and (Z.tn - Z.aw) * ms > (cfg.win or t.win) then
@@ -643,7 +700,7 @@ function Z.tick(self, cfg)
       z.br = ap(z.br, 0, 0.05, 0) -- 20 ticks
       z.dt = 1
     end
-    for e, v in pairs(z.tl) do
+    for e, v in pairs(z.tl or E) do
       z.tl[e] = v > 0.05 and v * 0.7 or nil -- trail: 70% per tick
       z.dt = 1
     end
@@ -705,6 +762,7 @@ local function route(id, evt, x, y)
 end
 
 function Z.touch(self, id, evt, x, y)
+  stale()
   if Z.raw then
     Z.raw(self, id, evt, x, y)
   end
@@ -878,13 +936,18 @@ function M:dry()
   return Z.dr == 1
 end
 
+-- zones with the same colour share one curve; weak, so dynamic colours go
+local CC = setmetatable({}, { __mode = "v" })
+
 -- layer is always 1
 function M:glc(l, c)
   local x, y, w = color_curve(c)
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
   if k ~= self.ck then
-    self.ck = k
-    self.cc = { x, y, w }
+    local e = CC[k] or { x, y, w, k }
+    CC[k] = e
+    self.ck = e[4]
+    self.cc = e
     self.dt = 1
   end
 end
@@ -917,6 +980,21 @@ function M:count()
 end
 function M:src()
   return self.s
+end
+
+-- The Library block calls a library's unload(self) before it re-runs Setup
+-- (Update, Reload). Acts on this instance only, so an old one can be unloaded
+-- after a new one is loaded.
+function Z.unload(self)
+  drop()
+  Z.nz, Z.ng, Z.gp, Z.lk, Z.lc = {}, {}, {}, {}, {}
+  if self.touch_cb == Z.touch then
+    self.touch_cb = nil
+  end
+  if self.midirx_cb == Z.rx then
+    self.midirx_cb = Z.uc
+  end
+  Z.uc = nil
 end
 
 return Z

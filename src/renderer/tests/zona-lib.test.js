@@ -379,7 +379,12 @@ describe("defaults", () => {
 
   test("kind presets apply over the defaults, options over both", async () => {
     const vm = await zones(`Z.button("b",0,0,1,1,{res=8})`);
-    expect(vm.run("return Z.zs[1].o")).toEqual({
+    // z.o reads through to the kind preset and Z.def
+    expect(
+      vm.run(
+        "local o,r=Z.zs[1].o,{} for k in pairs(Z.def) do r[k]=o[k] end return r",
+      ),
+    ).toEqual({
       ...zoneDefaults,
       ...zoneKinds.button,
       res: 8,
