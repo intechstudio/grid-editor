@@ -3,6 +3,7 @@
 
 import { GridScript } from "@intechstudio/grid-protocol";
 import {
+  createDir,
   fetchDirEntries,
   invalidateLuaModule,
   pageNumberToFolderPath,
@@ -19,11 +20,36 @@ export function libraryModulePath(pageNumber: number, file: string): string {
   return `${pageNumberToFolderPath(pageNumber)}${file}`;
 }
 
-// Module names (without ".lua") of the Lua files in a page folder.
+// Whether a root listing holds the page folder ("/02/" → a dir "02").
+export function hasPageFolder(
+  root: { name: string; type: string }[],
+  folder: string,
+): boolean {
+  const name = folder.replace(/^\/|\/$/g, "");
+  return root.some((e) => e.type === "dir" && e.name === name);
+}
+
+// Listing a folder that doesn't exist doesn't answer (seen after an NVM
+// erase), so the root is listed first.
+async function pageFolderExists(
+  pageNumber: number,
+  module: GridModule,
+): Promise<boolean> {
+  return hasPageFolder(
+    await fetchDirEntries("/", module),
+    pageNumberToFolderPath(pageNumber),
+  );
+}
+
+// Module names (without ".lua") of the Lua files in a page folder. A missing
+// folder has none, so its libraries show as missing and can be installed.
 export async function listPageLibraries(
   pageNumber: number,
   module: GridModule,
 ): Promise<string[]> {
+  if (!(await pageFolderExists(pageNumber, module))) {
+    return [];
+  }
   const entries = await fetchDirEntries(
     pageNumberToFolderPath(pageNumber),
     module,
@@ -70,6 +96,13 @@ export async function installLibrary(
   pageNumber: number,
   module: GridModule,
 ): Promise<void> {
+  // A page folder exists only once something was saved there.
+  if (!(await pageFolderExists(pageNumber, module))) {
+    await createDir(
+      pageNumberToFolderPath(pageNumber).replace(/\/$/, ""),
+      module,
+    );
+  }
   await writeFileContent(
     `${pageNumberToFolderPath(pageNumber)}${library.file}`,
     GridScript.compressScript(library.source),

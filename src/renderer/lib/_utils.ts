@@ -16,6 +16,15 @@ import {
   readModuleMidiChannel,
   readModuleMidiChannelState,
 } from "../runtime/system-midi-channel";
+import {
+  type ZoneMidiAutos,
+  gmsModeArg,
+  type ZoneGetter,
+  zoneContext,
+  zoneGetterSuggestions,
+  zoneMidiAutos,
+  zoneP1Label,
+} from "../config-blocks/touch/zone-autos";
 
 export namespace Grid {
   export type UUID = string;
@@ -32,11 +41,63 @@ export namespace Grid {
       LED_BLUE,
     }
 
+    // The autos of the touch zone whose body holds the action (RFC 4.1), or
+    // null outside a zone. They follow zona.lua, not the element: the channel
+    // ignores the page's midi_auto_ch, and the CC counts the zones before.
+    export function getZoneMidi(action: GridAction): ZoneMidiAutos | null {
+      const event = action.parent as GridEvent | undefined;
+      const actions = event?.config ?? [];
+      const index = actions.findIndex((e) => e.id === action.id);
+      const context = index === -1 ? null : zoneContext(actions, index);
+      if (context === null) {
+        return null;
+      }
+      const page = (event?.parent as GridElement).parent as GridPage;
+      const module = page.parent as GridModule;
+      return zoneMidiAutos(
+        context.zones,
+        context.index,
+        { dx: module.dx, dy: module.dy, page: page.pageNumber },
+        gmsModeArg(action.script),
+      );
+    }
+
+    // Getters of the touch zone whose body holds the action, for value
+    // fields (self:v(), self:g(), …); none outside a zone.
+    export function getZoneGetters(action: GridAction): ZoneGetter[] {
+      const event = action.parent as GridEvent | undefined;
+      const actions = event?.config ?? [];
+      const index = actions.findIndex((e) => e.id === action.id);
+      const context = index === -1 ? null : zoneContext(actions, index);
+      return context === null
+        ? []
+        : zoneGetterSuggestions(context.zones[context.index].kind);
+    }
+
+    // The "Auto (…)" text of Parameter 1: both CCs of an xy pad ("34/35").
+    export function getMidiP1Label(action: GridAction): string {
+      const zone = getZoneMidi(action);
+      return zone !== null
+        ? zoneP1Label(zone)
+        : String(getMidi(action, Value.MIDI_P1));
+    }
+
     export function getMidi(
       action: GridAction,
       param:
         Value.MIDI_CHANNEL | Value.MIDI_COMMAND | Value.MIDI_P1 | Value.MIDI_P2,
     ): number {
+      const zone = getZoneMidi(action);
+      if (zone !== null) {
+        switch (param) {
+          case Value.MIDI_CHANNEL:
+            return zone.ch;
+          case Value.MIDI_COMMAND:
+            return zone.cmd;
+          case Value.MIDI_P1:
+            return zone.p1[0];
+        }
+      }
       const event = action.parent as GridEvent;
       const element = event.parent as GridElement;
       const page = element.parent as GridPage;
@@ -75,6 +136,10 @@ export namespace Grid {
     // midi_auto_ch is a hand-written expression we can't evaluate statically,
     // shows "Expression" instead of a misleading position-default number.
     export function getMidiChannelLabel(action: GridAction): string {
+      const zone = getZoneMidi(action);
+      if (zone !== null) {
+        return String(zone.ch);
+      }
       const event = action.parent as GridEvent;
       const element = event.parent as GridElement;
       const page = element.parent as GridPage;

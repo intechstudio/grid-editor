@@ -197,4 +197,13 @@ export const touchUtilityInformation: ActionBlockInformation = {
   toggleable: true,
   elementTypes: [ElementType.SYSTEM],
   eventTypes: [EventType.UTILITY],
+  // the mapping window is timed by Touch Tick (RFC 4.7)
+  companions: [
+    {
+      eventType: EventType.TIMER,
+      short: "ztk",
+      script: zoneTickToLua({ opt: {} }),
+      elementType: ElementType.TOUCH,
+    },
+  ],
 };

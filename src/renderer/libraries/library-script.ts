@@ -256,3 +256,32 @@ export function formatLibraryScript(rows: LibraryRow[]): string {
     ...rows.map((e) => `${e.global}=require(p.."${e.file}")`),
   ].join("");
 }
+
+// Whether a script assigns the global `name` at top level, as text:
+// `Name=…`, `Name = …` (not `local Name`, `x.Name`, `x:Name` or `Name==`) or
+// `function Name(`. A Library row's global is then replaced (or replaces
+// that one), depending on which runs last (RFC 6.1).
+// Known limits of the text check: matches in comments and strings count,
+// `local a,Z=…` counts (the `local` check only looks right before the name),
+// and so does a table key `{Z=1}`.
+export function assignsGlobal(script: string, name: string): boolean {
+  const n = name.replace(/[^A-Za-z0-9_]/g, "");
+  if (n.length === 0) {
+    return false;
+  }
+  const assignment = new RegExp(`(?<![\\w.:])(?<!local\\s+)${n}\\s*=(?!=)`);
+  const declaration = new RegExp(`(?<![\\w.:])function\\s+${n}\\s*\\(`);
+  return assignment.test(script) || declaration.test(script);
+}
+
+// Where else a global is assigned: the labels of the scripts that do.
+export function globalClashes(
+  name: string,
+  scripts: { label: string; script: string }[],
+): string[] {
+  return [
+    ...new Set(
+      scripts.filter((e) => assignsGlobal(e.script, name)).map((e) => e.label),
+    ),
+  ];
+}

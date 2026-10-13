@@ -109,3 +109,15 @@ export function pickerInsertIndex(actions: Placed[], index: number): number {
     ? actions.length - 1
     : index;
 }
+
+// The element a companion goes to: the block's own element, or the first one
+// of the page with the companion's element type.
+export function companionElement<E extends { type: string }>(
+  elements: E[],
+  current: E,
+  elementType?: string,
+): E | undefined {
+  return typeof elementType === "undefined"
+    ? current
+    : elements.find((e) => e.type === elementType);
+}

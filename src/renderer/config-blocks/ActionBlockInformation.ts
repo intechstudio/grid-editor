@@ -32,7 +32,15 @@ export class SyntaxPreprocessor {
 
 export type BodyRule = { categories: string[]; excludeShorts?: string[] };
 
-export type Companion = { eventType: EventType; short: string; script: string };
+export type Companion = {
+  eventType: EventType;
+  short: string;
+  script: string;
+  // Another element of the page: the first of this type (Touch Utility, on
+  // the system element, brings Touch Tick to the touch element). Default:
+  // the element the block is added to.
+  elementType?: ElementType;
+};
 
 interface Information {
   short: string;

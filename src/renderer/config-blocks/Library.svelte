@@ -31,8 +31,8 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher, onMount } from "svelte";
-  import { Architecture } from "@intechstudio/grid-protocol";
+  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { Architecture, ElementType } from "@intechstudio/grid-protocol";
   import {
     Block,
     MeltCombo,
@@ -56,6 +56,7 @@
     isValidGlobal,
     parseLibraryScript,
     shadowsBuiltinGlobal,
+    globalClashes,
   } from "../libraries/library-script";
   import { bundledLibraries, findLibraryByFile } from "../libraries/registry";
   import {
@@ -226,7 +227,64 @@
     }
   }
 
-  onMount(refresh);
+  // The other scripts on this page, for the global clash warning (RFC 6.1),
+  // Library blocks excluded. Page-wide globals usually live on the system
+  // element, so only its events are fetched when not loaded yet (one that
+  // fails is skipped); the other elements' events are read only when the
+  // editor already has them, so opening the face on a large module doesn't
+  // fetch every event. Read once a row has a valid global, and not after the
+  // face is gone.
+  let pageScripts: { label: string; script: string }[] = [];
+  let scanStarted = false;
+  let destroyed = false;
+
+  async function readPageScripts() {
+    const scripts: { label: string; script: string }[] = [];
+    for (const element of page.control_elements) {
+      const mayFetch = element.type === ElementType.SYSTEM;
+      for (const pageEvent of element.events) {
+        if (destroyed) {
+          return;
+        }
+        try {
+          if (!pageEvent.isLoaded()) {
+            if (!mayFetch) {
+              continue;
+            }
+            await pageEvent.load();
+          }
+        } catch {
+          continue;
+        }
+        const label = `${element.getHumanName()} ${pageEvent.getName()}`;
+        for (const other of pageEvent.config) {
+          if (other.short !== "lib") {
+            scripts.push({ label, script: other.script });
+          }
+        }
+      }
+    }
+    pageScripts = scripts;
+  }
+
+  let mounted = false;
+  onMount(() => {
+    mounted = true;
+    refresh();
+  });
+  onDestroy(() => {
+    destroyed = true;
+  });
+
+  $: if (
+    mounted &&
+    !scanStarted &&
+    module.architecture !== Architecture.VIRTUAL &&
+    rows.some((e) => isValidGlobal(e.global))
+  ) {
+    scanStarted = true;
+    readPageScripts();
+  }
 
   function rowStatus(
     row: EditRow,
@@ -333,7 +391,11 @@
     (e) => ({ value: e.global, info: `${e.global} (${e.id})` }),
   );
 
-  function rowWarning(row: EditRow, all: EditRow[]): string | undefined {
+  function rowWarning(
+    row: EditRow,
+    all: EditRow[],
+    scripts: { label: string; script: string }[],
+  ): string | undefined {
     if (
       row.global !== "" &&
       all.filter((e) => e.global === row.global).length > 1
@@ -342,6 +404,12 @@
     }
     if (shadowsBuiltinGlobal(row.global)) {
       return `"${row.global}" replaces a built-in global for every script on the module`;
+    }
+    const where = isValidGlobal(row.global)
+      ? globalClashes(row.global, scripts)
+      : [];
+    if (where.length > 0) {
+      return `"${row.global}" is also assigned in ${where.join(", ")}: whichever runs last wins`;
     }
     return undefined;
   }
@@ -404,8 +472,10 @@
           </div>
           {#if rowError(row)}
             <span class="text-xs text-error">{rowError(row)}</span>
-          {:else if rowWarning(row, rows)}
-            <span class="text-xs text-warning">{rowWarning(row, rows)}</span>
+          {:else if rowWarning(row, rows, pageScripts)}
+            <span class="text-xs text-warning" data-row-warning
+              >{rowWarning(row, rows, pageScripts)}</span
+            >
           {/if}
           {#if !rowError(row)}
             {@const status = rowStatus(row, folderFiles, bindings)}

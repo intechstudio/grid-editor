@@ -36,7 +36,15 @@
 
   // Depend on $channelStore too so a change to the page's module channel
   // re-renders the preview (getDisplayValues reads it via getMidiChannelLabel).
-  $: channelPreview = ($channelStore, getDisplayValues($action));
+  // Inside a touch zone the autos also depend on other blocks (the zone's
+  // options, the zones before it), so the whole event is a dependency.
+  const event = action.parent as GridEvent;
+  $: channelPreview = previewOf($action, $channelStore, $event);
+
+  // The extra arguments are only reactive dependencies.
+  function previewOf(data: ActionData, ..._dependencies: unknown[]) {
+    return getDisplayValues(data);
+  }
 
   function handleActionChange(data: ActionData) {
     scriptSegments = Script.toSegments({
@@ -61,9 +69,12 @@
       }
       // Auto: for the channel, surface "Expression" when the module's
       // midi_auto_ch is hand-written — a resolved number would be misleading.
+      // Parameter 1 as a label: an xy zone's default block sends two CCs.
       return e === Grid.Auto.Value.MIDI_CHANNEL
         ? Grid.Auto.getMidiChannelLabel(action)
-        : Grid.Auto.getMidi(action, e);
+        : e === Grid.Auto.Value.MIDI_P1
+          ? Grid.Auto.getMidiP1Label(action)
+          : Grid.Auto.getMidi(action, e);
     });
 
     if (!isNaN(+segments[0])) {
