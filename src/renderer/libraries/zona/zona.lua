@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.5.0"
+Z.VERSION = "0.6.0"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -41,6 +41,9 @@ Z.kind = {
 Z.sens = { l = { 4, 0.5, 1 }, n = { 2, 0, 0 }, h = { 0, 0, 0 } }
 
 Z.gdef = { empty = 1 }
+
+-- Z.tick: interval (ms), LED divider, mapping window (ms)
+Z.tdef = { ms = 20, led = 1, win = 300 }
 
 Z.zs = {}
 Z.nz = {}
@@ -605,12 +608,17 @@ function Z.start(self)
       lit(e, 0, d, 0)
     end
   end
+  gtt(self:ind(), 1) -- one-shot timer: kick it, Z.tick re-arms
 end
 
 function Z.tick(self, cfg)
+  local t = Z.tdef
+  cfg = cfg or t
+  local ms = cfg.ms or t.ms
+  gtt(self:ind(), ms) -- re-arm first: a body error can't stop the tick
   Z.tn = Z.tn + 1
-  local d = cfg and cfg.led or 1
-  if Z.aw and (Z.tn - Z.aw) * (cfg and cfg.ms or 20) > (cfg and cfg.win or 300) then
+  local d = cfg.led or t.led
+  if Z.aw and (Z.tn - Z.aw) * ms > (cfg.win or t.win) then
     Z.aw = nil
     gpl(gpn())
   end

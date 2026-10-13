@@ -82,7 +82,8 @@ for (const { human, short } of FIRMWARE_LOOKUP) {
   }
 }
 
-function firmwareNameProblem(name: string): string | undefined {
+// Why a name is rejected for being a firmware name, or undefined.
+export function firmwareNameProblem(name: string): string | undefined {
   if (!FIRMWARE_NAMES.has(name)) {
     return undefined;
   }
@@ -102,16 +103,25 @@ const RESERVED_GLOBAL_REASONS: Record<string, string> = {
   _ENV: `"_ENV" is used by this line`,
 };
 
-// Why a global name is rejected, or undefined when it is valid.
-export function globalNameProblem(name: string): string | undefined {
-  if (name.length === 0) {
-    return "Enter a global name";
-  }
+// Why a non-empty name is not a Lua identifier, or undefined when it is one.
+export function identifierProblem(name: string): string | undefined {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
     return "Use letters, digits and _, not starting with a digit";
   }
   if (LUA_KEYWORDS.has(name)) {
     return `"${name}" is a Lua keyword`;
+  }
+  return undefined;
+}
+
+// Why a global name is rejected, or undefined when it is valid.
+export function globalNameProblem(name: string): string | undefined {
+  if (name.length === 0) {
+    return "Enter a global name";
+  }
+  const identifier = identifierProblem(name);
+  if (typeof identifier !== "undefined") {
+    return identifier;
   }
   if (RESERVED_GLOBALS.has(name)) {
     return RESERVED_GLOBAL_REASONS[name] ?? `"${name}" is reserved`;

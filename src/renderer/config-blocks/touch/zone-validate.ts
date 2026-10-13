@@ -1,0 +1,236 @@
+// Zone validators (RFC 6.2). Per zone: what the block face shows inline next
+// to a field. Per surface: the issues of a whole touch Setup, each naming a
+// zone or, without one, the surface.
+
+import { Validator } from "../validators";
+import {
+  firmwareNameProblem,
+  identifierProblem,
+  parseLibraryScript,
+} from "../../libraries/library-script";
+import {
+  type OptionSchema,
+  type Zone,
+  type ZoneGroup,
+  type ZoneOptionValue,
+  type ZoneTick,
+  zoneGroupRange,
+  zoneGroupSchema,
+  zoneOptionDefault,
+  zoneOptionSchema,
+  zoneTickSchema,
+} from "./zone-model";
+import { parseZone, ZONA_GLOBAL, ZONE_START_SCRIPT } from "./zone-parse";
+
+const GRID_SIZE = 9;
+const ZONA_FILE = "zona";
+
+// One rejected field: a geometry key ("x"), "name", "n" or an option key.
+export type ZoneProblem = { key: string; message: string };
+
+export type ZoneIssue = {
+  zone?: string; // undefined: the surface
+  level: "error" | "warning";
+  message: string;
+};
+
+// The touch Setup's top-level actions, in order.
+export type SurfaceContext = { actions: { script: string }[] };
+
+// The name sits in a string that compressScript would rewrite if it were a
+// firmware human name (RFC 2.1).
+export function zoneNameProblem(name: string): string | undefined {
+  if (name.length === 0) {
+    return "Enter a zone name";
+  }
+  return identifierProblem(name) ?? firmwareNameProblem(name);
+}
+
+function isInteger(value: ZoneOptionValue): boolean {
+  return typeof value === "number" && Number.isInteger(value);
+}
+
+// Why an option value is rejected, or undefined when it is valid.
+export function optionProblem(
+  schema: OptionSchema,
+  value: ZoneOptionValue,
+): string | undefined {
+  if (schema.type === "enum") {
+    return typeof value === "string" && schema.values.includes(value)
+      ? undefined
+      : `Use one of ${schema.values.join(", ")}`;
+  }
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return "Enter a number";
+  }
+  if (schema.type === "integer" && !isInteger(value)) {
+    return "Enter a whole number";
+  }
+  const min = schema.min ?? -Infinity;
+  const max = schema.max ?? Infinity;
+  if (!new Validator(value).InRange(min, max).Result()) {
+    return `Use ${schema.min ?? "any"} to ${schema.max ?? "any"}`;
+  }
+  return undefined;
+}
+
+function optionProblems(
+  opt: Record<string, ZoneOptionValue>,
+  schema: OptionSchema[],
+): ZoneProblem[] {
+  const problems: ZoneProblem[] = [];
+  for (const entry of schema) {
+    const value = opt[entry.key];
+    if (typeof value === "undefined") {
+      continue;
+    }
+    const message = optionProblem(entry, value);
+    if (typeof message !== "undefined") {
+      problems.push({ key: entry.key, message });
+    }
+  }
+  return problems;
+}
+
+function geometryProblems(zone: Zone): ZoneProblem[] {
+  const problems: ZoneProblem[] = [];
+  for (const key of ["x", "y", "w", "h"] as const) {
+    if (!isInteger(zone[key])) {
+      problems.push({ key, message: "Enter a whole number of cells" });
+    }
+  }
+  if (problems.length > 0) {
+    return problems;
+  }
+  for (const key of ["w", "h"] as const) {
+    if (zone[key] < 1) {
+      problems.push({ key, message: "At least 1 cell" });
+    }
+  }
+  for (const [at, size] of [
+    ["x", "w"],
+    ["y", "h"],
+  ] as const) {
+    if (zone[at] < 0 || zone[at] + Math.max(zone[size], 1) > GRID_SIZE) {
+      problems.push({ key: at, message: "Keep the zone inside the 9×9 grid" });
+    }
+  }
+  return problems;
+}
+
+// min and max as the library uses them: 0 and 127, or 16383 above res 7.
+function rangeProblems(zone: Zone): ZoneProblem[] {
+  const res = zone.opt.res ?? zoneOptionDefault(zone.kind, "res");
+  const min = zone.opt.min ?? 0;
+  const max = zone.opt.max ?? (Number(res) > 7 ? 16383 : 127);
+  if (typeof min !== "number" || typeof max !== "number" || min < max) {
+    return [];
+  }
+  return [
+    {
+      key: typeof zone.opt.max !== "undefined" ? "max" : "min",
+      message: `Max (${max}) must be above min (${min})`,
+    },
+  ];
+}
+
+export function zoneProblems(zone: Zone): ZoneProblem[] {
+  const problems: ZoneProblem[] = [];
+  const name = zoneNameProblem(zone.name);
+  if (typeof name !== "undefined") {
+    problems.push({ key: "name", message: name });
+  }
+  problems.push(...geometryProblems(zone));
+  const options = optionProblems(zone.opt, zoneOptionSchema);
+  problems.push(...options);
+  if (!options.some((e) => ["res", "min", "max"].includes(e.key))) {
+    problems.push(...rangeProblems(zone));
+  }
+  return problems;
+}
+
+export function zoneGroupProblems(group: ZoneGroup): ZoneProblem[] {
+  const problems: ZoneProblem[] = [];
+  const { min, max } = zoneGroupRange;
+  if (!isInteger(group.n) || group.n < min || group.n > max) {
+    problems.push({ key: "n", message: `Use group ${min} to ${max}` });
+  }
+  return [...problems, ...optionProblems(group.opt, zoneGroupSchema)];
+}
+
+export function zoneTickProblems(tick: ZoneTick): ZoneProblem[] {
+  return optionProblems(tick.opt, zoneTickSchema);
+}
+
+// Which file the global Z is bound to by the Library blocks before `end`.
+// v1 limits: a Library line with an invalid row doesn't parse, so its
+// bindings count as missing; a Library block between zones that rebinds Z
+// isn't looked at.
+function boundFile(actions: { script: string }[], end: number) {
+  let file: string | undefined;
+  for (const { script } of actions.slice(0, end)) {
+    for (const row of parseLibraryScript(script) ?? []) {
+      if (row.global === ZONA_GLOBAL) {
+        file = row.file;
+      }
+    }
+  }
+  return file;
+}
+
+function orderIssues(context: SurfaceContext): ZoneIssue[] {
+  const { actions } = context;
+  const first = actions.findIndex((e) => parseZone(e.script) !== null);
+  if (first === -1) {
+    return [];
+  }
+  const issues: ZoneIssue[] = [];
+  if (boundFile(actions, first) !== ZONA_FILE) {
+    issues.push({
+      level: "warning",
+      message: `Add a Library block that binds ${ZONA_GLOBAL} to ${ZONA_FILE} before the first zone`,
+    });
+  }
+  const isStart = (e: { script: string }) =>
+    e.script.trim() === ZONE_START_SCRIPT;
+  if (!actions.some(isStart)) {
+    issues.push({
+      level: "warning",
+      message: "Add Touch Start as the last block: zones stay inactive",
+    });
+  } else if (!isStart(actions[actions.length - 1])) {
+    issues.push({
+      level: "warning",
+      message: "Move Touch Start to the end of Setup",
+    });
+  }
+  return issues;
+}
+
+// Issues of a whole touch Setup: per zone problems, duplicate names, block
+// order. `zones` are the parsed zone blocks of `context.actions`.
+export function validateSurface(
+  zones: Zone[],
+  context: SurfaceContext,
+): ZoneIssue[] {
+  const issues: ZoneIssue[] = [];
+  for (const zone of zones) {
+    for (const { message } of zoneProblems(zone)) {
+      issues.push({ zone: zone.name, level: "error", message });
+    }
+  }
+  const seen = new Set<string>();
+  const reported = new Set<string>();
+  for (const { name } of zones) {
+    if (seen.has(name) && !reported.has(name)) {
+      reported.add(name);
+      issues.push({
+        zone: name,
+        level: "error",
+        message: `Another zone is also named "${name}"`,
+      });
+    }
+    seen.add(name);
+  }
+  return [...issues, ...orderIssues(context)];
+}

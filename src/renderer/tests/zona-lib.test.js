@@ -6,6 +6,7 @@ import {
   zoneGroupDefaults,
   zoneKinds,
   zoneSens,
+  zoneTickDefaults,
 } from "../config-blocks/touch/zone-model";
 import { SettingsButton } from "../config-blocks/SettingsButton";
 
@@ -373,6 +374,7 @@ describe("defaults", () => {
     expect(vm.run("return Z.kind")).toEqual(zoneKinds);
     expect(vm.run("return Z.gdef")).toEqual(zoneGroupDefaults);
     expect(vm.run("return Z.sens")).toEqual(zoneSens);
+    expect(vm.run("return Z.tdef")).toEqual(zoneTickDefaults);
   });
 
   test("kind presets apply over the defaults, options over both", async () => {
@@ -766,6 +768,54 @@ describe("groups", () => {
 });
 
 describe("Z.tick", () => {
+  // gtt is one-shot (grid_ui.c): Z.start kicks the timer, every tick re-arms it
+  test("Z.start kicks the timer once", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.fader("f",0,0,1,9,{},${MIDI}) Z.start(self)`);
+    expect(vm.calls("gtt").map((e) => e.args)).toEqual([[0, 1]]);
+  });
+
+  test("the timer is the element's own", async () => {
+    const vm = await createZonaVM();
+    vm.run("function el:ind() return 3 end");
+    vm.setup("Z.start(self)");
+    vm.run("Z.tick(el)");
+    expect(vm.calls("gtt").map((e) => e.args)).toEqual([
+      [3, 1],
+      [3, 20],
+    ]);
+  });
+
+  test.each([
+    ["Z.tick(el)", 20],
+    ["Z.tick(el,{})", 20],
+    ["Z.tick(el,{led=2,win=500})", 20],
+    ["Z.tick(el,{ms=50})", 50],
+  ])("%s re-arms the timer with %i ms first", async (code, ms) => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{mode="glide"},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0]);
+    vm.clear();
+    for (let i = 0; i < 3; i++) {
+      const from = vm.log.length;
+      vm.run(code);
+      // gtt comes before the glide's sends and paints
+      expect(vm.log[from]).toEqual({ fn: "gtt", n: 2, args: [0, ms] });
+      expect(vm.log.length).toBeGreaterThan(from + 1);
+    }
+    expect(vm.calls("gms").length).toBeGreaterThan(0);
+    expect(vm.calls("gtt").length).toBe(3);
+  });
+
+  test("a body error during a tick doesn't stop the timer", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{mode="glide"},function(self) if Z.tn>0 then error("boom") end end)`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    vm.clear();
+    expect(() => vm.run("Z.tick(el)")).toThrow(/boom/);
+    expect(vm.calls("gtt").map((e) => e.args)).toEqual([[0, 20]]);
+  });
+
   test("does nothing without glide", async () => {
     const vm = await zones(`Z.fader("f",0,0,1,9,{},${REC})`);
     vm.touch([0, DOWN, 50, 0]);
