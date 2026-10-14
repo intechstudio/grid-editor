@@ -1099,15 +1099,30 @@ ipcMain.handle("selectDirectory", async (event, arg) => {
   return await selectDirectory();
 });
 
+function normalizePlatformPath(rawPath: string): string {
+  return path.normalize(rawPath); // handle mixed '/' and '\' characters on windows
+}
+
 ipcMain.handle("viewDirectory", async (event, arg) => {
-  const normalizedPath = path.normalize(arg.targetFolder); // handle mixed '/' and '\' characters on windows
-  shell.openPath(normalizedPath);
+  log.info(`viewDirectory: "${arg.targetFolder}"`);
+  shell.openPath(normalizePlatformPath(arg.targetFolder));
   return;
 });
 
 ipcMain.handle("showItemInFolder", async (event, arg) => {
-  const normalizedPath = path.normalize(arg.targetPath); // handle mixed '/' and '\' characters on windows
-  shell.showItemInFolder(normalizedPath);
+  log.info(`showItemInFolder: "${arg.targetPath}"`);
+  const normalizedPath = normalizePlatformPath(arg.targetPath);
+  if (fs.existsSync(normalizedPath)) {
+    shell.showItemInFolder(normalizedPath);
+  } else {
+    // shell.showItemInFolder() silently no-ops on macOS when the target file
+    // doesn't exist (e.g. stale fileName after a rename), unlike Windows/Linux
+    // which tend to fall back to the parent folder. Do that fallback ourselves.
+    log.warn(
+      `showItemInFolder: "${normalizedPath}" does not exist, opening parent folder instead`,
+    );
+    shell.openPath(path.dirname(normalizedPath));
+  }
   return;
 });
 
