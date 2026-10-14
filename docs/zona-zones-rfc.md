@@ -677,3 +677,16 @@ Found while building them (synthetic touches, to confirm with a finger):
 - A new press resends the zone's current value (the duplicate filter resets per press, 4.1).
 - Mapping mode lets one identity through as a stream: a fader being mapped keeps sending its CC (4.7). Mapping a toggle also switches it.
 
+
+Results (user, 2026-10-14, test ZONA on firmware 1.5.5):
+
+- **Works as intended:** taps and fast repeats, radio groups as the button default, `leave` and slide-off, DAW sync with touch wins (the DAW value lands on release), 7- vs 14-bit visibly different in Ableton, live swipe, the touched note, knob drag with `rel` (k2), HID blocks.
+- **LEDs need work.** The default colour curve's minimum is (10,5,0), so every cell outside a zone and every unlit zone cell glows; configured zones are hard to see. The arc painter is on/off per cell, and on a 3×3 knob the last lit cell sits at 0.95 of the range, so the top value needs a finger outside the arc. `release="fade"` goes to dark, which loses the last value of an absolute control.
+- **XY with two fingers:** with `contact="new"` both fingers drive the zone and the crosshair flickers between them.
+- **Profile values, not defaults:** rel at `speed=0.5` feels slow; the mouse at `speed=0.0125` covers too little of the screen; the angle knob (k3) needs too careful a circle in 3×3.
+- **Data rate:** an XY swipe sends about 156 messages per second (7-bit, two axes), which USB MIDI carries easily; the editor's MIDI monitor lags at that rate. A held 14-bit fader keeps sending (finger jitter of about ±6 sensor units).
+- **RX chain:** loading profiles one after another reuses the same `Z` (require cache), and only the touch element has a `midirx_cb`; no chain forms outside the case in 4.8.
+- **Hit position:** on this unit the sensor spans about 141 units per cell in the middle and saturates at the outer LED centres, so taps near the edges land one zone outward. Decision (user, CTO, firmware engineer): no calibration in the library; newer ZONA hardware senses touch where expected. No deadband or jitter tuning either.
+- **Out of this pass:** utility mode and mapping mode (300 ms is far too short), until their goals are clear.
+
+Next (library 0.8.0): LEDs (dark outside zones, a faint zone floor, soft arc spanning the lit cells, fade to a dim marker), first contact owns an XY zone, the rate limit as its own setting (off by default), retuned test profiles, then a second feedback round.
