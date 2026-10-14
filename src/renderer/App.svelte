@@ -6,7 +6,7 @@
   import "@intechstudio/grid-uikit/theme.css";
   import "./app.css";
 
-  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { GridPane, GridSplitpanes } from "@intechstudio/grid-uikit";
 
   import {
     appSettings,
@@ -460,8 +460,8 @@
           )}%)
         </div>
       {/if}
-      <Splitpanes theme="modern-theme" class="w-full">
-        <Pane
+      <GridSplitpanes class="w-full">
+        <GridPane
           class="leftPane"
           bind:size={$splitpanes.left.size}
           minSize={$appSettings.persistent.disableSidebarMinWidth
@@ -470,15 +470,15 @@
           maxSize={45}
         >
           <LeftPanelContainer />
-        </Pane>
+        </GridPane>
 
-        <Pane class="overflow-clip w-full h-full">
+        <GridPane class="overflow-clip w-full h-full">
           <div class="flex w-full h-full">
             <MiddlePanelContainer />
           </div>
-        </Pane>
+        </GridPane>
 
-        <Pane
+        <GridPane
           bind:size={$splitpanes.right.size}
           minSize={$appSettings.persistent.disableSidebarMinWidth
             ? 0
@@ -486,8 +486,8 @@
           maxSize={65}
         >
           <RightPanelContainer />
-        </Pane>
-      </Splitpanes>
+        </GridPane>
+      </GridSplitpanes>
     </div>
   </div>
 </main>
@@ -504,52 +504,9 @@
     outline-color: var(--border) !important;
   }
 
-  .splitpanes.modern-theme .splitpanes__pane {
-    /*  @apply bg-secondary; */
-    position: relative;
-    overflow: visible;
-  }
-
   /*betty magic selector*/
-  .splitpanes.modern-theme .splitpanes__pane.leftPane {
+  .splitpanes.grid-uikit-theme .splitpanes__pane.leftPane {
     overflow: hidden;
-  }
-
-  .splitpanes.modern-theme .splitpanes__splitter {
-    background-color: transparent !important;
-    border: none !important;
-    position: relative;
-    min-width: 0 !important;
-    min-height: 0 !important;
-  }
-  .splitpanes.modern-theme .splitpanes__splitter:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    background-color: transparent !important;
-    width: 4px;
-    opacity: 0 !important;
-    z-index: 1;
-  }
-  .splitpanes.modern-theme .splitpanes__splitter:hover:before {
-    opacity: 0 !important;
-  }
-  .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
-    z-index: 2;
-    /* Fix an issue of overlap fighting with a near hovered splitter */
-  }
-  .modern-theme.splitpanes--vertical > .splitpanes__splitter:before {
-    left: -3px;
-    right: -3px;
-    height: 100%;
-    cursor: col-resize;
-  }
-  .modern-theme.splitpanes--horizontal > .splitpanes__splitter:before {
-    top: -3px;
-    bottom: -3px;
-    width: 100%;
-    cursor: row-resize;
   }
   .splitpanes.no-splitter .splitpanes__pane {
     background-color: #0e100f;

@@ -3,7 +3,7 @@
     user_input,
     type UserInputValue,
   } from "./../../../runtime/user-input.store";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { GridPane, GridSplitpanes } from "@intechstudio/grid-uikit";
   import { get, writable, type Writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
   import {
@@ -329,13 +329,12 @@
   {/if}
 
   <div class="overflow-hidden flex flex-col h-full">
-    <Splitpanes
+    <GridSplitpanes
       horizontal={true}
-      theme="modern-theme"
       pushOtherPanes={false}
       class="h-full w-full"
     >
-      <Pane size={debug ? 70 : 50}>
+      <GridPane size={debug ? 70 : 50}>
         <div class="flex flex-col overflow-hidden h-full">
           {#if debug}
             {#if $appSettings.persistent.midiTesterEnabled}
@@ -484,8 +483,8 @@
             </div>
           {/if}
         </div>
-      </Pane>
-      <Pane size={debug ? 30 : 50}>
+      </GridPane>
+      <GridPane size={debug ? 30 : 50}>
         {#if debug}
           <div class="flex flex-col h-full w-full">
             <div
@@ -562,8 +561,8 @@
             </div>
           </div>
         {/if}
-      </Pane>
-    </Splitpanes>
+      </GridPane>
+    </GridSplitpanes>
   </div>
   <div class="flex pt-4 pb-12">
     <MoltenPushButton text="Clear All" snap={"full"} click={onClearClicked} />

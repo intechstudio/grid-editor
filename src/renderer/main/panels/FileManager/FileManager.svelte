@@ -9,7 +9,7 @@
     IconButton,
   } from "@intechstudio/grid-uikit";
   import { tooltip } from "../../_actions/tooltip";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { GridPane, GridSplitpanes } from "@intechstudio/grid-uikit";
   import importFileIcon from "../../../assets/icons/importFile.svg?raw";
   import exportFileIcon from "../../../assets/icons/ExportFile.svg?raw";
   import { runtime_manager } from "../../../runtime/runtime-manager.store";
@@ -991,12 +991,11 @@
     class="hidden"
     onchange={handleImportFolderInput}
   />
-  <Splitpanes
-    theme="modern-theme"
+  <GridSplitpanes
     horizontal={true}
     class="flex-grow min-h-0 w-full file-manager-splitpanes"
   >
-    <Pane class="overflow-hidden">
+    <GridPane class="overflow-hidden">
       <div class="p-4 h-full flex flex-col gap-1 overflow-hidden">
         {#if target}
           <!-- Operations row -->
@@ -1229,8 +1228,8 @@
           <p class="text-base opacity-50">No modules connected.</p>
         {/if}
       </div>
-    </Pane>
-    <Pane class="overflow-hidden">
+    </GridPane>
+    <GridPane class="overflow-hidden">
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
         onkeydown={handleKeydown}
@@ -1322,19 +1321,19 @@
           </p>
         {/if}
       </div>
-    </Pane>
-  </Splitpanes>
+    </GridPane>
+  </GridSplitpanes>
 </container>
 
 <style>
-  /* modern-theme (defined globally in App.svelte, shared by every
-     Splitpanes instance in the app) makes the splitter fully transparent
+  /* grid-uikit-theme (GridSplitpanes, shared by every
+     splitter in the app) makes the splitter fully transparent
      and collapses it to zero size, relying only on a wider invisible
      hit-area for dragging. Override it here — scoped to this component's
      own Splitpanes via the extra file-manager-splitpanes class — with a
      visible 1px line, without touching the shared theme used elsewhere. */
   :global(
-    .file-manager-splitpanes.splitpanes.modern-theme .splitpanes__splitter
+    .file-manager-splitpanes.splitpanes.grid-uikit-theme .splitpanes__splitter
   ) {
     background-color: var(--foreground-soft) !important;
     border: none !important;

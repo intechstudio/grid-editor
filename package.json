@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20261007.1518",
-    "@intechstudio/grid-uikit": "1.20260923.1330",
+    "@intechstudio/grid-uikit": "1.20261014.1352",
     "@intechstudio/profile-cloud-webcomponent": "1.20260923.1312",
     "@tailwindcss/postcss": "^4.3.3",
     "adm-zip": "^0.6.1",
@@ -69,7 +69,6 @@
     "semver": "^7.5.4",
     "set-interval-async": "^3.0.3",
     "svelte-easy-popover": "^1.0.0",
-    "svelte-splitpanes": "^8.0.12",
     "svelte-tiny-virtual-list": "^2.1.2",
     "svelte-watch-resize": "^1.0.3",
     "ts-jest": "^29.1.2",
