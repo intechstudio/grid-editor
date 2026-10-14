@@ -102,6 +102,18 @@
 
     if (state === 3) {
       showFirmwareUpdateModal();
+
+      window.electron.firmware.findBootloaderPathNative().then((result) => {
+        Analytics.track({
+          event: "FirmwareCheck",
+          payload: {
+            message: "Bootloader Detected",
+            architecture: result?.architecture,
+            bootloaderVersion: result?.bootloaderVersion,
+          },
+          mandatory: false,
+        });
+      });
     }
 
     if ([5, 6].includes(state)) {
