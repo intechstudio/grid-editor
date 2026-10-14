@@ -65,10 +65,13 @@ jobs:
         # physically present here, the x64 build ships with no usb native
         # binding at all and crashes at startup (issue #1653).
         if: runner.os == 'macOS'
+        # --force is required because --os/--cpu only filter optionalDependencies
+        # during a full install; npm still rejects a direct install of a package
+        # whose declared os/cpu doesn't match the host (EBADPLATFORM) otherwise.
         run: |
           USB_VERSION=$(node -p "require('./node_modules/usb/package.json').version")
-          npm install --no-save --cpu=x64 --os=darwin "@node-usb/usb-darwin-x64@$USB_VERSION"
-          npm install --no-save --cpu=arm64 --os=darwin "@node-usb/usb-darwin-arm64@$USB_VERSION"
+          npm install --no-save --force --cpu=x64 --os=darwin "@node-usb/usb-darwin-x64@$USB_VERSION"
+          npm install --no-save --force --cpu=arm64 --os=darwin "@node-usb/usb-darwin-arm64@$USB_VERSION"
 
       - name: Download LuaLS binaries
         run: node build-scripts/download-luals.js
