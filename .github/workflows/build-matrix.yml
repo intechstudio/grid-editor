@@ -68,10 +68,14 @@ jobs:
         # --force is required because --os/--cpu only filter optionalDependencies
         # during a full install; npm still rejects a direct install of a package
         # whose declared os/cpu doesn't match the host (EBADPLATFORM) otherwise.
+        # Both packages must go in ONE command: a second `npm install --no-save`
+        # prunes the first one as extraneous, which left the x64 binding missing
+        # from the shipped v1.7.3/v1.7.4 x64 builds.
         run: |
           USB_VERSION=$(node -p "require('./node_modules/usb/package.json').version")
-          npm install --no-save --force --cpu=x64 --os=darwin "@node-usb/usb-darwin-x64@$USB_VERSION"
-          npm install --no-save --force --cpu=arm64 --os=darwin "@node-usb/usb-darwin-arm64@$USB_VERSION"
+          npm install --no-save --force --cpu=x64 --os=darwin \
+            "@node-usb/usb-darwin-x64@$USB_VERSION" \
+            "@node-usb/usb-darwin-arm64@$USB_VERSION"
 
       - name: Download LuaLS binaries
         run: node build-scripts/download-luals.js
