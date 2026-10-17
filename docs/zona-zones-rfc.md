@@ -1,6 +1,6 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Revision 3, v1 implemented on `feat/zona-sandbox` (phases 1–5, library 0.7.2); finger-feel checks open
+- **Status:** Revision 3, v1 implemented on `feat/zona-sandbox` (phases 1–5, library 0.7.2). Revision 4 in progress: section 14 (owner review, smaller API) overrides earlier sections where they differ
 - **Date:** 2026-10-12 (rev 1: 2026-10-06, rev 2: 2026-10-09)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
@@ -690,3 +690,48 @@ Results (user, 2026-10-14, test ZONA on firmware 1.5.5):
 - **Out of this pass:** utility mode and mapping mode (300 ms is far too short), until their goals are clear.
 
 Next (library 0.8.0): LEDs (dark outside zones, a faint zone floor, soft arc spanning the lit cells, fade to a dim marker), first contact owns an XY zone, the rate limit as its own setting (off by default), retuned test profiles, then a second feedback round.
+
+Superseded by the owner review (14): the next pass cuts options instead of tuning them.
+
+## 14. Revision 4 (in progress): owner review and a smaller API
+
+The project owner reviewed v1 and the feedback round (2026-10-15). In short:
+
+- **Fewer options.** Past features shipped small, and users found the real needs. A system that is intricate from the start bloats when each new need has to find its place. Aim for the minimum.
+- **Frozen call shape.** Library updates must not break the action blocks. Versioning the blocks against the library is too big a task for small wins, so the block's Lua stays simple and stable instead: `Z.<kind>(name,x,y,w,h,{opt},function(self)` is fixed, and anything new is a key in the options table.
+- **LED feedback belongs to the zone kind:** one good style per kind instead of a painter option.
+- **Generalised interactions.** A pitch bend is a fader that springs back; a joystick is an XY pad that springs back, with tuneable easing; a fader is a one-axis XY pad. The knob's arc doesn't fit and reads poorly on 3×3 LEDs.
+- **Specific blocks stay** (Fader, Button, XY), rather than one zone block with a mode tree.
+- **MIDI child blocks don't fit zones**, least of all with several fingers in one zone. Their `-1` autos and free fields invite edits that are wrong for a zone.
+
+Decisions (user, 2026-10-15):
+
+| # | Decision |
+|---|----------|
+| D1 | Touch Knob is dropped: the block, the angle reader, the arc painter and `drag`. |
+| D2 | Pitch bend and joystick are a `spring` option on Fader and XY, not blocks. |
+| D3 | MIDI is a zone option. Zones get no default MIDI child block, and the MIDI block is hidden in zone bodies; a Code block with plain `gms(...)` still works. |
+| D4 | Multi-touch XY: one crosshair per finger, all in the zone colour. |
+| D5 | Per-finger MIDI is MPE style: each finger on its own channel, the same CC numbers. |
+| D6 | No test profile rebuild and no profile feedback round in this pass. |
+
+**Cut list.**
+
+- Blocks kept: Touch Fader, Touch Button, Touch XY, Touch End, Touch Start, Touch Tick. Cut: Touch Knob (D1); Touch Utility and mapping mode (`Z.util`, the window, muting; back once their goals are clear); Touch Group (`empty` fixed at 1; the group number stays on the button).
+- Zone options kept: `dir res min max grab mode speed ease bmo group`. `led` becomes on/off with one feedback style per kind. Cut: `read` (set by the kind), `contact` (the first finger owns a fader or button; XY gets `fingers`), `drag`, `release` (built in: bright while touched, a dim value marker after), `leave` (fixed by kind: buttons release on slide-off, faders and XY clamp), `sens`/`db`/`sm` (fixed at the old normal: deadband 2, no smoothing), `rt` (a built-in rate limit: the first change at once, then at most one per tick, the last value flushed). New: `spring`, `fingers` (XY), and the MIDI options `msg`, `ch`, `num`, `rx`.
+- MIDI: no default MIDI child, no zone autos in MIDI block previews, no "Zone default" mode, no `gmrr` on zones and no dry run, no NRPN, no touched note. 14-bit follows `res`; pitch bend is always 14-bit.
+- Zone `self` keeps `v x y g d step glc glp` and gains `f()` (finger number). Cut: `count src ind get_auto_value get_auto_mode gms gmrr dry`.
+- Library keeps `Z.fader/button/xy` on `Z.zone`, `Z.start`, `Z.tick`, `Z.touch`, `Z.unload`, and the internal `Z.rx`/`Z.set`. Cut: `Z.knob`, `Z.group`, `Z.util`, `Z.raw`.
+- Touch Tick keeps `ms`. Cut: the LED divider and the mapping window.
+- Budget: without a MIDI child a zone saves about 30 Setup characters, and Receive shrinks from about 140 characters to `rx=1`.
+
+**Slices** (library 0.8.x, breaking changes allowed before 1.0, each slice an RFC note plus code):
+
+1. S1, cut: everything above except MIDI (0.8.0).
+2. S2, MIDI in the zone: `msg` (button `note|cc`, fader `cc|pb`, XY `cc`, any kind `none`), `ch`/`num` (`-1` auto), `rx` (off by default); autos in the library; the zone face shows what it sends ("CC 33", "Note 36", "CC 34/35", "PB ch 1").
+3. S3, LEDs per kind: dark outside zones, a faint floor, a soft fader edge, a dim value marker after release, the XY crosshair.
+4. S4, `spring` on Fader and XY: back to the centre on release, speed from `ease`.
+5. S5, multi-touch XY: `fingers` (default 1, max 5), finger number = the lowest free one at touch-down, kept until lift; per-finger values; the body runs per finger with `self:f()`; MPE-style MIDI (finger k on channel `ch+k-1`, the same CC pair); one crosshair per finger.
+6. S6, consolidation into revision 4 of this RFC.
+
+Out of this pass: utility and mapping mode, touch calibration, deadband and jitter tuning.
