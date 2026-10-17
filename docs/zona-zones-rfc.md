@@ -751,3 +751,12 @@ Out of this pass: utility and mapping mode, touch calibration, deadband and jitt
 - The dry run is gone, and `gmrr` and NRPN with it. RX identities come from the options. One part of it is kept: `Z.start` runs every body once before the first paint, with the zone's MIDI not sent and the MIDI, gamepad, mouse and keyboard globals muted. Without that run, Simple Color in a body only took effect on the first touch, so the surface started in the default colour.
 - Old 0.7.x bodies that hold a MIDI block (`self:gms`) error on each touch after the zone's own MIDI went out. The editor no longer offers the MIDI block inside a zone; a Code block with the global `gms(...)` still works.
 - Budget: the V1 reference surface now takes 589 of 909 Setup characters (865 before), and `rx=1` costs 4 characters instead of about 140, so 10–11 plain zones fit. Compressed library 13,614 bytes; in the VM a zone takes about 1.5 KB.
+
+**S3 results (library 0.8.2, 2026-10-18).** One LED look per kind, from three levels in `Z.led` (`floor` 16, `dim` 110, `top` 255, in phase units).
+
+- Cells outside zones are off: a black curve at phase 0, instead of the default colour's minimum, which glowed. A zone's curve gets a black minimum too, so low phases are a faint tint of the zone colour.
+- Every zone cell is at least `floor`, so zones show while idle. Lit cells are at `top` while a contact holds the zone and at `dim` otherwise (after release, RX, `Z.set`). Nothing fades, so an absolute control keeps showing its value.
+- Fader: a fill with a partial edge cell. Button: off at the floor, on lit, steps in between. XY: a soft crosshair whose brightest cell is always at the lit level, wherever the value is between cell centres.
+- Simple Intensity scales the whole cell, so intensity 0 darkens a zone, as on an element. Simple Color sets the colour from the start (S2's start run). A two-colour Simple Color curve from hand-written code loses its first colour to the black minimum; the editor's block writes one colour.
+- `Z.led` can be changed from code for tuning; a zone shows the new levels at its next repaint.
+- The editor's module view draws LEDs as small dots, so the levels need a look on the device; the user judges them in the finger session.
