@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.1"
+Z.VERSION = "0.8.2"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -33,6 +33,10 @@ Z.kind = {
 
 -- Z.tick: interval (ms)
 Z.tdef = { ms = 20 }
+
+-- LED phases (0-255) of a zone cell: floor when unlit, top lit while touched,
+-- dim lit after (release, RX, Z.set). The zone curve's minimum is black.
+Z.led = { floor = 16, dim = 110, top = 255 }
 
 Z.zs = {}
 Z.nz = {}
@@ -298,11 +302,14 @@ end
 P.gate = function(z, i, j, n)
   return n
 end
+-- normalised by the cell nearest the value (m), so it is at the lit level
+-- wherever the value lies between cell centres
 P.point = function(z, i, j)
   local c = z.c
   local q = z.q
-  local a, b = math.abs(q.x * (c[3] - 1) - i), math.abs((1 - q.y) * (c[4] - 1) - j)
-  return (cl(1 - a) + cl(1 - b)) / 2
+  local x, y = q.x * (c[3] - 1), (1 - q.y) * (c[4] - 1)
+  local m = 2 - math.abs(x - math.floor(x + 0.5)) - math.abs(y - math.floor(y + 0.5))
+  return (cl(1 - math.abs(x - i)) + cl(1 - math.abs(y - j))) / m
 end
 
 -- LED x of cell e, looked up only when it is written
@@ -344,10 +351,15 @@ local function paint(z)
   local p = P[z.o.read]
   local c = z.c
   local n = z.o.read == "gate" and z.st / math.max(#z.sv - 1, 1) or z.q[z.o.read == "point" and "x" or "v"]
+  -- level 0-1 between floor and the lit phase (top or dim); glp scales the
+  -- whole cell, so glp 0 is dark
+  local L = Z.led
+  local f = L.floor
+  local h = z.k > 0 and L.top or L.dim
   for j = 0, c[4] - 1 do
     for i = 0, c[3] - 1 do
       local e = c[1] + i + (c[2] + j) * 9
-      lit(e, z.ck, z.cc, math.floor(p(z, i, j, n) * z.iv + 0.5))
+      lit(e, z.ck, z.cc, math.floor((f + p(z, i, j, n) * (h - f)) * z.iv / 255 + 0.5))
     end
   end
 end
@@ -574,7 +586,8 @@ function Z.start(self)
   for _, z in ipairs(Z.zs) do
     paint(z)
   end
-  local d = { color_curve({ { -1, -1, -1, 1 } }) } -- dark: no zone, or led=0
+  local b = { 0, 0, 0, 1 }
+  local d = { b, b, b } -- dark: no zone, or led=0
   for e = 0, 80 do
     local z = own(e)
     if not z or z.o.led == 0 then
@@ -696,9 +709,10 @@ end
 -- zones with the same colour share one curve; weak, so dynamic colours go
 local CC = setmetatable({}, { __mode = "v" })
 
--- layer is always 1
+-- layer is always 1; the minimum is black: phase 0 is off
 function M:glc(l, c)
   local x, y, w = color_curve(c)
+  x = { 0, 0, 0, x[4] }
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
   if k ~= self.ck then
     local e = CC[k] or { x, y, w, k }

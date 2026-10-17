@@ -844,24 +844,29 @@ describe("LEDs", () => {
     expect(lit).toEqual([8, 9, 26, 27, 44, 45, 62, 63, 80]);
   });
 
-  test("the first paint sets every cell once, uncovered cells in the default colour", async () => {
+  test("the first paint sets every cell once; cells outside zones are black, phase 0", async () => {
     const vm = await createZonaVM();
     vm.setup(`Z.fader("f",0,0,1,9,{},${MIDI}) Z.start(self)`);
     expect(vm.calls("glp").length).toBe(81);
-    expect(vm.calls("glp").every((e) => e.args[2] === 0)).toBe(true);
-    const [r, g, b] = DEFAULT_COLOR;
     expect(vm.calls("glx").length).toBe(81);
-    expect(vm.calls("glx").at(-1).args).toEqual([72, 1, r, g, b, 1]);
-    expect(vm.calls("glx")[0].args).toEqual([8, 1, r, g, b, 1]);
-    expect(vm.calls("gld")[0].args).toEqual([8, 1, r >> 1, g >> 1, b >> 1, 1]);
-    expect(vm.calls("gln")[0].args).toEqual([
-      8,
-      1,
-      Math.floor(r / 20),
-      Math.floor(g / 20),
-      Math.floor(b / 20),
-      1,
-    ]);
+    const [r, g, b] = DEFAULT_COLOR;
+    // the zone (column 0, LEDs 8, 9, 26, …): its colour, minimum black, at floor
+    const zone = [8, 9, 26, 27, 44, 45, 62, 63, 80];
+    const of = (fn, led) => vm.calls(fn).find((e) => e.args[0] === led).args;
+    expect(of("gln", 8)).toEqual([8, 1, 0, 0, 0, 1]);
+    expect(of("gld", 8)).toEqual([8, 1, r >> 1, g >> 1, b >> 1, 1]);
+    expect(of("glx", 8)).toEqual([8, 1, r, g, b, 1]);
+    for (const e of vm.calls("glp")) {
+      expect(e.args[2]).toBe(zone.includes(e.args[0]) ? 16 : 0);
+    }
+    // outside: a black curve
+    for (const fn of ["gln", "gld", "glx"]) {
+      const outside = vm.calls(fn).filter((e) => !zone.includes(e.args[0]));
+      expect(outside.length).toBe(72);
+      expect(
+        outside.every((e) => e.args.slice(2, 5).every((c) => c === 0)),
+      ).toBe(true);
+    }
   });
 
   test("every Setup run repaints all cells, then only changed cells are sent", async () => {
@@ -895,16 +900,81 @@ describe("LEDs", () => {
     expect(vm.calls("glp").length).toBe(9);
   });
 
-  test("the value stays lit after the release", async () => {
-    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
-    vm.touch([0, DOWN, 50, 0]);
+  test("top while held, dim after the release: the value stays visible", async () => {
+    const vm = await zones(`Z.fader("f",0,3,1,3,{},${MIDI})`);
+    // rows 3-5; a press at the top fills all three
+    vm.touch([0, DOWN, 50, 342]);
     vm.tick();
-    vm.touch([0, UP, 50, 0]);
+    expect(column(leds(vm), 0).slice(3, 6)).toEqual([255, 255, 255]);
+    vm.clear();
+    vm.touch([0, UP, 50, 342]);
+    expect(vm.calls("glp")).toEqual([]); // the lift repaints on the tick
+    vm.tick();
+    expect(column(leds(vm), 0).slice(3, 6)).toEqual([110, 110, 110]);
+    vm.clear();
     vm.tick(30);
-    expect(column(leds(vm), 0)[8]).toBe(255);
+    expect(vm.calls("glp")).toEqual([]); // nothing fades
   });
 
-  test("glc and glp in the body set colour and intensity from the start", async () => {
+  test("an idle tick writes no LED", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{},${MIDI}) Z.button("b",1,0,2,2,{},${MIDI}) Z.xy("p",3,0,3,3,{},${MIDI})`,
+    );
+    vm.tick(5);
+    for (const fn of ["glp", "gln", "gld", "glx"]) {
+      expect(vm.calls(fn)).toEqual([]);
+    }
+  });
+
+  test("a Z.set value shows at dim", async () => {
+    const vm = await zones(`Z.fader("f",0,3,1,3,{},${MIDI})`);
+    vm.run('Z.set("f",127)');
+    vm.tick();
+    expect(column(leds(vm), 0).slice(3, 6)).toEqual([110, 110, 110]);
+  });
+
+  test.each([
+    // glp scales the whole cell: 0 is dark, 100 keeps the floor/value ratio
+    [0, [0, 0, 0, 0], [0, 0, 0, 0]],
+    [100, [100, 100, 100, 6], [43, 43, 43, 6]],
+  ])("Simple Intensity %i: held and released", async (iv, held, released) => {
+    // f full, g empty (its cells at floor), both rows 3-5; the start paint stays in the log
+    const body = `function(self) self:glp(-1,${iv}) end`;
+    const vm = await createZonaVM();
+    vm.setup(
+      `Z.fader("f",0,3,1,3,{},${body}) Z.fader("g",1,3,1,3,{},${body}) Z.start(self)`,
+    );
+    const cells = () => {
+      const m = leds(vm);
+      return [m["0,3"], m["0,4"], m["0,5"], m["1,4"]];
+    };
+    vm.touch([0, DOWN, 50, 342], [1, DOWN, 150, 682]);
+    vm.tick();
+    expect(cells()).toEqual(held);
+    vm.touch([0, UP, 50, 342], [1, UP, 150, 682]);
+    vm.tick();
+    expect(cells()).toEqual(released);
+  });
+
+  test("an RX value shows at dim", async () => {
+    const vm = await zones(`Z.fader("f",0,3,1,3,{rx=1},nil)`);
+    vm.rx(0, 176, 32, 127);
+    vm.tick();
+    expect(column(leds(vm), 0).slice(3, 6)).toEqual([110, 110, 110]);
+  });
+
+  test("the Z.led levels are read at paint time", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,3,1,3,{},${MIDI}) Z.button("b",1,0,1,1,{},${MIDI})`,
+    );
+    vm.run("Z.led.floor=8 Z.led.top=200");
+    vm.touch([0, DOWN, 50, 682], [1, DOWN, 150, 50]); // fader at 0, button held
+    vm.tick();
+    expect(column(leds(vm), 0).slice(3, 6)).toEqual([8, 8, 8]);
+    expect(leds(vm)["1,0"]).toBe(200);
+  });
+
+  test("Simple Color and Intensity in the body: colour from the start, glp scales the lit level", async () => {
     const vm = await createZonaVM();
     vm.setup(
       `Z.fader("f",0,0,1,9,{},function(self) self:glc(-1,{{255,0,0,1}}) self:glp(-1,100) end) Z.start(self)`,
@@ -913,10 +983,12 @@ describe("LEDs", () => {
     const red = vm.calls("glx").filter((e) => e.args[2] === 255);
     expect(red.length).toBe(9);
     expect(red[0].args).toEqual([8, 1, 255, 0, 0, 1]);
-    expect(vm.calls("gln")[0].args).toEqual([8, 1, 12, 0, 0, 1]);
+    expect(vm.calls("gld")[0].args).toEqual([8, 1, 127, 0, 0, 1]);
+    expect(vm.calls("gln")[0].args).toEqual([8, 1, 0, 0, 0, 1]); // black minimum
     vm.clear();
     vm.touch([0, DOWN, 50, 0], [0, MOVE, 50, 100]);
     vm.tick();
+    // held: top 255 scaled by 100/255
     expect(column(leds(vm), 0)[8]).toBe(100);
   });
 
@@ -981,9 +1053,9 @@ describe("painters", () => {
     return vm;
   };
 
-  test("fill: from the bottom, the partial cell dimmed", async () => {
+  test("fill: from the bottom, the partial cell between floor and top, the rest at floor", async () => {
     expect(column(leds(await mid()), 0)).toEqual([
-      0, 0, 0, 0, 126, 255, 255, 255, 255,
+      16, 16, 16, 16, 134, 255, 255, 255, 255,
     ]);
   });
 
@@ -993,11 +1065,11 @@ describe("painters", () => {
     vm.tick();
     const m = leds(vm);
     expect(Array.from({ length: 9 }, (_, x) => m[`${x},0`])).toEqual([
-      255, 255, 255, 255, 129, 0, 0, 0, 0,
+      255, 255, 255, 255, 137, 16, 16, 16, 16,
     ]);
   });
 
-  test("button fill: lit when on, by step", async () => {
+  test("button state: off at floor, on lit, steps between (released: dim)", async () => {
     const vm = await zones(`Z.button("b",0,0,2,2,{bmo=2},${MIDI})`);
     const cells = () => {
       const m = leds(vm);
@@ -1005,13 +1077,16 @@ describe("painters", () => {
     };
     vm.touch([0, 9, 50, 50]);
     vm.tick();
-    expect(cells()).toEqual([128, 128, 128, 128]);
+    expect(cells()).toEqual([63, 63, 63, 63]);
     vm.touch([0, 9, 50, 50]);
     vm.tick();
-    expect(cells()).toEqual([255, 255, 255, 255]);
-    vm.touch([0, 9, 50, 50]);
+    expect(cells()).toEqual([110, 110, 110, 110]);
+    vm.touch([0, DOWN, 50, 50]); // held: the press wraps to step 0, the floor
     vm.tick();
-    expect(cells()).toEqual([0, 0, 0, 0]);
+    expect(cells()).toEqual([16, 16, 16, 16]);
+    vm.touch([0, UP, 50, 50], [0, DOWN, 50, 50]); // held step 1: half way to top
+    vm.tick();
+    expect(cells()).toEqual([136, 136, 136, 136]);
   });
 
   // 3x3 at the top left: raw 0-341
@@ -1023,11 +1098,37 @@ describe("painters", () => {
     return [0, 1, 2].map((y) => [0, 1, 2].map((x) => m[`${x},${y}`]));
   };
 
-  test("crosshair: the value's row and column, brighter where they meet", async () => {
+  test("crosshair released: the crossing at dim", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.xy("p",0,0,3,3,{},${MIDI}) Z.start(self)`);
+    vm.touch([0, DOWN, 341, 341], [0, UP, 341, 341]);
+    vm.tick();
+    const m = leds(vm);
+    expect([0, 1, 2].map((y) => [0, 1, 2].map((x) => m[`${x},${y}`]))).toEqual([
+      [16, 16, 63],
+      [16, 16, 63],
+      [63, 63, 110],
+    ]);
+  });
+
+  test("crosshair off a cell centre: the brightest cell is still at the lit level", async () => {
+    // value at 1.5 / 0.5 cells: between centres on both axes
+    const vm = await zones(`Z.xy("p",0,0,3,3,{},${MIDI})`);
+    const brightest = () => Math.max(...Object.values(leds(vm)));
+    vm.touch([0, DOWN, 255, 85]);
+    vm.tick();
+    expect(brightest()).toBe(255);
+    vm.clear();
+    vm.touch([0, UP, 255, 85]);
+    vm.tick();
+    expect(brightest()).toBe(110);
+  });
+
+  test("crosshair: the value's row and column, the crossing full, the rest at floor", async () => {
     expect(await corner("xy", "")).toEqual([
-      [0, 0, 128],
-      [0, 0, 128],
-      [128, 128, 255],
+      [16, 16, 136],
+      [16, 16, 136],
+      [136, 136, 255],
     ]);
   });
 
