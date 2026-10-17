@@ -18,6 +18,7 @@ export type ZoneOptions = {
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1
   rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
+  spring: 0 | 1; // fader, xy: 1 returns to the centre on release (eased by ease)
 };
 
 // What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
@@ -36,6 +37,7 @@ export const zoneDefaults: ZoneOptions = {
   ch: -1,
   num: -1,
   rx: 0,
+  spring: 0,
 };
 
 // Z.kind: each kind's reader and painter (not an option) and its msg.
@@ -170,6 +172,14 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 0,
     max: 127,
     kinds: ["button"],
+    section: "behaviour",
+  },
+  {
+    key: "spring",
+    type: "integer",
+    min: 0,
+    max: 1,
+    kinds: CONTINUOUS,
     section: "behaviour",
   },
   {

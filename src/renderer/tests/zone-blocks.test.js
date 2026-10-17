@@ -95,6 +95,9 @@ describe("face sections", () => {
       expect.arrayContaining(["bmo", "group", "res", "led"]),
     );
     expect(keys("button")).not.toContain("mode");
+    expect(keys("button")).not.toContain("spring");
+    expect(keys("fader")).toContain("spring");
+    expect(keys("xy")).toContain("spring");
     expect(keys("xy")).not.toContain("dir");
     // `read` comes from the kind: no face shows it
     for (const kind of ["fader", "button", "xy"]) {

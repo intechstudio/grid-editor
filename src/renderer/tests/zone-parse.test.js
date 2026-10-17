@@ -35,6 +35,8 @@ const editorWritten = [
   `Z.button("b3",0,0,1,1,{bmo=3,group=2,grab="live"},function(self)`,
   // MIDI (zona 0.8.1): msg differs from the kind preset, ch, num, rx
   `Z.fader("f12",0,0,1,9,{msg="pb",ch=3,num=7,rx=1},function(self)`,
+  // spring (zona 0.8.3)
+  `Z.fader("f13",0,0,1,9,{ease=0.3,spring=1},function(self)`,
   `Z.button("b4",0,0,1,1,{msg="cc"},function(self)`,
   `Z.xy("p3",0,0,3,3,{msg="none"},function(self)`,
   // options cut in zona 0.8.0 are unknown: kept as they are

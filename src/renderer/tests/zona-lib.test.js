@@ -585,6 +585,186 @@ describe("modes", () => {
   });
 });
 
+describe("spring", () => {
+  // 1x9 faders: raw y 0 (top) to 1023 (bottom)
+  test("rests at the centre with no output at start", async () => {
+    const vm = await createZonaVM();
+    vm.setup(
+      `Z.fader("f",0,0,1,9,{spring=1},${REC}) Z.fader("p",1,0,1,9,{spring=1,msg="pb"},nil) Z.xy("x",2,0,3,3,{spring=1},nil) Z.start(self)`,
+    );
+    expect(vm.midi()).toEqual([]);
+    expect(
+      vm.run(
+        "return Z.zs[1]:v() .. ' ' .. Z.zs[2]:v() .. ' ' .. Z.zs[3]:x() .. ' ' .. Z.zs[3]:y()",
+      ),
+    ).toBe("64 8192 64 64");
+    // the start run sees the centre
+    expect(runs(vm)).toEqual([["g", 64, 0, "f"]]);
+  });
+
+  test("snaps back on lift: one message at the centre", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{spring=1},${MIDI}) Z.fader("p",1,0,1,9,{spring=1,msg="pb"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 0], [1, DOWN, 150, 1023]);
+    vm.clear();
+    vm.touch([0, UP, 50, 0], [1, UP, 150, 1023]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 64],
+      [0, 224, 0, 64],
+    ]);
+    expect(v1(vm)).toBe(64);
+  });
+
+  test("the press at the centre re-sends it", async () => {
+    const vm = await zones(`Z.fader("f",0,3,1,3,{spring=1,msg="pb"},${MIDI})`);
+    vm.touch([0, DOWN, 50, 512]); // rows 3-5: the middle is 0.5
+    expect(wire(vm)).toEqual([[0, 224, 0, 64]]);
+  });
+
+  test("eases back on the tick: monotonic, the last message the centre", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{spring=1,ease=0.3},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
+    vm.clear();
+    vm.tick(40);
+    const sent = wire(vm).map((m) => m[3]);
+    expect(sent.length).toBeGreaterThan(3);
+    expect(sent.every((v, i) => i === 0 || v < sent[i - 1])).toBe(true);
+    expect(sent.at(-1)).toBe(64);
+    expect(sent[0]).toBe(105); // q 1 - (0.3 x 0.5 + 0.02) = 0.83
+    vm.clear();
+    vm.tick(5);
+    expect(wire(vm)).toEqual([]);
+  });
+
+  test("a touch during the return takes over at once", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{spring=1,ease=0.3},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
+    vm.tick(2);
+    vm.clear();
+    vm.touch([0, DOWN, 50, 1023]); // abs: jumps to the bottom
+    vm.tick(5);
+    expect(wire(vm)).toEqual([[0, 176, 32, 0]]);
+  });
+
+  test("rel continues from the current value during the return", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{spring=1,ease=0.3,mode="rel"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 512], [0, MOVE, 50, 0], [0, UP, 50, 0]);
+    vm.tick(2);
+    const at = v1(vm);
+    expect(at).toBeGreaterThan(64);
+    vm.clear();
+    vm.touch([0, DOWN, 50, 512], [0, MOVE, 50, 400]); // + 0.11 of the travel
+    expect(v1(vm)).toBe(at + 14);
+  });
+
+  test("rel: a finger held still during the return stops it", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{spring=1,ease=0.3,mode="rel"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 512], [0, MOVE, 50, 0], [0, UP, 50, 0]);
+    vm.tick(2);
+    const at = v1(vm);
+    vm.clear();
+    vm.touch([0, DOWN, 50, 512]);
+    vm.tick(5);
+    // the press re-sends the current value, then nothing: the return stopped
+    expect(vm.midi()).toEqual([[0, 176, 32, at]]);
+    expect(v1(vm)).toBe(at);
+    vm.touch([0, MOVE, 50, 400]);
+    expect(v1(vm)).toBe(at + 14);
+  });
+
+  test.each([
+    ["RX", (vm) => vm.rx(0, 176, 32, 100)],
+    ["Z.set", (vm) => vm.run('Z.set("f",100)')],
+  ])("%s during an eased return stops it", async (_, set) => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{spring=1,ease=0.3,rx=1},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
+    vm.tick();
+    set(vm);
+    vm.clear();
+    vm.tick(10);
+    expect(v1(vm)).toBe(100);
+    expect(vm.midi()).toEqual([]);
+  });
+
+  test("xy: both axes ease back to the centre", async () => {
+    const vm = await zones(`Z.xy("p",0,0,3,3,{spring=1,ease=0.3},${MIDI})`);
+    vm.touch([0, DOWN, 341, 0], [0, UP, 341, 0]);
+    vm.clear();
+    vm.tick(40);
+    const x = vm
+      .midi()
+      .filter((m) => m[2] === 32)
+      .map((m) => m[3]);
+    const y = vm
+      .midi()
+      .filter((m) => m[2] === 33)
+      .map((m) => m[3]);
+    expect(x.length).toBeGreaterThan(3);
+    expect([x.at(-1), y.at(-1)]).toEqual([64, 64]);
+    expect(x.every((v, i) => i === 0 || v < x[i - 1])).toBe(true);
+    expect(y.every((v, i) => i === 0 || v < y[i - 1])).toBe(true);
+  });
+
+  test("glide aims from the current value; release eases to the centre", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{spring=1,mode="glide",ease=0.5},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    vm.tick(30);
+    expect(v1(vm)).toBe(127);
+    vm.touch([0, UP, 50, 0]);
+    vm.tick(30);
+    expect(v1(vm)).toBe(64);
+  });
+
+  test("xy: both axes snap back", async () => {
+    const vm = await zones(`Z.xy("p",0,0,3,3,{spring=1},${MIDI})`);
+    vm.touch([0, DOWN, 341, 0]);
+    vm.clear();
+    vm.touch([0, UP, 341, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 64],
+      [0, 176, 33, 64],
+    ]);
+  });
+
+  test("RX and Z.set set the value, which stays without a touch", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{spring=1,rx=1},${MIDI})`);
+    vm.rx(0, 176, 32, 100);
+    vm.tick(10);
+    expect(v1(vm)).toBe(100);
+    vm.run('Z.set("f",10)');
+    vm.tick(10);
+    expect(v1(vm)).toBe(10);
+    expect(vm.midi()).toEqual([]);
+  });
+
+  test("a button ignores spring", async () => {
+    const vm = await zones(`Z.button("b",0,0,1,1,{spring=1,bmo=1},${MIDI})`);
+    vm.touch([0, 9, 50, 50]);
+    expect(wire(vm)).toEqual([[0, 144, 32, 127]]);
+    expect(vm.run("return Z.zs[1]:step()")).toBe(1);
+  });
+
+  test.each([
+    ["res 7", "", 64],
+    ["res 14", "res=14", 8192],
+    ["min 0, max 100", "max=100", 50],
+    ["min 0, max 99", "max=99", 50],
+    ["min -1, max 2", "min=-1,max=2", 1],
+  ])("the centre for %s", async (_, opt, centre) => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{spring=1,${opt}},${MIDI})`);
+    expect(v1(vm)).toBe(centre);
+  });
+});
+
 describe("live capture", () => {
   const live = `Z.fader("a",0,0,1,9,{grab="live"},${MIDI}) Z.fader("b",1,0,1,9,{grab="live"},${MIDI})`;
 

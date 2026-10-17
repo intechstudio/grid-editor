@@ -204,6 +204,18 @@ describe("ranges and numbers that reach the wire", () => {
   });
 });
 
+describe("spring", () => {
+  test.each([
+    ["fader", 1, undefined],
+    ["xy", 0, undefined],
+    ["fader", 2, "Use 0 to 1"],
+    ["button", 1, "Spring is for faders and XY pads"],
+  ])("spring on a %s: %j", (kind, spring, message) => {
+    const problems = zoneProblems(zone({ kind, w: 2, h: 2, opt: { spring } }));
+    expect(problems.find((e) => e.key === "spring")?.message).toBe(message);
+  });
+});
+
 describe("min < max", () => {
   test.each([
     {},

@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.2"
+Z.VERSION = "0.8.3"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -22,6 +22,7 @@ Z.def = {
   ch = -1,
   num = -1,
   rx = 0,
+  spring = 0,
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
@@ -173,8 +174,8 @@ end
 local function md(z, c, k, t)
   local p = c.p[k]
   if c.m == "rel" then
+    z.tg[k] = nil -- the press too: a held finger stops a spring return
     if p then
-      z.tg[k] = nil
       z.q[k] = cl(z.q[k] + (t - p) * z.o.speed)
     end
   else
@@ -284,9 +285,21 @@ local function take(id, c, z, x, y, e)
   run(z, "g")
 end
 
+-- spring: back to the centre on release, at once (ease 0) or eased on the
+-- tick like a glide (minimum step speed/50)
 local function lift(z)
   z.k = 0
   fl(z)
+  if z.o.spring == 1 and z.o.read ~= "gate" then
+    for _, k in ipairs(SR[z.o.read]) do
+      if z.o.ease > 0 then
+        z.tg[k] = 0.5
+      else
+        z.tg[k], z.q[k] = nil, 0.5
+        put(z, k, sc(z, 0.5))
+      end
+    end
+  end
   gate(z, 0)
   run(z, "g")
 end
@@ -515,6 +528,12 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     c = { x, y, w, h },
     iv = 255,
   }, M)
+  -- spring: rest at the centre, no output
+  if o.spring == 1 and o.read ~= "gate" then
+    for _, k in ipairs(SR[o.read]) do
+      z.q[k], z.u[k], z.r[k] = 0.5, sc(z, 0.5), mi + (ma - mi) / 2
+    end
+  end
   z:glc(1, { { -1, -1, -1, 1 } })
   Z.nz[#Z.nz + 1] = z
   return z

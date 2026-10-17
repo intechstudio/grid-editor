@@ -197,6 +197,13 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   if (!bad(["res", "num", "msg"])) {
     problems.push(...numProblems(zone));
   }
+  // the library ignores spring on a button
+  if (zone.kind === "button" && typeof zone.opt.spring !== "undefined") {
+    problems.push({
+      key: "spring",
+      message: "Spring is for faders and XY pads",
+    });
+  }
   return problems;
 }
 
