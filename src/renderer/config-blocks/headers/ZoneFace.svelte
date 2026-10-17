@@ -1,12 +1,15 @@
 <script lang="ts">
-  // Untoggled zone block: its name and cells ("f1 · 0,0 1×9"), red when the
-  // zone has a problem, or a note when the line isn't a zone line.
+  // Untoggled zone block: its name, cells and what it sends ("f1 · 0,0 1×9 ·
+  // CC 32 ch 1"), red when the zone has a problem, or a note when the line
+  // isn't a zone line.
   import { createEventDispatcher } from "svelte";
   import { InfoBox } from "@intechstudio/grid-uikit";
   import type { GridAction, GridEvent } from "../../runtime/runtime";
   import { parseZone } from "../touch/zone-parse";
   import { zoneProblems, zoneSendProblem } from "../touch/zone-validate";
   import { zoneHeaderText } from "../touch/zone-blocks";
+  import { zoneMidiLabel } from "../touch/zone-autos";
+  import { Grid } from "../../lib/_utils";
 
   export let action: GridAction;
 
@@ -15,7 +18,19 @@
   const dispatch = createEventDispatcher();
 
   $: zone = parseZone($action.script);
-  $: summary = zone !== null ? zoneHeaderText(zone) : "not a zone line";
+  // The zones before this one count for the autos: the event is a
+  // dependency (the extra arguments are only reactive dependencies).
+  $: midi = zoneMidiOf($action, $event);
+  function zoneMidiOf(..._dependencies: unknown[]) {
+    return Grid.Auto.getZoneMidi(action);
+  }
+  $: summary =
+    zone !== null
+      ? zoneHeaderText(
+          zone,
+          typeof midi === "undefined" ? undefined : zoneMidiLabel(midi),
+        )
+      : "not a zone line";
   $: faulty =
     zone === null ||
     zoneProblems(zone).length > 0 ||

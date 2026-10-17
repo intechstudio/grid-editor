@@ -10,7 +10,7 @@ import {
   type ZoneOptionValue,
   type ZoneSection,
   zoneOptionDefault,
-  zoneOptionSchema,
+  zoneOptionSchemaFor,
   zoneSections,
   zoneSectionsOpen,
 } from "./zone-model";
@@ -65,9 +65,11 @@ export function defaultZoneScript(kind: ZoneKind, scripts: string[]): string {
   return zoneToLua(defaultZone(kind, scripts));
 }
 
-// Untoggled header: "f1 · 0,0 1×9".
-export function zoneHeaderText(zone: Zone): string {
-  return `${zone.name} · ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
+// Untoggled header: "f1 · 0,0 1×9", with what it sends when known:
+// "f1 · 0,0 1×9 · CC 32 ch 1" (zoneMidiLabel).
+export function zoneHeaderText(zone: Zone, midi?: string): string {
+  const text = `${zone.name} · ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
+  return typeof midi === "undefined" ? text : `${text} · ${midi}`;
 }
 
 export type ZoneFaceSection = {
@@ -83,7 +85,7 @@ export function zoneFaceSections(kind: ZoneKind): ZoneFaceSection[] {
     .map((section) => ({
       section,
       open: zoneSectionsOpen.includes(section),
-      options: zoneOptionSchema.filter(
+      options: zoneOptionSchemaFor(kind).filter(
         (e) => e.section === section && e.kinds.includes(kind),
       ),
     }))
@@ -102,6 +104,9 @@ export function optionPlaceholder(kind: ZoneKind, key: string): string {
   }
   if (key === "max") {
     return "127 or 16383";
+  }
+  if (key === "ch" || key === "num") {
+    return "auto";
   }
   return optionText(zoneOptionDefault(kind, key));
 }
@@ -190,6 +195,7 @@ export function withField(
 
 export const zoneSectionLabels: Record<ZoneSection, string> = {
   geometry: "Geometry",
+  midi: "MIDI",
   resolution: "Resolution",
   led: "LED",
   behaviour: "Behaviour",
@@ -209,6 +215,10 @@ export const optionLabels: Record<string, string> = {
   group: "Radio group",
   grab: "Capture",
   led: "LED feedback (0 off, 1 on)",
+  msg: "Message",
+  ch: "Channel",
+  num: "Number",
+  rx: "Receive (0 off, 1 on)",
   ms: "Interval (ms)",
 };
 

@@ -33,6 +33,10 @@ const editorWritten = [
   `Z.fader("f4",0,0,9,1,{dir="h",res=14,min=-100,max=100},function(self)`,
   `Z.fader("f5",0,0,1,9,{min=0},function(self)`,
   `Z.button("b3",0,0,1,1,{bmo=3,group=2,grab="live"},function(self)`,
+  // MIDI (zona 0.8.1): msg differs from the kind preset, ch, num, rx
+  `Z.fader("f12",0,0,1,9,{msg="pb",ch=3,num=7,rx=1},function(self)`,
+  `Z.button("b4",0,0,1,1,{msg="cc"},function(self)`,
+  `Z.xy("p3",0,0,3,3,{msg="none"},function(self)`,
   // options cut in zona 0.8.0 are unknown: kept as they are
   `Z.fader("f6",0,0,1,9,{contact="move",sens="l"},function(self)`,
   `Z.fader("f7",0,0,1,9,{res=8,db=0,sm=0,rt=0},function(self)`,
@@ -92,7 +96,7 @@ describe("zone opening line", () => {
       y: 0,
       w: 1,
       h: 1,
-      opt: { res: 7, led: 1, bmo: 1 },
+      opt: { res: 7, led: 1, bmo: 1, msg: "note", ch: -1, num: -1, rx: 0 },
     };
     expect(zoneToLua(zone)).toBe(`Z.button("b",0,0,1,1,{bmo=1},function(self)`);
     expect(zoneToLua({ ...zone, kind: "xy", opt: { grab: "focus" } })).toBe(
@@ -289,11 +293,11 @@ describe("a whole touch Setup through compressScript (RFC 6.5)", () => {
       "zfd",
       `Z.fader("f1",0,0,1,9,{res=10,mode="glide",speed=0.5},function(self)`,
     ],
-    ["gms", "self:gms(-1,-1,-1,-1)"],
-    ["gms", "self:gms(-1,144,60,self:g()*127)"],
+    ["cb", "print(1)"],
+    ["cb", "gms(0,144,60,self:g()*127)"],
     ["zen", ZONE_END_SCRIPT],
     ["zbt", `Z.button("b1",1,0,2,2,{bmo=1,group=1,tag={1,2}},function(self)`],
-    ["gms", "self:gms(-1,-1,-1,-1)"],
+    ["cb", "print(1)"],
     ["zen", ZONE_END_SCRIPT],
     ["zst", ZONE_START_SCRIPT],
   ];
@@ -313,7 +317,7 @@ describe("a whole touch Setup through compressScript (RFC 6.5)", () => {
   test.each(editorWritten)("zone line %s comes back unchanged", (line) => {
     const zone = [
       ["zfd", line],
-      ["gms", "self:gms(-1,-1,-1,-1)"],
+      ["cb", "print(1)"],
       ["zen", ZONE_END_SCRIPT],
     ];
     const actions = splitActions(GridScript.compressScript(toLua(zone)));

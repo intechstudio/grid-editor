@@ -12,7 +12,10 @@ beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const MIDI = "function(self) self:gms(-1,-1,-1,-1) end";
+const v1 = (vm) => vm.run("return Z.zs[1]:v()");
+
+// no body: a zone sends its own MIDI
+const MIDI = "nil";
 
 // cells 2-3 x 0-1: raw x 228-455, y 0-227
 const button = `Z.button("b",2,0,2,2,{},${MIDI})`;
@@ -88,21 +91,34 @@ describe("fader", () => {
     expect(wire(vm)).toEqual([[9, 176, 49, 127]]);
   });
 
-  test("duplicates are dropped per (ch,cmd,p1)", async () => {
-    const vm = await zones(
-      `Z.fader("f",0,0,1,9,{},function(self) self:gms(-1,-1,-1,-1) self:gms(-1,144,60,self:g()*127) end)`,
-    );
+  test("a value goes out once: a release that changes nothing sends nothing", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
     vm.touch([0, DOWN, 50, 1023]);
-    expect(wire(vm)).toEqual([
-      [0, 176, 32, 0],
-      [0, 144, 60, 127],
-    ]);
+    expect(wire(vm)).toEqual([[0, 176, 32, 0]]);
     vm.clear();
-    vm.touch([0, MOVE, 50, 0], [0, MOVE, 60, 0]);
+    vm.touch([0, MOVE, 50, 0], [0, MOVE, 60, 0], [0, UP, 60, 0]);
     expect(wire(vm)).toEqual([[0, 176, 32, 127]]);
-    vm.clear();
-    vm.touch([0, UP, 60, 0]);
-    expect(wire(vm)).toEqual([[0, 144, 60, 0]]);
+  });
+
+  test("a press re-sends the current value", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`);
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0], [0, DOWN, 50, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 127],
+      [0, 176, 32, 127],
+    ]);
+  });
+
+  test("the zone's MIDI goes out before the body runs; the global gms works in it", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{},function(self) gms(1,144,60,self:g()*127) end)`,
+    );
+    vm.touch([0, DOWN, 50, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 127], // the value run: MIDI, then the body
+      [1, 144, 60, 127],
+      [1, 144, 60, 127], // the press run: value already sent
+    ]);
   });
 
   test("the value clamps at the edge the finger left", async () => {
@@ -139,7 +155,6 @@ describe("fader", () => {
 
   test("res=14 spans 0-16383 as a 14-bit CC pair", async () => {
     const vm = await zones(`Z.fader("f",0,0,1,9,{res=14},${MIDI})`);
-    expect(vm.run("return Z.zs[1]:get_auto_mode()")).toBe(1);
     vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0]);
     expect(vm.run("return Z.zs[1]:v()")).toBe(16383);
     // auto p1 32 % 32 = 0: MSB on CC 0, LSB on CC 32, as the element method
@@ -148,30 +163,6 @@ describe("fader", () => {
       [0, 176, 32, 0],
       [0, 176, 0, 127],
       [0, 176, 32, 127],
-    ]);
-  });
-
-  test("zone default is 14-bit only for CC: a touched note stays 7-bit", async () => {
-    const vm = await zones(
-      `Z.fader("f",0,0,1,9,{res=14},function(self) self:gms(-1,-1,-1,-1) self:gms(-1,144,60,self:g()*127) end)`,
-    );
-    vm.touch([0, DOWN, 50, 0]);
-    expect(wire(vm)).toEqual([
-      [0, 176, 0, 127],
-      [0, 176, 32, 127],
-      [0, 144, 60, 127],
-    ]);
-  });
-
-  test("7-bit NRPN in a high-res zone sends the auto value at 7 bits", async () => {
-    const vm = await zones(
-      `Z.fader("f",0,0,1,9,{res=14},function(self) self:gms(-1,176,-1,-1,2) end)`,
-    );
-    vm.touch([0, DOWN, 50, 0]);
-    expect(wire(vm)).toEqual([
-      [0, 176, 99, 0],
-      [0, 176, 98, 32],
-      [0, 176, 6, 127],
     ]);
   });
 
@@ -211,14 +202,86 @@ describe("fader", () => {
     expect(new Set(values).size).toBe(256);
     expect(values.at(-1)).toBe(16383);
   });
+});
 
-  test("an explicit mode 0 sends 7-bit", async () => {
-    const vm = await zones(
-      `Z.fader("f",0,0,1,9,{max=127,res=14},function(self) self:gms(-1,-1,-1,-1,0) end)`,
+describe("zone MIDI", () => {
+  test("pitch bend: 14-bit LSB, MSB whatever res says; the centre is 8192", async () => {
+    // rows 3-5: raw y 342-682, the middle at 512
+    const vm = await zones(`Z.fader("f",0,3,1,3,{msg="pb"},${MIDI})`);
+    expect(vm.run("return Z.zs[1].o.res .. ' ' .. Z.zs[1].ma")).toBe(
+      "14 16383",
     );
-    expect(vm.run("return Z.zs[1]:get_auto_mode()")).toBe(1);
-    vm.touch([0, DOWN, 50, 0]);
-    expect(wire(vm)).toEqual([[0, 176, 32, 127]]);
+    vm.touch([0, DOWN, 50, 512]);
+    expect(v1(vm)).toBe(8192);
+    vm.touch([0, MOVE, 50, 342], [0, MOVE, 50, 682]);
+    expect(wire(vm)).toEqual([
+      [0, 224, 0, 64],
+      [0, 224, 127, 127],
+      [0, 224, 0, 0],
+    ]);
+  });
+
+  test("explicit ch and num, a 14-bit LSB on num+32", async () => {
+    const vm = await zones(
+      `Z.fader("a",0,0,1,9,{ch=5,num=10},${MIDI}) Z.fader("b",1,0,1,9,{res=14,num=7},${MIDI}) Z.button("c",2,0,1,1,{ch=15,num=60},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 0], [1, DOWN, 150, 0], [2, DOWN, 250, 50]);
+    expect(wire(vm)).toEqual([
+      [5, 176, 10, 127],
+      [0, 176, 7, 127],
+      [0, 176, 39, 127],
+      [15, 144, 60, 127],
+    ]);
+  });
+
+  test("xy: x on num, y on num+1; 14-bit: both pairs", async () => {
+    const vm = await zones(`Z.xy("p",0,0,3,3,{res=14,num=3},${MIDI})`);
+    vm.touch([0, DOWN, 341, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 3, 127],
+      [0, 176, 35, 127],
+      [0, 176, 4, 127],
+      [0, 176, 36, 127],
+    ]);
+  });
+
+  test("msg none sends nothing and keeps its slot", async () => {
+    const vm = await zones(
+      `Z.fader("a",0,0,1,9,{msg="none"},${MIDI}) Z.fader("b",1,0,1,9,{},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 0], [1, DOWN, 150, 0]);
+    expect(wire(vm)).toEqual([[0, 176, 33, 127]]);
+  });
+
+  test("a button as a CC: a toggle sends 127, then 0", async () => {
+    const vm = await zones(`Z.button("b",2,0,2,2,{msg="cc",bmo=1},${MIDI})`);
+    vm.touch([0, 9, 300, 100], [0, 9, 300, 100]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 127],
+      [0, 176, 32, 0],
+    ]);
+  });
+
+  test("button steps: one note per step change", async () => {
+    const vm = await zones(`Z.button("b",2,0,2,2,{bmo=2},${MIDI})`);
+    vm.touch([0, 9, 300, 100], [0, 9, 300, 100], [0, 9, 300, 100]);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 63],
+      [0, 144, 32, 126],
+      [0, 144, 32, 0],
+    ]);
+  });
+
+  test("a high-res button note is 7-bit; a 14-bit CC button sends the pair", async () => {
+    const vm = await zones(
+      `Z.button("a",0,0,1,1,{res=14},${MIDI}) Z.button("b",1,0,1,1,{res=14,msg="cc"},${MIDI})`,
+    );
+    vm.touch([0, DOWN, 50, 50], [1, DOWN, 150, 50]);
+    expect(wire(vm)).toEqual([
+      [0, 144, 32, 127],
+      [0, 176, 1, 127],
+      [0, 176, 33, 127],
+    ]);
   });
 });
 
@@ -247,7 +310,6 @@ describe("CC slots", () => {
       [0, 176, 33, 127],
       [0, 176, 34, 127],
     ]);
-    expect(vm.run("return Z.zs[2]:ind()")).toBe(1);
   });
 });
 
@@ -294,7 +356,7 @@ describe("button", () => {
 
   test("a message without an off value goes out on every press", async () => {
     const vm = await zones(
-      `Z.button("b",2,0,2,2,{},function(self) if self:g()==1 then self:gms(0,192,5,0) end end)`,
+      `Z.button("b",2,0,2,2,{msg="none"},function(self) if self:g()==1 then gms(0,192,5,0) end end)`,
     );
     vm.touch([0, 9, 300, 100], [0, 9, 300, 100], [0, 9, 300, 100]);
     expect(wire(vm)).toEqual([
@@ -395,13 +457,13 @@ describe("contacts", () => {
 
   test("the body sees the zone as self, with its getters", async () => {
     const vm = await zones(
-      `Z.fader("a",0,0,1,9,{}) Z.fader("b",1,0,1,9,{},function(self) _rec("body",4,self.s,self:v(),self:g(),self:ind()) end)`,
+      `Z.fader("a",0,0,1,9,{}) Z.fader("b",1,0,1,9,{},function(self) _rec("body",4,self.s,self:v(),self:g(),self.n) end)`,
     );
     vm.touch([0, DOWN, 150, 0], [0, UP, 150, 0]);
     expect(vm.calls("body").map((e) => e.args)).toEqual([
-      ["v", 127, 1, 1],
-      ["g", 127, 1, 1],
-      ["g", 127, 0, 1],
+      ["v", 127, 1, "b"],
+      ["g", 127, 1, "b"],
+      ["g", 127, 0, "b"],
     ]);
   });
 });
@@ -433,7 +495,7 @@ describe("defaults", () => {
     // z.o reads through to the kind preset and Z.def
     expect(
       vm.run(
-        "local o,r=Z.zs[1].o,{} for k in pairs(Z.def) do r[k]=o[k] end r.read=o.read return r",
+        "local o,r=Z.zs[1].o,{} for k in pairs(Z.def) do r[k]=o[k] end r.read=o.read r.msg=o.msg return r",
       ),
     ).toEqual({
       ...zoneDefaults,
@@ -443,9 +505,10 @@ describe("defaults", () => {
   });
 });
 
-// Records every body run as [source, auto value, d, index].
+// Records every body run as [source, value, d, name]; a press or release run
+// reports the main value.
 const REC =
-  'function(self) _rec("run",4,self.s,self:get_auto_value(),self:d(),self:ind()) end';
+  'function(self) local s=self.s=="g" and (self.o.read=="point" and "x" or "v") or self.s _rec("run",4,self.s,self.u[s],self:d(),self.n) end';
 const runs = (vm) => vm.calls("run").map((e) => e.args);
 const values = (vm, src = "v") =>
   runs(vm)
@@ -531,11 +594,11 @@ describe("live capture", () => {
     );
     vm.touch([0, DOWN, 50, 1023], [0, MOVE, 150, 0], [0, UP, 150, 0]);
     expect(runs(vm).map((e) => [e[3], e[0]])).toEqual([
-      [0, "g"], // a pressed (value already 0)
-      [0, "g"], // a released
-      [1, "v"], // b pressed at the entry position
-      [1, "g"],
-      [1, "g"], // b released
+      ["a", "g"], // a pressed (value already 0)
+      ["a", "g"], // a released
+      ["b", "v"], // b pressed at the entry position
+      ["b", "g"],
+      ["b", "g"], // b released
     ]);
   });
 
@@ -846,13 +909,51 @@ describe("LEDs", () => {
     vm.setup(
       `Z.fader("f",0,0,1,9,{},function(self) self:glc(-1,{{255,0,0,1}}) self:glp(-1,100) end) Z.start(self)`,
     );
-    vm.touch([0, DOWN, 50, 0], [0, MOVE, 50, 100]);
-    vm.tick();
+    // no touch: Z.start ran the body once before the first paint
     const red = vm.calls("glx").filter((e) => e.args[2] === 255);
     expect(red.length).toBe(9);
     expect(red[0].args).toEqual([8, 1, 255, 0, 0, 1]);
     expect(vm.calls("gln")[0].args).toEqual([8, 1, 12, 0, 0, 1]);
+    vm.clear();
+    vm.touch([0, DOWN, 50, 0], [0, MOVE, 50, 100]);
+    vm.tick();
     expect(column(leds(vm), 0)[8]).toBe(100);
+  });
+
+  test("the start run sends nothing and sees g=0", async () => {
+    const vm = await createZonaVM();
+    vm.setup(
+      `Z.fader("f",0,0,1,9,{},function(self) _rec("g",1,self:g()) gms(1,144,60,127) ggms(0,1) gmms(1,5) gks(0,0,4) end) Z.start(self)`,
+    );
+    expect(vm.calls("g").map((e) => e.args)).toEqual([[0]]);
+    for (const f of ["gms", "ggms", "gmms", "gks"]) {
+      expect(vm.calls(f)).toEqual([]);
+    }
+    vm.touch([0, DOWN, 50, 0]);
+    expect(vm.midi()).toEqual([
+      [0, 176, 32, 127], // the zone's own, then the body's
+      [1, 144, 60, 127],
+      [1, 144, 60, 127],
+    ]);
+    expect(vm.calls("ggms").length).toBe(2);
+  });
+
+  test("a body that fails at start is printed; the surface runs", async () => {
+    const vm = await createZonaVM();
+    vm.run("print=function(m) _rec('print',1,tostring(m)) end");
+    vm.setup(
+      `Z.fader("f",0,0,1,9,{},function(self) if self:g()==0 then error("boom") end end) Z.fader("g",1,0,1,9,{},nil) Z.start(self)`,
+    );
+    expect(vm.calls("print").map((e) => e.args[0])).toEqual([
+      expect.stringContaining("boom"),
+    ]);
+    vm.clear();
+    vm.run("gms(9,9,9,9)");
+    vm.touch([1, DOWN, 150, 0]);
+    expect(vm.midi()).toEqual([
+      [9, 9, 9, 9], // outputs restored
+      [0, 176, 33, 127],
+    ]);
   });
 
   test("glp intensity is clamped to 0-255", async () => {
@@ -1001,51 +1102,7 @@ describe("deadband and rate limit", () => {
   });
 });
 
-// A default MIDI block with Receive MIDI (value and LED sync), as Midi.svelte
-// writes it.
-const RX = (mode = 0) =>
-  `function(self) self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},${mode}) end`;
-const v1 = (vm) => vm.run("return Z.zs[1]:v()");
-
-describe("dry run", () => {
-  test("runs each body muted, with dry() true, and registers RX", async () => {
-    const vm = await createZonaVM();
-    vm.setup(
-      `Z.xy("p",0,0,3,3,{},function(self) _rec("dry",2,self.s,self:dry()) self:gms(-1,-1,-1,-1) ggms(0,1) gks(0,0,4) self:gmrr(-1,-1,-1,-1,{true,true},0) end) Z.start(self)`,
-    );
-    expect(vm.calls("dry").map((e) => e.args)).toEqual([
-      ["x", true],
-      ["y", true],
-      ["g", true],
-    ]);
-    expect([
-      ...vm.calls("gms"),
-      ...vm.calls("ggms"),
-      ...vm.calls("gks"),
-    ]).toEqual([]);
-    expect(vm.run("return el.midirx_cb == Z.rx")).toBe(true);
-    vm.clear();
-    vm.touch([0, DOWN, 341, 0]);
-    expect(vm.calls("dry").map((e) => e.args[1])).toEqual([
-      false,
-      false,
-      false,
-    ]);
-    expect(vm.calls("ggms").length).toBe(3);
-  });
-
-  test("outputs are restored when a body errors", async () => {
-    const vm = await createZonaVM();
-    vm.setup(
-      `Z.fader("f",0,0,1,9,{},function(self) if self:dry() then error("x") end self:gms(-1,-1,-1,-1) end) Z.start(self)`,
-    );
-    vm.run("ggms(0,5) glp(1,1,9)");
-    expect(vm.calls("ggms").length).toBe(1);
-    expect(vm.calls("glp").at(-1).args).toEqual([1, 1, 9]);
-    vm.touch([0, DOWN, 50, 0]);
-    expect(vm.midi()).toEqual([[0, 176, 32, 127]]);
-  });
-
+describe("MIDI receive callback", () => {
   test("no RX registered: no midirx_cb", async () => {
     await zones(`Z.fader("f",0,0,1,9,{},${MIDI})`).then((vm) =>
       expect(vm.run("return el.midirx_cb == nil")).toBe(true),
@@ -1054,7 +1111,7 @@ describe("dry run", () => {
 
   test("a user midirx_cb runs after the library's, chained once", async () => {
     const vm = await createZonaVM();
-    const setup = `Z.fader("f",0,0,1,9,{},${RX()}) Z.start(self)`;
+    const setup = `Z.fader("f",0,0,1,9,{rx=1},nil) Z.start(self)`;
     const user = `self.midirx_cb=function(s,h,e) _rec("user",1,Z.zs[1]:v()) end`;
     vm.setup(`${user} ${setup}`);
     vm.setup(`${user} ${setup}`);
@@ -1064,7 +1121,7 @@ describe("dry run", () => {
 
   test("a user midirx_cb no longer set in Setup is dropped", async () => {
     const vm = await createZonaVM();
-    const setup = `Z.fader("f",0,0,1,9,{},${RX()}) Z.start(self)`;
+    const setup = `Z.fader("f",0,0,1,9,{rx=1},nil) Z.start(self)`;
     vm.setup(`self.midirx_cb=function() _rec("user",0) end ${setup}`);
     vm.setup(setup);
     vm.rx(0, 176, 32, 100);
@@ -1074,7 +1131,7 @@ describe("dry run", () => {
 
 describe("RX sync", () => {
   test("7-bit CC sets the value and repaints, with no output", async () => {
-    const vm = await zones(`Z.fader("f",0,0,1,9,{},${RX()})`);
+    const vm = await zones(`Z.fader("f",0,0,1,9,{rx=1},nil)`);
     vm.rx(0, 176, 32, 100);
     expect(v1(vm)).toBe(100);
     vm.tick();
@@ -1083,7 +1140,7 @@ describe("RX sync", () => {
   });
 
   test("other messages and MIDI not from the host are ignored", async () => {
-    const vm = await zones(`Z.fader("f",0,0,1,9,{},${RX()})`);
+    const vm = await zones(`Z.fader("f",0,0,1,9,{rx=1},nil)`);
     vm.rx(0, 176, 33, 100);
     vm.rx(1, 176, 32, 100);
     vm.rx(0, 176, 32, 100, 14);
@@ -1091,7 +1148,7 @@ describe("RX sync", () => {
   });
 
   test("notes: on picks the step, note off is 0", async () => {
-    const vm = await zones(`Z.button("b",0,0,1,1,{bmo=1},${RX()})`);
+    const vm = await zones(`Z.button("b",0,0,1,1,{bmo=1,rx=1},nil)`);
     vm.rx(0, 144, 32, 127);
     expect(vm.run("return Z.zs[1]:step()")).toBe(1);
     vm.rx(0, 128, 32, 64);
@@ -1099,46 +1156,48 @@ describe("RX sync", () => {
   });
 
   test("an incoming value picks the nearest step", async () => {
-    const vm = await zones(`Z.button("b",0,0,1,1,{bmo=2},${RX()})`);
+    const vm = await zones(`Z.button("b",0,0,1,1,{bmo=2,rx=1},nil)`);
     vm.rx(0, 144, 32, 70);
     expect(vm.run("return Z.zs[1]:step()")).toBe(1);
     expect(v1(vm)).toBe(63);
   });
 
   test("14-bit CC: the MSB at once, the LSB refines", async () => {
-    const vm = await zones(`Z.fader("f",0,0,1,9,{res=14},${RX(1)})`);
+    const vm = await zones(`Z.fader("f",0,0,1,9,{res=14,rx=1},nil)`);
     vm.rx(0, 176, 0, 64);
     expect(v1(vm)).toBe(8192);
     vm.rx(0, 176, 32, 5);
     expect(v1(vm)).toBe(8197);
   });
 
-  test("NRPN 14-bit (mode 3) and 7-bit (mode 2)", async () => {
-    const vm = await zones(
-      `Z.fader("a",0,0,1,9,{res=14},function(self) self:gmrr(-1,0,176,300,{true,true},3) end) Z.fader("b",1,0,1,9,{},function(self) self:gmrr(-1,0,176,301,{true,true},2) end)`,
-    );
-    vm.rx(0, 176, 99, 2);
-    vm.rx(0, 176, 98, 44);
-    vm.rx(0, 176, 6, 10);
-    expect(v1(vm)).toBe(1280);
-    vm.rx(0, 176, 38, 3);
-    expect(v1(vm)).toBe(1283);
-    vm.rx(0, 176, 98, 45);
-    vm.rx(0, 176, 6, 50);
-    expect(vm.run("return Z.zs[2]:v()")).toBe(50);
-    expect(v1(vm)).toBe(1283);
+  test("pitch bend: LSB and MSB", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{msg="pb",rx=1},nil)`);
+    vm.rx(0, 224, 5, 64);
+    expect(v1(vm)).toBe(8197);
+    expect(vm.calls("gms")).toEqual([]);
   });
 
-  test("pitch bend: the MSB", async () => {
+  test("7-bit CC into a wide range is scaled", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{max=1000,rx=1},nil)`);
+    vm.rx(0, 176, 32, 127);
+    expect(v1(vm)).toBe(1000);
+  });
+
+  test("a zone without rx ignores its identity", async () => {
     const vm = await zones(
-      `Z.fader("f",0,0,1,9,{},function(self) self:gmrr(-1,-1,224,0,{true,true},0) end)`,
+      `Z.fader("f",0,0,1,9,{},nil) Z.fader("g",1,0,1,9,{rx=1},nil)`,
     );
-    vm.rx(0, 224, 17, 100);
-    expect(v1(vm)).toBe(100);
+    vm.rx(0, 176, 32, 100);
+    expect(v1(vm)).toBe(0);
+  });
+
+  test("msg none registers nothing", async () => {
+    const vm = await zones(`Z.fader("f",0,0,1,9,{msg="none",rx=1},nil)`);
+    expect(vm.run("return el.midirx_cb == nil")).toBe(true);
   });
 
   test("touch wins", async () => {
-    const vm = await zones(`Z.fader("f",0,0,1,9,{},${RX()})`);
+    const vm = await zones(`Z.fader("f",0,0,1,9,{rx=1},nil)`);
     vm.touch([0, DOWN, 50, 0]);
     vm.rx(0, 176, 32, 10);
     expect(v1(vm)).toBe(127);
@@ -1148,21 +1207,18 @@ describe("RX sync", () => {
   });
 
   test("RX moves the duplicate filter and ends a glide", async () => {
-    const vm = await zones(`Z.fader("f",0,0,1,9,{mode="glide"},${RX()})`);
+    const vm = await zones(`Z.fader("f",0,0,1,9,{mode="glide",rx=1},nil)`);
     vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
     vm.tick(5);
     vm.rx(0, 176, 32, 100);
-    // key of (ch 0, cmd 176, p1 32)
-    expect(vm.run(`return Z.zs[1].l[${(176 * 16384 + 32).toString()}]`)).toBe(
-      100,
-    );
+    expect(vm.run("return Z.zs[1].l.v")).toBe(100);
     vm.tick(10);
     expect(v1(vm)).toBe(100);
   });
 
   test("an incoming on makes a group member the active one, no output", async () => {
     const vm = await zones(
-      `Z.button("a",0,0,1,1,{bmo=1,group=1},${RX()}) Z.button("b",1,0,1,1,{bmo=1,group=1},${RX()})`,
+      `Z.button("a",0,0,1,1,{bmo=1,group=1,rx=1},nil) Z.button("b",1,0,1,1,{bmo=1,group=1,rx=1},nil)`,
     );
     vm.touch([0, 9, 50, 50]);
     vm.clear();
@@ -1174,7 +1230,7 @@ describe("RX sync", () => {
 
   test("a 14-bit button registers on the CC pair it sends", async () => {
     const vm = await zones(
-      `Z.button("b",0,0,1,1,{res=14,bmo=1},function(self) self:gms(-1,-1,-1,-1,1) self:gmrr(-1,-1,-1,-1,{true,true},1) end)`,
+      `Z.button("b",0,0,1,1,{res=14,bmo=1,msg="cc",rx=1},nil)`,
     );
     vm.touch([0, 9, 50, 50]);
     expect(wire(vm)).toEqual([
@@ -1187,8 +1243,7 @@ describe("RX sync", () => {
   });
 
   test("a high-res button sends and receives its note at 7 bits", async () => {
-    const vm = await zones(`Z.button("b",0,0,1,1,{res=14,bmo=1},${RX(-1)})`);
-    expect(vm.run("return Z.zs[1]:get_auto_mode()")).toBe(1);
+    const vm = await zones(`Z.button("b",0,0,1,1,{res=14,bmo=1,rx=1},nil)`);
     vm.touch([0, 9, 50, 50]);
     expect(wire(vm)).toEqual([[0, 144, 32, 127]]);
     vm.clear();
@@ -1200,23 +1255,12 @@ describe("RX sync", () => {
   });
 
   test("RX into a high-res button keeps the 7-bit value for the repeat filter", async () => {
-    const vm = await zones(`Z.button("b1",0,0,1,1,{res=14},${RX(-1)})`);
+    const vm = await zones(`Z.button("b1",0,0,1,1,{res=14,rx=1},nil)`);
     vm.rx(0, 144, 32, 127);
     expect(vm.run("return Z.zs[1]:step()")).toBe(1);
     vm.touch([0, DOWN, 50, 50]);
     expect(vm.run("return Z.zs[1]:step()")).toBe(1);
     expect(wire(vm)).toEqual([]);
-  });
-
-  test("7-bit NRPN RX into a res=14 fader takes the full range", async () => {
-    const vm = await zones(
-      `Z.fader("f",0,0,1,9,{res=14},function(self) self:gms(-1,176,-1,-1,2) self:gmrr(-1,-1,176,-1,{true,false},2) end)`,
-    );
-    vm.rx(0, 176, 99, 0);
-    vm.rx(0, 176, 98, 32);
-    vm.rx(0, 176, 6, 127);
-    expect(v1(vm)).toBe(16383);
-    expect(vm.calls("gms")).toEqual([]);
   });
 
   test("Z.set yields to a finger", async () => {

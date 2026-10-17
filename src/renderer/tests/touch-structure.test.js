@@ -30,17 +30,17 @@ beforeAll(async () => {
 const LIB = `local p=string.format("/%02X/",gpc())Z=require(p.."zona")`;
 const fader = (name, x = 0) => `Z.fader("${name}",${x},0,1,9,{},function(self)`;
 const button = (name) => `Z.button("${name}",2,0,2,2,{},function(self)`;
-const MIDI = "self:gms(-1,-1,-1,-1)";
+const BODY = "print(1)";
 
 describe("pasted zones get unique names", () => {
   const zoneItem = (script) => ({ script, uniqueIn: uniqueZoneScript });
 
   test("a paste batch: against the event and the zones pasted before", () => {
-    const event = [LIB, fader("f1"), MIDI, "end)", "Z.start(self)"];
+    const event = [LIB, fader("f1"), BODY, "end)", "Z.start(self)"];
     expect(
       uniqueScripts(event, [
         zoneItem(fader("f1")),
-        { script: MIDI },
+        { script: BODY },
         { script: "end)" },
         zoneItem(fader("f1", 1)),
         zoneItem(button("b1")),
@@ -48,7 +48,7 @@ describe("pasted zones get unique names", () => {
       ]),
     ).toEqual([
       fader("f2"),
-      MIDI,
+      BODY,
       "end)",
       fader("f3", 1),
       button("b1"),
@@ -66,24 +66,24 @@ describe("pasted zones get unique names", () => {
   });
 
   test("only changed scripts are rewritten (a moved action keeps its synced script)", () => {
-    const event = [LIB, fader("f1"), MIDI, "end)"];
+    const event = [LIB, fader("f1"), BODY, "end)"];
     expect(
       insertRewrites(event, [
         zoneItem(fader("f1")),
-        { script: MIDI },
+        { script: BODY },
         zoneItem(fader("f9")),
         { script: "end)" },
       ]),
     ).toEqual([[0, fader("f2")]]);
     // a move inside the event: the moved zone was removed first, nothing changes
     expect(
-      insertRewrites([LIB, MIDI], [zoneItem(fader("f1")), { script: MIDI }]),
+      insertRewrites([LIB, BODY], [zoneItem(fader("f1")), { script: BODY }]),
     ).toEqual([]);
   });
 
   test("lines that aren't zones are left alone", () => {
-    expect(uniqueZoneScript(MIDI, [MIDI])).toBe(MIDI);
-    expect(uniqueScripts([MIDI], [{ script: MIDI }])).toEqual([MIDI]);
+    expect(uniqueZoneScript(BODY, [BODY])).toBe(BODY);
+    expect(uniqueScripts([BODY], [{ script: BODY }])).toEqual([BODY]);
   });
 
   test("zone blocks declare it", () => {
@@ -99,10 +99,10 @@ describe("which issues stop the send", () => {
   test("a duplicate name: both zones", () => {
     const event = setup(
       fader("f1"),
-      MIDI,
+      BODY,
       "end)",
       fader("f1", 1),
-      MIDI,
+      BODY,
       "end)",
     );
     expect(zoneSendProblem(fader("f1"), event)).toBe(
@@ -121,21 +121,21 @@ describe("which issues stop the send", () => {
     ],
     ["a value out of range", `Z.fader("f1",0,0,1,9,{res=20},function(self)`],
   ])("a zone problem doesn't block: %s", (_, line) => {
-    const event = setup(line, MIDI, "end)");
+    const event = setup(line, BODY, "end)");
     expect(surfaceIssues(event).some((e) => e.level === "error")).toBe(true);
     expect(zoneSendProblem(line, event)).toBeUndefined();
   });
 
   test("a duplicate blocks even when written differently", () => {
     const hand = `Z.button( 'f1', 2,0,1,1, {}, function(self)`;
-    const event = setup(fader("f1"), MIDI, "end)", hand, MIDI, "end)");
+    const event = setup(fader("f1"), BODY, "end)", hand, BODY, "end)");
     expect(zoneSendProblem(hand, event)).toBe(
       `Another zone is also named "f1"`,
     );
   });
 
   test("order warnings only show", () => {
-    const event = [fader("f1"), MIDI, "end)"]; // no Library, no Touch Start
+    const event = [fader("f1"), BODY, "end)"]; // no Library, no Touch Start
     expect(surfaceIssues(event).map((e) => e.level)).toEqual([
       "warning",
       "warning",
@@ -144,9 +144,9 @@ describe("which issues stop the send", () => {
   });
 
   test("a valid Setup, and a line that isn't a zone", () => {
-    const event = setup(fader("f1"), MIDI, "end)", button("b1"), MIDI, "end)");
+    const event = setup(fader("f1"), BODY, "end)", button("b1"), BODY, "end)");
     expect(zoneSendProblem(fader("f1"), event)).toBeUndefined();
-    expect(zoneSendProblem(MIDI, event)).toBeUndefined();
+    expect(zoneSendProblem(BODY, event)).toBeUndefined();
   });
 
   test("zone blocks declare it", () => {
@@ -191,7 +191,6 @@ describe("inside a zone body", () => {
   const block = (short, category) => ({ short, category });
 
   test.each([
-    ["gms", "midi"],
     ["gmss", "midi"],
     ["sglc", "led"],
     ["sglp", "led"],
@@ -212,6 +211,7 @@ describe("inside a zone body", () => {
   });
 
   test.each([
+    ["gms", "midi"], // the zone sends its own BODY
     ["zfd", "touch"],
     ["ztk", "touch"],
     ["zst", "touch"],
@@ -251,6 +251,9 @@ describe("inside a zone body", () => {
     ).toBe(false);
     expect(
       isAllowedIn(block("gms", "midi"), { ...target, bodies: [zoneBodyRule] }),
+    ).toBe(false);
+    expect(
+      isAllowedIn(block("ggms", "hid"), { ...target, bodies: [zoneBodyRule] }),
     ).toBe(true);
   });
 });

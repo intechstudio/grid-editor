@@ -13,8 +13,9 @@ import {
   type Zone,
   type ZoneOptionValue,
   type ZoneTick,
+  zoneKinds,
   zoneOptionDefault,
-  zoneOptionSchema,
+  zoneOptionSchemaFor,
   zoneTickSchema,
 } from "./zone-model";
 import { parseZone, ZONA_GLOBAL, ZONE_START_SCRIPT } from "./zone-parse";
@@ -115,12 +116,38 @@ function geometryProblems(zone: Zone): ZoneProblem[] {
   return problems;
 }
 
+function option(zone: Zone, key: string) {
+  return zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
+}
+
+// res as the library uses it: pitch bend is always 14-bit.
+function resOf(zone: Zone): number {
+  return option(zone, "msg") === "pb" ? 14 : Number(option(zone, "res"));
+}
+
 // min and max as the library uses them: 0 and 127, or 16383 above res 7.
+// A zone that sends MIDI keeps them in 0-16383 (the wire range); with
+// msg="none" any range goes (values for gamepad or mouse in the body).
 function rangeProblems(zone: Zone): ZoneProblem[] {
-  const res = zone.opt.res ?? zoneOptionDefault(zone.kind, "res");
   const min = zone.opt.min ?? 0;
-  const max = zone.opt.max ?? (Number(res) > 7 ? 16383 : 127);
-  if (typeof min !== "number" || typeof max !== "number" || min < max) {
+  const max = zone.opt.max ?? (resOf(zone) > 7 ? 16383 : 127);
+  if (typeof min !== "number" || typeof max !== "number") {
+    return [];
+  }
+  if (option(zone, "msg") !== "none") {
+    const outside = (["min", "max"] as const).filter(
+      (key) =>
+        typeof zone.opt[key] !== "undefined" &&
+        (Number(zone.opt[key]) < 0 || Number(zone.opt[key]) > 16383),
+    );
+    if (outside.length > 0) {
+      return outside.map((key) => ({
+        key,
+        message: "Use 0 to 16383 when the zone sends MIDI",
+      }));
+    }
+  }
+  if (min < max) {
     return [];
   }
   return [
@@ -131,6 +158,29 @@ function rangeProblems(zone: Zone): ZoneProblem[] {
   ];
 }
 
+// An explicit num keeps every number the zone sends in 0-127: a 14-bit CC
+// sends its LSB on num+32 (num 0-31), an xy its y on num+1.
+function numProblems(zone: Zone): ZoneProblem[] {
+  const num = Number(option(zone, "num"));
+  const msg = option(zone, "msg");
+  if (num < 0 || msg === "pb" || msg === "none") {
+    return [];
+  }
+  const xy = zoneKinds[zone.kind].read === "point";
+  const wide = msg === "cc" && resOf(zone) > 7;
+  const max = (wide ? 31 : 127) - (xy ? 1 : 0);
+  if (num <= max) {
+    return [];
+  }
+  const why = [
+    wide ? "a 14-bit CC sends its LSB on num+32" : "",
+    xy ? "y goes on num+1" : "",
+  ]
+    .filter((e) => e !== "")
+    .join(", ");
+  return [{ key: "num", message: `Use -1 (auto) or 0 to ${max}: ${why}` }];
+}
+
 export function zoneProblems(zone: Zone): ZoneProblem[] {
   const problems: ZoneProblem[] = [];
   const name = zoneNameProblem(zone.name);
@@ -138,10 +188,14 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
     problems.push({ key: "name", message: name });
   }
   problems.push(...geometryProblems(zone));
-  const options = optionProblems(zone.opt, zoneOptionSchema);
+  const options = optionProblems(zone.opt, zoneOptionSchemaFor(zone.kind));
   problems.push(...options);
-  if (!options.some((e) => ["res", "min", "max"].includes(e.key))) {
+  const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));
+  if (!bad(["res", "min", "max", "msg"])) {
     problems.push(...rangeProblems(zone));
+  }
+  if (!bad(["res", "num", "msg"])) {
+    problems.push(...numProblems(zone));
   }
   return problems;
 }

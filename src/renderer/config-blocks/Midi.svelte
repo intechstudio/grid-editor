@@ -99,11 +99,8 @@
   let nrpnMSB: string = "";
   let nrpnLSB: string = "";
 
-  // Inside a touch zone "default" is the zone's auto mode: 14-bit CC when its
-  // Resolution is above 7 bits (RFC 4.2).
-  $: inZone = Boolean($event) && Grid.Auto.getZoneMidi(action) !== null;
-  $: modes = [
-    { title: inZone ? "Zone default" : "Default 7-bit", value: 0 },
+  const modes = [
+    { title: "Default 7-bit", value: 0 },
     { title: "CC 14-bit", value: 1 },
     { title: "NRPN", value: 2 },
     { title: "NRPN 14-bit", value: 3 },
@@ -157,14 +154,7 @@
     if (feature1 || feature2) {
       const f1 = feature1 ? "true" : "false";
       const f2 = feature2 ? "true" : "false";
-      // The registration must use the mode the send uses (RFC 4.8). With the
-      // default mode gms has no mode argument, so in a zone it is the zone's
-      // auto mode: register with -1 (auto) too, not 0 (always 7-bit).
-      const rxMode =
-        mode === 0 && Grid.Auto.getZoneMidi(action) !== null
-          ? "-1"
-          : String(mode);
-      fullScript += ` self:gmrr(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}},${rxMode})`;
+      fullScript += ` self:gmrr(-1,${scriptSegments[0]},${scriptSegments[1]},${scriptSegments[2]},{${f1},${f2}},${String(mode)})`;
     }
     dispatch("update-action", {
       short: action.short,
@@ -287,11 +277,7 @@
     } else if (mode === 1) {
       param1 = [
         makeAuto(
-          `Auto (${
-            Grid.Auto.getZoneMidi(action) !== null
-              ? Grid.Auto.getMidiP1Label(action)
-              : Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1) % 32
-          })`,
+          `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1) % 32})`,
         ),
         ...make14BitCCs(),
       ];
@@ -299,7 +285,9 @@
       switch (selectedCommand) {
         case "control_change_messages":
           param1 = [
-            makeAuto(`Auto (${Grid.Auto.getMidiP1Label(action)})`),
+            makeAuto(
+              `Auto (${Grid.Auto.getMidi(action, Grid.Auto.Value.MIDI_P1)})`,
+            ),
             ...makeCCs(),
           ];
           break;
@@ -340,11 +328,6 @@
         : [...localDefinitions], // param1
       [
         baseSuggestions[3][0],
-        // inside a touch zone, its getters (self:v(), …)
-        ...Grid.Auto.getZoneGetters(action).map((e) => ({
-          ...e,
-          key: `getter_${e.value}`,
-        })),
         ...localDefinitions,
         ...baseSuggestions[3].slice(1),
       ], // param2

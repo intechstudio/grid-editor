@@ -17,14 +17,14 @@ const act = (script, type = "single") => ({
 });
 const zone = (line) => act(line, "composite_open");
 const END = () => act("end)", "composite_close");
-const MIDI = () => act("self:gms(-1,-1,-1,-1)");
+const BODY = () => act("print(1)");
 
 const LIB = act(`local p=string.format("/%02X/",gpc())Z=require(p.."zona")`);
 const F1 = zone(`Z.fader("f1",0,0,1,9,{},function(self)`);
-const F1_MIDI = MIDI();
+const F1_BODY = BODY();
 const B1 = zone(`Z.button("b1",1,0,2,2,{group=1},function(self)`);
 const B1_IF = act("if self:g()==1 then", "composite_open");
-const B1_MIDI = MIDI();
+const B1_BODY = BODY();
 const P1 = zone(`Z.xy("p1",3,0,4,4,{},function(self)`);
 const DUP = zone(`Z.fader("p1",5,5,3,3,{},function(self)`);
 const BAD = act(`Z.fader("x",0,0,1,9,{},function(s)`); // not a zone line
@@ -33,18 +33,18 @@ const START = act("Z.start(self)");
 const SETUP = [
   LIB,
   F1,
-  F1_MIDI,
+  F1_BODY,
   END(),
   B1,
   B1_IF,
-  B1_MIDI,
+  B1_BODY,
   act("end", "composite_close"),
   END(),
   P1,
-  MIDI(),
+  BODY(),
   END(),
   DUP,
-  MIDI(),
+  BODY(),
   END(),
   BAD,
   START,
@@ -134,13 +134,13 @@ describe("highlight for a selection", () => {
   });
 
   test("a block in its body, also inside an If", () => {
-    expect(highlighted([F1_MIDI.id])).toEqual(["f1"]);
-    expect(highlighted([B1_MIDI.id])).toEqual(["b1"]);
+    expect(highlighted([F1_BODY.id])).toEqual(["f1"]);
+    expect(highlighted([B1_BODY.id])).toEqual(["b1"]);
     expect(highlighted([B1_IF.id])).toEqual(["b1"]);
   });
 
   test("several selected blocks", () => {
-    expect(highlighted([F1_MIDI.id, P1.id])).toEqual(["f1", "p1"]);
+    expect(highlighted([F1_BODY.id, P1.id])).toEqual(["f1", "p1"]);
   });
 
   test("nothing for blocks outside zones", () => {

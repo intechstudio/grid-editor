@@ -54,9 +54,6 @@ const ANCHOR: Record<ZoneKind, string> = {
   xy: "touch-xy",
 };
 
-// The default output: a MIDI block with autos (RFC 4.1).
-const DEFAULT_BODY = { short: "gms", script: "self:gms(-1,-1,-1,-1)" };
-
 const TOUCH_SETUP = {
   elementTypes: [ElementType.TOUCH],
   eventTypes: [EventType.SETUP],
@@ -76,12 +73,13 @@ const COMMON = {
 } as const;
 
 // What a zone body takes (RFC 6.2): outputs, Code, Comment, conditions and
-// variables. Not the Library or Element Name (code), nor LED animations,
-// which address the element's own LEDs, nor Self variables: self is the zone,
-// and self.x=… would shadow its getters and state.
+// variables. Not the MIDI block (the zone sends its own MIDI from its
+// options), the Library or Element Name (code), nor LED animations, which
+// address the element's own LEDs, nor Self variables: self is the zone, and
+// self.x=… would shadow its getters and state.
 export const zoneBodyRule = {
   categories: ["midi", "led", "hid", "code", "condition", "variables"],
-  excludeShorts: ["lib", "sn", "glat", "glap", "s"],
+  excludeShorts: ["gms", "lib", "sn", "glat", "glap", "s"],
 };
 
 // The first zone brings Touch Start (end of Setup) and Touch Tick (Timer).
@@ -94,8 +92,8 @@ const ZONE_COMPANIONS = [
   },
 ];
 
-// A zone block: its opening line, a default MIDI block as the body and the
-// Touch End, inserted together by the action picker.
+// A zone block: its opening line and the Touch End, inserted together by the
+// action picker. The zone sends its MIDI itself: no child block.
 export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
   return {
     ...COMMON,
@@ -103,11 +101,11 @@ export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
     short: zoneBlockShort[kind],
     name: DISPLAY_NAME[kind].replace(/ /g, "_"),
     displayName: DISPLAY_NAME[kind],
-    description: `A ${DISPLAY_NAME[kind].toLowerCase()} zone on the touch surface. The actions inside run with self = the zone.`,
+    description: `A ${DISPLAY_NAME[kind].toLowerCase()} zone on the touch surface. It sends MIDI from its options; the actions inside run with self = the zone.`,
     documentationUrl: `${DOCS}#${ANCHOR[kind]}`,
     defaultLua: defaultZoneScript(kind, []),
     defaultLuaIn: (scripts) => defaultZoneScript(kind, scripts),
-    compositeLua: [DEFAULT_BODY, { short: "zen", script: ZONE_END_SCRIPT }],
+    compositeLua: [{ short: "zen", script: ZONE_END_SCRIPT }],
     blockIcon: touchIcons[kind],
     rounding: "top",
     type: "composite_open",

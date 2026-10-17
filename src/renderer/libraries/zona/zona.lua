@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.0"
+Z.VERSION = "0.8.1"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -19,13 +19,16 @@ Z.def = {
   bmo = 0,
   group = 0,
   led = 1,
+  ch = -1,
+  num = -1,
+  rx = 0,
 }
 
--- read: the kind's reader and painter, not an option
+-- read: the kind's reader and painter, not an option; msg: what it sends
 Z.kind = {
-  fader = { read = "axis" },
-  button = { read = "gate" },
-  xy = { read = "point" },
+  fader = { read = "axis", msg = "cc" },
+  button = { read = "gate", msg = "note" },
+  xy = { read = "point", msg = "cc" },
 }
 
 -- Z.tick: interval (ms)
@@ -40,15 +43,9 @@ Z.lk = {}
 Z.lc = {}
 Z.el = 0
 Z.R = {}
-Z.og = {}
--- muted in the dry run
-local OUT = { "gms", "ggms", "ggbs", "gmms", "gmbs", "gks", "glp", "gln", "gld", "glx" }
-local function mute(on)
-  for _, f in ipairs(OUT) do
-    Z.og[f] = Z.og[f] or _G[f]
-    _G[f] = on and function() end or Z.og[f]
-  end
-end
+
+-- outputs muted while Z.start runs the bodies (not the LEDs)
+local OUT = { "gms", "ggms", "ggbs", "gmms", "gmbs", "gks" }
 
 local function ky(ch, cmd, p1)
   return (ch * 256 + cmd) * 16384 + p1
@@ -56,6 +53,8 @@ end
 
 local S = 1024 / 9
 local KS = { "v", "x", "y" }
+-- the sources a press or release sends, per reader
+local SR = { axis = { "v" }, gate = { "v" }, point = { "x", "y" } }
 
 local M = {}
 M.__index = M
@@ -70,7 +69,36 @@ local function cl(t)
   return math.max(0, math.min(1, t))
 end
 
--- d(): change since the last run, fraction carried
+-- wire value of source k: 7-bit (wide ranges scaled), or 14-bit for a CC
+-- pair (z.m 1) and pitch bend (z.m 2)
+local function wv(z, k)
+  local v = z.u[k]
+  if z.m == 0 and z.ma > 127 then
+    v = (v - z.mi) * 127 // (z.ma - z.mi)
+  end
+  return v
+end
+
+-- the zone's MIDI for source k, once per value (z.l, cleared by a press);
+-- y is on num+1, a 14-bit LSB on num+32
+local function snd(z, k)
+  local w = wv(z, k)
+  if z.m and z.l[k] ~= w then
+    z.l[k] = w
+    local ch, p = z.ch, k == "y" and z.py or z.p
+    if z.m == 2 then
+      gms(ch, 224, w % 128, w // 128)
+    elseif z.m == 1 then
+      gms(ch, 176, p, w // 128)
+      gms(ch, 176, p + 32, w % 128)
+    else
+      gms(ch, z.cmd, p, w)
+    end
+  end
+end
+
+-- d(): change since the last run, fraction carried. MIDI first: a value run
+-- sends its source, a press or release (g) all of them; then the body
 local function run(z, s)
   z.s = s
   z.dd = 0
@@ -79,6 +107,13 @@ local function run(z, s)
     local d = tr(z.mi + q * (z.ma - z.mi) - z.r[s])
     z.r[s] = z.r[s] + d
     z.dd = d
+  end
+  if s == "g" then
+    for _, k in ipairs(SR[z.o.read]) do
+      snd(z, k)
+    end
+  else
+    snd(z, s)
   end
   if z.f then
     Z.rb = 1 -- a body is running: no zones may be defined (Z.zone)
@@ -326,28 +361,26 @@ local function rl() -- release held zones: no stuck notes
 end
 
 -- value sync (RX, Z.set): no body run, no output; w: the value on the wire
-local function sy(z, s, v, r, w)
-  if not r or r.f[1] then
-    if z.o.read == "gate" then
-      local b = 1
-      for i, w in ipairs(z.sv) do
-        if math.abs(w - v) < math.abs(z.sv[b] - v) then
-          b = i
-        end
+local function sy(z, s, v, w)
+  if z.o.read == "gate" then
+    local b = 1
+    for i, w in ipairs(z.sv) do
+      if math.abs(w - v) < math.abs(z.sv[b] - v) then
+        b = i
       end
-      z.st, z.u.v = b - 1, z.sv[b]
-      if b > 1 and z.o.group > 0 then
-        off(z)
-      end
-    else
-      s = s == "g" and (z.o.read == "point" and "x" or "v") or s
-      local q = cl((v - z.mi) / (z.ma - z.mi))
-      z.q[s], z.tg[s], z.u[s] = q, nil, sc(z, q)
-      z.r[s] = z.mi + q * (z.ma - z.mi)
     end
-    if r then
-      z.l[r.k] = w
+    z.st, z.u.v = b - 1, z.sv[b]
+    if b > 1 and z.o.group > 0 then
+      off(z)
     end
+  else
+    s = s == "g" and (z.o.read == "point" and "x" or "v") or s
+    local q = cl((v - z.mi) / (z.ma - z.mi))
+    z.q[s], z.tg[s], z.u[s] = q, nil, sc(z, q)
+    z.r[s] = z.mi + q * (z.ma - z.mi)
+  end
+  if w then
+    z.l[s] = w
   end
   z.dt = 1
 end
@@ -357,7 +390,7 @@ end
 -- Setup that fails before Z.start leaves an empty surface
 local function drop()
   rl()
-  Z.zs, Z.ct, Z.R, Z.N, Z.ns = {}, {}, {}, {}, {}
+  Z.zs, Z.ct, Z.R = {}, {}, {}
   Z.lv = nil
 end
 
@@ -371,10 +404,10 @@ local function stale()
 end
 
 -- the first zone of a Setup run drops the previous surface. Zones
--- are defined only by Setup: one inside a body (or its dry run) would drop
--- the running surface, so it is an error and changes nothing.
+-- are defined only by Setup: one inside a body would drop the running
+-- surface, so it is an error and changes nothing.
 local function first()
-  if Z.rb or Z.dr then
+  if Z.rb then
     error("zone inside a zone body", 0)
   end
   if not Z.nz[1] then
@@ -396,7 +429,7 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
   -- a name already pending: a new Setup run after one that never reached
   -- Z.start (or failed) without a tick or touch in between
   for _, q in ipairs(Z.nz) do
-    if q.n == n and not (Z.rb or Z.dr) then
+    if q.n == n and not Z.rb then
       Z.nz = {}
       break
     end
@@ -407,6 +440,10 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     o[k] = val
   end
   o.read = nil -- from the kind, never an option
+  local m = o.msg
+  if m == "pb" then
+    o.res = 14 -- pitch bend is always 14-bit
+  end
   -- CC slot: xy 2, others 1
   local b = 0
   for _, q in ipairs(Z.nz) do
@@ -425,11 +462,24 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
       sv[2] = ma
     end
   end
+  -- MIDI identity, autos as before: ch from module row and page, num from
+  -- module column and slot (% 32 for a 14-bit pair), xy y on the next one.
+  -- m: nil none, 0 7-bit, 1 14-bit CC pair, 2 pitch bend
+  local z14 = m == "cc" and o.res > 7
+  local p, py = o.num, o.num + 1
+  if p < 0 then
+    p = 32 + gmx() * 16 + b
+    py = (p + 1) % 128 % (z14 and 32 or 128)
+    p = p % 128 % (z14 and 32 or 128)
+  end
   local z = setmetatable({
     n = n,
-    i = #Z.nz,
-    b = b,
     o = o,
+    ch = o.ch < 0 and (gmy() * 4 + gpc()) % 16 or o.ch,
+    cmd = m == "note" and 144 or 176,
+    p = p,
+    py = py,
+    m = m == "pb" and 2 or z14 and 1 or m ~= "none" and 0 or nil,
     f = f,
     a = {
       math.ceil(x * S),
@@ -483,25 +533,43 @@ function Z.start(self)
   Z.lk = {}
   Z.lc = {}
   Z.R = {}
-  Z.ns = {}
-  Z.N = {}
   self.touch_cb = Z.touch
-  -- dry run: gmrr registers
-  Z.dr = 1
-  mute(true)
+  -- rx=1: the identities the zone sends, a 14-bit pair on both CCs
   for _, z in ipairs(Z.zs) do
-    for k in (z.o.read == "point" and "xyg" or z.o.read == "gate" and "g" or "vg"):gmatch(".") do
-      local ok, e = pcall(run, z, k)
+    if z.o.rx == 1 and z.m then
+      for _, k in ipairs(SR[z.o.read]) do
+        local p = k == "y" and z.py or z.p
+        local r = { z = z, s = k, m = z.m, p = p }
+        Z.R[z.m == 2 and ky(z.ch, 224, 0) or ky(z.ch, z.cmd, p)] = r
+        if z.m == 1 then
+          Z.R[ky(z.ch, 176, p + 32)] = r
+        end
+      end
+    end
+  end
+  local u = self.midirx_cb
+  Z.uc = u ~= Z.rx and u or nil
+  self.midirx_cb = next(Z.R) and Z.rx or Z.uc
+  -- each body once, muted and without the zone's MIDI: colours (Simple
+  -- Color in the body) show from the start
+  local og = {}
+  for _, f in ipairs(OUT) do
+    og[f], _G[f] = _G[f], function() end
+  end
+  Z.rb = 1
+  for _, z in ipairs(Z.zs) do
+    if z.f then
+      z.s, z.dd = "g", 0
+      local ok, e = pcall(z.f, z)
       if not ok then
         print(e)
       end
     end
   end
-  mute()
-  Z.dr = nil
-  local u = self.midirx_cb
-  Z.uc = u ~= Z.rx and u or nil
-  self.midirx_cb = next(Z.R) and Z.rx or Z.uc
+  Z.rb = nil
+  for _, f in ipairs(OUT) do
+    _G[f] = og[f]
+  end
   Z.el = self:ind()
   for _, z in ipairs(Z.zs) do
     paint(z)
@@ -602,134 +670,27 @@ function Z.rx(self, h, e)
   local ch, cmd, p1, v = e[1], e[2], e[3], e[4]
   if cmd == 128 then
     cmd, v = 144, 0
-  elseif cmd == 224 then -- pitch bend: the MSB, as a zone sends it
-    p1 = 0
+  elseif cmd == 224 then -- pitch bend: LSB, MSB
+    p1, v = 0, v * 128 + p1
   end
   local r = h[1] == 13 and Z.R[ky(ch, cmd, p1)]
-  if r == Z.ns then
-    local s = Z.ns[ch] or {}
-    Z.ns[ch], r = s, nil
-    if p1 > 90 then
-      s[p1] = v
-    else
-      r = Z.N[ch * 16384 + (s[99] or 0) * 128 + (s[98] or 0)]
-      if r and r.m == 3 then
-        v = p1 == 6 and v * 128 or (s.v or 0) // 128 * 128 + v
-      elseif p1 == 38 then
-        r = nil
-      end
-      s.v = v
+  if r then
+    local z = r.z
+    if r.m == 1 then -- 14-bit CC: the MSB at once, the LSB refines
+      v = p1 == r.p and v * 128 or (r.v or 0) // 128 * 128 + v
+      r.v = v
     end
-  elseif r and r.m == 1 then
-    v = p1 == r.p and v * 128 or (r.v or 0) // 128 * 128 + v
-    r.v = v
-  end
-  local w = v
-  if r and r.m % 2 == 0 and r.z.ma > 127 then -- 7-bit into a wide range
-    v = r.z.mi + v * (r.z.ma - r.z.mi) // 127
-  end
-  if r and r.z.k == 0 then -- touch wins
-    sy(r.z, r.s, v, r, w)
+    local w = v
+    if r.m == 0 and z.ma > 127 then -- 7-bit into a wide range
+      v = z.mi + v * (z.ma - z.mi) // 127
+    end
+    if z.k == 0 then -- touch wins
+      sy(z, r.s, v, w)
+    end
   end
   if Z.uc then
     Z.uc(self, h, e)
   end
-end
-
--- gate runs report the main value: no gate CC
-function M:get_auto_value()
-  local s = self.s
-  if s == "g" then
-    s = self.o.read == "point" and "x" or "v"
-  end
-  return self.u[s]
-end
-
-function M:get_auto_mode()
-  return self.o.res > 7 and 1 or 0
-end
-
-function M:ind()
-  return self.i
-end
-
--- auto mode: 14-bit only for CC, other commands stay 7-bit
-local function au(z, ch, cmd, p1, mode)
-  if ch == -1 then
-    ch = (gmy() * 4 + gpc()) % 16
-  end
-  if cmd == -1 then
-    cmd = z.o.read == "gate" and 144 or 176
-  end
-  if mode == nil or mode == -1 then
-    mode = cmd == 176 and z:get_auto_mode() or 0
-  end
-  if p1 == -1 then
-    p1 = (32 + gmx() * 16 + z.b + (z.s == "y" and 1 or 0)) % 128
-    if mode == 1 then
-      p1 = p1 % 32
-    end
-  end
-  return ch, cmd, p1, mode
-end
-
--- global gms takes exactly 4 args: modes expand here
-function M:gms(ch, cmd, p1, p2, mode)
-  if Z.dr then
-    return
-  end
-  ch, cmd, p1, mode = au(self, ch, cmd, p1, mode)
-  if p2 == -1 then
-    p2 = self:get_auto_value()
-    if mode % 2 == 0 and self.ma > 127 then -- 7-bit modes: scale to 0-127
-      p2 = (p2 - self.mi) * 127 // (self.ma - self.mi)
-    end
-  end
-  local k = ky(ch, cmd, p1)
-  if self.l[k] == p2 then
-    return
-  end
-  self.l[k] = p2
-  if mode == 1 then
-    gms(ch, 176, p1, p2 // 128)
-    gms(ch, 176, p1 + 32, p2 % 128)
-  elseif mode == 2 or mode == 3 then
-    gms(ch, 176, 99, p1 // 128)
-    gms(ch, 176, 98, p1 % 128)
-    if mode == 2 then
-      gms(ch, 176, 6, p2)
-    else
-      gms(ch, 176, 6, p2 // 128)
-      gms(ch, 176, 38, p2 % 128)
-    end
-  else
-    gms(ch, cmd, p1, p2)
-  end
-end
-
--- MIDI block order: (ev, ch, cmd, p1, {value sync, LED sync}, mode)
-function M:gmrr(ev, ch, cmd, p1, f, mode)
-  if not Z.dr then
-    return
-  end
-  ch, cmd, p1, mode = au(self, ch, cmd, p1, mode)
-  cmd = mode > 0 and 176 or cmd -- as gms sends it
-  local r = { z = self, s = self.s, f = f, m = mode, p = p1, k = ky(ch, cmd, p1) }
-  if mode > 1 then
-    Z.N[ch * 16384 + p1] = r
-    for _, n in ipairs({ 99, 98, 6, 38 }) do
-      Z.R[ky(ch, 176, n)] = Z.ns
-    end
-  else
-    Z.R[ky(ch, cmd, cmd == 224 and 0 or p1)] = r
-    if mode == 1 then
-      Z.R[ky(ch, cmd, p1 + 32)] = r
-    end
-  end
-end
-
-function M:dry()
-  return Z.dr == 1
 end
 
 -- zones with the same colour share one curve; weak, so dynamic colours go

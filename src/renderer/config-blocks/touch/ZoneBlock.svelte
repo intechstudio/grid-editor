@@ -13,6 +13,8 @@
   } from "../../runtime/runtime";
   import type { OptionSchema, Zone } from "./zone-model";
   import { parseZone, zoneToLua } from "./zone-parse";
+  import { zoneMidiLabel } from "./zone-autos";
+  import { Grid } from "../../lib/_utils";
   import {
     surfaceIssues,
     zoneProblems,
@@ -73,6 +75,25 @@
             !problems.some((p) => p.message === e.message),
         )
       : [];
+  // What the zone sends, for the MIDI section: "auto (…)" placeholders show
+  // the resolved channel (1-based, as the label) and number.
+  // The zones before this one count for the autos: the event is a
+  // dependency (the extra arguments are only reactive dependencies).
+  $: midi = zoneMidiOf($action, $event);
+  function zoneMidiOf(..._dependencies: unknown[]) {
+    return Grid.Auto.getZoneMidi(action);
+  }
+  $: placeholderOf = (key: string): string => {
+    const text = zone !== null ? optionPlaceholder(zone.kind, key) : "";
+    if (midi && key === "ch") {
+      return `${text} (ch ${midi.ch + 1})`;
+    }
+    if (midi && key === "num" && midi.nums.length > 0) {
+      return `${text} (${midi.nums.join(", ")})`;
+    }
+    return text;
+  };
+
   $: problemOf = (key: string) =>
     fieldErrors[key] ?? problems.find((e) => e.key === key)?.message;
 
@@ -213,7 +234,7 @@
                 {schema}
                 title={optionLabel(schema.key)}
                 value={optionText(zone.opt[schema.key])}
-                placeholder={optionPlaceholder(zone.kind, schema.key)}
+                placeholder={placeholderOf(schema.key)}
                 problem={problemOf(schema.key)}
                 validator={optionValid(schema)}
                 on:input={(e) => setOption(schema, e.detail)}
@@ -221,6 +242,11 @@
               />
             {/each}
           </div>
+          {#if section === "midi" && typeof midi !== "undefined"}
+            <span class="text-xs text-gray-400" data-zone-midi
+              >Sends {zoneMidiLabel(midi)}</span
+            >
+          {/if}
         {/if}
       </Block>
     {/each}

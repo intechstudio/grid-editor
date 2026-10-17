@@ -1,5 +1,5 @@
-// What blocks inside a zone body send and can read (RFC 4.1): the MIDI autos
-// of the zone, mirroring au() in libraries/zona/zona.lua, and the zone getters
+// What a zone sends and what its body can read (RFC 4.1): the zone's MIDI
+// identity, mirroring Z.zone in libraries/zona/zona.lua, and the zone getters
 // offered as value suggestions.
 
 import type { Zone, ZoneKind } from "./zone-model";
@@ -52,58 +52,88 @@ function readerOf(zone: Zone): string {
 
 export type ZonePosition = { dx: number; dy: number; page: number };
 
-export type ZoneMidiAutos = {
+// What a zone sends (Z.zone in zona.lua): cc14 is a CC pair, MSB on each
+// number and LSB on number+32; pb is pitch bend (no number).
+export type ZoneMidi = {
   ch: number;
-  cmd: number; // what gms sends: 176 for every 14-bit and NRPN mode
-  p1: number[]; // one per source the default block sends: x and y on an xy
-  mode: number;
+  type: "note" | "cc" | "cc14" | "pb";
+  nums: number[]; // one per source: x and y on an xy pad
 };
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
-// The autos of zone `index` (au() in zona.lua). `mode` and `cmd` are the
-// block's arguments; undefined or -1 means auto. The auto mode is 14-bit when
-// res > 7 and the command is CC; other commands stay 7-bit.
-export function zoneMidiAutos(
+function option(zone: Zone, key: string) {
+  return zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
+}
+
+// The MIDI identity of zone `index`, null for msg="none". Autos: channel
+// from the module row and page, number from the module column and the CC
+// slot (zones before it: xy 2, others 1, whatever they send), % 32 for a
+// 14-bit pair.
+export function zoneMidi(
   zones: Zone[],
   index: number,
   pos: ZonePosition,
-  mode?: number,
-  cmd?: number,
-): ZoneMidiAutos {
+): ZoneMidi | null {
   const zone = zones[index];
-  const read = readerOf(zone);
-  const res = Number(zone.opt.res ?? zoneOptionDefault(zone.kind, "res"));
-  const autoCmd = read === "gate" ? 144 : 176;
-  const command = typeof cmd === "number" && cmd !== -1 ? cmd : autoCmd;
-  const m =
-    typeof mode === "number" && mode !== -1
-      ? mode
-      : res > 7 && command === 176
-        ? 1
-        : 0;
+  const msg = String(option(zone, "msg"));
+  if (msg === "none") {
+    return null;
+  }
+  const res = msg === "pb" ? 14 : Number(option(zone, "res"));
+  const type =
+    msg === "pb" ? "pb" : msg === "note" ? "note" : res > 7 ? "cc14" : "cc";
   let base = 0;
   for (const before of zones.slice(0, index)) {
     base += readerOf(before) === "point" ? 2 : 1;
   }
-  const offsets = read === "point" ? [0, 1] : [0];
+  // xy: y on the next number, an auto one wrapped like the auto itself
+  const auto = (n: number) => mod(n, 128) % (type === "cc14" ? 32 : 128);
+  const num = Number(option(zone, "num"));
+  const [x, y] =
+    num < 0
+      ? [auto(32 + pos.dx * 16 + base), auto(32 + pos.dx * 16 + base + 1)]
+      : [num, num + 1];
+  const ch = Number(option(zone, "ch"));
   return {
-    ch: mod(pos.dy * 4 + pos.page, 16),
-    cmd: m > 0 ? 176 : autoCmd,
-    p1: offsets.map((o) => {
-      const p = mod(32 + pos.dx * 16 + base + o, 128);
-      return m === 1 ? p % 32 : p;
-    }),
-    mode: m,
+    ch: ch < 0 ? mod(pos.dy * 4 + pos.page, 16) : ch,
+    type,
+    nums: type === "pb" ? [] : readerOf(zone) === "point" ? [x, y] : [x],
   };
 }
 
-// "34/35" for an xy pad's two CCs, "33" otherwise. In 14-bit mode each
-// source sends MSB and LSB: "1/33", or "2/34, 3/35" on an xy pad.
-export function zoneP1Label(autos: ZoneMidiAutos): string {
-  return autos.mode === 1
-    ? autos.p1.map((p) => `${p}/${p + 32}`).join(", ")
-    : autos.p1.join("/");
+// The identity of the zone line at `at` in an event's scripts; undefined
+// when that line isn't a zone.
+export function zoneMidiAt(
+  scripts: string[],
+  at: number,
+  pos: ZonePosition,
+): ZoneMidi | null | undefined {
+  if (parseZone(scripts[at] ?? "") === null) {
+    return undefined;
+  }
+  const zones = scripts
+    .slice(0, at + 1)
+    .map((e) => parseZone(e))
+    .filter((e): e is Zone => e !== null);
+  return zoneMidi(zones, zones.length - 1, pos);
+}
+
+// Short text of what a zone sends: "CC 33 ch 1", "CC 1/33 ch 1" (14-bit),
+// "CC 34, 35 ch 1" (xy), "Note 36 ch 1", "PB ch 1", "no MIDI". The channel
+// is 1-based, as the MIDI block shows it.
+export function zoneMidiLabel(midi: ZoneMidi | null): string {
+  if (midi === null) {
+    return "no MIDI";
+  }
+  const ch = `ch ${midi.ch + 1}`;
+  if (midi.type === "pb") {
+    return `PB ${ch}`;
+  }
+  const nums = midi.nums
+    .map((n) => (midi.type === "cc14" ? `${n}/${n + 32}` : String(n)))
+    .join(", ");
+  return `${midi.type === "note" ? "Note" : "CC"} ${nums} ${ch}`;
 }
 
 export type ZoneGetter = { value: string; info: string };
@@ -129,39 +159,4 @@ export function zoneGetterSuggestions(kind: ZoneKind): ZoneGetter[] {
     default:
       return [v, g, d];
   }
-}
-
-// Argument `index` of a block's self:gms(ch,cmd,p1,p2,mode), or undefined
-// when there is none or it isn't a number (an expression).
-export function gmsArg(script: string, index: number): number | undefined {
-  const start = script.indexOf("gms(");
-  if (start === -1) {
-    return undefined;
-  }
-  const args: string[] = [];
-  let depth = 0;
-  let current = "";
-  for (const c of script.slice(start + 4)) {
-    if (c === "(" || c === "{" || c === "[") {
-      depth++;
-    } else if (c === ")" || c === "}" || c === "]") {
-      if (depth === 0) {
-        break;
-      }
-      depth--;
-    }
-    if (c === "," && depth === 0) {
-      args.push(current);
-      current = "";
-    } else {
-      current += c;
-    }
-  }
-  args.push(current);
-  const arg = args[index]?.trim();
-  return arg !== undefined && /^-?\d+$/.test(arg) ? Number(arg) : undefined;
-}
-
-export function gmsModeArg(script: string): number | undefined {
-  return gmsArg(script, 4);
 }

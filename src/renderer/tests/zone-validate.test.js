@@ -117,6 +117,93 @@ describe("options", () => {
   });
 });
 
+describe("MIDI options", () => {
+  test.each([
+    ["ch", -1],
+    ["ch", 15],
+    ["num", -1],
+    ["num", 127],
+    ["rx", 1],
+  ])("%s=%j is valid", (key, value) => {
+    expect(optionProblem(schema(key), value)).toBeUndefined();
+  });
+
+  test.each([
+    ["ch", 16, "Use -1 to 15"],
+    ["ch", -2, "Use -1 to 15"],
+    ["num", 128, "Use -1 to 127"],
+    ["rx", 2, "Use 0 to 1"],
+  ])("%s=%j is rejected", (key, value, message) => {
+    expect(optionProblem(schema(key), value)).toBe(message);
+  });
+
+  test.each([
+    ["fader", "pb", undefined],
+    ["fader", "note", "Use one of cc, pb, none"],
+    ["button", "note", undefined],
+    ["button", "pb", "Use one of note, cc, none"],
+    ["xy", "cc", undefined],
+    ["xy", "pb", "Use one of cc, none"],
+  ])("msg on a %s: %s", (kind, msg, message) => {
+    const problems = zoneProblems(zone({ kind, opt: { msg } }));
+    expect(problems.find((e) => e.key === "msg")?.message).toBe(message);
+  });
+});
+
+describe("ranges and numbers that reach the wire", () => {
+  test("pitch bend is 14-bit: max defaults to 16383", () => {
+    expect(zoneProblems(zone({ opt: { msg: "pb", min: 200 } }))).toEqual([]);
+    expect(zoneProblems(zone({ opt: { min: 200 } }))).toEqual([
+      { key: "min", message: "Max (127) must be above min (200)" },
+    ]);
+  });
+
+  test.each([
+    [{ msg: "pb", min: -8192, max: 8191 }, ["min"]],
+    [{ min: -1 }, ["min"]],
+    [{ res: 14, max: 20000 }, ["max"]],
+    [{ msg: "pb", min: -1, max: 16384 }, ["min", "max"]],
+  ])("a zone that sends MIDI keeps min and max in 0-16383: %j", (opt, keys) => {
+    const problems = zoneProblems(zone({ opt }));
+    expect(problems.map((e) => e.key)).toEqual(keys);
+    expect(problems[0].message).toBe("Use 0 to 16383 when the zone sends MIDI");
+  });
+
+  test("msg none takes a signed range", () => {
+    expect(
+      zoneProblems(zone({ opt: { msg: "none", min: -8192, max: 8191 } })),
+    ).toEqual([]);
+  });
+
+  test.each([
+    ["fader", { res: 14, num: 31 }, undefined],
+    [
+      "fader",
+      { res: 14, num: 32 },
+      "Use -1 (auto) or 0 to 31: a 14-bit CC sends its LSB on num+32",
+    ],
+    ["xy", { res: 14, num: 30 }, undefined],
+    [
+      "xy",
+      { res: 14, num: 31 },
+      "Use -1 (auto) or 0 to 30: a 14-bit CC sends its LSB on num+32, y goes on num+1",
+    ],
+    ["xy", { num: 126 }, undefined],
+    ["xy", { num: 127 }, "Use -1 (auto) or 0 to 126: y goes on num+1"],
+    ["fader", { num: 127 }, undefined],
+    ["fader", { msg: "pb", res: 14, num: 100 }, undefined], // pb has no number
+    ["button", { res: 14, num: 100 }, undefined], // a note is 7-bit
+    [
+      "button",
+      { res: 14, msg: "cc", num: 40 },
+      "Use -1 (auto) or 0 to 31: a 14-bit CC sends its LSB on num+32",
+    ],
+  ])("num on a %s %j", (kind, opt, message) => {
+    const problems = zoneProblems(zone({ kind, w: 3, h: 3, opt }));
+    expect(problems.find((e) => e.key === "num")?.message).toBe(message);
+  });
+});
+
 describe("min < max", () => {
   test.each([
     {},
@@ -124,7 +211,7 @@ describe("min < max", () => {
     { min: 100 }, // max 127
     { res: 8, min: 200 }, // max 16383
     { max: 1 },
-    { min: -10, max: -5 },
+    { msg: "none", min: -10, max: -5 }, // no MIDI: any range
   ])("%j is valid", (opt) => {
     expect(zoneProblems(zone({ opt }))).toEqual([]);
   });
@@ -134,7 +221,7 @@ describe("min < max", () => {
     [{ min: 10, max: 10 }, "max", "Max (10) must be above min (10)"],
     [{ min: 200 }, "min", "Max (127) must be above min (200)"],
     [{ max: 0 }, "max", "Max (0) must be above min (0)"],
-    [{ max: -1 }, "max", "Max (-1) must be above min (0)"],
+    [{ msg: "none", max: -1 }, "max", "Max (-1) must be above min (0)"],
   ])("%j is rejected", (opt, key, message) => {
     expect(zoneProblems(zone({ opt }))).toEqual([{ key, message }]);
   });
@@ -163,7 +250,7 @@ function surface(scripts) {
 
 const fader = (name, x = 0) => [
   `Z.fader("${name}",${x},0,1,9,{},function(self)`,
-  "self:gms(-1,-1,-1,-1)",
+  "print(1)",
   ZONE_END_SCRIPT,
 ];
 
@@ -176,7 +263,7 @@ describe("surface", () => {
 
   test("a Setup without zones has no issues", () => {
     expect(surface([])).toEqual([]);
-    expect(surface(["self:gms(-1,-1,-1,-1)"])).toEqual([]);
+    expect(surface(["print(1)"])).toEqual([]);
   });
 
   test("duplicate names are an error, once per name", () => {

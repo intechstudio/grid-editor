@@ -15,7 +15,13 @@ export type ZoneOptions = {
   bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
   group: number; // gate: radio group 1-8, 0 none
   led: 0 | 1; // the kind's painter: fader fill, button state, xy crosshair
+  ch: number; // MIDI channel 0-15, -1 auto (module row and page)
+  num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1
+  rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
 };
+
+// What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
+export type ZoneMsg = "note" | "cc" | "pb" | "none";
 
 export const zoneDefaults: ZoneOptions = {
   dir: "v",
@@ -27,15 +33,26 @@ export const zoneDefaults: ZoneOptions = {
   bmo: 0,
   group: 0,
   led: 1,
+  ch: -1,
+  num: -1,
+  rx: 0,
 };
 
-// Z.kind: each kind's reader and painter, not an option.
-export const zoneKinds: Record<ZoneKind, { read: "axis" | "gate" | "point" }> =
-  {
-    fader: { read: "axis" },
-    button: { read: "gate" },
-    xy: { read: "point" },
-  };
+// Z.kind: each kind's reader and painter (not an option) and its msg.
+export const zoneKinds: Record<
+  ZoneKind,
+  { read: "axis" | "gate" | "point"; msg: ZoneMsg }
+> = {
+  fader: { read: "axis", msg: "cc" },
+  button: { read: "gate", msg: "note" },
+  xy: { read: "point", msg: "cc" },
+};
+
+export const zoneMsgValues: Record<ZoneKind, readonly ZoneMsg[]> = {
+  fader: ["cc", "pb", "none"],
+  button: ["note", "cc", "none"],
+  xy: ["cc", "none"],
+};
 
 export const zoneKindList = Object.keys(zoneKinds) as ZoneKind[];
 
@@ -78,10 +95,11 @@ export type OptionSchema = { key: string } & (
 
 // Block face sections, in display order (RFC 6.2 UI rules).
 export type ZoneSection =
-  "geometry" | "resolution" | "led" | "behaviour" | "capture";
+  "geometry" | "midi" | "resolution" | "led" | "behaviour" | "capture";
 
 export const zoneSections: ZoneSection[] = [
   "geometry",
+  "midi",
   "resolution",
   "led",
   "behaviour",
@@ -90,6 +108,7 @@ export const zoneSections: ZoneSection[] = [
 
 export const zoneSectionsOpen: ZoneSection[] = [
   "geometry",
+  "midi",
   "resolution",
   "led",
 ];
@@ -176,7 +195,46 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     kinds: ALL_KINDS,
     section: "led",
   },
+  // every value any kind takes; zoneOptionSchemaFor narrows it per kind
+  {
+    key: "msg",
+    type: "enum",
+    values: ["note", "cc", "pb", "none"],
+    kinds: ALL_KINDS,
+    section: "midi",
+  },
+  {
+    key: "ch",
+    type: "integer",
+    min: -1,
+    max: 15,
+    kinds: ALL_KINDS,
+    section: "midi",
+  },
+  {
+    key: "num",
+    type: "integer",
+    min: -1,
+    max: 127,
+    kinds: ALL_KINDS,
+    section: "midi",
+  },
+  {
+    key: "rx",
+    type: "integer",
+    min: 0,
+    max: 1,
+    kinds: ALL_KINDS,
+    section: "midi",
+  },
 ];
+
+// The schema as a zone of this kind takes it: msg with the kind's values.
+export function zoneOptionSchemaFor(kind: ZoneKind): ZoneOptionSchema[] {
+  return zoneOptionSchema.map((e) =>
+    e.key === "msg" ? { ...e, values: zoneMsgValues[kind] } : e,
+  );
+}
 
 export const zoneTickSchema: OptionSchema[] = [
   { key: "ms", type: "integer", min: 5, max: 1000 },

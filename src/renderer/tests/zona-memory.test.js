@@ -16,20 +16,20 @@ beforeAll(async () => {
 // wasmoon is wasm32 Lua 5.4, close to the module's pointer sizes. Budgets are
 // the measured values plus about 10%, so a regression fails.
 const BUDGET_KB = {
-  library: 54, // measured 48.9 (zona 0.8.0; 65.5 in 0.7.2)
-  zone: 1.8, // measured 1.69 (fader, default MIDI block)
-  rxSurface: 36, // 16 faders with RX + Z.start, measured 33.9
+  library: 54, // measured 45.5 (zona 0.8.1; 65.5 in 0.7.2)
+  zone: 1.62, // measured 1.47 (fader, no body; 1.69 with a MIDI child in 0.8.0)
+  rxSurface: 29, // 16 faders with rx=1 + Z.start, measured 26.4 (33.9 in 0.8.0)
 };
 
-const MIDI = "function(self) self:gms(-1,-1,-1,-1) end";
-const RX =
-  "function(self) self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},-1) end";
+// no body: a zone sends its own MIDI
+const MIDI = "nil";
+const RX = "rx=1";
 
-// n faders, 1x4 cells, in two rows
-function faders(n, body = MIDI) {
+// n faders, 1x4 cells, in two rows; opt: their options
+function faders(n, opt = "") {
   let code = "";
   for (let i = 0; i < n; i++) {
-    code += `Z.fader("z${i}",${i % 9},${Math.floor(i / 9) * 4},1,4,{},${body}) `;
+    code += `Z.fader("z${i}",${i % 9},${Math.floor(i / 9) * 4},1,4,{${opt}},nil) `;
   }
   return code;
 }
@@ -176,9 +176,9 @@ describe("Setup re-run releases the previous surface", () => {
 });
 
 describe("a zone defined inside a zone body", () => {
-  // the body sends, then (wrongly) defines a zone
-  const BAD = `Z.button("bad",2,0,2,2,{},function(self) self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},-1) Z.fader("x",8,8,1,1,{}) end)`;
-  const GOOD = `Z.fader("good",0,0,1,9,{},${RX})`;
+  // the zone sends, then its body (wrongly) defines a zone
+  const BAD = `Z.button("bad",2,0,2,2,{rx=1},function(self) Z.fader("x",8,8,1,1,{}) end)`;
+  const GOOD = `Z.fader("good",0,0,1,9,{rx=1},nil)`;
 
   async function surface() {
     const vm = await createZonaVM();
@@ -187,13 +187,12 @@ describe("a zone defined inside a zone body", () => {
     return vm;
   }
 
-  test("in the dry run: logged, the surface and its RX stay", async () => {
+  test("in the start run: logged, the surface and its RX stay", async () => {
     const vm = await surface();
     expect(vm.calls("print").map((e) => e.args[0])).toEqual([
       "zone inside a zone body",
     ]);
     expect(vm.run("return #Z.zs .. ',' .. #Z.nz")).toBe("2,0");
-    // both zones registered RX before the error
     expect(vm.run("local n=0 for _ in pairs(Z.R) do n=n+1 end return n")).toBe(
       2,
     );
@@ -249,9 +248,7 @@ describe("Z.unload", () => {
 
   test("releases notes, restores the callbacks and drops the surface", async () => {
     const vm = await createZonaVM();
-    vm.setup(
-      `${user} Z.button("b",2,0,2,2,{},function(self) self:gms(-1,-1,-1,-1) self:gmrr(-1,-1,-1,-1,{true,true},-1) end) Z.start(self)`,
-    );
+    vm.setup(`${user} Z.button("b",2,0,2,2,{rx=1},nil) Z.start(self)`);
     expect(vm.run("return el.midirx_cb == Z.rx")).toBe(true);
     vm.touch([0, DOWN, 300, 100]);
     vm.clear();
@@ -266,7 +263,7 @@ describe("Z.unload", () => {
 
   test("without a user callback, midirx_cb is cleared", async () => {
     const vm = await createZonaVM();
-    vm.setup(`Z.fader("f",0,0,1,9,{},${RX}) Z.start(self)`);
+    vm.setup(`Z.fader("f",0,0,1,9,{${RX}},nil) Z.start(self)`);
     vm.run("Z.unload(el)");
     expect(vm.run("return el.midirx_cb")).toBe(null);
   });
@@ -300,7 +297,7 @@ describe("Z.unload", () => {
   test("survives compressScript (RFC 2.1)", () => {
     const compressed = GridScript.compressScript(zonaSource);
     expect(compressed).toContain("function Z.unload(self)");
-    expect(compressed).toContain('Z.VERSION="0.8.0"');
+    expect(compressed).toContain('Z.VERSION="0.8.1"');
     // size budget of the file on the module
     expect(compressed.length).toBeLessThan(20480);
   });

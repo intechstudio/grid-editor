@@ -45,7 +45,7 @@ describe("default zone", () => {
     const setup = [
       `local p=string.format("/%02X/",gpc())Z=require(p.."zona")`,
       `Z.fader("f1",0,0,1,9,{},function(self)`,
-      "self:gms(-1,-1,-1,-1)",
+      "print(1)",
       "end)",
       `Z.fader("f3",1,0,1,9,{},function(self)`,
       `Z.button("f2",2,0,1,1,{},function(self)`, // any kind's name counts
@@ -56,21 +56,34 @@ describe("default zone", () => {
   });
 });
 
-test("header text", () => {
-  expect(
-    zoneHeaderText(parseZone(`Z.fader("f1",0,0,1,9,{res=10},function(self)`)),
-  ).toBe("f1 · 0,0 1×9");
+test("header text, with what the zone sends", () => {
+  const zone = parseZone(`Z.fader("f1",0,0,1,9,{res=10},function(self)`);
+  expect(zoneHeaderText(zone)).toBe("f1 · 0,0 1×9");
+  expect(zoneHeaderText(zone, "CC 0/32 ch 1")).toBe(
+    "f1 · 0,0 1×9 · CC 0/32 ch 1",
+  );
 });
 
 describe("face sections", () => {
-  test("geometry, resolution and LED open, the rest collapsed", () => {
+  test("geometry, MIDI, resolution and LED open, the rest collapsed", () => {
     expect(zoneFaceSections("fader").map((e) => [e.section, e.open])).toEqual([
       ["geometry", true],
+      ["midi", true],
       ["resolution", true],
       ["led", true],
       ["behaviour", false],
       ["capture", false],
     ]);
+  });
+
+  test("msg offers the kind's values", () => {
+    const msg = (kind) =>
+      zoneFaceSections(kind)
+        .flatMap((e) => e.options)
+        .find((o) => o.key === "msg").values;
+    expect(msg("fader")).toEqual(["cc", "pb", "none"]);
+    expect(msg("button")).toEqual(["note", "cc", "none"]);
+    expect(msg("xy")).toEqual(["cc", "none"]);
   });
 
   test("only the kind's options", () => {
@@ -189,7 +202,7 @@ describe("block information", () => {
   };
 
   test.each(["fader", "button", "xy"])(
-    "%s inserts the zone line, a MIDI block and the end",
+    "%s inserts the zone line and the end, no MIDI child",
     (kind) => {
       const info = zoneBlockInformation(kind);
       expect(info.short).toBe(zoneBlockShort[kind]);
@@ -200,10 +213,7 @@ describe("block information", () => {
       ).toBe(
         defaultZoneScript(kind, [`Z.fader("f1",0,0,1,9,{},function(self)`]),
       );
-      expect(info.compositeLua).toEqual([
-        { short: "gms", script: "self:gms(-1,-1,-1,-1)" },
-        { short: "zen", script: "end)" },
-      ]);
+      expect(info.compositeLua).toEqual([{ short: "zen", script: "end)" }]);
       expect(isAllowedIn(info, TOUCH_SETUP)).toBe(true);
       expect(isAllowedIn(info, { ...TOUCH_SETUP, eventType: "timer" })).toBe(
         false,
