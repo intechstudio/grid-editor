@@ -14,11 +14,11 @@ beforeAll(async () => {
 
 // Module RAM is the limit on the ZONA (system heap, no Lua cap; RFC 9).
 // wasmoon is wasm32 Lua 5.4, close to the module's pointer sizes. Budgets are
-// the measured values (zona 0.7.0) plus about 10%, so a regression fails.
+// the measured values plus about 10%, so a regression fails.
 const BUDGET_KB = {
-  library: 69, // measured 62.9
-  zone: 1.8, // measured 1.63 (fader, default MIDI block)
-  rxSurface: 36, // 16 faders with RX + Z.start, measured 32.9
+  library: 54, // measured 48.9 (zona 0.8.0; 65.5 in 0.7.2)
+  zone: 1.8, // measured 1.69 (fader, default MIDI block)
+  rxSurface: 36, // 16 faders with RX + Z.start, measured 33.9
 };
 
 const MIDI = "function(self) self:gms(-1,-1,-1,-1) end";
@@ -90,16 +90,6 @@ describe("Setup re-run releases the previous surface", () => {
     );
     expect(vm.run("return _old")).toBe(false);
     expect(vm.run("return #Z.zs")).toBe(4);
-  });
-
-  test("a group first drops them too", async () => {
-    const vm = await createZonaVM();
-    vm.setup(`${faders(2)} Z.start(self)`);
-    vm.run(MARK);
-    vm.setup(
-      `Z.group(1,{}) collectgarbage() collectgarbage() _old=next(W)~=nil Z.start(self)`,
-    );
-    expect(vm.run("return _old")).toBe(false);
   });
 
   test("held notes are released once", async () => {
@@ -183,21 +173,6 @@ describe("Setup re-run releases the previous surface", () => {
     expect(vm.midi()).toEqual(clean.midi());
     expect(vm.midi()).toEqual([[0, 176, 34, 127]]);
   });
-
-  test("mapping mode ends with the surface: outputs are unmuted", async () => {
-    const vm = await createZonaVM();
-    vm.setup(`${button()} Z.start(self)`);
-    vm.tick();
-    vm.util();
-    vm.touch([0, DOWN, 300, 100]); // enters mapping mode, mutes outputs
-    expect(vm.run("return Z.mp")).toBe(1);
-    vm.touch([0, UP, 300, 100]);
-    vm.setup(button());
-    expect(vm.run("return Z.mp or Z.mz or Z.ms or Z.mi")).toBe(null);
-    vm.clear();
-    vm.run("gms(1,2,3,4)");
-    expect(vm.midi()).toEqual([[1, 2, 3, 4]]);
-  });
 });
 
 describe("a zone defined inside a zone body", () => {
@@ -240,18 +215,6 @@ describe("a zone defined inside a zone body", () => {
     vm.clear();
     vm.rx(0, 176, 33, 10);
     expect(vm.run("return Z.zs[2]:v()")).toBe(10);
-  });
-
-  test("a group too", async () => {
-    const vm = await createZonaVM();
-    vm.run("print=function(m) _rec('print',1,tostring(m)) end");
-    vm.setup(
-      `${GOOD} Z.button("g",2,0,1,1,{},function(self) Z.group(1,{}) end) Z.start(self)`,
-    );
-    expect(vm.calls("print").map((e) => e.args[0])).toEqual([
-      "zone inside a zone body",
-    ]);
-    expect(vm.run("return #Z.zs")).toBe(2);
   });
 });
 
@@ -318,18 +281,6 @@ describe("Z.unload", () => {
     );
   });
 
-  test("ends mapping mode: outputs are unmuted", async () => {
-    const vm = await createZonaVM();
-    vm.setup(`${button()} Z.start(self)`);
-    vm.tick();
-    vm.util();
-    vm.touch([0, DOWN, 300, 100]);
-    vm.run("Z.unload(el)");
-    vm.clear();
-    vm.run("gms(1,2,3,4)");
-    expect(vm.midi()).toEqual([[1, 2, 3, 4]]);
-  });
-
   test("works on an old instance after a new one is loaded", async () => {
     const vm = await createZonaVM();
     vm.setup(`${button()} Z.start(self)`);
@@ -349,7 +300,7 @@ describe("Z.unload", () => {
   test("survives compressScript (RFC 2.1)", () => {
     const compressed = GridScript.compressScript(zonaSource);
     expect(compressed).toContain("function Z.unload(self)");
-    expect(compressed).toContain('Z.VERSION="0.7.2"');
+    expect(compressed).toContain('Z.VERSION="0.8.0"');
     // size budget of the file on the module
     expect(compressed.length).toBeLessThan(20480);
   });

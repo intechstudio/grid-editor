@@ -2,25 +2,13 @@
   import type { ActionBlockInformation } from "./ActionBlockInformation";
   import { touchStartInformation } from "./touch/zone-block-info";
 
-  // No header: the face is always shown, so its warnings and hint are seen.
+  // No header: the face is always shown, so its warnings are seen.
   export const information: ActionBlockInformation = touchStartInformation;
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte";
-  import {
-    ElementType,
-    EventType,
-    EventTypeToNumber,
-  } from "@intechstudio/grid-protocol";
-  import type {
-    GridAction,
-    GridElement,
-    GridEvent,
-    GridPage,
-  } from "../runtime/runtime";
+  import type { GridAction, GridEvent } from "../runtime/runtime";
   import { surfaceIssues, zoneSendProblem } from "./touch/zone-validate";
-  import { utilityHint } from "./touch/zone-blocks";
 
   export let action: GridAction;
 
@@ -39,31 +27,6 @@
       .filter((e) => e.level === "error" && typeof e.zone !== "undefined")
       .map((e) => e.zone),
   ).size;
-
-  // The system element's utility event, read once (loaded if needed).
-  let utility: GridEvent | undefined = undefined;
-  onMount(async () => {
-    const page = (event.parent as GridElement)?.parent as GridPage;
-    const system = page?.control_elements.find(
-      (e) => e.type === ElementType.SYSTEM,
-    );
-    const found = system?.events.find(
-      (e) => e.type === EventTypeToNumber(EventType.UTILITY),
-    );
-    try {
-      if (typeof found !== "undefined" && !found.isLoaded()) {
-        await found.load();
-      }
-      utility = found;
-    } catch {
-      // module busy or gone: no hint rather than a wrong one
-    }
-  });
-  $: hint = utilityHint(
-    typeof utility !== "undefined" && $utility
-      ? utility.config.map((e) => e.short)
-      : undefined,
-  );
 </script>
 
 <touch-start class="flex flex-col w-full px-4 py-2 gap-1 pointer-events-auto">
@@ -90,8 +53,5 @@
         ? "A zone has a problem: see its block."
         : `${zoneProblemCount} zones have problems: see their blocks.`}</span
     >
-  {/if}
-  {#if hint}
-    <span class="text-sm text-warning" data-utility-hint>{hint}.</span>
   {/if}
 </touch-start>

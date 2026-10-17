@@ -20,15 +20,13 @@ export const zoneBlockShort: Record<ZoneKind, string> = {
   fader: "zfd",
   button: "zbt",
   xy: "zxy",
-  knob: "zkn",
 };
 
-// Default names are the prefix plus the next free number: f1, b1, p1, k1.
+// Default names are the prefix plus the next free number: f1, b1, p1.
 const NAME_PREFIX: Record<ZoneKind, string> = {
   fader: "f",
   button: "b",
   xy: "p",
-  knob: "k",
 };
 
 // Cells a new zone gets. Placing it on the first free spot is a later step.
@@ -36,7 +34,6 @@ const DEFAULT_CELLS: Record<ZoneKind, [number, number]> = {
   fader: [1, 9],
   button: [2, 2],
   xy: [4, 4],
-  knob: [3, 3],
 };
 
 // The first name prefix+n that no zone in these scripts uses.
@@ -150,7 +147,7 @@ export function parseOptionText(
   return Number.isFinite(value) ? { value } : { error: "Enter a number" };
 }
 
-// A zone, group or tick with one option set from field text, or an error when
+// A zone or tick with one option set from field text, or an error when
 // the text can't be written at all (range and enum problems are the
 // validators' job).
 export function withOption<T extends { opt: Record<string, ZoneOptionValue> }>(
@@ -197,12 +194,10 @@ export const zoneSectionLabels: Record<ZoneSection, string> = {
   led: "LED",
   behaviour: "Behaviour",
   capture: "Capture",
-  sensitivity: "Sensitivity",
 };
 
-// Field titles of the options, group and tick settings.
+// Field titles of the options and tick settings.
 export const optionLabels: Record<string, string> = {
-  read: "Reader",
   dir: "Direction",
   res: "Resolution bits",
   min: "Min",
@@ -210,21 +205,11 @@ export const optionLabels: Record<string, string> = {
   mode: "Mode",
   speed: "Speed",
   ease: "Ease",
-  drag: "Knob drag",
   bmo: "Button mode",
   group: "Radio group",
   grab: "Capture",
-  leave: "Release on leave",
-  contact: "More contacts",
-  led: "LED painter",
-  release: "LEDs on release",
-  sens: "Sensitivity",
-  db: "Deadband",
-  sm: "Smoothing",
-  rt: "Rate limit",
-  empty: "Allow none on",
+  led: "LED feedback (0 off, 1 on)",
   ms: "Interval (ms)",
-  win: "Mapping window (ms)",
 };
 
 export function optionLabel(key: string): string {
@@ -245,16 +230,4 @@ export function uniqueZoneScript(script: string, others: string[]): string {
     return script;
   }
   return zoneToLua({ ...zone, name: defaultZoneName(zone.kind, others) });
-}
-
-// Touch Start's hint when the system element's utility event (its block
-// shorts) has no Touch Utility. Mapping mode stays a manual step (RFC 4.7).
-// undefined while the utility event isn't known.
-export function utilityHint(
-  utilityShorts: string[] | undefined,
-): string | undefined {
-  if (typeof utilityShorts === "undefined" || utilityShorts.includes("zut")) {
-    return undefined;
-  }
-  return "Add Touch Utility to the utility button for mapping mode";
 }

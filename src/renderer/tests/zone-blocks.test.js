@@ -16,10 +16,8 @@ import { SyntaxPreprocessor } from "../config-blocks/ActionBlockInformation";
 import {
   zoneBlockInformation,
   zoneEndInformation,
-  touchGroupInformation,
   touchStartInformation,
   touchTickInformation,
-  touchUtilityInformation,
 } from "../config-blocks/touch/zone-block-info";
 import {
   zoneOptionSchema,
@@ -39,7 +37,6 @@ describe("default zone", () => {
     ["fader", `Z.fader("f1",0,0,1,9,{},function(self)`],
     ["button", `Z.button("b1",0,0,2,2,{},function(self)`],
     ["xy", `Z.xy("p1",0,0,4,4,{},function(self)`],
-    ["knob", `Z.knob("k1",0,0,3,3,{},function(self)`],
   ])("%s in an empty Setup: %s", (kind, script) => {
     expect(defaultZoneScript(kind, [])).toBe(script);
   });
@@ -73,7 +70,6 @@ describe("face sections", () => {
       ["led", true],
       ["behaviour", false],
       ["capture", false],
-      ["sensitivity", false],
     ]);
   });
 
@@ -86,37 +82,35 @@ describe("face sections", () => {
       expect.arrayContaining(["bmo", "group", "res", "led"]),
     );
     expect(keys("button")).not.toContain("mode");
-    expect(keys("button")).not.toContain("sens");
-    expect(keys("knob")).toContain("drag");
-    expect(keys("xy")).not.toContain("drag");
+    expect(keys("xy")).not.toContain("dir");
     // `read` comes from the kind: no face shows it
-    for (const kind of ["fader", "button", "xy", "knob"]) {
+    for (const kind of ["fader", "button", "xy"]) {
       expect(keys(kind)).not.toContain("read");
+      expect(keys(kind)).toContain("led");
     }
-  });
-
-  test("a button has no sensitivity section", () => {
-    expect(zoneFaceSections("button").map((e) => e.section)).not.toContain(
-      "sensitivity",
-    );
   });
 });
 
 describe("enum select entries", () => {
   test("default first, then the schema's values", () => {
-    expect(enumOptions(schema("release"), "", "keep")).toEqual([
-      { title: "default (keep)", value: "" },
-      { title: "keep", value: "keep" },
-      { title: "clear", value: "clear" },
-      { title: "fade", value: "fade" },
+    expect(enumOptions(schema("mode"), "", "abs")).toEqual([
+      { title: "default (abs)", value: "" },
+      { title: "abs", value: "abs" },
+      { title: "rel", value: "rel" },
+      { title: "glide", value: "glide" },
     ]);
   });
 
   test("a value the schema doesn't know is listed, so it stays selected", () => {
-    const options = enumOptions(schema("led"), "glow", "fill");
-    expect(options.at(-1)).toEqual({ title: "glow (unknown)", value: "glow" });
-    expect(options.filter((e) => e.value === "glow")).toHaveLength(1);
-    expect(enumOptions(schema("led"), "dot", "fill").at(-1).value).toBe("n");
+    const options = enumOptions(schema("mode"), "spring", "abs");
+    expect(options.at(-1)).toEqual({
+      title: "spring (unknown)",
+      value: "spring",
+    });
+    expect(options.filter((e) => e.value === "spring")).toHaveLength(1);
+    expect(enumOptions(schema("mode"), "rel", "abs").at(-1).value).toBe(
+      "glide",
+    );
   });
 
   test("not for numbers", () => {
@@ -127,8 +121,8 @@ describe("enum select entries", () => {
 describe("field input", () => {
   test("placeholders show what the zone uses without the option", () => {
     expect(optionPlaceholder("fader", "res")).toBe("7");
-    expect(optionPlaceholder("xy", "led")).toBe("crosshair");
-    expect(optionPlaceholder("button", "leave")).toBe("1");
+    expect(optionPlaceholder("xy", "led")).toBe("1");
+    expect(optionPlaceholder("button", "grab")).toBe("focus");
     expect(optionPlaceholder("fader", "min")).toBe("0");
   });
 
@@ -194,7 +188,7 @@ describe("block information", () => {
     moduleType: "ZONA",
   };
 
-  test.each(["fader", "button", "xy", "knob"])(
+  test.each(["fader", "button", "xy"])(
     "%s inserts the zone line, a MIDI block and the end",
     (kind) => {
       const info = zoneBlockInformation(kind);
@@ -245,29 +239,11 @@ describe("block information", () => {
     ).toBe(false);
   });
 
-  test("Touch Utility only on a ZONA's utility event", () => {
-    const utility = {
-      elementType: "system",
-      eventType: "utility",
-      isVirtual: false,
-    };
-    expect(
-      isAllowedIn(touchUtilityInformation, { ...utility, moduleType: "ZONA" }),
-    ).toBe(true);
-    for (const moduleType of ["EN16", "BU16", "VSN1L", undefined]) {
-      expect(
-        isAllowedIn(touchUtilityInformation, { ...utility, moduleType }),
-      ).toBe(false);
-    }
-  });
-
   test("every Touch block is for the ZONA only", () => {
     for (const info of [
-      ...["fader", "button", "xy", "knob"].map(zoneBlockInformation),
-      touchGroupInformation,
+      ...["fader", "button", "xy"].map(zoneBlockInformation),
       touchStartInformation,
       touchTickInformation,
-      touchUtilityInformation,
     ]) {
       expect(info.moduleTypes).toEqual(["ZONA"]);
       expect(info.category).toBe("touch");

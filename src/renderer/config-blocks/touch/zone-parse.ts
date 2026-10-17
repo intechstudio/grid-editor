@@ -2,7 +2,6 @@
 // them:
 //
 //   Z.fader("f1",0,0,1,9,{res=10,mode="glide"},function(self)
-//   Z.group(1,{empty=0})
 //   Z.tick(self,{ms=10})
 //
 // This is the form GridScript.compressScript produces: no spaces, double
@@ -16,12 +15,9 @@
 import {
   type OptionSchema,
   type Zone,
-  type ZoneGroup,
   type ZoneKind,
   type ZoneOptionValue,
   type ZoneTick,
-  zoneGroupDefaults,
-  zoneGroupSchema,
   zoneKindList,
   zoneOptionDefault,
   zoneOptionSchema,
@@ -34,7 +30,6 @@ export const ZONA_GLOBAL = "Z";
 
 export const ZONE_END_SCRIPT = "end)";
 export const ZONE_START_SCRIPT = "Z.start(self)";
-export const ZONE_UTIL_SCRIPT = "Z.util(self)";
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;
 const NUMBER =
@@ -334,35 +329,6 @@ export function zoneToLua(zone: Zone): string {
     zoneOptionDefault(zone.kind, key),
   );
   return `${ZONA_GLOBAL}.${zone.kind}(${luaString(zone.name)},${cells},${options},function(self)`;
-}
-
-// `Z.group(1,{empty=0})`. `Z.group(1)` parses too.
-export function parseZoneGroup(script: string): ZoneGroup | null {
-  const reader = new Reader(script);
-  if (
-    !reader.eat(ZONA_GLOBAL) ||
-    !reader.eat(".") ||
-    reader.identifier() !== "group" ||
-    !reader.eat("(")
-  ) {
-    return null;
-  }
-  const n = reader.number();
-  if (n === null) {
-    return null;
-  }
-  const entries = reader.eat(",") ? reader.table() : [];
-  if (entries === null || !reader.eat(")") || !reader.atEnd()) {
-    return null;
-  }
-  const options = readOptions(entries, zoneGroupSchema);
-  return options === null ? null : { n, ...options };
-}
-
-export function zoneGroupToLua(group: ZoneGroup): string {
-  const defaults: Record<string, ZoneOptionValue> = zoneGroupDefaults;
-  const options = writeOptions(group, zoneGroupSchema, (key) => defaults[key]);
-  return `${ZONA_GLOBAL}.group(${luaNumber(group.n)},${options})`;
 }
 
 // `Z.tick(self,{ms=10})`, the Touch Tick block on the touch Timer.

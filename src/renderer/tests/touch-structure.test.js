@@ -4,15 +4,11 @@ import {
   insertRewrites,
   uniqueScripts,
 } from "../config-blocks/ActionBlockInformation";
-import {
-  uniqueZoneScript,
-  utilityHint,
-} from "../config-blocks/touch/zone-blocks";
+import { uniqueZoneScript } from "../config-blocks/touch/zone-blocks";
 import {
   zoneBlockInformation,
   zoneEndInformation,
   zoneBodyRule,
-  touchGroupInformation,
   touchStartInformation,
   touchTickInformation,
 } from "../config-blocks/touch/zone-block-info";
@@ -91,7 +87,7 @@ describe("pasted zones get unique names", () => {
   });
 
   test("zone blocks declare it", () => {
-    for (const kind of ["fader", "button", "xy", "knob"]) {
+    for (const kind of ["fader", "button", "xy"]) {
       expect(zoneBlockInformation(kind).uniqueIn).toBe(uniqueZoneScript);
     }
   });
@@ -120,8 +116,8 @@ describe("which issues stop the send", () => {
   test.each([
     ["outside the grid", `Z.fader("f1",8,0,2,9,{},function(self)`],
     [
-      "a painter this editor doesn't know",
-      `Z.fader("f1",0,0,1,9,{led="glow"},function(self)`,
+      "an LED value this editor doesn't know",
+      `Z.fader("f1",0,0,1,9,{led=2},function(self)`,
     ],
     ["a value out of range", `Z.fader("f1",0,0,1,9,{res=20},function(self)`],
   ])("a zone problem doesn't block: %s", (_, line) => {
@@ -217,7 +213,7 @@ describe("inside a zone body", () => {
 
   test.each([
     ["zfd", "touch"],
-    ["zgr", "touch"],
+    ["ztk", "touch"],
     ["zst", "touch"],
     ["lib", "code"],
     ["sn", "code"],
@@ -248,7 +244,7 @@ describe("inside a zone body", () => {
       false,
     );
     expect(
-      isAllowedIn(touchGroupInformation, {
+      isAllowedIn(touchStartInformation, {
         ...target,
         bodies: [zoneBodyRule],
       }),
@@ -273,7 +269,7 @@ describe("Touch Start stays last, Touch Tick comes along", () => {
   });
 
   test("zone blocks bring Touch Start (Setup) and Touch Tick (Timer)", () => {
-    for (const kind of ["fader", "button", "xy", "knob"]) {
+    for (const kind of ["fader", "button", "xy"]) {
       expect(zoneBlockInformation(kind).companions).toEqual([
         { eventType: "setup", short: "zst", script: "Z.start(self)" },
         { eventType: "timer", short: "ztk", script: "Z.tick(self,{})" },
@@ -281,19 +277,5 @@ describe("Touch Start stays last, Touch Tick comes along", () => {
     }
     expect(touchStartInformation.keepLast).toBe(true);
     expect(touchTickInformation.companions).toBeUndefined();
-  });
-});
-
-describe("Touch Utility hint", () => {
-  test("shown when the utility event has no Touch Utility", () => {
-    expect(utilityHint(["gpl"])).toBe(
-      "Add Touch Utility to the utility button for mapping mode",
-    );
-    expect(utilityHint([])).toBeDefined();
-  });
-
-  test("not with Touch Utility, or while the event isn't known", () => {
-    expect(utilityHint(["zut"])).toBeUndefined();
-    expect(utilityHint(undefined)).toBeUndefined();
   });
 });

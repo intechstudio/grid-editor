@@ -20,18 +20,12 @@
   import { zoneTickDefaults, zoneTickSchema } from "./touch/zone-model";
   import { parseZoneTick, zoneTickToLua } from "./touch/zone-parse";
   import { zoneTickProblems } from "./touch/zone-validate";
-  import { optionText, withOption } from "./touch/zone-blocks";
+  import { optionLabel, optionText, withOption } from "./touch/zone-blocks";
   import ZoneOptionField from "./touch/ZoneOptionField.svelte";
 
   export let action: GridAction;
 
   const dispatch = createEventDispatcher();
-
-  const LABELS: Record<string, string> = {
-    ms: "Interval (ms)",
-    led: "LEDs every n ticks",
-    win: "Mapping window (ms)",
-  };
 
   let tick: ZoneTick | null = null;
   let fieldErrors: Record<string, string> = {};
@@ -87,7 +81,7 @@
         {#each zoneTickSchema as schema (schema.key)}
           <ZoneOptionField
             {schema}
-            title={LABELS[schema.key]}
+            title={optionLabel(schema.key)}
             value={optionText(tick.opt[schema.key])}
             placeholder={optionText(defaults[schema.key])}
             problem={problemOf(schema.key)}

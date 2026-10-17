@@ -11,11 +11,8 @@ import {
 import {
   type OptionSchema,
   type Zone,
-  type ZoneGroup,
   type ZoneOptionValue,
   type ZoneTick,
-  zoneGroupRange,
-  zoneGroupSchema,
   zoneOptionDefault,
   zoneOptionSchema,
   zoneTickSchema,
@@ -25,7 +22,7 @@ import { parseZone, ZONA_GLOBAL, ZONE_START_SCRIPT } from "./zone-parse";
 const GRID_SIZE = 9;
 const ZONA_FILE = "zona";
 
-// One rejected field: a geometry key ("x"), "name", "n" or an option key.
+// One rejected field: a geometry key ("x"), "name" or an option key.
 export type ZoneProblem = { key: string; message: string };
 
 export type ZoneIssue = {
@@ -147,15 +144,6 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
     problems.push(...rangeProblems(zone));
   }
   return problems;
-}
-
-export function zoneGroupProblems(group: ZoneGroup): ZoneProblem[] {
-  const problems: ZoneProblem[] = [];
-  const { min, max } = zoneGroupRange;
-  if (!isInteger(group.n) || group.n < min || group.n > max) {
-    problems.push({ key: "n", message: `Use group ${min} to ${max}` });
-  }
-  return [...problems, ...optionProblems(group.opt, zoneGroupSchema)];
 }
 
 export function zoneTickProblems(tick: ZoneTick): ZoneProblem[] {

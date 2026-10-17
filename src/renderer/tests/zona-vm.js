@@ -17,7 +17,6 @@ const RECORDED = [
   "gmms",
   "gmbs",
   "gks",
-  "gpl",
 ];
 
 // Module default colour (glr/glg/glb) in the VM.
@@ -81,7 +80,6 @@ export async function createZonaVM(env = {}) {
       end
       return x, y, z
     end
-    function gpn() return 1 end
     el = {}
     function el:ind() return 0 end
     function el:txma(v) rec("txma", v) end
@@ -113,14 +111,10 @@ export async function createZonaVM(env = {}) {
         `if el.midirx_cb then el:midirx_cb({${instr},0,0},{${ch},${cmd},${p1},${p2}}) end`,
       );
     },
-    // The utility event with a Touch Utility block.
-    util() {
-      lua.doStringSync("Z.util(el)");
-    },
     // Runs Z.tick n times, as the touch Timer would.
     tick(n = 1) {
       for (let i = 0; i < n; i++) {
-        lua.doStringSync("Z.tick(el,{led=1,win=300})");
+        lua.doStringSync("Z.tick(el)");
       }
     },
     // Lua memory in KB after full collections.

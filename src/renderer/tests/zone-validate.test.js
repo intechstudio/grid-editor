@@ -3,7 +3,6 @@ import {
   zoneNameProblem,
   optionProblem,
   zoneProblems,
-  zoneGroupProblems,
   zoneTickProblems,
   validateSurface,
 } from "../config-blocks/touch/zone-validate";
@@ -82,13 +81,11 @@ describe("options", () => {
     ["res", 7],
     ["res", 14],
     ["mode", "glide"],
-    ["led", "n"],
+    ["led", 0],
     ["speed", 0.5],
     ["ease", 1],
-    ["db", -1],
-    ["sm", 0.5],
     ["group", 8],
-    ["leave", 0],
+    ["grab", "live"],
     ["min", -500],
   ])("%s=%j is valid", (key, value) => {
     expect(optionProblem(schema(key), value)).toBeUndefined();
@@ -101,12 +98,11 @@ describe("options", () => {
     ["res", "10", "Enter a number"],
     ["speed", 0, "Use 0.01 to 10"],
     ["ease", 1.5, "Use 0 to 1"],
-    ["db", -2, "Use -1 to 1023"],
     ["group", 9, "Use 0 to 8"],
-    ["leave", 2, "Use 0 to 1"],
+    ["led", 2, "Use 0 to 1"],
+    ["led", "fill", "Enter a number"],
     ["min", 0.5, "Enter a whole number"],
     ["mode", "fast", "Use one of abs, rel, glide"],
-    ["led", 1, "Use one of fill, dot, comet, crosshair, target, arc, n"],
   ])("%s=%j is rejected", (key, value, message) => {
     expect(optionProblem(schema(key), value)).toBe(message);
   });
@@ -150,25 +146,10 @@ describe("min < max", () => {
   });
 });
 
-describe("Touch Group and Touch Tick", () => {
-  test.each([1, 8])("group %i is valid", (n) => {
-    expect(zoneGroupProblems({ n, opt: { empty: 0 } })).toEqual([]);
-  });
-
-  test.each([
-    [{ n: 0, opt: {} }, ["n"]],
-    [{ n: 9, opt: {} }, ["n"]],
-    [{ n: 1.5, opt: {} }, ["n"]],
-    [{ n: 1, opt: { empty: 2 } }, ["empty"]],
-  ])("%j is rejected", (group, rejected) => {
-    expect(keys(zoneGroupProblems(group))).toEqual(rejected);
-  });
-
+describe("Touch Tick", () => {
   test("tick options", () => {
-    expect(zoneTickProblems({ opt: { ms: 10, led: 2, win: 500 } })).toEqual([]);
-    expect(keys(zoneTickProblems({ opt: { ms: 0, led: 0, win: -1 } }))).toEqual(
-      ["ms", "led", "win"],
-    );
+    expect(zoneTickProblems({ opt: { ms: 10 } })).toEqual([]);
+    expect(keys(zoneTickProblems({ opt: { ms: 0 } }))).toEqual(["ms"]);
   });
 });
 

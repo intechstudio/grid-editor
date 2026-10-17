@@ -11,7 +11,6 @@ import {
 import { parseZone } from "../config-blocks/touch/zone-parse";
 import { assignsGlobal, globalClashes } from "../libraries/library-script";
 import { companionElement } from "../main/panels/configuration/components/ActionPickerFilter";
-import { touchUtilityInformation } from "../config-blocks/touch/zone-block-info";
 
 // library-device.ts imports the app through these; hasPageFolder needs neither.
 vi.mock("../main/panels/FileManager/FileManager", () => ({}));
@@ -167,7 +166,6 @@ describe("getter suggestions per kind", () => {
 
   test.each([
     ["fader", ["self:v()", "self:g()", "self:d()"]],
-    ["knob", ["self:v()", "self:g()", "self:d()"]],
     ["xy", ["self:x()", "self:y()", "self:g()", "self:d()"]],
     ["button", ["self:v()", "self:step()", "self:g()"]],
   ])("%s", (kind, expected) => {
@@ -175,7 +173,7 @@ describe("getter suggestions per kind", () => {
   });
 
   test("each has a description", () => {
-    for (const kind of ["fader", "button", "xy", "knob"]) {
+    for (const kind of ["fader", "button", "xy"]) {
       for (const e of zoneGetterSuggestions(kind)) {
         expect(e.info.length).toBeGreaterThan(5);
       }
@@ -248,25 +246,14 @@ describe("page folder", () => {
   });
 });
 
-describe("Touch Utility brings Touch Tick to the touch element", () => {
+describe("a companion with an element type goes to that element", () => {
   const elements = [
     { type: "touch", name: "zone surface" },
     { type: "system", name: "system" },
   ];
 
-  test("the companion goes to the touch element's Timer", () => {
-    expect(touchUtilityInformation.companions).toEqual([
-      {
-        eventType: "timer",
-        short: "ztk",
-        script: "Z.tick(self,{})",
-        elementType: "touch",
-      },
-    ]);
-    const [{ elementType }] = touchUtilityInformation.companions;
-    expect(companionElement(elements, elements[1], elementType)).toBe(
-      elements[0],
-    );
+  test("from another element to the touch element", () => {
+    expect(companionElement(elements, elements[1], "touch")).toBe(elements[0]);
   });
 
   test("without an element type, the block's own element", () => {

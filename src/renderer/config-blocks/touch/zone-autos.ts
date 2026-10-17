@@ -3,7 +3,7 @@
 // offered as value suggestions.
 
 import type { Zone, ZoneKind } from "./zone-model";
-import { zoneOptionDefault } from "./zone-model";
+import { zoneKinds, zoneOptionDefault } from "./zone-model";
 import { parseZone } from "./zone-parse";
 
 type Placed = { script: string; information: { type: string } };
@@ -47,7 +47,7 @@ export function zoneContext(
 }
 
 function readerOf(zone: Zone): string {
-  return String(zone.opt.read ?? zoneOptionDefault(zone.kind, "read"));
+  return zoneKinds[zone.kind].read;
 }
 
 export type ZonePosition = { dx: number; dy: number; page: number };

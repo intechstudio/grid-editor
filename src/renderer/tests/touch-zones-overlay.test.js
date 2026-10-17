@@ -26,7 +26,7 @@ const B1 = zone(`Z.button("b1",1,0,2,2,{group=1},function(self)`);
 const B1_IF = act("if self:g()==1 then", "composite_open");
 const B1_MIDI = MIDI();
 const P1 = zone(`Z.xy("p1",3,0,4,4,{},function(self)`);
-const DUP = zone(`Z.knob("p1",5,5,3,3,{},function(self)`);
+const DUP = zone(`Z.fader("p1",5,5,3,3,{},function(self)`);
 const BAD = act(`Z.fader("x",0,0,1,9,{},function(s)`); // not a zone line
 const START = act("Z.start(self)");
 

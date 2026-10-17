@@ -3,8 +3,6 @@ import { test, expect, describe, beforeAll } from "vitest";
 import {
   parseZone,
   zoneToLua,
-  parseZoneGroup,
-  zoneGroupToLua,
   parseZoneTick,
   zoneTickToLua,
   ZONE_END_SCRIPT,
@@ -29,38 +27,28 @@ const editorWritten = [
   `Z.fader("f1",0,0,1,9,{},function(self)`,
   `Z.button("b1",2,0,2,2,{},function(self)`,
   `Z.xy("pad",4,0,5,5,{},function(self)`,
-  `Z.knob("k",0,0,3,3,{},function(self)`,
-  // differs from the kind preset (button leave=1, xy crosshair, knob arc)
-  `Z.button("b2",0,0,1,1,{leave=0},function(self)`,
-  `Z.xy("p2",0,0,9,9,{led="fill"},function(self)`,
-  `Z.knob("k2",0,0,3,3,{led="dot"},function(self)`,
-  // a preset value on another kind is not a default there
-  `Z.fader("f2",0,0,1,9,{leave=1,led="arc"},function(self)`,
+  `Z.fader("f2",0,0,1,9,{led=0},function(self)`,
   // every option type: enum, integer, number, negative, min/max
   `Z.fader("f3",1,0,1,9,{res=10,mode="glide",speed=0.5,ease=0.25},function(self)`,
   `Z.fader("f4",0,0,9,1,{dir="h",res=14,min=-100,max=100},function(self)`,
   `Z.fader("f5",0,0,1,9,{min=0},function(self)`,
   `Z.button("b3",0,0,1,1,{bmo=3,group=2,grab="live"},function(self)`,
-  `Z.knob("k3",0,0,3,3,{drag="v",contact="grab",release="fade"},function(self)`,
-  `Z.fader("f6",0,0,1,9,{sens="l",db=8,sm=0.5,rt=2},function(self)`,
-  `Z.fader("f7",0,0,1,9,{db=0,sm=0,rt=0},function(self)`,
+  // options cut in zona 0.8.0 are unknown: kept as they are
+  `Z.fader("f6",0,0,1,9,{contact="move",sens="l"},function(self)`,
+  `Z.fader("f7",0,0,1,9,{res=8,db=0,sm=0,rt=0},function(self)`,
+  `Z.button("b2",0,0,1,1,{leave=0,release="fade"},function(self)`,
   `Z.fader("f8",0,0,1,9,{read="gate"},function(self)`,
   // unknown options, after the known ones in the order found
   `Z.fader("f9",0,0,1,9,{res=8,glow=2,shape={1,2},tag="x"},function(self)`,
   `Z.fader("f10",0,0,1,9,{future=true},function(self)`,
   // number forms at the edges
-  `Z.fader("f11",0,0,1,9,{min=-5,max=100000,speed=0.01,ease=1e-7,sm=0.99},function(self)`,
-];
-
-const groupsWritten = [
-  `Z.group(1,{})`,
-  `Z.group(2,{empty=0})`,
-  `Z.group(8,{x=1})`,
+  `Z.fader("f11",0,0,1,9,{min=-5,max=100000,speed=0.01,ease=1e-7},function(self)`,
 ];
 
 const ticksWritten = [
   `Z.tick(self,{})`,
   `Z.tick(self,{ms=10})`,
+  // options cut in zona 0.8.0 are unknown
   `Z.tick(self,{ms=40,led=2,win=500})`,
   `Z.tick(self,{led=3,later=1})`,
 ];
@@ -96,7 +84,7 @@ describe("zone opening line", () => {
     expect([...keys].sort()).toEqual(zoneOptionSchema.map((e) => e.key).sort());
   });
 
-  test("defaults and kind presets are left out", () => {
+  test("defaults are left out", () => {
     const zone = {
       name: "b",
       kind: "button",
@@ -104,10 +92,10 @@ describe("zone opening line", () => {
       y: 0,
       w: 1,
       h: 1,
-      opt: { res: 7, leave: 1, led: "fill", bmo: 1 },
+      opt: { res: 7, led: 1, bmo: 1 },
     };
     expect(zoneToLua(zone)).toBe(`Z.button("b",0,0,1,1,{bmo=1},function(self)`);
-    expect(zoneToLua({ ...zone, kind: "xy", opt: { led: "crosshair" } })).toBe(
+    expect(zoneToLua({ ...zone, kind: "xy", opt: { grab: "focus" } })).toBe(
       `Z.xy("b",0,0,1,1,{},function(self)`,
     );
   });
@@ -129,7 +117,8 @@ describe("zone opening line", () => {
   // what the parser reads back: an enum as a string, a number as a number
   test.each([
     ["enum", { mode: 1 }],
-    ["enum", { led: true }],
+    ["enum", { grab: true }],
+    ["integer", { led: "1" }],
     ["integer", { res: "10" }],
     ["number", { speed: "0.5" }],
   ])("a %s option of the wrong type is not written: %j", (_, opt) => {
@@ -137,8 +126,7 @@ describe("zone opening line", () => {
     expect(() => zoneToLua({ ...zone, opt })).toThrow();
   });
 
-  test("a group or tick option of the wrong type is not written", () => {
-    expect(() => zoneGroupToLua({ n: 1, opt: { empty: "0" } })).toThrow();
+  test("a tick option of the wrong type is not written", () => {
     expect(() => zoneTickToLua({ opt: { ms: "10" } })).toThrow();
   });
 
@@ -162,7 +150,7 @@ const handWritten = [
     `Z.button("b1",2,0,2,2,{bmo=1,group=1},function(self)`,
   ],
   [
-    `Z.xy("pad",4,0,5,5,{led="crosshair",mode='glide'},function(self)`,
+    `Z.xy("pad",4,0,5,5,{led=1,mode='glide'},function(self)`,
     `Z.xy("pad",4,0,5,5,{mode="glide"},function(self)`,
   ],
   [
@@ -170,8 +158,8 @@ const handWritten = [
     `Z.fader("f",0,0,1,9,{res=8,max=16,speed=0.5,tag='x'},function(self)`,
   ],
   [
-    `Z.fader("f",0,0,1,9,{db=- 1,sm=-1},function(self)`,
-    `Z.fader("f",0,0,1,9,{},function(self)`,
+    `Z.fader("f",0,0,1,9,{min=- 1,led=1},function(self)`,
+    `Z.fader("f",0,0,1,9,{min=-1},function(self)`,
   ],
 ];
 
@@ -189,6 +177,8 @@ const notZones = [
   `Zz.fader("f",0,0,1,9,{},function(self)`,
   `Z.slider("f",0,0,1,9,{},function(self)`,
   `Z.zone("f",0,0,1,9,{},function(self)`,
+  // the knob, cut in zona 0.8.0: an unknown block
+  `Z.knob("k",0,0,3,3,{},function(self)`,
   `Z.fader("f",0,0,1,9,{},function(s)`,
   // missing or extra parts
   `Z.fader("f",0,0,1,9,{})`,
@@ -218,7 +208,8 @@ const notZones = [
   `Z.fader("f",0,0,1,9,{res="10"},function(self)`,
   `Z.fader("f",0,0,1,9,{res=7+3},function(self)`,
   `Z.fader("f",0,0,1,9,{mode=glide},function(self)`,
-  `Z.fader("f",0,0,1,9,{led=1},function(self)`,
+  // led is 0 or 1 since zona 0.8.0: a painter name is code
+  `Z.fader("f",0,0,1,9,{led="fill"},function(self)`,
   // names that can't be written back as a plain string
   `Z.fader("a\\"b",0,0,1,9,{},function(self)`,
   `Z.fader('a"b',0,0,1,9,{},function(self)`,
@@ -239,9 +230,7 @@ describe("not a zone line", () => {
 
   test("out-of-range values parse, the validator rejects them", () => {
     expect(
-      parseZone(
-        `Z.fader("led_value",8,8,2,0.5,{res=20,led="glow"},function(self)`,
-      ),
+      parseZone(`Z.fader("led_value",8,8,2,0.5,{res=20,led=5},function(self)`),
     ).toEqual({
       name: "led_value",
       kind: "fader",
@@ -249,40 +238,8 @@ describe("not a zone line", () => {
       y: 8,
       w: 2,
       h: 0.5,
-      opt: { res: 20, led: "glow" },
+      opt: { res: 20, led: 5 },
     });
-  });
-});
-
-describe("Touch Group", () => {
-  test.each(groupsWritten)("round-trips %s", (script) => {
-    expect(zoneGroupToLua(parseZoneGroup(script))).toBe(script);
-  });
-
-  test.each([
-    [`Z.group( 1 )`, `Z.group(1,{})`],
-    [`Z.group(1,{empty=1})`, `Z.group(1,{})`],
-    [`Z.group(3, { empty = 0, x = 'a' })`, `Z.group(3,{empty=0,x='a'})`],
-  ])("%s writes back %s", (script, expected) => {
-    expect(zoneGroupToLua(parseZoneGroup(script))).toBe(expected);
-  });
-
-  test("parses the fields", () => {
-    expect(parseZoneGroup(`Z.group(2,{empty=0})`)).toEqual({
-      n: 2,
-      opt: { empty: 0 },
-    });
-  });
-
-  test.each([
-    `Z.group(a,{})`,
-    `Z.group(1,{})Z.group(2,{})`,
-    `Z.group(1,{empty="0"})`,
-    `Z.group(1,{}`,
-    `Z.groups(1,{})`,
-    `L.group(1,{})`,
-  ])("%s is null", (script) => {
-    expect(parseZoneGroup(script)).toBeNull();
   });
 });
 
@@ -293,7 +250,8 @@ describe("Touch Tick", () => {
 
   test.each([
     [`Z.tick(self)`, `Z.tick(self,{})`],
-    [`Z.tick(self,{ms=20,led=1,win=300})`, `Z.tick(self,{})`],
+    [`Z.tick(self,{ms=20})`, `Z.tick(self,{})`],
+    [`Z.tick(self,{ms=20,led=1,win=300})`, `Z.tick(self,{led=1,win=300})`],
     [`Z.tick( self, {win=500, ms=10} )`, `Z.tick(self,{ms=10,win=500})`],
   ])("%s writes back %s", (script, expected) => {
     expect(zoneTickToLua(parseZoneTick(script))).toBe(expected);
@@ -337,7 +295,6 @@ describe("a whole touch Setup through compressScript (RFC 6.5)", () => {
     ["zbt", `Z.button("b1",1,0,2,2,{bmo=1,group=1,tag={1,2}},function(self)`],
     ["gms", "self:gms(-1,-1,-1,-1)"],
     ["zen", ZONE_END_SCRIPT],
-    ["zgr", `Z.group(1,{empty=0})`],
     ["zst", ZONE_START_SCRIPT],
   ];
   const toLua = (actions) =>
@@ -348,7 +305,6 @@ describe("a whole touch Setup through compressScript (RFC 6.5)", () => {
     expect(actions.map((e) => [e.short, e.script])).toEqual(setup);
     expect(zoneToLua(parseZone(actions[1].script))).toBe(setup[1][1]);
     expect(zoneToLua(parseZone(actions[5].script))).toBe(setup[5][1]);
-    expect(zoneGroupToLua(parseZoneGroup(actions[8].script))).toBe(setup[8][1]);
     expect(parseLibraryScript(actions[0].script)).toEqual([
       { global: "Z", file: "zona" },
     ]);
@@ -362,13 +318,6 @@ describe("a whole touch Setup through compressScript (RFC 6.5)", () => {
     ];
     const actions = splitActions(GridScript.compressScript(toLua(zone)));
     expect(actions.map((e) => [e.short, e.script])).toEqual(zone);
-  });
-
-  test.each(groupsWritten)("group line %s comes back unchanged", (line) => {
-    const [group] = splitActions(
-      GridScript.compressScript(`--[[@zgr]] ${line}`),
-    );
-    expect(group.script).toBe(line);
   });
 
   test.each(ticksWritten)("tick line %s comes back unchanged", (line) => {
