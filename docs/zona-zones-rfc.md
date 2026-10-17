@@ -735,3 +735,10 @@ Decisions (user, 2026-10-15):
 6. S6, consolidation into revision 4 of this RFC.
 
 Out of this pass: utility and mapping mode, touch calibration, deadband and jitter tuning.
+
+**S1 results (library 0.8.0, 2026-10-18).** The cut list without MIDI is in.
+
+- Size and cost: compressed 18,065 → 13,845 bytes. In the VM the library takes 48.9 KB instead of 65.5 KB; a zone still costs about 1.7 KB, because every zone now has the rate-limit tables. On the ZONA the library takes about 38 KB of Lua heap, and 7 zones plus `Z.start` about 17 KB. Tick: 0.3 ms idle, 2.8 ms with every zone dirty (0.7.2: 0.4 / 3.6 ms).
+- Fixed behaviour, checked with synthetic touches: a second contact on a held zone is ignored until it lifts, also when it slides into a held live zone, and it stays ignored if it then slides into a free one. Buttons release when the finger slides off; faders and XY clamp. The built-in rate limit sends the first change at once and the last one on the tick or at lift: 20 moves within one tick give 2 messages.
+- Old lines: `zkn`, `zgr` and `zut` become Code blocks. Options that were cut stay in the line as unknown keys, and the library ignores them; `read` too, so the kind always decides. `led` is now 0 or 1, so a 0.7.x line with a painter name (`led="fill"`) shows as a Code block, and the old `led="n"` lights the zone. No migration before 1.0.
+- With the default MIDI blocks, 7 zones used 823 of 909 Setup characters; an eighth did not fit. S2 removes the MIDI child.
