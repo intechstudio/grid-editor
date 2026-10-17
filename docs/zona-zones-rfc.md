@@ -760,3 +760,11 @@ Out of this pass: utility and mapping mode, touch calibration, deadband and jitt
 - Simple Intensity scales the whole cell, so intensity 0 darkens a zone, as on an element. Simple Color sets the colour from the start (S2's start run). A two-colour Simple Color curve from hand-written code loses its first colour to the black minimum; the editor's block writes one colour.
 - `Z.led` can be changed from code for tuning; a zone shows the new levels at its next repaint.
 - The editor's module view draws LEDs as small dots, so the levels need a look on the device; the user judges them in the finger session.
+
+**S4 results (library 0.8.3, 2026-10-18).** `spring=1` on a Fader or XY makes it return to the centre: a pitch bend fader (`msg="pb"`) or a joystick.
+
+- A spring zone rests at the centre from the start (64 at 7 bits, 8192 for pitch bend), with nothing sent.
+- On release it goes back through the normal path (MIDI, body, LEDs). With `ease=0` (the default) it snaps back in one message per axis; with `ease > 0` it eases back on the tick like a glide, each tick taking `ease` of the remaining distance plus at least `speed/50`, and it ends exactly on the centre. A touch during the return takes over at once.
+- The centre is the value grid's middle step, rounded up for an odd range (0–99 gives 50).
+- RX and `Z.set` put the value where they say; the spring acts again only after the next touch.
+- On the device: a pitch bend fader sends `224 0 64` on release, and an eased CC fader steps 105, 90, 80, 72, 67, 64 at 20 ms per tick.
