@@ -768,3 +768,12 @@ Out of this pass: utility and mapping mode, touch calibration, deadband and jitt
 - The centre is the value grid's middle step, rounded up for an odd range (0–99 gives 50).
 - RX and `Z.set` put the value where they say; the spring acts again only after the next touch.
 - On the device: a pitch bend fader sends `224 0 64` on release, and an eased CC fader steps 105, 90, 80, 72, 67, 64 at 20 ms per tick.
+
+**S5 results (library 0.8.4, 2026-10-18).** `fingers` (1–5, default 1) on an XY pad lets several contacts play it at once.
+
+- A contact gets the lowest free finger number and keeps it until it lifts; contacts beyond `fingers` are ignored until they lift. Each finger has its own values, glide, spring, rate limit and duplicate filter, created on its first touch and kept for re-use.
+- The body runs per finger: `self:f()` is the finger number, and `self:x() y() g() d()` are that finger's values. A Mouse Move block in the body therefore moves the mouse for every finger; an If on `self:f()==1` limits it to one. Simple Color and Intensity in the body set the zone's colour, so with several fingers the last one to run wins.
+- MIDI is MPE style: finger k sends the zone's CC numbers on channel `ch + k − 1` (wrapping at 16). The face shows the range ("CC 32, 33 ch 1–3"). Channels of different zones can overlap; nothing checks that. RX syncs finger 1 only, and touch wins while any finger holds the zone.
+- LEDs: one crosshair per held finger at `top`, the brightest level per cell; with no finger held, finger 1's value at `dim`.
+- With `fingers=1` the library behaves as 0.8.3: a differential test fed both versions the same random touches, MIDI and Setup re-runs and recorded identical calls.
+- Cost: an extra finger takes about 1.3 KB of Lua heap. Repainting a 6×9 pad with three moving fingers takes about 11 ms of a 20 ms tick on the device (one finger about 6 ms). For comparison, nine faders covering all 81 cells take 4.7 ms with every zone dirty and 0.6 ms idle. Large multi-finger pads may need a longer Touch Tick interval or a cheaper repaint later.
