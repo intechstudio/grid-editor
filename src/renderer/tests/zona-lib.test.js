@@ -937,6 +937,65 @@ describe("fingers (xy)", () => {
   });
 });
 
+describe("dx() and dy() on an XY pad", () => {
+  // Mouse Move X and Y in the body, as the editor suggests them
+  const MOUSE = "function(self) _rec('m',3,self:f(),self:dx(),self:dy()) end";
+  const moves = (vm) =>
+    vm
+      .calls("m")
+      .map((e) => e.args)
+      .filter(([, dx, dy]) => dx !== 0 || dy !== 0);
+  const pad = (opt = "") => zones(`Z.xy("p",0,0,9,9,{${opt}},${MOUSE})`);
+
+  test("a move along x gives an x change only", async () => {
+    const vm = await pad();
+    vm.touch([0, DOWN, 500, 500]);
+    vm.clear();
+    vm.touch([0, MOVE, 700, 500]);
+    expect(moves(vm)).toEqual([[1, 24, 0]]); // 200 raw of 1023: 24.8, the fraction carried
+  });
+
+  test("a move along y gives a y change only", async () => {
+    const vm = await pad();
+    vm.touch([0, DOWN, 500, 500]);
+    vm.clear();
+    vm.touch([0, MOVE, 500, 300]);
+    expect(moves(vm)).toEqual([[1, 0, 25]]);
+  });
+
+  test("a diagonal move gives both, each once", async () => {
+    const vm = await pad();
+    vm.touch([0, DOWN, 500, 500]);
+    vm.clear();
+    vm.touch([0, MOVE, 700, 300]);
+    expect(moves(vm)).toEqual([
+      [1, 24, 0],
+      [1, 0, 25],
+    ]);
+  });
+
+  test("per finger", async () => {
+    const vm = await pad("fingers=2");
+    vm.touch([0, DOWN, 100, 100], [1, DOWN, 500, 500]);
+    vm.clear();
+    vm.touch([1, MOVE, 700, 500], [0, MOVE, 100, 300]);
+    expect(moves(vm)).toEqual([
+      [2, 24, 0],
+      [1, 0, -24],
+    ]);
+  });
+
+  test("on a fader d() is the value's change, dx() and dy() are 0", async () => {
+    const vm = await zones(
+      `Z.fader("f",0,0,1,9,{},function(self) _rec('m',3,self:d(),self:dx(),self:dy()) end)`,
+    );
+    vm.touch([0, DOWN, 50, 1023]);
+    vm.clear();
+    vm.touch([0, MOVE, 50, 0]);
+    expect(vm.calls("m").map((e) => e.args)).toEqual([[127, 0, 0]]);
+  });
+});
+
 describe("live capture", () => {
   const live = `Z.fader("a",0,0,1,9,{grab="live"},${MIDI}) Z.fader("b",1,0,1,9,{grab="live"},${MIDI})`;
 

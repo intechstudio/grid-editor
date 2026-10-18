@@ -168,7 +168,14 @@ export function zoneGetterSuggestions(kind: ZoneKind): ZoneGetter[] {
         { value: "self:x()", info: "X value (min to max)" },
         { value: "self:y()", info: "Y value (min to max)" },
         g,
-        d,
+        {
+          value: "self:dx()",
+          info: "Change of x since the last run, for Mouse Move X",
+        },
+        {
+          value: "self:dy()",
+          info: "Change of y since the last run, for Mouse Move Y",
+        },
         { value: "self:f()", info: "Finger number, 1 to the zone's fingers" },
       ];
     case "button":

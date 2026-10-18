@@ -277,7 +277,17 @@ describe("getter suggestions per kind", () => {
 
   test.each([
     ["fader", ["self:v()", "self:g()", "self:d()"]],
-    ["xy", ["self:x()", "self:y()", "self:g()", "self:d()", "self:f()"]],
+    [
+      "xy",
+      [
+        "self:x()",
+        "self:y()",
+        "self:g()",
+        "self:dx()",
+        "self:dy()",
+        "self:f()",
+      ],
+    ],
     ["button", ["self:v()", "self:step()", "self:g()"]],
   ])("%s", (kind, expected) => {
     expect(values(kind)).toEqual(expected);

@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.4"
+Z.VERSION = "0.8.5"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -846,6 +846,13 @@ function M:g()
 end
 function M:d()
   return self.dd or 0
+end
+-- xy: the change of one axis, 0 when this run is for the other (Mouse Move)
+function M:dx()
+  return self.s == "x" and self.dd or 0
+end
+function M:dy()
+  return self.s == "y" and self.dd or 0
 end
 function M:step()
   return self.st
