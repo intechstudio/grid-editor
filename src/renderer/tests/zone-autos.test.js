@@ -108,7 +108,7 @@ describe("zone MIDI identity matches zona.lua", () => {
       `Z.fader("f2",1,0,1,9,{res=14},function(self)`,
     ]);
     const m = zoneMidi(zones, 1, P0);
-    expect(m).toEqual({ ch: 0, type: "cc14", nums: [1] });
+    expect(m).toEqual({ ch: 0, type: "cc14", nums: [1], fingers: 1 });
     expect(zoneMidiLabel(m)).toBe("CC 1/33 ch 1");
     expect(await sent({}, lua, 150, 0)).toEqual(wire(m, 16383));
   });
@@ -119,6 +119,7 @@ describe("zone MIDI identity matches zona.lua", () => {
       ch: 0,
       type: "note",
       nums: [32],
+      fingers: 1,
     });
   });
 
@@ -127,7 +128,7 @@ describe("zone MIDI identity matches zona.lua", () => {
       `Z.fader("f",0,0,1,9,{msg="pb"},function(self)`,
     ]);
     const m = zoneMidi(zones, 0, P0);
-    expect(m).toEqual({ ch: 0, type: "pb", nums: [] });
+    expect(m).toEqual({ ch: 0, type: "pb", nums: [], fingers: 1 });
     expect(zoneMidiLabel(m)).toBe("PB ch 1");
     expect(await sent({}, lua, 50, 0)).toEqual(wire(m, 16383));
   });
@@ -137,7 +138,7 @@ describe("zone MIDI identity matches zona.lua", () => {
       `Z.xy("p",0,0,3,3,{ch=4,num=20},function(self)`,
     ]);
     const m = zoneMidi(zones, 0, P0);
-    expect(m).toEqual({ ch: 4, type: "cc", nums: [20, 21] });
+    expect(m).toEqual({ ch: 4, type: "cc", nums: [20, 21], fingers: 1 });
     expect(zoneMidiLabel(m)).toBe("CC 20, 21 ch 5");
     expect(await sent({}, lua, 341, 0)).toEqual([
       ...wire(m, 127, 0),
@@ -202,6 +203,21 @@ describe("zone MIDI identity matches zona.lua", () => {
     expect(m.nums).toEqual([(32 + 7 * 16) % 128]);
   });
 
+  test.each([
+    [`{fingers=3}`, "CC 32, 33 ch 1–3"],
+    [`{fingers=5,ch=13}`, "CC 32, 33 ch 14–16, 1–2"],
+    [`{fingers=2,ch=15}`, "CC 32, 33 ch 16, 1"],
+    [`{fingers=2,res=14}`, "CC 0/32, 1/33 ch 1–2"],
+  ])("an xy with %s: %s", (opt, label) => {
+    const zones = [parseZone(`Z.xy("p",0,0,3,3,${opt},function(self)`)];
+    expect(zoneMidiLabel(zoneMidi(zones, 0, P0))).toBe(label);
+  });
+
+  test("fingers only count on an xy", () => {
+    const zones = [parseZone(`Z.fader("f",0,0,1,9,{fingers=3},function(self)`)];
+    expect(zoneMidi(zones, 0, P0).fingers).toBe(1);
+  });
+
   test("the zone line at an event index", () => {
     const scripts = [
       "lib",
@@ -214,6 +230,7 @@ describe("zone MIDI identity matches zona.lua", () => {
       ch: 0,
       type: "cc",
       nums: [34],
+      fingers: 1,
     });
     expect(zoneMidiAt(scripts, 2, P0)).toBeUndefined();
   });
@@ -260,7 +277,7 @@ describe("getter suggestions per kind", () => {
 
   test.each([
     ["fader", ["self:v()", "self:g()", "self:d()"]],
-    ["xy", ["self:x()", "self:y()", "self:g()", "self:d()"]],
+    ["xy", ["self:x()", "self:y()", "self:g()", "self:d()", "self:f()"]],
     ["button", ["self:v()", "self:step()", "self:g()"]],
   ])("%s", (kind, expected) => {
     expect(values(kind)).toEqual(expected);

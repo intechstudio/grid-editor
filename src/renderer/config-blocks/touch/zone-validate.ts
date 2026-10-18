@@ -204,6 +204,10 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
       message: "Spring is for faders and XY pads",
     });
   }
+  // the library ignores fingers on a fader or button
+  if (zone.kind !== "xy" && typeof zone.opt.fingers !== "undefined") {
+    problems.push({ key: "fingers", message: "Fingers is for XY pads" });
+  }
   return problems;
 }
 

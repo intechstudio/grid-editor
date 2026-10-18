@@ -213,6 +213,7 @@ export const optionLabels: Record<string, string> = {
   ease: "Ease",
   bmo: "Button mode",
   spring: "Spring to centre (0 off, 1 on)",
+  fingers: "Fingers (one channel each)",
   group: "Radio group",
   grab: "Capture",
   led: "LED feedback (0 off, 1 on)",

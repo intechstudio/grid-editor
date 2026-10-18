@@ -204,6 +204,21 @@ describe("ranges and numbers that reach the wire", () => {
   });
 });
 
+describe("fingers", () => {
+  test.each([
+    ["xy", 1, undefined],
+    ["xy", 5, undefined],
+    ["xy", 0, "Use 1 to 5"],
+    ["xy", 6, "Use 1 to 5"],
+    ["xy", 2.5, "Enter a whole number"],
+    ["fader", 2, "Fingers is for XY pads"],
+    ["button", 1, "Fingers is for XY pads"],
+  ])("fingers on a %s: %j", (kind, fingers, message) => {
+    const problems = zoneProblems(zone({ kind, w: 2, h: 2, opt: { fingers } }));
+    expect(problems.find((e) => e.key === "fingers")?.message).toBe(message);
+  });
+});
+
 describe("spring", () => {
   test.each([
     ["fader", 1, undefined],

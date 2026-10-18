@@ -58,6 +58,7 @@ export type ZoneMidi = {
   ch: number;
   type: "note" | "cc" | "cc14" | "pb";
   nums: number[]; // one per source: x and y on an xy pad
+  fingers: number; // xy: finger k sends on channel ch+k-1 (mod 16)
 };
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
@@ -99,6 +100,7 @@ export function zoneMidi(
     ch: ch < 0 ? mod(pos.dy * 4 + pos.page, 16) : ch,
     type,
     nums: type === "pb" ? [] : readerOf(zone) === "point" ? [x, y] : [x],
+    fingers: readerOf(zone) === "point" ? Number(option(zone, "fingers")) : 1,
   };
 }
 
@@ -119,6 +121,20 @@ export function zoneMidiAt(
   return zoneMidi(zones, zones.length - 1, pos);
 }
 
+// 1-based channel or range: "1", "1–3", "15–16, 1" (fingers wrap at 16).
+function channels(midi: ZoneMidi): string {
+  const first = midi.ch + 1;
+  const last = mod(midi.ch + midi.fingers - 1, 16) + 1;
+  if (midi.fingers <= 1) {
+    return String(first);
+  }
+  if (last >= first) {
+    return `${first}–${last}`;
+  }
+  const range = (a: number, b: number) => (a === b ? `${a}` : `${a}–${b}`);
+  return `${range(first, 16)}, ${range(1, last)}`;
+}
+
 // Short text of what a zone sends: "CC 33 ch 1", "CC 1/33 ch 1" (14-bit),
 // "CC 34, 35 ch 1" (xy), "Note 36 ch 1", "PB ch 1", "no MIDI". The channel
 // is 1-based, as the MIDI block shows it.
@@ -126,7 +142,7 @@ export function zoneMidiLabel(midi: ZoneMidi | null): string {
   if (midi === null) {
     return "no MIDI";
   }
-  const ch = `ch ${midi.ch + 1}`;
+  const ch = `ch ${channels(midi)}`;
   if (midi.type === "pb") {
     return `PB ${ch}`;
   }
@@ -153,6 +169,7 @@ export function zoneGetterSuggestions(kind: ZoneKind): ZoneGetter[] {
         { value: "self:y()", info: "Y value (min to max)" },
         g,
         d,
+        { value: "self:f()", info: "Finger number, 1 to the zone's fingers" },
       ];
     case "button":
       return [v, { value: "self:step()", info: "Current step, 0 = off" }, g];

@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.3"
+Z.VERSION = "0.8.4"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -23,6 +23,7 @@ Z.def = {
   num = -1,
   rx = 0,
   spring = 0,
+  fingers = 1,
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
@@ -120,9 +121,9 @@ local function run(z, s)
   else
     snd(z, s)
   end
-  if z.f then
+  if z.fn then
     Z.rb = 1 -- a body is running: no zones may be defined (Z.zone)
-    local ok, e = pcall(z.f, z)
+    local ok, e = pcall(z.fn, z)
     Z.rb = nil
     if not ok then
       error(e, 0)
@@ -146,10 +147,12 @@ local function put(z, k, val)
 end
 
 local function fl(z)
-  for k in pairs(z.pd) do
-    z.pd[k] = nil
-    z.lr[k] = Z.tn
-    run(z, k)
+  for _, k in ipairs(KS) do -- a fixed order: x before y
+    if z.pd[k] then
+      z.pd[k] = nil
+      z.lr[k] = Z.tn
+      run(z, k)
+    end
   end
 end
 
@@ -268,12 +271,58 @@ local function gate(z, g)
   z.u.v = z.sv[st + 1]
 end
 
--- the first contact owns a zone: another one is ignored until it lifts
+-- spring: rest at the centre, no output
+local function rest(z)
+  if z.o.spring == 1 and z.o.read ~= "gate" then
+    for _, k in ipairs(SR[z.o.read]) do
+      z.q[k], z.u[k], z.r[k] = 0.5, sc(z, 0.5), z.mi + (z.ma - z.mi) / 2
+    end
+  end
+end
+
+-- a finger's own state over its zone (xy, fingers > 1): values, filter,
+-- rate and carry per finger; MIDI on the zone channel + finger - 1
+local function fg(z, i)
+  local mi = z.mi
+  z.fm = z.fm or { __index = z } -- one metatable for the zone's fingers
+  local o = setmetatable({
+    fi = i,
+    pa = z,
+    ch = (z.ch + i - 1) % 16,
+    k = 0,
+    l = {},
+    u = { v = mi, x = mi, y = mi, g = 0 },
+    q = { x = 0, y = 0 },
+    r = { x = mi, y = mi },
+    tg = {},
+    lr = {},
+    pd = {},
+  }, z.fm)
+  rest(o)
+  z.fs = z.fs or {}
+  z.fs[i] = o
+  z.os[#z.os + 1] = o
+  return o
+end
+
+-- the first contact owns a zone: another one is ignored until it lifts. An
+-- xy with fingers > 1 gives a new contact the lowest free finger instead
 local function take(id, c, z, x, y, e)
-  if z.k > 0 then
+  local t = z.k == 0 and z
+  if z.k > 0 and z.o.read == "point" then
+    for i = 2, z.o.fingers do
+      local o = z.fs and z.fs[i]
+      if not o or o.k == 0 then
+        t = o or fg(z, i)
+        break
+      end
+    end
+  end
+  if not t then
     Z.ct[id] = false
     return
   end
+  z = t
   c.z = z
   c.p = {}
   c.x = nil
@@ -316,13 +365,16 @@ P.gate = function(z, i, j, n)
   return n
 end
 -- normalised by the cell nearest the value (m), so it is at the lit level
--- wherever the value lies between cell centres
+-- wherever the value lies between cell centres; cx, cy, cm: set by pt
 P.point = function(z, i, j)
+  return (cl(1 - math.abs(z.cx - i)) + cl(1 - math.abs(z.cy - j))) / z.cm
+end
+
+-- the crosshair's position in cells, once per paint
+local function pt(z)
   local c = z.c
-  local q = z.q
-  local x, y = q.x * (c[3] - 1), (1 - q.y) * (c[4] - 1)
-  local m = 2 - math.abs(x - math.floor(x + 0.5)) - math.abs(y - math.floor(y + 0.5))
-  return (cl(1 - math.abs(x - i)) + cl(1 - math.abs(y - j))) / m
+  local x, y = z.q.x * (c[3] - 1), (1 - z.q.y) * (c[4] - 1)
+  z.cx, z.cy, z.cm = x, y, 2 - math.abs(x - math.floor(x + 0.5)) - math.abs(y - math.floor(y + 0.5))
 end
 
 -- LED x of cell e, looked up only when it is written
@@ -356,6 +408,15 @@ local function own(e)
   return o
 end
 
+-- held by any finger
+local function hd(z)
+  for _, o in ipairs(z.os) do
+    if o.k > 0 then
+      return true
+    end
+  end
+end
+
 local function paint(z)
   z.dt = nil
   if z.o.led == 0 then
@@ -366,21 +427,41 @@ local function paint(z)
   local n = z.o.read == "gate" and z.st / math.max(#z.sv - 1, 1) or z.q[z.o.read == "point" and "x" or "v"]
   -- level 0-1 between floor and the lit phase (top or dim); glp scales the
   -- whole cell, so glp 0 is dark
+  -- fingers: a crosshair per held finger at top, the highest level per cell;
+  -- none held: finger 1's at dim
   local L = Z.led
   local f = L.floor
-  local h = z.k > 0 and L.top or L.dim
+  local t = hd(z)
+  local h = t and L.top or L.dim
+  if z.o.read == "point" then
+    for _, o in ipairs(z.os) do
+      pt(o)
+    end
+  end
   for j = 0, c[4] - 1 do
     for i = 0, c[3] - 1 do
       local e = c[1] + i + (c[2] + j) * 9
-      lit(e, z.ck, z.cc, math.floor((f + p(z, i, j, n) * (h - f)) * z.iv / 255 + 0.5))
+      local v = 0
+      if z.fs then
+        for _, o in ipairs(z.os) do
+          if o.k > 0 or not t and o == z then
+            v = math.max(v, p(o, i, j, n))
+          end
+        end
+      else
+        v = p(z, i, j, n)
+      end
+      lit(e, z.ck, z.cc, math.floor((f + v * (h - f)) * z.iv / 255 + 0.5))
     end
   end
 end
 
 local function rl() -- release held zones: no stuck notes
   for _, z in ipairs(Z.zs) do
-    if z.k > 0 then
-      lift(z)
+    for _, o in ipairs(z.os) do
+      if o.k > 0 then
+        lift(o)
+      end
     end
   end
 end
@@ -505,7 +586,7 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     p = p,
     py = py,
     m = m == "pb" and 2 or z14 and 1 or m ~= "none" and 0 or nil,
-    f = f,
+    fn = f, -- the body (self:f() is the finger)
     a = {
       math.ceil(x * S),
       math.ceil((x + w) * S) - 1,
@@ -528,12 +609,8 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     c = { x, y, w, h },
     iv = 255,
   }, M)
-  -- spring: rest at the centre, no output
-  if o.spring == 1 and o.read ~= "gate" then
-    for _, k in ipairs(SR[o.read]) do
-      z.q[k], z.u[k], z.r[k] = 0.5, sc(z, 0.5), mi + (ma - mi) / 2
-    end
-  end
+  z.os = { z } -- the zone and its fingers' states (fg)
+  rest(z)
   z:glc(1, { { -1, -1, -1, 1 } })
   Z.nz[#Z.nz + 1] = z
   return z
@@ -589,9 +666,9 @@ function Z.start(self)
   end
   Z.rb = 1
   for _, z in ipairs(Z.zs) do
-    if z.f then
+    if z.fn then
       z.s, z.dd = "g", 0
-      local ok, e = pcall(z.f, z)
+      local ok, e = pcall(z.fn, z)
       if not ok then
         print(e)
       end
@@ -621,18 +698,23 @@ function Z.tick(self, cfg)
   stale()
   Z.tn = Z.tn + 1
   for _, z in ipairs(Z.zs) do
-    for _, k in ipairs(KS) do
-      local t = z.tg[k]
-      if t then
-        local q = ap(z.q[k], t, z.o.speed / 50, z.o.ease)
-        z.q[k] = q
-        if q == t then
-          z.tg[k] = nil
+    for _, o in ipairs(z.os) do
+      for _, k in ipairs(KS) do
+        local t = o.tg[k]
+        if t then
+          local q = ap(o.q[k], t, o.o.speed / 50, o.o.ease)
+          o.q[k] = q
+          if q == t then
+            o.tg[k] = nil
+          end
+          put(o, k, sc(o, q))
         end
-        put(z, k, sc(z, q))
+      end
+      fl(o)
+      if o.dt then -- a finger repaints its zone
+        z.dt, o.dt = 1, o == z and 1 or nil
       end
     end
-    fl(z)
     if z.dt then
       paint(z)
     end
@@ -691,7 +773,7 @@ end
 
 function Z.set(n, v, s)
   for _, z in ipairs(Z.zs) do
-    if z.n == n and z.k == 0 then -- touch wins
+    if z.n == n and not hd(z) then -- touch wins
       sy(z, s or "g", v)
     end
   end
@@ -716,7 +798,7 @@ function Z.rx(self, h, e)
     if r.m == 0 and z.ma > 127 then -- 7-bit into a wide range
       v = z.mi + v * (z.ma - z.mi) // 127
     end
-    if z.k == 0 then -- touch wins
+    if not hd(z) then -- touch wins (any finger)
       sy(z, r.s, v, w)
     end
   end
@@ -729,7 +811,9 @@ end
 local CC = setmetatable({}, { __mode = "v" })
 
 -- layer is always 1; the minimum is black: phase 0 is off
+-- colour and intensity are the zone's, also from a finger's body
 function M:glc(l, c)
+  self = self.pa or self
   local x, y, w = color_curve(c)
   x = { 0, 0, 0, x[4] }
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
@@ -743,6 +827,7 @@ function M:glc(l, c)
 end
 
 function M:glp(l, v)
+  self = self.pa or self
   self.iv = (v == nil or v == -1) and 255 or math.max(0, math.min(255, v))
   self.dt = 1
 end
@@ -764,6 +849,9 @@ function M:d()
 end
 function M:step()
   return self.st
+end
+function M:f()
+  return self.fi or 1
 end
 
 -- The Library block calls a library's unload(self) before it re-runs Setup

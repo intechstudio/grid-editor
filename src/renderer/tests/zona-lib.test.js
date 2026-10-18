@@ -765,6 +765,178 @@ describe("spring", () => {
   });
 });
 
+describe("fingers (xy)", () => {
+  // the whole surface: raw 0-1023 both ways, y up
+  const BODY =
+    'function(self) _rec("f",4,self:f(),self.s,self:x(),self:y()) end';
+  const pad = (opt, body = BODY) => zones(`Z.xy("p",0,0,9,9,{${opt}},${body})`);
+  const presses = (vm) =>
+    vm
+      .calls("f")
+      .filter((e) => e.args[1] === "g")
+      .map((e) => e.args[0]);
+
+  test("lowest free finger, kept until lift, re-used after; extra contacts ignored", async () => {
+    const vm = await pad("fingers=3");
+    vm.touch([0, DOWN, 100, 100], [1, DOWN, 500, 500], [2, DOWN, 900, 900]);
+    vm.touch([3, DOWN, 300, 300]); // a fourth: ignored
+    expect(presses(vm)).toEqual([1, 2, 3]);
+    vm.clear();
+    vm.touch([1, UP, 500, 500], [4, DOWN, 700, 200]);
+    expect(presses(vm)).toEqual([2, 2]); // finger 2 released, then re-used
+    vm.clear();
+    vm.touch([3, MOVE, 320, 320], [3, UP, 320, 320]);
+    expect(vm.calls("f")).toEqual([]); // the ignored contact stays ignored
+  });
+
+  test("per-finger values and f() in the body", async () => {
+    const vm = await pad("fingers=2");
+    vm.touch([0, DOWN, 0, 1023], [1, DOWN, 1023, 0]);
+    expect(vm.calls("f").map((e) => e.args)).toEqual([
+      [1, "g", 0, 0],
+      [2, "x", 127, 0],
+      [2, "y", 127, 127],
+      [2, "g", 127, 127],
+    ]);
+    expect(vm.run("return Z.zs[1]:x()")).toBe(0);
+  });
+
+  test("MIDI per finger on its own channel, the same CCs", async () => {
+    const vm = await pad("fingers=3", "nil");
+    vm.touch([0, DOWN, 1023, 0], [1, DOWN, 1023, 0], [2, DOWN, 0, 1023]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 127],
+      [0, 176, 33, 127],
+      [1, 176, 32, 127],
+      [1, 176, 33, 127],
+      [2, 176, 32, 0], // a press sends the finger's current values
+      [2, 176, 33, 0],
+    ]);
+    vm.clear();
+    vm.touch([2, MOVE, 1023, 1023]);
+    expect(wire(vm)).toEqual([[2, 176, 32, 127]]);
+  });
+
+  test("channels wrap at 16", async () => {
+    const vm = await pad("fingers=3,ch=14", "nil");
+    vm.touch([0, DOWN, 1023, 0], [1, DOWN, 1023, 0], [2, DOWN, 1023, 0]);
+    expect(wire(vm).map((m) => m[0])).toEqual([14, 14, 15, 15, 0, 0]);
+  });
+
+  test("14-bit pairs per finger", async () => {
+    const vm = await pad("fingers=2,res=14", "nil");
+    vm.touch([0, DOWN, 1023, 0], [1, DOWN, 1023, 0]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 0, 127],
+      [0, 176, 32, 127],
+      [0, 176, 1, 127],
+      [0, 176, 33, 127],
+      [1, 176, 0, 127],
+      [1, 176, 32, 127],
+      [1, 176, 1, 127],
+      [1, 176, 33, 127],
+    ]);
+  });
+
+  test("the rate limit is per finger", async () => {
+    const vm = await pad("fingers=2", "nil");
+    vm.touch([0, DOWN, 0, 1023], [1, DOWN, 0, 1023]);
+    vm.tick();
+    vm.clear();
+    // finger 1 twice in one tick: once now, the last on the tick; finger 2 at once
+    vm.touch([0, MOVE, 500, 1023], [0, MOVE, 1023, 1023], [1, MOVE, 500, 1023]);
+    expect(wire(vm)).toEqual([
+      [0, 176, 32, 62],
+      [1, 176, 32, 62],
+    ]);
+    vm.tick();
+    expect(wire(vm).at(-1)).toEqual([0, 176, 32, 127]);
+  });
+
+  test("a finger's lift sends nothing new; the others carry on", async () => {
+    const vm = await pad("fingers=2", "nil");
+    vm.touch([0, DOWN, 1023, 0], [1, DOWN, 0, 1023]);
+    vm.clear();
+    vm.touch([1, UP, 0, 1023], [0, MOVE, 0, 0]);
+    expect(wire(vm)).toEqual([[0, 176, 32, 0]]);
+  });
+
+  test("spring per finger: a lifted finger returns on its channel", async () => {
+    const vm = await pad("fingers=2,spring=1", "nil");
+    vm.touch([0, DOWN, 1023, 0], [1, DOWN, 1023, 0]);
+    vm.clear();
+    vm.touch([1, UP, 1023, 0]);
+    expect(wire(vm)).toEqual([
+      [1, 176, 32, 64],
+      [1, 176, 33, 64],
+    ]);
+    expect(vm.run("return Z.zs[1]:x()")).toBe(127); // finger 1 still held
+  });
+
+  test("the start run and Z.start know finger 1 only", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.xy("p",0,0,9,9,{fingers=5},${BODY}) Z.start(self)`);
+    expect(vm.calls("f").map((e) => e.args[0])).toEqual([1]);
+    expect(vm.run("return Z.zs[1].fs == nil and #Z.zs[1].os")).toBe(1);
+  });
+
+  test("RX sets finger 1 only, not while any finger holds the zone", async () => {
+    const vm = await pad("fingers=2,rx=1", "nil");
+    vm.rx(0, 176, 32, 100);
+    expect(vm.run("return Z.zs[1]:x()")).toBe(100);
+    vm.touch([0, DOWN, 0, 1023], [1, DOWN, 0, 1023], [0, UP, 0, 1023]);
+    vm.rx(0, 176, 32, 50); // finger 2 still holds the zone
+    expect(vm.run("return Z.zs[1]:x()")).toBe(0);
+    vm.rx(1, 176, 32, 50); // finger 2's channel is not registered
+    expect(vm.run("return Z.zs[1].fs[2]:x()")).toBe(0);
+  });
+
+  test("live: a contact sliding in takes a free finger", async () => {
+    const vm = await zones(
+      `Z.xy("p",0,0,3,3,{fingers=2,grab="live"},${BODY}) Z.fader("f",5,0,1,9,{},nil)`,
+    );
+    vm.touch([0, DOWN, 100, 100], [1, DOWN, 700, 100], [1, MOVE, 200, 200]);
+    expect(presses(vm)).toEqual([1, 2]);
+  });
+
+  test("fingers=1: f() is 1, a second contact ignored", async () => {
+    const vm = await pad("");
+    vm.touch([0, DOWN, 100, 100], [1, DOWN, 500, 500]);
+    expect(presses(vm)).toEqual([1]);
+  });
+
+  test("LEDs: a crosshair per held finger at top; released: finger 1 at dim", async () => {
+    const vm = await createZonaVM();
+    // 3x3: cells 0-2, raw 0-341; finger 1 at the bottom left, finger 2 top right
+    vm.setup(`Z.xy("p",0,0,3,3,{fingers=2},nil) Z.start(self)`);
+    vm.touch([0, DOWN, 0, 341], [1, DOWN, 341, 0]);
+    vm.tick();
+    const grid = () => {
+      const m = leds(vm);
+      return [0, 1, 2].map((y) => [0, 1, 2].map((x) => m[`${x},${y}`]));
+    };
+    expect(grid()).toEqual([
+      [136, 136, 255],
+      [136, 16, 136],
+      [255, 136, 136],
+    ]);
+    vm.touch([1, UP, 341, 0]);
+    vm.tick();
+    expect(grid()).toEqual([
+      [136, 16, 16],
+      [136, 16, 16],
+      [255, 136, 136],
+    ]);
+    vm.touch([0, UP, 0, 341]);
+    vm.tick();
+    expect(grid()).toEqual([
+      [63, 16, 16],
+      [63, 16, 16],
+      [110, 63, 63],
+    ]);
+  });
+});
+
 describe("live capture", () => {
   const live = `Z.fader("a",0,0,1,9,{grab="live"},${MIDI}) Z.fader("b",1,0,1,9,{grab="live"},${MIDI})`;
 

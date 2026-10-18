@@ -16,8 +16,9 @@ beforeAll(async () => {
 // wasmoon is wasm32 Lua 5.4, close to the module's pointer sizes. Budgets are
 // the measured values plus about 10%, so a regression fails.
 const BUDGET_KB = {
-  library: 54, // measured 45.5 (zona 0.8.1; 65.5 in 0.7.2)
-  zone: 1.62, // measured 1.47 (fader, no body; 1.69 with a MIDI child in 0.8.0)
+  library: 60, // measured 54.3 (zona 0.8.4: fingers +4.9; 65.5 in 0.7.2)
+  zone: 1.62, // measured 1.51 (fader, no body; 0.8.4: + the os list)
+  finger: 1.5, // an xy's extra finger state, measured 1.34
   rxSurface: 29, // 16 faders with rx=1 + Z.start, measured 26.4 (33.9 in 0.8.0)
 };
 
@@ -49,6 +50,20 @@ describe("RAM budget", () => {
     const base = vm.kb();
     vm.setup(faders(16));
     expect((vm.kb() - base) / 16).toBeLessThanOrEqual(BUDGET_KB.zone);
+  });
+
+  test("per extra finger (xy, allocated on its first touch)", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.xy("p",0,0,9,9,{fingers=5},nil) Z.start(self)`);
+    vm.touch([0, DOWN, 100, 100]);
+    const base = vm.kb();
+    vm.touch(
+      [1, DOWN, 300, 300],
+      [2, DOWN, 500, 500],
+      [3, DOWN, 700, 700],
+      [4, DOWN, 900, 900],
+    );
+    expect((vm.kb() - base) / 4).toBeLessThanOrEqual(BUDGET_KB.finger);
   });
 
   test("16 faders with RX and Z.start", async () => {
@@ -297,7 +312,7 @@ describe("Z.unload", () => {
   test("survives compressScript (RFC 2.1)", () => {
     const compressed = GridScript.compressScript(zonaSource);
     expect(compressed).toContain("function Z.unload(self)");
-    expect(compressed).toContain('Z.VERSION="0.8.3"');
+    expect(compressed).toContain('Z.VERSION="0.8.4"');
     // size budget of the file on the module
     expect(compressed.length).toBeLessThan(20480);
   });

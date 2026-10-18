@@ -98,6 +98,8 @@ describe("face sections", () => {
     expect(keys("button")).not.toContain("spring");
     expect(keys("fader")).toContain("spring");
     expect(keys("xy")).toContain("spring");
+    expect(keys("xy")).toContain("fingers");
+    expect(keys("fader")).not.toContain("fingers");
     expect(keys("xy")).not.toContain("dir");
     // `read` comes from the kind: no face shows it
     for (const kind of ["fader", "button", "xy"]) {
