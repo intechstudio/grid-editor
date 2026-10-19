@@ -230,6 +230,10 @@
           ].includes(e.information.short),
       );
     }
+    //Library only at the top level of a Setup event, not in a function body tab
+    if (eventString !== "setup" || event.realEvent !== event) {
+      comp = comp.filter((e) => e.information.short !== "lib");
+    }
 
     //Filter out dev blocks
     if (!get(appSettings).persistent.allowDevBlocks) {

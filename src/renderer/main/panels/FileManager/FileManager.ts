@@ -3,6 +3,16 @@ import { type GridModule } from "../../../runtime/runtime";
 
 export type DirEntry = { name: string; type: "file" | "dir" };
 
+// Raw characters per writeFileContent chunk. Bounded by
+// GRID_PARAMETER_ACTIONSTRING_maxlength (909B, see
+// @intechstudio/grid-protocol's protocol data) — packet framing (~43B) +
+// Lua write wrapper (~152B) + up to 4B per raw byte from luaEscape's \ddd
+// worst case caps this around ~180-190 raw chars. Not confirmed that
+// limit even applies to this instruction's message class (it's checked
+// for SendConfigImmediate, not SendLuaImmediateAndEvaluate) - keeping
+// margin here in case the real ceiling is smaller or framing changes.
+export const WRITE_CHUNK_SIZE = 150;
+
 export function pageNumberToFolderPath(pageNumber: number): string {
   return `/${pageNumber.toString(16).padStart(2, "0").toUpperCase()}/`;
 }
