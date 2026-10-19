@@ -8,9 +8,9 @@ export type BundledLibrary = {
   source: string; // imported with ?raw
 };
 
-// Matches `Z.VERSION = "1.2.3"` (any table name) outside line comments. Not
+// Matches `Test.VERSION = "1.2.3"` (any table name) outside line comments. Not
 // anchored to the line start: compressScript joins statements, so the
-// uploaded source reads `local Z={}Z.VERSION="1.2.3"`.
+// uploaded source reads `local Module={}Module.VERSION="1.2.3"`.
 const VERSION_PATTERN =
   /(?:^|[^\w.])[A-Za-z_]\w*\.VERSION\s*=\s*"(\d+\.\d+\.\d+)"/m;
 

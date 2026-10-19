@@ -48,9 +48,9 @@ describe("deriveLibraryStatus", () => {
   });
 
   test("a file not in the folder is missing, even if the global is bound", () => {
-    expect(
-      deriveLibraryStatus("test", ["layout"], bound("1.2.3"), lib),
-    ).toEqual({ kind: "missing" });
+    expect(deriveLibraryStatus("test", ["util"], bound("1.2.3"), lib)).toEqual({
+      kind: "missing",
+    });
   });
 
   test("listed but not bound is not loaded", () => {
@@ -116,15 +116,17 @@ describe("libraryAction", () => {
 
 describe("readLibraryVersion comments", () => {
   test.each([
-    `--[[ usage:\nZ.VERSION = "0.0.1"\n]]\nlocal Z={}\nZ.VERSION = "1.2.3"`,
-    `--[==[ example ]] Z.VERSION = "0.0.1"\n]==]\nZ.VERSION = "1.2.3"`,
-    `-- Z.VERSION = "0.0.1"\nlocal Z={}Z.VERSION="1.2.3" return Z`,
+    `--[[ usage:\nTest.VERSION = "0.0.1"\n]]\nlocal Test={}\nTest.VERSION = "1.2.3"`,
+    `--[==[ example ]] Test.VERSION = "0.0.1"\n]==]\nTest.VERSION = "1.2.3"`,
+    `-- Test.VERSION = "0.0.1"\nlocal Test={}Test.VERSION="1.2.3" return Test`,
   ])("a decoy VERSION in a comment is skipped: %j", (source) => {
     expect(readLibraryVersion(source)).toBe("1.2.3");
   });
 
   test("only a commented VERSION reads as none", () => {
-    expect(readLibraryVersion(`--[[ Z.VERSION = "1.2.3" ]]`)).toBeUndefined();
+    expect(
+      readLibraryVersion(`--[[ Test.VERSION = "1.2.3" ]]`),
+    ).toBeUndefined();
   });
 });
 

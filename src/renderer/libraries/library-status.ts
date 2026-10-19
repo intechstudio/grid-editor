@@ -15,7 +15,9 @@ export type LibraryStatus =
 // Presence comes from the folder listing; whether and which version is in use
 // comes from the global Setup bound, never from loading the file in the
 // editor's own probe. The version shown is the one in use, which can differ
-// from the file if it changed after Setup ran (Reload fixes that).
+// from the file if it changed after Setup ran. Install, Update and Reload
+// re-run Setup with the block's modules dropped from package.loaded, so they
+// load the file as it is now; so does changing page.
 export function deriveLibraryStatus(
   file: string,
   folderFiles: readonly string[] | undefined,

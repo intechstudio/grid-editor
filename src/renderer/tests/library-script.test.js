@@ -33,15 +33,18 @@ const FIRMWARE_NAMES = ["led_value", "page_current", "glp", "gms"];
 // line compressScript produces.
 const editorWritten = [
   PREFIX,
-  `${PREFIX}Z=require(p.."test")`,
-  `${PREFIX}Z=require(p.."test")L=require(p.."layout")`,
+  `${PREFIX}Test=require(p.."test")`,
+  `${PREFIX}Test=require(p.."test")Util=require(p.."util")`,
   `${PREFIX}_lib2=require(p.."my_lib2")`,
 ];
 
 // One space between statements, as written by hand.
 const spaced = [
-  [`${PREFIX} Z=require(p.."test")`, editorWritten[1]],
-  [`${PREFIX} Z=require(p.."test") L=require(p.."layout")`, editorWritten[2]],
+  [`${PREFIX} Test=require(p.."test")`, editorWritten[1]],
+  [
+    `${PREFIX} Test=require(p.."test") Util=require(p.."util")`,
+    editorWritten[2],
+  ],
   [`${PREFIX} _lib2=require(p.."my_lib2")`, editorWritten[3]],
 ];
 
@@ -57,11 +60,11 @@ describe("Library script format", () => {
   test("parses rows", () => {
     expect(
       parseLibraryScript(
-        `${PREFIX} Z=require(p.."test") L=require(p.."layout")`,
+        `${PREFIX} Test=require(p.."test") Util=require(p.."util")`,
       ),
     ).toEqual([
-      { global: "Z", file: "test" },
-      { global: "L", file: "layout" },
+      { global: "Test", file: "test" },
+      { global: "Util", file: "util" },
     ]);
   });
 
@@ -73,16 +76,16 @@ describe("Library script format", () => {
   test.each([
     "",
     `print("hi")`,
-    `local p=string.format("/%02X/",page_current()) Z=require(p.."test")`,
-    `local p = string.format("/%02X/", gpc()) Z=require(p.."test")`,
-    `${PREFIX}  Z=require(p.."test")`,
-    `${PREFIX} Z=require(p.."test") `,
+    `local p=string.format("/%02X/",page_current()) Test=require(p.."test")`,
+    `local p = string.format("/%02X/", gpc()) Test=require(p.."test")`,
+    `${PREFIX}  Test=require(p.."test")`,
+    `${PREFIX} Test=require(p.."test") `,
     `${PREFIX}\nZ=require(p.."test")`,
-    `${PREFIX} local Z=require(p.."test")`,
-    `${PREFIX} Z=require("/01/test")`,
-    `${PREFIX} Z=require(p.."test") print(Z)`,
-    `${PREFIX} Z=require(p.."test.lua")`,
-    `${PREFIX} Z=require(p.."sub/test")`,
+    `${PREFIX} local Test=require(p.."test")`,
+    `${PREFIX} Test=require("/01/test")`,
+    `${PREFIX} Test=require(p.."test") print(Test)`,
+    `${PREFIX} Test=require(p.."test.lua")`,
+    `${PREFIX} Test=require(p.."sub/test")`,
     `${PREFIX} end=require(p.."test")`,
     `${PREFIX} p=require(p.."test")`,
     `${PREFIX} self=require(p.."test")`,
@@ -91,12 +94,12 @@ describe("Library script format", () => {
     `${PREFIX} string=require(p.."test")`,
     `${PREFIX}gpc=require(p.."test")`,
     `${PREFIX}_ENV=require(p.."test")`,
-    `${PREFIX} Z=require(p..'test')`,
-    `${PREFIX}Z=require(p.."a-b")`,
-    `${PREFIX}Z=require(p.."a--b")`,
+    `${PREFIX} Test=require(p..'test')`,
+    `${PREFIX}Test=require(p.."a-b")`,
+    `${PREFIX}Test=require(p.."a--b")`,
     ...FIRMWARE_NAMES.flatMap((name) => [
       `${PREFIX}${name}=require(p.."test")`,
-      `${PREFIX}Z=require(p.."${name}")`,
+      `${PREFIX}Test=require(p.."${name}")`,
     ]),
   ])("rejects non-canonical script %j", (script) => {
     expect(parseLibraryScript(script)).toBeNull();
@@ -107,13 +110,13 @@ describe("Library script format", () => {
       libraryScriptToLua([{ global: "1Z", file: "test" }]),
     ).toThrow();
     expect(() =>
-      libraryScriptToLua([{ global: "Z", file: "test.lua" }]),
+      libraryScriptToLua([{ global: "Test", file: "test.lua" }]),
     ).toThrow();
   });
 });
 
 describe("Library names", () => {
-  test.each(["Z", "L", "_", "_test", "Test2", "layout_v2"])(
+  test.each(["Test", "Util", "_", "_test", "Test2", "util_v2"])(
     "valid global %s",
     (name) => {
       expect(isValidGlobal(name)).toBe(true);
@@ -123,8 +126,8 @@ describe("Library names", () => {
   test.each([
     "",
     "1Z",
-    "Z-1",
-    "Z.x",
+    "Test-1",
+    "Test.x",
     "end",
     "local",
     "nil",
@@ -142,7 +145,7 @@ describe("Library names", () => {
     expect(isValidGlobal(name)).toBe(false);
   });
 
-  test.each(["test", "layout", "my_lib2", "V2"])("valid file %s", (name) => {
+  test.each(["test", "util", "my_lib2", "V2"])("valid file %s", (name) => {
     expect(isValidFile(name)).toBe(true);
   });
 
@@ -195,10 +198,10 @@ describe("Compression", () => {
 
   test.each(editorWritten)("%s survives a whole compressed event", (line) => {
     const event = GridScript.compressScript(
-      `--[[@lib]] ${line} --[[@gms]] self:gms(-1,-1,-1,-1) --[[@zst]] Z.start(self)`,
+      `--[[@lib]] ${line} --[[@gms]] self:gms(-1,-1,-1,-1) --[[@cb]] print(1)`,
     );
     const actions = splitActions(event);
-    expect(actions.map((e) => e.short)).toEqual(["lib", "gms", "zst"]);
+    expect(actions.map((e) => e.short)).toEqual(["lib", "gms", "cb"]);
     expect(actions[0].script).toBe(line);
     expect(parseLibraryScript(actions[0].script)).toEqual(
       parseLibraryScript(line),
@@ -207,11 +210,11 @@ describe("Compression", () => {
 
   test("whole-event read-back gives the rows", () => {
     const event = GridScript.compressScript(
-      `--[[@lib]] ${editorWritten[2]} --[[@zst]] Z.start(self)`,
+      `--[[@lib]] ${editorWritten[2]} --[[@cb]] print(1)`,
     );
     expect(parseLibraryScript(splitActions(event)[0].script)).toEqual([
-      { global: "Z", file: "test" },
-      { global: "L", file: "layout" },
+      { global: "Test", file: "test" },
+      { global: "Util", file: "util" },
     ]);
   });
 
@@ -221,11 +224,11 @@ describe("Compression", () => {
       GridScript.compressScript(`${PREFIX}led_value=require(p.."test")`),
     ).toBe(`${PREFIX}glp=require(p.."test")`);
     expect(
-      GridScript.compressScript(`${PREFIX}Z=require(p.."led_value")`),
-    ).toBe(`${PREFIX}Z=require(p.."glp")`);
-    expect(GridScript.compressScript(`${PREFIX}Z=require(p.."a--b")`)).not.toBe(
-      `${PREFIX}Z=require(p.."a--b")`,
-    );
+      GridScript.compressScript(`${PREFIX}Test=require(p.."led_value")`),
+    ).toBe(`${PREFIX}Test=require(p.."glp")`);
+    expect(
+      GridScript.compressScript(`${PREFIX}Test=require(p.."a--b")`),
+    ).not.toBe(`${PREFIX}Test=require(p.."a--b")`);
   });
 });
 
@@ -243,8 +246,8 @@ describe("Library registry", () => {
   test("lookup by file, with or without extension", () => {
     expect(findLibraryByFile("test.lua")?.id).toBe("test");
     expect(findLibraryByFile("test")?.id).toBe("test");
-    expect(findLibraryByFile("layout.lua")).toBeUndefined();
-    expect(findLibraryById("layout")).toBeUndefined();
+    expect(findLibraryByFile("util.lua")).toBeUndefined();
+    expect(findLibraryById("util")).toBeUndefined();
   });
 
   test("registry entries are usable as Library block rows", () => {
@@ -256,17 +259,17 @@ describe("Library registry", () => {
 
   test("readLibraryVersion", () => {
     expect(
-      readLibraryVersion(`local Z={}\nZ.VERSION = "1.2.3"\nreturn Z`),
+      readLibraryVersion(`local Test={}\nTest.VERSION = "1.2.3"\nreturn Test`),
     ).toBe("1.2.3");
-    expect(readLibraryVersion(`L.VERSION="10.0.1"`)).toBe("10.0.1");
-    expect(readLibraryVersion(`-- Z.VERSION = "1.2.3"`)).toBeUndefined();
-    expect(readLibraryVersion(`Z.VERSION = "1.2"`)).toBeUndefined();
+    expect(readLibraryVersion(`Util.VERSION="10.0.1"`)).toBe("10.0.1");
+    expect(readLibraryVersion(`-- Test.VERSION = "1.2.3"`)).toBeUndefined();
+    expect(readLibraryVersion(`Test.VERSION = "1.2"`)).toBeUndefined();
   });
 });
 
 describe("Library row messages", () => {
   const globals = [
-    "Z",
+    "Test",
     "",
     "1Z",
     "end",
@@ -324,27 +327,33 @@ describe("Built-in shadowing", () => {
   );
 
   // Hard-rejected names are invalid, not shadowing warnings.
-  test.each(["Z", "L", "test", "string", "require", "ele", "self", "glp"])(
-    "%s is not a shadowing warning",
-    (name) => {
-      expect(shadowsBuiltinGlobal(name)).toBe(false);
-    },
-  );
+  test.each([
+    "Test",
+    "Util",
+    "test",
+    "string",
+    "require",
+    "ele",
+    "self",
+    "glp",
+  ])("%s is not a shadowing warning", (name) => {
+    expect(shadowsBuiltinGlobal(name)).toBe(false);
+  });
 });
 
 describe("Unchecked format", () => {
   test("matches libraryScriptToLua for valid rows", () => {
     const rows = [
-      { global: "Z", file: "test" },
-      { global: "L", file: "layout" },
+      { global: "Test", file: "test" },
+      { global: "Util", file: "util" },
     ];
     expect(formatLibraryScript(rows)).toBe(libraryScriptToLua(rows));
     expect(formatLibraryScript([])).toBe(libraryScriptToLua([]));
   });
 
   test("writes rows that are still being edited", () => {
-    expect(formatLibraryScript([{ global: "Z", file: "" }])).toBe(
-      `${PREFIX}Z=require(p.."")`,
+    expect(formatLibraryScript([{ global: "Test", file: "" }])).toBe(
+      `${PREFIX}Test=require(p.."")`,
     );
   });
 });

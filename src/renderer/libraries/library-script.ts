@@ -1,7 +1,7 @@
 // Library block script: binds global names to Lua modules in the current page
 // folder. The canonical line, as the editor writes it:
 //
-//   local p=string.format("/%02X/",gpc())Test=require(p.."test")L=require(p.."layout")
+//   local p=string.format("/%02X/",gpc())Test=require(p.."test")Util=require(p.."util")
 //
 // This is the form GridScript.compressScript produces, so the line the editor
 // writes is the line the module stores and sends back. The spaced form (one
@@ -262,8 +262,8 @@ export function formatLibraryScript(rows: LibraryRow[]): string {
 // `function Name(`. A Library row's global is then replaced (or replaces
 // that one), depending on which runs last.
 // Known limits of the text check: matches in comments and strings count,
-// `local a,Z=…` counts (the `local` check only looks right before the name),
-// and so does a table key `{Z=1}`.
+// `local a,Test=…` counts (the `local` check only looks right before the name),
+// and so does a table key `{Test=1}`.
 export function assignsGlobal(script: string, name: string): boolean {
   const n = name.replace(/[^A-Za-z0-9_]/g, "");
   if (n.length === 0) {

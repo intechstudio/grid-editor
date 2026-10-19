@@ -14,6 +14,7 @@ import type { GridModule } from "../runtime/runtime";
 import { logger } from "../runtime/runtime.store";
 import type { BundledLibrary } from "./registry";
 import type { LibraryBinding } from "./library-status";
+import type { LibraryRow } from "./library-script";
 
 // The require path of a page-folder module: "/00/test".
 export function libraryModulePath(pageNumber: number, file: string): string {
@@ -112,38 +113,52 @@ export async function installLibrary(
   await invalidateLuaModule(libraryModulePath(pageNumber, library.id), module);
 }
 
-// Runs an element's Setup again in the running VM, so a library installed
-// (or fixed) after Setup failed to require it is bound now. Everything else in
-// that Setup runs again too, and other elements keep the old table until the
-// page reloads. Calls the handler the
-// firmware defined (`ele[i].ini`, grid_ui.c) instead of resending the
-// config, which would mark the page as changed. The system element (255) is
-// the last entry of `ele`.
+// Runs an element's Setup again in the running VM, so a library installed,
+// updated or edited after Setup ran is bound now. Everything else in that
+// Setup runs again too, and other elements keep the old table until the page
+// reloads. Calls the handler the firmware defined (`ele[i].ini`, grid_ui.c)
+// instead of resending the config, which would mark the page as changed. The
+// system element (255) is the last entry of `ele`.
 //
-// Before that, each global in `globals` (the ones the block binds) is
-// released, so the old library and what it holds are freed before Setup
-// builds the new one: module RAM can't hold both. A library may export
-// `unload(self)`; it is called with the element first, then the global is set
-// to nil and a full collection runs. All in one chunk.
+// Before that, each row the block binds is released, so the old library and
+// what it holds are freed before Setup builds the new one: module RAM can't
+// hold both. A library may export `unload(self)`; it is called with the
+// element first, then the global is set to nil, the module is dropped from
+// package.loaded (so require runs the file again) and a full collection runs.
+// All in one chunk.
 export async function rerunSetup(
   elementIndex: number,
+  pageNumber: number,
   module: GridModule,
-  globals: readonly string[] = [],
+  rows: readonly LibraryRow[] = [],
 ): Promise<void> {
   const element = elementIndex === 255 ? "ele[#ele]" : `ele[${elementIndex}]`;
+  const pairs = rows
+    .map(
+      (e) =>
+        `{${JSON.stringify(e.global)},${JSON.stringify(libraryModulePath(pageNumber, e.file))}}`,
+    )
+    .join(",");
   const release =
-    globals.length === 0
+    rows.length === 0
       ? ""
-      : `for _,n in ipairs({${globals.map((e) => JSON.stringify(e)).join(",")}}) do ` +
+      : `for _,r in ipairs({${pairs}}) do local n=r[1] ` +
         `local g=rawget(_G,n) if type(g)=="table" and type(g.unload)=="function" then pcall(g.unload,e) end ` +
-        `_G[n]=nil end collectgarbage() `;
+        `_G[n]=nil package.loaded[r[2]]=nil end collectgarbage() `;
   const { value } = await module.execLUAImmediateAndEvalaute(
     `local e=${element} if not(e and e.ini)then return false,"no Setup" end ` +
       release +
       `local ok,err=pcall(e.ini,e) return ok,ok and nil or tostring(err):sub(1,120)`,
   );
   if (value[0] !== true) {
-    throw new Error(`Setup failed: ${String(value[1] ?? "unknown error")}`);
+    const reason = String(value[1] ?? "unknown error");
+    // Past the "no Setup" check the globals are released, and after a failed
+    // Setup they stay unbound until the page loads again.
+    const recovery =
+      reason === "no Setup" || rows.length === 0
+        ? ""
+        : ". Change to another page and back to reload it";
+    throw new Error(`Setup failed: ${reason}${recovery}`);
   }
 }
 

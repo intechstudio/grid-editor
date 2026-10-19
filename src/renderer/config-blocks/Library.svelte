@@ -345,29 +345,24 @@
     busy = { ...busy, [file]: true };
     actionErrors = { ...actionErrors, [file]: undefined };
     let written = false;
-    let released = false;
     try {
       const library = findLibraryByFile(file);
       if (kind !== "reload" && typeof library !== "undefined") {
         await installLibrary(library, page.pageNumber, module);
         written = true;
       }
-      // the globals of the sent script (the same as the rows, see unsent)
-      const globals = (parseLibraryScript(action.script) ?? []).map(
-        (e) => e.global,
+      // the rows of the sent script (the same as the edited ones, see unsent)
+      await rerunSetup(
+        element.elementIndex,
+        page.pageNumber,
+        module,
+        parseLibraryScript(action.script) ?? [],
       );
-      released = true;
-      await rerunSetup(element.elementIndex, module, globals);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      // rerunSetup unbinds the globals before Setup runs, to free RAM; after
-      // a failed Setup they stay unbound until the page loads again
-      const recovery = released
-        ? ". Change to another page and back to reload it"
-        : "";
       actionErrors = {
         ...actionErrors,
-        [file]: `${written ? `Installed, but ${message}` : message}${recovery}`,
+        [file]: written ? `Installed, but ${message}` : message,
       };
     } finally {
       await refresh();
@@ -435,7 +430,10 @@
               validator={(e) => e === "" || isValidGlobal(e)}
               valueInfoEnabled={false}
               on:input={(e) => handleGlobalInput(row, e.detail.value)}
-              on:change={syncWithGrid}
+              on:change={() => {
+                syncWithGrid();
+                refresh();
+              }}
             />
             <MeltCombo
               title={"File"}
