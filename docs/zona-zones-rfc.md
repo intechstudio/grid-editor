@@ -1,15 +1,15 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Revision 4, implemented on `feat/zona-sandbox` (library 0.8.5). Revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
+- **Status:** Revision 4, implemented on `feat/zona-sandbox` (library 0.8.6). Revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
 - **Date:** 2026-10-18 (rev 1: 2026-10-06, rev 2: 2026-10-09, rev 3: 2026-10-12)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
 
 ## 0. What changed since revision 3
 
-Revision 4 follows the owner review (section 14): fewer options, a frozen call shape, MIDI and LED feedback owned by the zone. The library went from 0.7.2 to 0.8.5 in six slices (S1–S6), breaking changes allowed before 1.0, with no migration of old lines.
+Revision 4 follows the owner review (section 14): fewer options, a frozen call shape, MIDI and LED feedback owned by the zone. The library went from 0.7.2 to 0.8.6 in six slices (S1–S6), breaking changes allowed before 1.0, with no migration of old lines.
 
-| Area | Rev 3 (0.7.2) | Rev 4 (0.8.5) |
+| Area | Rev 3 (0.7.2) | Rev 4 (0.8.6) |
 |------|---------------|---------------|
 | Blocks | Fader, Button, XY, Knob, End, Group, Start, Tick, Utility. | **Fader, Button, XY, End, Start, Tick.** Touch Knob (D1), Touch Group and Touch Utility are removed. Old `zkn`, `zgr` and `zut` lines show as Code blocks. |
 | Outputs | A default MIDI block in each zone body, with zone autos for `-1`. The zone answered `self:gms`, `gmrr`, `get_auto_value`, `get_auto_mode`, `ind`. | **The zone sends its own MIDI** from four options: `msg`, `ch`, `num`, `rx` (D3). No child block; the MIDI block is hidden in zone bodies. The body holds other blocks (LED, gamepad, mouse, keyboard, Code). The zone `self` keeps `v x y g d step glc glp` and gains `f`, `dx`, `dy` (4.1). |
@@ -20,13 +20,13 @@ Revision 4 follows the owner review (section 14): fewer options, a frozen call s
 | Contacts | `contact` decided how several contacts share a zone. | **The first contact owns a zone**; others are ignored until they lift. An XY takes up to `fingers` contacts, one finger number each (4.3). |
 | Capture | `leave` per zone. | Fixed by kind: buttons release on slide-off, faders and XY clamp. `grab` (`focus`/`live`) stays. |
 | Sensitivity | `sens` presets, deadband, smoothing, rate limit as options. | Built in: deadband 2 raw units, no smoothing, rate limit "first change now, the rest on the tick" (4.5). |
-| LEDs | Painters `fill dot comet crosshair target arc`, `release` (`clear fade keep`); unlit cells at the colour minimum. | `led` is on/off with **one look per kind** and three levels in `Z.led`: dark outside zones, a floor, bright while touched, a dim value marker after (4.5). |
+| LEDs | Painters `fill dot comet crosshair target arc`, `release` (`clear fade keep`); unlit cells at the colour minimum. | `led` is on/off with **one look per kind** and three fixed levels: dark outside zones, a floor, bright while touched, a dim value marker after (4.5). |
 | Spring | Not built. | `spring=1` on Fader and XY: back to the centre on release, eased by `ease` (D2; 4.5). |
 | Multi-touch | One value per zone. | `fingers` on XY (1–5): one state, one crosshair and one MIDI channel per finger, MPE style (D4, D5; 4.3). |
 | Touch Tick | `ms`, LED divider `led`, mapping window `win`. | `ms` only. |
 | Groups | Touch Group block with `empty`. | The button's `group` option only; every member can be off. |
 | Budget | About 95 Setup characters per zone, 140 with Receive; 7 mixed zones used 865 of 909. | About 61–65 per plain zone, `rx=1` costs 4. The same surface uses 589; about 12 plain zones fit (nine plain faders use 668) (5). |
-| Library | 18,065 bytes compressed. | 16,578 bytes; less Lua heap per zone (9). |
+| Library | 18,065 bytes compressed. | 16,553 bytes; less Lua heap per zone (9). |
 
 ## 1. Summary
 
@@ -236,7 +236,7 @@ Revision 3 had a Touch Knob after TouchOSC's Radial: an angle reader, an arc pai
 - **Steps:** the same meaning as Grid's button mode `bmo` (0 momentary, 1 toggle, n = n+1 steps), with the same step maths (`SettingsButton.calculateStepValuesFirmwareStyle`), so a zone cycles through the values the Button Mode block shows. The firmware's own stepping (`grid_ui_button.c`) has more states when `floor(range/bmo)*(bmo+1) <= range` (bmo=16 on 0–127: 19, not 17); that mismatch is an editor issue of its own.
 - **Groups:** `group` 1–8 on buttons makes radio groups. A press that turns a member on turns the others off first (their bodies and MIDI run with their "off" value). Every member can be off.
 - **LEDs** (`led`, S3): `led=1` (default) draws one look per kind; `led=0` leaves the zone's cells dark after `Z.start`, and only user code paints them.
-  - Three levels in `Z.led`, in phase units: `floor` 16, `dim` 110, `top` 255. The table is read at paint time, so code can tune it; a zone shows new levels at its next repaint.
+  - Three fixed levels, in phase units: floor 16, dim 110, top 255. They are constants in the library, not options, and nothing tunes them.
   - Cells no zone covers are off: a black curve at phase 0. The zone's colour curve gets a black minimum, so low phases are a faint tint of the zone colour.
   - Every zone cell is at least `floor`. Lit cells are at `top` while a contact holds the zone and at `dim` otherwise (after release, RX, `Z.set`). Nothing fades, so an absolute control keeps showing its value.
   - Fader: a fill from the min end with a partial edge cell. Button: off at the floor, on lit, steps in between. XY: a soft crosshair (row and column at half, the crossing full), normalised so its brightest cell is always at the lit level wherever the value is between cell centres. With several fingers: one crosshair per held finger at `top`, the highest level per cell; with none held, finger 1's at `dim`.
@@ -478,7 +478,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 
 - In the repo: `src/renderer/libraries/zona/zona.lua`, with `Z.VERSION` (semver).
   - From 1.0: minor for new options, old blocks keep working and defaults don't change; major when block syntax or defaults change, and the editor migrates blocks.
-  - Before 1.0 breaking changes come in 0.x versions: revision 4 went to 0.8.0, then a patch per slice up to 0.8.5, so the Library block offers Update; no migration of old lines.
+  - Before 1.0 breaking changes come in 0.x versions: revision 4 went to 0.8.0, then a patch per slice up to 0.8.6, so the Library block offers Update; no migration of old lines.
 - Uploaded the way the File Manager saves `.lua` files: `GridScript.compressScript(source)`, which minifies and **keeps comments** (2.1). Opened in the File Manager, it shows expanded, like any other page file. No upload transform of its own. The size budget applies to the compressed size, comments included, so keep comments short. Phase 2 ended at 15 KB (0.5.0), 0.7.2 at 18 KB, 0.8.5 at 16.6 KB; the budget is 20 KB, and the hard ceiling is 30 KB (the user's limit; larger files have run fine so far). Every page folder holds its own copy, and `require` compiles it on each page change, so staying well below the ceiling still matters.
 - Because `compressScript` runs `shortify`, the source uses the firmware's short names and never uses a human name (`GridScript.validator.lookup`) as its own identifier, table key or string content. Those would be rewritten on upload.
 - Unit tests run the library in a Lua VM under vitest (wasmoon, Lua 5.4; the firmware runs 5.5, so the compressed library is also checked with a 5.5 `luac -p` before release). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still contains `Z.VERSION="x.y.z"`, so the version survives.
@@ -531,7 +531,6 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 | `Z.tick(self, cfg)` | Called from the Timer: glide, spring, rate-limit flush, LEDs; `cfg.ms` re-arms the one-shot timer (default in `Z.tdef`) |
 | `Z.set(name, value, src)` | Set a zone value and repaint without sending, the same path as RX value sync; for user code such as a SysEx handler |
 | `Z.unload(self)` | Release held zones, clear the callbacks and the surface (6.1) |
-| `Z.led` | LED levels `floor`, `dim`, `top` (4.5) |
 | `Z.def`, `Z.kind`, `Z.tdef` | Defaults, kind presets, Touch Tick defaults |
 | `Z.VERSION`, `Z.has` | Version and capabilities (`Z.has.sres` sensor bits) |
 | zone `self:v() x() y() g() d() dx() dy() step() f()` | Getters (4.1) |
@@ -575,7 +574,7 @@ Not needed any more: `ZoneOutput`, output keys, the `on` callback option, `Z.API
 
 Phases 1–5 are done (revision 3). Docs live in grid-documentation: `wiki/actions/code/library`, `wiki/actions/touch/touch-zones`, `wiki/more/zona-mapping-mode` and a Touch zones section in `wiki/actions/midi/midi-rx`; the editor's blocks link to them. They describe revision 3 and need a follow-up for revision 4 (MIDI options, removed blocks, no mapping mode).
 
-Revision 4, after the owner review (section 14), was done in slices S1–S6: S1 cut (0.8.0), S2 MIDI in the zone (0.8.1), S3 LEDs per kind (0.8.2), S4 spring (0.8.3), S5 multi-touch XY (0.8.4), S6 this revision with `dx()`/`dy()` for XY (0.8.5). Each slice was tested in the Lua VM and checked on a ZONA with synthetic touches; how it feels with a finger is still to be judged.
+Revision 4, after the owner review (section 14), was done in slices S1–S6: S1 cut (0.8.0), S2 MIDI in the zone (0.8.1), S3 LEDs per kind (0.8.2), S4 spring (0.8.3), S5 multi-touch XY (0.8.4), S6 this revision with `dx()`/`dy()` for XY (0.8.5), then fixed LED levels with no tuning table (0.8.6). Each slice was tested in the Lua VM and checked on a ZONA with synthetic touches.
 
 ## 8. When Setup runs out of room
 
@@ -600,7 +599,7 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 - **RX data load.** `midirx_cb` is only set when a zone has `rx=1`; unmatched messages cost one lookup; value sync repaints at most once per zone per tick.
 - **Resolution expectations.** The sensor gives 10 bits across the whole surface, so small zones get 8–9 bits of real position. 14-bit absolute output on a small zone is interpolated.
 - **Lua memory (RAM).** Lua runs on the module's system heap, and RAM, not the file size, limits layouts. In the Lua VM tests (wasm32, 0.8.4): the library takes about 54 KB, a zone about 1.5 KB, an extra XY finger state about 1.3 KB (made on its first touch, kept until the next Setup run). On a ZONA without other Lua code: the factory page uses about 59 KB of heap; 0.8.4 with nine faders and `Z.start` about 124 KB after a full collection (0.8.0: the library about 38 KB, 7 zones about 17 KB). Revision 3's measurement with the aurora system code (about 73 KB of Lua) left about 40 KB free with 0.7.0 and 8 zones; 0.8.x takes less per zone. The library keeps per-zone data small (options through metatables, shared colour curves, finger states on demand), the first zone of a Setup run frees the previous surface, and `unload` frees the old instance on Update (6.1). Budget tests in vitest fail when these numbers grow. Measure free heap on hardware only with `collectgarbage("count")`; probing with allocations stalls the module.
-- **Library size.** 16,578 bytes compressed (0.8.5), comments included, against the 20 KB budget (6.4).
+- **Library size.** 16,553 bytes compressed (0.8.6), comments included, against the 20 KB budget (6.4).
 - **MPE channel overlap.** A multi-finger XY sends finger k on `ch + k − 1`. With auto channels, zones on one module share `ch` and are kept apart by their CC numbers, so they don't collide. Collisions come from a zone with an explicit `ch` equal to a finger's channel; from the next page, whose auto channel is `ch + 1` and whose first zones use the same auto CC numbers (32, 33, …), so a DAW mapping learnt on that page also catches finger 2 of this XY; and, for finger 5, from the module one row down (auto channel `ch + 4`). Nothing checks it (10).
 - **Copies per page.** Several versions of the library can be in flash at once. That's acceptable at the 20 KB budget each (6.4).
 - **Edit vs device drift.** A user can edit `zona.lua` in the FileManager. Version read-back catches a different version but not local edits. A checksum could be added later.
@@ -629,7 +628,6 @@ The library itself is in a file. Setup holds the Library block, the zones with t
 
 **Still open**
 
-- *LED levels.* `Z.led` starts at floor 16, dim 110, top 255. They need a look on the device with a finger; the floor reads stronger on red than on the default blue.
 - *Multi-finger channels.* Finger channels can overlap other zones' channels (9). A face hint or a surface check could flag it.
 - *Multi-finger colour.* Simple Color in an XY body runs per finger, so the last finger to run sets the zone colour. A per-finger palette was not settled.
 - *Mapping mode and a utility block:* their goals are to be clarified before they come back (4.7).
@@ -735,4 +733,4 @@ Decisions (user, 2026-10-15):
 | D5 | Per-finger MIDI is MPE style: each finger on its own channel, the same CC numbers. |
 | D6 | No test profile rebuild and no profile feedback round in this pass. |
 
-Section 0 lists what changed, and the body (sections 1–11) describes the result, library 0.8.5. The work was done in slices S1–S6, with breaking changes allowed before 1.0 and no migration of old lines. Out of this pass: utility and mapping mode, touch calibration, deadband and jitter tuning, the test profile rebuild (D6).
+Section 0 lists what changed, and the body (sections 1–11) describes the result, library 0.8.6. The work was done in slices S1–S6, with breaking changes allowed before 1.0 and no migration of old lines. Out of this pass: utility and mapping mode, touch calibration, deadband and jitter tuning, the test profile rebuild (D6).

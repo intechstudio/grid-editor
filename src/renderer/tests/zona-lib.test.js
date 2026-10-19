@@ -1374,17 +1374,6 @@ describe("LEDs", () => {
     expect(column(leds(vm), 0).slice(3, 6)).toEqual([110, 110, 110]);
   });
 
-  test("the Z.led levels are read at paint time", async () => {
-    const vm = await zones(
-      `Z.fader("f",0,3,1,3,{},${MIDI}) Z.button("b",1,0,1,1,{},${MIDI})`,
-    );
-    vm.run("Z.led.floor=8 Z.led.top=200");
-    vm.touch([0, DOWN, 50, 682], [1, DOWN, 150, 50]); // fader at 0, button held
-    vm.tick();
-    expect(column(leds(vm), 0).slice(3, 6)).toEqual([8, 8, 8]);
-    expect(leds(vm)["1,0"]).toBe(200);
-  });
-
   test("Simple Color and Intensity in the body: colour from the start, glp scales the lit level", async () => {
     const vm = await createZonaVM();
     vm.setup(

@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.5"
+Z.VERSION = "0.8.6"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -36,9 +36,9 @@ Z.kind = {
 -- Z.tick: interval (ms)
 Z.tdef = { ms = 20 }
 
--- LED phases (0-255) of a zone cell: floor when unlit, top lit while touched,
--- dim lit after (release, RX, Z.set). The zone curve's minimum is black.
-Z.led = { floor = 16, dim = 110, top = 255 }
+-- LED phases (0-255) of a zone cell, fixed: LF floor when unlit, LT lit while
+-- touched, LD lit after (release, RX, Z.set). The zone curve's minimum is black.
+local LF, LD, LT = 16, 110, 255
 
 Z.zs = {}
 Z.nz = {}
@@ -429,10 +429,9 @@ local function paint(z)
   -- whole cell, so glp 0 is dark
   -- fingers: a crosshair per held finger at top, the highest level per cell;
   -- none held: finger 1's at dim
-  local L = Z.led
-  local f = L.floor
+  local f = LF
   local t = hd(z)
-  local h = t and L.top or L.dim
+  local h = t and LT or LD
   if z.o.read == "point" then
     for _, o in ipairs(z.os) do
       pt(o)
