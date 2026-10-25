@@ -36,7 +36,7 @@
     "svelte-preprocess": "^6.0.0",
     "tailwindcss": "^4.3.3",
     "vite-plugin-commonjs": "^0.6.0",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.12"
   },
   "dependencies": {
     "@intechstudio/grid-protocol": "1.20261007.1518",
