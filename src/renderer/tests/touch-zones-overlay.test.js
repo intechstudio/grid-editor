@@ -19,16 +19,16 @@ const zone = (line) => act(line, "composite_open");
 const END = () => act("end)", "composite_close");
 const BODY = () => act("print(1)");
 
-const LIB = act(`local p=string.format("/%02X/",gpc())Z=require(p.."zona")`);
-const F1 = zone(`Z.fader("f1",0,0,1,9,{},function(self)`);
+const LIB = act(`local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`);
+const F1 = zone(`_Z.fader("f1",0,0,1,9,{},function(self)`);
 const F1_BODY = BODY();
-const B1 = zone(`Z.button("b1",1,0,2,2,{group=1},function(self)`);
+const B1 = zone(`_Z.button("b1",1,0,2,2,{group=1},function(self)`);
 const B1_IF = act("if self:g()==1 then", "composite_open");
 const B1_BODY = BODY();
-const P1 = zone(`Z.xy("p1",3,0,4,4,{},function(self)`);
-const DUP = zone(`Z.fader("p1",5,5,3,3,{},function(self)`);
-const BAD = act(`Z.fader("x",0,0,1,9,{},function(s)`); // not a zone line
-const START = act("Z.start(self)");
+const P1 = zone(`_Z.xy("p1",3,0,4,4,{},function(self)`);
+const DUP = zone(`_Z.fader("p1",5,5,3,3,{},function(self)`);
+const BAD = act(`_Z.fader("x",0,0,1,9,{},function(s)`); // not a zone line
+const START = act("_Z.start(self)");
 
 const SETUP = [
   LIB,
@@ -58,7 +58,7 @@ describe("grid maths", () => {
   });
 
   test("a zone's rectangle", () => {
-    const r = zoneRect(parseZone(`Z.xy("p",3,0,4,4,{},function(self)`));
+    const r = zoneRect(parseZone(`_Z.xy("p",3,0,4,4,{},function(self)`));
     expect(r.left).toBeCloseTo(33.333);
     expect(r.top).toBe(0);
     expect(r.width).toBeCloseTo(44.444);
@@ -66,7 +66,7 @@ describe("grid maths", () => {
   });
 
   test("cells outside the grid are clipped", () => {
-    const r = zoneRect(parseZone(`Z.fader("f",8,0,2,9,{},function(self)`));
+    const r = zoneRect(parseZone(`_Z.fader("f",8,0,2,9,{},function(self)`));
     expect(r.left).toBeCloseTo(88.889);
     expect(r.width).toBeCloseTo(11.111);
     expect(r.height).toBe(100);
@@ -110,7 +110,7 @@ describe("overlay zones", () => {
   test("a zone problem shows as an error outline too", () => {
     const setup = [
       LIB,
-      zone(`Z.fader("f9",8,0,2,9,{},function(self)`),
+      zone(`_Z.fader("f9",8,0,2,9,{},function(self)`),
       END(),
       START,
     ];

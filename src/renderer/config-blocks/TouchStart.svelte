@@ -7,17 +7,50 @@
 </script>
 
 <script lang="ts">
-  import type { GridAction, GridEvent } from "../runtime/runtime";
+  import { onMount } from "svelte";
+  import {
+    ElementType,
+    EventType,
+    EventTypeToNumber,
+  } from "@intechstudio/grid-protocol";
+  import type {
+    GridAction,
+    GridElement,
+    GridEvent,
+    GridPage,
+  } from "../runtime/runtime";
   import { surfaceIssues, zoneSendProblem } from "./touch/zone-validate";
+  import { libraryIssue } from "./touch/zone-library";
 
   export let action: GridAction;
 
   const event = action.parent as GridEvent;
 
+  // The System Setup, where the Library block loads zona for the page.
+  const page = (event.parent as GridElement).parent as GridPage;
+  const systemSetup = page.control_elements
+    .find((e) => e.type === ElementType.SYSTEM)
+    ?.events.find((e) => e.type === EventTypeToNumber(EventType.SETUP));
+
+  onMount(async () => {
+    if (typeof systemSetup !== "undefined" && !systemSetup.isLoaded()) {
+      await systemSetup.load();
+    }
+  });
+
+  // Unknown until the System Setup is loaded: no warning before that.
+  $: library =
+    typeof $systemSetup !== "undefined" && systemSetup.isLoaded()
+      ? libraryIssue($systemSetup.config.map((e) => e.script))
+      : undefined;
+
   $: scripts = $event.config.map((e) => e.script);
   $: issues = surfaceIssues(scripts);
   // Block order and the Library binding: shown here, don't stop the send.
-  $: surface = issues.filter((e) => typeof e.zone === "undefined");
+  $: surface = [
+    ...(typeof library !== "undefined" ? [library] : []),
+    ...issues.filter((e) => typeof e.zone === "undefined"),
+  ];
   // Duplicate names stop the send; other zone problems only show on the zone.
   $: blocking = scripts.filter(
     (e) => typeof zoneSendProblem(e, scripts) !== "undefined",

@@ -13,7 +13,7 @@ import {
   ZONE_START_SCRIPT,
 } from "../config-blocks/touch/zone-parse";
 
-const LIB = `local p=string.format("/%02X/",gpc())Z=require(p.."zona")`;
+const LIB = `local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`;
 
 function zone(fields = {}) {
   return {
@@ -276,7 +276,7 @@ function surface(scripts) {
 }
 
 const fader = (name, x = 0) => [
-  `Z.fader("${name}",${x},0,1,9,{},function(self)`,
+  `_Z.fader("${name}",${x},0,1,9,{},function(self)`,
   "print(1)",
   ZONE_END_SCRIPT,
 ];
@@ -312,7 +312,7 @@ describe("surface", () => {
     expect(
       surface([
         LIB,
-        `Z.fader("a",8,0,2,9,{res=6},function(self)`,
+        `_Z.fader("a",8,0,2,9,{res=6},function(self)`,
         ZONE_END_SCRIPT,
         ZONE_START_SCRIPT,
       ]),
@@ -324,48 +324,6 @@ describe("surface", () => {
       },
       { zone: "a", level: "error", message: "Use 7 to 14" },
     ]);
-  });
-
-  const noLib = {
-    level: "warning",
-    message: "Add a Library block that binds Z to zona before the first zone",
-  };
-
-  test.each([
-    ["no Library block", [...fader("a"), ZONE_START_SCRIPT]],
-    [
-      "the Library block after the zones",
-      [...fader("a"), LIB, ZONE_START_SCRIPT],
-    ],
-    [
-      "Z bound to another file",
-      [
-        `local p=string.format("/%02X/",gpc())Z=require(p.."layout")`,
-        ...fader("a"),
-        ZONE_START_SCRIPT,
-      ],
-    ],
-    [
-      "Z rebound after zona",
-      [
-        LIB,
-        `local p=string.format("/%02X/",gpc())Z=require(p.."other")`,
-        ...fader("a"),
-        ZONE_START_SCRIPT,
-      ],
-    ],
-  ])("%s: warning", (_, scripts) => {
-    expect(surface(scripts)).toEqual([noLib]);
-  });
-
-  test("Z bound in a row next to other globals is fine", () => {
-    expect(
-      surface([
-        `local p=string.format("/%02X/",gpc())L=require(p.."layout")Z=require(p.."zona")`,
-        ...fader("a"),
-        ZONE_START_SCRIPT,
-      ]),
-    ).toEqual([]);
   });
 
   test("Touch Start missing: warning", () => {

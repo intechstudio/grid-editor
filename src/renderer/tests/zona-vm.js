@@ -86,6 +86,8 @@ export async function createZonaVM(env = {}) {
     function el:tyma(v) rec("tyma", v) end
     package.preload.zona = load(_src)
     Z = require("zona")
+    -- the global editor-written lines use (the Library block's row)
+    _Z = Z
   `);
 
   return {

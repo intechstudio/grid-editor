@@ -9,13 +9,7 @@ import {
   zoneMidiLabel,
 } from "../config-blocks/touch/zone-autos";
 import { parseZone } from "../config-blocks/touch/zone-parse";
-import { assignsGlobal, globalClashes } from "../libraries/library-script";
 import { companionElement } from "../main/panels/configuration/components/ActionPickerFilter";
-
-// library-device.ts imports the app through these; hasPageFolder needs neither.
-vi.mock("../main/panels/FileManager/FileManager", () => ({}));
-vi.mock("../runtime/runtime.store", () => ({ logger: { set() {} } }));
-const { hasPageFolder } = await import("../libraries/library-device");
 
 beforeAll(async () => {
   await initLuaFormatter();
@@ -26,7 +20,7 @@ beforeAll(async () => {
 function layout(lines) {
   return {
     zones: lines.map(parseZone),
-    lua: lines.map((l) => `${l} end)`).join(" ") + " Z.start(self)",
+    lua: lines.map((l) => `${l} end)`).join(" ") + " _Z.start(self)",
   };
 }
 
@@ -62,10 +56,10 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("fader, button note, xy, and a slot after the xy", async () => {
     const { zones, lua } = layout([
-      `Z.fader("f1",0,0,1,9,{},function(self)`,
-      `Z.button("b1",1,0,2,2,{},function(self)`,
-      `Z.xy("p1",3,0,4,4,{},function(self)`,
-      `Z.fader("f2",8,0,1,9,{},function(self)`,
+      `_Z.fader("f1",0,0,1,9,{},function(self)`,
+      `_Z.button("b1",1,0,2,2,{},function(self)`,
+      `_Z.xy("p1",3,0,4,4,{},function(self)`,
+      `_Z.fader("f2",8,0,1,9,{},function(self)`,
     ]);
     const m = zones.map((_, i) => zoneMidi(zones, i, pos));
     expect(await sent(POS, lua, 50, 0)).toEqual(wire(m[0], 127));
@@ -92,7 +86,7 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("a button as a CC", async () => {
     const { zones, lua } = layout([
-      `Z.button("b",0,0,1,1,{msg="cc"},function(self)`,
+      `_Z.button("b",0,0,1,1,{msg="cc"},function(self)`,
     ]);
     const m = zoneMidi(zones, 0, P0);
     expect(await sent({}, lua, 50, 50)).toEqual([
@@ -104,8 +98,8 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("14-bit fader: MSB on the auto % 32, LSB on +32", async () => {
     const { zones, lua } = layout([
-      `Z.fader("f1",0,0,1,9,{},function(self)`,
-      `Z.fader("f2",1,0,1,9,{res=14},function(self)`,
+      `_Z.fader("f1",0,0,1,9,{},function(self)`,
+      `_Z.fader("f2",1,0,1,9,{res=14},function(self)`,
     ]);
     const m = zoneMidi(zones, 1, P0);
     expect(m).toEqual({ ch: 0, type: "cc14", nums: [1], fingers: 1 });
@@ -114,7 +108,7 @@ describe("zone MIDI identity matches zona.lua", () => {
   });
 
   test("a high-res button note stays 7-bit", () => {
-    const zones = [parseZone(`Z.button("b",0,0,1,1,{res=14},function(self)`)];
+    const zones = [parseZone(`_Z.button("b",0,0,1,1,{res=14},function(self)`)];
     expect(zoneMidi(zones, 0, P0)).toEqual({
       ch: 0,
       type: "note",
@@ -125,7 +119,7 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("pitch bend", async () => {
     const { zones, lua } = layout([
-      `Z.fader("f",0,0,1,9,{msg="pb"},function(self)`,
+      `_Z.fader("f",0,0,1,9,{msg="pb"},function(self)`,
     ]);
     const m = zoneMidi(zones, 0, P0);
     expect(m).toEqual({ ch: 0, type: "pb", nums: [], fingers: 1 });
@@ -135,7 +129,7 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("explicit ch and num", async () => {
     const { zones, lua } = layout([
-      `Z.xy("p",0,0,3,3,{ch=4,num=20},function(self)`,
+      `_Z.xy("p",0,0,3,3,{ch=4,num=20},function(self)`,
     ]);
     const m = zoneMidi(zones, 0, P0);
     expect(m).toEqual({ ch: 4, type: "cc", nums: [20, 21], fingers: 1 });
@@ -148,8 +142,8 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("msg none sends nothing and keeps its slot", async () => {
     const { zones, lua } = layout([
-      `Z.fader("a",0,0,1,9,{msg="none"},function(self)`,
-      `Z.fader("b",1,0,1,9,{},function(self)`,
+      `_Z.fader("a",0,0,1,9,{msg="none"},function(self)`,
+      `_Z.fader("b",1,0,1,9,{},function(self)`,
     ]);
     expect(zoneMidi(zones, 0, P0)).toBeNull();
     expect(zoneMidiLabel(null)).toBe("no MIDI");
@@ -164,9 +158,9 @@ describe("zone MIDI identity matches zona.lua", () => {
     ...Array.from(
       { length: 15 },
       (_, i) =>
-        `Z.fader("f${i}",${i % 9},${Math.floor(i / 9)},1,1,{},function(self)`,
+        `_Z.fader("f${i}",${i % 9},${Math.floor(i / 9)},1,1,{},function(self)`,
     ),
-    `Z.xy("p",0,3,3,3,{${xyOpt}},function(self)`,
+    `_Z.xy("p",0,3,3,3,{${xyOpt}},function(self)`,
   ];
 
   test.each([
@@ -186,7 +180,7 @@ describe("zone MIDI identity matches zona.lua", () => {
 
   test("xy with an explicit num at the limit: x 126, y 127", async () => {
     const { zones, lua } = layout([
-      `Z.xy("p",0,0,3,3,{num=126},function(self)`,
+      `_Z.xy("p",0,0,3,3,{num=126},function(self)`,
     ]);
     const m = zoneMidi(zones, 0, P0);
     expect(m.nums).toEqual([126, 127]);
@@ -197,7 +191,7 @@ describe("zone MIDI identity matches zona.lua", () => {
   });
 
   test("the channel and number wrap like the library", () => {
-    const zones = [parseZone(`Z.fader("f",0,0,1,9,{},function(self)`)];
+    const zones = [parseZone(`_Z.fader("f",0,0,1,9,{},function(self)`)];
     const m = zoneMidi(zones, 0, { dx: 7, dy: 3, page: 5 });
     expect(m.ch).toBe(1);
     expect(m.nums).toEqual([(32 + 7 * 16) % 128]);
@@ -209,21 +203,23 @@ describe("zone MIDI identity matches zona.lua", () => {
     [`{fingers=2,ch=15}`, "CC 32, 33 ch 16, 1"],
     [`{fingers=2,res=14}`, "CC 0/32, 1/33 ch 1–2"],
   ])("an xy with %s: %s", (opt, label) => {
-    const zones = [parseZone(`Z.xy("p",0,0,3,3,${opt},function(self)`)];
+    const zones = [parseZone(`_Z.xy("p",0,0,3,3,${opt},function(self)`)];
     expect(zoneMidiLabel(zoneMidi(zones, 0, P0))).toBe(label);
   });
 
   test("fingers only count on an xy", () => {
-    const zones = [parseZone(`Z.fader("f",0,0,1,9,{fingers=3},function(self)`)];
+    const zones = [
+      parseZone(`_Z.fader("f",0,0,1,9,{fingers=3},function(self)`),
+    ];
     expect(zoneMidi(zones, 0, P0).fingers).toBe(1);
   });
 
   test("the zone line at an event index", () => {
     const scripts = [
       "lib",
-      `Z.xy("p",0,0,3,3,{},function(self)`,
+      `_Z.xy("p",0,0,3,3,{},function(self)`,
       "end)",
-      `Z.fader("f",3,0,1,9,{},function(self)`,
+      `_Z.fader("f",3,0,1,9,{},function(self)`,
       "end)",
     ];
     expect(zoneMidiAt(scripts, 3, P0)).toEqual({
@@ -239,7 +235,7 @@ describe("zone MIDI identity matches zona.lua", () => {
 // Actions as the editor holds them: script plus the block type.
 const act = (script, type = "single") => ({ script, information: { type } });
 const ZONE = (name, x = 0) =>
-  act(`Z.fader("${name}",${x},0,1,9,{},function(self)`, "composite_open");
+  act(`_Z.fader("${name}",${x},0,1,9,{},function(self)`, "composite_open");
 const END = act("end)", "composite_close");
 
 describe("the zone around a block", () => {
@@ -253,7 +249,7 @@ describe("the zone around a block", () => {
     act("gms"),
     act("end", "composite_close"),
     END,
-    act("Z.start(self)"),
+    act("_Z.start(self)"),
   ];
 
   test("inside a body, with the zones in order", () => {
@@ -299,58 +295,6 @@ describe("getter suggestions per kind", () => {
         expect(e.info.length).toBeGreaterThan(5);
       }
     }
-  });
-});
-
-describe("global clashes (Library block)", () => {
-  test.each([
-    "Z=require('x')",
-    "Z = 5",
-    "  Z= {}",
-    "function Z(x,y) return x end",
-    "if a then Z=1 end",
-  ])("assigns Z: %s", (script) => {
-    expect(assignsGlobal(script, "Z")).toBe(true);
-  });
-
-  test.each([
-    "local Z = 1",
-    "x.Z = 1",
-    "self:Z()",
-    "if Z==1 then end",
-    "ZZ = 1",
-    "aZ = 1",
-    "Z.fader('f',0,0,1,9,{},function(self)",
-    "function x.Z() end",
-  ])("doesn't assign Z: %s", (script) => {
-    expect(assignsGlobal(script, "Z")).toBe(false);
-  });
-
-  test("where, once per place", () => {
-    expect(
-      globalClashes("Z", [
-        { label: "Element 0 (Touch) Timer", script: "Z = 1" },
-        { label: "Element 0 (Touch) Timer", script: "function Z() end" },
-        { label: "Element 1 (System) Setup", script: "print(Z)" },
-        { label: "Element 1 (System) Utility", script: "Z=nil" },
-      ]),
-    ).toEqual(["Element 0 (Touch) Timer", "Element 1 (System) Utility"]);
-  });
-});
-
-describe("page folder", () => {
-  const root = [
-    { name: ".", type: "dir" },
-    { name: "02", type: "dir" },
-    { name: "03", type: "file" },
-  ];
-
-  test.each([
-    ["/02/", true],
-    ["/00/", false],
-    ["/03/", false], // a file, not a folder
-  ])("%s", (folder, expected) => {
-    expect(hasPageFolder(root, folder)).toBe(expected);
   });
 });
 

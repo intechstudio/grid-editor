@@ -28,6 +28,7 @@
     pickerInsertIndex,
   } from "./ActionPickerFilter";
   import { addActions } from "../../../../runtime/operations";
+  import { isLibraryPlace } from "../../../../libraries/library";
   import type { Companion } from "../../../../config-blocks/ActionBlockInformation";
   import { onMount, onDestroy, tick } from "svelte";
   import {
@@ -256,6 +257,16 @@
       bodies: bodyRulesAt(configs, index),
     };
     comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
+    //Library only at the top level of the System element's Setup
+    if (
+      !isLibraryPlace(
+        target.getInfo().element.type as ElementType,
+        eventString,
+        event.realEvent !== event,
+      )
+    ) {
+      comp = comp.filter((e) => e.information.short !== "lib");
+    }
 
     //Filter out dev blocks
     if (!get(appSettings).persistent.allowDevBlocks) {

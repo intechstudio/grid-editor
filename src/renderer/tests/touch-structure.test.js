@@ -27,16 +27,17 @@ beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const LIB = `local p=string.format("/%02X/",gpc())Z=require(p.."zona")`;
-const fader = (name, x = 0) => `Z.fader("${name}",${x},0,1,9,{},function(self)`;
-const button = (name) => `Z.button("${name}",2,0,2,2,{},function(self)`;
+const LIB = `local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`;
+const fader = (name, x = 0) =>
+  `_Z.fader("${name}",${x},0,1,9,{},function(self)`;
+const button = (name) => `_Z.button("${name}",2,0,2,2,{},function(self)`;
 const BODY = "print(1)";
 
 describe("pasted zones get unique names", () => {
   const zoneItem = (script) => ({ script, uniqueIn: uniqueZoneScript });
 
   test("a paste batch: against the event and the zones pasted before", () => {
-    const event = [LIB, fader("f1"), BODY, "end)", "Z.start(self)"];
+    const event = [LIB, fader("f1"), BODY, "end)", "_Z.start(self)"];
     expect(
       uniqueScripts(event, [
         zoneItem(fader("f1")),
@@ -61,7 +62,7 @@ describe("pasted zones get unique names", () => {
   });
 
   test("a free name is kept as written", () => {
-    const handWritten = `Z.fader( "vol", 0,0,1,9, {}, function(self)`;
+    const handWritten = `_Z.fader( "vol", 0,0,1,9, {}, function(self)`;
     expect(uniqueZoneScript(handWritten, [fader("f1")])).toBe(handWritten);
   });
 
@@ -94,7 +95,7 @@ describe("pasted zones get unique names", () => {
 });
 
 describe("which issues stop the send", () => {
-  const setup = (...lines) => [LIB, ...lines, "Z.start(self)"];
+  const setup = (...lines) => [LIB, ...lines, "_Z.start(self)"];
 
   test("a duplicate name: both zones", () => {
     const event = setup(
@@ -114,12 +115,12 @@ describe("which issues stop the send", () => {
   // Forward compatibility: a Setup from the module or a profile stays
   // sendable; the problem shows on the zone's face.
   test.each([
-    ["outside the grid", `Z.fader("f1",8,0,2,9,{},function(self)`],
+    ["outside the grid", `_Z.fader("f1",8,0,2,9,{},function(self)`],
     [
       "an LED value this editor doesn't know",
-      `Z.fader("f1",0,0,1,9,{led=2},function(self)`,
+      `_Z.fader("f1",0,0,1,9,{led=2},function(self)`,
     ],
-    ["a value out of range", `Z.fader("f1",0,0,1,9,{res=20},function(self)`],
+    ["a value out of range", `_Z.fader("f1",0,0,1,9,{res=20},function(self)`],
   ])("a zone problem doesn't block: %s", (_, line) => {
     const event = setup(line, BODY, "end)");
     expect(surfaceIssues(event).some((e) => e.level === "error")).toBe(true);
@@ -127,7 +128,7 @@ describe("which issues stop the send", () => {
   });
 
   test("a duplicate blocks even when written differently", () => {
-    const hand = `Z.button( 'f1', 2,0,1,1, {}, function(self)`;
+    const hand = `_Z.button( 'f1', 2,0,1,1, {}, function(self)`;
     const event = setup(fader("f1"), BODY, "end)", hand, BODY, "end)");
     expect(zoneSendProblem(hand, event)).toBe(
       `Another zone is also named "f1"`,
@@ -135,11 +136,8 @@ describe("which issues stop the send", () => {
   });
 
   test("order warnings only show", () => {
-    const event = [fader("f1"), BODY, "end)"]; // no Library, no Touch Start
-    expect(surfaceIssues(event).map((e) => e.level)).toEqual([
-      "warning",
-      "warning",
-    ]);
+    const event = [fader("f1"), BODY, "end)"]; // no Touch Start
+    expect(surfaceIssues(event).map((e) => e.level)).toEqual(["warning"]);
     expect(zoneSendProblem(fader("f1"), event)).toBeUndefined();
   });
 
@@ -274,8 +272,8 @@ describe("Touch Start stays last, Touch Tick comes along", () => {
   test("zone blocks bring Touch Start (Setup) and Touch Tick (Timer)", () => {
     for (const kind of ["fader", "button", "xy"]) {
       expect(zoneBlockInformation(kind).companions).toEqual([
-        { eventType: "setup", short: "zst", script: "Z.start(self)" },
-        { eventType: "timer", short: "ztk", script: "Z.tick(self,{})" },
+        { eventType: "setup", short: "zst", script: "_Z.start(self)" },
+        { eventType: "timer", short: "ztk", script: "_Z.tick(self,{})" },
       ]);
     }
     expect(touchStartInformation.keepLast).toBe(true);

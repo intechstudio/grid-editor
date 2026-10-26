@@ -4,7 +4,7 @@
 
 local Z = {}
 
-Z.VERSION = "0.8.6"
+Z.VERSION = "0.8.7"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
@@ -640,6 +640,7 @@ function Z.start(self)
   Z.lk = {}
   Z.lc = {}
   Z.R = {}
+  Z.te = self
   self.touch_cb = Z.touch
   -- rx=1: the identities the zone sends, a 14-bit pair on both CCs
   for _, z in ipairs(Z.zs) do
@@ -860,19 +861,21 @@ function M:f()
   return self.fi or 1
 end
 
--- The Library block calls a library's unload(self) before it re-runs Setup
--- (Update, Reload). Acts on this instance only, so an old one can be unloaded
+-- Lets the Library block free this instance before it runs the page's
+-- Setups again (Install): releases the zones and the callbacks it set on the
+-- touch element. Acts on this instance only, so an old one can be unloaded
 -- after a new one is loaded.
-function Z.unload(self)
+function Z.unload()
   drop()
   Z.nz, Z.lk, Z.lc = {}, {}, {}
-  if self.touch_cb == Z.touch then
-    self.touch_cb = nil
+  local e = Z.te
+  if e and e.touch_cb == Z.touch then
+    e.touch_cb = nil
   end
-  if self.midirx_cb == Z.rx then
-    self.midirx_cb = Z.uc
+  if e and e.midirx_cb == Z.rx then
+    e.midirx_cb = Z.uc
   end
-  Z.uc = nil
+  Z.uc, Z.te = nil, nil
 end
 
 return Z

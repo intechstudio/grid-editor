@@ -2,12 +2,8 @@
 // to a field. Per surface: the issues of a whole touch Setup, each naming a
 // zone or, without one, the surface.
 
+import { GridScript } from "@intechstudio/grid-protocol";
 import { Validator } from "../validators";
-import {
-  firmwareNameProblem,
-  identifierProblem,
-  parseLibraryScript,
-} from "../../libraries/library-script";
 import {
   type OptionSchema,
   type Zone,
@@ -21,7 +17,6 @@ import {
 import { parseZone, ZONA_GLOBAL, ZONE_START_SCRIPT } from "./zone-parse";
 
 const GRID_SIZE = 9;
-const ZONA_FILE = "zona";
 
 // One rejected field: a geometry key ("x"), "name" or an option key.
 export type ZoneProblem = { key: string; message: string };
@@ -34,6 +29,45 @@ export type ZoneIssue = {
 
 // The touch Setup's top-level actions, in order.
 export type SurfaceContext = { actions: { script: string }[] };
+
+const LUA_KEYWORDS = new Set(
+  "and break do else elseif end false for function goto if in local nil not or repeat return then true until while".split(
+    " ",
+  ),
+);
+
+// Firmware function names, human and short, with the short name a human
+// name is sent as.
+const FIRMWARE_LOOKUP: { human?: string; short?: string }[] =
+  GridScript.validator.lookup;
+const FIRMWARE_NAMES = new Set(
+  FIRMWARE_LOOKUP.flatMap((e) => [e.human, e.short]),
+);
+const FIRMWARE_SHORT_NAMES = new Map(
+  FIRMWARE_LOOKUP.filter((e) => e.human && e.short && e.human !== e.short).map(
+    (e) => [e.human, e.short],
+  ),
+);
+
+function identifierProblem(name: string): string | undefined {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+    return "Use letters, digits and _, not starting with a digit";
+  }
+  if (LUA_KEYWORDS.has(name)) {
+    return `"${name}" is a Lua keyword`;
+  }
+  return undefined;
+}
+
+function firmwareNameProblem(name: string): string | undefined {
+  if (!FIRMWARE_NAMES.has(name)) {
+    return undefined;
+  }
+  const short = FIRMWARE_SHORT_NAMES.get(name);
+  return typeof short !== "undefined"
+    ? `"${name}" is a firmware function name, sent to the module as "${short}"`
+    : `"${name}" is a firmware function`;
+}
 
 // The name sits in a string that compressScript would rewrite if it were a
 // firmware human name (RFC 2.1).
@@ -215,22 +249,6 @@ export function zoneTickProblems(tick: ZoneTick): ZoneProblem[] {
   return optionProblems(tick.opt, zoneTickSchema);
 }
 
-// Which file the global Z is bound to by the Library blocks before `end`.
-// v1 limits: a Library line with an invalid row doesn't parse, so its
-// bindings count as missing; a Library block between zones that rebinds Z
-// isn't looked at.
-function boundFile(actions: { script: string }[], end: number) {
-  let file: string | undefined;
-  for (const { script } of actions.slice(0, end)) {
-    for (const row of parseLibraryScript(script) ?? []) {
-      if (row.global === ZONA_GLOBAL) {
-        file = row.file;
-      }
-    }
-  }
-  return file;
-}
-
 function orderIssues(context: SurfaceContext): ZoneIssue[] {
   const { actions } = context;
   const first = actions.findIndex((e) => parseZone(e.script) !== null);
@@ -238,12 +256,6 @@ function orderIssues(context: SurfaceContext): ZoneIssue[] {
     return [];
   }
   const issues: ZoneIssue[] = [];
-  if (boundFile(actions, first) !== ZONA_FILE) {
-    issues.push({
-      level: "warning",
-      message: `Add a Library block that binds ${ZONA_GLOBAL} to ${ZONA_FILE} before the first zone`,
-    });
-  }
   const isStart = (e: { script: string }) =>
     e.script.trim() === ZONE_START_SCRIPT;
   if (!actions.some(isStart)) {

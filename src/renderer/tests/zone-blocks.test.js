@@ -34,22 +34,22 @@ const schema = (key) => zoneOptionSchema.find((e) => e.key === key);
 
 describe("default zone", () => {
   test.each([
-    ["fader", `Z.fader("f1",0,0,1,9,{},function(self)`],
-    ["button", `Z.button("b1",0,0,2,2,{},function(self)`],
-    ["xy", `Z.xy("p1",0,0,4,4,{},function(self)`],
+    ["fader", `_Z.fader("f1",0,0,1,9,{},function(self)`],
+    ["button", `_Z.button("b1",0,0,2,2,{},function(self)`],
+    ["xy", `_Z.xy("p1",0,0,4,4,{},function(self)`],
   ])("%s in an empty Setup: %s", (kind, script) => {
     expect(defaultZoneScript(kind, [])).toBe(script);
   });
 
   test("the next free number among the Setup's zones", () => {
     const setup = [
-      `local p=string.format("/%02X/",gpc())Z=require(p.."zona")`,
-      `Z.fader("f1",0,0,1,9,{},function(self)`,
+      `local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`,
+      `_Z.fader("f1",0,0,1,9,{},function(self)`,
       "print(1)",
       "end)",
-      `Z.fader("f3",1,0,1,9,{},function(self)`,
-      `Z.button("f2",2,0,1,1,{},function(self)`, // any kind's name counts
-      "Z.start(self)",
+      `_Z.fader("f3",1,0,1,9,{},function(self)`,
+      `_Z.button("f2",2,0,1,1,{},function(self)`, // any kind's name counts
+      "_Z.start(self)",
     ];
     expect(defaultZoneName("fader", setup)).toBe("f4");
     expect(defaultZoneName("button", setup)).toBe("b1");
@@ -57,7 +57,7 @@ describe("default zone", () => {
 });
 
 test("header text, with what the zone sends", () => {
-  const zone = parseZone(`Z.fader("f1",0,0,1,9,{res=10},function(self)`);
+  const zone = parseZone(`_Z.fader("f1",0,0,1,9,{res=10},function(self)`);
   expect(zoneHeaderText(zone)).toBe("f1 · 0,0 1×9");
   expect(zoneHeaderText(zone, "CC 0/32 ch 1")).toBe(
     "f1 · 0,0 1×9 · CC 0/32 ch 1",
@@ -154,18 +154,20 @@ describe("field input", () => {
     expect(parseOptionText(schema(key), text)).toEqual(result);
   });
 
-  const fader = parseZone(`Z.fader("f1",0,0,1,9,{mode="glide"},function(self)`);
+  const fader = parseZone(
+    `_Z.fader("f1",0,0,1,9,{mode="glide"},function(self)`,
+  );
 
   test("setting an option writes the line", () => {
     const { next } = withOption(fader, schema("res"), "14");
     expect(zoneToLua(next)).toBe(
-      `Z.fader("f1",0,0,1,9,{res=14,mode="glide"},function(self)`,
+      `_Z.fader("f1",0,0,1,9,{res=14,mode="glide"},function(self)`,
     );
   });
 
   test("an empty field leaves the option out", () => {
     const { next } = withOption(fader, schema("mode"), "");
-    expect(zoneToLua(next)).toBe(`Z.fader("f1",0,0,1,9,{},function(self)`);
+    expect(zoneToLua(next)).toBe(`_Z.fader("f1",0,0,1,9,{},function(self)`);
   });
 
   test("text that isn't a number is an error, nothing to write", () => {
@@ -181,13 +183,13 @@ describe("field input", () => {
   test("an out-of-range value is written; the validator rejects it", () => {
     const { next } = withOption(fader, schema("res"), "20");
     expect(zoneToLua(next)).toBe(
-      `Z.fader("f1",0,0,1,9,{res=20,mode="glide"},function(self)`,
+      `_Z.fader("f1",0,0,1,9,{res=20,mode="glide"},function(self)`,
     );
   });
 
   test("geometry and name fields", () => {
     expect(zoneToLua(withField(fader, "x", "3").next)).toBe(
-      `Z.fader("f1",3,0,1,9,{mode="glide"},function(self)`,
+      `_Z.fader("f1",3,0,1,9,{mode="glide"},function(self)`,
     );
     expect(withField(fader, "name", "vol").next.name).toBe("vol");
   });
@@ -214,9 +216,9 @@ describe("block information", () => {
       expect(info.type).toBe("composite_open");
       expect(info.category).toBe("touch");
       expect(
-        info.defaultLuaIn([`Z.fader("f1",0,0,1,9,{},function(self)`]),
+        info.defaultLuaIn([`_Z.fader("f1",0,0,1,9,{},function(self)`]),
       ).toBe(
-        defaultZoneScript(kind, [`Z.fader("f1",0,0,1,9,{},function(self)`]),
+        defaultZoneScript(kind, [`_Z.fader("f1",0,0,1,9,{},function(self)`]),
       );
       expect(info.compositeLua).toEqual([{ short: "zen", script: "end)" }]);
       expect(isAllowedIn(info, TOUCH_SETUP)).toBe(true);
@@ -239,17 +241,17 @@ describe("block information", () => {
     const pre = zoneBlockInformation("fader").syntaxPreprocessor;
     expect(
       GridScript.checkSyntax(
-        pre.generate(`Z.fader("f1",0,0,1,9,{res=10},function(self)`),
+        pre.generate(`_Z.fader("f1",0,0,1,9,{res=10},function(self)`),
       ),
     ).toBe(true);
     expect(
       GridScript.checkSyntax(
-        pre.generate(`Z.fader("f1",0,0,1,9,{glow=1 tag=2},function(self)`),
+        pre.generate(`_Z.fader("f1",0,0,1,9,{glow=1 tag=2},function(self)`),
       ),
     ).toBe(false);
     expect(
       GridScript.checkSyntax(
-        pre.generate(`Z.fader("f1",0,0,1,9,{end=1},function(self)`),
+        pre.generate(`_Z.fader("f1",0,0,1,9,{end=1},function(self)`),
       ),
     ).toBe(false);
   });
@@ -275,9 +277,9 @@ describe("block information", () => {
 describe("bracket check text", () => {
   test("a zone line is checked closed by its Touch End", () => {
     const pre = zoneBlockInformation("fader").syntaxPreprocessor;
-    expect(pre.bracketCheckText(`Z.fader("f1",0,0,1,9,{},function(self)`)).toBe(
-      `Z.fader("f1",0,0,1,9,{},function(self) end)`,
-    );
+    expect(
+      pre.bracketCheckText(`_Z.fader("f1",0,0,1,9,{},function(self)`),
+    ).toBe(`_Z.fader("f1",0,0,1,9,{},function(self) end)`);
   });
 
   test('"" (close blocks, raw) checks the script itself', () => {

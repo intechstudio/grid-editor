@@ -3,10 +3,19 @@ import { test, expect, describe, beforeAll, vi } from "vitest";
 import { createZonaVM, DOWN, MOVE, UP } from "./zona-vm";
 import zonaSource from "../libraries/zona/zona.lua?raw";
 
-// library-device.ts imports the app through these; rerunSetup needs neither.
-vi.mock("../main/panels/FileManager/FileManager", () => ({}));
-vi.mock("../runtime/runtime.store", () => ({ logger: { set() {} } }));
-const { rerunSetup } = await import("../libraries/library-device");
+// library.ts reaches the module through these; Install runs in the VM.
+vi.mock("../runtime/runtime", () => ({}));
+vi.mock("../main/panels/FileManager/FileManager", async (importOriginal) => ({
+  ...(await importOriginal()),
+  createDir: vi.fn(),
+  fetchDirEntries: vi.fn().mockResolvedValue([{ name: "00", type: "dir" }]),
+  invalidateLuaModule: vi.fn(),
+  writeFileContent: vi.fn(),
+}));
+const { invalidateLuaModule } =
+  await import("../main/panels/FileManager/FileManager");
+const { findBundledLibrary, installLibrary, libraryScriptToLua } =
+  await import("../libraries/library");
 
 beforeAll(async () => {
   await initLuaFormatter();
@@ -267,7 +276,7 @@ describe("Z.unload", () => {
     expect(vm.run("return el.midirx_cb == Z.rx")).toBe(true);
     vm.touch([0, DOWN, 300, 100]);
     vm.clear();
-    vm.run("Z.unload(el)");
+    vm.run("Z.unload(Z)");
     expect(vm.midi()).toEqual([RELEASE]);
     expect(vm.run("return el.touch_cb")).toBe(null);
     expect(vm.run("return #Z.zs + #Z.nz")).toBe(0);
@@ -279,7 +288,7 @@ describe("Z.unload", () => {
   test("without a user callback, midirx_cb is cleared", async () => {
     const vm = await createZonaVM();
     vm.setup(`Z.fader("f",0,0,1,9,{${RX}},nil) Z.start(self)`);
-    vm.run("Z.unload(el)");
+    vm.run("Z.unload(Z)");
     expect(vm.run("return el.midirx_cb")).toBe(null);
   });
 
@@ -287,7 +296,7 @@ describe("Z.unload", () => {
     const vm = await createZonaVM();
     vm.setup(`Z.fader("f",0,0,1,9,{},${MIDI}) Z.start(self)`);
     vm.run("el.touch_cb=function() end el.midirx_cb=print _t=el.touch_cb");
-    vm.run("Z.unload(el)");
+    vm.run("Z.unload(Z)");
     expect(vm.run("return el.touch_cb == _t and el.midirx_cb == print")).toBe(
       true,
     );
@@ -299,7 +308,7 @@ describe("Z.unload", () => {
     vm.touch([0, DOWN, 300, 100]);
     vm.clear();
     vm.run(
-      'Old=Z package.loaded.zona=nil Z=require("zona") assert(Z ~= Old) Old.unload(el)',
+      'Old=Z package.loaded.zona=nil Z=require("zona") assert(Z ~= Old) Old.unload(Old)',
     );
     expect(vm.midi()).toEqual([RELEASE]);
     expect(vm.run("return el.touch_cb")).toBe(null);
@@ -311,52 +320,63 @@ describe("Z.unload", () => {
 
   test("survives compressScript (RFC 2.1)", () => {
     const compressed = GridScript.compressScript(zonaSource);
-    expect(compressed).toContain("function Z.unload(self)");
-    expect(compressed).toContain('Z.VERSION="0.8.6"');
+    expect(compressed).toContain("function Z.unload()");
+    expect(compressed).toContain('Z.VERSION="0.8.7"');
     // size budget of the file on the module
     expect(compressed.length).toBeLessThan(20480);
   });
 });
 
-// The Library block's Update/Reload path (library-device.ts rerunSetup), with
-// the chunk compressed and run as the module would.
-async function libraryModule(setup) {
+// Install (library.ts): the System Setup loads zona with the Library line,
+// the touch Setup defines the zones, and Install runs both again, System
+// first, as the module does on a page load. The chunk is compressed and run
+// as the module would.
+async function installModule(touchSetup) {
   const vm = await createZonaVM();
   const sent = [];
+  const line = libraryScriptToLua([{ global: "_Z", file: "zona" }]);
   vm.run(
-    `ele={[0]=el} el.ini=function(self) collectgarbage() collectgarbage() _old=W and next(W)~=nil ${setup} end`,
+    `package.preload["/00/zona"]=package.preload.zona sys={} ele={[0]=el,[1]=sys} ` +
+      `sys.ini=function(self) ${line} end ` +
+      `el.ini=function(self) collectgarbage() collectgarbage() _old=W and next(W)~=nil ${touchSetup} end`,
+  );
+  invalidateLuaModule.mockImplementation(async () =>
+    vm.run(`package.loaded["/00/zona"]=nil`),
   );
   const module = {
     async execLUAImmediateAndEvalaute(code) {
       const lua = GridScript.compressScript(code);
-      sent.push(lua);
+      sent.push({ code, lua });
       const r = vm.run(
-        `local t=table.pack((function() ${lua} end)()) return {ok=t[1],err=t[2]}`,
+        `local t=table.pack((function() ${lua} end)()) return {ok=t[1],n=t[2],err=t[3]}`,
       );
-      return { value: [r.ok, r.err ?? null] };
+      return { value: [r.ok, r.n ?? null, r.err ?? null] };
     },
   };
-  return { vm, module, sent };
+  const install = () => installLibrary(findBundledLibrary("zona"), 0, module);
+  return { vm, install, sent };
 }
 
 // 8 RX faders (CC slots 0-7), a button in the bottom right cell (slot 8)
-const SETUP = `Z=require("zona") ${faders(8, RX)} Z.button("b",8,8,1,1,{},${MIDI}) Z.start(self)`;
+const TOUCH_SETUP =
+  `${faders(8, RX)} Z.button("b",8,8,1,1,{},${MIDI}) Z.start(self)`.replace(
+    /\bZ\./g,
+    "_Z.",
+  );
 const CORNER = [950, 950];
-// Update: the file is rewritten and the cached module dropped
-const INVALIDATE = "package.loaded.zona=nil";
 // The old instance, its zones and its callbacks, weakly
 const MARK_ALL =
-  "W=setmetatable({},{__mode='k'}) W[Z]=1 W[el.touch_cb]=1 for _,z in ipairs(Z.zs) do W[z]=1 end";
+  "W=setmetatable({},{__mode='k'}) W[_Z]=1 W[el.touch_cb]=1 for _,z in ipairs(_Z.zs) do W[z]=1 end";
 
-describe("Library block re-run (Update, Reload)", () => {
-  test("Update: the old instance is gone before the new Setup runs", async () => {
-    const { vm, module } = await libraryModule(SETUP);
-    await rerunSetup(0, module, ["Z"]);
+describe("Install re-runs the page's Setups", () => {
+  test("a reinstall frees the old instance before the new Setup runs", async () => {
+    const { vm, install } = await installModule(TOUCH_SETUP);
+    await install();
     const clean = vm.kb();
     vm.touch([0, DOWN, ...CORNER]); // hold the button
     vm.clear();
-    vm.run(`${MARK_ALL} ${INVALIDATE}`);
-    await rerunSetup(0, module, ["Z"]);
+    vm.run(MARK_ALL);
+    await install(); // the user deleted zona.lua and pressed Install
     expect(vm.run("return _old")).toBe(false);
     expect(vm.midi()).toEqual([[0, 144, 40, 0]]);
     vm.run("W=nil");
@@ -366,51 +386,30 @@ describe("Library block re-run (Update, Reload)", () => {
     expect(vm.midi()).toEqual([[0, 144, 40, 127]]);
   });
 
-  test("without the release, Setup runs with the old instance alive", async () => {
-    const { vm, module } = await libraryModule(SETUP);
-    await rerunSetup(0, module);
-    vm.run(`${MARK_ALL} ${INVALIDATE}`);
-    await rerunSetup(0, module);
-    expect(vm.run("return _old")).toBe(true);
+  test("the zones run on the first Install, with nothing loaded before", async () => {
+    const { vm, install } = await installModule(TOUCH_SETUP);
+    await install();
+    expect(vm.run("return #_Z.zs")).toBe(9);
+    vm.clear();
+    vm.touch([0, DOWN, ...CORNER]);
+    expect(vm.midi()).toEqual([[0, 144, 40, 127]]);
   });
 
-  test("Reload: the same instance is unloaded and bound again", async () => {
-    const { vm, module } = await libraryModule(SETUP);
-    await rerunSetup(0, module, ["Z"]);
-    vm.run("Old=Z");
-    await rerunSetup(0, module, ["Z"]);
-    expect(vm.run("return Z == Old and #Z.zs")).toBe(9);
-  });
-
-  test("globals without unload are cleared; an unload error doesn't stop Setup", async () => {
-    const { vm, module } = await libraryModule(
-      `L=L or {} B=B or {unload=function() error("bad") end} ${SETUP}`,
-    );
-    await rerunSetup(0, module, ["L", "B", "Z"]);
-    vm.run("Lold, Bold = L, B");
-    await rerunSetup(0, module, ["L", "B", "Z"]);
-    expect(vm.run("return L ~= Lold and B ~= Bold and #Z.zs")).toBe(9);
-  });
-
-  test("a failing Setup is reported", async () => {
-    const { module } = await libraryModule(`error("nope")`);
-    await expect(rerunSetup(0, module, ["Z"])).rejects.toThrow(
-      /Setup failed: .*nope/,
+  test("a failing Setup is reported with its element", async () => {
+    const { install } = await installModule(`error("nope")`);
+    await expect(install()).rejects.toThrow(
+      /Setup failed on element 0: .*nope/,
     );
   });
 
-  test("the chunk survives compressScript: no firmware human names", async () => {
-    const { module, sent } = await libraryModule(SETUP);
-    await rerunSetup(0, module, ["Z"]);
-    const raw =
-      'local e=ele[0] if not(e and e.ini)then return false,"no Setup" end ' +
-      'for _,n in ipairs({"Z"}) do local g=rawget(_G,n) if type(g)=="table" and type(g.unload)=="function" then pcall(g.unload,e) end ' +
-      "_G[n]=nil end collectgarbage() local ok,err=pcall(e.ini,e) return ok,ok and nil or tostring(err):sub(1,120)";
+  test("the chunk survives compressScript and fits an immediate message", async () => {
+    const { install, sent } = await installModule(TOUCH_SETUP);
+    await install();
+    const { code, lua } = sent[0];
     // the shortify step changes nothing; only spacing is minified
-    expect(sent[0].replace(/\s/g, "")).toBe(raw.replace(/\s/g, ""));
+    expect(lua.replace(/\s/g, "")).toBe(code.replace(/\s/g, ""));
     // The firmware drops an immediate chunk longer than
-    // GRID_PARAMETER_ACTIONSTRING_maxlength (909, grid_decode.c v1.5.5);
-    // each further global adds about 4 characters.
-    expect(sent[0].length).toBeLessThan(300);
+    // GRID_PARAMETER_ACTIONSTRING_maxlength (909, grid_decode.c v1.5.5).
+    expect(lua.length).toBeLessThan(500);
   });
 });

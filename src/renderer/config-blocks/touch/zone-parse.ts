@@ -26,10 +26,10 @@ import {
 } from "./zone-model";
 
 // The global the touch blocks call. Fixed in v1 (RFC 5).
-export const ZONA_GLOBAL = "Z";
+export const ZONA_GLOBAL = "_Z";
 
 export const ZONE_END_SCRIPT = "end)";
-export const ZONE_START_SCRIPT = "Z.start(self)";
+export const ZONE_START_SCRIPT = `${ZONA_GLOBAL}.start(self)`;
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;
 const NUMBER =
@@ -277,7 +277,7 @@ function writeOptions(
   return `{${parts.join(",")}}`;
 }
 
-// `Z.fader("f1",0,0,1,9,{res=10},function(self)`, the zone block's opening
+// `_Z.fader("f1",0,0,1,9,{res=10},function(self)`, the zone block's opening
 // line. Returns null when the script is not a zone opening line.
 export function parseZone(script: string): Zone | null {
   const reader = new Reader(script);
@@ -331,8 +331,8 @@ export function zoneToLua(zone: Zone): string {
   return `${ZONA_GLOBAL}.${zone.kind}(${luaString(zone.name)},${cells},${options},function(self)`;
 }
 
-// `Z.tick(self,{ms=10})`, the Touch Tick block on the touch Timer.
-// `Z.tick(self)` parses too.
+// `_Z.tick(self,{ms=10})`, the Touch Tick block on the touch Timer.
+// `_Z.tick(self)` parses too.
 export function parseZoneTick(script: string): ZoneTick | null {
   const reader = new Reader(script);
   if (
