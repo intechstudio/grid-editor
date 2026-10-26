@@ -123,12 +123,16 @@
     sendData();
   }
 
-  // A bundled library always loads under its own global.
+  // A bundled library always loads under its own global; the user names
+  // only their own files.
   function handleFileInput(row: EditRow, value: string) {
+    const previous = findBundledLibrary(row.file);
     row.file = value;
     const library = findBundledLibrary(value);
     if (typeof library !== "undefined") {
       row.global = library.global;
+    } else if (typeof previous !== "undefined") {
+      row.global = "";
     }
     rows = rows;
     sendData();
@@ -198,15 +202,6 @@
         <div class="flex flex-col">
           <div class="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
             <MeltCombo
-              title={"Global"}
-              value={row.global}
-              disabled={typeof findBundledLibrary(row.file) !== "undefined"}
-              validator={(e) => e === "" || isUserGlobal(e)}
-              valueInfoEnabled={false}
-              on:input={(e) => handleGlobalInput(row, e.detail.value)}
-              on:change={syncWithGrid}
-            />
-            <MeltCombo
               title={"File"}
               value={row.file}
               suggestions={fileSuggestions}
@@ -218,6 +213,23 @@
                 refresh();
               }}
             />
+            {#if findBundledLibrary(row.file)}
+              <div class="fixed-global">
+                <span>Global</span>
+                <span class="fixed-global-value" data-global="fixed"
+                  >{row.global}</span
+                >
+              </div>
+            {:else}
+              <MeltCombo
+                title={"Global"}
+                value={row.global}
+                validator={(e) => e === "" || isUserGlobal(e)}
+                valueInfoEnabled={false}
+                on:input={(e) => handleGlobalInput(row, e.detail.value)}
+                on:change={syncWithGrid}
+              />
+            {/if}
             <button
               on:click={() => removeRow(row.id)}
               class="flex group cursor-pointer mb-2"
@@ -298,3 +310,22 @@
     </div>
   {/if}
 </library-block>
+
+<style>
+  /* A bundled library's global, as text laid out like a MeltCombo field */
+  .fixed-global {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.875em;
+    line-height: 1.25em;
+    cursor: default;
+    user-select: none;
+  }
+  .fixed-global-value {
+    margin-top: 0.25em;
+    padding: 0.5em;
+    border: 1px solid transparent;
+    line-height: normal;
+    color: var(--foreground-muted);
+  }
+</style>
