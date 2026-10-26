@@ -1,4 +1,8 @@
-import { GridScript } from "@intechstudio/grid-protocol";
+import {
+  ElementType,
+  EventType,
+  GridScript,
+} from "@intechstudio/grid-protocol";
 import {
   createDir,
   fetchDirEntries,
@@ -11,7 +15,7 @@ import type { GridModule } from "../runtime/runtime";
 import testSource from "./test/test.lua?raw";
 
 export type LibraryRow = {
-  global: string; // "Test"
+  global: string; // "_Test"
   file: string; // "test", in the page folder
 };
 
@@ -21,9 +25,10 @@ export type BundledLibrary = {
   source: string;
 };
 
-// Libraries the user can install from the editor.
+// Libraries the user can install from the editor. Their globals start with
+// _ and an uppercase letter, so user code doesn't overwrite them by accident.
 export const bundledLibraries: readonly BundledLibrary[] = [
-  { file: "test", global: "Test", source: testSource },
+  { file: "test", global: "_Test", source: testSource },
 ];
 
 export function findBundledLibrary(file: string): BundledLibrary | undefined {
@@ -46,8 +51,47 @@ export function isValidGlobal(name: string): boolean {
   return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !RESERVED_NAMES.has(name);
 }
 
+// A global the user can bind their own file to: names starting with _ and an
+// uppercase letter belong to bundled libraries (and to Lua itself).
+export function isUserGlobal(name: string): boolean {
+  return isValidGlobal(name) && !/^_[A-Z]/.test(name);
+}
+
 export function isValidFile(name: string): boolean {
   return /^[A-Za-z0-9_]+$/.test(name) && !RESERVED_NAMES.has(name);
+}
+
+// Keeps the names the blocks rely on: a bundled library loads under its own
+// global, a user file under a user global, and no global is loaded twice.
+export function areValidRows(rows: LibraryRow[]): boolean {
+  const globals = rows.map((e) => e.global);
+  return (
+    new Set(globals).size === globals.length &&
+    rows.every((e) => {
+      const bundled = findBundledLibrary(e.file);
+      return (
+        isValidFile(e.file) &&
+        (typeof bundled === "undefined"
+          ? isUserGlobal(e.global)
+          : e.global === bundled.global)
+      );
+    })
+  );
+}
+
+// Lets the user add libraries only in the System element's Setup, which the
+// module runs before every other Setup of the page, so all elements can use
+// them. Never in a function body tab.
+export function isLibraryPlace(
+  elementType: ElementType,
+  eventType: EventType,
+  isFunctionBody: boolean,
+): boolean {
+  return (
+    elementType === ElementType.SYSTEM &&
+    eventType === EventType.SETUP &&
+    !isFunctionBody
+  );
 }
 
 const PREFIX = `local p=string.format("/%02X/",gpc())`;
@@ -63,13 +107,13 @@ export function parseLibraryScript(script: string): LibraryRow[] | null {
   let rest = script.slice(PREFIX.length);
   while (rest.length > 0) {
     const match = ROW.exec(rest);
-    if (match === null || !isValidGlobal(match[1]) || !isValidFile(match[2])) {
+    if (match === null) {
       return null;
     }
     rows.push({ global: match[1], file: match[2] });
     rest = rest.slice(match[0].length);
   }
-  return rows;
+  return areValidRows(rows) ? rows : null;
 }
 
 // Loads each library from the current page folder into its global.
@@ -111,7 +155,6 @@ async function pageFolderExists(
 export async function installLibrary(
   library: BundledLibrary,
   pageNumber: number,
-  elementIndex: number,
   module: GridModule,
 ): Promise<void> {
   const folder = pageNumberToFolderPath(pageNumber);
@@ -125,16 +168,24 @@ export async function installLibrary(
     WRITE_CHUNK_SIZE,
   );
   await invalidateLuaModule(`${folder}${library.file}`, module);
-  await runSetup(elementIndex, module);
+  await rerunSetups(library.global, module);
 }
 
-async function runSetup(elementIndex: number, module: GridModule) {
-  const element = elementIndex === 255 ? "ele[#ele]" : `ele[${elementIndex}]`;
+// Runs every Setup of the page again in the order the module runs them on a
+// page load (System first, then the elements), so the blocks that use the
+// library start without a page change. The copy still bound to the global
+// is released first, so the module doesn't hold two copies.
+async function rerunSetups(global: string, module: GridModule) {
   const { value } = await module.execLUAImmediateAndEvalaute(
-    `local e=${element} if not(e and e.ini)then return false,"no Setup" end ` +
-      `local ok,err=pcall(e.ini,e) return ok,ok and nil or tostring(err):sub(1,120)`,
+    `local g=rawget(_G,"${global}")` +
+      `if type(g)=="table" and type(g.unload)=="function" then pcall(g.unload,g) end ` +
+      `_G["${global}"]=nil collectgarbage() ` +
+      `local f local function run(e,n) if e and e.ini then local ok,err=pcall(e.ini,e) ` +
+      `if not ok and not f then f=n..": "..tostring(err):sub(1,100) end end end ` +
+      `run(ele[#ele],"System") for i=0,#ele-1 do run(ele[i],"element "..i) end ` +
+      `return f==nil,f`,
   );
   if (value[0] !== true) {
-    throw new Error(`Setup failed: ${String(value[1] ?? "unknown error")}`);
+    throw new Error(`Setup failed on ${String(value[1] ?? "unknown error")}`);
   }
 }

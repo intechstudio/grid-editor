@@ -13,7 +13,11 @@
   import { Analytics } from "../../../../runtime/analytics.js";
   import { getAllComponents } from "../../../../lib/_configs";
   import { toggledBlocks } from "../Configuration";
-  import { NumberToEventType } from "@intechstudio/grid-protocol";
+  import {
+    NumberToEventType,
+    type ElementType,
+  } from "@intechstudio/grid-protocol";
+  import { isLibraryPlace } from "../../../../libraries/library";
   import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
@@ -230,8 +234,14 @@
           ].includes(e.information.short),
       );
     }
-    //Library only at the top level of a Setup event, not in a function body tab
-    if (eventString !== "setup" || event.realEvent !== event) {
+    //Library only at the top level of the System element's Setup
+    if (
+      !isLibraryPlace(
+        target.getInfo().element.type as ElementType,
+        eventString,
+        event.realEvent !== event,
+      )
+    ) {
       comp = comp.filter((e) => e.information.short !== "lib");
     }
 

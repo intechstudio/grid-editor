@@ -12,7 +12,8 @@
     rendering: "standard",
     category: "code",
     displayName: "Library",
-    description: "Load Lua libraries from the page folder",
+    description:
+      "Load Lua libraries from the page folder for every element of the page",
     documentationUrl: "https://docs.intech.studio/wiki/actions/code/library",
     defaultLua: libraryScriptToLua([]),
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5Z"/><path d="M6 21h13v-2"/><path d="M8.5 7.5h6"/><path d="M8.5 11h4"/></svg>`,
@@ -46,11 +47,12 @@
   } from "../runtime/runtime";
   import {
     type LibraryRow,
+    areValidRows,
     bundledLibraries,
     findBundledLibrary,
     installLibrary,
+    isUserGlobal,
     isValidFile,
-    isValidGlobal,
     listPageLibraries,
     parseLibraryScript,
   } from "../libraries/library";
@@ -97,9 +99,7 @@
     dispatch("update-action", {
       short: information.short,
       script: libraryScriptToLua(plain),
-      validationError: !plain.every(
-        (e) => isValidGlobal(e.global) && isValidFile(e.file),
-      ),
+      validationError: !areValidRows(plain),
     });
   }
 
@@ -123,10 +123,11 @@
     sendData();
   }
 
+  // A bundled library always loads under its own global.
   function handleFileInput(row: EditRow, value: string) {
     row.file = value;
     const library = findBundledLibrary(value);
-    if (row.global === "" && typeof library !== "undefined") {
+    if (typeof library !== "undefined") {
       row.global = library.global;
     }
     rows = rows;
@@ -165,12 +166,7 @@
     installing = file;
     installError = undefined;
     try {
-      await installLibrary(
-        library,
-        page.pageNumber,
-        element.elementIndex,
-        module,
-      );
+      await installLibrary(library, page.pageNumber, module);
     } catch (e) {
       installError = e instanceof Error ? e.message : String(e);
     } finally {
@@ -178,6 +174,10 @@
       await refresh();
     }
   }
+
+  // Two rows loading into one global: the later one would replace the other.
+  $: globals = rows.map((e) => e.global).filter((e) => e !== "");
+  $: duplicateGlobal = new Set(globals).size !== globals.length;
 
   let fileSuggestions: MeltComboSuggestion[];
   $: fileSuggestions = [
@@ -189,10 +189,6 @@
       .filter((e) => typeof findBundledLibrary(e) === "undefined")
       .map((e) => ({ value: e, info: `${e}.lua (page folder)` })),
   ];
-
-  const globalSuggestions: MeltComboSuggestion[] = bundledLibraries.map(
-    (e) => ({ value: e.global, info: `${e.global} (${e.file}.lua)` }),
-  );
 </script>
 
 <library-block class="flex flex-col w-full px-4 py-2 pointer-events-auto">
@@ -204,8 +200,8 @@
             <MeltCombo
               title={"Global"}
               value={row.global}
-              suggestions={globalSuggestions}
-              validator={(e) => e === "" || isValidGlobal(e)}
+              disabled={typeof findBundledLibrary(row.file) !== "undefined"}
+              validator={(e) => e === "" || isUserGlobal(e)}
               valueInfoEnabled={false}
               on:input={(e) => handleGlobalInput(row, e.detail.value)}
               on:change={syncWithGrid}
@@ -270,6 +266,11 @@
           {/if}
         </div>
       {/each}
+      {#if duplicateGlobal}
+        <span class="text-xs text-error"
+          >Each global can be loaded only once: remove one of the rows.</span
+        >
+      {/if}
       {#if installError}
         <span class="text-xs text-error">{installError}</span>
       {/if}
