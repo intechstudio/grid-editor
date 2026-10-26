@@ -33,9 +33,8 @@
   import { Architecture } from "@intechstudio/grid-protocol";
   import {
     Block,
-    MeltCombo,
+    MeltSelect,
     MoltenPushButton,
-    type MeltComboSuggestion,
   } from "@intechstudio/grid-uikit";
   import type {
     ActionData,
@@ -51,8 +50,6 @@
     bundledLibraries,
     findBundledLibrary,
     installLibrary,
-    isUserGlobal,
-    isValidFile,
     listPageLibraries,
     parseLibraryScript,
   } from "../libraries/library";
@@ -68,7 +65,7 @@
   let page = element.parent as GridPage;
   let module = page.parent as GridModule;
 
-  // Rows carry an id so each MeltCombo keeps its own row when one is removed.
+  // Rows carry an id so each MeltSelect keeps its own row when one is removed.
   type EditRow = LibraryRow & { id: number };
   let nextId = 0;
 
@@ -107,35 +104,43 @@
     dispatch("sync");
   }
 
+  // Libraries no row loads yet: what Add Library and each row can pick.
+  $: unused = bundledLibraries.filter(
+    (e) => !rows.some((row) => row.file === e.file),
+  );
+
+  function optionsFor(row: EditRow, all: EditRow[]) {
+    return bundledLibraries
+      .filter((e) => e.file === row.file || !all.some((r) => r.file === e.file))
+      .map((e) => ({ title: `${e.file}.lua`, value: e.file }));
+  }
+
   function addRow() {
-    rows = [...rows, { global: "", file: "", id: nextId++ }];
+    const library = unused[0];
+    if (typeof library === "undefined") {
+      return;
+    }
+    rows = [...rows, { ...library, id: nextId++ }];
   }
 
   function removeRow(id: number) {
     rows = rows.filter((e) => e.id !== id);
+  }
+
+  // A picked library loads under its own global; every change the user makes
+  // to the rows goes to the module right away.
+  $: handleRowsEdited(rows);
+
+  function handleRowsEdited(current: EditRow[]) {
+    for (const row of current) {
+      row.global = findBundledLibrary(row.file)?.global ?? "";
+    }
+    if (libraryScriptToLua(current) === $action.script) {
+      return;
+    }
     sendData();
     syncWithGrid();
-  }
-
-  function handleGlobalInput(row: EditRow, value: string) {
-    row.global = value;
-    rows = rows;
-    sendData();
-  }
-
-  // A bundled library always loads under its own global; the user names
-  // only their own files.
-  function handleFileInput(row: EditRow, value: string) {
-    const previous = findBundledLibrary(row.file);
-    row.file = value;
-    const library = findBundledLibrary(value);
-    if (typeof library !== "undefined") {
-      row.global = library.global;
-    } else if (typeof previous !== "undefined") {
-      row.global = "";
-    }
-    rows = rows;
-    sendData();
+    refresh();
   }
 
   function handleConvertToCode() {
@@ -178,21 +183,6 @@
       await refresh();
     }
   }
-
-  // Two rows loading into one global: the later one would replace the other.
-  $: globals = rows.map((e) => e.global).filter((e) => e !== "");
-  $: duplicateGlobal = new Set(globals).size !== globals.length;
-
-  let fileSuggestions: MeltComboSuggestion[];
-  $: fileSuggestions = [
-    ...bundledLibraries.map((e) => ({
-      value: e.file,
-      info: `${e.file}.lua (bundled)`,
-    })),
-    ...(folderFiles ?? [])
-      .filter((e) => typeof findBundledLibrary(e) === "undefined")
-      .map((e) => ({ value: e, info: `${e}.lua (page folder)` })),
-  ];
 </script>
 
 <library-block class="flex flex-col w-full px-4 py-2 pointer-events-auto">
@@ -201,35 +191,17 @@
       {#each rows as row (row.id)}
         <div class="flex flex-col">
           <div class="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
-            <MeltCombo
-              title={"File"}
-              value={row.file}
-              suggestions={fileSuggestions}
-              validator={(e) => e === "" || isValidFile(e)}
-              valueInfoEnabled={false}
-              on:input={(e) => handleFileInput(row, e.detail.value)}
-              on:change={() => {
-                syncWithGrid();
-                refresh();
-              }}
+            <MeltSelect
+              title={"Library"}
+              options={optionsFor(row, rows)}
+              bind:target={row.file}
             />
-            {#if findBundledLibrary(row.file)}
-              <div class="fixed-global">
-                <span>Global</span>
-                <span class="fixed-global-value" data-global="fixed"
-                  >{row.global}</span
-                >
-              </div>
-            {:else}
-              <MeltCombo
-                title={"Global"}
-                value={row.global}
-                validator={(e) => e === "" || isUserGlobal(e)}
-                valueInfoEnabled={false}
-                on:input={(e) => handleGlobalInput(row, e.detail.value)}
-                on:change={syncWithGrid}
-              />
-            {/if}
+            <div class="fixed-global">
+              <span class="fixed-global-label">Global</span>
+              <span class="fixed-global-value" data-global="fixed"
+                >{row.global}</span
+              >
+            </div>
             <button
               on:click={() => removeRow(row.id)}
               class="flex group cursor-pointer mb-2"
@@ -250,7 +222,7 @@
               </svg>
             </button>
           </div>
-          {#if typeof folderFiles !== "undefined" && isValidFile(row.file)}
+          {#if typeof folderFiles !== "undefined"}
             {#if folderFiles.includes(row.file)}
               <span class="text-xs text-gray-500" data-status="present"
                 >{row.file}.lua is on the module</span
@@ -265,33 +237,28 @@
                     page.pageNumber,
                   )}</span
                 >
-                {#if findBundledLibrary(row.file)}
-                  <MoltenPushButton
-                    text={installing === row.file ? "Installing..." : "Install"}
-                    disabled={typeof installing !== "undefined" ||
-                      $action.invalid}
-                    click={() => handleInstall(row.file)}
-                  />
-                {/if}
+                <MoltenPushButton
+                  text={installing === row.file ? "Installing..." : "Install"}
+                  disabled={typeof installing !== "undefined" ||
+                    $action.invalid}
+                  click={() => handleInstall(row.file)}
+                />
               </div>
             {/if}
           {/if}
         </div>
       {/each}
-      {#if duplicateGlobal}
-        <span class="text-xs text-error"
-          >Each global can be loaded only once: remove one of the rows.</span
-        >
-      {/if}
       {#if installError}
         <span class="text-xs text-error">{installError}</span>
       {/if}
       {#if rows.length === 0}
         <span class="text-sm text-gray-500">No libraries loaded.</span>
       {/if}
-      <div class="self-center">
-        <MoltenPushButton click={addRow} text={"Add Library"} />
-      </div>
+      {#if unused.length > 0}
+        <div class="self-center">
+          <MoltenPushButton click={addRow} text={"Add Library"} />
+        </div>
+      {/if}
     </Block>
   {:else}
     <div class="flex flex-col gap-2">
@@ -312,20 +279,22 @@
 </library-block>
 
 <style>
-  /* A bundled library's global, as text laid out like a MeltCombo field */
+  /* A library's global, as text laid out like a MeltSelect field */
   .fixed-global {
     display: flex;
     flex-direction: column;
-    font-size: 0.875em;
-    line-height: 1.25em;
+    gap: 0.25em;
     cursor: default;
     user-select: none;
   }
+  .fixed-global-label {
+    color: var(--foreground);
+    font-size: 0.875em;
+    line-height: 1.25em;
+  }
   .fixed-global-value {
-    margin-top: 0.25em;
     padding: 0.5em;
     border: 1px solid transparent;
-    line-height: normal;
     color: var(--foreground-muted);
   }
 </style>

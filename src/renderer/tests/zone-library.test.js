@@ -9,7 +9,7 @@ const PREFIX = `local p=string.format("/%02X/",gpc())`;
 
 test.each([
   ["no Library block", ["print(1)"]],
-  ["a Library block without zona", [`${PREFIX}Mine=require(p.."mine")`]],
+  ["a Library block without zona", [`${PREFIX}_Test=require(p.."test")`]],
   ["an empty System Setup", []],
 ])("%s in the System Setup: warning", (_, systemSetup) => {
   expect(libraryIssue(systemSetup)).toEqual({
@@ -22,7 +22,7 @@ test("zona loaded next to other libraries: no warning", () => {
   expect(
     libraryIssue([
       "print(1)",
-      `${PREFIX}Mine=require(p.."mine")_Z=require(p.."zona")`,
+      `${PREFIX}_Test=require(p.."test")_Z=require(p.."zona")`,
     ]),
   ).toBeUndefined();
 });
