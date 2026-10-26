@@ -17,8 +17,11 @@ import {
   writeFileContent,
 } from "../main/panels/FileManager/FileManager";
 import {
+  bundledLibraries,
   findBundledLibrary,
   installLibrary,
+  isValidFile,
+  isValidGlobal,
   libraryScriptToLua,
   parseLibraryScript,
 } from "../libraries/library";
@@ -58,6 +61,24 @@ describe("Library script", () => {
     `${PREFIX} Test=require(p.."sub/test")`,
   ])("other scripts are not a Library block: %j", (script) => {
     expect(parseLibraryScript(script)).toBeNull();
+  });
+
+  test.each(["led_value", "glp", "p", "require", "end"])(
+    "%s is rejected as a global and as a file",
+    (name) => {
+      expect(isValidGlobal(name)).toBe(false);
+      expect(isValidFile(name)).toBe(false);
+      expect(
+        parseLibraryScript(`${PREFIX}Test=require(p.."${name}")`),
+      ).toBeNull();
+    },
+  );
+
+  test("bundled libraries have valid names", () => {
+    for (const lib of bundledLibraries) {
+      expect(isValidGlobal(lib.global)).toBe(true);
+      expect(isValidFile(lib.file)).toBe(true);
+    }
   });
 });
 

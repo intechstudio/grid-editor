@@ -30,12 +30,24 @@ export function findBundledLibrary(file: string): BundledLibrary | undefined {
   return bundledLibraries.find((e) => e.file === file);
 }
 
+// Names the user can't pick for a library: firmware functions, names the
+// Library block line uses, and Lua keywords.
+const RESERVED_NAMES = new Set([
+  ...GridScript.validator.lookup.flatMap(
+    (e: { human?: string; short?: string }) => [e.human, e.short],
+  ),
+  ...["p", "self", "require", "string", "gpc"],
+  ...["and", "break", "do", "else", "elseif", "end", "false", "for"],
+  ...["function", "goto", "if", "in", "local", "nil", "not", "or"],
+  ...["repeat", "return", "then", "true", "until", "while"],
+]);
+
 export function isValidGlobal(name: string): boolean {
-  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name);
+  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !RESERVED_NAMES.has(name);
 }
 
 export function isValidFile(name: string): boolean {
-  return /^[A-Za-z0-9_]+$/.test(name);
+  return /^[A-Za-z0-9_]+$/.test(name) && !RESERVED_NAMES.has(name);
 }
 
 const PREFIX = `local p=string.format("/%02X/",gpc())`;
@@ -51,7 +63,7 @@ export function parseLibraryScript(script: string): LibraryRow[] | null {
   let rest = script.slice(PREFIX.length);
   while (rest.length > 0) {
     const match = ROW.exec(rest);
-    if (match === null) {
+    if (match === null || !isValidGlobal(match[1]) || !isValidFile(match[2])) {
       return null;
     }
     rows.push({ global: match[1], file: match[2] });
