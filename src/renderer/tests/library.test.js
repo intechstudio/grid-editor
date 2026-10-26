@@ -27,9 +27,6 @@ import {
   findBundledLibrary,
   installLibrary,
   isLibraryPlace,
-  isUserGlobal,
-  isValidFile,
-  isValidGlobal,
   libraryScriptToLua,
   parseLibraryScript,
 } from "../libraries/library";
@@ -39,70 +36,49 @@ beforeAll(async () => {
 });
 
 const PREFIX = `local p=string.format("/%02X/",gpc())`;
-const rows = [
-  { global: "_Test", file: "test" },
-  { global: "Util", file: "util" },
-];
+const rows = [{ global: "_Test", file: "test" }];
+const firmwareNames = new Set(
+  GridScript.validator.lookup.flatMap((e) => [e.human, e.short]),
+);
 
 describe("Library script", () => {
   test("round-trips the rows", () => {
     const script = libraryScriptToLua(rows);
-    expect(script).toBe(
-      `${PREFIX}_Test=require(p.."test")Util=require(p.."util")`,
-    );
+    expect(script).toBe(`${PREFIX}_Test=require(p.."test")`);
     expect(parseLibraryScript(script)).toEqual(rows);
     expect(parseLibraryScript(PREFIX)).toEqual([]);
+    expect(parseLibraryScript(`${PREFIX} _Test=require(p.."test")`)).toEqual(
+      rows,
+    );
   });
 
-  test("survives compression on the way to the module", () => {
-    const script = libraryScriptToLua(rows);
+  test("bundled libraries survive the send path and stay out of user names", () => {
+    const script = libraryScriptToLua(bundledLibraries);
     expect(GridScript.compressScript(script)).toBe(script);
-    expect(parseLibraryScript(`${PREFIX} _Test=require(p.."test")`)).toEqual([
-      rows[0],
-    ]);
-  });
-
-  test.each([
-    `print("hi")`,
-    `${PREFIX} local Util=require(p.."util")`,
-    `${PREFIX} Util=require(p.."util") print(Util)`,
-    `${PREFIX} Util=require(p.."sub/util")`,
-  ])("other scripts are not a Library block: %j", (script) => {
-    expect(parseLibraryScript(script)).toBeNull();
-  });
-
-  test.each(["led_value", "glp", "p", "require", "end"])(
-    "%s is rejected as a global and as a file",
-    (name) => {
-      expect(isValidGlobal(name)).toBe(false);
-      expect(isValidFile(name)).toBe(false);
-      expect(
-        parseLibraryScript(`${PREFIX}Util=require(p.."${name}")`),
-      ).toBeNull();
-    },
-  );
-
-  test("bundled libraries have valid names in the reserved space", () => {
     for (const lib of bundledLibraries) {
-      expect(isValidGlobal(lib.global)).toBe(true);
-      expect(isUserGlobal(lib.global)).toBe(false);
-      expect(isValidFile(lib.file)).toBe(true);
+      expect(lib.global).toMatch(/^_[A-Z][A-Za-z0-9_]*$/);
+      expect(lib.file).toMatch(/^[A-Za-z0-9_]+$/);
+      expect(firmwareNames.has(lib.global)).toBe(false);
+      expect(firmwareNames.has(lib.file)).toBe(false);
     }
   });
 
   test.each([
+    `print("hi")`,
+    `${PREFIX} local _Test=require(p.."test")`,
+    `${PREFIX} _Test=require(p.."test") print(_Test)`,
+    `${PREFIX}Util=require(p.."util")`,
     `${PREFIX}Test=require(p.."test")`,
-    `${PREFIX}_Mine=require(p.."util")`,
     `${PREFIX}_Test=require(p.."util")`,
-  ])("bundled and user names stay apart: %j", (script) => {
+  ])("other scripts are not a Library block: %j", (script) => {
     expect(parseLibraryScript(script)).toBeNull();
   });
 
-  test("a global is loaded only once", () => {
-    const twice = [rows[1], { global: "Util", file: "other" }];
-    expect(areValidRows(twice)).toBe(false);
-    expect(parseLibraryScript(libraryScriptToLua(twice))).toBeNull();
+  test("a library is loaded only once", () => {
     expect(areValidRows([rows[0], rows[0]])).toBe(false);
+    expect(
+      parseLibraryScript(libraryScriptToLua([rows[0], rows[0]])),
+    ).toBeNull();
   });
 });
 

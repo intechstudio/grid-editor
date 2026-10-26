@@ -35,47 +35,13 @@ export function findBundledLibrary(file: string): BundledLibrary | undefined {
   return bundledLibraries.find((e) => e.file === file);
 }
 
-// Names the user can't pick for a library: firmware functions, names the
-// Library block line uses, and Lua keywords.
-const RESERVED_NAMES = new Set([
-  ...GridScript.validator.lookup.flatMap(
-    (e: { human?: string; short?: string }) => [e.human, e.short],
-  ),
-  ...["p", "self", "require", "string", "gpc"],
-  ...["and", "break", "do", "else", "elseif", "end", "false", "for"],
-  ...["function", "goto", "if", "in", "local", "nil", "not", "or"],
-  ...["repeat", "return", "then", "true", "until", "while"],
-]);
-
-export function isValidGlobal(name: string): boolean {
-  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) && !RESERVED_NAMES.has(name);
-}
-
-// A global the user can bind their own file to: names starting with _ and an
-// uppercase letter belong to bundled libraries (and to Lua itself).
-export function isUserGlobal(name: string): boolean {
-  return isValidGlobal(name) && !/^_[A-Z]/.test(name);
-}
-
-export function isValidFile(name: string): boolean {
-  return /^[A-Za-z0-9_]+$/.test(name) && !RESERVED_NAMES.has(name);
-}
-
-// Keeps the names the blocks rely on: a bundled library loads under its own
-// global, a user file under a user global, and no global is loaded twice.
+// Keeps the names the blocks rely on: every row loads a bundled library
+// under its own global, and each library once.
 export function areValidRows(rows: LibraryRow[]): boolean {
-  const globals = rows.map((e) => e.global);
+  const files = rows.map((e) => e.file);
   return (
-    new Set(globals).size === globals.length &&
-    rows.every((e) => {
-      const bundled = findBundledLibrary(e.file);
-      return (
-        isValidFile(e.file) &&
-        (typeof bundled === "undefined"
-          ? isUserGlobal(e.global)
-          : e.global === bundled.global)
-      );
-    })
+    new Set(files).size === files.length &&
+    rows.every((e) => findBundledLibrary(e.file)?.global === e.global)
   );
 }
 
