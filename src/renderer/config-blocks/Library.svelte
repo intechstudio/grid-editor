@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import { categoryColors } from "./categoryColors";
-  import { libraryScriptToLua } from "../libraries/library-script";
+  import { libraryScriptToLua } from "../libraries/library";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -14,8 +14,6 @@
     displayName: "Library",
     description: "Load Lua libraries from the page folder",
     documentationUrl: "https://docs.intech.studio/wiki/actions/code/library",
-    // No rows: a fresh block loads nothing, so it can't break the Setup
-    // with a require error before the file is on the module.
     defaultLua: libraryScriptToLua([]),
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5Z"/><path d="M6 21h13v-2"/><path d="M8.5 7.5h6"/><path d="M8.5 11h4"/></svg>`,
     color: categoryColors["code"],
@@ -30,8 +28,8 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
-  import { Architecture, ElementType } from "@intechstudio/grid-protocol";
+  import { createEventDispatcher, onMount } from "svelte";
+  import { Architecture } from "@intechstudio/grid-protocol";
   import {
     Block,
     MeltCombo,
@@ -48,29 +46,14 @@
   } from "../runtime/runtime";
   import {
     type LibraryRow,
-    fileNameProblem,
-    formatLibraryScript,
-    globalNameProblem,
+    bundledLibraries,
+    findBundledLibrary,
+    installLibrary,
     isValidFile,
     isValidGlobal,
-    parseLibraryScript,
-    shadowsBuiltinGlobal,
-    globalClashes,
-  } from "../libraries/library-script";
-  import { bundledLibraries, findLibraryByFile } from "../libraries/registry";
-  import {
-    type LibraryBinding,
-    type LibraryStatus,
-    deriveLibraryStatus,
-    libraryAction,
-  } from "../libraries/library-status";
-  import {
-    installLibrary,
     listPageLibraries,
-    logLibraryVersion,
-    readBoundLibraries,
-    rerunSetup,
-  } from "../libraries/library-device";
+    parseLibraryScript,
+  } from "../libraries/library";
   import { pageNumberToFolderPath } from "../main/panels/FileManager/FileManager";
   import { mergeActionsToCode } from "../runtime/operations";
 
@@ -90,8 +73,6 @@
   let rows: EditRow[] = [];
   let canonical = true;
 
-  // An invalid action holds this block's own unfinished rows (see sendData);
-  // the editor reverts it to the last valid script when the block closes.
   $: if (!$action.invalid) {
     handleActionChange($action);
   }
@@ -100,12 +81,8 @@
     const parsed = parseLibraryScript(data.script);
     canonical = parsed !== null;
     if (parsed !== null && !sameRows(parsed, rows)) {
-      setRows(parsed);
+      rows = parsed.map((e) => ({ ...e, id: nextId++ }));
     }
-  }
-
-  function setRows(next: LibraryRow[]) {
-    rows = next.map((e) => ({ global: e.global, file: e.file, id: nextId++ }));
   }
 
   function sameRows(a: LibraryRow[], b: LibraryRow[]) {
@@ -115,30 +92,15 @@
     );
   }
 
-  function isValidRow(row: LibraryRow) {
-    return isValidGlobal(row.global) && isValidFile(row.file);
-  }
-
-  // Dispatches only when the rows differ from what the action holds, so
-  // opening or re-rendering the block never changes the Setup script.
-  // Returns whether it dispatched.
-  function sendData(): boolean {
+  function sendData() {
     const plain = rows.map((e) => ({ global: e.global, file: e.file }));
-    const valid = plain.every(isValidRow);
-    const current = parseLibraryScript(action.script);
-
-    if (valid && !$action.invalid && current !== null) {
-      if (sameRows(plain, current)) {
-        return false;
-      }
-    }
-
     dispatch("update-action", {
       short: information.short,
-      script: valid ? libraryScriptToLua(plain) : formatLibraryScript(plain),
-      validationError: !valid,
+      script: libraryScriptToLua(plain),
+      validationError: !plain.every(
+        (e) => isValidGlobal(e.global) && isValidFile(e.file),
+      ),
     });
-    return true;
   }
 
   function syncWithGrid() {
@@ -151,9 +113,8 @@
 
   function removeRow(id: number) {
     rows = rows.filter((e) => e.id !== id);
-    if (sendData()) {
-      syncWithGrid();
-    }
+    sendData();
+    syncWithGrid();
   }
 
   function handleGlobalInput(row: EditRow, value: string) {
@@ -164,7 +125,7 @@
 
   function handleFileInput(row: EditRow, value: string) {
     row.file = value;
-    const library = findLibraryByFile(value);
+    const library = findBundledLibrary(value);
     if (row.global === "" && typeof library !== "undefined") {
       row.global = library.global;
     }
@@ -176,245 +137,62 @@
     mergeActionsToCode(event, false, action);
   }
 
-  // Lua files in the page folder; undefined when the module can't be asked
-  // (offline, virtual or the listing failed), which shows no status.
+  // Lua files in the page folder; undefined when the module can't be asked.
   let folderFiles: string[] | undefined = undefined;
-  // What Setup bound to each row's global, by global name.
-  let bindings: Record<string, LibraryBinding> = {};
-  // Per row file: an action is running, or the last one failed.
-  let busy: Record<string, boolean> = {};
-  let actionErrors: Record<string, string | undefined> = {};
-  let refreshToken = 0;
+  let installing: string | undefined = undefined;
+  let installError: string | undefined = undefined;
 
-  // Asks the module on mount, after Install/Update/Reload and after a file
-  // name is committed. A page change mounts the blocks of the new page, so it
-  // refreshes too. No polling.
+  // Shows the user which of the block's libraries are on the module.
   async function refresh() {
     if (module.architecture === Architecture.VIRTUAL) {
       return;
     }
-    const token = ++refreshToken;
     try {
-      const files = (await listPageLibraries(page.pageNumber, module)).filter(
-        isValidFile,
-      );
-      const globals = [
-        ...new Set(rows.map((e) => e.global).filter(isValidGlobal)),
-      ];
-      const next = await readBoundLibraries(globals, module);
-      if (token !== refreshToken) {
-        return;
-      }
-      folderFiles = files;
-      bindings = next;
-      // Only a global Setup bound counts as loaded, so the log line is true.
-      for (const row of rows) {
-        const binding = next[row.global];
-        if (
-          files.includes(row.file) &&
-          binding?.bound &&
-          typeof binding.version !== "undefined"
-        ) {
-          logLibraryVersion(module, page.pageNumber, row.file, binding.version);
-        }
-      }
+      folderFiles = await listPageLibraries(page.pageNumber, module);
     } catch {
-      if (token === refreshToken) {
-        folderFiles = undefined;
-        bindings = {};
-      }
+      folderFiles = undefined;
     }
   }
 
-  // The other scripts on this page, for the global clash warning,
-  // Library blocks excluded. Page-wide globals usually live on the system
-  // element, so only its events are fetched when not loaded yet (one that
-  // fails is skipped); the other elements' events are read only when the
-  // editor already has them, so opening the face on a large module doesn't
-  // fetch every event. Read once a row has a valid global, and not after the
-  // face is gone.
-  let pageScripts: { label: string; script: string }[] = [];
-  let scanStarted = false;
-  let destroyed = false;
+  onMount(refresh);
 
-  async function readPageScripts() {
-    const scripts: { label: string; script: string }[] = [];
-    for (const element of page.control_elements) {
-      const mayFetch = element.type === ElementType.SYSTEM;
-      for (const pageEvent of element.events) {
-        if (destroyed) {
-          return;
-        }
-        try {
-          if (!pageEvent.isLoaded()) {
-            if (!mayFetch) {
-              continue;
-            }
-            await pageEvent.load();
-          }
-        } catch {
-          continue;
-        }
-        const label = `${element.getHumanName()} ${pageEvent.getName()}`;
-        for (const other of pageEvent.config) {
-          if (other.short !== "lib") {
-            scripts.push({ label, script: other.script });
-          }
-        }
-      }
+  // Lets the user install a missing bundled library and use it right away.
+  async function handleInstall(file: string) {
+    const library = findBundledLibrary(file);
+    if (typeof library === "undefined") {
+      return;
     }
-    pageScripts = scripts;
-  }
-
-  let mounted = false;
-  onMount(() => {
-    mounted = true;
-    refresh();
-  });
-  onDestroy(() => {
-    destroyed = true;
-  });
-
-  $: if (
-    mounted &&
-    !scanStarted &&
-    module.architecture !== Architecture.VIRTUAL &&
-    rows.some((e) => isValidGlobal(e.global))
-  ) {
-    scanStarted = true;
-    readPageScripts();
-  }
-
-  function rowStatus(
-    row: EditRow,
-    files: string[] | undefined,
-    bound: Record<string, LibraryBinding>,
-  ): LibraryStatus {
-    if (!isValidFile(row.file) || !isValidGlobal(row.global)) {
-      return { kind: "unknown" };
-    }
-    return deriveLibraryStatus(
-      row.file,
-      files,
-      bound[row.global],
-      findLibraryByFile(row.file),
-    );
-  }
-
-  function statusText(status: LibraryStatus, file: string): string {
-    switch (status.kind) {
-      case "missing":
-        return `${file}.lua is missing in ${pageNumberToFolderPath(page.pageNumber)}`;
-      case "not loaded":
-        return `${file}.lua is there but not loaded`;
-      case "present":
-        return `present ${status.version ?? "(no version)"}`;
-      case "older":
-        return `older ${status.version} (bundled ${status.bundled})`;
-      case "newer":
-        return `newer ${status.version} than bundled ${status.bundled}`;
-      default:
-        return "";
-    }
-  }
-
-  const ACTION_LABELS = {
-    install: ["Install", "Installing..."],
-    update: ["Update", "Updating..."],
-    reload: ["Reload", "Reloading..."],
-  };
-
-  // Rows the module doesn't have yet: unfinished (the action is invalid, so
-  // the event isn't sent) or not dispatched. Install/Update/Reload re-run the
-  // Setup in module RAM and release the globals it binds, so they wait until
-  // the rows are sent: the editor doesn't track what module RAM holds.
-  let unsent = false;
-  $: unsent =
-    $action.invalid ||
-    !sameRows(
-      rows.map((e) => ({ global: e.global, file: e.file })),
-      parseLibraryScript($action.script) ?? [],
-    );
-
-  // Install and Update write the bundled source; all three then re-run this
-  // element's Setup so the rows are bound without resending the config.
-  async function handleLibraryAction(
-    file: string,
-    kind: "install" | "update" | "reload",
-  ) {
-    busy = { ...busy, [file]: true };
-    actionErrors = { ...actionErrors, [file]: undefined };
-    let written = false;
+    installing = file;
+    installError = undefined;
     try {
-      const library = findLibraryByFile(file);
-      if (kind !== "reload" && typeof library !== "undefined") {
-        await installLibrary(library, page.pageNumber, module);
-        written = true;
-      }
-      // the rows of the sent script (the same as the edited ones, see unsent)
-      await rerunSetup(
-        element.elementIndex,
+      await installLibrary(
+        library,
         page.pageNumber,
+        element.elementIndex,
         module,
-        parseLibraryScript(action.script) ?? [],
       );
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      actionErrors = {
-        ...actionErrors,
-        [file]: written ? `Installed, but ${message}` : message,
-      };
+      installError = e instanceof Error ? e.message : String(e);
     } finally {
+      installing = undefined;
       await refresh();
-      busy = { ...busy, [file]: false };
     }
   }
 
   let fileSuggestions: MeltComboSuggestion[];
   $: fileSuggestions = [
     ...bundledLibraries.map((e) => ({
-      value: e.file.slice(0, -".lua".length),
-      info: `${e.id} (bundled v${e.version})`,
+      value: e.file,
+      info: `${e.file}.lua (bundled)`,
     })),
     ...(folderFiles ?? [])
-      .filter((e) => typeof findLibraryByFile(e) === "undefined")
+      .filter((e) => typeof findBundledLibrary(e) === "undefined")
       .map((e) => ({ value: e, info: `${e}.lua (page folder)` })),
   ];
 
   const globalSuggestions: MeltComboSuggestion[] = bundledLibraries.map(
-    (e) => ({ value: e.global, info: `${e.global} (${e.id})` }),
+    (e) => ({ value: e.global, info: `${e.global} (${e.file}.lua)` }),
   );
-
-  function rowWarning(
-    row: EditRow,
-    all: EditRow[],
-    scripts: { label: string; script: string }[],
-  ): string | undefined {
-    if (
-      row.global !== "" &&
-      all.filter((e) => e.global === row.global).length > 1
-    ) {
-      return `"${row.global}" is bound by more than one row, the last one wins`;
-    }
-    if (shadowsBuiltinGlobal(row.global)) {
-      return `"${row.global}" replaces a built-in global for every script on the module`;
-    }
-    const where = isValidGlobal(row.global)
-      ? globalClashes(row.global, scripts)
-      : [];
-    if (where.length > 0) {
-      return `"${row.global}" is also assigned in ${where.join(", ")}: whichever runs last wins`;
-    }
-    return undefined;
-  }
-
-  // An empty field of a new row is not an error yet, just unfinished.
-  function rowError(row: EditRow): string | undefined {
-    return (
-      (row.global !== "" ? globalNameProblem(row.global) : undefined) ??
-      (row.file !== "" ? fileNameProblem(row.file) : undefined)
-    );
-  }
 </script>
 
 <library-block class="flex flex-col w-full px-4 py-2 pointer-events-auto">
@@ -430,10 +208,7 @@
               validator={(e) => e === "" || isValidGlobal(e)}
               valueInfoEnabled={false}
               on:input={(e) => handleGlobalInput(row, e.detail.value)}
-              on:change={() => {
-                syncWithGrid();
-                refresh();
-              }}
+              on:change={syncWithGrid}
             />
             <MeltCombo
               title={"File"}
@@ -467,56 +242,37 @@
               </svg>
             </button>
           </div>
-          {#if rowError(row)}
-            <span class="text-xs text-error">{rowError(row)}</span>
-          {:else if rowWarning(row, rows, pageScripts)}
-            <span class="text-xs text-warning" data-row-warning
-              >{rowWarning(row, rows, pageScripts)}</span
-            >
-          {/if}
-          {#if !rowError(row)}
-            {@const status = rowStatus(row, folderFiles, bindings)}
-            {@const buttonAction = libraryAction(
-              status,
-              findLibraryByFile(row.file),
-            )}
-            {#if status.kind !== "unknown"}
+          {#if typeof folderFiles !== "undefined" && isValidFile(row.file)}
+            {#if folderFiles.includes(row.file)}
+              <span class="text-xs text-gray-500" data-status="present"
+                >{row.file}.lua is on the module</span
+              >
+            {:else}
               <div
                 class="flex flex-row items-center gap-2"
-                data-status={status.kind}
+                data-status="missing"
               >
-                <span
-                  class="text-xs"
-                  class:text-warning={[
-                    "missing",
-                    "not loaded",
-                    "older",
-                  ].includes(status.kind)}
-                  class:text-gray-500={["present", "newer"].includes(
-                    status.kind,
-                  )}>{statusText(status, row.file)}</span
+                <span class="text-xs text-warning"
+                  >{row.file}.lua is missing in {pageNumberToFolderPath(
+                    page.pageNumber,
+                  )}</span
                 >
-                {#if typeof buttonAction !== "undefined"}
+                {#if findBundledLibrary(row.file)}
                   <MoltenPushButton
-                    text={ACTION_LABELS[buttonAction][busy[row.file] ? 1 : 0]}
-                    disabled={busy[row.file] === true || unsent}
-                    click={() => handleLibraryAction(row.file, buttonAction)}
+                    text={installing === row.file ? "Installing..." : "Install"}
+                    disabled={typeof installing !== "undefined" ||
+                      $action.invalid}
+                    click={() => handleInstall(row.file)}
                   />
                 {/if}
               </div>
             {/if}
-            {#if unsent && typeof buttonAction !== "undefined"}
-              <span class="text-xs text-gray-500"
-                >Finish the rows first: {ACTION_LABELS[buttonAction][0]} runs the
-                Setup on the module.</span
-              >
-            {/if}
-            {#if actionErrors[row.file]}
-              <span class="text-xs text-error">{actionErrors[row.file]}</span>
-            {/if}
           {/if}
         </div>
       {/each}
+      {#if installError}
+        <span class="text-xs text-error">{installError}</span>
+      {/if}
       {#if rows.length === 0}
         <span class="text-sm text-gray-500">No libraries loaded.</span>
       {/if}
