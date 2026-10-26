@@ -177,15 +177,16 @@ export async function installLibrary(
 // is released first, so the module doesn't hold two copies.
 async function rerunSetups(global: string, module: GridModule) {
   const { value } = await module.execLUAImmediateAndEvalaute(
-    `local g=rawget(_G,"${global}")` +
-      `if type(g)=="table" and type(g.unload)=="function" then pcall(g.unload,g) end ` +
+    `do local g=rawget(_G,"${global}") ` +
+      `if type(g)=="table" and type(g.unload)=="function" then pcall(g.unload,g) end end ` +
       `_G["${global}"]=nil collectgarbage() ` +
-      `local f local function run(e,n) if e and e.ini then local ok,err=pcall(e.ini,e) ` +
-      `if not ok and not f then f=n..": "..tostring(err):sub(1,100) end end end ` +
-      `run(ele[#ele],"System") for i=0,#ele-1 do run(ele[i],"element "..i) end ` +
-      `return f==nil,f`,
+      `local n,f local function run(e,i) if e and e.ini then local ok,err=pcall(e.ini,e) ` +
+      `if not ok and not f then n,f=i,tostring(err):sub(1,100) end end end ` +
+      `run(ele[#ele],-1) for i=0,#ele-1 do run(ele[i],i) end ` +
+      `return f==nil,n,f`,
   );
   if (value[0] !== true) {
-    throw new Error(`Setup failed on ${String(value[1] ?? "unknown error")}`);
+    const where = value[1] === -1 ? "System" : `element ${value[1]}`;
+    throw new Error(`Setup failed on ${where}: ${String(value[2])}`);
   }
 }

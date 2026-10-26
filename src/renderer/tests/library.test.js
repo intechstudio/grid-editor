@@ -139,14 +139,14 @@ describe("installLibrary", () => {
     const lua = module.execLUAImmediateAndEvalaute.mock.calls[0][0];
     expect(lua).toContain(`_G["_Test"]=nil`);
     expect(lua).toContain(
-      `run(ele[#ele],"System") for i=0,#ele-1 do run(ele[i],"element "..i) end`,
+      `run(ele[#ele],-1) for i=0,#ele-1 do run(ele[i],i) end`,
     );
   });
 
   test("a failing Setup is reported", async () => {
     fetchDirEntries.mockResolvedValue([{ name: "02", type: "dir" }]);
     module.execLUAImmediateAndEvalaute.mockResolvedValue({
-      value: [false, "element 0: boom"],
+      value: [false, 0, "boom"],
     });
     await expect(
       installLibrary(findBundledLibrary("test"), 2, module),
