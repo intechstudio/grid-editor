@@ -40,34 +40,46 @@ beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const PREFIX = `local p=string.format("/%02X/",gpc())`;
+const PREFIX =
+  `local p=string.format("/%02X/",gpc())` +
+  `local function r(n)local ok,m=pcall(require,p..n)if ok then return m end ` +
+  `print(p..n..".lua missing")end`;
 const rows = [{ global: "_Test", file: "test" }];
 const test1 = findBundledLibrary("test");
 
 describe("Library script", () => {
   test("round-trips the rows", () => {
     const script = libraryScriptToLua(rows);
-    expect(script).toBe(`${PREFIX}_Test=require(p.."test")`);
+    expect(script).toBe(`${PREFIX} _Test=r("test")`);
     expect(parseLibraryScript(script)).toEqual(rows);
     expect(parseLibraryScript(PREFIX)).toEqual([]);
-    expect(parseLibraryScript(`${PREFIX} _Test=require(p.."test")`)).toEqual(
-      rows,
-    );
+  });
+
+  test("the module gets the script as the editor writes it", () => {
+    const two = [...rows, { global: "_util", file: "util" }];
+    for (const script of [
+      libraryScriptToLua([]),
+      libraryScriptToLua(rows),
+      libraryScriptToLua(two),
+    ]) {
+      expect(GridScript.compressScript(script)).toBe(script);
+    }
   });
 
   test("loads user libraries under an underscore global", () => {
-    expect(parseLibraryScript(`${PREFIX}_util=require(p.."util")`)).toEqual([
+    expect(parseLibraryScript(`${PREFIX} _util=r("util")`)).toEqual([
       { global: "_util", file: "util" },
     ]);
   });
 
   test.each([
     `print("hi")`,
-    `${PREFIX} local _Test=require(p.."test")`,
-    `${PREFIX} _Test=require(p.."test") print(_Test)`,
-    `${PREFIX}Util=require(p.."util")`,
-    `${PREFIX}_Test=require(p.."test")_Test=require(p.."test")`,
-    `${PREFIX}_Test=require(p.."test")_Test=require(p.."other")`,
+    `local p=string.format("/%02X/",gpc())_Test=require(p.."test")`,
+    `${PREFIX} local _Test=r("test")`,
+    `${PREFIX} _Test=r("test") print(_Test)`,
+    `${PREFIX} Util=r("util")`,
+    `${PREFIX} _Test=r("test")_Test=r("test")`,
+    `${PREFIX} _Test=r("test")_Test=r("other")`,
   ])("other scripts are not a Library block: %j", (script) => {
     expect(parseLibraryScript(script)).toBeNull();
   });
