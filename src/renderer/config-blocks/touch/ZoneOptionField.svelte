@@ -1,8 +1,8 @@
 <script lang="ts">
   // One option of a Touch block face, from its schema: a select for an enum,
-  // a text field for a number, a picker and a hex field for a colour. The
-  // empty value means "leave the option out" (the default, shown as the
-  // placeholder or the first select entry).
+  // a field with suggestions for a number, a picker and a hex field for a
+  // colour. The empty value means "leave the option out" (the default: the
+  // placeholder, or the selected entry of a select).
   import { createEventDispatcher } from "svelte";
   import {
     CircleColorPicker,
@@ -17,13 +17,14 @@
     ColorPickerModel,
   } from "../../runtime/app-helper.store";
   import type { OptionSchema } from "./zone-model";
-  import { enumOptions } from "./zone-blocks";
+  import { enumOptions, type OptionSuggestion } from "./zone-blocks";
 
   export let schema: OptionSchema;
   export let title: string;
   export let value: string;
   export let placeholder = "";
   export let problem: string | undefined = undefined;
+  export let suggestions: OptionSuggestion[] = [];
   // Whether typed text is valid; MeltCombo checks it before the face updates.
   export let validator: (text: string) => boolean = () => true;
 
@@ -32,11 +33,13 @@
   // MeltSelect only binds its target. Report a change only when the user
   // picked something: MeltSelect can set its target on mount (undefined when
   // the value isn't an option), and the parent's own updates come back here.
-  let selected = value;
-  let last = value;
-  $: if (value !== last) {
-    last = value;
-    selected = value;
+  // Without the option the select shows the default (the placeholder).
+  $: shown = value === "" ? placeholder : value;
+  let selected = value === "" ? placeholder : value;
+  let last = selected;
+  $: if (shown !== last) {
+    last = shown;
+    selected = shown;
   }
   $: if (
     schema.type === "enum" &&
@@ -48,10 +51,12 @@
     dispatch("change", selected);
   }
 
-  $: options = enumOptions(schema, value, placeholder);
+  $: options = enumOptions(schema, value);
 
+  // A field with suggestions shows its values there, not as "(min–max)".
   $: range =
     (schema.type === "integer" || schema.type === "number") &&
+    suggestions.length === 0 &&
     (typeof schema.min !== "undefined" || typeof schema.max !== "undefined")
       ? ` (${schema.min ?? ""}–${schema.max ?? ""})`
       : "";
@@ -123,7 +128,8 @@
       {value}
       {placeholder}
       {validator}
-      valueInfoEnabled={false}
+      {suggestions}
+      valueInfoEnabled={suggestions.length > 0}
       on:input={(e) => dispatch("input", e.detail.value)}
       on:change={(e) => dispatch("change", e.detail?.value ?? value)}
     />

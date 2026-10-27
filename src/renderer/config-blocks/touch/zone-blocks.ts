@@ -15,6 +15,9 @@ import {
   zoneSectionsOpen,
 } from "./zone-model";
 import { parseZone, zoneToLua } from "./zone-parse";
+import type { ZoneMidi } from "./zone-autos";
+import { midiCC } from "../_midi.js";
+import { MusicalNotes } from "../../main/panels/MidiMonitor/midi-types";
 
 export const zoneBlockShort: Record<ZoneKind, string> = {
   fader: "zfd",
@@ -116,26 +119,129 @@ export function optionPlaceholder(kind: ZoneKind, key: string): string {
 
 export type EnumOption = { title: string; value: string };
 
-// Select entries of an enum option: the default first (value ""), then the
-// schema's values. A value the schema doesn't know (a newer editor's painter,
-// a hand-written line) is listed too, so the select shows what the line says
-// and nothing is rewritten until the user picks something.
-export function enumOptions(
-  schema: OptionSchema,
-  value: string,
-  placeholder: string,
-): EnumOption[] {
+// Select titles of enum values.
+const enumValueLabels: Record<string, Record<string, string>> = {
+  dir: { v: "Vertical", h: "Horizontal" },
+  msg: { cc: "CC", note: "Note", pb: "Pitch bend", none: "None" },
+  mode: { abs: "Absolute", rel: "Relative", glide: "Glide" },
+  grab: { focus: "Focus", live: "Live" },
+};
+
+// Select entries of an enum option: the schema's values; the zone's default
+// is selected when the line leaves the option out. A value the schema doesn't
+// know (a newer editor's, a hand-written line) is listed too, so the select
+// shows what the line says and nothing is rewritten until the user picks
+// something.
+export function enumOptions(schema: OptionSchema, value: string): EnumOption[] {
   if (schema.type !== "enum") {
     return [];
   }
-  const options = [
-    { title: `default (${placeholder})`, value: "" },
-    ...schema.values.map((e) => ({ title: e, value: e })),
-  ];
+  const labels = enumValueLabels[schema.key] ?? {};
+  const options = schema.values.map((e) => ({
+    title: labels[e] ?? e,
+    value: e,
+  }));
   if (value !== "" && !schema.values.includes(value)) {
     options.push({ title: `${value} (unknown)`, value });
   }
   return options;
+}
+
+export type OptionSuggestion = { value: string; info: string };
+
+const OFF_ON: OptionSuggestion[] = [
+  { value: "0", info: "Off" },
+  { value: "1", info: "On" },
+];
+
+// Values offered in a number field, like the MIDI block's lists: channels,
+// CC names or notes with the auto value first, and the common values of the
+// other options. `midi` is what the zone sends (zone-autos.ts).
+export function zoneOptionSuggestions(
+  zone: Zone,
+  key: string,
+  midi?: ZoneMidi | null,
+): OptionSuggestion[] {
+  const msg = zone.opt.msg ?? zoneOptionDefault(zone.kind, "msg");
+  switch (key) {
+    case "ch":
+      return [
+        {
+          value: "-1",
+          info: midi ? `Auto (channel ${midi.ch + 1})` : "Auto",
+        },
+        ...Array.from({ length: 16 }, (_, i) => ({
+          value: String(i),
+          info: `Channel ${i + 1}`,
+        })),
+      ];
+    case "num": {
+      const auto = midi?.nums[0];
+      if (msg === "note") {
+        return [
+          {
+            value: "-1",
+            info:
+              typeof auto === "number"
+                ? `Auto (${MusicalNotes.FromInt(auto)})`
+                : "Auto",
+          },
+          ...Array.from({ length: 128 }, (_, i) => ({
+            value: String(i),
+            info: MusicalNotes.FromInt(i),
+          })),
+        ];
+      }
+      if (msg === "cc") {
+        return [
+          {
+            value: "-1",
+            info: typeof auto === "number" ? `Auto (${auto})` : "Auto",
+          },
+          ...Object.entries(midiCC as Record<string, string>).map(
+            ([value, info]) => ({ value, info }),
+          ),
+        ];
+      }
+      return [];
+    }
+    case "res":
+      return Array.from({ length: 8 }, (_, i) => ({
+        value: String(i + 7),
+        info: `0–${2 ** (i + 7) - 1}`,
+      }));
+    case "min":
+      return [{ value: "0", info: "Lowest" }];
+    case "max":
+      return [
+        { value: "127", info: "7 bit" },
+        { value: "16383", info: "14 bit" },
+      ];
+    case "rx":
+    case "led":
+    case "spring":
+      return OFF_ON;
+    case "bmo":
+      return [
+        { value: "0", info: "Momentary" },
+        { value: "1", info: "Toggle" },
+      ];
+    case "group":
+      return [
+        { value: "0", info: "None" },
+        ...Array.from({ length: 8 }, (_, i) => ({
+          value: String(i + 1),
+          info: `Group ${i + 1}`,
+        })),
+      ];
+    case "fingers":
+      return Array.from({ length: 5 }, (_, i) => ({
+        value: String(i + 1),
+        info: i === 0 ? "1 finger" : `${i + 1} fingers`,
+      }));
+    default:
+      return [];
+  }
 }
 
 // Parses a field's text into an option value. Empty means "leave it out"
@@ -218,20 +324,25 @@ export const optionLabels: Record<string, string> = {
   speed: "Speed",
   ease: "Ease",
   bmo: "Button mode",
-  spring: "Spring to centre (0 off, 1 on)",
+  spring: "Spring to centre",
   fingers: "Fingers (one channel each)",
   group: "Radio group",
   grab: "Capture",
-  led: "LED feedback (0 off, 1 on)",
+  led: "LED feedback",
   col: "Colour",
   msg: "Message",
   ch: "Channel",
-  num: "Number",
-  rx: "Receive (0 off, 1 on)",
+  num: "CC",
+  rx: "Receive MIDI",
   ms: "Interval (ms)",
 };
 
-export function optionLabel(key: string): string {
+// The field title; the number is a CC or a note, by what the zone sends.
+export function optionLabel(key: string, zone?: Zone): string {
+  if (key === "num" && typeof zone !== "undefined") {
+    const msg = zone.opt.msg ?? zoneOptionDefault(zone.kind, "msg");
+    return msg === "note" ? "Note" : "CC";
+  }
   return optionLabels[key] ?? key;
 }
 

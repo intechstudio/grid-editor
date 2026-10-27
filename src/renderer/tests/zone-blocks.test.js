@@ -11,6 +11,8 @@ import {
   withField,
   zoneBlockShort,
   enumOptions,
+  optionLabel,
+  zoneOptionSuggestions,
 } from "../config-blocks/touch/zone-blocks";
 import { SyntaxPreprocessor } from "../config-blocks/ActionBlockInformation";
 import {
@@ -21,6 +23,7 @@ import {
 } from "../config-blocks/touch/zone-block-info";
 import {
   zoneOptionSchema,
+  zoneOptionSchemaFor,
   zoneTickSchema,
 } from "../config-blocks/touch/zone-model";
 import { parseZone, zoneToLua } from "../config-blocks/touch/zone-parse";
@@ -110,29 +113,78 @@ describe("face sections", () => {
 });
 
 describe("enum select entries", () => {
-  test("default first, then the schema's values", () => {
-    expect(enumOptions(schema("mode"), "", "abs")).toEqual([
-      { title: "default (abs)", value: "" },
-      { title: "abs", value: "abs" },
-      { title: "rel", value: "rel" },
-      { title: "glide", value: "glide" },
+  test("the schema's values with titles, no separate default entry", () => {
+    expect(enumOptions(schema("mode"), "")).toEqual([
+      { title: "Absolute", value: "abs" },
+      { title: "Relative", value: "rel" },
+      { title: "Glide", value: "glide" },
+    ]);
+    const xy = zoneOptionSchemaFor("xy").find((e) => e.key === "msg");
+    expect(enumOptions(xy, "")).toEqual([
+      { title: "CC", value: "cc" },
+      { title: "None", value: "none" },
     ]);
   });
 
   test("a value the schema doesn't know is listed, so it stays selected", () => {
-    const options = enumOptions(schema("mode"), "spring", "abs");
+    const options = enumOptions(schema("mode"), "spring");
     expect(options.at(-1)).toEqual({
       title: "spring (unknown)",
       value: "spring",
     });
     expect(options.filter((e) => e.value === "spring")).toHaveLength(1);
-    expect(enumOptions(schema("mode"), "rel", "abs").at(-1).value).toBe(
-      "glide",
-    );
+    expect(enumOptions(schema("mode"), "rel").at(-1).value).toBe("glide");
   });
 
   test("not for numbers", () => {
-    expect(enumOptions(schema("res"), "10", "7")).toEqual([]);
+    expect(enumOptions(schema("res"), "10")).toEqual([]);
+  });
+});
+
+describe("number field suggestions", () => {
+  const zone = (line) => parseZone(line);
+  const fader = zone(`_Z.fader("f1",0,0,1,9,{},function(self)`);
+  const button = zone(`_Z.button("b1",0,0,1,1,{},function(self)`);
+  const midi = { ch: 2, type: "cc", nums: [32], fingers: 1 };
+
+  test("channels with the resolved auto first", () => {
+    const list = zoneOptionSuggestions(fader, "ch", midi);
+    expect(list[0]).toEqual({ value: "-1", info: "Auto (channel 3)" });
+    expect(list[1]).toEqual({ value: "0", info: "Channel 1" });
+    expect(list).toHaveLength(17);
+  });
+
+  test("CC names for a CC zone, notes for a note zone", () => {
+    const ccs = zoneOptionSuggestions(fader, "num", midi);
+    expect(ccs[0]).toEqual({ value: "-1", info: "Auto (32)" });
+    expect(ccs[1]).toEqual({ value: "0", info: "0 - Bank Select" });
+    const notes = zoneOptionSuggestions(button, "num", {
+      ...midi,
+      type: "note",
+    });
+    expect(notes[0]).toEqual({ value: "-1", info: "Auto (G#0)" });
+    expect(notes).toHaveLength(129);
+  });
+
+  test("nothing to pick for pitch bend or no MIDI", () => {
+    const pb = zone(`_Z.fader("f1",0,0,1,9,{msg="pb"},function(self)`);
+    expect(zoneOptionSuggestions(pb, "num", null)).toEqual([]);
+  });
+
+  test("on/off fields and resolutions", () => {
+    expect(zoneOptionSuggestions(fader, "rx")).toEqual([
+      { value: "0", info: "Off" },
+      { value: "1", info: "On" },
+    ]);
+    const res = zoneOptionSuggestions(fader, "res");
+    expect(res[0]).toEqual({ value: "7", info: "0–127" });
+    expect(res.at(-1)).toEqual({ value: "14", info: "0–16383" });
+  });
+
+  test("the number is titled CC or Note by the message", () => {
+    expect(optionLabel("num", fader)).toBe("CC");
+    expect(optionLabel("num", button)).toBe("Note");
+    expect(optionLabel("rx")).toBe("Receive MIDI");
   });
 });
 

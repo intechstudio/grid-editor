@@ -26,6 +26,7 @@
     optionPlaceholder,
     optionText,
     withField,
+    zoneOptionSuggestions,
     withOption,
     zoneFaceSections,
     zoneSectionLabels,
@@ -232,10 +233,11 @@
             {#each options as schema (schema.key)}
               <ZoneOptionField
                 {schema}
-                title={optionLabel(schema.key)}
+                title={optionLabel(schema.key, zone)}
                 value={optionText(zone.opt[schema.key])}
                 placeholder={placeholderOf(schema.key)}
                 problem={problemOf(schema.key)}
+                suggestions={zoneOptionSuggestions(zone, schema.key, midi)}
                 validator={optionValid(schema)}
                 on:input={(e) => setOption(schema, e.detail)}
                 on:change={sync}
