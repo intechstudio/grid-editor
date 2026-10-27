@@ -34,7 +34,7 @@ import {
   parseLibraryHeader,
   parseLibraryScript,
   readPageLibraries,
-} from "../libraries/library";
+} from "../lib/library";
 
 beforeAll(async () => {
   await initLuaFormatter();

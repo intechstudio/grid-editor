@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   import { categoryColors } from "./categoryColors";
-  import { libraryScriptToLua } from "../libraries/library";
+  import { libraryScriptToLua } from "../lib/library";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
@@ -53,7 +53,7 @@
     pageLibrariesKey,
     parseLibraryScript,
     readPageLibraries,
-  } from "../libraries/library";
+  } from "../lib/library";
   import { pageNumberToFolderPath } from "../main/panels/FileManager/FileManager";
   import { mergeActionsToCode } from "../runtime/operations";
   import { logger } from "../runtime/runtime.store";

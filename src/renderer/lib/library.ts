@@ -20,7 +20,7 @@ import type {
   GridModule,
   GridPage,
 } from "../runtime/runtime";
-import testSource from "./test/test.lua?raw";
+import testSource from "../../content/libraries/test.lua?raw";
 
 export type LibraryRow = {
   global: string; // "_Test"

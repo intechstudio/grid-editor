@@ -8,10 +8,10 @@ import {
   LIB_VERSION_RULE,
   bundledLibraries,
   parseLibraryHeader,
-} from "../libraries/library";
+} from "../lib/library";
 
 // Every Lua file the editor ships as a library, so none can skip the check.
-const sources = import.meta.glob("../libraries/**/*.lua", {
+const sources = import.meta.glob("../../content/libraries/*.lua", {
   query: "?raw",
   import: "default",
   eager: true,

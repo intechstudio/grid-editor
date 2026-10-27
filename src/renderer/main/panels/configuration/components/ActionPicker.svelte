@@ -14,7 +14,7 @@
   import { getAllComponents } from "../../../../lib/_configs";
   import { toggledBlocks } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
-  import { isLibraryPlace } from "../../../../libraries/library";
+  import { isLibraryPlace } from "../../../../lib/library";
   import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
