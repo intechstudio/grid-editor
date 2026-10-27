@@ -321,7 +321,7 @@ describe("Z.unload", () => {
   test("survives compressScript (RFC 2.1)", () => {
     const compressed = GridScript.compressScript(zonaSource);
     expect(compressed).toContain("function Z.unload()");
-    expect(compressed).toContain('Z.VERSION="0.8.7"');
+    expect(compressed).toMatch(/^local LIB_NAME="_Z" local LIB_VERSION="/);
     // size budget of the file on the module
     expect(compressed.length).toBeLessThan(20480);
   });

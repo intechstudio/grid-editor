@@ -7,7 +7,6 @@ local LIB_VERSION = "0.8.7"
 
 local Z = {}
 
-Z.VERSION = "0.8.7"
 Z.has = { sres = 10 } -- sensor bits
 
 -- Defaults: blocks omit them, so they change only in a major version. Meanings

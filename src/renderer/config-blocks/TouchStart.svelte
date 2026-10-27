@@ -8,17 +8,14 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import {
-    ElementType,
-    EventType,
-    EventTypeToNumber,
-  } from "@intechstudio/grid-protocol";
+  import { EventType, NumberToEventType } from "@intechstudio/grid-protocol";
   import type {
     GridAction,
     GridElement,
     GridEvent,
     GridPage,
   } from "../runtime/runtime";
+  import { globalsLoadedBefore } from "../lib/library";
   import { surfaceIssues, zoneSendProblem } from "./touch/zone-validate";
   import { libraryIssue } from "./touch/zone-library";
 
@@ -26,23 +23,30 @@
 
   const event = action.parent as GridEvent;
 
-  // The System Setup, where the Library block loads zona for the page.
-  const page = (event.parent as GridElement).parent as GridPage;
-  const systemSetup = page.control_elements
-    .find((e) => e.type === ElementType.SYSTEM)
-    ?.events.find((e) => e.type === EventTypeToNumber(EventType.SETUP));
+  // The Setups the module runs before this one (System first, then the
+  // elements), where a Library block may load zona for the page.
+  const element = event.parent as GridElement;
+  const page = element.parent as GridPage;
+  const earlierSetups = page.control_elements
+    .filter(
+      (e) => e.elementIndex === 255 || e.elementIndex < element.elementIndex,
+    )
+    .flatMap((e) =>
+      e.events.filter((s) => NumberToEventType(s.type) === EventType.SETUP),
+    );
 
+  let loaded = false;
   onMount(async () => {
-    if (typeof systemSetup !== "undefined" && !systemSetup.isLoaded()) {
-      await systemSetup.load();
-    }
+    await Promise.all(
+      earlierSetups.filter((e) => !e.isLoaded()).map((e) => e.load()),
+    );
+    loaded = true;
   });
 
-  // Unknown until the System Setup is loaded: no warning before that.
+  // Unknown until the earlier Setups are loaded: no warning before that.
+  // Checked again when this Setup changes.
   $: library =
-    typeof $systemSetup !== "undefined" && systemSetup.isLoaded()
-      ? libraryIssue($systemSetup.config.map((e) => e.script))
-      : undefined;
+    loaded && $event ? libraryIssue(globalsLoadedBefore(action)) : undefined;
 
   $: scripts = $event.config.map((e) => e.script);
   $: issues = surfaceIssues(scripts);

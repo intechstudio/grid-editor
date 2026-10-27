@@ -1,33 +1,17 @@
-import { test, expect, vi } from "vitest";
-
-// library.ts reaches the module through these; libraryIssue needs neither.
-vi.mock("../runtime/runtime", () => ({}));
-vi.mock("../main/panels/FileManager/FileManager", () => ({}));
-const { libraryIssue } = await import("../config-blocks/touch/zone-library");
-const { libraryScriptToLua } = await import("../lib/library");
+import { test, expect } from "vitest";
+import { libraryIssue } from "../config-blocks/touch/zone-library";
 
 test.each([
-  ["no Library block", ["print(1)"]],
-  [
-    "a Library block without zona",
-    [libraryScriptToLua([{ global: "_Test", file: "test" }])],
-  ],
-  ["an empty System Setup", []],
-])("%s in the System Setup: warning", (_, systemSetup) => {
-  expect(libraryIssue(systemSetup)).toEqual({
+  ["no library", []],
+  ["other libraries only", ["_Test"]],
+])("%s before Touch Start: warning", (_, globals) => {
+  expect(libraryIssue(new Set(globals))).toEqual({
     level: "warning",
-    message: "Add a Library block to the System Setup that loads zona (_Z)",
+    message:
+      "Add a Library block that loads zona (_Z) above this block or in the System Setup",
   });
 });
 
 test("zona loaded next to other libraries: no warning", () => {
-  expect(
-    libraryIssue([
-      "print(1)",
-      libraryScriptToLua([
-        { global: "_Test", file: "test" },
-        { global: "_Z", file: "zona" },
-      ]),
-    ]),
-  ).toBeUndefined();
+  expect(libraryIssue(new Set(["_Test", "_Z"]))).toBeUndefined();
 });
