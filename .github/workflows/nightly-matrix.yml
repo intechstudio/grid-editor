@@ -29,8 +29,11 @@ jobs:
           # Export as output
           echo "versionOverride=$VERSION_OVERRIDE" >> "$GITHUB_OUTPUT"
 
+  library-check:
+    uses: ./.github/workflows/library-check.yml
+
   matrix-build:
-    needs: prepare-version
+    needs: [prepare-version, library-check]
     uses: ./.github/workflows/build-matrix.yml
     with:
       exportScript: export:nightly

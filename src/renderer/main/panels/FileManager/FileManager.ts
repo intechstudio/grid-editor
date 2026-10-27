@@ -111,6 +111,20 @@ export async function invalidateLuaModule(
   );
 }
 
+// Lets the editor read what a file declares at its top without reading the
+// whole file; null when the file is not there.
+export async function fetchFileHead(
+  path: string,
+  module: GridModule,
+  length: number,
+): Promise<string | null> {
+  const { value } = await module.execLUAImmediateAndEvalaute(
+    `local f=io.open(${JSON.stringify(path)},"r") if not f then return nil end local c=f:read(${length}) f:close() return c`,
+    false,
+  );
+  return value[0] == null ? null : String(value[0]);
+}
+
 export async function fetchFileContent(
   path: string,
   module: GridModule,

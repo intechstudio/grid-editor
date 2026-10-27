@@ -1,17 +1,25 @@
 import {
-  ElementType,
   EventType,
   GridScript,
+  NumberToEventType,
 } from "@intechstudio/grid-protocol";
+import { writable } from "svelte/store";
 import {
   createDir,
   fetchDirEntries,
+  fetchFileHead,
   invalidateLuaModule,
   pageNumberToFolderPath,
   writeFileContent,
   WRITE_CHUNK_SIZE,
 } from "../main/panels/FileManager/FileManager";
-import type { GridModule } from "../runtime/runtime";
+import type {
+  GridAction,
+  GridElement,
+  GridEvent,
+  GridModule,
+  GridPage,
+} from "../runtime/runtime";
 import testSource from "./test/test.lua?raw";
 
 export type LibraryRow = {
@@ -19,45 +27,83 @@ export type LibraryRow = {
   file: string; // "test", in the page folder
 };
 
+// What a library file declares in its first two lines:
+//   local LIB_NAME = "_Test"
+//   local LIB_VERSION = "1.0.0"
+export type LibraryHeader = {
+  name: string;
+  version: string;
+};
+
 export type BundledLibrary = {
   file: string;
   global: string;
+  version: string;
   source: string;
 };
 
-// Libraries the user can install from the editor. Their globals start with
-// _ and an uppercase letter, so user code doesn't overwrite them by accident.
+// The global a library binds starts with an underscore, so it stays apart
+// from the firmware's names and the user's own variables.
+export const LIB_NAME_RULE = /^_[A-Za-z][A-Za-z0-9_]*$/;
+export const LIB_VERSION_RULE = /^\d+\.\d+\.\d+$/;
+const FILE_RULE = /^[A-Za-z0-9_]+$/;
+
+// The header also matches after compressScript, which joins the two lines.
+const HEADER =
+  /^local\s+LIB_NAME\s*=\s*"([^"\n]*)"\s*local\s+LIB_VERSION\s*=\s*"([^"\n]*)"/;
+
+// Bytes the editor reads from the top of a module file to find its header.
+const HEAD_LENGTH = 150;
+
+// Reads which global a library binds and its version; null when the file
+// doesn't start with a valid header.
+export function parseLibraryHeader(source: string): LibraryHeader | null {
+  const match = HEADER.exec(source);
+  if (
+    match === null ||
+    !LIB_NAME_RULE.test(match[1]) ||
+    !LIB_VERSION_RULE.test(match[2])
+  ) {
+    return null;
+  }
+  return { name: match[1], version: match[2] };
+}
+
+function bundle(file: string, source: string): BundledLibrary {
+  const header = parseLibraryHeader(source);
+  if (header === null) {
+    throw new Error(`${file}.lua needs LIB_NAME and LIB_VERSION at its top`);
+  }
+  return { file, global: header.name, version: header.version, source };
+}
+
+// Libraries the editor ships and can install on the module.
 export const bundledLibraries: readonly BundledLibrary[] = [
-  { file: "test", global: "_Test", source: testSource },
+  bundle("test", testSource),
 ];
 
 export function findBundledLibrary(file: string): BundledLibrary | undefined {
   return bundledLibraries.find((e) => e.file === file);
 }
 
-// Keeps the names the blocks rely on: every row loads a bundled library
-// under its own global, and each library once.
+// Keeps the names the blocks rely on: each library once, each global once.
 export function areValidRows(rows: LibraryRow[]): boolean {
   const files = rows.map((e) => e.file);
+  const globals = rows.map((e) => e.global);
   return (
     new Set(files).size === files.length &&
-    rows.every((e) => findBundledLibrary(e.file)?.global === e.global)
+    new Set(globals).size === globals.length &&
+    rows.every((e) => LIB_NAME_RULE.test(e.global) && FILE_RULE.test(e.file))
   );
 }
 
-// Lets the user add libraries only in the System element's Setup, which the
-// module runs before every other Setup of the page, so all elements can use
-// them. Never in a function body tab.
+// Lets the user load libraries in any element's Setup, never in a function
+// body tab.
 export function isLibraryPlace(
-  elementType: ElementType,
   eventType: EventType,
   isFunctionBody: boolean,
 ): boolean {
-  return (
-    elementType === ElementType.SYSTEM &&
-    eventType === EventType.SETUP &&
-    !isFunctionBody
-  );
+  return eventType === EventType.SETUP && !isFunctionBody;
 }
 
 const PREFIX = `local p=string.format("/%02X/",gpc())`;
@@ -90,21 +136,199 @@ export function libraryScriptToLua(rows: LibraryRow[]): string {
   ].join("");
 }
 
-// Shows the user which libraries are in the page folder.
-export async function listPageLibraries(
+// The Lua files of a page folder and the header each one starts with.
+export type PageLibraries = Map<string, LibraryHeader | null>;
+
+// The global a row loads when the user picks this file: the module file's
+// header, or the bundled copy's when the file isn't on the module.
+export function globalForFile(
+  file: string,
+  files: PageLibraries | undefined,
+): string | undefined {
+  if (typeof files !== "undefined" && files.has(file)) {
+    return files.get(file)?.name;
+  }
+  return findBundledLibrary(file)?.global;
+}
+
+export type LibrarySuggestion = { value: string; info: string };
+
+// Offers the bundled libraries the user can install and the libraries on
+// the module, each with the global it binds and its version.
+export function librarySuggestions(
+  files: PageLibraries | undefined,
+): LibrarySuggestion[] {
+  const bundled = bundledLibraries
+    .filter((e) => !files?.has(e.file))
+    .map((e) => ({
+      value: e.file,
+      info: `${e.global} ${e.version} · bundled`,
+    }));
+  const onModule: LibrarySuggestion[] = [];
+  for (const [file, header] of files ?? []) {
+    if (header !== null) {
+      onModule.push({
+        value: file,
+        info: `${header.name} ${header.version} · on module`,
+      });
+    }
+  }
+  return [...bundled, ...onModule];
+}
+
+export type LibraryRowStatus =
+  // The module can't be asked: the bundled version, when there is one.
+  | { kind: "unknown"; version?: string }
+  | { kind: "present"; version: string; bundledVersion?: string }
+  | { kind: "missing"; library: BundledLibrary }
+  // Missing on the module and the editor has no copy to install.
+  | { kind: "unavailable"; message: string }
+  | { kind: "error"; message: string };
+
+// Tells the user whether a row's library is on the module, can be
+// installed, or doesn't load what the row expects.
+export function libraryRowStatus(
+  row: LibraryRow,
+  files: PageLibraries | undefined,
+  folder: string,
+): LibraryRowStatus {
+  const bundled = findBundledLibrary(row.file);
+  if (typeof files === "undefined") {
+    return { kind: "unknown", version: bundled?.version };
+  }
+  if (files.has(row.file)) {
+    const header = files.get(row.file);
+    if (header == null) {
+      return {
+        kind: "error",
+        message: `${row.file}.lua doesn't start with LIB_NAME and LIB_VERSION`,
+      };
+    }
+    if (header.name !== row.global) {
+      return {
+        kind: "error",
+        message: `${row.file}.lua exports ${header.name}, pick it again to load it`,
+      };
+    }
+    return {
+      kind: "present",
+      version: header.version,
+      bundledVersion:
+        bundled && bundled.version !== header.version
+          ? bundled.version
+          : undefined,
+    };
+  }
+  if (typeof bundled === "undefined") {
+    return {
+      kind: "unavailable",
+      message: `${row.file}.lua is missing in ${folder} and the editor has no copy to install`,
+    };
+  }
+  if (bundled.global !== row.global) {
+    return {
+      kind: "error",
+      message: `The bundled ${row.file}.lua exports ${bundled.global}, pick it again to load it`,
+    };
+  }
+  return { kind: "missing", library: bundled };
+}
+
+// Globals that Library blocks running before this one already load, in the
+// order the module runs the Setups: System first, then the elements. Only
+// the Setups the editor has loaded count.
+export function globalsLoadedBefore(action: GridAction): Set<string> {
+  const event = action.parent as GridEvent;
+  const element = event.parent as GridElement;
+  const page = element.parent as GridPage;
+  const runOrder = (e: GridElement) =>
+    e.elementIndex === 255 ? -1 : e.elementIndex;
+  const elements = [...page.control_elements].sort(
+    (a, b) => runOrder(a) - runOrder(b),
+  );
+  const globals = new Set<string>();
+  for (const e of elements) {
+    for (const setup of e.events) {
+      if (
+        NumberToEventType(setup.type) !== EventType.SETUP ||
+        !setup.isLoaded()
+      ) {
+        continue;
+      }
+      for (const other of setup.config) {
+        if (other === action) {
+          return globals;
+        }
+        if (other.short === "lib") {
+          for (const row of parseLibraryScript(other.script) ?? []) {
+            globals.add(row.global);
+          }
+        }
+      }
+    }
+  }
+  return globals;
+}
+
+// The latest read of each page folder, shared by every Library block on it.
+export const pageLibraries = writable(
+  new Map<string, PageLibraries | undefined>(),
+);
+
+export function pageLibrariesKey(pageNumber: number, module: GridModule) {
+  return `${module.id}/${pageNumber}`;
+}
+
+const runningReads = new Map<string, Promise<PageLibraries | undefined>>();
+
+// Shows the user which libraries are in the page folder and what each one
+// declares; undefined when the module can't be asked. Blocks that open
+// together share one read.
+export function readPageLibraries(
   pageNumber: number,
   module: GridModule,
-): Promise<string[]> {
-  if (!(await pageFolderExists(pageNumber, module))) {
-    return [];
+): Promise<PageLibraries | undefined> {
+  const key = pageLibrariesKey(pageNumber, module);
+  const running = runningReads.get(key);
+  if (typeof running !== "undefined") {
+    return running;
   }
-  const entries = await fetchDirEntries(
-    pageNumberToFolderPath(pageNumber),
-    module,
-  );
-  return entries
-    .filter((e) => e.type === "file" && e.name.endsWith(".lua"))
-    .map((e) => e.name.slice(0, -".lua".length));
+  const read = fetchPageLibraries(pageNumber, module)
+    .catch(() => undefined)
+    .then((files) => {
+      pageLibraries.update((all) => new Map(all).set(key, files));
+      return files;
+    })
+    .finally(() => runningReads.delete(key));
+  runningReads.set(key, read);
+  return read;
+}
+
+async function fetchPageLibraries(
+  pageNumber: number,
+  module: GridModule,
+): Promise<PageLibraries> {
+  const files: PageLibraries = new Map();
+  if (!(await pageFolderExists(pageNumber, module))) {
+    return files;
+  }
+  const folder = pageNumberToFolderPath(pageNumber);
+  const entries = await fetchDirEntries(folder, module);
+  for (const entry of entries) {
+    if (entry.type !== "file" || !entry.name.endsWith(".lua")) {
+      continue;
+    }
+    const head = await fetchFileHead(
+      `${folder}${entry.name}`,
+      module,
+      HEAD_LENGTH,
+    );
+    files.set(
+      entry.name.slice(0, -".lua".length),
+      head === null ? null : parseLibraryHeader(head),
+    );
+  }
+  return files;
 }
 
 async function pageFolderExists(
