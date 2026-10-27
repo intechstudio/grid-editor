@@ -461,8 +461,10 @@ A block that declares `elementTypes` or `eventTypes` is placed at the top level 
 **UI rules:**
 
 - grid-uikit controls only, the same as `SettingsButton.svelte`.
-- The face shows Geometry, MIDI, Resolution and LED open, with Behaviour and Capture collapsed. A 0/1 option is a number field, like `led`.
-- The MIDI section's `ch` and `num` placeholders show the resolved autos ("auto (ch 1)", "auto (33)"), computed by `zone-autos.ts`, a TypeScript copy of the library's identity rules checked against the library in the Lua VM tests. The section ends with what the zone sends.
+- The face shows Geometry, MIDI, Resolution and LED open, with Behaviour and Capture collapsed.
+- An enum is a select of its values with titles (Message: CC, Note, Pitch bend, None), and the kind's default is selected when the line leaves the option out. There is no separate "default" entry; picking the default writes nothing.
+- A number option is a combo with suggestions, like the MIDI block's: Channel lists Auto and channels 1–16, the number lists Auto and the CC names or the notes and is titled **CC** or **Note** by the message (no list for pitch bend or None), Resolution bits list 7–14 with their ranges, Max offers 127 and 16383, and 0/1 options (`rx` as "Receive MIDI", `led`, `spring`) offer Off and On. Fields without suggestions show their range in the title.
+- The MIDI section's `ch` and `num` placeholders and Auto suggestions show the resolved autos ("auto (ch 1)", "Auto (33)"), computed by `zone-autos.ts`, a TypeScript copy of the library's identity rules checked against the library in the Lua VM tests. The section ends with what the zone sends.
 - The untoggled header shows the name, the cells and what the zone sends: `f1 · 0,0 1×9 · CC 32 ch 1`, `CC 1/33 ch 1` (14-bit), `CC 34, 35 ch 1` (XY), `CC 32, 33 ch 1–3` (fingers), `Note 36 ch 1`, `PB ch 1`, `no MIDI`. The channel is 1-based, like the MIDI block's. The zone autos use `(gmy()*4+gpc())%16` for the channel, like the library, not the page's `midi_auto_ch` override (by decision, section 10).
 - Value fields of Gamepad and Mouse blocks inside a zone suggest the zone getters for that kind: fader `self:v() g() d()`, button `self:v() step() g()`, XY `self:x() y() g() dx() dy() f()`.
 
