@@ -73,6 +73,7 @@
   // Rows carry an id so each MeltCombo keeps its own row when one is removed.
   // `input` is what the user typed or picked; `rejected` is an input the
   // block couldn't load, shown with its error until the user picks again.
+  // A new row has no file until the user picks one the block can load.
   type EditRow = LibraryRow & { id: number; input: string; rejected?: string };
   let nextId = 0;
 
@@ -86,7 +87,7 @@
   function handleActionChange(data: ActionData) {
     const parsed = parseLibraryScript(data.script);
     canonical = parsed !== null;
-    if (parsed !== null && !sameRows(parsed, rows)) {
+    if (parsed !== null && !sameRows(parsed, loadedRows(rows))) {
       rows = parsed.map((e) => ({ ...e, id: nextId++, input: e.file }));
     }
   }
@@ -111,7 +112,14 @@
 
   $: statuses = rows.map((row) => rowStatus(row, files));
 
+  function loadedRows(all: EditRow[]) {
+    return all.filter((e) => e.file !== "");
+  }
+
   function rowStatus(row: EditRow, current: typeof files): LibraryRowStatus {
+    if (row.file === "" && typeof row.rejected === "undefined") {
+      return { kind: "unknown" };
+    }
     if (typeof row.rejected !== "undefined" && typeof current === "undefined") {
       return {
         kind: "error",
@@ -126,7 +134,10 @@
   $: loadedBefore = rows && globalsLoadedBefore(action);
 
   function duplicateProblem(row: EditRow, all: EditRow[]) {
-    const earlier = all.slice(0, all.indexOf(row));
+    if (row.file === "") {
+      return undefined;
+    }
+    const earlier = loadedRows(all.slice(0, all.indexOf(row)));
     if (earlier.some((e) => e.file === row.file)) {
       return `${row.file}.lua is already loaded in this block`;
     }
@@ -154,7 +165,10 @@
 
   // Every change the user makes to the rows goes to the module right away.
   function commit() {
-    const plain = rows.map((e) => ({ global: e.global, file: e.file }));
+    const plain = loadedRows(rows).map((e) => ({
+      global: e.global,
+      file: e.file,
+    }));
     if (!areValidRows(plain)) {
       return;
     }
@@ -184,13 +198,16 @@
     commit();
   }
 
+  // Adds the first library no row loads yet, or an empty row for the user
+  // to pick or type a file into.
   function addRow() {
     const suggestion = unused[0];
-    if (typeof suggestion === "undefined") {
-      return;
-    }
-    const global = globalForFile(suggestion.value, files);
+    const global =
+      typeof suggestion === "undefined"
+        ? undefined
+        : globalForFile(suggestion.value, files);
     if (typeof global === "undefined") {
+      rows = [...rows, { file: "", global: "", id: nextId++, input: "" }];
       return;
     }
     rows = [
@@ -279,7 +296,7 @@
             <div class="fixed-text">
               <span class="fixed-text-label">Global</span>
               <span class="fixed-text-value" data-global="fixed"
-                >{row.global}</span
+                >{row.global || "-"}</span
               >
             </div>
             <div class="fixed-text">
@@ -343,11 +360,9 @@
       {#if rows.length === 0}
         <span class="text-sm text-gray-500">No libraries loaded.</span>
       {/if}
-      {#if unused.length > 0}
-        <div class="self-center">
-          <MoltenPushButton click={addRow} text={"Add Library"} />
-        </div>
-      {/if}
+      <div class="self-center">
+        <MoltenPushButton click={addRow} text={"Add Library"} />
+      </div>
     </Block>
   {:else}
     <div class="flex flex-col gap-2">
