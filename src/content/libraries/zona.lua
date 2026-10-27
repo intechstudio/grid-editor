@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.8.7"
+local LIB_VERSION = "0.8.8"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -612,7 +612,9 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
   }, M)
   z.os = { z } -- the zone and its fingers' states (fg)
   rest(z)
-  z:glc(1, { { -1, -1, -1, 1 } })
+  -- col: the zone colour as "rrggbb"; without it the module's default colour
+  local c = tonumber(o.col or "", 16)
+  z:glc(1, { c and { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 } or { -1, -1, -1, 1 } })
   Z.nz[#Z.nz + 1] = z
   return z
 end

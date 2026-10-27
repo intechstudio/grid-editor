@@ -92,6 +92,11 @@ export function optionProblem(
       ? undefined
       : `Use one of ${schema.values.join(", ")}`;
   }
+  if (schema.type === "color") {
+    return typeof value === "string" && /^[0-9a-f]{6}$/i.test(value)
+      ? undefined
+      : "Use a colour like ff0000";
+  }
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "Enter a number";
   }

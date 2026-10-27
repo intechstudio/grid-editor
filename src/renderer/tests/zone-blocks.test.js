@@ -142,6 +142,7 @@ describe("field input", () => {
     expect(optionPlaceholder("xy", "led")).toBe("1");
     expect(optionPlaceholder("button", "grab")).toBe("focus");
     expect(optionPlaceholder("fader", "min")).toBe("0");
+    expect(optionPlaceholder("xy", "col")).toBe("module default");
   });
 
   test.each([
@@ -150,6 +151,7 @@ describe("field input", () => {
     ["mode", "glide", { value: "glide" }],
     ["res", "", {}],
     ["res", "ten", { error: "Enter a number" }],
+    ["col", " #FF8000 ", { value: "ff8000" }],
   ])("%s %j", (key, text, result) => {
     expect(parseOptionText(schema(key), text)).toEqual(result);
   });

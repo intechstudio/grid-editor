@@ -1374,6 +1374,30 @@ describe("LEDs", () => {
     expect(column(leds(vm), 0).slice(3, 6)).toEqual([110, 110, 110]);
   });
 
+  test("col sets the zone colour from the first paint", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.fader("f",0,0,1,9,{col="ff8000"},${MIDI}) Z.start(self)`);
+    expect(vm.calls("glx").filter((e) => e.args[2] === 255).length).toBe(9);
+    expect(vm.calls("glx")[0].args).toEqual([8, 1, 255, 128, 0, 1]);
+    expect(vm.calls("gld")[0].args).toEqual([8, 1, 127, 64, 0, 1]);
+    expect(vm.calls("gln")[0].args).toEqual([8, 1, 0, 0, 0, 1]); // black minimum
+  });
+
+  test("a col that isn't hex leaves the module's default colour", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.fader("f",0,0,1,9,{col="red"},${MIDI}) Z.start(self)`);
+    const [r, g, b] = DEFAULT_COLOR;
+    expect(vm.calls("glx")[0].args).toEqual([8, 1, r, g, b, 1]);
+  });
+
+  test("Simple Color in the body overrides col", async () => {
+    const vm = await createZonaVM();
+    vm.setup(
+      `Z.fader("f",0,0,1,9,{col="ff8000"},function(self) self:glc(-1,{{0,0,255,1}}) end) Z.start(self)`,
+    );
+    expect(vm.calls("glx")[0].args).toEqual([8, 1, 0, 0, 255, 1]);
+  });
+
   test("Simple Color and Intensity in the body: colour from the start, glp scales the lit level", async () => {
     const vm = await createZonaVM();
     vm.setup(

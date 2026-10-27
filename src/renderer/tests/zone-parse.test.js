@@ -40,6 +40,8 @@ const editorWritten = [
   `_Z.fader("f13",0,0,1,9,{ease=0.3,spring=1},function(self)`,
   `_Z.button("b4",0,0,1,1,{msg="cc"},function(self)`,
   `_Z.xy("p3",0,0,3,3,{msg="none"},function(self)`,
+  // colour (zona 0.8.8)
+  `_Z.button("b5",0,0,1,1,{led=0,col="ff8000"},function(self)`,
   // options cut in zona 0.8.0 are unknown: kept as they are
   `_Z.fader("f6",0,0,1,9,{contact="move",sens="l"},function(self)`,
   `_Z.fader("f7",0,0,1,9,{res=8,db=0,sm=0,rt=0},function(self)`,

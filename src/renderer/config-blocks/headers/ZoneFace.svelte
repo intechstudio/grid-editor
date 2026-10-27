@@ -1,7 +1,7 @@
 <script lang="ts">
   // Untoggled zone block: its name, cells and what it sends ("f1 · 0,0 1×9 ·
-  // CC 32 ch 1"), red when the zone has a problem, or a note when the line
-  // isn't a zone line.
+  // CC 32 ch 1") next to its colour, red when the zone has a problem, or a
+  // note when the line isn't a zone line.
   import { createEventDispatcher } from "svelte";
   import { InfoBox } from "@intechstudio/grid-uikit";
   import type { GridAction, GridEvent } from "../../runtime/runtime";
@@ -31,6 +31,10 @@
           typeof midi === "undefined" ? undefined : zoneMidiLabel(midi),
         )
       : "not a zone line";
+  $: colour =
+    typeof zone?.opt.col === "string" && /^[0-9a-f]{6}$/i.test(zone.opt.col)
+      ? `#${zone.opt.col}`
+      : undefined;
   $: faulty =
     zone === null ||
     zoneProblems(zone).length > 0 ||
@@ -51,7 +55,18 @@
     class="grid grid-cols-[auto_1fr_auto] gap-2 pl-2 items-center justify-center h-full w-full py-1"
   >
     <slot name="name" />
-    <div class="justify-self-end" class:text-error={faulty} data-zone-summary>
+    <div
+      class="justify-self-end flex flex-row items-center gap-2"
+      class:text-error={faulty}
+      data-zone-summary
+    >
+      {#if colour}
+        <span
+          class="w-3 h-3 rounded-full border border-black"
+          style="background-color: {colour};"
+          data-zone-colour={colour}
+        ></span>
+      {/if}
       <InfoBox value={summary} />
     </div>
     <slot name="edit-name-trigger" />

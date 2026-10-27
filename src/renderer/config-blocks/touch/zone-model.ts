@@ -15,6 +15,7 @@ export type ZoneOptions = {
   bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
   group: number; // gate: radio group 1-8, 0 none
   led: 0 | 1; // the kind's painter: fader fill, button state, xy crosshair
+  col?: string; // zone colour "rrggbb"; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1
   rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
@@ -95,6 +96,7 @@ export type ZoneTick = {
 export type OptionSchema = { key: string } & (
   | { type: "enum"; values: readonly string[] }
   | { type: "integer" | "number"; min?: number; max?: number }
+  | { type: "color" } // "rrggbb" hex; the editor writes lower case
 );
 
 // Block face sections, in display order (RFC 6.2 UI rules).
@@ -215,6 +217,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     kinds: ALL_KINDS,
     section: "led",
   },
+  { key: "col", type: "color", kinds: ALL_KINDS, section: "led" },
   // every value any kind takes; zoneOptionSchemaFor narrows it per kind
   {
     key: "msg",

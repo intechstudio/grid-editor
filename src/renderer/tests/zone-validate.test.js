@@ -87,6 +87,8 @@ describe("options", () => {
     ["group", 8],
     ["grab", "live"],
     ["min", -500],
+    ["col", "ff8000"],
+    ["col", "FF8000"],
   ])("%s=%j is valid", (key, value) => {
     expect(optionProblem(schema(key), value)).toBeUndefined();
   });
@@ -103,6 +105,8 @@ describe("options", () => {
     ["led", "fill", "Enter a number"],
     ["min", 0.5, "Enter a whole number"],
     ["mode", "fast", "Use one of abs, rel, glide"],
+    ["col", "f80", "Use a colour like ff0000"],
+    ["col", 16744448, "Use a colour like ff0000"],
   ])("%s=%j is rejected", (key, value, message) => {
     expect(optionProblem(schema(key), value)).toBe(message);
   });

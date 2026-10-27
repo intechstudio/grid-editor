@@ -196,7 +196,7 @@ function parseNumber(text: string): number | null {
 // A raw table value as the schema's type, or null when it is not a plain
 // literal of that type.
 function literal(schema: OptionSchema, raw: string): ZoneOptionValue | null {
-  if (schema.type === "enum") {
+  if (schema.type === "enum" || schema.type === "color") {
     const reader = new Reader(raw);
     const value = reader.string();
     return value !== null && reader.atEnd() ? value : null;
@@ -263,8 +263,10 @@ function writeOptions(
     if (typeof value === "undefined") {
       continue;
     }
-    // the parser reads an enum only as a string, a number only as a number
-    if (typeof value !== (entry.type === "enum" ? "string" : "number")) {
+    // the parser reads an enum or a colour only as a string, a number only
+    // as a number
+    const isText = entry.type === "enum" || entry.type === "color";
+    if (typeof value !== (isText ? "string" : "number")) {
       throw new Error(`Option "${key}" must be a ${entry.type}`);
     }
     if (value !== defaultOf(key)) {

@@ -108,6 +108,9 @@ export function optionPlaceholder(kind: ZoneKind, key: string): string {
   if (key === "ch" || key === "num") {
     return "auto";
   }
+  if (key === "col") {
+    return "module default";
+  }
   return optionText(zoneOptionDefault(kind, key));
 }
 
@@ -147,6 +150,9 @@ export function parseOptionText(
   }
   if (schema.type === "enum") {
     return { value: trimmed };
+  }
+  if (schema.type === "color") {
+    return { value: trimmed.replace(/^#/, "").toLowerCase() };
   }
   const value = Number(trimmed);
   return Number.isFinite(value) ? { value } : { error: "Enter a number" };
@@ -217,6 +223,7 @@ export const optionLabels: Record<string, string> = {
   group: "Radio group",
   grab: "Capture",
   led: "LED feedback (0 off, 1 on)",
+  col: "Colour",
   msg: "Message",
   ch: "Channel",
   num: "Number",
