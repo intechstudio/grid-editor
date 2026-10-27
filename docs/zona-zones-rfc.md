@@ -1,11 +1,24 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Revision 5, implemented on `feat/zona-sandbox` (library 0.8.7). Revision 5 moves the zones onto the generic library loader of `feat/library-block` (PR #1669). Revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
-- **Date:** 2026-10-26 (rev 1: 2026-10-06, rev 2: 2026-10-09, rev 3: 2026-10-12, rev 4: 2026-10-18)
+- **Status:** Revision 6, implemented on `feat/zona-sandbox` (library 0.8.7). Revision 6 follows the loader's CTO round on `feat/library-block` (PR #1669): library headers, Library blocks in any Setup, a guarded row. Revision 5 moved the zones onto that loader. Revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
+- **Date:** 2026-10-27 (rev 1: 2026-10-06, rev 2: 2026-10-09, rev 3: 2026-10-12, rev 4: 2026-10-18, rev 5: 2026-10-26)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
 
-## 0. What changed since revision 4
+## 0. What changed since revision 5
+
+Revision 6 merges the loader as `feat/library-block` has it after the CTO meeting (user decisions, 2026-10-27), and `stable` with it.
+
+| Area | Rev 5 | Rev 6 |
+|------|-------|-------|
+| Library file | Plain Lua; `Z.VERSION` for reading only. | Starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.8.7"`, before any comment. The editor reads the global and the version from that header; `Z.VERSION` is gone. CI fails when a bundled library lacks it. The source moved to `src/content/libraries/zona.lua`. |
+| Where zona loads | Only the System Setup. | A Library block in **any element's Setup** (never in a function body). The System Setup stays the usual place, because it runs first. |
+| Global | Fixed by the bundled list in the reserved `_` + uppercase space. | Read from the file's header (`_Z` for zona). No reserved names: a global is `_` plus a letter, then letters, digits or `_`. |
+| Library line | `_Z=require(p.."zona")` | `_Z=r("zona")` after a small guard (`pcall(require,…)`): a missing file prints `/00/zona.lua missing` and the rest of the Setup runs, so the module still accepts the config. |
+| Library warning | From the System Setup only. | From every Library block that runs before Touch Start: the System Setup, Setups of lower-numbered elements, and blocks above Touch Start in the touch Setup. "Add a Library block that loads zona (_Z) above this block or in the System Setup". |
+| Versions | None shown. | The row shows the module file's version, and the bundled one when it differs. There's still no Update: a file on the module is never rewritten. |
+
+## 0.1 What changed from revision 4 to revision 5
 
 Revision 5 takes the Library block from `feat/library-block` as it is, and moves zona onto it (user decisions, 2026-10-26).
 
@@ -19,7 +32,7 @@ Revision 5 takes the Library block from `feat/library-block` as it is, and moves
 | `unload` | `Z.unload(self)` with the touch element. | `Z.unload()`: `Z.start(self)` remembers the touch element (`Z.te`), so the loader needs no element. |
 | Clash scan | A text scan of the page's events for `Z=` and `function Z(`. | Removed: the reserved `_` + uppercase names take its place. |
 
-## 0.1 What changed from revision 3 to revision 4
+## 0.2 What changed from revision 3 to revision 4
 
 Revision 4 follows the owner review (section 14): fewer options, a frozen call shape, MIDI and LED feedback owned by the zone. The library went from 0.7.2 to 0.8.6 in six slices (S1–S6), breaking changes allowed before 1.0, with no migration of old lines.
 
@@ -103,7 +116,7 @@ HANGAR is a throwaway prototype without code quality standards. **No HANGAR code
 1. Each zone is a container action block on the touch Setup, edited in the action list with grid-uikit controls.
 2. **Few options, a frozen call shape.** `Z.<kind>(name,x,y,w,h,{opt},function(self)` stays fixed; anything new is a key in the options table, and defaults are left out of the line.
 3. **The zone sends its own MIDI** from its options, with working autos, so a new zone sends something sensible with no edits. Other outputs (gamepad, mouse, keyboard, custom code) are ordinary action blocks in the zone body.
-4. One shared zone library, installed by the editor into the page folder, and loaded by a generic **Library** block in the System Setup that VSN1 can reuse.
+4. One shared zone library, installed by the editor into the page folder, and loaded by a generic **Library** block, usually in the System Setup, that VSN1 can reuse.
 5. **Resolution** from 7-bit up to 14-bit, set on the zone like `pmo` on a potentiometer.
 6. **Capture per zone:** **focus mode** (the contact stays in its zone) or **live mode** (swipe across zones).
 7. **One LED look per kind**, readable on the 9×9 LEDs, with the value always visible.
@@ -291,7 +304,7 @@ Revision 3 had a mapping mode for DAW MIDI learn: a Touch Utility block replaced
 
 ```lua
 -- system element, Setup (runs before every other Setup of the page)
---[[@lib]]local p=string.format("/%02X/",gpc())_Z=require(p.."zona")
+--[[@lib]]local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")
 
 -- touch element, Setup (must stay under 909 characters)
 --[[@zfd]]_Z.fader("f1",0,0,1,9,{res=10,rx=1},function(self)
@@ -312,7 +325,7 @@ Revision 3 had a mapping mode for DAW MIDI learn: a Touch Utility block replaced
 /00/zona.lua            -- the library, a copy per page
 ```
 
-**Global name.** Touch blocks always write `_Z.`. The editor's list of bundled libraries fixes `zona` to `_Z`, and the Library row shows it read-only. The Touch Start face warns when no Library row in the System Setup loads `zona`.
+**Global name.** Touch blocks always write `_Z.`, the global zona's header declares. The Touch Start face warns when no Library block that runs before it loads `_Z`.
 
 **Timer.** `gtt` is one-shot: the firmware counts the element's timer down once and fires the Timer event (v1.5.5 `grid_ui.c`), and a page change resets it. The library therefore owns it: `Z.start` kicks it once (`gtt(self:ind(),1)`), and `Z.tick` re-arms it with `cfg.ms` (default 20) at the start of every tick, so an error in a zone body can't stop it. The interval lives only in the Touch Tick block.
 
@@ -332,22 +345,22 @@ The Library block comes from `feat/library-block` (PR #1669) and is not specific
 
 | Short | Name | Event | Category |
 |-------|------|-------|----------|
-| `lib` | Library | the System element's Setup (top level) | `code` |
+| `lib` | Library | any element's Setup (top level) | `code` |
 
 **Lua form.** One canonical line that the parser reads back exactly:
 
 ```lua
-local p=string.format("/%02X/",gpc())_Z=require(p.."zona")Mine=require(p.."mine")
+local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona") _Mine=r("mine")
 ```
 
-- The canonical form has no spaces between statements, because that is what `GridScript.compressScript` stores on the module. The parser also accepts one space before each row (the hand-written form).
+- The editor writes one space before each row; the guard costs about 75 characters once per block.
 - `gpc()` is `page_current()`, so the same block works on any page and in any profile.
-- **Where.** Only the System element's Setup. At a page load the firmware runs it first, then the elements 0..n-1 (`grid_lua.c` post_init), so every element can use the globals.
-- **Bundled libraries only.** A row picks a library the editor ships from a list (zona first on this branch, then the test library) and shows the global it loads under as text (`zona` → `_Z`, the test library → `_Test`). Globals that start with `_` and an uppercase letter are kept for bundled libraries, so user code doesn't overwrite them by accident. A library can be picked once, and Add Library hides when every bundled library is loaded. Other page files load from a Code block with `require`, as the File Manager docs describe. A line that loads anything else is not a Library block and shows as code.
-- **Status.** With a module connected, each row shows *present* (the file is in the page folder) or *missing*, with **Install** for a missing bundled file. A missing page folder counts as missing, and Install creates it. Offline and virtual modules show no status.
+- **Where.** Any element's Setup, never a function body. At a page load the firmware runs the System Setup first, then the elements 0..n-1 (`grid_lua.c` post_init), so a block in the System Setup serves every element. A global that an earlier block of the page already loads is marked on the later one (only among the Setups the editor has loaded).
+- **Libraries and headers.** Every library starts with `local LIB_NAME = "_Name"` and `local LIB_VERSION = "x.y.z"`. A row is a combo of the bundled libraries (zona first on this branch, then the test library) and the page folder's `.lua` files with a valid header; the editor reads the first 150 bytes of each. The row's global comes from the module file's header, or the bundled copy's when the file isn't there yet. A mismatch is an error on the row, fixed by picking the file again; the editor never rewrites a profile on its own.
+- **Status.** With a module connected, each row shows the module file's version (and the bundled one when it differs) or *missing*, with **Install** for a missing bundled file. A missing file the editor has no copy of is an error on the row and in the editor log. A missing page folder counts as missing, and Install creates it. Offline and virtual modules show no status.
 - **Install** writes `compressScript(source)` with `writeFileContent`, calls `invalidateLuaModule("/PP/<file>")` (the full `require` key), releases the library's global (its `unload` if it has one, called as `g.unload(g)`, then `nil` and a full collection, all before the new copy compiles), and runs every Setup of the page again in page-load order. The config is not marked as changed and nothing is stored. Every Setup's side effects repeat, as on a page load. The first Setup that fails is reported with its element.
-- **No versions.** A file that is already there is never rewritten. A library whose API changes ships under a new file name. To pick up a fix, the user deletes the file in the File Manager and presses Install, and the release step keeps the old copy from being held in RAM while the new one compiles.
-- On the module, a missing (or failing) file is not harmless: the `require` throws, and the rest of the System Setup doesn't run. The line stays an unguarded `require` on purpose: the error names the missing file in the debug log, and the blocks that use the global couldn't work without it anyway.
+- **No Update.** A file that is already there is never rewritten. A library whose API changes ships under a new file name. To pick up a fix, the user deletes the file in the File Manager and presses Install, and the release step keeps the old copy from being held in RAM while the new one compiles.
+- On the module, a missing file prints `/PP/<file>.lua missing` and leaves its global `nil`; the rest of the Setup runs. An unguarded `require` stopped the Setup, the module never acked the config, and the editor sent it again and again (seen on an EN16). The zones then fail on their first `_Z.` call with the global missing, which the debug log shows.
 
 The library itself sets nothing up beyond returning its table. Library-specific setup (`touch_cb`, `midirx_cb`) is the job of that library's own blocks, here `Z.start(self)`. A library that sets callbacks exports `unload()` and remembers where it set them: zona keeps the touch element from `Z.start` in `Z.te`.
 
@@ -381,8 +394,8 @@ The zone blocks follow `Function_Start.svelte`, with `compositeLua: [{ short: "z
 | File | Holds |
 |------|-------|
 | `zone-model.ts` | `Zone`, `ZoneKind`, kind presets, defaults, the option schema with its face sections |
-| `zone-parse.ts` | `parseZone(script)`, `zoneToLua(zone)` for the opening line, `parseZoneTick` / `zoneTickToLua` (the Library line lives in `libraries/library.ts`: `parseLibraryScript` / `libraryScriptToLua`) |
-| `zone-library.ts` | `libraryIssue`: the Touch Start warning when the System Setup doesn't load zona |
+| `zone-parse.ts` | `parseZone(script)`, `zoneToLua(zone)` for the opening line, `parseZoneTick` / `zoneTickToLua` (the Library line lives in `lib/library.ts`: `parseLibraryScript` / `libraryScriptToLua`) |
+| `zone-library.ts` | `libraryIssue`: the Touch Start warning when no Library block that runs before it loads `_Z` (`globalsLoadedBefore` in `lib/library.ts`) |
 | `zone-validate.ts` | validators (below) |
 | `zone-autos.ts` | the TS copy of the library's MIDI identity (`zoneMidi`, `zoneMidiLabel`), the zone around a block (`zoneContext`), getter suggestions |
 | `zone-blocks.ts`, `zone-block-info.ts` | block shorts, default names and cells, face sections and labels, block information |
@@ -472,12 +485,12 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 
 **Source and versions**
 
-- In the repo: `src/renderer/libraries/zona/zona.lua`, with `Z.VERSION` for reading only: the editor doesn't read or compare it (6.1).
+- In the repo: `src/content/libraries/zona.lua`, starting with the `LIB_NAME` / `LIB_VERSION` header the editor reads (6.1).
   - Before 1.0 breaking changes come in 0.x versions (0.8.0 to 0.8.7 so far), with no migration of old lines.
   - From 1.0 a breaking change ships under a new file name, so pages that hold the old file keep working, and the editor keeps the blocks for every file it ever shipped.
 - Uploaded the way the File Manager saves `.lua` files: `GridScript.compressScript(source)`, which minifies and **keeps comments** (2.1). Opened in the File Manager, it shows expanded, like any other page file. No upload transform of its own. The size budget applies to the compressed size, comments included, so keep comments short. Phase 2 ended at 15 KB (0.5.0), 0.7.2 at 18 KB, 0.8.5 at 16.6 KB; the budget is 20 KB, and the hard ceiling is 30 KB (the user's limit; larger files have run fine so far). Every page folder holds its own copy, and `require` compiles it on each page change, so staying well below the ceiling still matters.
 - Because `compressScript` runs `shortify`, the source uses the firmware's short names and never uses a human name (`GridScript.validator.lookup`) as its own identifier, table key or string content. Those would be rewritten on upload.
-- Unit tests run the library in a Lua VM under vitest (wasmoon, Lua 5.4; the firmware runs 5.5, so the compressed library is also checked with a 5.5 `luac -p` before release). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still contains `Z.VERSION="x.y.z"`.
+- Unit tests run the library in a Lua VM under vitest (wasmoon, Lua 5.4; the firmware runs 5.5, so the compressed library is also checked with a 5.5 `luac -p` before release). They load `compressScript(source)`, the text that actually reaches the module. They feed `touch_cb` and `midirx_cb` sequences and check the `gms`/`ggms`/`gmms`/LED calls, using stubs for the firmware globals. One test checks that the compressed source still starts with the header.
 
 **Per page, on purpose**
 
@@ -501,7 +514,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 ### 6.6 Grid profiles and presets
 
 - **Profiles:** touch blocks are in the touch Setup text and `zona.lua` is in the page folder, so profiles carry both with no format change. Checked on a ZONA (phase 4): a profile saved from a zone page includes `zona.lua` (the profile save reads the page folder's files), and loading it on another page clears that page folder, writes the file and sends the Setup; the zones run with no Install step.
-- **Presets:** a touch element preset carries its zone blocks and their bodies, not the Library block, which sits in the System Setup. On a page that doesn't load zona, Touch Start shows the library warning; a System element preset carries the Library block, and its row shows *missing* with **Install** when the file isn't in the page folder. Checked on a ZONA before revision 5 (Library line in the touch Setup): on a page without the file, Install made the zones run.
+- **Presets:** a touch element preset carries its zone blocks and their bodies, not the Library block when it sits in the System Setup. On a page that doesn't load zona, Touch Start shows the library warning; a System element preset carries the Library block, and its row shows *missing* with **Install** when the file isn't in the page folder. Checked on a ZONA before revision 5 (Library line in the touch Setup): on a page without the file, Install made the zones run.
 - **Undo:** the editor has no undo history, so there is nothing for zones to support. The unsaved-changes markers work as for any event, since zones are ordinary actions.
 - **Profile Cloud preview:** stretch goal (zones drawn on the thumbnail using `parseZone`).
 
@@ -520,7 +533,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 | `Z.set(name, value, src)` | Set a zone value and repaint without sending, the same path as RX value sync; for user code such as a SysEx handler |
 | `Z.unload()` | Release held zones, the callbacks set on the touch element (kept from `Z.start` in `Z.te`) and the surface (6.1) |
 | `Z.def`, `Z.kind`, `Z.tdef` | Defaults, kind presets, Touch Tick defaults |
-| `Z.VERSION`, `Z.has` | Version and capabilities (`Z.has.sres` sensor bits) |
+| `Z.has` | Capabilities (`Z.has.sres` sensor bits); the version is the file's `LIB_VERSION` |
 | zone `self:v() x() y() g() d() dx() dy() step() f()` | Getters (4.1) |
 | zone `self:glc self:glp` | Simple Color and Simple Intensity |
 
@@ -528,7 +541,7 @@ The precedent is `ControlNameOverlay`: the element name it shows comes from the 
 
 | Module | Purpose |
 |--------|---------|
-| `config-blocks/Library.svelte` + `libraries/library.ts` | Generic page-folder `require`: bundled libraries, name rules, the Library line format, presence and Install (from `feat/library-block`) |
+| `config-blocks/Library.svelte` + `lib/library.ts` | Generic page-folder `require`: headers, bundled and page-folder libraries, the Library line format, status and Install (from `feat/library-block`) |
 | `config-blocks/touch/zone-model.ts`, `zone-parse.ts`, `zone-validate.ts` | Types, schema, parse and serialize, validators |
 | `config-blocks/touch/zone-autos.ts` | The zone's MIDI identity and header label, the zone around a block, getter suggestions |
 | `config-blocks/touch/ZoneBlock.svelte`, `config-blocks/headers/ZoneFace.svelte` + block files | Touch blocks |
@@ -566,7 +579,7 @@ Revision 4, after the owner review (section 14), was done in slices S1–S6: S1 
 
 ## 8. When Setup runs out of room
 
-The library itself is in a file and loads from the System Setup. The touch Setup holds the zones with their bodies and `Z.start`.
+The library itself is in a file and loads from a Library block, usually in the System Setup. The touch Setup holds the zones with their bodies and `Z.start`.
 
 1. **Logic first.** Large body logic can live in a user's own page file, loaded with the Library block, and be called from a one-line Code block (4.6). This needs no new editor feature.
 2. **Zones in a file.** Not planned. Moving zone blocks into a generated page file would make a file part of the config. That breaks "action strings are the source of truth" unless unsaved changes, store and profiles all learn about files. If it is ever needed, it gets its own RFC.
@@ -599,9 +612,9 @@ The library itself is in a file and loads from the System Setup. The touch Setup
 
 - *Library location:* per page folder (`/PP/zona.lua`).
 - *Category name:* `touch`.
-- *Library loading:* the generic Library block, shared with VSN1, only in the System element's Setup (revision 5).
-- *Library block scope:* global names. Bundled libraries have fixed globals in the reserved `_` + uppercase space (revision 5).
-- *Library versions:* none. A breaking change ships under a new file name; a present file is never rewritten (revision 5).
+- *Library loading:* the generic Library block, shared with VSN1, in any element's Setup (revision 6; only the System Setup in revision 5).
+- *Library block scope:* global names, declared by each library's `LIB_NAME` header (revision 6; reserved `_` + uppercase names in revision 5).
+- *Library versions:* shown from `LIB_VERSION`, never updated. A breaking change ships under a new file name; a present file is never rewritten (revision 6).
 - *Name protection:* no `_G` metatable guard. If names ever need protecting, the firmware should protect its own API and the libraries together (revision 5).
 - *Blocks that add their own Library row:* not planned. The Touch Start warning stays, so a future firmware-provided zone API doesn't depend on an auto-added row (revision 5).
 - *Send path:* blocks and the library file use the editor's existing transforms, with no handling of their own. Actions go through `sendToGrid` (`compressScript` + `SendConfig`). The library file goes through the File Manager's `.lua` save (`compressScript` + `writeFileContent`). The editor writes lines already in compressed form, and the name rules exclude anything those transforms would rewrite (2.1, 6.1, 6.4).
@@ -613,7 +626,7 @@ The library itself is in a file and loads from the System Setup. The touch Setup
 - *Defaults table:* written by hand in both `zone-model.ts` and `zona.lua`, with a unit test that fails when they differ. The editor leaves defaults out when it writes a block (`{}` instead of `{mode="abs",grab="focus",res=7,…}`, which saves Setup characters), and the library fills them in, so the two copies must agree. `zona.lua` stays a plain hand-written file that reads well on the device and in the FileManager. Generating the Lua table from TypeScript at build time was the alternative, and can be revisited if drift becomes a problem. Before 1.0 a default may change between 0.x versions (no migration); from 1.0 only in a major version.
 - *Press/release composite:* not planned. A zone sends only what changed (the duplicate filter), so the plain If block on `self:g()` covers the rare case that needs it.
 - *Stale `midirx_cb` after a config change (4.8):* accepted. It only happens the first time a page switches from hand-written code that set `midirx_cb` to zones, in RAM, and ends at the next Setup re-run or page reload. Clearing it in Setup would cost characters and break user code placed before the zones.
-- *Touch block global name:* `_Z`, fixed by the bundled library list (section 5; `Z` before revision 5).
+- *Touch block global name:* `_Z`, from zona's header (section 5; `Z` before revision 5).
 - *Zone channel and `midi_auto_ch`:* zones don't follow the page's MIDI channel override. The override suits many identical elements (16 encoders on one channel); a few zones with their own settings are set up deliberately, so the user sets `ch` on the zone (user decision, phase 3).
 - *Knob, mapping mode, groups block, sensitivity and release options:* removed in revision 4 (section 0, 14).
 - *Spring minimum step:* the glide minimum, `speed/50` per tick, shared with glide (S4).
