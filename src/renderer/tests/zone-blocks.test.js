@@ -43,7 +43,7 @@ describe("default zone", () => {
 
   test("the next free number among the Setup's zones", () => {
     const setup = [
-      `local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`,
+      `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")`,
       `_Z.fader("f1",0,0,1,9,{},function(self)`,
       "print(1)",
       "end)",

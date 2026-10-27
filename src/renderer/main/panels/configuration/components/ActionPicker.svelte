@@ -28,7 +28,7 @@
     pickerInsertIndex,
   } from "./ActionPickerFilter";
   import { addActions } from "../../../../runtime/operations";
-  import { isLibraryPlace } from "../../../../libraries/library";
+  import { isLibraryPlace } from "../../../../lib/library";
   import type { Companion } from "../../../../config-blocks/ActionBlockInformation";
   import { onMount, onDestroy, tick } from "svelte";
   import {
@@ -246,6 +246,10 @@
           ].includes(e.information.short),
       );
     }
+    //Library only at the top level of a Setup
+    if (!isLibraryPlace(eventString, event.realEvent !== event)) {
+      comp = comp.filter((e) => e.information.short !== "lib");
+    }
 
     //Filter out components restricted to other element or event types, or
     //to the top level of a real event (not a function body tab)
@@ -257,16 +261,6 @@
       bodies: bodyRulesAt(configs, index),
     };
     comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
-    //Library only at the top level of the System element's Setup
-    if (
-      !isLibraryPlace(
-        target.getInfo().element.type as ElementType,
-        eventString,
-        event.realEvent !== event,
-      )
-    ) {
-      comp = comp.filter((e) => e.information.short !== "lib");
-    }
 
     //Filter out dev blocks
     if (!get(appSettings).persistent.allowDevBlocks) {

@@ -4,7 +4,6 @@
   import { Analytics } from "../../../runtime/analytics.js";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { logger } from "../../../runtime/runtime.store";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import PackageItem from "./PackageItem.svelte";
   import RequestItem from "./RequestItem.svelte";

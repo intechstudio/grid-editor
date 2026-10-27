@@ -46,6 +46,28 @@
     showManualOptions = !showManualOptions;
   }
 
+  let isOutdatedD51Bootloader = false;
+  let detectedBootloaderVersion: string | undefined;
+
+  async function checkBootloaderVersion() {
+    const result = await window.electron.firmware.findBootloaderPathNative();
+    detectedBootloaderVersion = result?.bootloaderVersion;
+    isOutdatedD51Bootloader =
+      result?.architecture === "d51" &&
+      result?.bootloaderVersion !==
+        configuration.BOOTLOADER_GRID_D51_REQUIRED_VERSION;
+  }
+
+  $: if ($appSettings.firmwareNotificationState === 3) {
+    checkBootloaderVersion();
+  }
+
+  function handleOpenBootloaderDocs() {
+    window.electron.openInBrowser(
+      configuration.DOCUMENTATION_D51_BOOTLOADER_TROUBLESHOOTING_URL,
+    );
+  }
+
   function handleDismissClicked() {
     appSettings.update((s) => {
       s.firmwareNotificationState = 0;
@@ -71,7 +93,20 @@
         });
         return;
       }
-      const { product, architecture } = result;
+      const { product, architecture, bootloaderVersion } = result;
+      detectedBootloaderVersion = bootloaderVersion;
+
+      if (
+        architecture === "d51" &&
+        bootloaderVersion !== configuration.BOOTLOADER_GRID_D51_REQUIRED_VERSION
+      ) {
+        isOutdatedD51Bootloader = true;
+        appSettings.update((s) => {
+          s.firmwareNotificationState = 3;
+          return s;
+        });
+        return;
+      }
 
       Analytics.track({
         event: "FirmwareCheck",
@@ -263,7 +298,16 @@
               ? `${$appSettings.firmwareBootloaderLabel} detected`
               : "An update is available"}</span
           >
-          <span class="text-lg">Do you want to update your firmware?</span>
+          {#if detectedBootloaderVersion}
+            <span class="text-foreground-soft text-xs"
+              >{detectedBootloaderVersion}</span
+            >
+          {/if}
+          <span class="text-lg"
+            >{isOutdatedD51Bootloader
+              ? "Outdated bootloader detected"
+              : "Do you want to update your firmware?"}</span
+          >
         </div>
 
         <div
@@ -275,41 +319,60 @@
             -webkit-mask-size: contain;
           "
         ></div>
-        <div class="flex flex-col gap-2 w-full items-center">
-          <div class="flex flex-row gap-2">
+        {#if isOutdatedD51Bootloader}
+          <div class="flex flex-col gap-2 w-full items-center">
+            <span class="text-sm text-foreground-soft text-center px-2">
+              Your module's bootloader needs to be updated to {configuration.BOOTLOADER_GRID_D51_REQUIRED_VERSION}
+              before firmware can be installed.
+            </span>
             <MoltenPushButton
-              text={"Release"}
+              text={"View troubleshooting guide"}
               style="accept"
-              click={handleFirmwareDownload}
+              click={handleOpenBootloaderDocs}
             />
-            {#if $appSettings.persistent.nightlyFirmware}
-              <MoltenPushButton
-                text={"Nightly"}
-                click={() => {
-                  handleFirmwareDownload(true);
-                }}
-              />
-            {/if}
-          </div>
-          <MoltenPushButton
-            text={showManualOptions
-              ? "Hide manual options"
-              : "Show manual options"}
-            click={toggleManualOptions}
-          />
-          {#if showManualOptions}
-            <div class="flex flex-col gap-2 w-full px-4 py-8">
-              <ManualFirmwareOptions />
-            </div>
-          {/if}
-          <div class="flex flex-col items-center">
             <MoltenPushButton
               text={"Dismiss"}
               style="outlined"
               click={handleDismissClicked}
             />
           </div>
-        </div>
+        {:else}
+          <div class="flex flex-col gap-2 w-full items-center">
+            <div class="flex flex-row gap-2">
+              <MoltenPushButton
+                text={"Release"}
+                style="accept"
+                click={handleFirmwareDownload}
+              />
+              {#if $appSettings.persistent.nightlyFirmware}
+                <MoltenPushButton
+                  text={"Nightly"}
+                  click={() => {
+                    handleFirmwareDownload(true);
+                  }}
+                />
+              {/if}
+            </div>
+            <MoltenPushButton
+              text={showManualOptions
+                ? "Hide manual options"
+                : "Show manual options"}
+              click={toggleManualOptions}
+            />
+            {#if showManualOptions}
+              <div class="flex flex-col gap-2 w-full px-4 py-8">
+                <ManualFirmwareOptions />
+              </div>
+            {/if}
+            <div class="flex flex-col items-center">
+              <MoltenPushButton
+                text={"Dismiss"}
+                style="outlined"
+                click={handleDismissClicked}
+              />
+            </div>
+          </div>
+        {/if}
       {/if}
       {#if $appSettings.firmwareNotificationState === 4}
         <span class="text-lg">Update is in progress...</span>

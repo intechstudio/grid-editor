@@ -1,7 +1,7 @@
 import { GridScript, initLuaFormatter } from "@intechstudio/grid-protocol";
 import { test, expect, describe, beforeAll, vi } from "vitest";
 import { createZonaVM, DOWN, MOVE, UP } from "./zona-vm";
-import zonaSource from "../libraries/zona/zona.lua?raw";
+import zonaSource from "../../content/libraries/zona.lua?raw";
 
 // library.ts reaches the module through these; Install runs in the VM.
 vi.mock("../runtime/runtime", () => ({}));
@@ -15,7 +15,7 @@ vi.mock("../main/panels/FileManager/FileManager", async (importOriginal) => ({
 const { invalidateLuaModule } =
   await import("../main/panels/FileManager/FileManager");
 const { findBundledLibrary, installLibrary, libraryScriptToLua } =
-  await import("../libraries/library");
+  await import("../lib/library");
 
 beforeAll(async () => {
   await initLuaFormatter();

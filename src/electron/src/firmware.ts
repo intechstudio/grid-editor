@@ -12,6 +12,7 @@ export type BootloaderInfo = {
   architecture: "d51" | "esp32" | "rp2350";
   product: "grid" | "knot";
   label: string;
+  bootloaderVersion?: string;
 };
 
 /**
@@ -100,6 +101,8 @@ export async function findBootloaderPathNative(): Promise<
 
       log.info(`Found INFO_UF2.TXT at ${mountPath}`);
 
+      const bootloaderVersion = data.split(/\r?\n/)[0]?.trim();
+
       // Identify Grid D51 bootloader
       if (data.indexOf("SAMD51N20A-GRID") !== -1) {
         log.info(`Grid D51 bootloader detected at ${mountPath}`);
@@ -108,6 +111,7 @@ export async function findBootloaderPathNative(): Promise<
           architecture: "d51",
           product: "grid",
           label: "Grid D51",
+          bootloaderVersion,
         };
       }
 
@@ -119,6 +123,7 @@ export async function findBootloaderPathNative(): Promise<
           architecture: "esp32",
           product: "grid",
           label: "Grid ESP32",
+          bootloaderVersion,
         };
       }
 
@@ -130,6 +135,7 @@ export async function findBootloaderPathNative(): Promise<
           architecture: "esp32",
           product: "knot",
           label: "Knot ESP32",
+          bootloaderVersion,
         };
       }
 
@@ -141,6 +147,7 @@ export async function findBootloaderPathNative(): Promise<
           architecture: "rp2350",
           product: "grid",
           label: "Generic RP2350",
+          bootloaderVersion,
         };
       }
 

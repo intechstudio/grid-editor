@@ -1,5 +1,5 @@
 // What a zone sends and what its body can read (RFC 4.1): the zone's MIDI
-// identity, mirroring Z.zone in libraries/zona/zona.lua, and the zone getters
+// identity, mirroring Z.zone in content/libraries/zona.lua, and the zone getters
 // offered as value suggestions.
 
 import type { Zone, ZoneKind } from "./zone-model";

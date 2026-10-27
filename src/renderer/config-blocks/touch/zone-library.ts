@@ -1,4 +1,4 @@
-import { parseLibraryScript } from "../../libraries/library";
+import { parseLibraryScript } from "../../lib/library";
 import { ZONA_GLOBAL } from "./zone-parse";
 import type { ZoneIssue } from "./zone-validate";
 

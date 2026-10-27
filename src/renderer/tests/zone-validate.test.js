@@ -13,7 +13,7 @@ import {
   ZONE_START_SCRIPT,
 } from "../config-blocks/touch/zone-parse";
 
-const LIB = `local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`;
+const LIB = `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")`;
 
 function zone(fields = {}) {
   return {

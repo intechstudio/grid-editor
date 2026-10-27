@@ -14,7 +14,7 @@
   import MiniMap from "./grid-layout/MiniMap.svelte";
   import { derived, get } from "svelte/store";
   import PanelToggleButton from "./PanelToggleButton.svelte";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { GridPane, GridSplitpanes } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
 
   let logLength = 0;
@@ -74,8 +74,8 @@
 
 <svelte:window on:resize={handleResize} />
 
-<Splitpanes theme="modern-theme" horizontal={true} class="w-full">
-  <Pane size={100 - $splitpanes.minimap.size}>
+<GridSplitpanes horizontal={true} class="w-full">
+  <GridPane size={100 - $splitpanes.minimap.size}>
     <container
       bind:this={container}
       use:Modal.TargetManager.registerAs={Modal.Snap.GridLayout}
@@ -151,8 +151,8 @@
         </div>
       </div>
     </container>
-  </Pane>
-  <Pane
+  </GridPane>
+  <GridPane
     bind:size={$splitpanes.minimap.size}
     minSize={$splitpanes.minimap.default}
   >
@@ -162,5 +162,5 @@
     >
       <MiniMap />
     </div>
-  </Pane>
-</Splitpanes>
+  </GridPane>
+</GridSplitpanes>

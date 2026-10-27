@@ -1,6 +1,6 @@
 // Zone options as the zona.lua library reads them (RFC 4, 6.2). Blocks write
 // only options that differ from these defaults, so they must equal Z.def,
-// Z.kind and Z.tdef in libraries/zona/zona.lua; a test checks they match. A
+// Z.kind and Z.tdef in content/libraries/zona.lua; a test checks they match. A
 // default may only change in a major library version.
 
 export type ZoneKind = "fader" | "button" | "xy";

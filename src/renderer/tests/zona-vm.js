@@ -1,6 +1,6 @@
 import { LuaFactory } from "wasmoon";
 import { GridScript } from "@intechstudio/grid-protocol";
-import zonaSource from "../libraries/zona/zona.lua?raw";
+import zonaSource from "../../content/libraries/zona.lua?raw";
 
 // Firmware globals the library may touch. Each stub records its call; the
 // position getters answer from `env` (module at 0,0 on page 0 by default).

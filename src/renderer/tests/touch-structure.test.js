@@ -27,7 +27,7 @@ beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const LIB = `local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`;
+const LIB = `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")`;
 const fader = (name, x = 0) =>
   `_Z.fader("${name}",${x},0,1,9,{},function(self)`;
 const button = (name) => `_Z.button("${name}",2,0,2,2,{},function(self)`;

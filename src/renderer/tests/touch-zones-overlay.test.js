@@ -19,7 +19,9 @@ const zone = (line) => act(line, "composite_open");
 const END = () => act("end)", "composite_close");
 const BODY = () => act("print(1)");
 
-const LIB = act(`local p=string.format("/%02X/",gpc())_Z=require(p.."zona")`);
+const LIB = act(
+  `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")`,
+);
 const F1 = zone(`_Z.fader("f1",0,0,1,9,{},function(self)`);
 const F1_BODY = BODY();
 const B1 = zone(`_Z.button("b1",1,0,2,2,{group=1},function(self)`);

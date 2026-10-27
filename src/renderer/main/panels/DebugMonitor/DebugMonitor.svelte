@@ -12,7 +12,7 @@
   import { writable, readable, get } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { GridPane, GridSplitpanes } from "@intechstudio/grid-uikit";
   import {
     MoltenPushButton,
     MeltRadio,
@@ -218,15 +218,11 @@
     <SendRaw {target} />
   {/if}
 
-  <Splitpanes
-    theme="modern-theme"
-    class="w-full overflow-hidden"
-    horizontal={true}
-  >
-    <Pane class="overflow-hidden">
+  <GridSplitpanes class="w-full overflow-hidden" horizontal={true}>
+    <GridPane class="overflow-hidden">
       <DebugTextList />
-    </Pane>
-    <Pane class="overflow-hidden">
+    </GridPane>
+    <GridPane class="overflow-hidden">
       {#if $debug_lowlevel_store.length != 0}
         <div class="flex flex-col w-full h-full">
           <div class="flex flex-row gap-2 text-foreground items-center my-2">
@@ -279,8 +275,8 @@
           </div>
         </div>
       {/if}
-    </Pane>
-    <Pane>
+    </GridPane>
+    <GridPane>
       <div class="flex flex-col h-full overflow-hidden gap-2 mt-2">
         <div class="text-foreground">Watched values:</div>
         <div class="flex-grow overflow-y-auto">
@@ -299,8 +295,8 @@
           {/if}
         </div>
       </div>
-    </Pane>
-  </Splitpanes>
+    </GridPane>
+  </GridSplitpanes>
 
   <div class="inline-flex flex-row mt-2">
     <svg width="50%" height="50" viewBox="0 0 100 50">

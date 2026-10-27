@@ -1,5 +1,4 @@
 import {
-  ElementType,
   EventType,
   GridScript,
   initLuaFormatter,
@@ -11,6 +10,7 @@ vi.mock("../main/panels/FileManager/FileManager", async (importOriginal) => ({
   ...(await importOriginal()),
   createDir: vi.fn(),
   fetchDirEntries: vi.fn(),
+  fetchFileHead: vi.fn(),
   invalidateLuaModule: vi.fn(),
   writeFileContent: vi.fn(),
 }));
@@ -18,77 +18,251 @@ vi.mock("../main/panels/FileManager/FileManager", async (importOriginal) => ({
 import {
   createDir,
   fetchDirEntries,
+  fetchFileHead,
   invalidateLuaModule,
   writeFileContent,
 } from "../main/panels/FileManager/FileManager";
 import {
-  areValidRows,
-  bundledLibraries,
   findBundledLibrary,
+  globalForFile,
+  globalsLoadedBefore,
   installLibrary,
   isLibraryPlace,
+  libraryRowStatus,
+  librarySuggestions,
   libraryScriptToLua,
+  parseLibraryHeader,
   parseLibraryScript,
-} from "../libraries/library";
+  readPageLibraries,
+} from "../lib/library";
 
 beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const PREFIX = `local p=string.format("/%02X/",gpc())`;
+const PREFIX =
+  `local p=string.format("/%02X/",gpc())` +
+  `local function r(n)local ok,m=pcall(require,p..n)if ok then return m end ` +
+  `print(p..n..".lua missing")end`;
 const rows = [{ global: "_Test", file: "test" }];
-const firmwareNames = new Set(
-  GridScript.validator.lookup.flatMap((e) => [e.human, e.short]),
-);
+const test1 = findBundledLibrary("test");
 
 describe("Library script", () => {
   test("round-trips the rows", () => {
     const script = libraryScriptToLua(rows);
-    expect(script).toBe(`${PREFIX}_Test=require(p.."test")`);
+    expect(script).toBe(`${PREFIX} _Test=r("test")`);
     expect(parseLibraryScript(script)).toEqual(rows);
     expect(parseLibraryScript(PREFIX)).toEqual([]);
-    expect(parseLibraryScript(`${PREFIX} _Test=require(p.."test")`)).toEqual(
-      rows,
-    );
   });
 
-  test("bundled libraries survive the send path and stay out of user names", () => {
-    const script = libraryScriptToLua(bundledLibraries);
-    expect(GridScript.compressScript(script)).toBe(script);
-    for (const lib of bundledLibraries) {
-      expect(lib.global).toMatch(/^_[A-Z][A-Za-z0-9_]*$/);
-      expect(lib.file).toMatch(/^[A-Za-z0-9_]+$/);
-      expect(firmwareNames.has(lib.global)).toBe(false);
-      expect(firmwareNames.has(lib.file)).toBe(false);
+  test("the module gets the script as the editor writes it", () => {
+    const two = [...rows, { global: "_util", file: "util" }];
+    for (const script of [
+      libraryScriptToLua([]),
+      libraryScriptToLua(rows),
+      libraryScriptToLua(two),
+    ]) {
+      expect(GridScript.compressScript(script)).toBe(script);
     }
+  });
+
+  test("loads user libraries under an underscore global", () => {
+    expect(parseLibraryScript(`${PREFIX} _util=r("util")`)).toEqual([
+      { global: "_util", file: "util" },
+    ]);
   });
 
   test.each([
     `print("hi")`,
-    `${PREFIX} local _Test=require(p.."test")`,
-    `${PREFIX} _Test=require(p.."test") print(_Test)`,
-    `${PREFIX}Util=require(p.."util")`,
-    `${PREFIX}Test=require(p.."test")`,
-    `${PREFIX}_Test=require(p.."util")`,
+    `local p=string.format("/%02X/",gpc())_Test=require(p.."test")`,
+    `${PREFIX} local _Test=r("test")`,
+    `${PREFIX} _Test=r("test") print(_Test)`,
+    `${PREFIX} Util=r("util")`,
+    `${PREFIX} _Test=r("test")_Test=r("test")`,
+    `${PREFIX} _Test=r("test")_Test=r("other")`,
   ])("other scripts are not a Library block: %j", (script) => {
     expect(parseLibraryScript(script)).toBeNull();
   });
+});
 
-  test("a library is loaded only once", () => {
-    expect(areValidRows([rows[0], rows[0]])).toBe(false);
-    expect(
-      parseLibraryScript(libraryScriptToLua([rows[0], rows[0]])),
-    ).toBeNull();
+describe("parseLibraryHeader", () => {
+  const header = { name: "_Test", version: "1.0.0" };
+
+  test("reads the two lines at the top, also after compression", () => {
+    const source = `local LIB_NAME = "_Test"\nlocal LIB_VERSION = "1.0.0"\nreturn {}`;
+    expect(parseLibraryHeader(source)).toEqual(header);
+    expect(parseLibraryHeader(GridScript.compressScript(source))).toEqual(
+      header,
+    );
+  });
+
+  test.each([
+    `return {}`,
+    `-- a comment\nlocal LIB_NAME = "_Test"\nlocal LIB_VERSION = "1.0.0"`,
+    `local LIB_NAME = "Test"\nlocal LIB_VERSION = "1.0.0"`,
+    `local LIB_NAME = "_Test"\nlocal LIB_VERSION = "v1"`,
+    `local LIB_VERSION = "1.0.0"\nlocal LIB_NAME = "_Test"`,
+  ])("no header: %j", (source) => {
+    expect(parseLibraryHeader(source)).toBeNull();
   });
 });
 
 describe("isLibraryPlace", () => {
-  test("only the System element's Setup, never a function body", () => {
-    const { SYSTEM, BUTTON } = ElementType;
-    expect(isLibraryPlace(SYSTEM, EventType.SETUP, false)).toBe(true);
-    expect(isLibraryPlace(SYSTEM, EventType.SETUP, true)).toBe(false);
-    expect(isLibraryPlace(SYSTEM, EventType.TIMER, false)).toBe(false);
-    expect(isLibraryPlace(BUTTON, EventType.SETUP, false)).toBe(false);
+  test("any Setup, never a function body", () => {
+    expect(isLibraryPlace(EventType.SETUP, false)).toBe(true);
+    expect(isLibraryPlace(EventType.SETUP, true)).toBe(false);
+    expect(isLibraryPlace(EventType.TIMER, false)).toBe(false);
+  });
+});
+
+describe("rows and the page folder", () => {
+  const files = new Map([
+    ["test", { name: "_Test", version: "0.9.0" }],
+    ["util", { name: "_util", version: "2.1.0" }],
+    ["notes", null],
+  ]);
+
+  test("suggests bundled libraries and the module's libraries", () => {
+    // zona is bundled too; these cases follow the test library
+    const suggest = (files) =>
+      librarySuggestions(files).filter((e) => e.value !== "zona");
+    expect(suggest(new Map())).toEqual([
+      { value: "test", info: "_Test 1.0.0 · bundled" },
+    ]);
+    expect(suggest(files)).toEqual([
+      { value: "test", info: "_Test 0.9.0 · on module" },
+      { value: "util", info: "_util 2.1.0 · on module" },
+    ]);
+    expect(suggest(undefined)).toEqual([
+      { value: "test", info: "_Test 1.0.0 · bundled" },
+    ]);
+  });
+
+  test("a picked file loads under its own header's global", () => {
+    expect(globalForFile("util", files)).toBe("_util");
+    expect(globalForFile("test", new Map())).toBe("_Test");
+    expect(globalForFile("notes", files)).toBeUndefined();
+    expect(globalForFile("other", files)).toBeUndefined();
+  });
+
+  test("shows the module file's version and the bundled one when it differs", () => {
+    expect(libraryRowStatus(rows[0], files, "/01/")).toEqual({
+      kind: "present",
+      version: "0.9.0",
+      bundledVersion: "1.0.0",
+    });
+    const same = new Map([["test", { name: "_Test", version: "1.0.0" }]]);
+    expect(libraryRowStatus(rows[0], same, "/01/")).toEqual({
+      kind: "present",
+      version: "1.0.0",
+      bundledVersion: undefined,
+    });
+  });
+
+  test("a missing bundled library can be installed", () => {
+    expect(libraryRowStatus(rows[0], new Map(), "/01/")).toEqual({
+      kind: "missing",
+      library: test1,
+    });
+  });
+
+  test("a missing user library has no install", () => {
+    const status = libraryRowStatus({ global: "_x", file: "x" }, files, "/01/");
+    expect(status).toEqual({
+      kind: "unavailable",
+      message: "x.lua is missing in /01/ and the editor has no copy to install",
+    });
+  });
+
+  test("a file that doesn't export the row's global is an error", () => {
+    const row = { global: "_other", file: "util" };
+    expect(libraryRowStatus(row, files, "/01/").kind).toBe("error");
+    const notes = { global: "_notes", file: "notes" };
+    expect(libraryRowStatus(notes, files, "/01/").kind).toBe("error");
+  });
+
+  test("without the module, only the bundled version", () => {
+    expect(libraryRowStatus(rows[0], undefined, "/01/")).toEqual({
+      kind: "unknown",
+      version: "1.0.0",
+    });
+  });
+});
+
+describe("globalsLoadedBefore", () => {
+  const setup = (actions) => ({
+    type: 0,
+    isLoaded: () => true,
+    config: actions,
+  });
+  const lib = (script) => ({ short: "lib", script });
+
+  test("counts loaded Setups in the module's run order", () => {
+    const fromSystem = lib(libraryScriptToLua(rows));
+    const fromElement0 = lib(
+      libraryScriptToLua([{ global: "_util", file: "util" }]),
+    );
+    const target = lib(libraryScriptToLua([]));
+    const notLoaded = {
+      type: 0,
+      isLoaded: () => false,
+      config: [lib(libraryScriptToLua([{ global: "_x", file: "x" }]))],
+    };
+    const element = (elementIndex, events) => ({ elementIndex, events });
+    const page = {
+      control_elements: [
+        element(1, [setup([target])]),
+        element(0, [setup([fromElement0])]),
+        element(2, [notLoaded]),
+        element(255, [setup([fromSystem])]),
+      ],
+    };
+    const event = { parent: page.control_elements[0] };
+    page.control_elements[0].parent = page;
+    target.parent = event;
+    expect(globalsLoadedBefore(target)).toEqual(new Set(["_Test", "_util"]));
+  });
+});
+
+describe("readPageLibraries", () => {
+  const module = { id: "m1" };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("reads the header at the top of each Lua file once", async () => {
+    fetchDirEntries.mockImplementation(async (path) =>
+      path === "/"
+        ? [{ name: "01", type: "dir" }]
+        : [
+            { name: "test.lua", type: "file" },
+            { name: "notes.lua", type: "file" },
+            { name: "image.bin", type: "file" },
+          ],
+    );
+    fetchFileHead.mockImplementation(async (path) =>
+      path === "/01/test.lua"
+        ? `local LIB_NAME="_Test" local LIB_VERSION="1.0.0" local M={}`
+        : `print("hi")`,
+    );
+    const [a, b] = await Promise.all([
+      readPageLibraries(1, module),
+      readPageLibraries(1, module),
+    ]);
+    expect(a).toBe(b);
+    expect(a).toEqual(
+      new Map([
+        ["test", { name: "_Test", version: "1.0.0" }],
+        ["notes", null],
+      ]),
+    );
+    expect(fetchFileHead).toHaveBeenCalledTimes(2);
+  });
+
+  test("undefined when the module can't be asked", async () => {
+    fetchDirEntries.mockRejectedValue(new Error("offline"));
+    expect(await readPageLibraries(2, module)).toBeUndefined();
   });
 });
 
@@ -103,7 +277,7 @@ describe("installLibrary", () => {
 
   test("writes the file into a new page folder, then runs Setup", async () => {
     fetchDirEntries.mockResolvedValue([]);
-    await installLibrary(findBundledLibrary("test"), 2, module);
+    await installLibrary(test1, 2, module);
     expect(createDir).toHaveBeenCalledWith("/02", module);
     expect(writeFileContent).toHaveBeenCalledWith(
       "/02/test.lua",
@@ -124,9 +298,9 @@ describe("installLibrary", () => {
     module.execLUAImmediateAndEvalaute.mockResolvedValue({
       value: [false, 0, "boom"],
     });
-    await expect(
-      installLibrary(findBundledLibrary("test"), 2, module),
-    ).rejects.toThrow("Setup failed on element 0: boom");
+    await expect(installLibrary(test1, 2, module)).rejects.toThrow(
+      "Setup failed on element 0: boom",
+    );
     expect(createDir).not.toHaveBeenCalled();
   });
 });

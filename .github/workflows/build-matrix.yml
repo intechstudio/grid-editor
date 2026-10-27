@@ -55,6 +55,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install macOS usb bindings for both architectures
+        # macos-latest runners are arm64, so `npm ci` only installs the
+        # optionalDependency matching the host (@node-usb/usb-darwin-arm64).
+        # electron-builder packages both arm64 and x64 mac targets from this
+        # same node_modules (npmRebuild/nodeGypRebuild are disabled in
+        # electron-builder-config.js), relying on each native package's own
+        # cpu/os fields to end up in the right dmg. Without the x64 binding
+        # physically present here, the x64 build ships with no usb native
+        # binding at all and crashes at startup (issue #1653).
+        if: runner.os == 'macOS'
+        # --force is required because --os/--cpu only filter optionalDependencies
+        # during a full install; npm still rejects a direct install of a package
+        # whose declared os/cpu doesn't match the host (EBADPLATFORM) otherwise.
+        run: |
+          USB_VERSION=$(node -p "require('./node_modules/usb/package.json').version")
+          npm install --no-save --force --cpu=x64 --os=darwin "@node-usb/usb-darwin-x64@$USB_VERSION"
+          npm install --no-save --force --cpu=arm64 --os=darwin "@node-usb/usb-darwin-arm64@$USB_VERSION"
+
       - name: Download LuaLS binaries
         run: node build-scripts/download-luals.js
 
