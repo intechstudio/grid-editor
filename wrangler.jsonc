@@ -23,6 +23,12 @@
     "not_found_handling": "single-page-application",
   },
   "routes": [{ "pattern": "grid-editor.app", "custom_domain": true }],
+  // Served only at grid-editor.app, but pull request preview aliases live on
+  // workers.dev and need preview URLs kept on. Both are set explicitly because
+  // preview_urls otherwise follows workers_dev, and a deploy would turn the
+  // PR previews off.
+  "workers_dev": false,
+  "preview_urls": true,
   "env": {
     // Always tracks the head of the stable branch. A Worker of its own rather
     // than a preview alias of the one above, because a custom domain requires
