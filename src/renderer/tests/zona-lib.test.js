@@ -124,6 +124,11 @@ test("a quick tap on a mouse XY clicks left on lift", async () => {
   vm.tick(3);
   expect(mouse(vm, "gmbs")).toEqual([]);
   vm.touch([0, UP, 505, 498]);
+  expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
+  // held a whole tick: a release in the same scan never reaches the computer
+  vm.tick();
+  expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
+  vm.tick();
   expect(mouse(vm, "gmbs")).toEqual([
     [1, 1],
     [1, 0],

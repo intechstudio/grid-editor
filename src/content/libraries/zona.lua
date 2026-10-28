@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.9.3"
+local LIB_VERSION = "0.9.4"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -50,6 +50,7 @@ Z.nz = {}
 Z.ct = {}
 Z.tn = 0
 Z.tm = 0 -- ms of all ticks: the clock a tap is timed by
+Z.tu = 0 -- ticks until a tap's click releases
 -- per cell x+y*9: last colour key, last phase; Z.el: the LEDs' owner index
 Z.lk = {}
 Z.lc = {}
@@ -497,6 +498,10 @@ local function rl() -- release held zones: no stuck notes or buttons
     end
     mb(z, 0) -- a drag lock (toggle) too
   end
+  if Z.tu > 0 then -- and a tap's click
+    Z.tu = 0
+    gmbs(1, 0)
+  end
 end
 
 -- value sync (RX, Z.set): no output; w: the value on the wire
@@ -735,6 +740,13 @@ function Z.tick(self, cfg)
   stale()
   Z.tn = Z.tn + 1
   Z.tm = Z.tm + (cfg and cfg.ms or Z.tdef.ms)
+  -- a tap's click is held a whole tick, so the computer sees it
+  if Z.tu > 0 then
+    Z.tu = Z.tu - 1
+    if Z.tu == 0 then
+      gmbs(1, 0)
+    end
+  end
   for _, z in ipairs(Z.zs) do
     for _, o in ipairs(z.os) do
       for _, k in ipairs(KS) do
@@ -792,7 +804,7 @@ local function route(id, evt, x, y)
         end
         if m then
           gmbs(1, 1)
-          gmbs(1, 0)
+          Z.tu = 2
         end
       end
     end
