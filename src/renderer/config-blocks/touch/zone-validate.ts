@@ -163,26 +163,23 @@ function resOf(zone: Zone): number {
 }
 
 // min and max as the library uses them: 0 and 127, or 16383 above res 7.
-// A zone that sends MIDI keeps them in 0-16383 (the wire range); one with
-// msg="none" sends nothing, so any range goes.
+// A zone that sends MIDI keeps them in 0-16383 (the wire range).
 function rangeProblems(zone: Zone): ZoneProblem[] {
   const min = zone.opt.min ?? 0;
   const max = zone.opt.max ?? (resOf(zone) > 7 ? 16383 : 127);
   if (typeof min !== "number" || typeof max !== "number") {
     return [];
   }
-  if (option(zone, "msg") !== "none") {
-    const outside = (["min", "max"] as const).filter(
-      (key) =>
-        typeof zone.opt[key] !== "undefined" &&
-        (Number(zone.opt[key]) < 0 || Number(zone.opt[key]) > 16383),
-    );
-    if (outside.length > 0) {
-      return outside.map((key) => ({
-        key,
-        message: "Use 0 to 16383 when the zone sends MIDI",
-      }));
-    }
+  const outside = (["min", "max"] as const).filter(
+    (key) =>
+      typeof zone.opt[key] !== "undefined" &&
+      (Number(zone.opt[key]) < 0 || Number(zone.opt[key]) > 16383),
+  );
+  if (outside.length > 0) {
+    return outside.map((key) => ({
+      key,
+      message: "Use 0 to 16383 when the zone sends MIDI",
+    }));
   }
   if (min < max) {
     return [];
@@ -201,7 +198,7 @@ function rangeProblems(zone: Zone): ZoneProblem[] {
 function numProblems(zone: Zone): ZoneProblem[] {
   const num = Number(option(zone, "num"));
   const msg = option(zone, "msg");
-  if (num < 0 || msg === "pb" || msg === "none") {
+  if (num < 0 || msg === "pb") {
     return [];
   }
   const xy = zoneKinds[zone.kind].read === "point";

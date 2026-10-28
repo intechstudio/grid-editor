@@ -27,7 +27,7 @@ export type ZoneOptions = {
 // What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
 // "mouse" is the wheel (fader), a button or the pointer (xy); "pad" is a
 // gamepad axis (fader), button or two axes (xy).
-export type ZoneMsg = "note" | "cc" | "pb" | "mouse" | "pad" | "none";
+export type ZoneMsg = "note" | "cc" | "pb" | "mouse" | "pad";
 
 export const zoneDefaults: ZoneOptions = {
   dir: "v",
@@ -58,9 +58,9 @@ export const zoneKinds: Record<
 };
 
 export const zoneMsgValues: Record<ZoneKind, readonly ZoneMsg[]> = {
-  fader: ["cc", "pb", "mouse", "pad", "none"],
-  button: ["note", "cc", "mouse", "pad", "none"],
-  xy: ["cc", "mouse", "pad", "none"],
+  fader: ["cc", "pb", "mouse", "pad"],
+  button: ["note", "cc", "mouse", "pad"],
+  xy: ["cc", "mouse", "pad"],
 };
 
 export const zoneKindList = Object.keys(zoneKinds) as ZoneKind[];
@@ -136,7 +136,7 @@ const MOUSE: ZoneMsg[] = ["mouse"];
 // options neither a mouse nor a gamepad zone uses
 const MOUSE_PAD: ZoneMsg[] = ["mouse", "pad"];
 // options only a mouse zone uses
-const NOT_MOUSE: ZoneMsg[] = ["note", "cc", "pb", "pad", "none"];
+const NOT_MOUSE: ZoneMsg[] = ["note", "cc", "pb", "pad"];
 
 // In the order options are written (zone-parse.ts).
 export const zoneOptionSchema: ZoneOptionSchema[] = [
@@ -250,7 +250,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
   {
     key: "msg",
     type: "enum",
-    values: ["note", "cc", "pb", "mouse", "pad", "none"],
+    values: ["note", "cc", "pb", "mouse", "pad"],
     kinds: ALL_KINDS,
     section: "output",
   },

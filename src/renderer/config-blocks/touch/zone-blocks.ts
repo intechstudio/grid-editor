@@ -137,7 +137,7 @@ export type EnumOption = { title: string; value: string };
 // Select titles of enum values.
 const enumValueLabels: Record<string, Record<string, string>> = {
   dir: { v: "Vertical", h: "Horizontal" },
-  msg: { cc: "CC", note: "Note", pb: "Pitch bend", none: "None" },
+  msg: { cc: "CC", note: "Note", pb: "Pitch bend" },
   mode: { abs: "Absolute", rel: "Relative", glide: "Glide" },
   grab: { focus: "Focus", live: "Live" },
 };

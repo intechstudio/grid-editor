@@ -51,7 +51,7 @@ function zonePad(zones: Zone[], index: number): ZoneMidi {
   };
 }
 
-// The MIDI identity of zone `index`, null for msg="none" or "mouse", the
+// The MIDI identity of zone `index`, null for msg="mouse", the
 // gamepad target for "pad". Autos: channel from the module row and page,
 // number from the module column and the CC slot (zones before it: xy 2,
 // others 1, whatever they send), % 32 for a 14-bit pair.
@@ -62,7 +62,7 @@ export function zoneMidi(
 ): ZoneMidi | null {
   const zone = zones[index];
   const msg = String(option(zone, "msg"));
-  if (msg === "none" || msg === "mouse") {
+  if (msg === "mouse") {
     return null;
   }
   if (msg === "pad") {

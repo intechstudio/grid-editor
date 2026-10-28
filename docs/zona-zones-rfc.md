@@ -1,6 +1,6 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Revision 8, implemented on `feat/zona-sandbox` (library 0.10.0). Revision 8 removes Touch Start: each zone line passes `self`, and the zones go live on the first tick after Setup. Revision 7 takes the body out of the zone: a zone is its options, with one Output (MIDI, Mouse or Gamepad) sent by the library. Revision 6 followed the loader's CTO round on `feat/library-block` (PR #1669), revision 5 moved the zones onto that loader, and revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
+- **Status:** Revision 8, implemented on `feat/zona-sandbox` (library 0.10.1). Revision 8 removes Touch Start: each zone line passes `self`, and the zones go live on the first tick after Setup. Revision 7 takes the body out of the zone: a zone is its options, with one Output (MIDI, Mouse or Gamepad) sent by the library. Revision 6 followed the loader's CTO round on `feat/library-block` (PR #1669), revision 5 moved the zones onto that loader, and revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
 - **Date:** 2026-10-28 (rev 1: 2026-10-06, rev 2: 2026-10-09, rev 3: 2026-10-12, rev 4: 2026-10-18, rev 5: 2026-10-26, rev 6: 2026-10-27, rev 7: 2026-10-28)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
@@ -17,6 +17,7 @@ Revision 8 removes the Touch Start block (user decision, 2026-10-28). The module
 | Editor       | Touch Start block, added with the first zone and kept last by the picker; order warnings; its face held the surface warnings. | **No Touch Start.** The first zone still brings Touch Tick. The library warning shows on the first zone's face; duplicate names and other problems already show on each zone (6.2). `keepLast` is gone from the picker.                |
 | Setup budget | Touch Start cost about 25 characters.                                                                                         | 7 plain zones use about 287 of 909 characters, down from 305; still about 21 plain faders (5).                                                                                                                                         |
 | Old lines    | —                                                                                                                             | Lines ending `nil)` and `_Z.start(self)` show as Code blocks; the user deletes them and adds the zones again.                                                                                                                          |
+| Outputs      | Fader, Button and XY each had None (`msg="none"`).                                                                            | **None removed** (0.10.1). It was left from the body model, where a body read the value; without a body nothing reads it. A line with `msg="none"` shows the unknown value problem (4.1).                                              |
 
 ## 0.1 What changed from revision 6 to revision 7
 
@@ -25,7 +26,7 @@ Revision 7 follows the zone outputs design session (user decisions, 2026-10-27).
 | Area         | Rev 6 (0.8.8)                                                                                                                                                             | Rev 7 (0.9.3)                                                                                                                                                                                                                                                                                                                                      |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Zone model   | A container: an opening line `…,{opt},function(self)`, a body of ordinary action blocks with `self` = the zone, and a Touch End line `end)`.                              | **A zone is its options.** One line ending `nil)`: `_Z.fader("f1",0,0,1,9,{},nil)`. The call shape is unchanged; the library ignores the 7th argument. No body, no per-finger `self`, no getters `v x y g d dx dy step f`. About 25 Setup characters less per zone (4.1).                                                                          |
-| Outputs      | MIDI from the options (`msg ch num rx`); gamepad, mouse and keyboard as action blocks in the body.                                                                        | **One Output per zone**, the `msg` option, shown as a select titled "Output". Fader: CC, Pitch bend, Mouse wheel (`mouse`), Gamepad axis (`pad`), None. Button: Note, CC, Mouse button, Gamepad button, None. XY: CC, Mouse, Gamepad, None. The face shows only the chosen output's fields (6.2).                                                  |
+| Outputs      | MIDI from the options (`msg ch num rx`); gamepad, mouse and keyboard as action blocks in the body.                                                                        | **One Output per zone**, the `msg` option, shown as a select titled "Output". Fader: CC, Pitch bend, Mouse wheel (`mouse`), Gamepad axis (`pad`). Button: Note, CC, Mouse button, Gamepad button. XY: CC, Mouse, Gamepad. The face shows only the chosen output's fields (6.2).                                                                    |
 | Mouse        | `gmms`/`gmbs` blocks in the body, fed by `self:dx()`/`self:dy()`.                                                                                                         | **The library sends it.** An XY is a trackpad (the pointer moves by the finger's movement times `speed`), a fader scrolls the wheel, a button presses a mouse button (`num` 1 Left, 2 Right, 4 Middle) and a toggle is a drag lock. Moves are summed per tick and sent once, at most 127 per step, with the fraction carried. Finger 1 only (4.1). |
 | Tap to click | —                                                                                                                                                                         | A short touch on a Mouse XY that barely moves clicks left on lift. Fixed thresholds, no settings; **Tap to click** On by default, `tap=0` turns it off (4.1).                                                                                                                                                                                      |
 | Gamepad      | `ggms`/`ggbs` blocks in the body, fed by getters.                                                                                                                         | **The library sends it.** A fader or XY sends axes over the full range −128…127, centred; a button sends a gamepad button. Axes and buttons are autos in Setup order, like the CC autos. Mode, Spring and Capture still apply; Resolution, Min and Max are hidden (4.1).                                                                           |
@@ -87,7 +88,7 @@ Revision 4 follows the owner review (section 14): fewer options, a frozen call s
 
 ## 1. Summary
 
-The user describes **zones** (faders, buttons, XY pads) on the 9×9 ZONA surface. Each zone is **one action block** on the touch element's Setup event, and **a zone is exactly its options**. They say how touch becomes a value (resolution, range, mode, capture, steps, spring, fingers) and what the zone sends: one **Output**, chosen on the block, which is MIDI (with channel, number and receive), Mouse, Gamepad or None. The library sends the output and draws the zone's LED feedback. A zone has no body.
+The user describes **zones** (faders, buttons, XY pads) on the 9×9 ZONA surface. Each zone is **one action block** on the touch element's Setup event, and **a zone is exactly its options**. They say how touch becomes a value (resolution, range, mode, capture, steps, spring, fingers) and what the zone sends: one **Output**, chosen on the block, which is MIDI (with channel, number and receive), Mouse or Gamepad. The library sends the output and draws the zone's LED feedback. A zone has no body.
 
 A Lua library, `zona.lua`, lives in the page folder and is loaded as `_Z` by a generic **Library** action block in the System element's Setup. It does the work behind the blocks: touch routing, contact capture and fingers, value maths, MIDI, mouse and gamepad out, RX sync and LED drawing.
 
@@ -188,11 +189,11 @@ In Lua, a zone is one line. The first argument is the touch element, `self` in S
 
 **Output.** One output per zone, the `msg` option, shown on the face as a select titled **Output**:
 
-| Kind   | Values (titles)                                                                          | Default |
-| ------ | ---------------------------------------------------------------------------------------- | ------- |
-| fader  | `cc` (CC), `pb` (Pitch bend), `mouse` (Mouse wheel), `pad` (Gamepad axis), `none` (None) | `cc`    |
-| button | `note` (Note), `cc` (CC), `mouse` (Mouse button), `pad` (Gamepad button), `none` (None)  | `note`  |
-| xy     | `cc` (CC), `mouse` (Mouse), `pad` (Gamepad), `none` (None)                               | `cc`    |
+| Kind   | Values (titles)                                                           | Default |
+| ------ | ------------------------------------------------------------------------- | ------- |
+| fader  | `cc` (CC), `pb` (Pitch bend), `mouse` (Mouse wheel), `pad` (Gamepad axis) | `cc`    |
+| button | `note` (Note), `cc` (CC), `mouse` (Mouse button), `pad` (Gamepad button)  | `note`  |
+| xy     | `cc` (CC), `mouse` (Mouse), `pad` (Gamepad)                               | `cc`    |
 
 Each output reads only its own options, and the face shows only those (6.2). The library ignores the others. Every output keeps `led`, `col`, the geometry, the button mode and the capture.
 
@@ -209,7 +210,6 @@ Each output reads only its own options, and the face shows only those (6.2). The
 - `note`: note on with the value scaled to 0–127 when the range is wider; value 0 is the note off (velocity 0).
 - `cc`: 7-bit when `res` is 7; a 14-bit pair when `res > 7`, MSB on `num` and LSB on `num+32`. A 7-bit CC from a wide `min`/`max` range is scaled to 0–127.
 - `pb`: pitch bend, always 14-bit (the zone runs as `res=14`), sent as `gms(ch,224,lsb,msb)`; the centre is 8192.
-- `none`: nothing. The zone still keeps its CC slot for the autos.
 
 **MIDI autos**, as an element's:
 
@@ -315,7 +315,7 @@ Revision 3 had a mapping mode for DAW MIDI learn: a Touch Utility block replaced
 
 `rx=1` makes a zone follow host MIDI on its own identity (S2).
 
-**Registration.** When the zones go live, the library registers the identities the zone sends: each source's channel, command and number from the options and autos, both CCs of a 14-bit pair, and pitch bend on its channel. `msg="none"`, Mouse and Gamepad zones register nothing; the face hides Receive MIDI for them. On an XY with fingers only finger 1's channel is registered.
+**Registration.** When the zones go live, the library registers the identities the zone sends: each source's channel, command and number from the options and autos, both CCs of a 14-bit pair, and pitch bend on its channel. Mouse and Gamepad zones register nothing; the face hides Receive MIDI for them. On an XY with fingers only finger 1's channel is registered.
 
 **Handling a message:**
 
@@ -468,7 +468,6 @@ The output is the `msg` option; the model has nothing else for it.
 | MIDI (CC, Note, Pitch bend) | Channel, CC, Receive MIDI, Resolution, Min, Max, Mode, Speed, Ease, Spring | Channel, Note or CC, Receive MIDI, Resolution, Min, Max | as the fader, plus Fingers                         |
 | Mouse                       | Speed (the wheel)                                                          | Button                                                  | Tap to click, Speed                                |
 | Gamepad                     | Axis, Mode, Speed, Ease, Spring                                            | Button                                                  | Axis (x; y on the next), Mode, Speed, Ease, Spring |
-| None                        | as MIDI                                                                    | as MIDI                                                 | as MIDI                                            |
 
 **Validators** (`zone-validate.ts`). They follow `config-blocks/validators.ts`: an invalid value keeps the last valid one and shows an inline message.
 
@@ -493,8 +492,8 @@ A block that declares `elementTypes` or `eventTypes` is placed at the top level 
 
 - grid-uikit controls only, the same as `SettingsButton.svelte`.
 - The face shows Geometry, Output, Resolution and LED open, with Behaviour and Capture collapsed. A section with no field for the zone's output isn't shown.
-- An enum is a select of its values with titles, and the kind's default is selected when the line leaves the option out. There is no separate "default" entry; picking the default writes nothing. The **Output** select titles its values by kind (4.1): CC, Note, Pitch bend, Mouse wheel / Mouse button / Mouse, Gamepad axis / Gamepad button / Gamepad, None.
-- A number option is a combo with suggestions, like the MIDI block's. Channel lists Auto and channels 1–16. The number field is titled by the output: **CC** or **Note** with Auto and the CC names or the notes (no list for pitch bend or None); **Button** for a Mouse button, with Left 1, Right 2, Middle 4 and no Auto; **Axis** or **Button** for Gamepad, with Auto and X Axis…RZ Axis or Button 0…31. Resolution bits list 7–14 with their ranges, Max offers 127 and 16383, and 0/1 options (`rx` as "Receive MIDI", `tap` as "Tap to click", `led`, `spring`) offer Off and On. Fields without suggestions show their range in the title.
+- An enum is a select of its values with titles, and the kind's default is selected when the line leaves the option out. There is no separate "default" entry; picking the default writes nothing. The **Output** select titles its values by kind (4.1): CC, Note, Pitch bend, Mouse wheel / Mouse button / Mouse, Gamepad axis / Gamepad button / Gamepad.
+- A number option is a combo with suggestions, like the MIDI block's. Channel lists Auto and channels 1–16. The number field is titled by the output: **CC** or **Note** with Auto and the CC names or the notes (no list for pitch bend); **Button** for a Mouse button, with Left 1, Right 2, Middle 4 and no Auto; **Axis** or **Button** for Gamepad, with Auto and X Axis…RZ Axis or Button 0…31. Resolution bits list 7–14 with their ranges, Max offers 127 and 16383, and 0/1 options (`rx` as "Receive MIDI", `tap` as "Tap to click", `led`, `spring`) offer Off and On. Fields without suggestions show their range in the title.
 - The Output section's `ch` and `num` placeholders and Auto suggestions show the resolved autos ("auto (ch 1)", "Auto (33)", "auto (X)", "Auto (Y Axis)"), computed by `zone-autos.ts`, a TypeScript copy of the library's identity rules checked against the library in the Lua VM tests. A Mouse button's placeholder is "1 (Left)". The section ends with what the zone sends.
 - The untoggled header shows the name, the cells and what the zone sends: `f1 · 0,0 1×9 · CC 32 ch 1`, `CC 1/33 ch 1` (14-bit), `CC 34, 35 ch 1` (XY), `CC 32, 33 ch 1–3` (fingers), `Note 36 ch 1`, `PB ch 1`, `Mouse`, `Mouse wheel`, `Mouse Left`, `Gamepad X`, `Gamepad Y, Z`, `Gamepad button 0`, `no MIDI`. The channel is 1-based, like the MIDI block's. The zone autos use `(gmy()*4+gpc())%16` for the channel, like the library, not the page's `midi_auto_ch` override (by decision, section 10).
 - Mouse and Gamepad action blocks are the same as on `stable`; they have nothing for zones.

@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.10.0"
+local LIB_VERSION = "0.10.1"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -31,7 +31,7 @@ Z.def = {
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
 -- (MIDI, "mouse": wheel, button or pointer by kind, "pad": gamepad axis,
--- button or two axes, "none")
+-- button or two axes)
 Z.kind = {
   fader = { read = "axis", msg = "cc" },
   button = { read = "gate", msg = "note" },
@@ -626,7 +626,7 @@ function Z.zone(self, n, x, y, w, h, opt, kind)
   end
   -- MIDI identity, autos as before: ch from module row and page, num from
   -- module column and slot (% 32 for a 14-bit pair), xy y on the next one.
-  -- m: nil none, 0 7-bit, 1 14-bit CC pair, 2 pitch bend, 3 gamepad
+  -- m: nil mouse, 0 7-bit, 1 14-bit CC pair, 2 pitch bend, 3 gamepad
   local z14 = m == "cc" and o.res > 7
   local p, py = o.num, o.num + 1
   if p < 0 and m == "pad" then
@@ -644,7 +644,7 @@ function Z.zone(self, n, x, y, w, h, opt, kind)
     cmd = m == "note" and 144 or 176,
     p = p,
     py = py,
-    m = m == "pb" and 2 or z14 and 1 or m == "pad" and 3 or not ms and m ~= "none" and 0 or nil,
+    m = m == "pb" and 2 or z14 and 1 or m == "pad" and 3 or not ms and 0 or nil,
     ms = ms,
     w = ms and { v = 0, x = 0, y = 0 }, -- mouse: the move to send (mv)
     a = {

@@ -34,7 +34,7 @@ export namespace Grid {
     }
 
     // What a zone block's zone sends (its options and the zones before it),
-    // null for msg="none", undefined when the action isn't a zone line.
+    // null for msg="mouse", undefined when the action isn't a zone line.
     export function getZoneMidi(
       action: GridAction,
     ): ZoneMidi | null | undefined {
