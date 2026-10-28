@@ -14,6 +14,7 @@ import {
   zoneOptionShown,
   zoneSections,
   zoneSectionsOpen,
+  zoneSends,
 } from "./zone-model";
 import { parseZone, zoneToLua } from "./zone-parse";
 import { type ZoneMidi, PAD_AXIS_NAMES } from "./zone-autos";
@@ -137,7 +138,8 @@ export type EnumOption = { title: string; value: string };
 // Select titles of enum values.
 const enumValueLabels: Record<string, Record<string, string>> = {
   dir: { v: "Vertical", h: "Horizontal" },
-  msg: { cc: "CC", note: "Note", pb: "Pitch bend" },
+  msg: { midi: "MIDI" },
+  cmd: { cc: "CC", note: "Note", pb: "Pitch bend" },
   mode: { abs: "Absolute", rel: "Relative", glide: "Glide" },
   grab: { focus: "Focus", live: "Live" },
 };
@@ -199,7 +201,7 @@ export function zoneOptionSuggestions(
   key: string,
   midi?: ZoneMidi | null,
 ): OptionSuggestion[] {
-  const msg = zoneMsg(zone);
+  const sends = zoneSends(zone);
   switch (key) {
     case "ch":
       return [
@@ -213,11 +215,11 @@ export function zoneOptionSuggestions(
         })),
       ];
     case "num": {
-      if (msg === "mouse") {
+      if (sends === "mouse") {
         return MOUSE_BUTTONS;
       }
       const auto = midi?.nums[0];
-      if (msg === "pad") {
+      if (sends === "pad") {
         const button = zone.kind === "button";
         const name = (n: number) =>
           button ? `Button ${n}` : `${PAD_AXIS_NAMES[n] ?? n} Axis`;
@@ -232,7 +234,7 @@ export function zoneOptionSuggestions(
           })),
         ];
       }
-      if (msg === "note") {
+      if (sends === "note") {
         return [
           {
             value: "-1",
@@ -247,7 +249,7 @@ export function zoneOptionSuggestions(
           })),
         ];
       }
-      if (msg === "cc") {
+      if (sends === "cc") {
         return [
           {
             value: "-1",
@@ -387,6 +389,7 @@ export const optionLabels: Record<string, string> = {
   led: "LED feedback",
   col: "Colour",
   msg: "Output",
+  cmd: "Command",
   ch: "Channel",
   num: "CC",
   rx: "Receive MIDI",
@@ -398,11 +401,11 @@ export const optionLabels: Record<string, string> = {
 // axis or button, by what the zone sends.
 export function optionLabel(key: string, zone?: Zone): string {
   if (key === "num" && typeof zone !== "undefined") {
-    const msg = zoneMsg(zone);
-    if (msg === "pad") {
+    const sends = zoneSends(zone);
+    if (sends === "pad") {
       return zone.kind === "button" ? "Button" : "Axis";
     }
-    return msg === "note" ? "Note" : msg === "mouse" ? "Button" : "CC";
+    return sends === "note" ? "Note" : sends === "mouse" ? "Button" : "CC";
   }
   return optionLabels[key] ?? key;
 }

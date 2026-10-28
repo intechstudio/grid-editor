@@ -25,9 +25,14 @@ export type ZoneOptions = {
 };
 
 // What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
-// "mouse" is the wheel (fader), a button or the pointer (xy); "pad" is a
-// gamepad axis (fader), button or two axes (xy).
-export type ZoneMsg = "note" | "cc" | "pb" | "mouse" | "pad";
+// "midi" sends the zone's MIDI command (cmd); "mouse" is the wheel (fader),
+// a button or the pointer (xy); "pad" is a gamepad axis (fader), button or
+// two axes (xy).
+export type ZoneMsg = "midi" | "mouse" | "pad";
+
+// The MIDI command of a "midi" zone: per kind (zoneCmdValues), the default
+// from Z.kind.
+export type ZoneCmd = "cc" | "note" | "pb";
 
 export const zoneDefaults: ZoneOptions = {
   dir: "v",
@@ -47,20 +52,26 @@ export const zoneDefaults: ZoneOptions = {
   tap: 1,
 };
 
-// Z.kind: each kind's reader and painter (not an option) and its msg.
+// Z.kind: each kind's reader and painter (not an option), msg and cmd.
 export const zoneKinds: Record<
   ZoneKind,
-  { read: "axis" | "gate" | "point"; msg: ZoneMsg }
+  { read: "axis" | "gate" | "point"; msg: ZoneMsg; cmd: ZoneCmd }
 > = {
-  fader: { read: "axis", msg: "cc" },
-  button: { read: "gate", msg: "note" },
-  xy: { read: "point", msg: "cc" },
+  fader: { read: "axis", msg: "midi", cmd: "cc" },
+  button: { read: "gate", msg: "midi", cmd: "note" },
+  xy: { read: "point", msg: "midi", cmd: "cc" },
 };
 
 export const zoneMsgValues: Record<ZoneKind, readonly ZoneMsg[]> = {
-  fader: ["cc", "pb", "mouse", "pad"],
-  button: ["note", "cc", "mouse", "pad"],
-  xy: ["cc", "mouse", "pad"],
+  fader: ["midi", "mouse", "pad"],
+  button: ["midi", "mouse", "pad"],
+  xy: ["midi", "mouse", "pad"],
+};
+
+export const zoneCmdValues: Record<ZoneKind, readonly ZoneCmd[]> = {
+  fader: ["cc", "pb"],
+  button: ["note", "cc"],
+  xy: ["cc"],
 };
 
 export const zoneKindList = Object.keys(zoneKinds) as ZoneKind[];
@@ -136,7 +147,7 @@ const MOUSE: ZoneMsg[] = ["mouse"];
 // options neither a mouse nor a gamepad zone uses
 const MOUSE_PAD: ZoneMsg[] = ["mouse", "pad"];
 // options only a mouse zone uses
-const NOT_MOUSE: ZoneMsg[] = ["note", "cc", "pb", "pad"];
+const NOT_MOUSE: ZoneMsg[] = ["midi", "pad"];
 
 // In the order options are written (zone-parse.ts).
 export const zoneOptionSchema: ZoneOptionSchema[] = [
@@ -250,8 +261,17 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
   {
     key: "msg",
     type: "enum",
-    values: ["note", "cc", "pb", "mouse", "pad"],
+    values: ["midi", "mouse", "pad"],
     kinds: ALL_KINDS,
+    section: "output",
+  },
+  // every value any kind takes; zoneOptionSchemaFor narrows it per kind
+  {
+    key: "cmd",
+    type: "enum",
+    values: ["cc", "note", "pb"],
+    kinds: ALL_KINDS,
+    hide: MOUSE_PAD,
     section: "output",
   },
   {
@@ -291,15 +311,17 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
   },
 ];
 
-// The schema as a zone of this kind takes it: msg with the kind's values;
-// num is a mouse zone's button, so only a button shows it with mouse.
+// The schema as a zone of this kind takes it: msg and cmd with the kind's
+// values; num is a mouse zone's button, so only a button shows it with mouse.
 export function zoneOptionSchemaFor(kind: ZoneKind): ZoneOptionSchema[] {
   return zoneOptionSchema.map((e) =>
     e.key === "msg"
       ? { ...e, values: zoneMsgValues[kind] }
-      : e.key === "num" && kind !== "button"
-        ? { ...e, hide: MOUSE }
-        : e,
+      : e.key === "cmd"
+        ? { ...e, values: zoneCmdValues[kind] }
+        : e.key === "num" && kind !== "button"
+          ? { ...e, hide: MOUSE }
+          : e,
   );
 }
 
@@ -326,4 +348,13 @@ export function zoneOptionDefault(
     ...zoneKinds[kind],
   };
   return preset[key];
+}
+
+// What the zone sends, as Z.zone reads it: the MIDI command (cc, note, pb)
+// of a "midi" zone, otherwise its msg ("mouse", "pad").
+export function zoneSends(zone: Zone): ZoneOptionValue | undefined {
+  const option = (key: string) =>
+    zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
+  const msg = option("msg");
+  return msg === "midi" ? option("cmd") : msg;
 }

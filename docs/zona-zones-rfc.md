@@ -1,6 +1,6 @@
 # RFC: ZONA touch zones in Grid Editor
 
-- **Status:** Revision 8, implemented on `feat/zona-sandbox` (library 0.10.1). Revision 8 removes Touch Start: each zone line passes `self`, and the zones go live on the first tick after Setup. Revision 7 takes the body out of the zone: a zone is its options, with one Output (MIDI, Mouse or Gamepad) sent by the library. Revision 6 followed the loader's CTO round on `feat/library-block` (PR #1669), revision 5 moved the zones onto that loader, and revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
+- **Status:** Revision 8, implemented on `feat/zona-sandbox` (library 0.11.0). Revision 8 removes Touch Start: each zone line passes `self`, and the zones go live on the first tick after Setup. Revision 7 takes the body out of the zone: a zone is its options, with one Output (MIDI, Mouse or Gamepad) sent by the library. Revision 6 followed the loader's CTO round on `feat/library-block` (PR #1669), revision 5 moved the zones onto that loader, and revision 3 (v1, library 0.7.2) was reshaped by the owner review (section 14).
 - **Date:** 2026-10-28 (rev 1: 2026-10-06, rev 2: 2026-10-09, rev 3: 2026-10-12, rev 4: 2026-10-18, rev 5: 2026-10-26, rev 6: 2026-10-27, rev 7: 2026-10-28)
 - **Author:** Kristóf Kerti
 - **Related:** PR #1645 (virtual events), PR #1589 (XY → ZONA), PR #1596 (virtual flag for Lua immediate exec), HANGAR (`sabotond-dev/hangar`, behaviour reference only)
@@ -9,15 +9,16 @@
 
 Revision 8 removes the Touch Start block (user decision, 2026-10-28). The module runs a Setup top to bottom when the page loads, and runs it again under its element whenever the editor sends it, so the zone lines can attach the surface themselves. Library 0.10.0, breaking, with no migration of old lines.
 
-| Area         | Rev 7 (0.9.3)                                                                                                                 | Rev 8 (0.10.0)                                                                                                                                                                                                                         |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Zone line    | `_Z.fader("f1",0,0,1,9,{},nil)`: the 7th argument was a leftover of the body.                                                 | **`_Z.fader(self,"f1",0,0,1,9,{})`**: the touch element first, as in `Z.tick(self,…)`. One character more per zone (5).                                                                                                                |
-| Activation   | Touch Start (`_Z.start(self)`), kept the last block of Setup, made the zones live.                                            | **The first zone of a Setup run** drops the previous surface and takes the element (sensor range, `touch_cb`, the timer kick); **the first tick or touch after Setup** makes the pending zones live: RX, `midirx_cb`, first paint (5). |
-| Failed Setup | Zones before an error stayed pending and were dropped at the next tick: an empty surface.                                     | The zones before the error go live.                                                                                                                                                                                                    |
-| Editor       | Touch Start block, added with the first zone and kept last by the picker; order warnings; its face held the surface warnings. | **No Touch Start.** The first zone still brings Touch Tick. The library warning shows on the first zone's face; duplicate names and other problems already show on each zone (6.2). `keepLast` is gone from the picker.                |
-| Setup budget | Touch Start cost about 25 characters.                                                                                         | 7 plain zones use about 287 of 909 characters, down from 305; still about 21 plain faders (5).                                                                                                                                         |
-| Old lines    | —                                                                                                                             | Lines ending `nil)` and `_Z.start(self)` show as Code blocks; the user deletes them and adds the zones again.                                                                                                                          |
-| Outputs      | Fader, Button and XY each had None (`msg="none"`).                                                                            | **None removed** (0.10.1). It was left from the body model, where a body read the value; without a body nothing reads it. A line with `msg="none"` shows the unknown value problem (4.1).                                              |
+| Area         | Rev 7 (0.9.3)                                                                                                                 | Rev 8 (0.10.0)                                                                                                                                                                                                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zone line    | `_Z.fader("f1",0,0,1,9,{},nil)`: the 7th argument was a leftover of the body.                                                 | **`_Z.fader(self,"f1",0,0,1,9,{})`**: the touch element first, as in `Z.tick(self,…)`. One character more per zone (5).                                                                                                                                                                                        |
+| Activation   | Touch Start (`_Z.start(self)`), kept the last block of Setup, made the zones live.                                            | **The first zone of a Setup run** drops the previous surface and takes the element (sensor range, `touch_cb`, the timer kick); **the first tick or touch after Setup** makes the pending zones live: RX, `midirx_cb`, first paint (5).                                                                         |
+| Failed Setup | Zones before an error stayed pending and were dropped at the next tick: an empty surface.                                     | The zones before the error go live.                                                                                                                                                                                                                                                                            |
+| Editor       | Touch Start block, added with the first zone and kept last by the picker; order warnings; its face held the surface warnings. | **No Touch Start.** The first zone still brings Touch Tick. The library warning shows on the first zone's face; duplicate names and other problems already show on each zone (6.2). `keepLast` is gone from the picker.                                                                                        |
+| Setup budget | Touch Start cost about 25 characters.                                                                                         | 7 plain zones use about 287 of 909 characters, down from 305; still about 21 plain faders (5).                                                                                                                                                                                                                 |
+| Old lines    | —                                                                                                                             | Lines ending `nil)` and `_Z.start(self)` show as Code blocks; the user deletes them and adds the zones again.                                                                                                                                                                                                  |
+| Outputs      | Fader, Button and XY each had None (`msg="none"`).                                                                            | **None removed** (0.10.1). It was left from the body model, where a body read the value; without a body nothing reads it. A line with `msg="none"` shows the unknown value problem (4.1).                                                                                                                      |
+| Command      | The MIDI command was an Output value: CC, Note or Pitch bend next to Mouse and Gamepad (`msg="cc"`, `"note"`, `"pb"`).        | **Output is MIDI, Mouse or Gamepad** (`msg="midi"`, the default for every kind), and **Command** (`cmd`) picks CC, Note or Pitch bend: fader CC or Pitch bend, button Note or CC, XY CC (0.11.0). Old `msg="cc"`, `"note"` and `"pb"` lines show the unknown value problem on Output, with no migration (4.1). |
 
 ## 0.1 What changed from revision 6 to revision 7
 
@@ -187,25 +188,28 @@ In Lua, a zone is one line. The first argument is the touch element, `self` in S
 
 **When it runs.** A zone runs on press, on a value change and on release, and each run sends its output. A value run sends the source that changed (`v`, or `x`/`y` on an XY pad); a press or release run sends all of the zone's sources. MIDI and gamepad sends go through a **duplicate filter** per source (per finger on an XY), which holds the last value on the wire and is cleared on each press: a press re-sends the current value, and a release that changes nothing sends nothing. On a button the filter is cleared only when the step changes. Mouse outputs work by movement instead (below).
 
-**Output.** One output per zone, the `msg` option, shown on the face as a select titled **Output**:
+**Output.** One output per zone, the `msg` option, shown on the face as a select titled **Output**. A MIDI output sends the command in `cmd`, a select titled **Command**:
 
-| Kind   | Values (titles)                                                           | Default |
-| ------ | ------------------------------------------------------------------------- | ------- |
-| fader  | `cc` (CC), `pb` (Pitch bend), `mouse` (Mouse wheel), `pad` (Gamepad axis) | `cc`    |
-| button | `note` (Note), `cc` (CC), `mouse` (Mouse button), `pad` (Gamepad button)  | `note`  |
-| xy     | `cc` (CC), `mouse` (Mouse), `pad` (Gamepad)                               | `cc`    |
+| Kind   | Output values (titles)                                        | Command values (titles)      | Defaults             |
+| ------ | ------------------------------------------------------------- | ---------------------------- | -------------------- |
+| fader  | `midi` (MIDI), `mouse` (Mouse wheel), `pad` (Gamepad axis)    | `cc` (CC), `pb` (Pitch bend) | `midi`, `cmd="cc"`   |
+| button | `midi` (MIDI), `mouse` (Mouse button), `pad` (Gamepad button) | `note` (Note), `cc` (CC)     | `midi`, `cmd="note"` |
+| xy     | `midi` (MIDI), `mouse` (Mouse), `pad` (Gamepad)               | `cc` (CC)                    | `midi`, `cmd="cc"`   |
+
+So `_Z.fader(self,"f1",0,0,1,9,{cmd="pb"})` is a pitch bend fader, and a plain MIDI zone writes neither `msg` nor `cmd`. The library reads the command as `o.msg == "midi" and o.cmd or o.msg`; an unknown value falls back to 7-bit CC.
 
 Each output reads only its own options, and the face shows only those (6.2). The library ignores the others. Every output keeps `led`, `col`, the geometry, the button mode and the capture.
 
 **MIDI options:**
 
-| Option | Values                                                                                      | Default |
-| ------ | ------------------------------------------------------------------------------------------- | ------- |
-| `ch`   | `-1` auto, `0`–`15`                                                                         | `-1`    |
-| `num`  | `-1` auto, `0`–`127`; the CC or note number; XY: x on `num`, y on `num+1`; not used by `pb` | `-1`    |
-| `rx`   | `0`/`1`: value sync from host MIDI on the zone's own identity (4.8)                         | `0`     |
+| Option | Values                                                                                      | Default  |
+| ------ | ------------------------------------------------------------------------------------------- | -------- |
+| `cmd`  | the kind's commands (above): `cc`, `note`, `pb`                                             | per kind |
+| `ch`   | `-1` auto, `0`–`15`                                                                         | `-1`     |
+| `num`  | `-1` auto, `0`–`127`; the CC or note number; XY: x on `num`, y on `num+1`; not used by `pb` | `-1`     |
+| `rx`   | `0`/`1`: value sync from host MIDI on the zone's own identity (4.8)                         | `0`      |
 
-**MIDI wire format.**
+**MIDI wire format**, by `cmd`:
 
 - `note`: note on with the value scaled to 0–127 when the range is wider; value 0 is the note off (velocity 0).
 - `cc`: 7-bit when `res` is 7; a 14-bit pair when `res > 7`, MSB on `num` and LSB on `num+32`. A 7-bit CC from a wide `min`/`max` range is scaled to 0–127.
@@ -235,11 +239,11 @@ Explicit values are used as given. The editor keeps them valid (6.2): a 14-bit C
 
 **Kinds** decide how the position is read and what the zone sends by default:
 
-| Kind   | Reader  | Sources            | Default `msg` | LED look  |
-| ------ | ------- | ------------------ | ------------- | --------- |
-| fader  | `axis`  | `v`                | `cc`          | fill      |
-| button | `gate`  | the step value `v` | `note`        | state     |
-| xy     | `point` | `x`, `y`           | `cc`          | crosshair |
+| Kind   | Reader  | Sources            | Default `msg`, `cmd` | LED look  |
+| ------ | ------- | ------------------ | -------------------- | --------- |
+| fader  | `axis`  | `v`                | `midi`, `cc`         | fill      |
+| button | `gate`  | the step value `v` | `midi`, `note`       | state     |
+| xy     | `point` | `x`, `y`           | `midi`, `cc`         | crosshair |
 
 The reader is fixed by the kind; it is not an option (a `read=` key in a line is ignored).
 
@@ -288,7 +292,7 @@ Revision 3 had a Touch Knob after TouchOSC's Radial: an angle reader, an arc pai
 - **Mode** (`mode`, fader and XY): `abs` (jump), `rel` (drag delta × `speed`), `glide` (move toward the finger with `speed` and `ease`).
 - **Approach:** one tick-driven "move value toward target" function. Glide and an eased spring use it: each tick takes `ease` × the remaining distance plus `speed/50` of the range, and it lands exactly on the target. Glide `speed` is per tick, so glide time scales with the Touch Tick interval.
 - **Deadband and rate limit** (built in): a move of 2 raw units or less is dropped; there is no smoothing. A source's first change in a tick runs at once; further changes in the same tick wait, and the last one goes out on the next tick or at lift. Nothing is held before the first tick.
-- **Spring** (`spring`, fader and XY, S4): `spring=1` makes the zone rest at the centre (q 0.5 per axis: 64 at 7 bits, 8192 for pitch bend; an odd range takes the grid step just above the middle, 0–99 gives 50), with nothing sent at start. On release it goes back to the centre through the normal path (output, LEDs): at once with `ease=0` (one value per axis), eased on the tick with `ease > 0`. A touch during the return takes over at once (abs jumps, rel continues from the current value, glide aims from it). RX and `Z.set` put the value where they say, and the spring acts again after the next touch. A fader with `msg="pb", spring=1` is a pitch bend wheel; an XY with `spring=1` is a joystick, centred on 0 with `msg="pad"`. Mouse zones have no spring.
+- **Spring** (`spring`, fader and XY, S4): `spring=1` makes the zone rest at the centre (q 0.5 per axis: 64 at 7 bits, 8192 for pitch bend; an odd range takes the grid step just above the middle, 0–99 gives 50), with nothing sent at start. On release it goes back to the centre through the normal path (output, LEDs): at once with `ease=0` (one value per axis), eased on the tick with `ease > 0`. A touch during the return takes over at once (abs jumps, rel continues from the current value, glide aims from it). RX and `Z.set` put the value where they say, and the spring acts again after the next touch. A fader with `cmd="pb", spring=1` is a pitch bend wheel; an XY with `spring=1` is a joystick, centred on 0 with `msg="pad"`. Mouse zones have no spring.
 - **Steps:** the same meaning as Grid's button mode `bmo` (0 momentary, 1 toggle, n = n+1 steps), with the same step maths (`SettingsButton.calculateStepValuesFirmwareStyle`), so a zone cycles through the values the Button Mode block shows. The firmware's own stepping (`grid_ui_button.c`) has more states when `floor(range/bmo)*(bmo+1) <= range` (bmo=16 on 0–127: 19, not 17); that mismatch is an editor issue of its own.
 - **Groups:** `group` 1–8 on buttons makes radio groups. A press that turns a member on turns the others off first (they send their "off" value; a Mouse button releases). Every member can be off.
 - **LEDs** (`led`, S3): `led=1` (default) draws one look per kind; `led=0` leaves the zone's cells dark once the zones are live, and only user code paints them.
@@ -337,7 +341,7 @@ Revision 3 had a mapping mode for DAW MIDI learn: a Touch Utility block replaced
 
 -- touch element, Setup (must stay under 909 characters)
 --[[@zfd]]_Z.fader(self,"f1",0,0,1,9,{res=10,rx=1})   -- the first zone takes the element: touch_cb, sensor range, timer kick
---[[@zfd]]_Z.fader(self,"f2",1,0,1,9,{spring=1,msg="pb"})
+--[[@zfd]]_Z.fader(self,"f2",1,0,1,9,{spring=1,cmd="pb"})
 --[[@zbt]]_Z.button(self,"b1",2,0,2,2,{bmo=1,group=1,col="ff0000"})
 --[[@zxy]]_Z.xy(self,"p1",4,0,5,5,{msg="mouse"})
 --[[@zbt]]_Z.button(self,"b2",4,5,2,2,{msg="mouse",num=2})
@@ -391,12 +395,12 @@ The library itself sets nothing up beyond returning its table. Library-specific 
 
 **Blocks** in `src/renderer/config-blocks/`, category **`touch`** (an entry in `ActionBlockInformation.category`, `categoryColors.ts`, and a `--category-touch` CSS variable):
 
-| Short | Name         | Event       | Type   | Notes                                   |
-| ----- | ------------ | ----------- | ------ | --------------------------------------- |
-| `zfd` | Touch Fader  | touch Setup | single | kind preset `read="axis"`, `msg="cc"`   |
-| `zbt` | Touch Button | touch Setup | single | kind preset `read="gate"`, `msg="note"` |
-| `zxy` | Touch XY Pad | touch Setup | single | kind preset `read="point"`, `msg="cc"`  |
-| `ztk` | Touch Tick   | touch Timer | single | `Z.tick(self,{ms=…})`, interval only    |
+| Short | Name         | Event       | Type   | Notes                                                 |
+| ----- | ------------ | ----------- | ------ | ----------------------------------------------------- |
+| `zfd` | Touch Fader  | touch Setup | single | kind preset `read="axis"`, `msg="midi"`, `cmd="cc"`   |
+| `zbt` | Touch Button | touch Setup | single | kind preset `read="gate"`, `msg="midi"`, `cmd="note"` |
+| `zxy` | Touch XY Pad | touch Setup | single | kind preset `read="point"`, `msg="midi"`, `cmd="cc"`  |
+| `ztk` | Touch Tick   | touch Timer | single | `Z.tick(self,{ms=…})`, interval only                  |
 
 There is no Touch End block. Revision 3's `zkn` (Touch Knob), `zgr` (Touch Group) and `zut` (Touch Utility) are removed; such lines show as Code blocks.
 
@@ -435,7 +439,7 @@ type Zone = {
 };
 ```
 
-The output is the `msg` option; the model has nothing else for it.
+The output is the `msg` option, and a MIDI output's command is the `cmd` option; the model has nothing else for them.
 
 **Options, defaults and face sections** (`zone-model.ts`, equal to `Z.def` and `Z.kind` in the library; a test checks they match):
 
@@ -443,7 +447,8 @@ The output is the `msg` option; the model has nothing else for it.
 | ----------------- | -------------- | --------- | --------------------------- | -------------------------------------------------------------------------------------------------- | ------------------ |
 | Geometry (open)   | `x y w h`      | all       | —                           | inside 9×9                                                                                         |                    |
 |                   | `dir`          | fader     | `v`                         | `v`, `h`                                                                                           |                    |
-| Output (open)     | `msg`          | all       | per kind                    | the kind's values (4.1)                                                                            |                    |
+| Output (open)     | `msg`          | all       | `midi`                      | the kind's values (4.1)                                                                            |                    |
+|                   | `cmd`          | all       | per kind                    | the kind's commands (4.1)                                                                          | Mouse, Gamepad     |
 |                   | `tap`          | xy        | 1                           | 0–1                                                                                                | all but Mouse      |
 |                   | `ch`           | all       | `-1` (auto)                 | −1–15                                                                                              | Mouse, Gamepad     |
 |                   | `num`          | all       | `-1` (auto)                 | −1–127 (and the limits in 4.1); Gamepad: axes 0–5 (XY 0–4), buttons 0–31; Mouse button: the button | Mouse fader and XY |
@@ -463,15 +468,15 @@ The output is the `msg` option; the model has nothing else for it.
 
 **Fields per output.** Every output shows the geometry, `led`, `col`, the button mode and group, and `grab`. Besides those:
 
-| Output                      | Fader                                                                      | Button                                                  | XY                                                 |
-| --------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
-| MIDI (CC, Note, Pitch bend) | Channel, CC, Receive MIDI, Resolution, Min, Max, Mode, Speed, Ease, Spring | Channel, Note or CC, Receive MIDI, Resolution, Min, Max | as the fader, plus Fingers                         |
-| Mouse                       | Speed (the wheel)                                                          | Button                                                  | Tap to click, Speed                                |
-| Gamepad                     | Axis, Mode, Speed, Ease, Spring                                            | Button                                                  | Axis (x; y on the next), Mode, Speed, Ease, Spring |
+| Output                               | Fader                                                                               | Button                                                  | XY                                                 |
+| ------------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
+| MIDI (Command: CC, Note, Pitch bend) | Command, Channel, CC, Receive MIDI, Resolution, Min, Max, Mode, Speed, Ease, Spring | Channel, Note or CC, Receive MIDI, Resolution, Min, Max | as the fader, plus Fingers                         |
+| Mouse                                | Speed (the wheel)                                                                   | Button                                                  | Tap to click, Speed                                |
+| Gamepad                              | Axis, Mode, Speed, Ease, Spring                                                     | Button                                                  | Axis (x; y on the next), Mode, Speed, Ease, Spring |
 
 **Validators** (`zone-validate.ts`). They follow `config-blocks/validators.ts`: an invalid value keeps the last valid one and shows an inline message.
 
-- **Per zone:** inside 9×9, `w,h ≥ 1`; the name is a Lua identifier and not a `GridScript.validator.lookup` name (it sits in a string that `compressScript` would rewrite, 2.1); `msg` against the kind's values; each option the zone's output shows against the table above, and nothing else, because the library ignores the rest; `min < max`, with pitch bend counted as 14-bit; `min`/`max` in 0–16383 when `msg` is a MIDI output; an explicit `num` that keeps every number on the wire in range (14-bit CC 0–31, XY 0–30; 7-bit XY 0–126; a gamepad axis 0–5, an XY 0–4, a gamepad button 0–31).
+- **Per zone:** inside 9×9, `w,h ≥ 1`; the name is a Lua identifier and not a `GridScript.validator.lookup` name (it sits in a string that `compressScript` would rewrite, 2.1); `msg` and `cmd` against the kind's values; each option the zone's output shows against the table above, and nothing else, because the library ignores the rest; `min < max`, with pitch bend counted as 14-bit; `min`/`max` in 0–16383 when the zone sends MIDI; an explicit `num` that keeps every number on the wire in range (14-bit CC 0–31, XY 0–30; 7-bit XY 0–126; a gamepad axis 0–5, an XY 0–4, a gamepad button 0–31).
 - **Per surface:** `(zones: Zone[]) => ZoneIssue[]`, run on the whole touch Setup:
   - duplicate zone names (error);
   - **overlap**, the same MIDI identity in two zones and gamepad autos past the last axis or button: not checked yet (section 11).
@@ -492,8 +497,8 @@ A block that declares `elementTypes` or `eventTypes` is placed at the top level 
 
 - grid-uikit controls only, the same as `SettingsButton.svelte`.
 - The face shows Geometry, Output, Resolution and LED open, with Behaviour and Capture collapsed. A section with no field for the zone's output isn't shown.
-- An enum is a select of its values with titles, and the kind's default is selected when the line leaves the option out. There is no separate "default" entry; picking the default writes nothing. The **Output** select titles its values by kind (4.1): CC, Note, Pitch bend, Mouse wheel / Mouse button / Mouse, Gamepad axis / Gamepad button / Gamepad.
-- A number option is a combo with suggestions, like the MIDI block's. Channel lists Auto and channels 1–16. The number field is titled by the output: **CC** or **Note** with Auto and the CC names or the notes (no list for pitch bend); **Button** for a Mouse button, with Left 1, Right 2, Middle 4 and no Auto; **Axis** or **Button** for Gamepad, with Auto and X Axis…RZ Axis or Button 0…31. Resolution bits list 7–14 with their ranges, Max offers 127 and 16383, and 0/1 options (`rx` as "Receive MIDI", `tap` as "Tap to click", `led`, `spring`) offer Off and On. Fields without suggestions show their range in the title.
+- An enum is a select of its values with titles, and the kind's default is selected when the line leaves the option out. There is no separate "default" entry; picking the default writes nothing. The **Output** select titles its values by kind (4.1): MIDI, Mouse wheel / Mouse button / Mouse, Gamepad axis / Gamepad button / Gamepad. The **Command** select, right after it and shown for MIDI only, titles CC, Note and Pitch bend.
+- A number option is a combo with suggestions, like the MIDI block's. Channel lists Auto and channels 1–16. The number field is titled by the output and command: **CC** or **Note** with Auto and the CC names or the notes (no list for pitch bend); **Button** for a Mouse button, with Left 1, Right 2, Middle 4 and no Auto; **Axis** or **Button** for Gamepad, with Auto and X Axis…RZ Axis or Button 0…31. Resolution bits list 7–14 with their ranges, Max offers 127 and 16383, and 0/1 options (`rx` as "Receive MIDI", `tap` as "Tap to click", `led`, `spring`) offer Off and On. Fields without suggestions show their range in the title.
 - The Output section's `ch` and `num` placeholders and Auto suggestions show the resolved autos ("auto (ch 1)", "Auto (33)", "auto (X)", "Auto (Y Axis)"), computed by `zone-autos.ts`, a TypeScript copy of the library's identity rules checked against the library in the Lua VM tests. A Mouse button's placeholder is "1 (Left)". The section ends with what the zone sends.
 - The untoggled header shows the name, the cells and what the zone sends: `f1 · 0,0 1×9 · CC 32 ch 1`, `CC 1/33 ch 1` (14-bit), `CC 34, 35 ch 1` (XY), `CC 32, 33 ch 1–3` (fingers), `Note 36 ch 1`, `PB ch 1`, `Mouse`, `Mouse wheel`, `Mouse Left`, `Gamepad X`, `Gamepad Y, Z`, `Gamepad button 0`, `no MIDI`. The channel is 1-based, like the MIDI block's. The zone autos use `(gmy()*4+gpc())%16` for the channel, like the library, not the page's `midi_auto_ch` override (by decision, section 10).
 - Mouse and Gamepad action blocks are the same as on `stable`; they have nothing for zones.
@@ -668,7 +673,7 @@ The library itself is in a file and loads from a Library block, usually in the S
 - _Name protection:_ no `_G` metatable guard. If names ever need protecting, the firmware should protect its own API and the libraries together (revision 5).
 - _Blocks that add their own Library row:_ not planned. The library warning stays, so a future firmware-provided zone API doesn't depend on an auto-added row (revision 5).
 - _Send path:_ blocks and the library file use the editor's existing transforms, with no handling of their own. Actions go through `sendToGrid` (`compressScript` + `SendConfig`). The library file goes through the File Manager's `.lua` save (`compressScript` + `writeFileContent`). The editor writes lines already in compressed form, and the name rules exclude anything those transforms would rewrite (2.1, 6.1, 6.4).
-- _Outputs:_ one output per zone, the `msg` option: MIDI (`ch num rx`), Mouse or Gamepad, sent by the library; no body (revision 7, 4.1).
+- _Outputs:_ one output per zone, the `msg` option: MIDI (`cmd ch num rx`), Mouse or Gamepad, sent by the library; no body (revision 7, 4.1). The MIDI command is its own option, `cmd` (revision 8).
 - _Capture names:_ focus mode and live mode.
 - _Several contacts in one zone:_ the first contact owns a zone; an XY takes `fingers` contacts, MPE style (4.3; D4, D5).
 - _Pressure:_ a future `touch_cb` argument. Not designed now.
@@ -698,7 +703,7 @@ Each of these is welcome if it fits cleanly later. None of them may change the f
 - **Interactive surface editor:** drag to create, move, resize, writing back through the same block update path, so history and unsaved changes keep working.
 - **Zone-scoped navigation:** selecting a zone on the overlay jumps to its block.
 - **Cross-zone rules:** overlap errors, shared MIDI identity hints (including finger channels).
-- **True MPE for XY fingers:** pitch bend and CC74 per finger as another `msg`.
+- **True MPE for XY fingers:** pitch bend and CC74 per finger as another `cmd`.
 - **Build-time defaults:** generate the Lua defaults table from `zone-model.ts`, if the two hand-written copies prove hard to keep in step.
 - **Profile Cloud thumbnails** with zones.
 - **HANGAR converter** from a `Surface` JSON to touch blocks.

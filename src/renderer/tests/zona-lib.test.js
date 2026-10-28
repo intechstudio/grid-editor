@@ -79,6 +79,12 @@ test("a toggle button turns on, then off on the next press", async () => {
   ]);
 });
 
+test("a fader with cmd=pb sends pitch bend, LSB then MSB", async () => {
+  const vm = await zones(`Z.fader(self,"f",0,0,1,9,{cmd="pb"})`);
+  vm.touch([0, DOWN, 50, 0]);
+  expect(wire(vm)).toEqual([[0, 224, 127, 127]]);
+});
+
 test("an XY pad sends x and y on neighbouring CCs", async () => {
   // cells 4-8 x 0-4: raw x 456-1023, y 0-568
   const vm = await zones(`Z.xy(self,"p",4,0,5,5,{})`);

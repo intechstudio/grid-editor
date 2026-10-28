@@ -15,7 +15,7 @@ const LIB = `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=
 
 test.each([
   `_Z.fader(self,"f1",1,0,1,9,{res=10,mode="glide",speed=0.5,ease=0.25})`,
-  `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col="ff8000",msg="cc"})`,
+  `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col="ff8000",cmd="cc"})`,
   `_Z.xy(self,"p1",0,0,9,9,{fingers=3,ch=3,num=7,rx=1})`,
 ])("a zone line reads and writes back unchanged: %s", (line) => {
   expect(zoneToLua(parseZone(line))).toBe(line);
@@ -39,7 +39,16 @@ test("options at their default are left out of the written line", () => {
     y: 0,
     w: 1,
     h: 1,
-    opt: { res: 7, led: 1, bmo: 1, msg: "note", ch: -1, num: -1, rx: 0 },
+    opt: {
+      res: 7,
+      led: 1,
+      bmo: 1,
+      msg: "midi",
+      cmd: "note",
+      ch: -1,
+      num: -1,
+      rx: 0,
+    },
   };
   expect(zoneToLua(zone)).toBe(`_Z.button(self,"b",0,0,1,1,{bmo=1})`);
 });

@@ -13,6 +13,7 @@ import {
   zoneOptionDefault,
   zoneOptionSchemaFor,
   zoneOptionShown,
+  zoneSends,
   zoneTickSchema,
 } from "./zone-model";
 import { parseZone, ZONA_GLOBAL } from "./zone-parse";
@@ -159,7 +160,7 @@ function option(zone: Zone, key: string) {
 
 // res as the library uses it: pitch bend is always 14-bit.
 function resOf(zone: Zone): number {
-  return option(zone, "msg") === "pb" ? 14 : Number(option(zone, "res"));
+  return zoneSends(zone) === "pb" ? 14 : Number(option(zone, "res"));
 }
 
 // min and max as the library uses them: 0 and 127, or 16383 above res 7.
@@ -197,7 +198,7 @@ function rangeProblems(zone: Zone): ZoneProblem[] {
 // keeps to the axes 0-5 or the buttons 0-31.
 function numProblems(zone: Zone): ZoneProblem[] {
   const num = Number(option(zone, "num"));
-  const msg = option(zone, "msg");
+  const msg = zoneSends(zone);
   if (num < 0 || msg === "pb") {
     return [];
   }
@@ -244,10 +245,14 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   problems.push(...options);
   const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));
   // a mouse or gamepad zone has no value range; a mouse zone's num is a button
-  if (msg !== "mouse" && msg !== "pad" && !bad(["res", "min", "max", "msg"])) {
+  if (
+    msg !== "mouse" &&
+    msg !== "pad" &&
+    !bad(["res", "min", "max", "msg", "cmd"])
+  ) {
     problems.push(...rangeProblems(zone));
   }
-  if (msg !== "mouse" && !bad(["res", "num", "msg"])) {
+  if (msg !== "mouse" && !bad(["res", "num", "msg", "cmd"])) {
     problems.push(...numProblems(zone));
   }
   // the library ignores spring on a button

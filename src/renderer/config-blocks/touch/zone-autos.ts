@@ -2,7 +2,7 @@
 // content/libraries/zona.lua.
 
 import type { Zone } from "./zone-model";
-import { zoneKinds, zoneOptionDefault } from "./zone-model";
+import { zoneKinds, zoneOptionDefault, zoneSends } from "./zone-model";
 import { parseZone } from "./zone-parse";
 
 function readerOf(zone: Zone): string {
@@ -61,7 +61,7 @@ export function zoneMidi(
   pos: ZonePosition,
 ): ZoneMidi | null {
   const zone = zones[index];
-  const msg = String(option(zone, "msg"));
+  const msg = String(zoneSends(zone));
   if (msg === "mouse") {
     return null;
   }

@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.10.1"
+local LIB_VERSION = "0.11.0"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -30,12 +30,12 @@ Z.def = {
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
--- (MIDI, "mouse": wheel, button or pointer by kind, "pad": gamepad axis,
--- button or two axes)
+-- ("midi": the cmd, "cc", "note" or "pb"; "mouse": wheel, button or pointer
+-- by kind; "pad": gamepad axis, button or two axes)
 Z.kind = {
-  fader = { read = "axis", msg = "cc" },
-  button = { read = "gate", msg = "note" },
-  xy = { read = "point", msg = "cc" },
+  fader = { read = "axis", msg = "midi", cmd = "cc" },
+  button = { read = "gate", msg = "midi", cmd = "note" },
+  xy = { read = "point", msg = "midi", cmd = "cc" },
 }
 
 -- Z.tick: interval (ms)
@@ -587,7 +587,7 @@ function Z.zone(self, n, x, y, w, h, opt, kind)
     o[k] = val
   end
   o.read = nil -- from the kind, never an option
-  local m = o.msg
+  local m = o.msg == "midi" and o.cmd or o.msg
   local ms = m == "mouse" or nil
   if m == "pb" then
     o.res = 14 -- pitch bend is always 14-bit
