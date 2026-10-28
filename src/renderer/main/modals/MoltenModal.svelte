@@ -136,7 +136,7 @@
     @apply absolute left-0 top-0 w-full h-full;
   }
 
-  /* Overrides .snap-full's centered top/left/transform - relies on
+  /* Overrides .snap-full's centered top/left/translate - relies on
      position-anchor being set inline (see the component's `style`
      attribute) so `anchor()` here resolves against the right anchor.
      top is clamped to the viewport: prefer vertically centering on the
@@ -150,7 +150,7 @@
     );
     right: calc(anchor(left) + 8px);
     left: auto;
-    transform: none;
+    translate: none;
   }
 
   .normal {
