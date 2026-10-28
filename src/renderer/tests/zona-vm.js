@@ -19,9 +19,6 @@ const RECORDED = [
   "gks",
 ];
 
-// Module default colour (glr/glg/glb) in the VM.
-export const DEFAULT_COLOR = [10, 20, 30];
-
 // The firmware runs Lua 5.5 (grid-fw 1.5.5), wasmoon runs 5.4. Code that only
 // 5.5 rejects passes here, such as assigning to a for-loop variable.
 //
@@ -59,9 +56,10 @@ export async function createZonaVM(env = {}) {
       local r, c = i // 9, i % 9
       return r * 9 + (r % 2 == 0 and 8 - c or c)
     end
-    function glr() return ${DEFAULT_COLOR[0]} end
-    function glg() return ${DEFAULT_COLOR[1]} end
-    function glb() return ${DEFAULT_COLOR[2]} end
+    -- the module's default colour
+    function glr() return 10 end
+    function glg() return 20 end
+    function glb() return 30 end
     -- as simplecolor.lua: -1 = default, 1 entry = max (min /20, mid /2),
     -- 2 = min and max (mid between), 3 = min, mid, max
     function color_curve(c)
@@ -91,8 +89,6 @@ export async function createZonaVM(env = {}) {
   `);
 
   return {
-    lua,
-    log,
     // Runs Setup-like Lua with `self` = the fake element.
     setup(code) {
       lua.doStringSync(`local self = el ${code}`);
@@ -143,3 +139,5 @@ export async function createZonaVM(env = {}) {
 export const DOWN = 4;
 export const MOVE = 1;
 export const UP = 5;
+// Down and up in one scan.
+export const TAP = 9;
