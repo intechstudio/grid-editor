@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.9.1"
+local LIB_VERSION = "0.9.2"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -26,6 +26,7 @@ Z.def = {
   rx = 0,
   spring = 0,
   fingers = 1,
+  tap = 1,
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
@@ -47,6 +48,7 @@ Z.zs = {}
 Z.nz = {}
 Z.ct = {}
 Z.tn = 0
+Z.tm = 0 -- ms of all ticks: the clock a tap is timed by
 -- per cell x+y*9: last colour key, last phase; Z.el: the LEDs' owner index
 Z.lk = {}
 Z.lc = {}
@@ -63,6 +65,8 @@ local KS = { "v", "x", "y" }
 local SR = { axis = { "v" }, gate = { "v" }, point = { "x", "y" } }
 -- mouse axis (gmms) of each source
 local MA = { x = 1, y = 2, v = 3 }
+-- tap to click: a mouse xy touch shorter (ms) and with less travel (raw)
+local TT, TD = 200, 30
 
 -- route -> pos -> read -> mode -> put/gate -> run; q is a 0-1 position
 
@@ -193,6 +197,7 @@ local function mv(z, c, k, r, f, q)
   local p = c.p[k]
   if p then
     z.w[k] = z.w[k] + (r - p) * f * z.o.speed
+    c.d = c.d + math.abs(r - p)
   end
   c.p[k], z.q[k], z.dt = r, q, 1
 end
@@ -340,6 +345,7 @@ local function take(id, c, z, x, y, e)
   c.z = z
   c.p = {}
   c.x = nil
+  c.d, c.t = 0, not e and Z.tm or nil -- a finger sliding in doesn't tap
   z.k = 1
   gate(z, 1)
   c.m = e and "abs" or z.o.mode
@@ -706,6 +712,7 @@ function Z.tick(self, cfg)
   gtt(self:ind(), cfg and cfg.ms or Z.tdef.ms) -- re-arm first: an error can't stop the tick
   stale()
   Z.tn = Z.tn + 1
+  Z.tm = Z.tm + (cfg and cfg.ms or Z.tdef.ms)
   for _, z in ipairs(Z.zs) do
     for _, o in ipairs(z.os) do
       for _, k in ipairs(KS) do
@@ -752,6 +759,20 @@ local function route(id, evt, x, y)
       local z = c.z
       c.z = nil
       lift(z)
+      -- a mouse xy: a short touch that barely moved clicks left on lift,
+      -- unless a mouse button zone holds left (a drag lock stays)
+      local m = z.ms and z.o.read == "point" and z.o.tap == 1
+      if m and (evt == 5 or evt == 7) and c.t and Z.tm - c.t < TT and c.d < TD then
+        for _, o in ipairs(Z.zs) do
+          if o.mb == 1 and o.o.num <= 1 then
+            m = nil
+          end
+        end
+        if m then
+          gmbs(1, 1)
+          gmbs(1, 0)
+        end
+      end
     end
   end
   if evt == 4 then

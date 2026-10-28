@@ -135,6 +135,7 @@ const fields = (line) =>
 test("a mouse zone's face shows only the fields mouse uses", () => {
   expect(fields(`_Z.xy("p1",0,0,4,4,{msg="mouse"},nil)`)).toEqual([
     "msg",
+    "tap",
     "led",
     "col",
     "speed",

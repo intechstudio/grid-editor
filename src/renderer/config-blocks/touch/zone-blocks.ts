@@ -259,6 +259,7 @@ export function zoneOptionSuggestions(
     case "rx":
     case "led":
     case "spring":
+    case "tap":
       return OFF_ON;
     case "bmo":
       return [
@@ -374,6 +375,7 @@ export const optionLabels: Record<string, string> = {
   num: "CC",
   rx: "Receive MIDI",
   ms: "Interval (ms)",
+  tap: "Tap to click",
 };
 
 // The field title; the number is a CC, a note or a mouse button, by what

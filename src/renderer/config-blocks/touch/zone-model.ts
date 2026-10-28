@@ -21,6 +21,7 @@ export type ZoneOptions = {
   rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
   spring: 0 | 1; // fader, xy: 1 returns to the centre on release (eased by ease)
   fingers: number; // xy: contacts it takes at once, 1-5; finger k on channel ch+k-1
+  tap: 0 | 1; // mouse xy: 1 a short touch that barely moves clicks left
 };
 
 // What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
@@ -42,6 +43,7 @@ export const zoneDefaults: ZoneOptions = {
   rx: 0,
   spring: 0,
   fingers: 1,
+  tap: 1,
 };
 
 // Z.kind: each kind's reader and painter (not an option) and its msg.
@@ -130,6 +132,8 @@ const ALL_KINDS = zoneKindList;
 const CONTINUOUS: ZoneKind[] = ["fader", "xy"];
 // options a mouse zone doesn't use
 const MOUSE: ZoneMsg[] = ["mouse"];
+// options only a mouse zone uses
+const NOT_MOUSE: ZoneMsg[] = ["note", "cc", "pb", "none"];
 
 // In the order options are written (zone-parse.ts).
 export const zoneOptionSchema: ZoneOptionSchema[] = [
@@ -271,6 +275,15 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     max: 1,
     kinds: ALL_KINDS,
     hide: MOUSE,
+    section: "output",
+  },
+  {
+    key: "tap",
+    type: "integer",
+    min: 0,
+    max: 1,
+    kinds: ["xy"],
+    hide: NOT_MOUSE,
     section: "output",
   },
 ];

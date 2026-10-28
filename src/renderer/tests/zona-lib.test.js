@@ -117,6 +117,47 @@ test("a big mouse move is cut at 127, so the pointer stops with the finger", asy
   expect(mouse(vm, "gmms")).toEqual([[1, 127]]);
 });
 
+test("a quick tap on a mouse XY clicks left on lift", async () => {
+  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse"})`);
+  vm.touch([0, DOWN, 500, 500], [0, MOVE, 505, 498]);
+  vm.tick(3);
+  expect(mouse(vm, "gmbs")).toEqual([]);
+  vm.touch([0, UP, 505, 498]);
+  expect(mouse(vm, "gmbs")).toEqual([
+    [1, 1],
+    [1, 0],
+  ]);
+  // its small move still moves the pointer
+  expect(mouse(vm, "gmms")).toEqual([
+    [1, 5],
+    [2, -2],
+  ]);
+});
+
+test("a mouse XY with tap=0 doesn't click", async () => {
+  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse",tap=0})`);
+  vm.touch([0, TAP, 500, 500]);
+  expect(mouse(vm, "gmbs")).toEqual([]);
+});
+
+test("a tap doesn't release a drag-locked left button", async () => {
+  const vm = await zones(
+    `Z.xy("p",0,2,9,7,{msg="mouse"}) Z.button("t",4,0,2,2,{msg="mouse",bmo=1})`,
+  );
+  vm.touch([0, TAP, 500, 100], [0, TAP, 500, 500]);
+  expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
+});
+
+test("a mouse XY touch that moves far or holds long doesn't click", async () => {
+  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse"})`);
+  vm.touch([0, DOWN, 500, 500], [0, MOVE, 520, 500], [0, MOVE, 500, 500]);
+  vm.touch([0, UP, 500, 500]);
+  vm.touch([0, DOWN, 500, 500]);
+  vm.tick(10);
+  vm.touch([0, UP, 500, 500]);
+  expect(mouse(vm, "gmbs")).toEqual([]);
+});
+
 test("a mouse fader scrolls up when dragged towards its max", async () => {
   const vm = await zones(`Z.fader("f",0,0,1,9,{msg="mouse"})`);
   vm.touch([0, DOWN, 50, 800], [0, MOVE, 50, 480]);
