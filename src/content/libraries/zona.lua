@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.9.2"
+local LIB_VERSION = "0.9.3"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -30,7 +30,8 @@ Z.def = {
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
--- (MIDI, "mouse": wheel, button or pointer by kind, "none")
+-- (MIDI, "mouse": wheel, button or pointer by kind, "pad": gamepad axis,
+-- button or two axes, "none")
 Z.kind = {
   fader = { read = "axis", msg = "cc" },
   button = { read = "gate", msg = "note" },
@@ -79,23 +80,30 @@ local function cl(t)
 end
 
 -- wire value of source k: 7-bit (wide ranges scaled), or 14-bit for a CC
--- pair (z.m 1) and pitch bend (z.m 2)
+-- pair (z.m 1) and pitch bend (z.m 2); a gamepad button (z.m 3) is pressed
+-- (1) on any step but the first
 local function wv(z, k)
   local v = z.u[k]
   if z.m == 0 and z.ma > 127 then
     v = (v - z.mi) * 127 // (z.ma - z.mi)
+  elseif z.m == 3 and z.o.read == "gate" then
+    v = z.st > 0 and 1 or 0
   end
   return v
 end
 
--- the zone's MIDI for source k, once per value (z.l, cleared by a press);
--- y is on num+1, a 14-bit LSB on num+32
+-- the zone's MIDI or gamepad target for source k, once per value (z.l,
+-- cleared by a press); y is on num+1, a 14-bit LSB on num+32
 local function snd(z, k)
   local w = wv(z, k)
   if z.m and z.l[k] ~= w then
     z.l[k] = w
     local ch, p = z.ch, k == "y" and z.py or z.p
-    if z.m == 2 then
+    if z.m == 3 and z.o.read == "gate" then
+      ggbs(p, w)
+    elseif z.m == 3 then
+      ggms(p, w)
+    elseif z.m == 2 then
       gms(ch, 224, w % 128, w // 128)
     elseif z.m == 1 then
       gms(ch, 176, p, w // 128)
@@ -480,7 +488,7 @@ local function paint(z)
   end
 end
 
-local function rl() -- release held zones: no stuck notes or mouse buttons
+local function rl() -- release held zones: no stuck notes or buttons
   for _, z in ipairs(Z.zs) do
     for _, o in ipairs(z.os) do
       if o.k > 0 then
@@ -584,11 +592,22 @@ function Z.zone(n, x, y, w, h, opt, kind)
   elseif ms then
     -- finger 1 only, no centre to return to; any toggle is a drag lock
     o.fingers, o.spring, o.bmo = 1, 0, math.min(o.bmo, 1)
+  elseif m == "pad" then
+    -- finger 1 only; the full axis range, centred on 0
+    o.fingers, o.rx, o.res, o.min, o.max = 1, 0, 8, -128, 127
   end
-  -- CC slot: xy 2, others 1
-  local b = 0
+  -- CC slot: xy 2, others 1. Gamepad autos: the axes (xy 2, fader 1) and
+  -- buttons of the gamepad zones before, counted apart
+  local b, ga, gb = 0, 0, 0
   for _, q in ipairs(Z.nz) do
-    b = b + (q.o.read == "point" and 2 or 1)
+    local r = q.o.read
+    local c = r == "point" and 2 or 1
+    b = b + c
+    if q.m == 3 and r == "gate" then
+      gb = gb + 1
+    elseif q.m == 3 then
+      ga = ga + c
+    end
   end
   local mi = o.min or 0
   local ma = o.max or (o.res > 7 and 16383 or 127)
@@ -605,10 +624,13 @@ function Z.zone(n, x, y, w, h, opt, kind)
   end
   -- MIDI identity, autos as before: ch from module row and page, num from
   -- module column and slot (% 32 for a 14-bit pair), xy y on the next one.
-  -- m: nil none, 0 7-bit, 1 14-bit CC pair, 2 pitch bend
+  -- m: nil none, 0 7-bit, 1 14-bit CC pair, 2 pitch bend, 3 gamepad
   local z14 = m == "cc" and o.res > 7
   local p, py = o.num, o.num + 1
-  if p < 0 then
+  if p < 0 and m == "pad" then
+    p = o.read == "gate" and gb or ga
+    py = p + 1
+  elseif p < 0 then
     p = 32 + gmx() * 16 + b
     py = (p + 1) % 128 % (z14 and 32 or 128)
     p = p % 128 % (z14 and 32 or 128)
@@ -620,7 +642,7 @@ function Z.zone(n, x, y, w, h, opt, kind)
     cmd = m == "note" and 144 or 176,
     p = p,
     py = py,
-    m = m == "pb" and 2 or z14 and 1 or not ms and m ~= "none" and 0 or nil,
+    m = m == "pb" and 2 or z14 and 1 or m == "pad" and 3 or not ms and m ~= "none" and 0 or nil,
     ms = ms,
     w = ms and { v = 0, x = 0, y = 0 }, -- mouse: the move to send (mv)
     a = {

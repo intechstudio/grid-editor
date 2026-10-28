@@ -13,7 +13,7 @@
   } from "../../runtime/runtime";
   import type { OptionSchema, Zone } from "./zone-model";
   import { parseZone, zoneToLua } from "./zone-parse";
-  import { zoneOutputLabel } from "./zone-autos";
+  import { zoneNumsText, zoneOutputLabel } from "./zone-autos";
   import { Grid } from "../../lib/_utils";
   import {
     surfaceIssues,
@@ -90,7 +90,7 @@
       return `${text} (ch ${midi.ch + 1})`;
     }
     if (midi && key === "num" && midi.nums.length > 0) {
-      return `${text} (${midi.nums.join(", ")})`;
+      return `${text} (${zoneNumsText(midi)})`;
     }
     return text;
   };

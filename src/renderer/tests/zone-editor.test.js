@@ -109,6 +109,42 @@ test("the CC and channel the editor shows are what the library sends", async () 
   expect(shown.map((m) => m.nums)).toEqual([[48], [49], [50, 51], [52]]);
 });
 
+test("the gamepad axes and buttons the editor shows are what the library sends", async () => {
+  const lines = [
+    `_Z.fader("f1",0,0,1,9,{msg="pad"},nil)`,
+    `_Z.button("b1",1,0,2,2,{msg="pad"},nil)`,
+    `_Z.xy("p1",3,0,4,4,{msg="pad"},nil)`,
+    `_Z.fader("f2",8,0,1,9,{msg="pad"},nil)`,
+  ];
+  const zones = lines.map(parseZone);
+  const vm = await createZonaVM();
+  vm.setup(`${lines.join(" ")} _Z.start(self)`);
+  // a touch in each zone, and the targets it sends
+  const sent = [
+    [50, 0],
+    [200, 100],
+    [796, 0],
+    [960, 0],
+  ].map(([x, y]) => {
+    vm.clear();
+    vm.touch([0, DOWN, x, y]);
+    const press = [...vm.calls("ggms"), ...vm.calls("ggbs")];
+    vm.touch([0, UP, x, y]);
+    return press.map((e) => e.args[0]);
+  });
+  const shown = zones.map((_, i) =>
+    zoneMidi(zones, i, { dx: 0, dy: 0, page: 0 }),
+  );
+  expect(sent).toEqual(shown.map((m) => m.nums));
+  expect(sent).toEqual([[0], [0], [1, 2], [3]]);
+  expect(zones.map((z, i) => zoneOutputLabel(z, shown[i]))).toEqual([
+    "Gamepad X",
+    "Gamepad button 0",
+    "Gamepad Y, Z",
+    "Gamepad RX",
+  ]);
+});
+
 test("zone lines become rectangles on the overlay, in order", () => {
   const setup = [
     LIB,
@@ -148,6 +184,21 @@ test("a mouse zone's face shows only the fields mouse uses", () => {
     "col",
     "bmo",
     "group",
+    "grab",
+  ]);
+});
+
+test("a gamepad zone's face shows its target and the value behaviour", () => {
+  expect(fields(`_Z.fader("f1",0,0,1,9,{msg="pad"},nil)`)).toEqual([
+    "dir",
+    "msg",
+    "num",
+    "led",
+    "col",
+    "mode",
+    "speed",
+    "ease",
+    "spring",
     "grab",
   ]);
 });

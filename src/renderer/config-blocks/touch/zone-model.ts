@@ -17,7 +17,7 @@ export type ZoneOptions = {
   led: 0 | 1; // the kind's painter: fader fill, button state, xy crosshair
   col?: string; // zone colour "rrggbb"; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
-  num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default
+  num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default; gamepad: axis 0-5 or button 0-31, -1 auto (Setup order)
   rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
   spring: 0 | 1; // fader, xy: 1 returns to the centre on release (eased by ease)
   fingers: number; // xy: contacts it takes at once, 1-5; finger k on channel ch+k-1
@@ -25,8 +25,9 @@ export type ZoneOptions = {
 };
 
 // What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
-// "mouse" is the wheel (fader), a button or the pointer (xy).
-export type ZoneMsg = "note" | "cc" | "pb" | "mouse" | "none";
+// "mouse" is the wheel (fader), a button or the pointer (xy); "pad" is a
+// gamepad axis (fader), button or two axes (xy).
+export type ZoneMsg = "note" | "cc" | "pb" | "mouse" | "pad" | "none";
 
 export const zoneDefaults: ZoneOptions = {
   dir: "v",
@@ -57,9 +58,9 @@ export const zoneKinds: Record<
 };
 
 export const zoneMsgValues: Record<ZoneKind, readonly ZoneMsg[]> = {
-  fader: ["cc", "pb", "mouse", "none"],
-  button: ["note", "cc", "mouse", "none"],
-  xy: ["cc", "mouse", "none"],
+  fader: ["cc", "pb", "mouse", "pad", "none"],
+  button: ["note", "cc", "mouse", "pad", "none"],
+  xy: ["cc", "mouse", "pad", "none"],
 };
 
 export const zoneKindList = Object.keys(zoneKinds) as ZoneKind[];
@@ -132,8 +133,10 @@ const ALL_KINDS = zoneKindList;
 const CONTINUOUS: ZoneKind[] = ["fader", "xy"];
 // options a mouse zone doesn't use
 const MOUSE: ZoneMsg[] = ["mouse"];
+// options neither a mouse nor a gamepad zone uses
+const MOUSE_PAD: ZoneMsg[] = ["mouse", "pad"];
 // options only a mouse zone uses
-const NOT_MOUSE: ZoneMsg[] = ["note", "cc", "pb", "none"];
+const NOT_MOUSE: ZoneMsg[] = ["note", "cc", "pb", "pad", "none"];
 
 // In the order options are written (zone-parse.ts).
 export const zoneOptionSchema: ZoneOptionSchema[] = [
@@ -150,7 +153,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 7,
     max: 14,
     kinds: ALL_KINDS,
-    hide: MOUSE,
+    hide: MOUSE_PAD,
     section: "resolution",
   },
   // min/max have no default here: the library takes 0 and 127 or 16383 by res
@@ -158,14 +161,14 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     key: "min",
     type: "integer",
     kinds: ALL_KINDS,
-    hide: MOUSE,
+    hide: MOUSE_PAD,
     section: "resolution",
   },
   {
     key: "max",
     type: "integer",
     kinds: ALL_KINDS,
-    hide: MOUSE,
+    hide: MOUSE_PAD,
     section: "resolution",
   },
   {
@@ -224,7 +227,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 1,
     max: 5,
     kinds: ["xy"],
-    hide: MOUSE,
+    hide: MOUSE_PAD,
     section: "capture",
   },
   {
@@ -247,7 +250,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
   {
     key: "msg",
     type: "enum",
-    values: ["note", "cc", "pb", "mouse", "none"],
+    values: ["note", "cc", "pb", "mouse", "pad", "none"],
     kinds: ALL_KINDS,
     section: "output",
   },
@@ -257,7 +260,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: -1,
     max: 15,
     kinds: ALL_KINDS,
-    hide: MOUSE,
+    hide: MOUSE_PAD,
     section: "output",
   },
   {
@@ -274,7 +277,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 0,
     max: 1,
     kinds: ALL_KINDS,
-    hide: MOUSE,
+    hide: MOUSE_PAD,
     section: "output",
   },
   {

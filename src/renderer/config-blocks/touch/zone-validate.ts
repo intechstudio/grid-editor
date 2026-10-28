@@ -199,7 +199,8 @@ function rangeProblems(zone: Zone): ZoneProblem[] {
 }
 
 // An explicit num keeps every number the zone sends in 0-127: a 14-bit CC
-// sends its LSB on num+32 (num 0-31), an xy its y on num+1.
+// sends its LSB on num+32 (num 0-31), an xy its y on num+1. A gamepad zone
+// keeps to the axes 0-5 or the buttons 0-31.
 function numProblems(zone: Zone): ZoneProblem[] {
   const num = Number(option(zone, "num"));
   const msg = option(zone, "msg");
@@ -207,6 +208,18 @@ function numProblems(zone: Zone): ZoneProblem[] {
     return [];
   }
   const xy = zoneKinds[zone.kind].read === "point";
+  if (msg === "pad") {
+    if (num <= (zone.kind === "button" ? 31 : xy ? 4 : 5)) {
+      return [];
+    }
+    const message =
+      zone.kind === "button"
+        ? "Use -1 (auto) or a button 0 to 31"
+        : xy
+          ? "Use -1 (auto) or 0 to 4: y goes on the next axis"
+          : "Use -1 (auto) or an axis 0 to 5";
+    return [{ key: "num", message }];
+  }
   const wide = msg === "cc" && resOf(zone) > 7;
   const max = (wide ? 31 : 127) - (xy ? 1 : 0);
   if (num <= max) {
@@ -236,8 +249,8 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   );
   problems.push(...options);
   const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));
-  // a mouse zone has no value range, and its num is a button
-  if (msg !== "mouse" && !bad(["res", "min", "max", "msg"])) {
+  // a mouse or gamepad zone has no value range; a mouse zone's num is a button
+  if (msg !== "mouse" && msg !== "pad" && !bad(["res", "min", "max", "msg"])) {
     problems.push(...rangeProblems(zone));
   }
   if (msg !== "mouse" && !bad(["res", "num", "msg"])) {

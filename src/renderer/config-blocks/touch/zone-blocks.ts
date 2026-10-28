@@ -16,7 +16,7 @@ import {
   zoneSectionsOpen,
 } from "./zone-model";
 import { parseZone, zoneToLua } from "./zone-parse";
-import type { ZoneMidi } from "./zone-autos";
+import { type ZoneMidi, PAD_AXIS_NAMES } from "./zone-autos";
 import { midiCC } from "../_midi.js";
 import { MusicalNotes } from "../../main/panels/MidiMonitor/midi-types";
 
@@ -142,18 +142,17 @@ const enumValueLabels: Record<string, Record<string, string>> = {
   grab: { focus: "Focus", live: "Live" },
 };
 
-// What a mouse zone of each kind is, as its Output title.
-const zoneMouseTitles: Record<ZoneKind, string> = {
-  fader: "Mouse wheel",
-  button: "Mouse button",
-  xy: "Mouse",
+// What a mouse or gamepad zone of each kind is, as its Output title.
+const zoneKindTitles: Record<string, Record<ZoneKind, string>> = {
+  mouse: { fader: "Mouse wheel", button: "Mouse button", xy: "Mouse" },
+  pad: { fader: "Gamepad axis", button: "Gamepad button", xy: "Gamepad" },
 };
 
 // Select entries of an enum option: the schema's values; the zone's default
 // is selected when the line leaves the option out. A value the schema doesn't
 // know (a newer editor's, a hand-written line) is listed too, so the select
 // shows what the line says and nothing is rewritten until the user picks
-// something. The kind names its mouse output.
+// something. The kind names its mouse and gamepad outputs.
 export function enumOptions(
   schema: OptionSchema,
   value: string,
@@ -164,7 +163,9 @@ export function enumOptions(
   }
   const labels: Record<string, string> = { ...enumValueLabels[schema.key] };
   if (schema.key === "msg" && typeof kind !== "undefined") {
-    labels.mouse = zoneMouseTitles[kind];
+    for (const [msg, titles] of Object.entries(zoneKindTitles)) {
+      labels[msg] = titles[kind];
+    }
   }
   const options = schema.values.map((e) => ({
     title: labels[e] ?? e,
@@ -216,6 +217,21 @@ export function zoneOptionSuggestions(
         return MOUSE_BUTTONS;
       }
       const auto = midi?.nums[0];
+      if (msg === "pad") {
+        const button = zone.kind === "button";
+        const name = (n: number) =>
+          button ? `Button ${n}` : `${PAD_AXIS_NAMES[n] ?? n} Axis`;
+        return [
+          {
+            value: "-1",
+            info: typeof auto === "number" ? `Auto (${name(auto)})` : "Auto",
+          },
+          ...Array.from({ length: button ? 32 : 6 }, (_, i) => ({
+            value: String(i),
+            info: name(i),
+          })),
+        ];
+      }
       if (msg === "note") {
         return [
           {
@@ -378,11 +394,14 @@ export const optionLabels: Record<string, string> = {
   tap: "Tap to click",
 };
 
-// The field title; the number is a CC, a note or a mouse button, by what
-// the zone sends.
+// The field title; the number is a CC, a note, a mouse button or a gamepad
+// axis or button, by what the zone sends.
 export function optionLabel(key: string, zone?: Zone): string {
   if (key === "num" && typeof zone !== "undefined") {
     const msg = zoneMsg(zone);
+    if (msg === "pad") {
+      return zone.kind === "button" ? "Button" : "Axis";
+    }
     return msg === "note" ? "Note" : msg === "mouse" ? "Button" : "CC";
   }
   return optionLabels[key] ?? key;

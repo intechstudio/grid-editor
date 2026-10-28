@@ -12,10 +12,11 @@ function readerOf(zone: Zone): string {
 export type ZonePosition = { dx: number; dy: number; page: number };
 
 // What a zone sends (Z.zone in zona.lua): cc14 is a CC pair, MSB on each
-// number and LSB on number+32; pb is pitch bend (no number).
+// number and LSB on number+32; pb is pitch bend (no number); axis and button
+// are gamepad targets (ch unused).
 export type ZoneMidi = {
   ch: number;
-  type: "note" | "cc" | "cc14" | "pb";
+  type: "note" | "cc" | "cc14" | "pb" | "axis" | "button";
   nums: number[]; // one per source: x and y on an xy pad
   fingers: number; // xy: finger k sends on channel ch+k-1 (mod 16)
 };
@@ -26,10 +27,34 @@ function option(zone: Zone, key: string) {
   return zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
 }
 
-// The MIDI identity of zone `index`, null for msg="none" or "mouse".
-// Autos: channel from the module row and page, number from the module
-// column and the CC slot (zones before it: xy 2, others 1, whatever they
-// send), % 32 for a 14-bit pair.
+// A gamepad zone's target: num, or auto: the axes (xy 2, fader 1) or the
+// buttons of the gamepad zones before it, whatever num they set.
+function zonePad(zones: Zone[], index: number): ZoneMidi {
+  const zone = zones[index];
+  const button = readerOf(zone) === "gate";
+  let auto = 0;
+  for (const before of zones.slice(0, index)) {
+    if (
+      option(before, "msg") === "pad" &&
+      (readerOf(before) === "gate") === button
+    ) {
+      auto += readerOf(before) === "point" ? 2 : 1;
+    }
+  }
+  const num = Number(option(zone, "num"));
+  const x = num < 0 ? auto : num;
+  return {
+    ch: 0,
+    type: button ? "button" : "axis",
+    nums: readerOf(zone) === "point" ? [x, x + 1] : [x],
+    fingers: 1,
+  };
+}
+
+// The MIDI identity of zone `index`, null for msg="none" or "mouse", the
+// gamepad target for "pad". Autos: channel from the module row and page,
+// number from the module column and the CC slot (zones before it: xy 2,
+// others 1, whatever they send), % 32 for a 14-bit pair.
 export function zoneMidi(
   zones: Zone[],
   index: number,
@@ -39,6 +64,9 @@ export function zoneMidi(
   const msg = String(option(zone, "msg"));
   if (msg === "none" || msg === "mouse") {
     return null;
+  }
+  if (msg === "pad") {
+    return zonePad(zones, index);
   }
   const res = msg === "pb" ? 14 : Number(option(zone, "res"));
   const type =
@@ -111,6 +139,18 @@ export function zoneMidiLabel(midi: ZoneMidi | null): string {
   return `${midi.type === "note" ? "Note" : "CC"} ${nums} ${ch}`;
 }
 
+// ggms axes by number
+export const PAD_AXIS_NAMES = ["X", "Y", "Z", "RX", "RY", "RZ"];
+
+// The numbers a zone sends, gamepad axes by name: "34, 35", "X, Y".
+export function zoneNumsText(midi: ZoneMidi): string {
+  return midi.nums
+    .map((n) =>
+      midi.type === "axis" ? (PAD_AXIS_NAMES[n] ?? String(n)) : String(n),
+    )
+    .join(", ");
+}
+
 const MOUSE_BUTTON_NAMES: Record<number, string> = {
   1: "Left",
   2: "Right",
@@ -118,9 +158,16 @@ const MOUSE_BUTTON_NAMES: Record<number, string> = {
 };
 
 // What a zone sends, for its header and the Output section: the MIDI
-// (zoneMidiLabel), or "Mouse" (xy), "Mouse wheel" (fader), "Mouse Left"
-// (button by num, 1 without one; another: "Mouse button 3").
+// (zoneMidiLabel), "Gamepad X", "Gamepad X, Y" (xy), "Gamepad button 0", or
+// "Mouse" (xy), "Mouse wheel" (fader), "Mouse Left" (button by num, 1
+// without one; another: "Mouse button 3").
 export function zoneOutputLabel(zone: Zone, midi: ZoneMidi | null): string {
+  if (midi?.type === "axis") {
+    return `Gamepad ${zoneNumsText(midi)}`;
+  }
+  if (midi?.type === "button") {
+    return `Gamepad button ${midi.nums[0]}`;
+  }
   if (option(zone, "msg") !== "mouse") {
     return zoneMidiLabel(midi);
   }

@@ -91,7 +91,8 @@ test("an XY pad sends x and y on neighbouring CCs", async () => {
   ]);
 });
 
-// gmms calls as [axis, step], gmbs as [button, state].
+// gmms and ggms calls as [axis, step or position], gmbs and ggbs as
+// [button, state].
 const mouse = (vm, fn) => vm.calls(fn).map((e) => e.args);
 
 test("a mouse XY sends the finger's move once per tick, summed per axis", async () => {
@@ -199,6 +200,36 @@ test("running Setup again releases a drag-locked mouse button", async () => {
   vm.clear();
   vm.setup(`Z.fader("f",0,0,1,9,{}) Z.start(self)`);
   expect(mouse(vm, "gmbs")).toEqual([[1, 0]]);
+});
+
+test("a gamepad fader sends its axis from -128 at the bottom to 127 at the top", async () => {
+  const vm = await zones(`Z.fader("f",0,0,1,9,{msg="pad"})`);
+  vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0], [0, UP, 50, 0]);
+  expect(mouse(vm, "ggms")).toEqual([
+    [0, -128],
+    [0, 127],
+  ]);
+  expect(wire(vm)).toEqual([]);
+});
+
+test("a gamepad XY with spring is a joystick: two axes, back to 0 on lift", async () => {
+  const vm = await zones(`Z.xy("p",4,0,5,5,{msg="pad",spring=1})`);
+  vm.touch([0, DOWN, 1023, 0], [0, UP, 1023, 0]);
+  expect(mouse(vm, "ggms")).toEqual([
+    [0, 127],
+    [1, 127],
+    [0, 0],
+    [1, 0],
+  ]);
+});
+
+test("a gamepad button presses while held", async () => {
+  const vm = await zones(`Z.button("b",2,0,2,2,{msg="pad",num=3})`);
+  vm.touch([0, DOWN, 300, 100], [0, UP, 300, 100]);
+  expect(mouse(vm, "ggbs")).toEqual([
+    [3, 1],
+    [3, 0],
+  ]);
 });
 
 test("MIDI from the host sets a zone's value without sending", async () => {
