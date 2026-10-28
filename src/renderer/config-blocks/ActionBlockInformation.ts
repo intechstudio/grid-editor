@@ -78,11 +78,9 @@ interface Information {
   eventTypes?: EventType[];
   // Modules the block is offered on; undefined = every module.
   moduleTypes?: ModuleType[];
-  // Kept the last block of its event: the picker adds new blocks before it.
-  keepLast?: boolean;
   // Added with this block from the picker when the element's event of that
-  // type has no block with this short (Touch Start and Touch Tick with the
-  // first zone). Appended at the end of that event.
+  // type has no block with this short (Touch Tick with the first zone).
+  // Appended at the end of that event.
   companions?: Companion[];
   // When existing actions are inserted (paste, snippet, drop), rewrites the
   // script so it doesn't collide with these other scripts of the event (a

@@ -21,11 +21,7 @@
     type ElementType,
     type ModuleType,
   } from "@intechstudio/grid-protocol";
-  import {
-    companionElement,
-    isAllowedIn,
-    pickerInsertIndex,
-  } from "./ActionPickerFilter";
+  import { companionElement, isAllowedIn } from "./ActionPickerFilter";
   import { addActions } from "../../../../runtime/operations";
   import { isLibraryPlace } from "../../../../lib/library";
   import type { Companion } from "../../../../config-blocks/ActionBlockInformation";
@@ -366,10 +362,7 @@
     }
 
     const isReal = event.realEvent === event;
-    onNewConfig({
-      configs,
-      index: isReal ? pickerInsertIndex(event.config, index) : index,
-    });
+    onNewConfig({ configs, index });
     data.close();
     // Only when the block landed: the insert runs synchronously inside
     // onNewConfig (addActions → insert) and leaves the config unchanged when
@@ -379,8 +372,8 @@
     }
   }
 
-  // Blocks that come with the added one (Touch Start and Touch Tick with the
-  // first zone), appended to the element's event of that type if missing.
+  // Blocks that come with the added one (Touch Tick with the first zone),
+  // appended to the element's event of that type if missing.
   // There is no undo history: each event is sent on its own.
   async function addCompanions(companions: Companion[]) {
     const element = event.parent as GridElement;

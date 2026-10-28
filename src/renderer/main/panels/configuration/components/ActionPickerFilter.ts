@@ -48,19 +48,6 @@ export function isAllowedIn(
   );
 }
 
-type Placed = {
-  information: Pick<ActionBlockInformation, "keepLast">;
-};
-
-// Where the picker inserts: before the event's last block when that one is
-// kept last (Touch Start) and the insert point is after it.
-export function pickerInsertIndex(actions: Placed[], index: number): number {
-  const last = actions.at(-1);
-  return index >= actions.length && last?.information.keepLast === true
-    ? actions.length - 1
-    : index;
-}
-
 // The element a companion goes to: the block's own element, or the first one
 // of the page with the companion's element type.
 export function companionElement<E extends { type: string }>(

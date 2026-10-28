@@ -1,7 +1,7 @@
 // Touch block scripts (RFC 5, 6.5). The canonical lines, as the editor writes
 // them:
 //
-//   Z.fader("f1",0,0,1,9,{res=10,mode="glide"},nil)
+//   Z.fader(self,"f1",0,0,1,9,{res=10,mode="glide"})
 //   Z.tick(self,{ms=10})
 //
 // This is the form GridScript.compressScript produces: no spaces, double
@@ -27,8 +27,6 @@ import {
 
 // The global the touch blocks call. Fixed in v1 (RFC 5).
 export const ZONA_GLOBAL = "_Z";
-
-export const ZONE_START_SCRIPT = `${ZONA_GLOBAL}.start(self)`;
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;
 const NUMBER =
@@ -278,7 +276,7 @@ function writeOptions(
   return `{${parts.join(",")}}`;
 }
 
-// `_Z.fader("f1",0,0,1,9,{res=10},nil)`, the zone block's line. Returns null
+// `_Z.fader(self,"f1",0,0,1,9,{res=10})`, the zone block's line. Returns null
 // when the script is not a zone line.
 export function parseZone(script: string): Zone | null {
   const reader = new Reader(script);
@@ -286,7 +284,12 @@ export function parseZone(script: string): Zone | null {
     return null;
   }
   const kind = reader.identifier() as ZoneKind;
-  if (!zoneKindList.includes(kind) || !reader.eat("(")) {
+  if (
+    !zoneKindList.includes(kind) ||
+    !reader.eat("(") ||
+    reader.identifier() !== "self" ||
+    !reader.eat(",")
+  ) {
     return null;
   }
   const name = reader.string();
@@ -302,13 +305,7 @@ export function parseZone(script: string): Zone | null {
     cells.push(value);
   }
   const entries = reader.eat(",") ? reader.table() : null;
-  if (
-    entries === null ||
-    !reader.eat(",") ||
-    reader.identifier() !== "nil" ||
-    !reader.eat(")") ||
-    !reader.atEnd()
-  ) {
+  if (entries === null || !reader.eat(")") || !reader.atEnd()) {
     return null;
   }
   const options = readOptions(entries, zoneOptionSchema);
@@ -327,7 +324,7 @@ export function zoneToLua(zone: Zone): string {
   const options = writeOptions(zone, zoneOptionSchema, (key) =>
     zoneOptionDefault(zone.kind, key),
   );
-  return `${ZONA_GLOBAL}.${zone.kind}(${luaString(zone.name)},${cells},${options},nil)`;
+  return `${ZONA_GLOBAL}.${zone.kind}(self,${luaString(zone.name)},${cells},${options})`;
 }
 
 // `_Z.tick(self,{ms=10})`, the Touch Tick block on the touch Timer.

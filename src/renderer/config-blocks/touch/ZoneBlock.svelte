@@ -15,6 +15,8 @@
   import { parseZone, zoneToLua } from "./zone-parse";
   import { zoneNumsText, zoneOutputLabel } from "./zone-autos";
   import { Grid } from "../../lib/_utils";
+  import { globalsLoadedBefore } from "../../lib/library";
+  import { libraryIssue, loadSetupsBefore } from "./zone-library";
   import {
     surfaceIssues,
     zoneProblems,
@@ -76,6 +78,20 @@
             !problems.some((p) => p.message === e.message),
         )
       : [];
+  // The first zone of the Setup tells when no Library block that runs before
+  // it loads zona. Not shown until the earlier Setups are loaded.
+  $: isFirstZone =
+    $event.config.find((e) => parseZone(e.script) !== null)?.id === action.id;
+  let libraryRequested = false;
+  let libraryKnown = false;
+  $: if (isFirstZone && !libraryRequested) {
+    libraryRequested = true;
+    loadSetupsBefore(event).then(() => (libraryKnown = true));
+  }
+  $: library =
+    isFirstZone && libraryKnown && $event
+      ? libraryIssue(globalsLoadedBefore(action))
+      : undefined;
   // What the zone sends, for the Output section: "auto (…)" placeholders show
   // the resolved channel (1-based, as the label) and number.
   // The zones before this one count for the autos: the event is a
@@ -173,7 +189,7 @@
 
 <zone-block class="flex flex-col w-full px-4 py-2 pointer-events-auto gap-2">
   {#if zone !== null}
-    {#each zoneIssues as issue}
+    {#each [...(library ? [library] : []), ...zoneIssues] as issue}
       <span
         class="text-sm"
         class:text-error={issue.level === "error"}

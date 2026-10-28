@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 // cells 2-3 x 0-1: raw x 228-455, y 0-227
-const button = `Z.button("b",2,0,2,2,{})`;
+const button = `Z.button(self,"b",2,0,2,2,{})`;
 
 // The firmware's gms takes exactly 4 integer arguments (grid_lua_api.c).
 function wire(vm) {
@@ -26,14 +26,14 @@ function wire(vm) {
 
 async function zones(code) {
   const vm = await createZonaVM();
-  vm.setup(`${code} Z.start(self)`);
+  vm.setup(`${code}`);
   vm.clear();
   return vm;
 }
 
 test("the library loads and declares its version in the header", async () => {
   const vm = await createZonaVM();
-  expect(vm.run("return type(Z.start)")).toBe("function");
+  expect(vm.run("return type(Z.zone)")).toBe("function");
   expect(GridScript.compressScript(zonaSource)).toMatch(
     /^local LIB_NAME="_Z" local LIB_VERSION="\d+\.\d+\.\d+"/,
   );
@@ -53,7 +53,7 @@ test("the library defaults match zone-model.ts", async () => {
 });
 
 test("a fader sends its CC, bottom to top", async () => {
-  const vm = await zones(`Z.fader("f",0,0,1,9,{})`);
+  const vm = await zones(`Z.fader(self,"f",0,0,1,9,{})`);
   vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0], [0, UP, 50, 0]);
   expect(wire(vm)).toEqual([
     [0, 176, 32, 0],
@@ -71,7 +71,7 @@ test("a button sends note on while held, note off on release", async () => {
 });
 
 test("a toggle button turns on, then off on the next press", async () => {
-  const vm = await zones(`Z.button("b",2,0,2,2,{bmo=1})`);
+  const vm = await zones(`Z.button(self,"b",2,0,2,2,{bmo=1})`);
   vm.touch([0, TAP, 300, 100], [0, TAP, 300, 100]);
   expect(wire(vm)).toEqual([
     [0, 144, 32, 127],
@@ -81,8 +81,9 @@ test("a toggle button turns on, then off on the next press", async () => {
 
 test("an XY pad sends x and y on neighbouring CCs", async () => {
   // cells 4-8 x 0-4: raw x 456-1023, y 0-568
-  const vm = await zones(`Z.xy("p",4,0,5,5,{})`);
+  const vm = await zones(`Z.xy(self,"p",4,0,5,5,{})`);
   vm.touch([0, DOWN, 1023, 0], [0, MOVE, 456, 568]);
+  vm.tick(); // the move waits for the tick after the press
   expect(wire(vm)).toEqual([
     [0, 176, 32, 127],
     [0, 176, 33, 127],
@@ -96,7 +97,7 @@ test("an XY pad sends x and y on neighbouring CCs", async () => {
 const mouse = (vm, fn) => vm.calls(fn).map((e) => e.args);
 
 test("a mouse XY sends the finger's move once per tick, summed per axis", async () => {
-  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse",speed=2})`);
+  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse",speed=2})`);
   vm.touch([0, DOWN, 500, 500], [0, MOVE, 510, 497], [0, MOVE, 520, 494]);
   expect(mouse(vm, "gmms")).toEqual([]);
   vm.tick();
@@ -112,14 +113,14 @@ test("a mouse XY sends the finger's move once per tick, summed per axis", async 
 });
 
 test("a big mouse move is cut at 127, so the pointer stops with the finger", async () => {
-  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse"})`);
+  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse"})`);
   vm.touch([0, DOWN, 100, 500], [0, MOVE, 300, 500]);
   vm.tick(2);
   expect(mouse(vm, "gmms")).toEqual([[1, 127]]);
 });
 
 test("a quick tap on a mouse XY clicks left on lift", async () => {
-  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse"})`);
+  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse"})`);
   vm.touch([0, DOWN, 500, 500], [0, MOVE, 505, 498]);
   vm.tick(3);
   expect(mouse(vm, "gmbs")).toEqual([]);
@@ -141,21 +142,21 @@ test("a quick tap on a mouse XY clicks left on lift", async () => {
 });
 
 test("a mouse XY with tap=0 doesn't click", async () => {
-  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse",tap=0})`);
+  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse",tap=0})`);
   vm.touch([0, TAP, 500, 500]);
   expect(mouse(vm, "gmbs")).toEqual([]);
 });
 
 test("a tap doesn't release a drag-locked left button", async () => {
   const vm = await zones(
-    `Z.xy("p",0,2,9,7,{msg="mouse"}) Z.button("t",4,0,2,2,{msg="mouse",bmo=1})`,
+    `Z.xy(self,"p",0,2,9,7,{msg="mouse"}) Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1})`,
   );
   vm.touch([0, TAP, 500, 100], [0, TAP, 500, 500]);
   expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
 });
 
 test("a mouse XY touch that moves far or holds long doesn't click", async () => {
-  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse"})`);
+  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse"})`);
   vm.touch([0, DOWN, 500, 500], [0, MOVE, 520, 500], [0, MOVE, 500, 500]);
   vm.touch([0, UP, 500, 500]);
   vm.touch([0, DOWN, 500, 500]);
@@ -165,7 +166,7 @@ test("a mouse XY touch that moves far or holds long doesn't click", async () => 
 });
 
 test("a mouse fader scrolls up when dragged towards its max", async () => {
-  const vm = await zones(`Z.fader("f",0,0,1,9,{msg="mouse"})`);
+  const vm = await zones(`Z.fader(self,"f",0,0,1,9,{msg="mouse"})`);
   vm.touch([0, DOWN, 50, 800], [0, MOVE, 50, 480]);
   vm.tick();
   vm.touch([0, MOVE, 50, 800]);
@@ -178,7 +179,7 @@ test("a mouse fader scrolls up when dragged towards its max", async () => {
 
 test("a mouse button presses while held; toggle is a drag lock", async () => {
   const vm = await zones(
-    `Z.button("b",2,0,2,2,{msg="mouse",num=2}) Z.button("t",4,0,2,2,{msg="mouse",bmo=1,group=1}) Z.button("a",6,0,2,2,{group=1})`,
+    `Z.button(self,"b",2,0,2,2,{msg="mouse",num=2}) Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1,group=1}) Z.button(self,"a",6,0,2,2,{group=1})`,
   );
   vm.touch([0, DOWN, 300, 100], [0, UP, 300, 100]);
   vm.touch([0, TAP, 500, 100], [0, TAP, 500, 100]);
@@ -200,15 +201,15 @@ test("a mouse button presses while held; toggle is a drag lock", async () => {
 });
 
 test("running Setup again releases a drag-locked mouse button", async () => {
-  const vm = await zones(`Z.button("t",4,0,2,2,{msg="mouse",bmo=1})`);
+  const vm = await zones(`Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1})`);
   vm.touch([0, TAP, 500, 100]);
   vm.clear();
-  vm.setup(`Z.fader("f",0,0,1,9,{}) Z.start(self)`);
+  vm.setup(`Z.fader(self,"f",0,0,1,9,{})`);
   expect(mouse(vm, "gmbs")).toEqual([[1, 0]]);
 });
 
 test("a gamepad fader sends its axis from -128 at the bottom to 127 at the top", async () => {
-  const vm = await zones(`Z.fader("f",0,0,1,9,{msg="pad"})`);
+  const vm = await zones(`Z.fader(self,"f",0,0,1,9,{msg="pad"})`);
   vm.touch([0, DOWN, 50, 1023], [0, MOVE, 50, 0], [0, UP, 50, 0]);
   expect(mouse(vm, "ggms")).toEqual([
     [0, -128],
@@ -218,7 +219,7 @@ test("a gamepad fader sends its axis from -128 at the bottom to 127 at the top",
 });
 
 test("a gamepad XY with spring is a joystick: two axes, back to 0 on lift", async () => {
-  const vm = await zones(`Z.xy("p",4,0,5,5,{msg="pad",spring=1})`);
+  const vm = await zones(`Z.xy(self,"p",4,0,5,5,{msg="pad",spring=1})`);
   vm.touch([0, DOWN, 1023, 0], [0, UP, 1023, 0]);
   expect(mouse(vm, "ggms")).toEqual([
     [0, 127],
@@ -229,7 +230,7 @@ test("a gamepad XY with spring is a joystick: two axes, back to 0 on lift", asyn
 });
 
 test("a gamepad button presses while held", async () => {
-  const vm = await zones(`Z.button("b",2,0,2,2,{msg="pad",num=3})`);
+  const vm = await zones(`Z.button(self,"b",2,0,2,2,{msg="pad",num=3})`);
   vm.touch([0, DOWN, 300, 100], [0, UP, 300, 100]);
   expect(mouse(vm, "ggbs")).toEqual([
     [3, 1],
@@ -238,7 +239,7 @@ test("a gamepad button presses while held", async () => {
 });
 
 test("MIDI from the host sets a zone's value without sending", async () => {
-  const vm = await zones(`Z.fader("f",0,0,1,9,{rx=1})`);
+  const vm = await zones(`Z.fader(self,"f",0,0,1,9,{rx=1})`);
   vm.rx(0, 176, 32, 100);
   expect(vm.run("return Z.zs[1].u.v")).toBe(100);
   vm.tick();
@@ -249,7 +250,7 @@ test("running Setup again replaces the zones and releases held notes", async () 
   const vm = await zones(button);
   vm.touch([0, DOWN, 300, 100]);
   vm.clear();
-  vm.setup(`Z.fader("f",0,0,1,9,{}) Z.start(self)`);
+  vm.setup(`Z.fader(self,"f",0,0,1,9,{})`);
   expect(vm.midi()).toEqual([[0, 144, 32, 0]]);
   expect(vm.run("return #Z.zs")).toBe(1);
   vm.clear();
@@ -260,7 +261,7 @@ test("running Setup again replaces the zones and releases held notes", async () 
 test("Z.unload releases notes, gives back the callbacks and drops the zones", async () => {
   const vm = await createZonaVM();
   vm.setup(
-    `self.midirx_cb=function(s,h,e) _rec("user",1,e[4]) end Z.button("b",2,0,2,2,{rx=1}) Z.start(self)`,
+    `self.midirx_cb=function(s,h,e) _rec("user",1,e[4]) end Z.button(self,"b",2,0,2,2,{rx=1})`,
   );
   vm.touch([0, DOWN, 300, 100]);
   vm.clear();
@@ -277,7 +278,7 @@ test("led=0 keeps a zone dark while a default zone lights up", async () => {
   const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
   const column = (x) => Array.from({ length: 9 }, (_, y) => led(x, y));
   const vm = await zones(
-    `Z.fader("f",0,0,1,9,{led=0}) Z.fader("g",1,0,1,9,{})`,
+    `Z.fader(self,"f",0,0,1,9,{led=0}) Z.fader(self,"g",1,0,1,9,{})`,
   );
   vm.touch([0, DOWN, 50, 0], [1, DOWN, 150, 0]);
   vm.tick();
@@ -294,9 +295,9 @@ test("the library and 16 zones stay within the module's RAM budget", async () =>
   const base = vm.kb();
   let faders = "";
   for (let i = 0; i < 16; i++) {
-    faders += `Z.fader("z${i}",${i % 9},${Math.floor(i / 9) * 4},1,4,{}) `;
+    faders += `Z.fader(self,"z${i}",${i % 9},${Math.floor(i / 9) * 4},1,4,{}) `;
   }
   vm.run("Z=load(_src)()");
-  vm.setup(`${faders} Z.start(self)`);
+  vm.setup(`${faders}`);
   expect(vm.kb() - base).toBeLessThanOrEqual(BUDGET_KB);
 });

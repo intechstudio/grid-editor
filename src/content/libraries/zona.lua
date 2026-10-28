@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.9.4"
+local LIB_VERSION = "0.10.0"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -529,21 +529,11 @@ local function sy(z, s, v, w)
 end
 
 -- releases the running surface (held zones send their release) and keeps no
--- reference to it: a new surface is built without the old one in RAM, and a
--- Setup that fails before Z.start leaves an empty surface
+-- reference to it: a new surface is built without the old one in RAM
 local function drop()
   rl()
   Z.zs, Z.ct, Z.R = {}, {}, {}
   Z.lv = nil
-end
-
--- A Setup runs to its end before any tick or touch, so zones still pending
--- then are left from a Setup that failed: drop them, or the next run would
--- append to them
-local function stale()
-  if Z.nz[1] then
-    Z.nz = {}
-  end
 end
 
 -- options read through: zone opt -> kind preset -> Z.def (no copy per zone)
@@ -572,18 +562,25 @@ local function col(z, s)
   z.ck, z.cc = k, e
 end
 
-function Z.zone(n, x, y, w, h, opt, kind)
-  -- a name already pending: a new Setup run after one that never reached
-  -- Z.start (or failed) without a tick or touch in between
+function Z.zone(self, n, x, y, w, h, opt, kind)
+  -- a name already pending: the Setup ran again before a tick or touch made
+  -- the previous run live
   for _, q in ipairs(Z.nz) do
     if q.n == n then
       Z.nz = {}
       break
     end
   end
-  -- the first zone of a Setup run drops the previous surface
+  -- the first zone of a Setup run drops the previous surface and takes the
+  -- touch element: full sensor range, touch input, and the timer kick whose
+  -- tick makes the zones live
   if not Z.nz[1] then
     drop()
+    Z.te = self
+    self:txma(1023)
+    self:tyma(1023)
+    self.touch_cb = Z.touch
+    gtt(self:ind(), 1) -- one-shot timer: kick it, Z.tick re-arms
   end
   local o = setmetatable({}, KM[kind] or KM.fader)
   for k, val in pairs(opt or {}) do
@@ -678,16 +675,17 @@ function Z.zone(n, x, y, w, h, opt, kind)
 end
 
 for kind in pairs(Z.kind) do
-  Z[kind] = function(n, x, y, w, h, opt)
-    return Z.zone(n, x, y, w, h, opt, kind)
+  Z[kind] = function(self, n, x, y, w, h, opt)
+    return Z.zone(self, n, x, y, w, h, opt, kind)
   end
 end
 
--- zones of a Setup that errors before this stay pending until the next tick
--- or touch (stale)
-function Z.start(self)
-  self:txma(1023)
-  self:tyma(1023)
+-- A Setup runs to its end before any tick or touch, so zones still pending
+-- then are the whole Setup run (up to an error): they become the surface
+local function live()
+  if not Z.nz[1] then
+    return
+  end
   rl()
   Z.tn = 0
   Z.zs = Z.nz
@@ -702,8 +700,6 @@ function Z.start(self)
   Z.lk = {}
   Z.lc = {}
   Z.R = {}
-  Z.te = self
-  self.touch_cb = Z.touch
   -- rx=1: the identities the zone sends, a 14-bit pair on both CCs
   for _, z in ipairs(Z.zs) do
     if z.o.rx == 1 and z.m then
@@ -717,10 +713,10 @@ function Z.start(self)
       end
     end
   end
-  local u = self.midirx_cb
+  local u = Z.te.midirx_cb
   Z.uc = u ~= Z.rx and u or nil
-  self.midirx_cb = next(Z.R) and Z.rx or Z.uc
-  Z.el = self:ind()
+  Z.te.midirx_cb = next(Z.R) and Z.rx or Z.uc
+  Z.el = Z.te:ind()
   for _, z in ipairs(Z.zs) do
     paint(z)
   end
@@ -732,12 +728,11 @@ function Z.start(self)
       lit(e, 0, d, 0)
     end
   end
-  gtt(self:ind(), 1) -- one-shot timer: kick it, Z.tick re-arms
 end
 
 function Z.tick(self, cfg)
   gtt(self:ind(), cfg and cfg.ms or Z.tdef.ms) -- re-arm first: an error can't stop the tick
-  stale()
+  live()
   Z.tn = Z.tn + 1
   Z.tm = Z.tm + (cfg and cfg.ms or Z.tdef.ms)
   -- a tap's click is held a whole tick, so the computer sees it
@@ -840,7 +835,7 @@ local function route(id, evt, x, y)
 end
 
 function Z.touch(self, id, evt, x, y)
-  stale()
+  live()
   if evt == 9 then -- tap: down and up in one scan
     route(id, 4, x, y)
     evt = 5

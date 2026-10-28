@@ -15,7 +15,7 @@ import {
   zoneOptionShown,
   zoneTickSchema,
 } from "./zone-model";
-import { parseZone, ZONA_GLOBAL, ZONE_START_SCRIPT } from "./zone-parse";
+import { parseZone, ZONA_GLOBAL } from "./zone-parse";
 
 const GRID_SIZE = 9;
 
@@ -27,9 +27,6 @@ export type ZoneIssue = {
   level: "error" | "warning";
   message: string;
 };
-
-// The touch Setup's top-level actions, in order.
-export type SurfaceContext = { actions: { script: string }[] };
 
 const LUA_KEYWORDS = new Set(
   "and break do else elseif end false for function goto if in local nil not or repeat return then true until while".split(
@@ -274,35 +271,9 @@ export function zoneTickProblems(tick: ZoneTick): ZoneProblem[] {
   return optionProblems(tick.opt, zoneTickSchema);
 }
 
-function orderIssues(context: SurfaceContext): ZoneIssue[] {
-  const { actions } = context;
-  const first = actions.findIndex((e) => parseZone(e.script) !== null);
-  if (first === -1) {
-    return [];
-  }
-  const issues: ZoneIssue[] = [];
-  const isStart = (e: { script: string }) =>
-    e.script.trim() === ZONE_START_SCRIPT;
-  if (!actions.some(isStart)) {
-    issues.push({
-      level: "warning",
-      message: "Add Touch Start as the last block: zones stay inactive",
-    });
-  } else if (!isStart(actions[actions.length - 1])) {
-    issues.push({
-      level: "warning",
-      message: "Move Touch Start to the end of Setup",
-    });
-  }
-  return issues;
-}
-
-// Issues of a whole touch Setup: per zone problems, duplicate names, block
-// order. `zones` are the parsed zone blocks of `context.actions`.
-export function validateSurface(
-  zones: Zone[],
-  context: SurfaceContext,
-): ZoneIssue[] {
+// Issues of a whole touch Setup: per zone problems and duplicate names.
+// `zones` are its parsed zone blocks.
+export function validateSurface(zones: Zone[]): ZoneIssue[] {
   const issues: ZoneIssue[] = [];
   for (const zone of zones) {
     for (const { message } of zoneProblems(zone)) {
@@ -322,7 +293,7 @@ export function validateSurface(
     }
     seen.add(name);
   }
-  return [...issues, ...orderIssues(context)];
+  return issues;
 }
 
 // The surface issues of a touch Setup given as its action scripts.
@@ -330,9 +301,7 @@ export function surfaceIssues(scripts: string[]): ZoneIssue[] {
   const zones = scripts
     .map((e) => parseZone(e))
     .filter((e): e is Zone => e !== null);
-  return validateSurface(zones, {
-    actions: scripts.map((script) => ({ script })),
-  });
+  return validateSurface(zones);
 }
 
 // What stops the touch Setup from being sent: a zone name used twice, since

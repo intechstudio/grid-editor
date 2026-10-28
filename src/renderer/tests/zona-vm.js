@@ -89,9 +89,11 @@ export async function createZonaVM(env = {}) {
   `);
 
   return {
-    // Runs Setup-like Lua with `self` = the fake element.
+    // Runs Setup-like Lua with `self` = the fake element, then the tick of
+    // the Timer the first zone kicks.
     setup(code) {
       lua.doStringSync(`local self = el ${code}`);
+      lua.doStringSync("Z.tick(el)");
     },
     run(code) {
       return lua.doStringSync(code);

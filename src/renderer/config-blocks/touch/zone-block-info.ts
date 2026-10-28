@@ -16,7 +16,7 @@ import {
   zoneBlockShort,
 } from "./zone-blocks";
 import { zoneSendProblem } from "./zone-validate";
-import { ZONE_START_SCRIPT, zoneTickToLua } from "./zone-parse";
+import { zoneTickToLua } from "./zone-parse";
 
 const svg = (paths: string) =>
   `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">${paths}</svg>`;
@@ -29,7 +29,6 @@ export const touchIcons = {
   xy: svg(
     `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/>`,
   ),
-  start: svg(`<path d="M7 5l11 7-11 7z"/>`),
   tick: svg(`<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/>`),
 };
 
@@ -65,9 +64,8 @@ const COMMON = {
   version: "2.0",
 } as const;
 
-// The first zone brings Touch Start (end of Setup) and Touch Tick (Timer).
+// The first zone brings Touch Tick (Timer).
 const ZONE_COMPANIONS = [
-  { eventType: EventType.SETUP, short: "zst", script: ZONE_START_SCRIPT },
   {
     eventType: EventType.TIMER,
     short: "ztk",
@@ -96,21 +94,6 @@ export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
     contextProblem: zoneSendProblem,
   };
 }
-
-export const touchStartInformation: ActionBlockInformation = {
-  ...COMMON,
-  ...TOUCH_SETUP,
-  short: "zst",
-  name: "Touch_Start",
-  displayName: "Touch Start",
-  documentationUrl: `${DOCS}#touch-start`,
-  description: "Starts the touch zones defined above it",
-  defaultLua: ZONE_START_SCRIPT,
-  blockIcon: touchIcons.start,
-  type: "single",
-  toggleable: false,
-  keepLast: true,
-};
 
 export const touchTickInformation: ActionBlockInformation = {
   ...COMMON,
