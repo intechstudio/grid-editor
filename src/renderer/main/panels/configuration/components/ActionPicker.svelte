@@ -14,6 +14,7 @@
   import { getAllComponents } from "../../../../lib/_configs";
   import { toggledBlocks } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
+  import { isLibraryPlace } from "../../../../lib/library";
   import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
@@ -229,6 +230,10 @@
             "epprlr",
           ].includes(e.information.short),
       );
+    }
+    //Library only at the top level of a Setup
+    if (!isLibraryPlace(eventString, event.realEvent !== event)) {
+      comp = comp.filter((e) => e.information.short !== "lib");
     }
 
     //Filter out dev blocks

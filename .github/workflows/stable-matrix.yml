@@ -23,8 +23,11 @@ jobs:
           fi
           echo "Version check passed!"
 
+  library-check:
+    uses: ./.github/workflows/library-check.yml
+
   matrix-build:
-    needs: version-check
+    needs: [version-check, library-check]
     uses: ./.github/workflows/build-matrix.yml
     with:
       exportScript: export
