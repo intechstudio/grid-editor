@@ -16,10 +16,12 @@
     appSettings,
     ColorPickerModel,
   } from "../../runtime/app-helper.store";
-  import type { OptionSchema } from "./zone-model";
+  import type { OptionSchema, ZoneKind } from "./zone-model";
   import { enumOptions, type OptionSuggestion } from "./zone-blocks";
 
   export let schema: OptionSchema;
+  // the zone's kind, which names its mouse output in the Output select
+  export let kind: ZoneKind | undefined = undefined;
   export let title: string;
   export let value: string;
   export let placeholder = "";
@@ -51,7 +53,7 @@
     dispatch("change", selected);
   }
 
-  $: options = enumOptions(schema, value);
+  $: options = enumOptions(schema, value, kind);
 
   // A field with suggestions shows its values there, not as "(min–max)".
   $: range =

@@ -11,6 +11,7 @@ import {
   type ZoneSection,
   zoneOptionDefault,
   zoneOptionSchemaFor,
+  zoneOptionShown,
   zoneSections,
   zoneSectionsOpen,
 } from "./zone-model";
@@ -69,7 +70,7 @@ export function defaultZoneScript(kind: ZoneKind, scripts: string[]): string {
 }
 
 // Untoggled header: "f1 · 0,0 1×9", with what it sends when known:
-// "f1 · 0,0 1×9 · CC 32 ch 1" (zoneMidiLabel).
+// "f1 · 0,0 1×9 · CC 32 ch 1" (zoneOutputLabel).
 export function zoneHeaderText(zone: Zone, midi?: string): string {
   const text = `${zone.name} · ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
   return typeof midi === "undefined" ? text : `${text} · ${midi}`;
@@ -81,15 +82,25 @@ export type ZoneFaceSection = {
   options: ZoneOptionSchema[];
 };
 
-// The face's option sections for a kind, in display order. Geometry is
-// listed even without options: the face puts x, y, w, h there.
-export function zoneFaceSections(kind: ZoneKind): ZoneFaceSection[] {
+// The zone's output: its msg, or the kind's default.
+export function zoneMsg(zone: Zone): ZoneOptionValue | undefined {
+  return zone.opt.msg ?? zoneOptionDefault(zone.kind, "msg");
+}
+
+// The face's option sections for a zone, in display order: the options of
+// its kind and output. Geometry is listed even without options: the face
+// puts x, y, w, h there.
+export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
+  const msg = zoneMsg(zone);
   return zoneSections
     .map((section) => ({
       section,
       open: zoneSectionsOpen.includes(section),
-      options: zoneOptionSchemaFor(kind).filter(
-        (e) => e.section === section && e.kinds.includes(kind),
+      options: zoneOptionSchemaFor(zone.kind).filter(
+        (e) =>
+          e.section === section &&
+          e.kinds.includes(zone.kind) &&
+          zoneOptionShown(e, msg),
       ),
     }))
     .filter((e) => e.section === "geometry" || e.options.length > 0);
@@ -101,7 +112,11 @@ export function optionText(value: ZoneOptionValue | undefined): string {
 }
 
 // Shown in an empty field: what the zone uses without the option.
-export function optionPlaceholder(kind: ZoneKind, key: string): string {
+export function optionPlaceholder(zone: Zone, key: string): string {
+  const kind = zone.kind;
+  if (key === "num" && zoneMsg(zone) === "mouse") {
+    return "1 (Left)";
+  }
   if (key === "min") {
     return "0";
   }
@@ -127,16 +142,30 @@ const enumValueLabels: Record<string, Record<string, string>> = {
   grab: { focus: "Focus", live: "Live" },
 };
 
+// What a mouse zone of each kind is, as its Output title.
+const zoneMouseTitles: Record<ZoneKind, string> = {
+  fader: "Mouse wheel",
+  button: "Mouse button",
+  xy: "Mouse",
+};
+
 // Select entries of an enum option: the schema's values; the zone's default
 // is selected when the line leaves the option out. A value the schema doesn't
 // know (a newer editor's, a hand-written line) is listed too, so the select
 // shows what the line says and nothing is rewritten until the user picks
-// something.
-export function enumOptions(schema: OptionSchema, value: string): EnumOption[] {
+// something. The kind names its mouse output.
+export function enumOptions(
+  schema: OptionSchema,
+  value: string,
+  kind?: ZoneKind,
+): EnumOption[] {
   if (schema.type !== "enum") {
     return [];
   }
-  const labels = enumValueLabels[schema.key] ?? {};
+  const labels: Record<string, string> = { ...enumValueLabels[schema.key] };
+  if (schema.key === "msg" && typeof kind !== "undefined") {
+    labels.mouse = zoneMouseTitles[kind];
+  }
   const options = schema.values.map((e) => ({
     title: labels[e] ?? e,
     value: e,
@@ -154,6 +183,13 @@ const OFF_ON: OptionSuggestion[] = [
   { value: "1", info: "On" },
 ];
 
+// gmbs buttons, no auto: a mouse button presses Left without num.
+const MOUSE_BUTTONS: OptionSuggestion[] = [
+  { value: "1", info: "Left" },
+  { value: "2", info: "Right" },
+  { value: "4", info: "Middle" },
+];
+
 // Values offered in a number field, like the MIDI block's lists: channels,
 // CC names or notes with the auto value first, and the common values of the
 // other options. `midi` is what the zone sends (zone-autos.ts).
@@ -162,7 +198,7 @@ export function zoneOptionSuggestions(
   key: string,
   midi?: ZoneMidi | null,
 ): OptionSuggestion[] {
-  const msg = zone.opt.msg ?? zoneOptionDefault(zone.kind, "msg");
+  const msg = zoneMsg(zone);
   switch (key) {
     case "ch":
       return [
@@ -176,6 +212,9 @@ export function zoneOptionSuggestions(
         })),
       ];
     case "num": {
+      if (msg === "mouse") {
+        return MOUSE_BUTTONS;
+      }
       const auto = midi?.nums[0];
       if (msg === "note") {
         return [
@@ -307,7 +346,7 @@ export function withField(
 
 export const zoneSectionLabels: Record<ZoneSection, string> = {
   geometry: "Geometry",
-  midi: "MIDI",
+  output: "Output",
   resolution: "Resolution",
   led: "LED",
   behaviour: "Behaviour",
@@ -330,18 +369,19 @@ export const optionLabels: Record<string, string> = {
   grab: "Capture",
   led: "LED feedback",
   col: "Colour",
-  msg: "Message",
+  msg: "Output",
   ch: "Channel",
   num: "CC",
   rx: "Receive MIDI",
   ms: "Interval (ms)",
 };
 
-// The field title; the number is a CC or a note, by what the zone sends.
+// The field title; the number is a CC, a note or a mouse button, by what
+// the zone sends.
 export function optionLabel(key: string, zone?: Zone): string {
   if (key === "num" && typeof zone !== "undefined") {
-    const msg = zone.opt.msg ?? zoneOptionDefault(zone.kind, "msg");
-    return msg === "note" ? "Note" : "CC";
+    const msg = zoneMsg(zone);
+    return msg === "note" ? "Note" : msg === "mouse" ? "Button" : "CC";
   }
   return optionLabels[key] ?? key;
 }

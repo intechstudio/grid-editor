@@ -91,6 +91,75 @@ test("an XY pad sends x and y on neighbouring CCs", async () => {
   ]);
 });
 
+// gmms calls as [axis, step], gmbs as [button, state].
+const mouse = (vm, fn) => vm.calls(fn).map((e) => e.args);
+
+test("a mouse XY sends the finger's move once per tick, summed per axis", async () => {
+  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse",speed=2})`);
+  vm.touch([0, DOWN, 500, 500], [0, MOVE, 510, 497], [0, MOVE, 520, 494]);
+  expect(mouse(vm, "gmms")).toEqual([]);
+  vm.tick();
+  expect(mouse(vm, "gmms")).toEqual([
+    [1, 40],
+    [2, -12],
+  ]);
+  vm.clear();
+  vm.tick();
+  vm.touch([0, UP, 520, 494]);
+  expect(mouse(vm, "gmms")).toEqual([]);
+  expect(wire(vm)).toEqual([]);
+});
+
+test("a big mouse move is cut at 127, so the pointer stops with the finger", async () => {
+  const vm = await zones(`Z.xy("p",0,0,9,9,{msg="mouse"})`);
+  vm.touch([0, DOWN, 100, 500], [0, MOVE, 300, 500]);
+  vm.tick(2);
+  expect(mouse(vm, "gmms")).toEqual([[1, 127]]);
+});
+
+test("a mouse fader scrolls up when dragged towards its max", async () => {
+  const vm = await zones(`Z.fader("f",0,0,1,9,{msg="mouse"})`);
+  vm.touch([0, DOWN, 50, 800], [0, MOVE, 50, 480]);
+  vm.tick();
+  vm.touch([0, MOVE, 50, 800]);
+  vm.tick();
+  expect(mouse(vm, "gmms")).toEqual([
+    [3, 10],
+    [3, -10],
+  ]);
+});
+
+test("a mouse button presses while held; toggle is a drag lock", async () => {
+  const vm = await zones(
+    `Z.button("b",2,0,2,2,{msg="mouse",num=2}) Z.button("t",4,0,2,2,{msg="mouse",bmo=1,group=1}) Z.button("a",6,0,2,2,{group=1})`,
+  );
+  vm.touch([0, DOWN, 300, 100], [0, UP, 300, 100]);
+  vm.touch([0, TAP, 500, 100], [0, TAP, 500, 100]);
+  expect(mouse(vm, "gmbs")).toEqual([
+    [2, 1],
+    [2, 0],
+    [1, 1],
+    [1, 0],
+  ]);
+  expect(wire(vm)).toEqual([]);
+  // another button of its group, set from the host, releases the lock
+  vm.clear();
+  vm.touch([0, TAP, 500, 100]);
+  vm.run(`Z.set("a",127)`);
+  expect(mouse(vm, "gmbs")).toEqual([
+    [1, 1],
+    [1, 0],
+  ]);
+});
+
+test("running Setup again releases a drag-locked mouse button", async () => {
+  const vm = await zones(`Z.button("t",4,0,2,2,{msg="mouse",bmo=1})`);
+  vm.touch([0, TAP, 500, 100]);
+  vm.clear();
+  vm.setup(`Z.fader("f",0,0,1,9,{}) Z.start(self)`);
+  expect(mouse(vm, "gmbs")).toEqual([[1, 0]]);
+});
+
 test("MIDI from the host sets a zone's value without sending", async () => {
   const vm = await zones(`Z.fader("f",0,0,1,9,{rx=1})`);
   vm.rx(0, 176, 32, 100);

@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.9.0"
+local LIB_VERSION = "0.9.1"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -29,6 +29,7 @@ Z.def = {
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
+-- (MIDI, "mouse": wheel, button or pointer by kind, "none")
 Z.kind = {
   fader = { read = "axis", msg = "cc" },
   button = { read = "gate", msg = "note" },
@@ -60,6 +61,8 @@ local S = 1024 / 9
 local KS = { "v", "x", "y" }
 -- the sources a press or release sends, per reader
 local SR = { axis = { "v" }, gate = { "v" }, point = { "x", "y" } }
+-- mouse axis (gmms) of each source
+local MA = { x = 1, y = 2, v = 3 }
 
 -- route -> pos -> read -> mode -> put/gate -> run; q is a 0-1 position
 
@@ -99,9 +102,21 @@ local function snd(z, k)
   end
 end
 
+-- mouse button: press (1) or release (0) when it changes; num is the
+-- button, 1 left by default
+local function mb(z, b)
+  if z.ms and (z.mb or 0) ~= b then
+    z.mb = b
+    gmbs(z.o.num > 0 and z.o.num or 1, b)
+  end
+end
+
 -- a value run sends its source, a press or release (g) all of them
 local function run(z, s)
   if s == "g" then
+    if z.o.read == "gate" then
+      mb(z, z.st > 0 and 1 or 0)
+    end
     for _, k in ipairs(SR[z.o.read]) do
       snd(z, k)
     end
@@ -172,16 +187,39 @@ local function md(z, c, k, t)
   put(z, k, sc(z, z.q[k]))
 end
 
--- sensor y=0 is the top row: flip y
+-- mouse: the raw move r of a source, times f and speed, adds to its sum
+-- (z.w) that Z.tick sends; q, the finger's spot, is only painted
+local function mv(z, c, k, r, f, q)
+  local p = c.p[k]
+  if p then
+    z.w[k] = z.w[k] + (r - p) * f * z.o.speed
+  end
+  c.p[k], z.q[k], z.dt = r, q, 1
+end
+
+-- sensor y=0 is the top row: flip y. A mouse fader scrolls the wheel
+-- (towards max is positive), a mouse xy moves the pointer (y grows down)
 local rd = {}
 rd.axis = function(z, c, x, y)
   local a = z.a
-  md(z, c, "v", z.o.dir == "h" and frac(x, a[1], a[2]) or 1 - frac(y, a[3], a[4]))
+  local h = z.o.dir == "h"
+  local q = h and frac(x, a[1], a[2]) or 1 - frac(y, a[3], a[4])
+  if z.ms then
+    mv(z, c, "v", h and x or -y, 1 / 32, q)
+  else
+    md(z, c, "v", q)
+  end
 end
 rd.point = function(z, c, x, y)
   local a = z.a
-  md(z, c, "x", frac(x, a[1], a[2]))
-  md(z, c, "y", 1 - frac(y, a[3], a[4]))
+  local u, w = frac(x, a[1], a[2]), 1 - frac(y, a[3], a[4])
+  if z.ms then
+    mv(z, c, "x", x, 1, u)
+    mv(z, c, "y", y, 1, w)
+  else
+    md(z, c, "x", u)
+    md(z, c, "y", w)
+  end
 end
 rd.gate = function() end
 
@@ -218,6 +256,8 @@ local function off(z, r)
       o.dt = 1
       if r then
         run(o, "g")
+      else
+        mb(o, 0) -- a sync releases a mouse button too
       end
     end
   end
@@ -344,6 +384,11 @@ P.point = function(z, i, j)
   return (cl(1 - math.abs(z.cx - i)) + cl(1 - math.abs(z.cy - j))) / z.cm
 end
 
+-- a mouse fader or xy that isn't held: floor
+P.off = function()
+  return 0
+end
+
 -- the crosshair's position in cells, once per paint
 local function pt(z)
   local c = z.c
@@ -396,7 +441,8 @@ local function paint(z)
   if z.o.led == 0 then
     return
   end
-  local p = P[z.o.read]
+  local t = hd(z)
+  local p = P[z.ms and not t and z.o.read ~= "gate" and "off" or z.o.read]
   local c = z.c
   local n = z.o.read == "gate" and z.st / math.max(#z.sv - 1, 1) or z.q[z.o.read == "point" and "x" or "v"]
   -- level 0-1 between floor and the lit phase (top or dim); glp scales the
@@ -404,7 +450,6 @@ local function paint(z)
   -- fingers: a crosshair per held finger at top, the highest level per cell;
   -- none held: finger 1's at dim
   local f = LF
-  local t = hd(z)
   local h = t and LT or LD
   if z.o.read == "point" then
     for _, o in ipairs(z.os) do
@@ -429,13 +474,14 @@ local function paint(z)
   end
 end
 
-local function rl() -- release held zones: no stuck notes
+local function rl() -- release held zones: no stuck notes or mouse buttons
   for _, z in ipairs(Z.zs) do
     for _, o in ipairs(z.os) do
       if o.k > 0 then
         lift(o)
       end
     end
+    mb(z, 0) -- a drag lock (toggle) too
   end
 end
 
@@ -526,8 +572,12 @@ function Z.zone(n, x, y, w, h, opt, kind)
   end
   o.read = nil -- from the kind, never an option
   local m = o.msg
+  local ms = m == "mouse" or nil
   if m == "pb" then
     o.res = 14 -- pitch bend is always 14-bit
+  elseif ms then
+    -- finger 1 only, no centre to return to; any toggle is a drag lock
+    o.fingers, o.spring, o.bmo = 1, 0, math.min(o.bmo, 1)
   end
   -- CC slot: xy 2, others 1
   local b = 0
@@ -564,7 +614,9 @@ function Z.zone(n, x, y, w, h, opt, kind)
     cmd = m == "note" and 144 or 176,
     p = p,
     py = py,
-    m = m == "pb" and 2 or z14 and 1 or m ~= "none" and 0 or nil,
+    m = m == "pb" and 2 or z14 and 1 or not ms and m ~= "none" and 0 or nil,
+    ms = ms,
+    w = ms and { v = 0, x = 0, y = 0 }, -- mouse: the move to send (mv)
     a = {
       math.ceil(x * S),
       math.ceil((x + w) * S) - 1,
@@ -672,6 +724,19 @@ function Z.tick(self, cfg)
         z.dt, o.dt = 1, o == z and 1 or nil
       end
     end
+    -- mouse: each axis sends its whole steps (at most 127) and keeps the
+    -- fraction; a bigger move is cut, so the pointer stops with the finger
+    if z.w then
+      for _, k in ipairs(KS) do
+        local s = z.w[k]
+        local n = tr(s)
+        z.w[k] = s - n
+        n = math.max(-127, math.min(127, n))
+        if n ~= 0 then
+          gmms(MA[k], n)
+        end
+      end
+    end
     if z.dt then
       paint(z)
     end
@@ -730,7 +795,7 @@ end
 
 function Z.set(n, v, s)
   for _, z in ipairs(Z.zs) do
-    if z.n == n and not hd(z) then -- touch wins
+    if z.n == n and not z.ms and not hd(z) then -- touch wins; no mouse value
       sy(z, s or "g", v)
     end
   end

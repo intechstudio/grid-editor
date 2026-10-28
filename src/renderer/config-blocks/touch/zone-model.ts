@@ -17,14 +17,15 @@ export type ZoneOptions = {
   led: 0 | 1; // the kind's painter: fader fill, button state, xy crosshair
   col?: string; // zone colour "rrggbb"; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
-  num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1
+  num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default
   rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
   spring: 0 | 1; // fader, xy: 1 returns to the centre on release (eased by ease)
   fingers: number; // xy: contacts it takes at once, 1-5; finger k on channel ch+k-1
 };
 
 // What a zone sends: per kind (zoneMsgValues), the default from Z.kind.
-export type ZoneMsg = "note" | "cc" | "pb" | "none";
+// "mouse" is the wheel (fader), a button or the pointer (xy).
+export type ZoneMsg = "note" | "cc" | "pb" | "mouse" | "none";
 
 export const zoneDefaults: ZoneOptions = {
   dir: "v",
@@ -54,9 +55,9 @@ export const zoneKinds: Record<
 };
 
 export const zoneMsgValues: Record<ZoneKind, readonly ZoneMsg[]> = {
-  fader: ["cc", "pb", "none"],
-  button: ["note", "cc", "none"],
-  xy: ["cc", "none"],
+  fader: ["cc", "pb", "mouse", "none"],
+  button: ["note", "cc", "mouse", "none"],
+  xy: ["cc", "mouse", "none"],
 };
 
 export const zoneKindList = Object.keys(zoneKinds) as ZoneKind[];
@@ -101,11 +102,11 @@ export type OptionSchema = { key: string } & (
 
 // Block face sections, in display order (RFC 6.2 UI rules).
 export type ZoneSection =
-  "geometry" | "midi" | "resolution" | "led" | "behaviour" | "capture";
+  "geometry" | "output" | "resolution" | "led" | "behaviour" | "capture";
 
 export const zoneSections: ZoneSection[] = [
   "geometry",
-  "midi",
+  "output",
   "resolution",
   "led",
   "behaviour",
@@ -114,18 +115,21 @@ export const zoneSections: ZoneSection[] = [
 
 export const zoneSectionsOpen: ZoneSection[] = [
   "geometry",
-  "midi",
+  "output",
   "resolution",
   "led",
 ];
 
 export type ZoneOptionSchema = OptionSchema & {
   kinds: readonly ZoneKind[]; // kinds whose face shows it
+  hide?: readonly ZoneMsg[]; // outputs whose face hides it; absent: none
   section: ZoneSection;
 };
 
 const ALL_KINDS = zoneKindList;
 const CONTINUOUS: ZoneKind[] = ["fader", "xy"];
+// options a mouse zone doesn't use
+const MOUSE: ZoneMsg[] = ["mouse"];
 
 // In the order options are written (zone-parse.ts).
 export const zoneOptionSchema: ZoneOptionSchema[] = [
@@ -142,16 +146,30 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 7,
     max: 14,
     kinds: ALL_KINDS,
+    hide: MOUSE,
     section: "resolution",
   },
   // min/max have no default here: the library takes 0 and 127 or 16383 by res
-  { key: "min", type: "integer", kinds: ALL_KINDS, section: "resolution" },
-  { key: "max", type: "integer", kinds: ALL_KINDS, section: "resolution" },
+  {
+    key: "min",
+    type: "integer",
+    kinds: ALL_KINDS,
+    hide: MOUSE,
+    section: "resolution",
+  },
+  {
+    key: "max",
+    type: "integer",
+    kinds: ALL_KINDS,
+    hide: MOUSE,
+    section: "resolution",
+  },
   {
     key: "mode",
     type: "enum",
     values: ["abs", "rel", "glide"],
     kinds: CONTINUOUS,
+    hide: MOUSE,
     section: "behaviour",
   },
   {
@@ -168,6 +186,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 0,
     max: 1,
     kinds: CONTINUOUS,
+    hide: MOUSE,
     section: "behaviour",
   },
   {
@@ -184,6 +203,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 0,
     max: 1,
     kinds: CONTINUOUS,
+    hide: MOUSE,
     section: "behaviour",
   },
   {
@@ -200,6 +220,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 1,
     max: 5,
     kinds: ["xy"],
+    hide: MOUSE,
     section: "capture",
   },
   {
@@ -222,9 +243,9 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
   {
     key: "msg",
     type: "enum",
-    values: ["note", "cc", "pb", "none"],
+    values: ["note", "cc", "pb", "mouse", "none"],
     kinds: ALL_KINDS,
-    section: "midi",
+    section: "output",
   },
   {
     key: "ch",
@@ -232,7 +253,8 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: -1,
     max: 15,
     kinds: ALL_KINDS,
-    section: "midi",
+    hide: MOUSE,
+    section: "output",
   },
   {
     key: "num",
@@ -240,7 +262,7 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: -1,
     max: 127,
     kinds: ALL_KINDS,
-    section: "midi",
+    section: "output",
   },
   {
     key: "rx",
@@ -248,15 +270,29 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     min: 0,
     max: 1,
     kinds: ALL_KINDS,
-    section: "midi",
+    hide: MOUSE,
+    section: "output",
   },
 ];
 
-// The schema as a zone of this kind takes it: msg with the kind's values.
+// The schema as a zone of this kind takes it: msg with the kind's values;
+// num is a mouse zone's button, so only a button shows it with mouse.
 export function zoneOptionSchemaFor(kind: ZoneKind): ZoneOptionSchema[] {
   return zoneOptionSchema.map((e) =>
-    e.key === "msg" ? { ...e, values: zoneMsgValues[kind] } : e,
+    e.key === "msg"
+      ? { ...e, values: zoneMsgValues[kind] }
+      : e.key === "num" && kind !== "button"
+        ? { ...e, hide: MOUSE }
+        : e,
   );
+}
+
+// Whether a zone with this output shows (and the library uses) the option.
+export function zoneOptionShown(
+  schema: ZoneOptionSchema,
+  msg: ZoneOptionValue | undefined,
+): boolean {
+  return !schema.hide?.includes(msg as ZoneMsg);
 }
 
 export const zoneTickSchema: OptionSchema[] = [

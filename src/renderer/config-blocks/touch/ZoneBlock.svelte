@@ -13,7 +13,7 @@
   } from "../../runtime/runtime";
   import type { OptionSchema, Zone } from "./zone-model";
   import { parseZone, zoneToLua } from "./zone-parse";
-  import { zoneMidiLabel } from "./zone-autos";
+  import { zoneOutputLabel } from "./zone-autos";
   import { Grid } from "../../lib/_utils";
   import {
     surfaceIssues,
@@ -53,7 +53,7 @@
     fieldErrors = {};
   }
 
-  $: sections = zone !== null ? zoneFaceSections(zone.kind) : [];
+  $: sections = zone !== null ? zoneFaceSections(zone) : [];
   let open: Record<string, boolean> = {};
   $: for (const e of sections) {
     if (typeof open[e.section] === "undefined") {
@@ -76,7 +76,7 @@
             !problems.some((p) => p.message === e.message),
         )
       : [];
-  // What the zone sends, for the MIDI section: "auto (…)" placeholders show
+  // What the zone sends, for the Output section: "auto (…)" placeholders show
   // the resolved channel (1-based, as the label) and number.
   // The zones before this one count for the autos: the event is a
   // dependency (the extra arguments are only reactive dependencies).
@@ -85,7 +85,7 @@
     return Grid.Auto.getZoneMidi(action);
   }
   $: placeholderOf = (key: string): string => {
-    const text = zone !== null ? optionPlaceholder(zone.kind, key) : "";
+    const text = zone !== null ? optionPlaceholder(zone, key) : "";
     if (midi && key === "ch") {
       return `${text} (ch ${midi.ch + 1})`;
     }
@@ -233,6 +233,7 @@
             {#each options as schema (schema.key)}
               <ZoneOptionField
                 {schema}
+                kind={zone.kind}
                 title={optionLabel(schema.key, zone)}
                 value={optionText(zone.opt[schema.key])}
                 placeholder={placeholderOf(schema.key)}
@@ -244,9 +245,9 @@
               />
             {/each}
           </div>
-          {#if section === "midi" && typeof midi !== "undefined"}
+          {#if section === "output" && typeof midi !== "undefined"}
             <span class="text-xs text-gray-400" data-zone-midi
-              >Sends {zoneMidiLabel(midi)}</span
+              >Sends {zoneOutputLabel(zone, midi)}</span
             >
           {/if}
         {/if}

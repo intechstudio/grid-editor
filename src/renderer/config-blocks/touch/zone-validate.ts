@@ -12,6 +12,7 @@ import {
   zoneKinds,
   zoneOptionDefault,
   zoneOptionSchemaFor,
+  zoneOptionShown,
   zoneTickSchema,
 } from "./zone-model";
 import { parseZone, ZONA_GLOBAL, ZONE_START_SCRIPT } from "./zone-parse";
@@ -227,13 +228,19 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
     problems.push({ key: "name", message: name });
   }
   problems.push(...geometryProblems(zone));
-  const options = optionProblems(zone.opt, zoneOptionSchemaFor(zone.kind));
+  // only the options of the zone's output: the library ignores the others
+  const msg = option(zone, "msg");
+  const options = optionProblems(
+    zone.opt,
+    zoneOptionSchemaFor(zone.kind).filter((e) => zoneOptionShown(e, msg)),
+  );
   problems.push(...options);
   const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));
-  if (!bad(["res", "min", "max", "msg"])) {
+  // a mouse zone has no value range, and its num is a button
+  if (msg !== "mouse" && !bad(["res", "min", "max", "msg"])) {
     problems.push(...rangeProblems(zone));
   }
-  if (!bad(["res", "num", "msg"])) {
+  if (msg !== "mouse" && !bad(["res", "num", "msg"])) {
     problems.push(...numProblems(zone));
   }
   // the library ignores spring on a button

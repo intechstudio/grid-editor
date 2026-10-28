@@ -26,10 +26,10 @@ function option(zone: Zone, key: string) {
   return zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
 }
 
-// The MIDI identity of zone `index`, null for msg="none". Autos: channel
-// from the module row and page, number from the module column and the CC
-// slot (zones before it: xy 2, others 1, whatever they send), % 32 for a
-// 14-bit pair.
+// The MIDI identity of zone `index`, null for msg="none" or "mouse".
+// Autos: channel from the module row and page, number from the module
+// column and the CC slot (zones before it: xy 2, others 1, whatever they
+// send), % 32 for a 14-bit pair.
 export function zoneMidi(
   zones: Zone[],
   index: number,
@@ -37,7 +37,7 @@ export function zoneMidi(
 ): ZoneMidi | null {
   const zone = zones[index];
   const msg = String(option(zone, "msg"));
-  if (msg === "none") {
+  if (msg === "none" || msg === "mouse") {
     return null;
   }
   const res = msg === "pb" ? 14 : Number(option(zone, "res"));
@@ -109,4 +109,30 @@ export function zoneMidiLabel(midi: ZoneMidi | null): string {
     .map((n) => (midi.type === "cc14" ? `${n}/${n + 32}` : String(n)))
     .join(", ");
   return `${midi.type === "note" ? "Note" : "CC"} ${nums} ${ch}`;
+}
+
+const MOUSE_BUTTON_NAMES: Record<number, string> = {
+  1: "Left",
+  2: "Right",
+  4: "Middle",
+};
+
+// What a zone sends, for its header and the Output section: the MIDI
+// (zoneMidiLabel), or "Mouse" (xy), "Mouse wheel" (fader), "Mouse Left"
+// (button by num, 1 without one; another: "Mouse button 3").
+export function zoneOutputLabel(zone: Zone, midi: ZoneMidi | null): string {
+  if (option(zone, "msg") !== "mouse") {
+    return zoneMidiLabel(midi);
+  }
+  if (zone.kind === "fader") {
+    return "Mouse wheel";
+  }
+  if (zone.kind === "xy") {
+    return "Mouse";
+  }
+  const num = Number(option(zone, "num"));
+  const button = num > 0 ? num : 1;
+  return button in MOUSE_BUTTON_NAMES
+    ? `Mouse ${MOUSE_BUTTON_NAMES[button]}`
+    : `Mouse button ${button}`;
 }

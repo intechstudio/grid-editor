@@ -8,7 +8,7 @@
   import { parseZone } from "../touch/zone-parse";
   import { zoneProblems, zoneSendProblem } from "../touch/zone-validate";
   import { zoneHeaderText } from "../touch/zone-blocks";
-  import { zoneMidiLabel } from "../touch/zone-autos";
+  import { zoneOutputLabel } from "../touch/zone-autos";
   import { Grid } from "../../lib/_utils";
 
   export let action: GridAction;
@@ -28,7 +28,7 @@
     zone !== null
       ? zoneHeaderText(
           zone,
-          typeof midi === "undefined" ? undefined : zoneMidiLabel(midi),
+          typeof midi === "undefined" ? undefined : zoneOutputLabel(zone, midi),
         )
       : "not a zone line";
   $: colour =

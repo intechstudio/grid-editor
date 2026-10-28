@@ -7,7 +7,8 @@ import {
   ZONE_START_SCRIPT,
 } from "../config-blocks/touch/zone-parse";
 import { validateSurface } from "../config-blocks/touch/zone-validate";
-import { zoneMidi } from "../config-blocks/touch/zone-autos";
+import { zoneMidi, zoneOutputLabel } from "../config-blocks/touch/zone-autos";
+import { zoneFaceSections } from "../config-blocks/touch/zone-blocks";
 import { overlayZones } from "../main/grid-layout/grid-modules/overlays/touch-zones";
 
 beforeAll(async () => {
@@ -125,4 +126,37 @@ test("zone lines become rectangles on the overlay, in order", () => {
     ["f1", 0, 0, 11, 100],
     ["p1", 33, 0, 44, 44],
   ]);
+});
+
+// The face's option keys of a zone line, in display order.
+const fields = (line) =>
+  zoneFaceSections(parseZone(line)).flatMap((e) => e.options.map((o) => o.key));
+
+test("a mouse zone's face shows only the fields mouse uses", () => {
+  expect(fields(`_Z.xy("p1",0,0,4,4,{msg="mouse"},nil)`)).toEqual([
+    "msg",
+    "led",
+    "col",
+    "speed",
+    "grab",
+  ]);
+  expect(fields(`_Z.button("b1",0,0,2,2,{msg="mouse"},nil)`)).toEqual([
+    "msg",
+    "num",
+    "led",
+    "col",
+    "bmo",
+    "group",
+    "grab",
+  ]);
+});
+
+test("the header names the mouse output", () => {
+  const label = (line) => zoneOutputLabel(parseZone(line), null);
+  expect(label(`_Z.xy("p1",0,0,4,4,{msg="mouse"},nil)`)).toBe("Mouse");
+  expect(label(`_Z.fader("f1",0,0,1,9,{msg="mouse"},nil)`)).toBe("Mouse wheel");
+  expect(label(`_Z.button("b1",0,0,2,2,{msg="mouse"},nil)`)).toBe("Mouse Left");
+  expect(label(`_Z.button("b1",0,0,2,2,{msg="mouse",num=2},nil)`)).toBe(
+    "Mouse Right",
+  );
 });
