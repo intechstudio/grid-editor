@@ -40,19 +40,15 @@ beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const PREFIX =
-  `local p=string.format("/%02X/",gpc())` +
-  `local function r(n)local ok,m=pcall(require,p..n)if ok then return m end ` +
-  `print(p..n..".lua missing")end`;
 const rows = [{ global: "_Test", file: "test" }];
 const test1 = findBundledLibrary("test");
 
 describe("Library script", () => {
   test("round-trips the rows", () => {
     const script = libraryScriptToLua(rows);
-    expect(script).toBe(`${PREFIX} _Test=r("test")`);
+    expect(script).toBe(`_Test=gr("test")`);
     expect(parseLibraryScript(script)).toEqual(rows);
-    expect(parseLibraryScript(PREFIX)).toEqual([]);
+    expect(parseLibraryScript("")).toEqual([]);
   });
 
   test("the module gets the script as the editor writes it", () => {
@@ -67,7 +63,7 @@ describe("Library script", () => {
   });
 
   test("loads user libraries under an underscore global", () => {
-    expect(parseLibraryScript(`${PREFIX} _util=r("util")`)).toEqual([
+    expect(parseLibraryScript(`_util=gr("util")`)).toEqual([
       { global: "_util", file: "util" },
     ]);
   });
@@ -75,11 +71,11 @@ describe("Library script", () => {
   test.each([
     `print("hi")`,
     `local p=string.format("/%02X/",gpc())_Test=require(p.."test")`,
-    `${PREFIX} local _Test=r("test")`,
-    `${PREFIX} _Test=r("test") print(_Test)`,
-    `${PREFIX} Util=r("util")`,
-    `${PREFIX} _Test=r("test")_Test=r("test")`,
-    `${PREFIX} _Test=r("test")_Test=r("other")`,
+    `local _Test=gr("test")`,
+    `_Test=gr("test") print(_Test)`,
+    `Util=gr("util")`,
+    `_Test=gr("test")_Test=gr("test")`,
+    `_Test=gr("test")_Test=gr("other")`,
   ])("other scripts are not a Library block: %j", (script) => {
     expect(parseLibraryScript(script)).toBeNull();
   });

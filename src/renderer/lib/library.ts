@@ -108,23 +108,17 @@ export function isLibraryPlace(
   return eventType === EventType.SETUP && !isFunctionBody;
 }
 
-// A library missing from the page folder prints a message instead of
-// stopping the Setup, so the rest of the Setup still runs and the module
-// still accepts the config.
-const PREFIX =
-  `local p=string.format("/%02X/",gpc())` +
-  `local function r(n)local ok,m=pcall(require,p..n)if ok then return m end ` +
-  `print(p..n..".lua missing")end`;
-const ROW = /^ ?([A-Za-z_][A-Za-z0-9_]*)=r\("([A-Za-z0-9_]+)"\)/;
+// Libraries load through the firmware's embedded require wrapper (gr),
+// which prints a message instead of stopping the Setup when a library is
+// missing from the page folder, so the rest of the Setup still runs and
+// the module still accepts the config.
+const ROW = /^ ?([A-Za-z_][A-Za-z0-9_]*)=gr\("([A-Za-z0-9_]+)"\)/;
 
 // Reads the libraries a Library block loads; null when the script is not a
 // Library block, so the user can open it as a code block instead.
 export function parseLibraryScript(script: string): LibraryRow[] | null {
-  if (!script.startsWith(PREFIX)) {
-    return null;
-  }
   const rows: LibraryRow[] = [];
-  let rest = script.slice(PREFIX.length);
+  let rest = script;
   while (rest.length > 0) {
     const match = ROW.exec(rest);
     if (match === null) {
@@ -138,8 +132,7 @@ export function parseLibraryScript(script: string): LibraryRow[] | null {
 
 // Loads each library from the current page folder into its global.
 export function libraryScriptToLua(rows: LibraryRow[]): string {
-  const lines = rows.map((e) => `${e.global}=r("${e.file}")`).join("");
-  return lines === "" ? PREFIX : `${PREFIX} ${lines}`;
+  return rows.map((e) => `${e.global}=gr("${e.file}")`).join("");
 }
 
 // The Lua files of a page folder and the header each one starts with.
