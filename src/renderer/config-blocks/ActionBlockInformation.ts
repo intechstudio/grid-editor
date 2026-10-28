@@ -14,23 +14,11 @@ export type ActionBlockInformation = Information;
 export class SyntaxPreprocessor {
   constructor(public generatorString: string) {}
 
-  // The text a bracket check should see: the generated script when the
-  // generator wraps the script ($SCRIPT$), else the script itself. A generator
-  // without $SCRIPT$ ("" on close blocks) drops the script, so checking its
-  // output would check nothing.
-  public bracketCheckText(script: string) {
-    return this.generatorString.includes("$SCRIPT$")
-      ? this.generate(script)
-      : script;
-  }
-
   public generate(script: string) {
     // Replace the placeholder "$SCRIPT$" with the provided script content.
     return this.generatorString.replace("$SCRIPT$", script);
   }
 }
-
-export type BodyRule = { categories: string[]; excludeShorts?: string[] };
 
 export type Companion = {
   eventType: EventType;
@@ -90,9 +78,6 @@ interface Information {
   eventTypes?: EventType[];
   // Modules the block is offered on; undefined = every module.
   moduleTypes?: ModuleType[];
-  // Inside this composite's body the picker offers only blocks of these
-  // categories, minus these shorts (a touch zone's body: outputs only).
-  bodyAccepts?: BodyRule;
   // Kept the last block of its event: the picker adds new blocks before it.
   keepLast?: boolean;
   // Added with this block from the picker when the element's event of that

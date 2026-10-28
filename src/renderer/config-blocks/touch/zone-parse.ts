@@ -1,7 +1,7 @@
 // Touch block scripts (RFC 5, 6.5). The canonical lines, as the editor writes
 // them:
 //
-//   Z.fader("f1",0,0,1,9,{res=10,mode="glide"},function(self)
+//   Z.fader("f1",0,0,1,9,{res=10,mode="glide"},nil)
 //   Z.tick(self,{ms=10})
 //
 // This is the form GridScript.compressScript produces: no spaces, double
@@ -28,7 +28,6 @@ import {
 // The global the touch blocks call. Fixed in v1 (RFC 5).
 export const ZONA_GLOBAL = "_Z";
 
-export const ZONE_END_SCRIPT = "end)";
 export const ZONE_START_SCRIPT = `${ZONA_GLOBAL}.start(self)`;
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;
@@ -279,8 +278,8 @@ function writeOptions(
   return `{${parts.join(",")}}`;
 }
 
-// `_Z.fader("f1",0,0,1,9,{res=10},function(self)`, the zone block's opening
-// line. Returns null when the script is not a zone opening line.
+// `_Z.fader("f1",0,0,1,9,{res=10},nil)`, the zone block's line. Returns null
+// when the script is not a zone line.
 export function parseZone(script: string): Zone | null {
   const reader = new Reader(script);
   if (!reader.eat(ZONA_GLOBAL) || !reader.eat(".")) {
@@ -306,9 +305,7 @@ export function parseZone(script: string): Zone | null {
   if (
     entries === null ||
     !reader.eat(",") ||
-    !reader.eat("function") ||
-    !reader.eat("(") ||
-    !reader.eat("self") ||
+    reader.identifier() !== "nil" ||
     !reader.eat(")") ||
     !reader.atEnd()
   ) {
@@ -330,7 +327,7 @@ export function zoneToLua(zone: Zone): string {
   const options = writeOptions(zone, zoneOptionSchema, (key) =>
     zoneOptionDefault(zone.kind, key),
   );
-  return `${ZONA_GLOBAL}.${zone.kind}(${luaString(zone.name)},${cells},${options},function(self)`;
+  return `${ZONA_GLOBAL}.${zone.kind}(${luaString(zone.name)},${cells},${options},nil)`;
 }
 
 // `_Z.tick(self,{ms=10})`, the Touch Tick block on the touch Timer.

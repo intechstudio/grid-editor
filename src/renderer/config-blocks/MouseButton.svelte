@@ -33,7 +33,6 @@
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { Grid } from "../lib/_utils";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
   import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
@@ -107,10 +106,8 @@
       configs: actions,
       index: index,
     });
-    // inside a touch zone, its getters first in the value field
-    const getters = Grid.Auto.getZoneGetters(action);
     suggestions = _suggestions.map((s, i) => {
-      return [...(i === 1 ? getters : []), ...s, ...localDefinitions];
+      return [...s, ...localDefinitions];
     });
   }
 

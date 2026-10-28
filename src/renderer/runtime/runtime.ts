@@ -487,14 +487,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
 
-    // A composite part may be incomplete Lua on its own (a touch zone's
-    // opening line leaves "(" open until its Touch End): check the brackets
-    // of the script as the block's syntax check wraps it.
-    const checked =
-      GridAction.getInformation(
-        data.short,
-      )?.syntaxPreprocessor?.bracketCheckText(data.script) ?? data.script;
-    if (!Grid.isBracketClosed(checked)) {
+    if (!Grid.isBracketClosed(data.script)) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.UNCLOSED_PARENTHESIS,

@@ -7,10 +7,7 @@ import {
   EventType,
   ModuleType,
 } from "@intechstudio/grid-protocol";
-import {
-  type ActionBlockInformation,
-  SyntaxPreprocessor,
-} from "../ActionBlockInformation";
+import type { ActionBlockInformation } from "../ActionBlockInformation";
 import { categoryColors } from "../categoryColors";
 import type { ZoneKind } from "./zone-model";
 import {
@@ -19,11 +16,7 @@ import {
   zoneBlockShort,
 } from "./zone-blocks";
 import { zoneSendProblem } from "./zone-validate";
-import {
-  ZONE_END_SCRIPT,
-  ZONE_START_SCRIPT,
-  zoneTickToLua,
-} from "./zone-parse";
+import { ZONE_START_SCRIPT, zoneTickToLua } from "./zone-parse";
 
 const svg = (paths: string) =>
   `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">${paths}</svg>`;
@@ -72,16 +65,6 @@ const COMMON = {
   version: "2.0",
 } as const;
 
-// What a zone body takes (RFC 6.2): outputs, Code, Comment, conditions and
-// variables. Not the MIDI block (the zone sends its own MIDI from its
-// options), the Library or Element Name (code), nor LED animations, which
-// address the element's own LEDs, nor Self variables: self is the zone, and
-// self.x=… would shadow its getters and state.
-export const zoneBodyRule = {
-  categories: ["midi", "led", "hid", "code", "condition", "variables"],
-  excludeShorts: ["gms", "lib", "sn", "glat", "glap", "s"],
-};
-
 // The first zone brings Touch Start (end of Setup) and Touch Tick (Timer).
 const ZONE_COMPANIONS = [
   { eventType: EventType.SETUP, short: "zst", script: ZONE_START_SCRIPT },
@@ -92,8 +75,8 @@ const ZONE_COMPANIONS = [
   },
 ];
 
-// A zone block: its opening line and the Touch End, inserted together by the
-// action picker. The zone sends its MIDI itself: no child block.
+// A zone block: one line, the zone and its options. The zone sends its MIDI
+// itself.
 export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
   return {
     ...COMMON,
@@ -101,41 +84,18 @@ export function zoneBlockInformation(kind: ZoneKind): ActionBlockInformation {
     short: zoneBlockShort[kind],
     name: DISPLAY_NAME[kind].replace(/ /g, "_"),
     displayName: DISPLAY_NAME[kind],
-    description: `A ${DISPLAY_NAME[kind].toLowerCase()} zone on the touch surface. It sends MIDI from its options; the actions inside run with self = the zone.`,
+    description: `A ${DISPLAY_NAME[kind].toLowerCase()} zone on the touch surface. It sends MIDI from its options.`,
     documentationUrl: `${DOCS}#${ANCHOR[kind]}`,
     defaultLua: defaultZoneScript(kind, []),
     defaultLuaIn: (scripts) => defaultZoneScript(kind, scripts),
-    compositeLua: [{ short: "zen", script: ZONE_END_SCRIPT }],
     blockIcon: touchIcons[kind],
-    rounding: "top",
-    type: "composite_open",
+    type: "single",
     toggleable: true,
-    // The opening line is not Lua on its own: close it to check the syntax.
-    syntaxPreprocessor: new SyntaxPreprocessor(`$SCRIPT$ ${ZONE_END_SCRIPT}`),
-    bodyAccepts: zoneBodyRule,
     companions: ZONE_COMPANIONS,
     uniqueIn: uniqueZoneScript,
     contextProblem: zoneSendProblem,
   };
 }
-
-export const zoneEndInformation: ActionBlockInformation = {
-  ...COMMON,
-  short: "zen",
-  name: "Touch_End",
-  rendering: "modifier",
-  category: null,
-  displayName: "End",
-  defaultLua: ZONE_END_SCRIPT,
-  blockIcon: ``,
-  selectable: false,
-  movable: false,
-  hideIcon: true,
-  rounding: "bottom",
-  type: "composite_close",
-  toggleable: false,
-  syntaxPreprocessor: new SyntaxPreprocessor(""),
-};
 
 export const touchStartInformation: ActionBlockInformation = {
   ...COMMON,

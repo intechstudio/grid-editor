@@ -16,13 +16,7 @@ import {
   readModuleMidiChannel,
   readModuleMidiChannelState,
 } from "../runtime/system-midi-channel";
-import {
-  type ZoneGetter,
-  type ZoneMidi,
-  zoneContext,
-  zoneGetterSuggestions,
-  zoneMidiAt,
-} from "../config-blocks/touch/zone-autos";
+import { type ZoneMidi, zoneMidiAt } from "../config-blocks/touch/zone-autos";
 
 export namespace Grid {
   export type UUID = string;
@@ -57,18 +51,6 @@ export namespace Grid {
         index,
         { dx: module.dx, dy: module.dy, page: page.pageNumber },
       );
-    }
-
-    // Getters of the touch zone whose body holds the action, for value
-    // fields (self:v(), self:g(), …); none outside a zone.
-    export function getZoneGetters(action: GridAction): ZoneGetter[] {
-      const event = action.parent as GridEvent | undefined;
-      const actions = event?.config ?? [];
-      const index = actions.findIndex((e) => e.id === action.id);
-      const context = index === -1 ? null : zoneContext(actions, index);
-      return context === null
-        ? []
-        : zoneGetterSuggestions(context.zones[context.index].kind);
     }
 
     export function getMidi(

@@ -165,8 +165,8 @@ function resOf(zone: Zone): number {
 }
 
 // min and max as the library uses them: 0 and 127, or 16383 above res 7.
-// A zone that sends MIDI keeps them in 0-16383 (the wire range); with
-// msg="none" any range goes (values for gamepad or mouse in the body).
+// A zone that sends MIDI keeps them in 0-16383 (the wire range); one with
+// msg="none" sends nothing, so any range goes.
 function rangeProblems(zone: Zone): ZoneProblem[] {
   const min = zone.opt.min ?? 0;
   const max = zone.opt.max ?? (resOf(zone) > 7 ? 16383 : 127);

@@ -72,7 +72,7 @@ export const zoneTickDefaults: ZoneTickOptions = {
 
 export type ZoneOptionValue = string | number;
 
-// A zone opening line (zone-parse.ts). `opt` holds the options the line sets,
+// A zone line (zone-parse.ts). `opt` holds the options the line sets,
 // `unknown` the ones this editor doesn't know, as raw `key=value` text.
 export type Zone = {
   name: string;

@@ -35,7 +35,6 @@
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./validators";
   import { LocalDefinitions } from "../runtime/runtime.store";
-  import { Grid } from "../lib/_utils";
   import { ActionData, GridAction, GridEvent } from "./../runtime/runtime";
 
   export let action: GridAction;
@@ -139,10 +138,8 @@
       configs: actions,
       index: index,
     });
-    // inside a touch zone, its getters first in the value field
-    const getters = Grid.Auto.getZoneGetters(action);
     suggestions = _suggestions.map((s, i) => {
-      return [...(i === 1 ? getters : []), ...localDefinitions, ...s];
+      return [...localDefinitions, ...s];
     });
   }
 

@@ -4,7 +4,6 @@ import { createZonaVM, DOWN, UP } from "./zona-vm";
 import {
   parseZone,
   zoneToLua,
-  ZONE_END_SCRIPT,
   ZONE_START_SCRIPT,
 } from "../config-blocks/touch/zone-parse";
 import { validateSurface } from "../config-blocks/touch/zone-validate";
@@ -18,15 +17,20 @@ beforeAll(async () => {
 const LIB = `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")`;
 
 test.each([
-  `_Z.fader("f1",1,0,1,9,{res=10,mode="glide",speed=0.5,ease=0.25},function(self)`,
-  `_Z.button("b1",0,0,1,1,{bmo=3,group=2,col="ff8000",msg="cc"},function(self)`,
-  `_Z.xy("p1",0,0,9,9,{fingers=3,ch=3,num=7,rx=1},function(self)`,
+  `_Z.fader("f1",1,0,1,9,{res=10,mode="glide",speed=0.5,ease=0.25},nil)`,
+  `_Z.button("b1",0,0,1,1,{bmo=3,group=2,col="ff8000",msg="cc"},nil)`,
+  `_Z.xy("p1",0,0,9,9,{fingers=3,ch=3,num=7,rx=1},nil)`,
 ])("a zone line reads and writes back unchanged: %s", (line) => {
   expect(zoneToLua(parseZone(line))).toBe(line);
 });
 
+test("an old line with a body is not a zone line", () => {
+  expect(parseZone(`_Z.fader("f1",0,0,1,9,{},function(self)`)).toBe(null);
+  expect(parseZone("end)")).toBe(null);
+});
+
 test("an option the editor doesn't know is kept as written", () => {
-  const line = `_Z.fader("f",0,0,1,9,{res=8,glow=2,shape={1,2},tag="x"},function(self)`;
+  const line = `_Z.fader("f",0,0,1,9,{res=8,glow=2,shape={1,2},tag="x"},nil)`;
   expect(zoneToLua(parseZone(line))).toBe(line);
 });
 
@@ -40,7 +44,7 @@ test("options at their default are left out of the written line", () => {
     h: 1,
     opt: { res: 7, led: 1, bmo: 1, msg: "note", ch: -1, num: -1, rx: 0 },
   };
-  expect(zoneToLua(zone)).toBe(`_Z.button("b",0,0,1,1,{bmo=1},function(self)`);
+  expect(zoneToLua(zone)).toBe(`_Z.button("b",0,0,1,1,{bmo=1},nil)`);
 });
 
 // A touch Setup as [script], with its zones parsed the way the overlay does.
@@ -50,27 +54,25 @@ function issues(scripts) {
     actions: scripts.map((script) => ({ script })),
   });
 }
-const fader = (name, x, opt = "") => [
-  `_Z.fader("${name}",${x},0,1,9,{${opt}},function(self)`,
-  ZONE_END_SCRIPT,
-];
+const fader = (name, x, opt = "") =>
+  `_Z.fader("${name}",${x},0,1,9,{${opt}},nil)`;
 
 test("a complete Setup has no issues", () => {
   expect(
-    issues([LIB, ...fader("a", 0), ...fader("b", 1), ZONE_START_SCRIPT]),
+    issues([LIB, fader("a", 0), fader("b", 1), ZONE_START_SCRIPT]),
   ).toEqual([]);
 });
 
 test("two zones with the same name are an error", () => {
   expect(
-    issues([LIB, ...fader("a", 0), ...fader("a", 1), ZONE_START_SCRIPT]),
+    issues([LIB, fader("a", 0), fader("a", 1), ZONE_START_SCRIPT]),
   ).toEqual([
     { zone: "a", level: "error", message: `Another zone is also named "a"` },
   ]);
 });
 
 test("an option out of range is an error on its zone", () => {
-  expect(issues([LIB, ...fader("a", 0, "res=6"), ZONE_START_SCRIPT])).toEqual([
+  expect(issues([LIB, fader("a", 0, "res=6"), ZONE_START_SCRIPT])).toEqual([
     { zone: "a", level: "error", message: "Use 7 to 14" },
   ]);
 });
@@ -78,14 +80,14 @@ test("an option out of range is an error on its zone", () => {
 test("the CC and channel the editor shows are what the library sends", async () => {
   // module at 1,2 on page 1: channel (2*4+1)%16 = 9, CCs from 32+16
   const lines = [
-    `_Z.fader("f1",0,0,1,9,{},function(self)`,
-    `_Z.button("b1",1,0,2,2,{},function(self)`,
-    `_Z.xy("p1",3,0,4,4,{},function(self)`,
-    `_Z.fader("f2",8,0,1,9,{},function(self)`,
+    `_Z.fader("f1",0,0,1,9,{},nil)`,
+    `_Z.button("b1",1,0,2,2,{},nil)`,
+    `_Z.xy("p1",3,0,4,4,{},nil)`,
+    `_Z.fader("f2",8,0,1,9,{},nil)`,
   ];
   const zones = lines.map(parseZone);
   const vm = await createZonaVM({ gmx: 1, gmy: 2, gpc: 1 });
-  vm.setup(`${lines.map((l) => `${l} end)`).join(" ")} _Z.start(self)`);
+  vm.setup(`${lines.join(" ")} _Z.start(self)`);
   // a touch in each zone, and the first message it sends
   const sent = [
     [50, 0],
@@ -108,17 +110,11 @@ test("the CC and channel the editor shows are what the library sends", async () 
 
 test("zone lines become rectangles on the overlay, in order", () => {
   const setup = [
-    [LIB],
-    [`_Z.fader("f1",0,0,1,9,{},function(self)`, "composite_open"],
-    ["end)", "composite_close"],
-    [`_Z.xy("p1",3,0,4,4,{},function(self)`, "composite_open"],
-    ["end)", "composite_close"],
-    [ZONE_START_SCRIPT],
-  ].map(([script, type = "single"], i) => ({
-    id: `a${i}`,
-    script,
-    information: { type },
-  }));
+    LIB,
+    `_Z.fader("f1",0,0,1,9,{},nil)`,
+    `_Z.xy("p1",3,0,4,4,{},nil)`,
+    ZONE_START_SCRIPT,
+  ].map((script, i) => ({ id: `a${i}`, script }));
   // percent of the surface, rounded
   expect(
     overlayZones(setup).map(({ zone, rect }) => [

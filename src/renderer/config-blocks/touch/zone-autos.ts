@@ -1,50 +1,9 @@
-// What a zone sends and what its body can read (RFC 4.1): the zone's MIDI
-// identity, mirroring Z.zone in content/libraries/zona.lua, and the zone getters
-// offered as value suggestions.
+// What a zone sends (RFC 4.1): the zone's MIDI identity, mirroring Z.zone in
+// content/libraries/zona.lua.
 
-import type { Zone, ZoneKind } from "./zone-model";
+import type { Zone } from "./zone-model";
 import { zoneKinds, zoneOptionDefault } from "./zone-model";
 import { parseZone } from "./zone-parse";
-
-type Placed = { script: string; information: { type: string } };
-
-// The zone whose body holds the action at `index`, with every zone line of
-// the event in order (the CC slots count the zones before it). null outside
-// a zone body.
-export function zoneContext(
-  actions: Placed[],
-  index: number,
-): { zones: Zone[]; index: number } | null {
-  let depth = 0;
-  let open = -1;
-  for (let i = Math.min(index, actions.length) - 1; i >= 0; i--) {
-    const { type } = actions[i].information;
-    if (type === "composite_close") {
-      depth++;
-    } else if (type === "composite_open") {
-      if (depth === 0 && parseZone(actions[i].script) !== null) {
-        open = i;
-        break;
-      }
-      depth = Math.max(depth - 1, 0);
-    }
-  }
-  if (open === -1) {
-    return null;
-  }
-  const zones: Zone[] = [];
-  let at = -1;
-  actions.forEach((e, i) => {
-    const zone = parseZone(e.script);
-    if (zone !== null) {
-      if (i === open) {
-        at = zones.length;
-      }
-      zones.push(zone);
-    }
-  });
-  return { zones, index: at };
-}
 
 function readerOf(zone: Zone): string {
   return zoneKinds[zone.kind].read;
@@ -150,37 +109,4 @@ export function zoneMidiLabel(midi: ZoneMidi | null): string {
     .map((n) => (midi.type === "cc14" ? `${n}/${n + 32}` : String(n)))
     .join(", ");
   return `${midi.type === "note" ? "Note" : "CC"} ${nums} ${ch}`;
-}
-
-export type ZoneGetter = { value: string; info: string };
-
-// Zone getters for value fields (RFC 4.1), per kind.
-export function zoneGetterSuggestions(kind: ZoneKind): ZoneGetter[] {
-  const v = { value: "self:v()", info: "Zone value (min to max)" };
-  const g = { value: "self:g()", info: "Touched: 1 while held, 0 on release" };
-  const d = {
-    value: "self:d()",
-    info: "Change since the last run (for relative targets)",
-  };
-  switch (kind) {
-    case "xy":
-      return [
-        { value: "self:x()", info: "X value (min to max)" },
-        { value: "self:y()", info: "Y value (min to max)" },
-        g,
-        {
-          value: "self:dx()",
-          info: "Change of x since the last run, for Mouse Move X",
-        },
-        {
-          value: "self:dy()",
-          info: "Change of y since the last run, for Mouse Move Y",
-        },
-        { value: "self:f()", info: "Finger number, 1 to the zone's fingers" },
-      ];
-    case "button":
-      return [v, { value: "self:step()", info: "Current step, 0 = off" }, g];
-    default:
-      return [v, g, d];
-  }
 }

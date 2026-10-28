@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.8.8"
+local LIB_VERSION = "0.9.0"
 
 -- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -52,9 +52,6 @@ Z.lc = {}
 Z.el = 0
 Z.R = {}
 
--- outputs muted while Z.start runs the bodies (not the LEDs)
-local OUT = { "gms", "ggms", "ggbs", "gmms", "gmbs", "gks" }
-
 local function ky(ch, cmd, p1)
   return (ch * 256 + cmd) * 16384 + p1
 end
@@ -63,9 +60,6 @@ local S = 1024 / 9
 local KS = { "v", "x", "y" }
 -- the sources a press or release sends, per reader
 local SR = { axis = { "v" }, gate = { "v" }, point = { "x", "y" } }
-
-local M = {}
-M.__index = M
 
 -- route -> pos -> read -> mode -> put/gate -> run; q is a 0-1 position
 
@@ -105,31 +99,14 @@ local function snd(z, k)
   end
 end
 
--- d(): change since the last run, fraction carried. MIDI first: a value run
--- sends its source, a press or release (g) all of them; then the body
+-- a value run sends its source, a press or release (g) all of them
 local function run(z, s)
-  z.s = s
-  z.dd = 0
-  local q = z.q[s]
-  if q and z.o.read ~= "gate" then
-    local d = tr(z.mi + q * (z.ma - z.mi) - z.r[s])
-    z.r[s] = z.r[s] + d
-    z.dd = d
-  end
   if s == "g" then
     for _, k in ipairs(SR[z.o.read]) do
       snd(z, k)
     end
   else
     snd(z, s)
-  end
-  if z.fn then
-    Z.rb = 1 -- a body is running: no zones may be defined (Z.zone)
-    local ok, e = pcall(z.fn, z)
-    Z.rb = nil
-    if not ok then
-      error(e, 0)
-    end
   end
 end
 
@@ -246,10 +223,8 @@ local function off(z, r)
   end
 end
 
--- no body run, so value runs on press see g=1; a press (gate: a new step)
--- clears the duplicate filter
+-- a press (gate: a new step) clears the duplicate filter
 local function gate(z, g)
-  z.u.g = g
   z.dt = 1
   if z.o.read ~= "gate" then
     if g == 1 then
@@ -277,25 +252,22 @@ end
 local function rest(z)
   if z.o.spring == 1 and z.o.read ~= "gate" then
     for _, k in ipairs(SR[z.o.read]) do
-      z.q[k], z.u[k], z.r[k] = 0.5, sc(z, 0.5), z.mi + (z.ma - z.mi) / 2
+      z.q[k], z.u[k] = 0.5, sc(z, 0.5)
     end
   end
 end
 
--- a finger's own state over its zone (xy, fingers > 1): values, filter,
--- rate and carry per finger; MIDI on the zone channel + finger - 1
+-- a finger's own state over its zone (xy, fingers > 1): values, filter
+-- and rate per finger; MIDI on the zone channel + finger - 1
 local function fg(z, i)
   local mi = z.mi
   z.fm = z.fm or { __index = z } -- one metatable for the zone's fingers
   local o = setmetatable({
-    fi = i,
-    pa = z,
     ch = (z.ch + i - 1) % 16,
     k = 0,
     l = {},
-    u = { v = mi, x = mi, y = mi, g = 0 },
+    u = { v = mi, x = mi, y = mi },
     q = { x = 0, y = 0 },
-    r = { x = mi, y = mi },
     tg = {},
     lr = {},
     pd = {},
@@ -452,7 +424,7 @@ local function paint(z)
       else
         v = p(z, i, j, n)
       end
-      lit(e, z.ck, z.cc, math.floor((f + v * (h - f)) * z.iv / 255 + 0.5))
+      lit(e, z.ck, z.cc, math.floor(f + v * (h - f) + 0.5))
     end
   end
 end
@@ -467,7 +439,7 @@ local function rl() -- release held zones: no stuck notes
   end
 end
 
--- value sync (RX, Z.set): no body run, no output; w: the value on the wire
+-- value sync (RX, Z.set): no output; w: the value on the wire
 local function sy(z, s, v, w)
   if z.o.read == "gate" then
     local b = 1
@@ -484,7 +456,6 @@ local function sy(z, s, v, w)
     s = s == "g" and (z.o.read == "point" and "x" or "v") or s
     local q = cl((v - z.mi) / (z.ma - z.mi))
     z.q[s], z.tg[s], z.u[s] = q, nil, sc(z, q)
-    z.r[s] = z.mi + q * (z.ma - z.mi)
   end
   if w then
     z.l[s] = w
@@ -510,18 +481,6 @@ local function stale()
   end
 end
 
--- the first zone of a Setup run drops the previous surface. Zones
--- are defined only by Setup: one inside a body would drop the running
--- surface, so it is an error and changes nothing.
-local function first()
-  if Z.rb then
-    error("zone inside a zone body", 0)
-  end
-  if not Z.nz[1] then
-    drop()
-  end
-end
-
 -- options read through: zone opt -> kind preset -> Z.def (no copy per zone)
 local KM = {}
 for kind, p in pairs(Z.kind) do
@@ -532,16 +491,35 @@ for kind, p in pairs(Z.kind) do
   KM[kind] = { __index = t }
 end
 
-function Z.zone(n, x, y, w, h, opt, f, kind)
+-- zones with the same colour share one curve; weak, so a colour no zone
+-- uses goes
+local CC = setmetatable({}, { __mode = "v" })
+
+-- the zone colour, "rrggbb", as its curve: the minimum is black, so phase 0
+-- is off. Without one the module's default colour
+local function col(z, s)
+  local c = tonumber(s or "", 16)
+  local x, y, w = color_curve({ c and { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 } or { -1, -1, -1, 1 } })
+  x = { 0, 0, 0, x[4] }
+  local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
+  local e = CC[k] or { x, y, w }
+  CC[k] = e
+  z.ck, z.cc = k, e
+end
+
+function Z.zone(n, x, y, w, h, opt, kind)
   -- a name already pending: a new Setup run after one that never reached
   -- Z.start (or failed) without a tick or touch in between
   for _, q in ipairs(Z.nz) do
-    if q.n == n and not Z.rb then
+    if q.n == n then
       Z.nz = {}
       break
     end
   end
-  first()
+  -- the first zone of a Setup run drops the previous surface
+  if not Z.nz[1] then
+    drop()
+  end
   local o = setmetatable({}, KM[kind] or KM.fader)
   for k, val in pairs(opt or {}) do
     o[k] = val
@@ -579,7 +557,7 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     py = (p + 1) % 128 % (z14 and 32 or 128)
     p = p % 128 % (z14 and 32 or 128)
   end
-  local z = setmetatable({
+  local z = {
     n = n,
     o = o,
     ch = o.ch < 0 and (gmy() * 4 + gpc()) % 16 or o.ch,
@@ -587,7 +565,6 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     p = p,
     py = py,
     m = m == "pb" and 2 or z14 and 1 or m ~= "none" and 0 or nil,
-    fn = f, -- the body (self:f() is the finger)
     a = {
       math.ceil(x * S),
       math.ceil((x + w) * S) - 1,
@@ -600,28 +577,24 @@ function Z.zone(n, x, y, w, h, opt, f, kind)
     st = 0,
     k = 0,
     l = {},
-    u = { v = mi, x = mi, y = mi, g = 0 },
-    -- position and value carry: only the sources this reader has
+    u = { v = mi, x = mi, y = mi },
+    -- position: only the sources this reader has
     q = o.read == "point" and { x = 0, y = 0 } or { v = 0 },
-    r = o.read == "point" and { x = mi, y = mi } or { v = mi },
     tg = {},
     lr = {}, -- tick of the last run, pending run: per source
     pd = {},
     c = { x, y, w, h },
-    iv = 255,
-  }, M)
+  }
   z.os = { z } -- the zone and its fingers' states (fg)
   rest(z)
-  -- col: the zone colour as "rrggbb"; without it the module's default colour
-  local c = tonumber(o.col or "", 16)
-  z:glc(1, { c and { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 } or { -1, -1, -1, 1 } })
+  col(z, o.col)
   Z.nz[#Z.nz + 1] = z
   return z
 end
 
 for kind in pairs(Z.kind) do
-  Z[kind] = function(n, x, y, w, h, opt, f)
-    return Z.zone(n, x, y, w, h, opt, f, kind)
+  Z[kind] = function(n, x, y, w, h, opt)
+    return Z.zone(n, x, y, w, h, opt, kind)
   end
 end
 
@@ -662,26 +635,6 @@ function Z.start(self)
   local u = self.midirx_cb
   Z.uc = u ~= Z.rx and u or nil
   self.midirx_cb = next(Z.R) and Z.rx or Z.uc
-  -- each body once, muted and without the zone's MIDI: colours (Simple
-  -- Color in the body) show from the start
-  local og = {}
-  for _, f in ipairs(OUT) do
-    og[f], _G[f] = _G[f], function() end
-  end
-  Z.rb = 1
-  for _, z in ipairs(Z.zs) do
-    if z.fn then
-      z.s, z.dd = "g", 0
-      local ok, e = pcall(z.fn, z)
-      if not ok then
-        print(e)
-      end
-    end
-  end
-  Z.rb = nil
-  for _, f in ipairs(OUT) do
-    _G[f] = og[f]
-  end
   Z.el = self:ind()
   for _, z in ipairs(Z.zs) do
     paint(z)
@@ -698,7 +651,7 @@ function Z.start(self)
 end
 
 function Z.tick(self, cfg)
-  gtt(self:ind(), cfg and cfg.ms or Z.tdef.ms) -- re-arm first: a body error can't stop the tick
+  gtt(self:ind(), cfg and cfg.ms or Z.tdef.ms) -- re-arm first: an error can't stop the tick
   stale()
   Z.tn = Z.tn + 1
   for _, z in ipairs(Z.zs) do
@@ -809,60 +762,6 @@ function Z.rx(self, h, e)
   if Z.uc then
     Z.uc(self, h, e)
   end
-end
-
--- zones with the same colour share one curve; weak, so dynamic colours go
-local CC = setmetatable({}, { __mode = "v" })
-
--- layer is always 1; the minimum is black: phase 0 is off
--- colour and intensity are the zone's, also from a finger's body
-function M:glc(l, c)
-  self = self.pa or self
-  local x, y, w = color_curve(c)
-  x = { 0, 0, 0, x[4] }
-  local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
-  if k ~= self.ck then
-    local e = CC[k] or { x, y, w, k }
-    CC[k] = e
-    self.ck = e[4]
-    self.cc = e
-    self.dt = 1
-  end
-end
-
-function M:glp(l, v)
-  self = self.pa or self
-  self.iv = (v == nil or v == -1) and 255 or math.max(0, math.min(255, v))
-  self.dt = 1
-end
-
-function M:v()
-  return self.u.v
-end
-function M:x()
-  return self.u.x
-end
-function M:y()
-  return self.u.y
-end
-function M:g()
-  return self.u.g
-end
-function M:d()
-  return self.dd or 0
-end
--- xy: the change of one axis, 0 when this run is for the other (Mouse Move)
-function M:dx()
-  return self.s == "x" and self.dd or 0
-end
-function M:dy()
-  return self.s == "y" and self.dd or 0
-end
-function M:step()
-  return self.st
-end
-function M:f()
-  return self.fi or 1
 end
 
 -- Lets the Library block free this instance before it runs the page's

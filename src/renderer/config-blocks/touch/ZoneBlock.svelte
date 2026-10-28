@@ -1,6 +1,6 @@
 <script lang="ts">
   // The face of the three zone blocks (RFC 6.2). Everything comes from the
-  // action's opening line: parseZone reads it, every edit writes zoneToLua
+  // action's line: parseZone reads it, every edit writes zoneToLua
   // back through the normal block update. A value the validators reject is
   // sent as an invalid action, so the module keeps the last valid line. A line
   // that doesn't parse is shown as it is and never rewritten (RFC 6.5).

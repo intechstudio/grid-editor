@@ -1,8 +1,8 @@
 <script lang="ts">
   // The ZONA's touch zones in the control name overlay (RFC 6.3): one
   // rectangle per zone line of the touch Setup, with its name, kind icon, group
-  // badge and issue outline, highlighted while its block (or a block in its
-  // body) is selected. Read-only: clicking a zone selects its block.
+  // badge and issue outline, highlighted while its block is selected.
+  // Read-only: clicking a zone selects its block.
   import { tick } from "svelte";
   import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
   import { SvgIcon } from "@intechstudio/grid-uikit";

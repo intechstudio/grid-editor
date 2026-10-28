@@ -22,7 +22,6 @@
     type ModuleType,
   } from "@intechstudio/grid-protocol";
   import {
-    bodyRulesAt,
     companionElement,
     isAllowedIn,
     pickerInsertIndex,
@@ -258,7 +257,6 @@
       eventType: eventString,
       isVirtual: event.realEvent !== event,
       moduleType: target.getInfo().module.type as ModuleType,
-      bodies: bodyRulesAt(configs, index),
     };
     comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
 
