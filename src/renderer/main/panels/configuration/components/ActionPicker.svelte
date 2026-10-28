@@ -5,7 +5,6 @@
     GridEvent,
     EventData,
     type GridElement,
-    type GridPage,
   } from "./../../../../runtime/runtime";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
@@ -21,7 +20,7 @@
     type ElementType,
     type ModuleType,
   } from "@intechstudio/grid-protocol";
-  import { companionElement, isAllowedIn } from "./ActionPickerFilter";
+  import { isAllowedIn } from "./ActionPickerFilter";
   import { addActions } from "../../../../runtime/operations";
   import { isLibraryPlace } from "../../../../lib/library";
   import type { Companion } from "../../../../config-blocks/ActionBlockInformation";
@@ -377,14 +376,8 @@
   // There is no undo history: each event is sent on its own.
   async function addCompanions(companions: Companion[]) {
     const element = event.parent as GridElement;
-    const page = element?.parent as GridPage | undefined;
-    for (const { eventType, short, script, elementType } of companions) {
-      const owner = companionElement(
-        page?.control_elements ?? [],
-        element,
-        elementType,
-      );
-      const target = owner?.events.find(
+    for (const { eventType, short, script } of companions) {
+      const target = element?.events.find(
         (e) => e.type === EventTypeToNumber(eventType),
       );
       if (typeof target === "undefined") {

@@ -242,7 +242,6 @@ Without a Touch Tick block on the Timer the zones still go live on the first tou
 | `Z.set(name, value, src)`                   | Sets a zone's value without sending.                                               |
 | `Z.unload()`                                | Releases everything and gives the element's callbacks back.                        |
 | `Z.def`, `Z.kind`, `Z.tdef`                 | Option defaults, kind presets, tick defaults. The editor's copies must match them. |
-| `Z.has`                                     | `{ sres = 10 }`, the sensor bits. Nothing in the editor reads it.                  |
 | `Z.zs`, `Z.nz`, `Z.te`                      | The live zones, the pending zones, the touch element. Internal, but reachable.     |
 
 The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.11.0"`. The Library block reads these.
@@ -370,7 +369,7 @@ Measured on 2026-10-28: the source is 22,669 bytes, the compressed file 17,914 b
 | `src/renderer/config-blocks/TouchFader.svelte`, `TouchButton.svelte`, `TouchXY.svelte`, `TouchTick.svelte` | New. The block files.                                                                                                                                         |
 | `src/renderer/config-blocks/ActionBlockInformation.ts`                                                     | `touch` category, `defaultLuaIn`, `elementTypes`, `eventTypes`, `moduleTypes`, `companions`, `uniqueIn`, `contextProblem`, `uniqueScripts`, `insertRewrites`. |
 | `src/renderer/config-blocks/categoryColors.ts`, `src/renderer/app.css`                                     | The `touch` colour.                                                                                                                                           |
-| `src/renderer/main/panels/configuration/components/ActionPickerFilter.ts`                                  | New. `isAllowedIn`, `companionElement`.                                                                                                                       |
+| `src/renderer/main/panels/configuration/components/ActionPickerFilter.ts`                                  | New. `isAllowedIn`.                                                                                                                                           |
 | `src/renderer/main/panels/configuration/components/ActionPicker.svelte`                                    | Filtering, `touch` sort, `defaultLuaIn`, companions.                                                                                                          |
 | `src/renderer/main/panels/configuration/components/DynamicWrapper.svelte`                                  | Validity follows the event.                                                                                                                                   |
 | `src/renderer/main/grid-layout/grid-modules/overlays/TouchZonesOverlay.svelte`                             | New. The overlay.                                                                                                                                             |
@@ -391,8 +390,6 @@ Measured on 2026-10-28: the source is 22,669 bytes, the compressed file 17,914 b
 - Nothing checks overlapping zones, two zones with the same MIDI identity, or finger channels that overlap another zone's channel.
 - A gamepad auto past the last axis (a 7th) or button (a 33rd) is neither checked nor clamped.
 - Removing the last zone line leaves the old surface on the module until the page reloads.
-- `Z.has.sres` is in the library and nothing reads it.
-- The `Companion.elementType` field exists and no block sets it. Its comment names Touch Utility, a block that does not exist.
 - `fingers` on a mouse or gamepad XY passes the validator, because the field is hidden. The library sets it to 1.
 - The comment on `zoneSendProblem` dates the rule to zona.lua 0.7.1. The rule still holds in 0.11.0.
 - The step values differ from the firmware's button stepping for some ranges. The library follows the editor's `SettingsButton` maths.
@@ -448,6 +445,6 @@ The RFC went through eight revisions. These ideas were in it at some point and a
 - Profile Cloud thumbnails with zones.
 - A HANGAR converter.
 - An in-memory file store for the virtual module.
-- A positions hint on the face from `Z.has.sres`.
+- A positions hint on the face from the sensor bits (`Z.has.sres`, removed with the dead code).
 
 The grid-documentation pages for touch zones were written for revision 3 and are not part of this repository.

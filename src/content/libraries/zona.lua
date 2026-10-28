@@ -7,8 +7,6 @@ local LIB_VERSION = "0.11.0"
 
 local Z = {}
 
-Z.has = { sres = 10 } -- sensor bits
-
 -- Defaults: blocks omit them, so they change only in a major version. Meanings
 -- and a matching copy in zone-model.ts.
 Z.def = {
