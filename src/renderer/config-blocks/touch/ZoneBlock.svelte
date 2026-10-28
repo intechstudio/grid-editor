@@ -1,9 +1,9 @@
 <script lang="ts">
-  // The face of the three zone blocks (RFC 6.2). Everything comes from the
+  // The face of the three zone blocks (docs/zona-touch-zones.md, Block face). Everything comes from the
   // action's line: parseZone reads it, every edit writes zoneToLua
   // back through the normal block update. A value the validators reject is
   // sent as an invalid action, so the module keeps the last valid line. A line
-  // that doesn't parse is shown as it is and never rewritten (RFC 6.5).
+  // that doesn't parse is shown as it is and never rewritten (docs/zona-touch-zones.md, The zone line).
   import { createEventDispatcher } from "svelte";
   import { Block, BlockRow, MeltCombo } from "@intechstudio/grid-uikit";
   import type {

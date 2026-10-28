@@ -1,4 +1,4 @@
-// Zone validators (RFC 6.2). Per zone: what the block face shows inline next
+// Zone validators (docs/zona-touch-zones.md, Validation). Per zone: what the block face shows inline next
 // to a field. Per surface: the issues of a whole touch Setup, each naming a
 // zone or, without one, the surface.
 
@@ -69,7 +69,7 @@ function firmwareNameProblem(name: string): string | undefined {
 }
 
 // The name sits in a string that compressScript would rewrite if it were a
-// firmware human name (RFC 2.1).
+// firmware human name (docs/zona-touch-zones.md, The zone line).
 export function zoneNameProblem(name: string): string | undefined {
   if (name.length === 0) {
     return "Enter a zone name";

@@ -1,4 +1,4 @@
-// What a zone sends (RFC 4.1): the zone's MIDI identity, mirroring Z.zone in
+// What a zone sends (docs/zona-touch-zones.md, Outputs): the zone's MIDI identity, mirroring Z.zone in
 // content/libraries/zona.lua.
 
 import type { Zone } from "./zone-model";

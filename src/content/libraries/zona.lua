@@ -1,7 +1,7 @@
 local LIB_NAME = "_Z"
 local LIB_VERSION = "0.11.0"
 
--- ZONA touch zones (docs/zona-zones-rfc.md). Short names only: compressScript
+-- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
 -- to for-loop variables.
 

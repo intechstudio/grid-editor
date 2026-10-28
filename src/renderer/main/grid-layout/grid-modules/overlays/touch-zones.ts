@@ -1,4 +1,4 @@
-// What the touch zones overlay draws (RFC 6.3), derived from the touch
+// What the touch zones overlay draws (docs/zona-touch-zones.md, Overlay), derived from the touch
 // Setup's actions on every change: no store of its own, no write path.
 
 import type { Zone } from "../../../../config-blocks/touch/zone-model";

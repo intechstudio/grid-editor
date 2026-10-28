@@ -1,4 +1,4 @@
-// Touch block scripts (RFC 5, 6.5). The canonical lines, as the editor writes
+// Touch block scripts (docs/zona-touch-zones.md, The zone line). The canonical lines, as the editor writes
 // them:
 //
 //   Z.fader(self,"f1",0,0,1,9,{res=10,mode="glide"})
@@ -25,7 +25,7 @@ import {
   zoneTickSchema,
 } from "./zone-model";
 
-// The global the touch blocks call. Fixed in v1 (RFC 5).
+// The global the touch blocks call (docs/zona-touch-zones.md, Where things run).
 export const ZONA_GLOBAL = "_Z";
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;

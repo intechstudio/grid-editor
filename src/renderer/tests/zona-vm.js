@@ -23,7 +23,7 @@ const RECORDED = [
 // 5.5 rejects passes here, such as assigning to a for-loop variable.
 //
 // Lua 5.4 VM with the library loaded from the text that reaches the module
-// (compressScript, RFC 6.4) and bound as `Z` the way Setup's require does. `el`
+// (compressScript, docs/zona-touch-zones.md, Tests) and bound as `Z` the way Setup's require does. `el`
 // is a fake touch element. Calls are logged as { fn, args, n }, where n is the
 // argument count (the firmware's gms refuses anything but 4) and args are
 // numbers, with non-integers kept as strings so they stand out.
@@ -137,7 +137,7 @@ export async function createZonaVM(env = {}) {
   };
 }
 
-// Touch events as the firmware reports them (RFC 2.1).
+// Touch events as the firmware reports them (docs/zona-touch-zones.md, Touch routing).
 export const DOWN = 4;
 export const MOVE = 1;
 export const UP = 5;

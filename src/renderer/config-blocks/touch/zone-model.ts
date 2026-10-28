@@ -1,4 +1,4 @@
-// Zone options as the zona.lua library reads them (RFC 4, 6.2). Blocks write
+// Zone options as the zona.lua library reads them (docs/zona-touch-zones.md, Options). Blocks write
 // only options that differ from these defaults, so they must equal Z.def,
 // Z.kind and Z.tdef in content/libraries/zona.lua; a test checks they match. A
 // default may only change in a major library version.
@@ -114,7 +114,7 @@ export type OptionSchema = { key: string } & (
   | { type: "color" } // "rrggbb" hex; the editor writes lower case
 );
 
-// Block face sections, in display order (RFC 6.2 UI rules).
+// Block face sections, in display order (docs/zona-touch-zones.md, Block face).
 export type ZoneSection =
   "geometry" | "output" | "resolution" | "led" | "behaviour" | "capture";
 

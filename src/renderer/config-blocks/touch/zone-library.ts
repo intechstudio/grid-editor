@@ -6,7 +6,7 @@ import type { ZoneIssue } from "./zone-validate";
 const ZONA_FILE = "zona";
 
 // Tells the user the zones need zona: a Library block that runs before the
-// zones loads it (RFC 6.1). `globals` are the ones those blocks load.
+// zones loads it (docs/zona-touch-zones.md, Block face). `globals` are the ones those blocks load.
 export function libraryIssue(globals: Set<string>): ZoneIssue | undefined {
   return globals.has(ZONA_GLOBAL)
     ? undefined

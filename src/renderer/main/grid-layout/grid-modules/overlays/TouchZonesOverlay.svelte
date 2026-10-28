@@ -1,5 +1,5 @@
 <script lang="ts">
-  // The ZONA's touch zones in the control name overlay (RFC 6.3): one
+  // The ZONA's touch zones in the control name overlay (docs/zona-touch-zones.md, Overlay): one
   // rectangle per zone line of the touch Setup, with its name, kind icon, group
   // badge and issue outline, highlighted while its block is selected.
   // Read-only: clicking a zone selects its block.

@@ -1,4 +1,4 @@
-// Block information of the Touch blocks (RFC 6.2 table). The block files in
+// Block information of the Touch blocks (docs/zona-touch-zones.md, Blocks). The block files in
 // config-blocks/ (TouchFader.svelte, …) export these, so the three zone kinds
 // share one definition.
 

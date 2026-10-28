@@ -1,6 +1,6 @@
 // What the Touch blocks need besides the model: block shorts, the script a new
 // zone block starts with, the untoggled header text, and the face's fields
-// from the option schema (RFC 6.2).
+// from the option schema (docs/zona-touch-zones.md, Block face).
 
 import {
   type OptionSchema,
@@ -413,7 +413,7 @@ export function optionLabel(key: string, zone?: Zone): string {
 // A zone line pasted, dropped or loaded next to these scripts: when its name
 // is already used by a zone there, it gets the next free name of its kind.
 // zona.lua treats a repeated pending name as a new Setup run, so a duplicate
-// would drop the zones before it (RFC 6.2).
+// would drop the zones before it (docs/zona-touch-zones.md, Setup and going live).
 export function uniqueZoneScript(script: string, others: string[]): string {
   const zone = parseZone(script);
   if (zone === null) {
