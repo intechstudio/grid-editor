@@ -11,7 +11,7 @@ beforeAll(async () => {
   await initLuaFormatter();
 });
 
-const LIB = `local p=string.format("/%02X/",gpc())local function r(n)local ok,m=pcall(require,p..n)if ok then return m end print(p..n..".lua missing")end _Z=r("zona")`;
+const LIB = `_Z=gr("zona")`;
 
 test.each([
   `_Z.fader(self,"f1",1,0,1,9,{res=10,mode="glide",speed=0.5,ease=0.25})`,
