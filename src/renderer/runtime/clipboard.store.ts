@@ -8,20 +8,23 @@ import {
 } from "svelte/store";
 import { ActionData, ElementData, GridAction, GridElement } from "./runtime";
 import { logger } from "./runtime.store";
+import type { Zone } from "../config-blocks/touch/zone-model";
 
 export enum ClipboardKey {
   ELEMENT,
   ACTION_BLOCKS,
+  ZONE,
 }
 
 export interface ClipboardData {
   key: ClipboardKey;
-  payload: ActionData[] | ElementData;
+  payload: ActionData[] | ElementData | Zone;
 }
 
 export enum ClipboardOperationType {
   COPY_ACTIONS,
   COPY_ELEMENT,
+  COPY_ZONE,
 }
 
 export interface ClipboardOperationResult {
@@ -32,6 +35,7 @@ export interface ClipboardOperationResult {
 
 export interface CopyActionsResult extends ClipboardOperationResult {}
 export interface CopyElementResult extends ClipboardOperationResult {}
+export interface CopyZoneResult extends ClipboardOperationResult {}
 
 export class ApplicationClipboard implements Readable<ClipboardData> {
   protected _internal: Writable<ClipboardData> = writable();
@@ -76,6 +80,20 @@ export class ApplicationClipboard implements Readable<ClipboardData> {
       value: true,
       text: "OK",
       type: ClipboardOperationType.COPY_ELEMENT,
+    });
+  }
+
+  // A touch zone, for pasting into a Touch Zone block.
+  public async copyZone(zone: Zone): Promise<CopyZoneResult> {
+    this.set({
+      key: ClipboardKey.ZONE,
+      payload: structuredClone(zone),
+    });
+
+    return Promise.resolve({
+      value: true,
+      text: "OK",
+      type: ClipboardOperationType.COPY_ZONE,
     });
   }
 

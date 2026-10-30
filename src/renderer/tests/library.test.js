@@ -28,6 +28,7 @@ import {
   globalsLoadedBefore,
   installLibrary,
   isLibraryPlace,
+  compareVersions,
   libraryRowStatus,
   librarySuggestions,
   libraryScriptToLua,
@@ -146,6 +147,7 @@ describe("rows and the page folder", () => {
       kind: "present",
       version: "0.9.0",
       bundledVersion: "1.0.0",
+      outdated: test1,
     });
     const same = new Map([["test", { name: "_Test", version: "1.0.0" }]]);
     expect(libraryRowStatus(rows[0], same, "/01/")).toEqual({
@@ -153,6 +155,16 @@ describe("rows and the page folder", () => {
       version: "1.0.0",
       bundledVersion: undefined,
     });
+  });
+
+  test("an older module file is outdated, a newer one is left alone", () => {
+    expect(compareVersions("0.9.0", "1.0.0")).toBeLessThan(0);
+    expect(compareVersions("1.10.0", "1.9.0")).toBeGreaterThan(0);
+    expect(compareVersions("1.0.0", "1.0.0")).toBe(0);
+    const newer = new Map([["test", { name: "_Test", version: "1.2.0" }]]);
+    const status = libraryRowStatus(rows[0], newer, "/01/");
+    expect(status.outdated).toBeUndefined();
+    expect(status.bundledVersion).toBe("1.0.0");
   });
 
   test("a missing bundled library can be installed", () => {

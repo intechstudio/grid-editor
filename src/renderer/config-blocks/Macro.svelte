@@ -51,7 +51,7 @@
   import * as keyMap_hu from "../../external/macro/map-hu.json";
   import * as keyMap_de from "../../external/macro/map-de.json";
 
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MeltSelect, MoltenPushButton } from "@intechstudio/grid-uikit";
   import {
     ActionData,
     GridAction,
@@ -67,6 +67,8 @@
     { name: "Hu", lookup: keyMap_hu.default },
     { name: "De", lookup: keyMap_de.default },
   ];
+
+  const layoutOptions = layouts.map((e) => ({ title: e.name, value: e.name }));
 
   let layout = layouts[0];
 
@@ -93,6 +95,11 @@
 
   $: if (!$action.invalid) {
     handleActionChange($action);
+  }
+
+  // MeltSelect only binds its target: a picked layout is applied here.
+  $: if (selectedLayout !== undefined) {
+    change_layout();
   }
 
   function change_layout() {
@@ -409,23 +416,12 @@
       </div>
 
       <!-- Layout Selector -->
-      <div class="flex flex-row gap-2">
-        <div class="text-foreground-muted text-sm">Layout:</div>
-        <select
-          class="focus:outline-none"
-          style="background-color: var(--background-muted); color: var(--foreground); border: 1px solid var(--border); border-radius: var(--radius);"
-          bind:value={selectedLayout}
-          on:change={change_layout}
-        >
-          {#each layouts as layout}
-            <option
-              value={layout.name}
-              style="background-color: var(--background-muted); color: var(--foreground);"
-              >{layout.name}</option
-            >
-          {/each}
-        </select>
-      </div>
+      <MeltSelect
+        title="Layout"
+        style="chip"
+        options={layoutOptions}
+        bind:target={selectedLayout}
+      />
     </div>
     <!-- Keyboard Input Field -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->

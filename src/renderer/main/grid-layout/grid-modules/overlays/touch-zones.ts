@@ -2,7 +2,7 @@
 // Setup's actions on every change: no store of its own, no write path.
 
 import type { Zone } from "../../../../config-blocks/touch/zone-model";
-import { parseZone } from "../../../../config-blocks/touch/zone-parse";
+import { parseZones } from "../../../../config-blocks/touch/zone-parse";
 import { surfaceIssues } from "../../../../config-blocks/touch/zone-validate";
 import { ZONA_GRID_SIZE, zonaCellEdgePct } from "../devices/zona-grid";
 
@@ -18,6 +18,7 @@ export type ZoneRect = {
 export type OverlayZone = {
   zone: Zone;
   actionId: string; // the zone block, for selecting it
+  index: number; // the zone's place in its block, which may define several
   rect: ZoneRect; // percent of the touch surface
   issue?: "error" | "warning"; // the worst surface issue naming the zone
   group?: number; // radio group badge, when > 0
@@ -49,25 +50,24 @@ export function overlayZones(
   const issues = surfaceIssues(actions.map((e) => e.script));
   const zones: OverlayZone[] = [];
   for (const action of actions) {
-    const zone = parseZone(action.script);
-    if (zone === null) {
-      continue;
-    }
-    const levels = issues
-      .filter((e) => e.zone === zone.name)
-      .map((e) => e.level);
-    const group = Number(zone.opt.group ?? 0);
-    zones.push({
-      zone,
-      actionId: action.id,
-      rect: zoneRect(zone),
-      issue: levels.includes("error")
-        ? "error"
-        : levels.includes("warning")
-          ? "warning"
-          : undefined,
-      group: group > 0 ? group : undefined,
-      highlighted: selectedIds.includes(action.id),
+    (parseZones(action.script) ?? []).forEach((zone, index) => {
+      const levels = issues
+        .filter((e) => e.zone === zone.name)
+        .map((e) => e.level);
+      const group = Number(zone.opt.group ?? 0);
+      zones.push({
+        zone,
+        actionId: action.id,
+        index,
+        rect: zoneRect(zone),
+        issue: levels.includes("error")
+          ? "error"
+          : levels.includes("warning")
+            ? "warning"
+            : undefined,
+        group: group > 0 ? group : undefined,
+        highlighted: selectedIds.includes(action.id),
+      });
     });
   }
   return zones;

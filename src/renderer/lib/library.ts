@@ -150,6 +150,17 @@ export function globalForFile(
   return findBundledLibrary(file)?.global;
 }
 
+// Orders two x.y.z versions: negative when a is older than b.
+export function compareVersions(a: string, b: string): number {
+  const [x, y] = [a, b].map((e) => e.split(".").map(Number));
+  for (let i = 0; i < 3; i++) {
+    if (x[i] !== y[i]) {
+      return x[i] - y[i];
+    }
+  }
+  return 0;
+}
+
 export type LibrarySuggestion = { value: string; info: string };
 
 // Offers the bundled libraries the user can install and the libraries on
@@ -178,7 +189,13 @@ export function librarySuggestions(
 export type LibraryRowStatus =
   // The module can't be asked: the bundled version, when there is one.
   | { kind: "unknown"; version?: string }
-  | { kind: "present"; version: string; bundledVersion?: string }
+  // On the module; `outdated` is the bundled copy that replaces an older one.
+  | {
+      kind: "present";
+      version: string;
+      bundledVersion?: string;
+      outdated?: BundledLibrary;
+    }
   | { kind: "missing"; library: BundledLibrary }
   // Missing on the module and the editor has no copy to install.
   | { kind: "unavailable"; message: string }
@@ -215,6 +232,10 @@ export function libraryRowStatus(
       bundledVersion:
         bundled && bundled.version !== header.version
           ? bundled.version
+          : undefined,
+      outdated:
+        bundled && compareVersions(header.version, bundled.version) < 0
+          ? bundled
           : undefined,
     };
   }
@@ -340,7 +361,7 @@ async function pageFolderExists(
 }
 
 // Lets the user install a bundled library that is missing from the page
-// folder and use it right away.
+// folder, or replace an older copy of it, and use it right away.
 export async function installLibrary(
   library: BundledLibrary,
   pageNumber: number,

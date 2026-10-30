@@ -2,11 +2,11 @@
 // content/libraries/zona.lua.
 
 import type { Zone } from "./zone-model";
-import { zoneKinds, zoneOptionDefault, zoneSends } from "./zone-model";
-import { parseZone } from "./zone-parse";
+import { zoneOptionDefault, zoneRead, zoneSends } from "./zone-model";
+import { parseZones, zonesOf } from "./zone-parse";
 
 function readerOf(zone: Zone): string {
-  return zoneKinds[zone.kind].read;
+  return zoneRead(zone);
 }
 
 export type ZonePosition = { dx: number; dy: number; page: number };
@@ -68,9 +68,7 @@ export function zoneMidi(
   if (msg === "pad") {
     return zonePad(zones, index);
   }
-  const res = msg === "pb" ? 14 : Number(option(zone, "res"));
-  const type =
-    msg === "pb" ? "pb" : msg === "note" ? "note" : res > 7 ? "cc14" : "cc";
+  const type = msg === "pb" || msg === "note" || msg === "cc14" ? msg : "cc";
   let base = 0;
   for (const before of zones.slice(0, index)) {
     base += readerOf(before) === "point" ? 2 : 1;
@@ -91,20 +89,19 @@ export function zoneMidi(
   };
 }
 
-// The identity of the zone line at `at` in an event's scripts; undefined
-// when that line isn't a zone.
+// The identity of zone number `index` of the zone block at `at` in an event's
+// scripts; undefined when that action isn't a zone block or has no such zone.
 export function zoneMidiAt(
   scripts: string[],
   at: number,
   pos: ZonePosition,
+  index = 0,
 ): ZoneMidi | null | undefined {
-  if (parseZone(scripts[at] ?? "") === null) {
+  const own = parseZones(scripts[at] ?? "");
+  if (own === null || typeof own[index] === "undefined") {
     return undefined;
   }
-  const zones = scripts
-    .slice(0, at + 1)
-    .map((e) => parseZone(e))
-    .filter((e): e is Zone => e !== null);
+  const zones = [...zonesOf(scripts.slice(0, at)), ...own.slice(0, index + 1)];
   return zoneMidi(zones, zones.length - 1, pos);
 }
 
@@ -171,10 +168,10 @@ export function zoneOutputLabel(zone: Zone, midi: ZoneMidi | null): string {
   if (option(zone, "msg") !== "mouse") {
     return zoneMidiLabel(midi);
   }
-  if (zone.kind === "fader") {
+  if (readerOf(zone) === "axis") {
     return "Mouse wheel";
   }
-  if (zone.kind === "xy") {
+  if (readerOf(zone) === "point") {
     return "Mouse";
   }
   const num = Number(option(zone, "num"));

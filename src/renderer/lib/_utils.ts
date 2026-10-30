@@ -33,10 +33,11 @@ export namespace Grid {
       LED_BLUE,
     }
 
-    // What a zone block's zone sends (its options and the zones before it),
-    // null for msg="mouse", undefined when the action isn't a zone line.
+    // What a zone of a zone block sends (its options and the zones before it),
+    // null for msg="mouse", undefined when the action isn't a zone block.
     export function getZoneMidi(
       action: GridAction,
+      zoneIndex = 0,
     ): ZoneMidi | null | undefined {
       const event = action.parent as GridEvent | undefined;
       const actions = event?.config ?? [];
@@ -50,6 +51,7 @@ export namespace Grid {
         actions.map((e) => e.script),
         index,
         { dx: module.dx, dy: module.dy, page: page.pageNumber },
+        zoneIndex,
       );
     }
 

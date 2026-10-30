@@ -1,11 +1,12 @@
 <script lang="ts">
-  // Untoggled zone block: its name, cells and what it sends ("f1 · 0,0 1×9 ·
-  // CC 32 ch 1") next to its colour, red when the zone has a problem, or a
-  // note when the line isn't a zone line.
+  // Untoggled zone block: its first zone's name, cells and what it sends
+  // ("f1 · 0,0 1×9 · CC 32 ch 1") next to its colour, with "+2 zones" when it
+  // defines more, red when a zone has a problem, or a note when the script
+  // isn't zone lines.
   import { createEventDispatcher } from "svelte";
   import { InfoBox } from "@intechstudio/grid-uikit";
   import type { GridAction, GridEvent } from "../../runtime/runtime";
-  import { parseZone } from "../touch/zone-parse";
+  import { parseZones } from "../touch/zone-parse";
   import { zoneProblems, zoneSendProblem } from "../touch/zone-validate";
   import { zoneHeaderText } from "../touch/zone-blocks";
   import { zoneOutputLabel } from "../touch/zone-autos";
@@ -17,7 +18,8 @@
 
   const dispatch = createEventDispatcher();
 
-  $: zone = parseZone($action.script);
+  $: zones = parseZones($action.script);
+  $: zone = zones?.[0] ?? null;
   // The zones before this one count for the autos: the event is a
   // dependency (the extra arguments are only reactive dependencies).
   $: midi = zoneMidiOf($action, $event);
@@ -29,15 +31,17 @@
       ? zoneHeaderText(
           zone,
           typeof midi === "undefined" ? undefined : zoneOutputLabel(zone, midi),
-        )
+        ) + (zones!.length > 1 ? ` · +${zones!.length - 1} more` : "")
       : "not a zone line";
+  // "red,green,blue,alpha"; a channel at -1 is the module's colour, not known here
   $: colour =
-    typeof zone?.opt.col === "string" && /^[0-9a-f]{6}$/i.test(zone.opt.col)
-      ? `#${zone.opt.col}`
+    typeof zone?.opt.col === "string" &&
+    /^\d+,\d+,\d+,[\d.]+$/.test(zone.opt.col)
+      ? `rgba(${zone.opt.col})`
       : undefined;
   $: faulty =
-    zone === null ||
-    zoneProblems(zone).length > 0 ||
+    zones === null ||
+    zones.some((e) => zoneProblems(e).length > 0) ||
     typeof zoneSendProblem(
       $action.script,
       $event.config.map((e) => e.script),

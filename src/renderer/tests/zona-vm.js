@@ -6,7 +6,6 @@ import zonaSource from "../../content/libraries/zona.lua?raw";
 // position getters answer from `env` (module at 0,0 on page 0 by default).
 const RECORDED = [
   "gms",
-  "gtt",
   "glc",
   "glp",
   "gln",
@@ -78,6 +77,9 @@ export async function createZonaVM(env = {}) {
       end
       return x, y, z
     end
+    -- wasmoon's os.clock is CPU time: tests set the time themselves
+    _now = 0
+    function os.clock() return _now end
     el = {}
     function el:ind() return 0 end
     function el:txma(v) rec("txma", v) end
@@ -89,11 +91,9 @@ export async function createZonaVM(env = {}) {
   `);
 
   return {
-    // Runs Setup-like Lua with `self` = the fake element, then the tick of
-    // the Timer the first zone kicks.
+    // Runs Setup-like Lua with `self` = the fake element.
     setup(code) {
       lua.doStringSync(`local self = el ${code}`);
-      lua.doStringSync("Z.tick(el)");
     },
     run(code) {
       return lua.doStringSync(code);
@@ -111,12 +111,6 @@ export async function createZonaVM(env = {}) {
         `if el.midirx_cb then el:midirx_cb({${instr},0,0},{${ch},${cmd},${p1},${p2}}) end`,
       );
     },
-    // Runs Z.tick n times, as the touch Timer would.
-    tick(n = 1) {
-      for (let i = 0; i < n; i++) {
-        lua.doStringSync("Z.tick(el)");
-      }
-    },
     // Lua memory in KB after full collections.
     kb() {
       return lua.doStringSync(
@@ -130,6 +124,10 @@ export async function createZonaVM(env = {}) {
     // gms calls as [ch, cmd, p1, p2].
     midi() {
       return this.calls("gms").map((e) => e.args);
+    },
+    // Moves the clock os.clock reads, in seconds.
+    wait(s) {
+      lua.doStringSync(`_now = _now + ${s}`);
     },
     clear() {
       log.length = 0;

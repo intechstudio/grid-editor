@@ -8,15 +8,13 @@ import {
   type OptionSchema,
   type Zone,
   type ZoneOptionValue,
-  type ZoneTick,
-  zoneKinds,
+  zoneRead,
   zoneOptionDefault,
   zoneOptionSchemaFor,
   zoneOptionShown,
   zoneSends,
-  zoneTickSchema,
 } from "./zone-model";
-import { parseZone, ZONA_GLOBAL } from "./zone-parse";
+import { parseZones, zonesOf, ZONA_GLOBAL } from "./zone-parse";
 
 const GRID_SIZE = 9;
 
@@ -92,9 +90,9 @@ export function optionProblem(
       : `Use one of ${schema.values.join(", ")}`;
   }
   if (schema.type === "color") {
-    return typeof value === "string" && /^[0-9a-f]{6}$/i.test(value)
+    return typeof value === "string" && colorValid(value)
       ? undefined
-      : "Use a colour like ff0000";
+      : "Use red, green, blue (-1 to 255) and alpha (0 to 1)";
   }
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "Enter a number";
@@ -154,13 +152,31 @@ function geometryProblems(zone: Zone): ZoneProblem[] {
   return problems;
 }
 
+// "red,green,blue,alpha": whole colours -1 (auto) to 255, alpha 0 to 1.
+function colorValid(value: string): boolean {
+  const parts = value.split(",");
+  if (parts.length !== 4) {
+    return false;
+  }
+  const [r, g, b, a] = parts;
+  return (
+    [r, g, b].every(
+      (e) => /^-?\d+$/.test(e) && Number(e) >= -1 && Number(e) <= 255,
+    ) &&
+    /^\d*\.?\d+$/.test(a) &&
+    Number(a) <= 1
+  );
+}
+
 function option(zone: Zone, key: string) {
   return zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
 }
 
-// res as the library uses it: pitch bend is always 14-bit.
+// Bits of the value as the library uses them: 14 for pitch bend and a
+// 14-bit CC.
 function resOf(zone: Zone): number {
-  return zoneSends(zone) === "pb" ? 14 : Number(option(zone, "res"));
+  const sends = zoneSends(zone);
+  return sends === "pb" || sends === "cc14" ? 14 : 7;
 }
 
 // min and max as the library uses them: 0 and 127, or 16383 above res 7.
@@ -202,7 +218,7 @@ function numProblems(zone: Zone): ZoneProblem[] {
   if (num < 0 || msg === "pb") {
     return [];
   }
-  const xy = zoneKinds[zone.kind].read === "point";
+  const xy = zoneRead(zone) === "point";
   if (msg === "pad") {
     if (num <= (zone.kind === "button" ? 31 : xy ? 4 : 5)) {
       return [];
@@ -240,19 +256,15 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   const msg = option(zone, "msg");
   const options = optionProblems(
     zone.opt,
-    zoneOptionSchemaFor(zone.kind).filter((e) => zoneOptionShown(e, msg)),
+    zoneOptionSchemaFor(zone).filter((e) => zoneOptionShown(e, msg)),
   );
   problems.push(...options);
   const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));
   // a mouse or gamepad zone has no value range; a mouse zone's num is a button
-  if (
-    msg !== "mouse" &&
-    msg !== "pad" &&
-    !bad(["res", "min", "max", "msg", "cmd"])
-  ) {
+  if (msg !== "mouse" && msg !== "pad" && !bad(["min", "max", "msg", "cmd"])) {
     problems.push(...rangeProblems(zone));
   }
-  if (msg !== "mouse" && !bad(["res", "num", "msg", "cmd"])) {
+  if (msg !== "mouse" && !bad(["num", "msg", "cmd"])) {
     problems.push(...numProblems(zone));
   }
   // the library ignores spring on a button
@@ -263,14 +275,10 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
     });
   }
   // the library ignores fingers on a fader or button
-  if (zone.kind !== "xy" && typeof zone.opt.fingers !== "undefined") {
+  if (zoneRead(zone) !== "point" && typeof zone.opt.fingers !== "undefined") {
     problems.push({ key: "fingers", message: "Fingers is for XY pads" });
   }
   return problems;
-}
-
-export function zoneTickProblems(tick: ZoneTick): ZoneProblem[] {
-  return optionProblems(tick.opt, zoneTickSchema);
 }
 
 // Issues of a whole touch Setup: per zone problems and duplicate names.
@@ -300,10 +308,7 @@ export function validateSurface(zones: Zone[]): ZoneIssue[] {
 
 // The surface issues of a touch Setup given as its action scripts.
 export function surfaceIssues(scripts: string[]): ZoneIssue[] {
-  const zones = scripts
-    .map((e) => parseZone(e))
-    .filter((e): e is Zone => e !== null);
-  return validateSurface(zones);
+  return validateSurface(zonesOf(scripts));
 }
 
 // What stops the touch Setup from being sent: a zone name used twice, since
@@ -315,12 +320,11 @@ export function zoneSendProblem(
   script: string,
   eventScripts: string[],
 ): string | undefined {
-  const zone = parseZone(script);
-  if (zone === null) {
-    return undefined;
-  }
-  const uses = eventScripts.filter((e) => parseZone(e)?.name === zone.name);
-  return uses.length > 1
-    ? `Another zone is also named "${zone.name}"`
-    : undefined;
+  const names = zonesOf(eventScripts).map((e) => e.name);
+  const duplicate = (parseZones(script) ?? []).find(
+    (zone) => names.filter((e) => e === zone.name).length > 1,
+  );
+  return typeof duplicate === "undefined"
+    ? undefined
+    : `Another zone is also named "${duplicate.name}"`;
 }

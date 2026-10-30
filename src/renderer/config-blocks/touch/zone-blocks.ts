@@ -8,15 +8,16 @@ import {
   type ZoneKind,
   type ZoneOptionSchema,
   type ZoneOptionValue,
+  type ZoneRead,
   type ZoneSection,
   zoneOptionDefault,
   zoneOptionSchemaFor,
   zoneOptionShown,
+  zoneRead,
   zoneSections,
-  zoneSectionsOpen,
   zoneSends,
 } from "./zone-model";
-import { parseZone, zoneToLua } from "./zone-parse";
+import { parseZones, zonesOf, zonesToLua, zoneToLua } from "./zone-parse";
 import { type ZoneMidi, PAD_AXIS_NAMES } from "./zone-autos";
 import { midiCC } from "../_midi.js";
 import { MusicalNotes } from "../../main/panels/MidiMonitor/midi-types";
@@ -24,33 +25,210 @@ import { MusicalNotes } from "../../main/panels/MidiMonitor/midi-types";
 export const zoneBlockShort: Record<ZoneKind, string> = {
   fader: "zfd",
   button: "zbt",
-  xy: "zxy",
 };
 
 // Default names are the prefix plus the next free number: f1, b1, p1.
 const NAME_PREFIX: Record<ZoneKind, string> = {
   fader: "f",
   button: "b",
-  xy: "p",
 };
 
 // Cells a new zone gets. Placing it on the first free spot is a later step.
 const DEFAULT_CELLS: Record<ZoneKind, [number, number]> = {
-  fader: [1, 9],
+  fader: [5, 5],
   button: [2, 2],
-  xy: [4, 4],
 };
 
-// The first name prefix+n that no zone in these scripts uses.
-export function defaultZoneName(kind: ZoneKind, scripts: string[]): string {
-  const used = new Set(
-    scripts.map((e) => parseZone(e)?.name).filter((e) => e !== undefined),
-  );
+// Options a new zone starts with, beyond the library's defaults: a new fader
+// is an XY pad. A line without the option still means the library default.
+const DEFAULT_OPT: Record<ZoneKind, Zone["opt"]> = {
+  fader: { dir: "xy" },
+  button: {},
+};
+
+// The first name prefix+n that none of these names has.
+function freeName(kind: ZoneKind, used: Set<string>): string {
   let n = 1;
   while (used.has(`${NAME_PREFIX[kind]}${n}`)) {
     n++;
   }
   return `${NAME_PREFIX[kind]}${n}`;
+}
+
+// The first name prefix+n that no zone in these scripts uses.
+export function defaultZoneName(kind: ZoneKind, scripts: string[]): string {
+  return freeName(kind, new Set(zonesOf(scripts).map((e) => e.name)));
+}
+
+// The first select of the block: what the zone is. The three directions are
+// a fader (dir), a button is its own kind of line.
+export type ZoneType = "v" | "h" | "xy" | "button";
+
+const ZONE_TYPES: readonly string[] = ["v", "h", "xy", "button"];
+
+export const zoneTypeSchema: OptionSchema = {
+  key: "dir",
+  type: "enum",
+  values: ZONE_TYPES,
+};
+
+export function zoneType(zone: Pick<Zone, "kind" | "opt">): ZoneType {
+  if (zone.kind === "button") {
+    return "button";
+  }
+  return zone.opt.dir === "h" || zone.opt.dir === "xy" ? zone.opt.dir : "v";
+}
+
+// The zone's colour as CSS ("rgb(255,128,0)"): its `col`, with the module's
+// colour for a channel at -1 (auto). Undefined when a channel can't be known.
+export function zoneCssColor(
+  zone: Pick<Zone, "opt">,
+  auto?: { red?: number; green?: number; blue?: number },
+): string | undefined {
+  const [red, green, blue] = String(zone.opt.col ?? "-1,-1,-1,1")
+    .split(",")
+    .map(Number);
+  const channels = [
+    red === -1 ? auto?.red : red,
+    green === -1 ? auto?.green : green,
+    blue === -1 ? auto?.blue : blue,
+  ];
+  return channels.every((e) => typeof e === "number" && Number.isFinite(e))
+    ? `rgb(${channels.join(",")})`
+    : undefined;
+}
+
+// The type as the Type select titles it: "XY Pad", "Button".
+export function zoneTypeLabel(zone: Pick<Zone, "kind" | "opt">): string {
+  return enumValueLabels.dir[zoneType(zone)];
+}
+
+// The zone as another type. The options the new type has no field for go (a
+// button's mode, a fader's spring), and so does a command it can't send; a
+// default name (f1, b1) becomes the next free one of the new kind.
+export function withZoneType(
+  zone: Zone,
+  type: string,
+  otherScripts: string[],
+): Zone {
+  if (!ZONE_TYPES.includes(type) || type === zoneType(zone)) {
+    return zone;
+  }
+  const kind: ZoneKind = type === "button" ? "button" : "fader";
+  const next: Zone = { ...zone, kind, opt: { ...zone.opt } };
+  delete next.opt.dir;
+  const allowed = new Map(
+    zoneOptionSchemaFor(next)
+      .filter((e) => e.reads.includes(zoneRead(next)) || e.key === "dir")
+      .map((e) => [e.key, e]),
+  );
+  for (const [key, value] of Object.entries(next.opt)) {
+    const schema = allowed.get(key);
+    if (
+      typeof schema === "undefined" ||
+      (schema.type === "enum" && !schema.values.includes(String(value)))
+    ) {
+      delete next.opt[key];
+    }
+  }
+  if (kind === "fader" && type !== "v") {
+    next.opt.dir = type;
+  }
+  if (
+    kind !== zone.kind &&
+    new RegExp(`^${NAME_PREFIX[zone.kind]}\\d+$`).test(zone.name)
+  ) {
+    next.name = defaultZoneName(kind, otherScripts);
+  }
+  return next;
+}
+
+const GRID = 9;
+
+// Whether cells are on the surface and free of every one of `zones`.
+function cellsFree(zones: Zone[]) {
+  const taken = Array.from({ length: GRID }, () =>
+    new Array<boolean>(GRID).fill(false),
+  );
+  for (const zone of zones) {
+    for (
+      let y = Math.max(0, zone.y);
+      y < Math.min(GRID, zone.y + zone.h);
+      y++
+    ) {
+      for (
+        let x = Math.max(0, zone.x);
+        x < Math.min(GRID, zone.x + zone.w);
+        x++
+      ) {
+        taken[y][x] = true;
+      }
+    }
+  }
+  return (x: number, y: number, w: number, h: number) => {
+    for (let j = y; j < y + h; j++) {
+      for (let i = x; i < x + w; i++) {
+        if (i < 0 || j < 0 || i >= GRID || j >= GRID || taken[j][i]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+}
+
+// A copy of `source` with the next free name, to the right of `anchor`, else
+// below it, where its cells are on the surface and free of every zone in
+// `zones` (all the zones of the Setup). Undefined when neither fits.
+export function placedCopy(
+  source: Zone,
+  anchor: Zone,
+  zones: Zone[],
+): Zone | undefined {
+  const { x, y, w, h } = anchor;
+  if (![x, y, w, h].every(Number.isInteger) || w <= 0 || h <= 0) {
+    return undefined;
+  }
+  const free = cellsFree(zones);
+  const name = freeName(source.kind, new Set(zones.map((e) => e.name)));
+  for (const [nx, ny] of [
+    [x + w, y],
+    [x, y + h],
+  ]) {
+    if (free(nx, ny, source.w, source.h)) {
+      return { ...source, opt: { ...source.opt }, name, x: nx, y: ny };
+    }
+  }
+  return undefined;
+}
+
+// The zone Add Zone adds, or undefined when the surface has no room for any:
+// a copy of the selected zone beside it (placedCopy), else a 1x1 button with
+// the default options on the first free cell, reading left to right, top to
+// bottom.
+export function addedZone(selected: Zone, zones: Zone[]): Zone | undefined {
+  const copy = placedCopy(selected, selected, zones);
+  if (typeof copy !== "undefined") {
+    return copy;
+  }
+  const free = cellsFree(zones);
+  const used = new Set(zones.map((e) => e.name));
+  for (let ny = 0; ny < GRID; ny++) {
+    for (let nx = 0; nx < GRID; nx++) {
+      if (free(nx, ny, 1, 1)) {
+        return {
+          name: freeName("button", used),
+          kind: "button",
+          x: nx,
+          y: ny,
+          w: 1,
+          h: 1,
+          opt: { ...DEFAULT_OPT.button },
+        };
+      }
+    }
+  }
+  return undefined;
 }
 
 export function defaultZone(kind: ZoneKind, scripts: string[]): Zone {
@@ -62,7 +240,7 @@ export function defaultZone(kind: ZoneKind, scripts: string[]): Zone {
     y: 0,
     w,
     h,
-    opt: {},
+    opt: { ...DEFAULT_OPT[kind] },
   };
 }
 
@@ -79,7 +257,6 @@ export function zoneHeaderText(zone: Zone, midi?: string): string {
 
 export type ZoneFaceSection = {
   section: ZoneSection;
-  open: boolean; // open by default
   options: ZoneOptionSchema[];
 };
 
@@ -96,11 +273,10 @@ export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
   return zoneSections
     .map((section) => ({
       section,
-      open: zoneSectionsOpen.includes(section),
-      options: zoneOptionSchemaFor(zone.kind).filter(
+      options: zoneOptionSchemaFor(zone).filter(
         (e) =>
           e.section === section &&
-          e.kinds.includes(zone.kind) &&
+          e.reads.includes(zoneRead(zone)) &&
           zoneOptionShown(e, msg),
       ),
     }))
@@ -130,6 +306,9 @@ export function optionPlaceholder(zone: Zone, key: string): string {
   if (key === "col") {
     return "module default";
   }
+  if (key === "spring") {
+    return "off";
+  }
   return optionText(zoneOptionDefault(kind, key));
 }
 
@@ -137,36 +316,36 @@ export type EnumOption = { title: string; value: string };
 
 // Select titles of enum values.
 const enumValueLabels: Record<string, Record<string, string>> = {
-  dir: { v: "Vertical", h: "Horizontal" },
+  dir: { v: "Vertical", h: "Horizontal", xy: "XY Pad", button: "Button" },
   msg: { midi: "MIDI" },
-  cmd: { cc: "CC", note: "Note", pb: "Pitch bend" },
-  mode: { abs: "Absolute", rel: "Relative", glide: "Glide" },
+  cmd: { cc: "CC", cc14: "CC 14-bit", note: "Note", pb: "Pitch bend" },
+  mode: { abs: "Absolute", rel: "Relative" },
   grab: { focus: "Focus", live: "Live" },
 };
 
 // What a mouse or gamepad zone of each kind is, as its Output title.
-const zoneKindTitles: Record<string, Record<ZoneKind, string>> = {
-  mouse: { fader: "Mouse wheel", button: "Mouse button", xy: "Mouse" },
-  pad: { fader: "Gamepad axis", button: "Gamepad button", xy: "Gamepad" },
+const zoneKindTitles: Record<string, Record<ZoneRead, string>> = {
+  mouse: { axis: "Mouse wheel", gate: "Mouse button", point: "Mouse" },
+  pad: { axis: "Gamepad axis", gate: "Gamepad button", point: "Gamepad" },
 };
 
 // Select entries of an enum option: the schema's values; the zone's default
 // is selected when the line leaves the option out. A value the schema doesn't
 // know (a newer editor's, a hand-written line) is listed too, so the select
 // shows what the line says and nothing is rewritten until the user picks
-// something. The kind names its mouse and gamepad outputs.
+// something. The reader names its mouse and gamepad outputs.
 export function enumOptions(
   schema: OptionSchema,
   value: string,
-  kind?: ZoneKind,
+  read?: ZoneRead,
 ): EnumOption[] {
   if (schema.type !== "enum") {
     return [];
   }
   const labels: Record<string, string> = { ...enumValueLabels[schema.key] };
-  if (schema.key === "msg" && typeof kind !== "undefined") {
+  if (schema.key === "msg" && typeof read !== "undefined") {
     for (const [msg, titles] of Object.entries(zoneKindTitles)) {
-      labels[msg] = titles[kind];
+      labels[msg] = titles[read];
     }
   }
   const options = schema.values.map((e) => ({
@@ -262,11 +441,6 @@ export function zoneOptionSuggestions(
       }
       return [];
     }
-    case "res":
-      return Array.from({ length: 8 }, (_, i) => ({
-        value: String(i + 7),
-        info: `0–${2 ** (i + 7) - 1}`,
-      }));
     case "min":
       return [{ value: "0", info: "Lowest" }];
     case "max":
@@ -274,9 +448,14 @@ export function zoneOptionSuggestions(
         { value: "127", info: "7 bit" },
         { value: "16383", info: "14 bit" },
       ];
-    case "rx":
-    case "led":
     case "spring":
+      return [
+        { value: "-1", info: "Off" },
+        { value: "0", info: "0% (minimum)" },
+        { value: "50", info: "50% (centre)" },
+        { value: "100", info: "100% (maximum)" },
+      ];
+    case "rx":
     case "tap":
       return OFF_ON;
     case "bmo":
@@ -316,13 +495,13 @@ export function parseOptionText(
     return { value: trimmed };
   }
   if (schema.type === "color") {
-    return { value: trimmed.replace(/^#/, "").toLowerCase() };
+    return { value: trimmed.replace(/[{}\s]/g, "") };
   }
   const value = Number(trimmed);
   return Number.isFinite(value) ? { value } : { error: "Enter a number" };
 }
 
-// A zone or tick with one option set from field text, or an error when
+// A zone with one option set from field text, or an error when
 // the text can't be written at all (range and enum problems are the
 // validators' job).
 export function withOption<T extends { opt: Record<string, ZoneOptionValue> }>(
@@ -363,37 +542,24 @@ export function withField(
   return { next: { ...zone, [field]: value } };
 }
 
-export const zoneSectionLabels: Record<ZoneSection, string> = {
-  geometry: "Geometry",
-  output: "Output",
-  resolution: "Resolution",
-  led: "LED",
-  behaviour: "Behaviour",
-  capture: "Capture",
-};
-
-// Field titles of the options and tick settings.
+// Field titles of the options.
 export const optionLabels: Record<string, string> = {
   dir: "Direction",
-  res: "Resolution bits",
   min: "Min",
   max: "Max",
   mode: "Mode",
-  speed: "Speed",
-  ease: "Ease",
+  sensitivity: "Sensitivity",
   bmo: "Button mode",
-  spring: "Spring to centre",
+  spring: "Spring to",
   fingers: "Fingers (one channel each)",
   group: "Radio group",
   grab: "Capture",
-  led: "LED feedback",
   col: "Colour",
   msg: "Output",
   cmd: "Command",
   ch: "Channel",
   num: "CC",
   rx: "Receive MIDI",
-  ms: "Interval (ms)",
   tap: "Tap to click",
 };
 
@@ -415,13 +581,21 @@ export function optionLabel(key: string, zone?: Zone): string {
 // zona.lua treats a repeated pending name as a new Setup run, so a duplicate
 // would drop the zones before it (docs/zona-touch-zones.md, Setup and going live).
 export function uniqueZoneScript(script: string, others: string[]): string {
-  const zone = parseZone(script);
-  if (zone === null) {
+  const zones = parseZones(script);
+  if (zones === null) {
     return script;
   }
-  const used = others.map((e) => parseZone(e)?.name);
-  if (!used.includes(zone.name)) {
-    return script;
-  }
-  return zoneToLua({ ...zone, name: defaultZoneName(zone.kind, others) });
+  const used = new Set(zonesOf(others).map((e) => e.name));
+  let renamed = false;
+  const next = zones.map((zone) => {
+    if (!used.has(zone.name)) {
+      used.add(zone.name);
+      return zone;
+    }
+    renamed = true;
+    const name = freeName(zone.kind, used);
+    used.add(name);
+    return { ...zone, name };
+  });
+  return renamed ? zonesToLua(next) : script;
 }

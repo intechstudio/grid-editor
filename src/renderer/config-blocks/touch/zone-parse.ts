@@ -1,8 +1,7 @@
 // Touch block scripts (docs/zona-touch-zones.md, The zone line). The canonical lines, as the editor writes
 // them:
 //
-//   Z.fader(self,"f1",0,0,1,9,{res=10,mode="glide"})
-//   Z.tick(self,{ms=10})
+//   Z.fader(self,"f1",0,0,1,9,{res=10,mode="rel"})
 //
 // This is the form GridScript.compressScript produces: no spaces, double
 // quotes, numbers in shortest form. Options are written in schema order and
@@ -17,12 +16,9 @@ import {
   type Zone,
   type ZoneKind,
   type ZoneOptionValue,
-  type ZoneTick,
   zoneKindList,
   zoneOptionDefault,
   zoneOptionSchema,
-  zoneTickDefaults,
-  zoneTickSchema,
 } from "./zone-model";
 
 // The global the touch blocks call (docs/zona-touch-zones.md, Where things run).
@@ -190,10 +186,35 @@ function parseNumber(text: string): number | null {
   return Number.isFinite(value) ? (match[1] === "-" ? -value : value) : null;
 }
 
+const COLOR_TABLE =
+  /^\{\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(\d*\.?\d+)\s*\}$/;
+
+// A colour as the Simple Color block writes it, `{red, green, blue, alpha}`,
+// kept as "red,green,blue,alpha". The old "rrggbb" string still reads, as
+// that colour with alpha 1.
+function colorLiteral(raw: string): string | null {
+  const table = COLOR_TABLE.exec(raw.trim());
+  if (table !== null) {
+    return table.slice(1, 5).join(",");
+  }
+  const reader = new Reader(raw);
+  const hex = reader.string();
+  if (hex === null || !reader.atEnd() || !/^[0-9a-f]{6}$/i.test(hex)) {
+    return null;
+  }
+  return [0, 2, 4]
+    .map((i) => parseInt(hex.slice(i, i + 2), 16))
+    .concat(1)
+    .join(",");
+}
+
 // A raw table value as the schema's type, or null when it is not a plain
 // literal of that type.
 function literal(schema: OptionSchema, raw: string): ZoneOptionValue | null {
-  if (schema.type === "enum" || schema.type === "color") {
+  if (schema.type === "color") {
+    return colorLiteral(raw);
+  }
+  if (schema.type === "enum") {
     const reader = new Reader(raw);
     const value = reader.string();
     return value !== null && reader.atEnd() ? value : null;
@@ -267,7 +288,9 @@ function writeOptions(
       throw new Error(`Option "${key}" must be a ${entry.type}`);
     }
     if (value !== defaultOf(key)) {
-      parts.push(`${key}=${luaValue(value)}`);
+      parts.push(
+        `${key}=${entry.type === "color" ? `{${value}}` : luaValue(value)}`,
+      );
     }
   }
   if (typeof options.unknown !== "undefined" && options.unknown.length > 0) {
@@ -276,10 +299,8 @@ function writeOptions(
   return `{${parts.join(",")}}`;
 }
 
-// `_Z.fader(self,"f1",0,0,1,9,{res=10})`, the zone block's line. Returns null
-// when the script is not a zone line.
-export function parseZone(script: string): Zone | null {
-  const reader = new Reader(script);
+// One zone line from the reader's position; null when it isn't a zone line.
+function readZone(reader: Reader): Zone | null {
   if (!reader.eat(ZONA_GLOBAL) || !reader.eat(".")) {
     return null;
   }
@@ -305,7 +326,7 @@ export function parseZone(script: string): Zone | null {
     cells.push(value);
   }
   const entries = reader.eat(",") ? reader.table() : null;
-  if (entries === null || !reader.eat(")") || !reader.atEnd()) {
+  if (entries === null || !reader.eat(")")) {
     return null;
   }
   const options = readOptions(entries, zoneOptionSchema);
@@ -314,6 +335,38 @@ export function parseZone(script: string): Zone | null {
   }
   const [x, y, w, h] = cells;
   return { name, kind, x, y, w, h, ...options };
+}
+
+// `_Z.fader(self,"f1",0,0,1,9,{res=10})`, a single zone line. Returns null
+// when the script is not exactly one zone line.
+export function parseZone(script: string): Zone | null {
+  const reader = new Reader(script);
+  const zone = readZone(reader);
+  return zone !== null && reader.atEnd() ? zone : null;
+}
+
+// The zone block's script: one or more zone lines, one after the other. Null
+// when any part of it is not a zone line.
+export function parseZones(script: string): Zone[] | null {
+  const reader = new Reader(script);
+  const zones: Zone[] = [];
+  do {
+    const zone = readZone(reader);
+    if (zone === null) {
+      return null;
+    }
+    zones.push(zone);
+  } while (!reader.atEnd());
+  return zones;
+}
+
+// The zones of the zone blocks among these action scripts, in order.
+export function zonesOf(scripts: string[]): Zone[] {
+  return scripts.flatMap((e) => parseZones(e) ?? []);
+}
+
+export function zonesToLua(zones: Zone[]): string {
+  return zones.map(zoneToLua).join(" ");
 }
 
 export function zoneToLua(zone: Zone): string {
@@ -325,30 +378,4 @@ export function zoneToLua(zone: Zone): string {
     zoneOptionDefault(zone.kind, key),
   );
   return `${ZONA_GLOBAL}.${zone.kind}(self,${luaString(zone.name)},${cells},${options})`;
-}
-
-// `_Z.tick(self,{ms=10})`, the Touch Tick block on the touch Timer.
-// `_Z.tick(self)` parses too.
-export function parseZoneTick(script: string): ZoneTick | null {
-  const reader = new Reader(script);
-  if (
-    !reader.eat(ZONA_GLOBAL) ||
-    !reader.eat(".") ||
-    reader.identifier() !== "tick" ||
-    !reader.eat("(") ||
-    reader.identifier() !== "self"
-  ) {
-    return null;
-  }
-  const entries = reader.eat(",") ? reader.table() : [];
-  if (entries === null || !reader.eat(")") || !reader.atEnd()) {
-    return null;
-  }
-  return readOptions(entries, zoneTickSchema);
-}
-
-export function zoneTickToLua(tick: ZoneTick): string {
-  const defaults: Record<string, ZoneOptionValue> = zoneTickDefaults;
-  const options = writeOptions(tick, zoneTickSchema, (key) => defaults[key]);
-  return `${ZONA_GLOBAL}.tick(self,${options})`;
 }

@@ -18,7 +18,7 @@
     user_input,
   } from "../../../../runtime/user-input.store";
   import { get } from "svelte/store";
-  import { touchIcons } from "../../../../config-blocks/touch/zone-block-info";
+  import { zoneIcon } from "../../../../config-blocks/touch/zone-block-info";
   import { type OverlayZone, overlayZones } from "./touch-zones";
 
   export let element: GridElement;
@@ -103,7 +103,7 @@
 </script>
 
 <touch-zones class="absolute inset-0 pointer-events-auto">
-  {#each zones as zone (zone.actionId)}
+  {#each zones as zone (`${zone.actionId}:${zone.index}`)}
     <button
       class="zone absolute flex flex-col items-center justify-center gap-0.5 overflow-hidden"
       class:highlighted={zone.highlighted}
@@ -122,7 +122,7 @@
         style="transform: rotate({labelRotation}deg);"
       >
         <div class="icon [&_svg]:stroke-current">
-          <SvgIcon scale={0.9} iconData={touchIcons[zone.zone.kind]} />
+          <SvgIcon scale={0.9} iconData={zoneIcon(zone.zone)} />
         </div>
         <span class="name">{zone.zone.name}</span>
       </div>

@@ -2,11 +2,7 @@ import { GridScript, initLuaFormatter } from "@intechstudio/grid-protocol";
 import { test, expect, beforeAll } from "vitest";
 import { createZonaVM, DOWN, MOVE, UP, TAP } from "./zona-vm";
 import zonaSource from "../../content/libraries/zona.lua?raw";
-import {
-  zoneDefaults,
-  zoneKinds,
-  zoneTickDefaults,
-} from "../config-blocks/touch/zone-model";
+import { zoneDefaults, zoneKinds } from "../config-blocks/touch/zone-model";
 
 beforeAll(async () => {
   await initLuaFormatter();
@@ -49,7 +45,6 @@ test("the library defaults match zone-model.ts", async () => {
   const vm = await createZonaVM();
   expect(vm.run("return Z.def")).toEqual(zoneDefaults);
   expect(vm.run("return Z.kind")).toEqual(zoneKinds);
-  expect(vm.run("return Z.tdef")).toEqual(zoneTickDefaults);
 });
 
 test("a fader sends its CC, bottom to top", async () => {
@@ -79,6 +74,16 @@ test("a toggle button turns on, then off on the next press", async () => {
   ]);
 });
 
+test("a fader with cmd=cc14 sends a 14-bit CC pair, and the old res option still does", async () => {
+  for (const opt of [`cmd="cc14"`, `res=14`]) {
+    const vm = await zones(`Z.fader(self,"f",0,0,1,9,{${opt}})`);
+    vm.touch([0, DOWN, 40, 0]);
+    const sent = vm.midi();
+    expect(sent.length).toBe(2);
+    expect(sent.map((e) => e[2])).toEqual([0, 32]);
+  }
+});
+
 test("a fader with cmd=pb sends pitch bend, LSB then MSB", async () => {
   const vm = await zones(`Z.fader(self,"f",0,0,1,9,{cmd="pb"})`);
   vm.touch([0, DOWN, 50, 0]);
@@ -87,9 +92,8 @@ test("a fader with cmd=pb sends pitch bend, LSB then MSB", async () => {
 
 test("an XY pad sends x and y on neighbouring CCs", async () => {
   // cells 4-8 x 0-4: raw x 456-1023, y 0-568
-  const vm = await zones(`Z.xy(self,"p",4,0,5,5,{})`);
+  const vm = await zones(`Z.fader(self,"p",4,0,5,5,{dir="xy"})`);
   vm.touch([0, DOWN, 1023, 0], [0, MOVE, 456, 568]);
-  vm.tick(); // the move waits for the tick after the press
   expect(wire(vm)).toEqual([
     [0, 176, 32, 127],
     [0, 176, 33, 127],
@@ -102,40 +106,42 @@ test("an XY pad sends x and y on neighbouring CCs", async () => {
 // [button, state].
 const mouse = (vm, fn) => vm.calls(fn).map((e) => e.args);
 
-test("a mouse XY sends the finger's move once per tick, summed per axis", async () => {
-  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse",speed=2})`);
+test("the old speed option still scales a mouse XY", async () => {
+  const vm = await zones(
+    `Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse",speed=2})`,
+  );
+  vm.touch([0, DOWN, 100, 500], [0, MOVE, 110, 500]);
+  expect(mouse(vm, "gmms")).toEqual([[1, 20]]);
+});
+
+test("a mouse XY sends each move of the finger, scaled by sensitivity", async () => {
+  const vm = await zones(
+    `Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse",sensitivity=2})`,
+  );
   vm.touch([0, DOWN, 500, 500], [0, MOVE, 510, 497], [0, MOVE, 520, 494]);
-  expect(mouse(vm, "gmms")).toEqual([]);
-  vm.tick();
   expect(mouse(vm, "gmms")).toEqual([
-    [1, 40],
-    [2, -12],
+    [1, 20],
+    [2, -6],
+    [1, 20],
+    [2, -6],
   ]);
   vm.clear();
-  vm.tick();
   vm.touch([0, UP, 520, 494]);
   expect(mouse(vm, "gmms")).toEqual([]);
   expect(wire(vm)).toEqual([]);
 });
 
 test("a big mouse move is cut at 127, so the pointer stops with the finger", async () => {
-  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse"})`);
+  const vm = await zones(`Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse"})`);
   vm.touch([0, DOWN, 100, 500], [0, MOVE, 300, 500]);
-  vm.tick(2);
   expect(mouse(vm, "gmms")).toEqual([[1, 127]]);
 });
 
 test("a quick tap on a mouse XY clicks left on lift", async () => {
-  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse"})`);
+  const vm = await zones(`Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse"})`);
   vm.touch([0, DOWN, 500, 500], [0, MOVE, 505, 498]);
-  vm.tick(3);
   expect(mouse(vm, "gmbs")).toEqual([]);
   vm.touch([0, UP, 505, 498]);
-  expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
-  // held a whole tick: a release in the same scan never reaches the computer
-  vm.tick();
-  expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
-  vm.tick();
   expect(mouse(vm, "gmbs")).toEqual([
     [1, 1],
     [1, 0],
@@ -147,26 +153,40 @@ test("a quick tap on a mouse XY clicks left on lift", async () => {
   ]);
 });
 
+test("a long touch on a mouse XY doesn't click", async () => {
+  const vm = await zones(`Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse"})`);
+  vm.touch([0, DOWN, 500, 500]);
+  vm.wait(0.3);
+  vm.touch([0, UP, 500, 500]);
+  expect(mouse(vm, "gmbs")).toEqual([]);
+  vm.touch([0, DOWN, 500, 500]);
+  vm.wait(0.1);
+  vm.touch([0, UP, 500, 500]);
+  expect(mouse(vm, "gmbs")).toEqual([
+    [1, 1],
+    [1, 0],
+  ]);
+});
+
 test("a mouse XY with tap=0 doesn't click", async () => {
-  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse",tap=0})`);
+  const vm = await zones(
+    `Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse",tap=0})`,
+  );
   vm.touch([0, TAP, 500, 500]);
   expect(mouse(vm, "gmbs")).toEqual([]);
 });
 
 test("a tap doesn't release a drag-locked left button", async () => {
   const vm = await zones(
-    `Z.xy(self,"p",0,2,9,7,{msg="mouse"}) Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1})`,
+    `Z.fader(self,"p",0,2,9,7,{dir="xy",msg="mouse"}) Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1})`,
   );
   vm.touch([0, TAP, 500, 100], [0, TAP, 500, 500]);
   expect(mouse(vm, "gmbs")).toEqual([[1, 1]]);
 });
 
-test("a mouse XY touch that moves far or holds long doesn't click", async () => {
-  const vm = await zones(`Z.xy(self,"p",0,0,9,9,{msg="mouse"})`);
+test("a mouse XY touch that moves far doesn't click", async () => {
+  const vm = await zones(`Z.fader(self,"p",0,0,9,9,{dir="xy",msg="mouse"})`);
   vm.touch([0, DOWN, 500, 500], [0, MOVE, 520, 500], [0, MOVE, 500, 500]);
-  vm.touch([0, UP, 500, 500]);
-  vm.touch([0, DOWN, 500, 500]);
-  vm.tick(10);
   vm.touch([0, UP, 500, 500]);
   expect(mouse(vm, "gmbs")).toEqual([]);
 });
@@ -174,9 +194,7 @@ test("a mouse XY touch that moves far or holds long doesn't click", async () => 
 test("a mouse fader scrolls up when dragged towards its max", async () => {
   const vm = await zones(`Z.fader(self,"f",0,0,1,9,{msg="mouse"})`);
   vm.touch([0, DOWN, 50, 800], [0, MOVE, 50, 480]);
-  vm.tick();
   vm.touch([0, MOVE, 50, 800]);
-  vm.tick();
   expect(mouse(vm, "gmms")).toEqual([
     [3, 10],
     [3, -10],
@@ -225,7 +243,9 @@ test("a gamepad fader sends its axis from -128 at the bottom to 127 at the top",
 });
 
 test("a gamepad XY with spring is a joystick: two axes, back to 0 on lift", async () => {
-  const vm = await zones(`Z.xy(self,"p",4,0,5,5,{msg="pad",spring=1})`);
+  const vm = await zones(
+    `Z.fader(self,"p",4,0,5,5,{dir="xy",msg="pad",spring=1})`,
+  );
   vm.touch([0, DOWN, 1023, 0], [0, UP, 1023, 0]);
   expect(mouse(vm, "ggms")).toEqual([
     [0, 127],
@@ -233,6 +253,23 @@ test("a gamepad XY with spring is a joystick: two axes, back to 0 on lift", asyn
     [0, 0],
     [1, 0],
   ]);
+});
+
+test("spring returns a fader to 0%, 50% or 100% of its range on release, and is off by default", async () => {
+  const lastCC = async (opt) => {
+    const vm = await zones(`Z.fader(self,"f",0,0,1,9,{${opt}})`);
+    vm.touch([0, DOWN, 40, 300], [0, UP, 40, 300]);
+    return vm.midi().at(-1)[3];
+  };
+  expect(await lastCC(`spring=0`)).toBe(0);
+  expect(await lastCC(`spring=50`)).toBe(64);
+  expect(await lastCC(`spring=100`)).toBe(127);
+  // off: the value stays where the finger left it
+  const held = await lastCC(``);
+  expect(held).not.toBe(0);
+  expect(held).not.toBe(64);
+  // the old option, 1, is the centre
+  expect(await lastCC(`spring=1`)).toBe(64);
 });
 
 test("a gamepad button presses while held", async () => {
@@ -248,7 +285,6 @@ test("MIDI from the host sets a zone's value without sending", async () => {
   const vm = await zones(`Z.fader(self,"f",0,0,1,9,{rx=1})`);
   vm.rx(0, 176, 32, 100);
   expect(vm.run("return Z.zs[1].u.v")).toBe(100);
-  vm.tick();
   expect(vm.calls("gms")).toEqual([]);
 });
 
@@ -274,20 +310,28 @@ test("Z.unload releases notes, gives back the callbacks and drops the zones", as
   vm.run("Z.unload(Z)");
   expect(vm.midi()).toEqual([[0, 144, 32, 0]]);
   expect(vm.run("return el.touch_cb")).toBe(null);
-  expect(vm.run("return #Z.zs + #Z.nz")).toBe(0);
+  expect(vm.run("return #Z.zs")).toBe(0);
   vm.rx(0, 144, 32, 99);
   expect(vm.calls("user").map((e) => e.args)).toEqual([[99]]);
 });
 
-test("led=0 keeps a zone dark while a default zone lights up", async () => {
+test("every zone lights its cells and the others stay dark", async () => {
   // LED of cell (x,y): serpentine rows of 9, row 0 = LEDs 8..0
   const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
   const column = (x) => Array.from({ length: 9 }, (_, y) => led(x, y));
-  const vm = await zones(
-    `Z.fader(self,"f",0,0,1,9,{led=0}) Z.fader(self,"g",1,0,1,9,{})`,
-  );
-  vm.touch([0, DOWN, 50, 0], [1, DOWN, 150, 0]);
-  vm.tick();
+  const vm = await createZonaVM();
+  vm.setup(`Z.fader(self,"f",0,0,1,9,{}) Z.fader(self,"g",1,0,1,9,{})`);
+  // painted at once, without a touch: the last phase written to each cell
+  const phase = new Map();
+  for (const e of vm.calls("glp")) {
+    phase.set(e.args[0], e.args[2]);
+  }
+  const cellsAt = (n) => [...phase].filter(([, p]) => p === n).map(([i]) => i);
+  const zoneCells = [...column(0), ...column(1)].sort((a, b) => a - b);
+  expect(cellsAt(16).sort((a, b) => a - b)).toEqual(zoneCells);
+  expect(cellsAt(0).length).toBe(81 - zoneCells.length);
+  vm.clear();
+  vm.touch([1, DOWN, 150, 0]);
   const lit = vm.calls("glp").map((e) => e.args[0]);
   expect(lit.sort((a, b) => a - b)).toEqual(column(1).sort((a, b) => a - b));
 });
@@ -306,4 +350,18 @@ test("the library and 16 zones stay within the module's RAM budget", async () =>
   vm.run("Z=load(_src)()");
   vm.setup(`${faders}`);
   expect(vm.kb() - base).toBeLessThanOrEqual(BUDGET_KB);
+});
+
+test("a zone colour is a {red, green, blue, alpha} table, or the old hex text", async () => {
+  const paint = async (opt) => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.button(self,"b",0,0,1,1,{${opt}})`);
+    return ["gln", "gld", "glx"].map((fn) => vm.calls(fn));
+  };
+  const table = await paint(`col={255,128,0,1}`);
+  expect(table[2].length).toBeGreaterThan(0);
+  expect(await paint(`col="ff8000"`)).toEqual(table);
+  // the module's own colour differs
+  expect(await paint(`col={-1,-1,-1,1}`)).not.toEqual(table);
+  expect(await paint(``)).toEqual(await paint(`col={-1,-1,-1,1}`));
 });

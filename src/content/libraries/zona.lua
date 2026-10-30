@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.11.0"
+local LIB_VERSION = "0.19.0"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -11,44 +11,34 @@ local Z = {}
 -- and a matching copy in zone-model.ts.
 Z.def = {
   dir = "v",
-  res = 7,
   grab = "focus",
   mode = "abs",
-  speed = 1,
-  ease = 0,
+  sensitivity = 1,
   bmo = 0,
   group = 0,
-  led = 1,
   ch = -1,
   num = -1,
   rx = 0,
-  spring = 0,
+  spring = -1,
   fingers = 1,
   tap = 1,
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
--- ("midi": the cmd, "cc", "note" or "pb"; "mouse": wheel, button or pointer
+-- ("midi": the cmd, "cc", "cc14", "note" or "pb"; "mouse": wheel, button or pointer
 -- by kind; "pad": gamepad axis, button or two axes)
 Z.kind = {
   fader = { read = "axis", msg = "midi", cmd = "cc" },
   button = { read = "gate", msg = "midi", cmd = "note" },
-  xy = { read = "point", msg = "midi", cmd = "cc" },
 }
-
--- Z.tick: interval (ms)
-Z.tdef = { ms = 20 }
 
 -- LED phases (0-255) of a zone cell, fixed: LF floor when unlit, LT lit while
 -- touched, LD lit after (release, RX, Z.set). The zone curve's minimum is black.
 local LF, LD, LT = 16, 110, 255
 
 Z.zs = {}
-Z.nz = {}
 Z.ct = {}
-Z.tn = 0
-Z.tm = 0 -- ms of all ticks: the clock a tap is timed by
-Z.tu = 0 -- ticks until a tap's click releases
+Z.op = nil -- the surface is still being built by its Setup run
 -- per cell x+y*9: last colour key, last phase; Z.el: the LEDs' owner index
 Z.lk = {}
 Z.lc = {}
@@ -65,8 +55,8 @@ local KS = { "v", "x", "y" }
 local SR = { axis = { "v" }, gate = { "v" }, point = { "x", "y" } }
 -- mouse axis (gmms) of each source
 local MA = { x = 1, y = 2, v = 3 }
--- tap to click: a mouse xy touch shorter (ms) and with less travel (raw)
-local TT, TD = 200, 30
+-- tap to click: a mouse xy touch shorter (s) and with less travel (raw)
+local TT, TD = 0.2, 30
 
 -- route -> pos -> read -> mode -> put/gate -> run; q is a 0-1 position
 
@@ -136,28 +126,11 @@ local function run(z, s)
   end
 end
 
--- rate: a source's first change in a tick runs at once, later ones
--- wait for Z.tick or the lift (fl); none before the first tick
 local function put(z, k, val)
   if z.u[k] ~= val then
     z.u[k] = val
     z.dt = 1
-    if Z.tn > 0 and z.lr[k] == Z.tn then
-      z.pd[k] = 1
-    else
-      z.lr[k] = Z.tn
-      run(z, k)
-    end
-  end
-end
-
-local function fl(z)
-  for _, k in ipairs(KS) do -- a fixed order: x before y
-    if z.pd[k] then
-      z.pd[k] = nil
-      z.lr[k] = Z.tn
-      run(z, k)
-    end
+    run(z, k)
   end
 end
 
@@ -170,40 +143,33 @@ local function frac(p, a, b)
   return (p - a) / (b - a)
 end
 
-local function ap(a, b, s, e)
-  local d = b - a
-  local m = math.abs(d) * e + s
-  if m >= math.abs(d) then
-    return b
-  end
-  return a + (d > 0 and m or -m)
-end
-
 local function md(z, c, k, t)
   local p = c.p[k]
   if c.m == "rel" then
-    z.tg[k] = nil -- the press too: a held finger stops a spring return
     if p then
-      z.q[k] = cl(z.q[k] + (t - p) * z.o.speed)
+      z.q[k] = cl(z.q[k] + (t - p) * z.o.sensitivity)
     end
   else
-    if c.m == "glide" then
-      z.tg[k] = cl(t)
-    else
-      z.tg[k] = nil
-      z.q[k] = cl(t)
-    end
+    z.q[k] = cl(t)
   end
   c.p[k] = t
   put(z, k, sc(z, z.q[k]))
 end
 
--- mouse: the raw move r of a source, times f and speed, adds to its sum
--- (z.w) that Z.tick sends; q, the finger's spot, is only painted
+-- mouse: the raw move r of a source, times f and sensitivity, adds to its sum
+-- (z.w). Each axis sends its whole steps (at most 127) and keeps the
+-- fraction; a bigger move is cut, so the pointer stops with the finger. q,
+-- the finger's spot, is only painted
 local function mv(z, c, k, r, f, q)
   local p = c.p[k]
   if p then
-    z.w[k] = z.w[k] + (r - p) * f * z.o.speed
+    local s = z.w[k] + (r - p) * f * z.o.sensitivity
+    local n = tr(s)
+    z.w[k] = s - n
+    n = math.max(-127, math.min(127, n))
+    if n ~= 0 then
+      gmms(MA[k], n)
+    end
     c.d = c.d + math.abs(r - p)
   end
   c.p[k], z.q[k], z.dt = r, q, 1
@@ -300,11 +266,12 @@ local function gate(z, g)
   z.u.v = z.sv[st + 1]
 end
 
--- spring: rest at the centre, no output
+-- spring: rest at the spring position (0-100 % of the range), no output
 local function rest(z)
-  if z.o.spring == 1 and z.o.read ~= "gate" then
+  if z.o.spring >= 0 and z.o.read ~= "gate" then
+    local f = z.o.spring / 100
     for _, k in ipairs(SR[z.o.read]) do
-      z.q[k], z.u[k] = 0.5, sc(z, 0.5)
+      z.q[k], z.u[k] = f, sc(z, f)
     end
   end
 end
@@ -320,9 +287,6 @@ local function fg(z, i)
     l = {},
     u = { v = mi, x = mi, y = mi },
     q = { x = 0, y = 0 },
-    tg = {},
-    lr = {},
-    pd = {},
   }, z.fm)
   rest(o)
   z.fs = z.fs or {}
@@ -352,7 +316,8 @@ local function take(id, c, z, x, y, e)
   c.z = z
   c.p = {}
   c.x = nil
-  c.d, c.t = 0, not e and Z.tm or nil -- a finger sliding in doesn't tap
+  -- a finger sliding in doesn't tap; the clock runs only for a tap zone
+  c.d, c.t = 0, not e and z.ms and z.o.tap == 1 and os.clock() or nil
   z.k = 1
   gate(z, 1)
   c.m = e and "abs" or z.o.mode
@@ -361,19 +326,14 @@ local function take(id, c, z, x, y, e)
   run(z, "g")
 end
 
--- spring: back to the centre on release, at once (ease 0) or eased on the
--- tick like a glide (minimum step speed/50)
+-- spring: back to the spring position on release
 local function lift(z)
   z.k = 0
-  fl(z)
-  if z.o.spring == 1 and z.o.read ~= "gate" then
+  if z.o.spring >= 0 and z.o.read ~= "gate" then
+    local f = z.o.spring / 100
     for _, k in ipairs(SR[z.o.read]) do
-      if z.o.ease > 0 then
-        z.tg[k] = 0.5
-      else
-        z.tg[k], z.q[k] = nil, 0.5
-        put(z, k, sc(z, 0.5))
-      end
+      z.q[k] = f
+      put(z, k, sc(z, f))
     end
   end
   gate(z, 0)
@@ -451,9 +411,6 @@ end
 
 local function paint(z)
   z.dt = nil
-  if z.o.led == 0 then
-    return
-  end
   local t = hd(z)
   local p = P[z.ms and not t and z.o.read ~= "gate" and "off" or z.o.read]
   local c = z.c
@@ -496,10 +453,6 @@ local function rl() -- release held zones: no stuck notes or buttons
     end
     mb(z, 0) -- a drag lock (toggle) too
   end
-  if Z.tu > 0 then -- and a tap's click
-    Z.tu = 0
-    gmbs(1, 0)
-  end
 end
 
 -- value sync (RX, Z.set): no output; w: the value on the wire
@@ -518,7 +471,7 @@ local function sy(z, s, v, w)
   else
     s = s == "g" and (z.o.read == "point" and "x" or "v") or s
     local q = cl((v - z.mi) / (z.ma - z.mi))
-    z.q[s], z.tg[s], z.u[s] = q, nil, sc(z, q)
+    z.q[s], z.u[s] = q, sc(z, q)
   end
   if w then
     z.l[s] = w
@@ -548,11 +501,16 @@ end
 -- uses goes
 local CC = setmetatable({}, { __mode = "v" })
 
--- the zone colour, "rrggbb", as its curve: the minimum is black, so phase 0
--- is off. Without one the module's default colour
+-- the zone colour, {red, green, blue, alpha} as Simple Color writes it (-1 is
+-- the module's colour), as its curve: the minimum is black, so phase 0 is off.
+-- The old "rrggbb" text still works
 local function col(z, s)
-  local c = tonumber(s or "", 16)
-  local x, y, w = color_curve({ c and { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 } or { -1, -1, -1, 1 } })
+  local c = tonumber(type(s) == "string" and s or "", 16)
+  if c then
+    s = { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 }
+  end
+  s = type(s) == "table" and s or { -1, -1, -1, 1 }
+  local x, y, w = color_curve({ { s[1], s[2], s[3], s[4] or 1 } })
   x = { 0, 0, 0, x[4] }
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
   local e = CC[k] or { x, y, w }
@@ -560,46 +518,68 @@ local function col(z, s)
   z.ck, z.cc = k, e
 end
 
+-- the first zone of a Setup run takes the touch element: full sensor range,
+-- touch input, and the host MIDI it passes on
+local function start(self)
+  Z.te = self
+  Z.el = self:ind()
+  self:txma(1023)
+  self:tyma(1023)
+  self.touch_cb = Z.touch
+  local u = self.midirx_cb
+  Z.uc = u ~= Z.rx and u or nil
+  self.midirx_cb = Z.uc
+  Z.lv = nil
+  Z.ct, Z.lk, Z.lc, Z.R = {}, {}, {}, {}
+end
+
 function Z.zone(self, n, x, y, w, h, opt, kind)
-  -- a name already pending: the Setup ran again before a tick or touch made
-  -- the previous run live
-  for _, q in ipairs(Z.nz) do
+  -- the first zone of a Setup run: a touch or a value sync since the last
+  -- zone sealed the surface; before any, a name already used shows the
+  -- Setup ran again
+  for _, q in ipairs(Z.zs) do
     if q.n == n then
-      Z.nz = {}
+      Z.op = nil
       break
     end
   end
-  -- the first zone of a Setup run drops the previous surface and takes the
-  -- touch element: full sensor range, touch input, and the timer kick whose
-  -- tick makes the zones live
-  if not Z.nz[1] then
+  if not Z.op then
     drop()
-    Z.te = self
-    self:txma(1023)
-    self:tyma(1023)
-    self.touch_cb = Z.touch
-    gtt(self:ind(), 1) -- one-shot timer: kick it, Z.tick re-arms
+    start(self)
+    Z.op = 1
   end
   local o = setmetatable({}, KM[kind] or KM.fader)
   for k, val in pairs(opt or {}) do
     o[k] = val
   end
+  if o.spring == 1 then
+    o.spring = 50 -- the old option was 1: the centre
+  end
+  if o.speed and rawget(o, "sensitivity") == nil then
+    o.sensitivity = o.speed -- the old name of the option
+  end
   o.read = nil -- from the kind, never an option
+  if o.dir == "xy" then
+    o.read = "point"
+  end
   local m = o.msg == "midi" and o.cmd or o.msg
+  if m == "cc" and (o.res or 7) > 7 then
+    m = "cc14" -- the old res option
+  end
   local ms = m == "mouse" or nil
-  if m == "pb" then
-    o.res = 14 -- pitch bend is always 14-bit
-  elseif ms then
+  -- steps: 7 bits, 14 for pitch bend and a 14-bit CC, 8 for the gamepad
+  o.res = (m == "pb" or m == "cc14") and 14 or m == "pad" and 8 or 7
+  if ms then
     -- finger 1 only, no centre to return to; any toggle is a drag lock
-    o.fingers, o.spring, o.bmo = 1, 0, math.min(o.bmo, 1)
+    o.fingers, o.spring, o.bmo = 1, -1, math.min(o.bmo, 1)
   elseif m == "pad" then
     -- finger 1 only; the full axis range, centred on 0
-    o.fingers, o.rx, o.res, o.min, o.max = 1, 0, 8, -128, 127
+    o.fingers, o.rx, o.min, o.max = 1, 0, -128, 127
   end
   -- CC slot: xy 2, others 1. Gamepad autos: the axes (xy 2, fader 1) and
   -- buttons of the gamepad zones before, counted apart
   local b, ga, gb = 0, 0, 0
-  for _, q in ipairs(Z.nz) do
+  for _, q in ipairs(Z.zs) do
     local r = q.o.read
     local c = r == "point" and 2 or 1
     b = b + c
@@ -625,7 +605,7 @@ function Z.zone(self, n, x, y, w, h, opt, kind)
   -- MIDI identity, autos as before: ch from module row and page, num from
   -- module column and slot (% 32 for a 14-bit pair), xy y on the next one.
   -- m: nil mouse, 0 7-bit, 1 14-bit CC pair, 2 pitch bend, 3 gamepad
-  local z14 = m == "cc" and o.res > 7
+  local z14 = m == "cc14"
   local p, py = o.num, o.num + 1
   if p < 0 and m == "pad" then
     p = o.read == "gate" and gb or ga
@@ -660,15 +640,35 @@ function Z.zone(self, n, x, y, w, h, opt, kind)
     u = { v = mi, x = mi, y = mi },
     -- position: only the sources this reader has
     q = o.read == "point" and { x = 0, y = 0 } or { v = 0 },
-    tg = {},
-    lr = {}, -- tick of the last run, pending run: per source
-    pd = {},
     c = { x, y, w, h },
   }
   z.os = { z } -- the zone and its fingers' states (fg)
   rest(z)
   col(z, o.col)
-  Z.nz[#Z.nz + 1] = z
+  Z.zs[#Z.zs + 1] = z
+  if o.grab == "live" then
+    Z.lv = 1
+  end
+  -- rx=1: the identities the zone sends, a 14-bit pair on both CCs
+  if o.rx == 1 and z.m then
+    for _, k in ipairs(SR[o.read]) do
+      local pk = k == "y" and z.py or z.p
+      local r = { z = z, s = k, m = z.m, p = pk }
+      Z.R[z.m == 2 and ky(z.ch, 224, 0) or ky(z.ch, z.cmd, pk)] = r
+      if z.m == 1 then
+        Z.R[ky(z.ch, 176, pk + 32)] = r
+      end
+    end
+    self.midirx_cb = Z.rx
+  end
+  paint(z)
+  -- the cells no zone covers are dark
+  local d = { { 0, 0, 0, 1 }, { 0, 0, 0, 1 }, { 0, 0, 0, 1 } }
+  for e = 0, 80 do
+    if not own(e) then
+      lit(e, 0, d, 0)
+    end
+  end
   return z
 end
 
@@ -678,97 +678,13 @@ for kind in pairs(Z.kind) do
   end
 end
 
--- A Setup runs to its end before any tick or touch, so zones still pending
--- then are the whole Setup run (up to an error): they become the surface
-local function live()
-  if not Z.nz[1] then
-    return
-  end
-  rl()
-  Z.tn = 0
-  Z.zs = Z.nz
-  Z.nz = {}
-  Z.lv = nil
-  for _, z in ipairs(Z.zs) do
-    if z.o.grab == "live" then
-      Z.lv = 1
-    end
-  end
-  Z.ct = {}
-  Z.lk = {}
-  Z.lc = {}
-  Z.R = {}
-  -- rx=1: the identities the zone sends, a 14-bit pair on both CCs
-  for _, z in ipairs(Z.zs) do
-    if z.o.rx == 1 and z.m then
-      for _, k in ipairs(SR[z.o.read]) do
-        local p = k == "y" and z.py or z.p
-        local r = { z = z, s = k, m = z.m, p = p }
-        Z.R[z.m == 2 and ky(z.ch, 224, 0) or ky(z.ch, z.cmd, p)] = r
-        if z.m == 1 then
-          Z.R[ky(z.ch, 176, p + 32)] = r
-        end
-      end
-    end
-  end
-  local u = Z.te.midirx_cb
-  Z.uc = u ~= Z.rx and u or nil
-  Z.te.midirx_cb = next(Z.R) and Z.rx or Z.uc
-  Z.el = Z.te:ind()
-  for _, z in ipairs(Z.zs) do
-    paint(z)
-  end
-  local b = { 0, 0, 0, 1 }
-  local d = { b, b, b } -- dark: no zone, or led=0
-  for e = 0, 80 do
-    local z = own(e)
-    if not z or z.o.led == 0 then
-      lit(e, 0, d, 0)
-    end
-  end
-end
-
-function Z.tick(self, cfg)
-  gtt(self:ind(), cfg and cfg.ms or Z.tdef.ms) -- re-arm first: an error can't stop the tick
-  live()
-  Z.tn = Z.tn + 1
-  Z.tm = Z.tm + (cfg and cfg.ms or Z.tdef.ms)
-  -- a tap's click is held a whole tick, so the computer sees it
-  if Z.tu > 0 then
-    Z.tu = Z.tu - 1
-    if Z.tu == 0 then
-      gmbs(1, 0)
-    end
-  end
+-- repaints the zones a touch or a value sync changed. A finger repaints its
+-- zone
+local function refresh()
   for _, z in ipairs(Z.zs) do
     for _, o in ipairs(z.os) do
-      for _, k in ipairs(KS) do
-        local t = o.tg[k]
-        if t then
-          local q = ap(o.q[k], t, o.o.speed / 50, o.o.ease)
-          o.q[k] = q
-          if q == t then
-            o.tg[k] = nil
-          end
-          put(o, k, sc(o, q))
-        end
-      end
-      fl(o)
-      if o.dt then -- a finger repaints its zone
+      if o.dt then
         z.dt, o.dt = 1, o == z and 1 or nil
-      end
-    end
-    -- mouse: each axis sends its whole steps (at most 127) and keeps the
-    -- fraction; a bigger move is cut, so the pointer stops with the finger
-    if z.w then
-      for _, k in ipairs(KS) do
-        local s = z.w[k]
-        local n = tr(s)
-        z.w[k] = s - n
-        n = math.max(-127, math.min(127, n))
-        if n ~= 0 then
-          gmms(MA[k], n)
-        end
       end
     end
     if z.dt then
@@ -789,7 +705,7 @@ local function route(id, evt, x, y)
       -- a mouse xy: a short touch that barely moved clicks left on lift,
       -- unless a mouse button zone holds left (a drag lock stays)
       local m = z.ms and z.o.read == "point" and z.o.tap == 1
-      if m and (evt == 5 or evt == 7) and c.t and Z.tm - c.t < TT and c.d < TD then
+      if m and (evt == 5 or evt == 7) and c.t and os.clock() - c.t < TT and c.d < TD then
         for _, o in ipairs(Z.zs) do
           if o.mb == 1 and o.o.num <= 1 then
             m = nil
@@ -797,7 +713,7 @@ local function route(id, evt, x, y)
         end
         if m then
           gmbs(1, 1)
-          Z.tu = 2
+          gmbs(1, 0)
         end
       end
     end
@@ -833,20 +749,23 @@ local function route(id, evt, x, y)
 end
 
 function Z.touch(self, id, evt, x, y)
-  live()
+  Z.op = nil
   if evt == 9 then -- tap: down and up in one scan
     route(id, 4, x, y)
     evt = 5
   end
   route(id, evt, x, y)
+  refresh()
 end
 
 function Z.set(n, v, s)
+  Z.op = nil
   for _, z in ipairs(Z.zs) do
     if z.n == n and not z.ms and not hd(z) then -- touch wins; no mouse value
       sy(z, s or "g", v)
     end
   end
+  refresh()
 end
 
 -- host MIDI only (header 13, as the firmware gmrr)
@@ -859,6 +778,7 @@ function Z.rx(self, h, e)
   end
   local r = h[1] == 13 and Z.R[ky(ch, cmd, p1)]
   if r then
+    Z.op = nil
     local z = r.z
     if r.m == 1 then -- 14-bit CC: the MSB at once, the LSB refines
       v = p1 == r.p and v * 128 or (r.v or 0) // 128 * 128 + v
@@ -870,6 +790,7 @@ function Z.rx(self, h, e)
     end
     if not hd(z) then -- touch wins (any finger)
       sy(z, r.s, v, w)
+      refresh()
     end
   end
   if Z.uc then
@@ -883,7 +804,7 @@ end
 -- after a new one is loaded.
 function Z.unload()
   drop()
-  Z.nz, Z.lk, Z.lc = {}, {}, {}
+  Z.lk, Z.lc, Z.op = {}, {}, nil
   local e = Z.te
   if e and e.touch_cb == Z.touch then
     e.touch_cb = nil

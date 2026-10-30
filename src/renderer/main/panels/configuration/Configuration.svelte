@@ -45,6 +45,7 @@
   import addIcon from "../../../assets/icons/add.svg?raw";
   import { Modal } from "../../modals/modal.store";
   import AddVirtualEvent from "../../modals/AddVirtualEvent.svelte";
+  import { minimalistEvents } from "./minimalist-events";
 
   let runtime: GridRuntime;
   let element: GridElement;
@@ -109,6 +110,11 @@
       getVirtualEvent(setup, d.fstAction),
     );
   }
+
+  $: multiViewEvents =
+    $appSettings.persistent.userLevelMinimalist === false
+      ? ($element?.events ?? [])
+      : minimalistEvents($element?.events ?? []);
 
   let containerWidth: number;
 
@@ -328,7 +334,7 @@
           style="background-color: var(--background-soft);"
         >
           {#if $appSettings.isMultiView}
-            {#each $element?.events.filter((e) => (e.getName() !== "Setup" && e.getName() !== "Timer") || $appSettings.persistent.userLevelMinimalist === false) ?? [] as event, i}
+            {#each multiViewEvents as event, i}
               <ActionList {event} focusTrigger={`action-list-${i}`} />
             {/each}
             {#each virtualEvents as event (event.getName())}
