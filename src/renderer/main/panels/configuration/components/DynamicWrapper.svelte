@@ -48,6 +48,9 @@
   let toggled = false;
   let isEdit = false;
   let event = action.parent as GridEvent;
+  // Also on event changes: a block can be invalid because of another one
+  // (contextProblem, e.g. a duplicate zone name).
+  $: isValid = Boolean($event) && $action.isValid();
   let componentProps: Record<string, any> = {};
 
   onMount(() => {
@@ -255,7 +258,7 @@
   <carousel
     id="cfg-{index}"
     style="background-color: var(--background); color: var(--foreground); "
-    class="flex flex-grow min-w-0 h-auto min-h-[32px] {!$action.isValid()
+    class="flex flex-grow min-w-0 h-auto min-h-[32px] {!isValid
       ? 'border border-error'
       : ' '} cursor-pointer"
     class:opacity-20={$draggedActions.includes(action)}

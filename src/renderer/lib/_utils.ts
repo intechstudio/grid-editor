@@ -16,6 +16,7 @@ import {
   readModuleMidiChannel,
   readModuleMidiChannelState,
 } from "../runtime/system-midi-channel";
+import { type ZoneMidi, zoneMidiAt } from "../config-blocks/touch/zone-autos";
 
 export namespace Grid {
   export type UUID = string;
@@ -30,6 +31,26 @@ export namespace Grid {
       LED_RED,
       LED_GREEN,
       LED_BLUE,
+    }
+
+    // What a zone block's zone sends (its options and the zones before it),
+    // null for msg="mouse", undefined when the action isn't a zone line.
+    export function getZoneMidi(
+      action: GridAction,
+    ): ZoneMidi | null | undefined {
+      const event = action.parent as GridEvent | undefined;
+      const actions = event?.config ?? [];
+      const index = actions.findIndex((e) => e.id === action.id);
+      if (index === -1) {
+        return undefined;
+      }
+      const page = (event?.parent as GridElement).parent as GridPage;
+      const module = page.parent as GridModule;
+      return zoneMidiAt(
+        actions.map((e) => e.script),
+        index,
+        { dx: module.dx, dy: module.dy, page: page.pageNumber },
+      );
     }
 
     export function getMidi(

@@ -21,6 +21,7 @@ import type {
   GridPage,
 } from "../runtime/runtime";
 import testSource from "../../content/libraries/test.lua?raw";
+import zonaSource from "../../content/libraries/zona.lua?raw";
 
 export type LibraryRow = {
   global: string; // "_Test"
@@ -79,6 +80,7 @@ function bundle(file: string, source: string): BundledLibrary {
 
 // Libraries the editor ships and can install on the module.
 export const bundledLibraries: readonly BundledLibrary[] = [
+  bundle("zona", zonaSource),
   bundle("test", testSource),
 ];
 

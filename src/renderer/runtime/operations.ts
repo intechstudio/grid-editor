@@ -508,6 +508,7 @@ export async function dropActions(
   }
 
   try {
+    target.makeUnique(actions);
     await target.insert(index, ...actions);
 
     // Send all updates only after successful insert. Compare via
