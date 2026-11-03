@@ -1,40 +1,19 @@
-import { type User, onAuthStateChanged } from "firebase/auth";
-import { readable } from "svelte/store";
-import { prodCentralAuth, devCentralAuth } from "./firebase";
+import { derived } from "svelte/store";
+import { authStore } from "./auth.store";
 
-function createUserStore() {
-  // this is code for awaiting the currentUser by CaptainCodeman
-
-  const { subscribe } = readable<User | null>(undefined, (set) => {
-    let prodAuthUser: User | null = null;
-    let devAuthUser: User | null = null;
-    onAuthStateChanged(prodCentralAuth, (user) => {
-      prodAuthUser = user;
-      set(prodAuthUser ?? devAuthUser);
-    });
-    onAuthStateChanged(devCentralAuth, (user) => {
-      devAuthUser = user;
-      set(prodAuthUser ?? devAuthUser);
-    });
-  });
-
-  // onAuthStateChange can be null if getAuth.currentUser is not ready
-  // NOTE: "known" is only used to detect changes. It returns void, not a User. The user is available via the subscribe function on the store.
-  const known = new Promise<void>((resolve) => {
-    let unsub = () => {};
-    unsub = subscribe((user) => {
-      //first user maybe null, further run should have valid value
-      if (user !== undefined) {
-        resolve();
-        unsub();
-      }
-    });
-  });
-
-  return {
-    subscribe,
-    known,
-  };
+interface User {
+  uid: string;
+  email?: string;
 }
 
-export const userStore = createUserStore();
+function decodeIdToken(idToken: string): User {
+  const payload = idToken.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+  const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+  const { sub, email } = JSON.parse(new TextDecoder().decode(bytes));
+  return { uid: sub, email };
+}
+
+export const userStore = derived<typeof authStore, User | null>(
+  authStore,
+  (auth) => (auth?.idToken ? decodeIdToken(auth.idToken) : null),
+);

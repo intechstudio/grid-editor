@@ -80,7 +80,7 @@ npm run web-dev
 
 ## Where the web editor is deployed
 
-GitHub Actions builds it and uploads it to Cloudflare Workers as static assets; nothing is built on Cloudflare. Hosting is no longer on Firebase -- Firebase is only used for authentication (see below).
+GitHub Actions builds it and uploads it to Cloudflare Workers as static assets; nothing is built on Cloudflare.
 
 | Trigger          | Deploys to                                         |
 | ---------------- | -------------------------------------------------- |
@@ -106,7 +106,8 @@ Targets are defined in `wrangler.jsonc`, the workflows in `.github/workflows/clo
 ## Grid Editor and Profile Cloud projects during development
 
 - handy firebase commands: `firebase logout`, `firebase login`, `firebase projects:list`, `firebase use THE-PROJECT-NAME`
-- is-auth-dev is the central firebase authentication project used by the Grid Editor
+- the Grid Editor signs in through Logto (`AUTH_ISSUER_*` and `AUTH_CLIENT_ID_*` in `configuration.json`), the loaded Profile Cloud build picks the environment
 - profile-cloud-dev is the profile cloud firebase project used by the Profile Cloud
 - when firestore security settings are changed, they shouls be either emulated locally or pushed to the appropiate project environment
 - passing auth is through `oidc`
+- sign-in follows the `PUBLIC_APP_ENV` of the loaded Profile Cloud build, and only local and PR preview builds are `development`. The web build keeps no settings across the sign-in redirect, so point it at such a build with `VITE_PROFILE_CLOUD_URL`

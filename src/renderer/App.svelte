@@ -30,7 +30,6 @@
   import { windowSize } from "./runtime/window-size.svelte";
   import { MonacoEditor } from "./lib/monaco";
 
-  import { authStore } from "$lib/auth.store";
   import { configLinkStore } from "$lib/configlink.store";
 
   import { watchResize } from "svelte-watch-resize";
@@ -151,10 +150,6 @@
 
   window.electron.websocket.onTransmit((_event, value) => {
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
-  });
-
-  window.electron.auth.onExternalResponse((_event, value) => {
-    authStore.socialLogin("google", value);
   });
 
   window.electron.configs.onExternalResponse((_event, value) => {

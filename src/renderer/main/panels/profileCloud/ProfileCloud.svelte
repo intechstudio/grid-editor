@@ -3,7 +3,10 @@
   import { ProfileCloud } from "./../../../runtime/string-table";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
-  import { appSettings } from "../../../runtime/app-helper.store";
+  import {
+    appSettings,
+    appSettingsHydrated,
+  } from "../../../runtime/app-helper.store";
   import { ModuleOverlay, moduleOverlay } from "../../../runtime/moduleOverlay";
 
   import { Analytics } from "../../../runtime/analytics.js";
@@ -20,7 +23,6 @@
   import { selected_actions } from "./../../../runtime/selected-actions.store";
 
   import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
-  import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { Modal } from "../../modals/modal.store";
   import UserAuthenticationModal from "../../modals/user-authentication/UserAuthenticationModal.svelte";
@@ -496,8 +498,8 @@
   }
 
   onMount(async () => {
-    // get to know the user
-    await userStore.known;
+    // the panel must load the user's chosen Profile Cloud, never the default first
+    await appSettingsHydrated;
     console.log(
       `Profile Cloud url: ${$appSettings.persistent.profileCloudUrl} (status: ${profileCloudIsMounted})`,
     );
