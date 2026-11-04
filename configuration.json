@@ -60,7 +60,10 @@
   "PROFILE_CLOUD_URL_LOCAL": "package://profile-cloud/public",
   "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app",
   "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
-  "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth",
+  "AUTH_ISSUER_DEV": "http://localhost:3001/oidc",
+  "AUTH_ISSUER_PROD": "https://auth.intech.studio/oidc",
+  "AUTH_CLIENT_ID_DEV": "38r8mztj8hd734bwcf6g5",
+  "AUTH_CLIENT_ID_PROD": "",
   "RECOMMENDED_PACKAGES": {
     "package-photoshop": {
       "gitHubRepositoryOwner": "intechstudio",
