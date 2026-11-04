@@ -150,6 +150,8 @@ const config = {
       // Desktop integration
       "--talk-name=org.freedesktop.Notifications",
       "--talk-name=org.kde.StatusNotifierWatcher",
+      // OS keychain for the stored sign-in (safeStorage)
+      "--talk-name=org.freedesktop.secrets",
     ],
   },
   mac: {

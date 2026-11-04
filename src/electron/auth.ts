@@ -9,8 +9,12 @@ import {
 import path from "path";
 import fs from "fs";
 import log from "electron-log";
-import * as oidc from "openid-client";
-import configuration from "../../configuration.json";
+import type * as OpenIdClient from "openid-client";
+import {
+  authProviderFor,
+  isSameAuthProvider,
+  type AuthProvider,
+} from "../shared/auth-provider";
 
 const REDIRECT_URI = "grid-editor://auth/callback";
 const POST_LOGOUT_REDIRECT_URI = "grid-editor://auth/logout";
@@ -19,17 +23,12 @@ const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 30 * 1000;
 const REFRESH_RETRY_MS = 60 * 1000;
 
-interface Provider {
-  issuer: string;
-  clientId: string;
-}
-
-interface Session extends Provider {
+interface Session extends AuthProvider {
   refreshToken: string;
   idToken?: string;
 }
 
-interface PendingLogin extends Provider {
+interface PendingLogin extends AuthProvider {
   codeVerifier: string;
   state: string;
 }
@@ -39,7 +38,7 @@ type AuthChange =
 
 export const auth: { mainWindow: BrowserWindow | null } = { mainWindow: null };
 
-let provider = providerFor("production");
+let provider = authProviderFor("production");
 let session: Session | undefined;
 let pendingLogin: PendingLogin | undefined;
 // Null until the stored session has been restored or ruled out.
@@ -48,25 +47,22 @@ let refreshTimer: NodeJS.Timeout | undefined;
 let refreshing = false;
 // Moves on whenever the session is replaced, so a late response cannot revive it.
 let sessionEpoch = 0;
-let discovered: { issuer: string; config: oidc.Configuration } | undefined;
+let discovered:
+  (AuthProvider & { config: OpenIdClient.Configuration }) | undefined;
+let oidc: typeof OpenIdClient;
 
-function providerFor(environment: string): Provider {
-  return environment === "production"
-    ? {
-        issuer: configuration.AUTH_ISSUER_PROD,
-        clientId: configuration.AUTH_CLIENT_ID_PROD,
-      }
-    : {
-        issuer: configuration.AUTH_ISSUER_DEV,
-        clientId: configuration.AUTH_CLIENT_ID_DEV,
-      };
+function errorSummary(e: any) {
+  return [e?.code, e?.message].filter(Boolean).join(" ");
 }
 
-async function discover({ issuer, clientId }: Provider) {
+async function discover(from: AuthProvider) {
+  const { issuer, clientId } = from;
   if (!clientId) {
     throw new Error(`No client id configured for ${issuer}`);
   }
-  if (discovered?.issuer !== issuer) {
+  // A broken auth dependency must only cost the user sign-in, not the whole app.
+  oidc ??= await import("openid-client");
+  if (!discovered || !isSameAuthProvider(discovered, from)) {
     const url = new URL(issuer);
     const config = await oidc.discovery(
       url,
@@ -77,7 +73,7 @@ async function discover({ issuer, clientId }: Provider) {
         ? { execute: [oidc.allowInsecureRequests] }
         : undefined,
     );
-    discovered = { issuer, config };
+    discovered = { issuer, clientId, config };
   }
   return discovered.config;
 }
@@ -117,17 +113,23 @@ function readStoredSession(): Session | undefined {
 }
 
 function writeStoredSession({ issuer, clientId, refreshToken }: Session) {
-  if (!canEncrypt()) {
-    log.warn("No OS keychain available, sign-in lasts until the app quits");
-    return;
+  try {
+    if (!canEncrypt()) {
+      log.warn("No OS keychain available, sign-in lasts until the app quits");
+      // An earlier account must not come back on the next launch.
+      fs.rmSync(sessionFile(), { force: true });
+      return;
+    }
+    fs.writeFileSync(
+      sessionFile(),
+      safeStorage.encryptString(
+        JSON.stringify({ issuer, clientId, refreshToken }),
+      ),
+      { mode: 0o600 },
+    );
+  } catch (e) {
+    log.warn("Could not store the auth session:", errorSummary(e));
   }
-  fs.writeFileSync(
-    sessionFile(),
-    safeStorage.encryptString(
-      JSON.stringify({ issuer, clientId, refreshToken }),
-    ),
-    { mode: 0o600 },
-  );
 }
 
 function dropSession() {
@@ -139,10 +141,12 @@ function dropSession() {
 }
 
 function acceptTokens(
-  from: Provider,
-  tokens: oidc.TokenEndpointResponse & oidc.TokenEndpointResponseHelpers,
+  from: AuthProvider,
+  tokens: OpenIdClient.TokenEndpointResponse &
+    OpenIdClient.TokenEndpointResponseHelpers,
+  currentRefreshToken?: string,
 ) {
-  const refreshToken = tokens.refresh_token ?? session?.refreshToken;
+  const refreshToken = tokens.refresh_token ?? currentRefreshToken;
   const idToken = tokens.id_token;
   if (!refreshToken || !idToken) {
     throw new Error("Token response is missing a refresh or ID token");
@@ -164,6 +168,10 @@ function scheduleRefresh(delay: number) {
   refreshTimer = setTimeout(refresh, Math.max(delay, MIN_REFRESH_DELAY_MS));
 }
 
+function isSessionRevoked(e: any) {
+  return e?.error === "invalid_grant" || e?.error === "invalid_client";
+}
+
 async function refresh() {
   // Keeps the user signed in: a second request would spend the rotated token.
   if (!session || refreshing) {
@@ -176,17 +184,17 @@ async function refresh() {
     const config = await discover(refreshed);
     const tokens = await oidc.refreshTokenGrant(config, refreshed.refreshToken);
     if (epoch === sessionEpoch) {
-      acceptTokens(refreshed, tokens);
+      acceptTokens(refreshed, tokens, refreshed.refreshToken);
     }
   } catch (e) {
     if (epoch !== sessionEpoch) {
       return;
     }
-    if (e instanceof oidc.ResponseBodyError && e.error === "invalid_grant") {
+    if (isSessionRevoked(e)) {
       log.warn("Auth session is no longer valid");
       dropSession();
     } else {
-      log.warn("Auth refresh failed, retrying:", e);
+      log.warn("Auth refresh failed, retrying:", errorSummary(e));
       scheduleRefresh(REFRESH_RETRY_MS);
     }
   } finally {
@@ -221,7 +229,9 @@ async function logout() {
     const config = await discover(ended);
     oidc
       .tokenRevocation(config, ended.refreshToken)
-      .catch((e) => log.warn("Refresh token revocation failed:", e));
+      .catch((e) =>
+        log.warn("Refresh token revocation failed:", errorSummary(e)),
+      );
     const endSessionUrl = oidc.buildEndSessionUrl(config, {
       client_id: ended.clientId,
       post_logout_redirect_uri: POST_LOGOUT_REDIRECT_URI,
@@ -229,16 +239,19 @@ async function logout() {
     });
     await shell.openExternal(endSessionUrl.href);
   } catch (e) {
-    log.warn("Could not reach the auth provider to end the session:", e);
+    log.warn(
+      "Could not reach the auth provider to end the session:",
+      errorSummary(e),
+    );
   }
 }
 
 function setEnvironment(environment: string) {
-  provider = providerFor(environment);
-  if (pendingLogin?.issuer !== provider.issuer) {
+  provider = authProviderFor(environment);
+  if (pendingLogin && !isSameAuthProvider(pendingLogin, provider)) {
     pendingLogin = undefined;
   }
-  if (session && session.issuer !== provider.issuer) {
+  if (session && !isSameAuthProvider(session, provider)) {
     dropSession();
   }
 }
@@ -253,16 +266,25 @@ export async function handleAuthDeeplink(url: URL) {
     return;
   }
   pendingLogin = undefined;
+  const epoch = sessionEpoch;
   try {
     const config = await discover(pending);
     const tokens = await oidc.authorizationCodeGrant(config, url, {
       pkceCodeVerifier: pending.codeVerifier,
       expectedState: pending.state,
     });
-    acceptTokens(pending, tokens);
+    if (epoch === sessionEpoch && isSameAuthProvider(pending, provider)) {
+      acceptTokens(pending, tokens);
+    }
   } catch (e) {
-    log.error("Sign-in failed:", e);
+    log.error("Sign-in failed:", errorSummary(e));
   }
+}
+
+function isConfiguredProvider(from: AuthProvider) {
+  return ["production", "development"].some((environment) =>
+    isSameAuthProvider(authProviderFor(environment), from),
+  );
 }
 
 export function startAuth() {
@@ -277,9 +299,11 @@ export function startAuth() {
   powerMonitor.on("resume", refresh);
 
   session = readStoredSession();
-  if (session) {
+  if (!session) {
+    publish({ event: "logout" });
+  } else if (isConfiguredProvider(session)) {
     refresh();
   } else {
-    publish({ event: "logout" });
+    dropSession();
   }
 }

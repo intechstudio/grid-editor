@@ -349,12 +349,13 @@
 
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {
-    profileCloudIsMounted = true;
     let authEnvironment = AuthEnvironment.PRODUCTION;
     if (event.data.environment !== "production") {
       authEnvironment = AuthEnvironment.DEVELOPMENT;
     }
-    authStore.setCurrentAuthEnvironment(authEnvironment);
+    // the panel must only ever get a token from its own environment
+    await authStore.setCurrentAuthEnvironment(authEnvironment);
+    profileCloudIsMounted = true;
     if (
       selectedModuleType !== undefined ||
       selectedControlElementType !== undefined

@@ -1,5 +1,5 @@
 import type LogtoClient from "@logto/browser";
-import configuration from "../../../configuration.json";
+import { authProviderFor } from "../../shared/auth-provider";
 
 const ENVIRONMENT_KEY = "auth-environment";
 const CALLBACK_PATH = "/auth/callback";
@@ -24,19 +24,13 @@ export function createWebAuth() {
 
   async function createClient(forEnvironment: string) {
     const { default: LogtoClient, UserScope } = await import("@logto/browser");
-    const production = forEnvironment === "production";
-    const issuer = production
-      ? configuration.AUTH_ISSUER_PROD
-      : configuration.AUTH_ISSUER_DEV;
-    const appId = production
-      ? configuration.AUTH_CLIENT_ID_PROD
-      : configuration.AUTH_CLIENT_ID_DEV;
-    if (!appId) {
+    const { issuer, clientId } = authProviderFor(forEnvironment);
+    if (!clientId) {
       throw new Error(`No client id configured for ${issuer}`);
     }
     return new LogtoClient({
       endpoint: issuer.replace(/\/oidc$/, ""),
-      appId,
+      appId: clientId,
       scopes: [UserScope.Email],
     });
   }
@@ -56,11 +50,17 @@ export function createWebAuth() {
     scheduleRefresh(exp * 1000 - REFRESH_MARGIN_MS - Date.now());
   }
 
-  async function refresh() {
+  // Tabs share one rotating refresh token, so they must take turns spending it.
+  function refresh() {
+    return navigator.locks.request("grid-editor-auth-refresh", refreshInTurn);
+  }
+
+  async function refreshInTurn() {
     const refreshed = client;
     if (!refreshed) {
       return;
     }
+    const sentRefreshToken = await refreshed.getRefreshToken();
     try {
       // Asks for a new ID token even while the access token is still valid.
       await refreshed.clearAccessToken();
@@ -72,7 +72,9 @@ export function createWebAuth() {
       if (refreshed !== client) {
         return;
       }
-      if (isRevoked(e)) {
+      const stillStored =
+        (await refreshed.getRefreshToken()) === sentRefreshToken;
+      if (isRevoked(e) && stillStored) {
         console.warn("Auth session is no longer valid");
         await refreshed.clearAllTokens();
         client = undefined;
@@ -98,17 +100,30 @@ export function createWebAuth() {
       publish({ event: "logout" });
       return;
     }
+    const startedIn = environment;
     try {
-      const restored = await createClient(environment);
+      const restored = await createClient(startedIn);
+      let signedIn = false;
       if (callbackUrl) {
-        await restored.handleSignInCallback(callbackUrl);
+        try {
+          await restored.handleSignInCallback(callbackUrl);
+          signedIn = true;
+        } catch (e) {
+          console.error("Sign-in failed:", e);
+        }
       }
-      if (!(await restored.isAuthenticated())) {
+      const authenticated = await restored.isAuthenticated();
+      if (environment !== startedIn) {
+        await restored.clearAllTokens();
+        publish({ event: "logout" });
+        return;
+      }
+      if (!authenticated) {
         publish({ event: "logout" });
         return;
       }
       client = restored;
-      if (callbackUrl) {
+      if (signedIn) {
         await publishIdToken(restored);
       } else {
         await refresh();

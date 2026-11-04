@@ -458,12 +458,14 @@ if (!gotTheLock) {
       if (mainWindow) {
         showMainWindow();
 
-        // Only treat the last arg as a deeplink when it's actually our
-        // protocol; a relaunch (resetAppSettings, restartApp) passes plain
-        // flags/paths that new URL() would reject.
-        const lastArg = commandLine.pop()?.toString();
-        if (lastArg && lastArg.startsWith("grid-editor://")) {
-          handleDeeplinkReturnData(lastArg);
+        // Only treat an arg as a deeplink when it's actually our protocol; a
+        // relaunch (resetAppSettings, restartApp) passes plain flags/paths
+        // that new URL() would reject.
+        const deeplink = commandLine.find((arg) =>
+          arg.startsWith("grid-editor://"),
+        );
+        if (deeplink) {
+          handleDeeplinkReturnData(deeplink);
         }
       }
     },
