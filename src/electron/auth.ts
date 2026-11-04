@@ -102,7 +102,7 @@ function canEncrypt() {
 }
 
 function readStoredSession(): Session | undefined {
-  if (!fs.existsSync(sessionFile())) {
+  if (!fs.existsSync(sessionFile()) || !canEncrypt()) {
     return undefined;
   }
   try {
@@ -165,7 +165,7 @@ function scheduleRefresh(delay: number) {
 }
 
 async function refresh() {
-  // Rotated refresh tokens are single use, a second request would end the session.
+  // Keeps the user signed in: a second request would spend the rotated token.
   if (!session || refreshing) {
     return;
   }
@@ -247,19 +247,19 @@ export async function handleAuthDeeplink(url: URL) {
   if (url.pathname !== "/callback") {
     return;
   }
-  const login = pendingLogin;
-  if (!login || url.searchParams.get("state") !== login.state) {
+  const pending = pendingLogin;
+  if (!pending || url.searchParams.get("state") !== pending.state) {
     log.warn("Ignoring auth callback that matches no pending sign-in");
     return;
   }
   pendingLogin = undefined;
   try {
-    const config = await discover(login);
+    const config = await discover(pending);
     const tokens = await oidc.authorizationCodeGrant(config, url, {
-      pkceCodeVerifier: login.codeVerifier,
-      expectedState: login.state,
+      pkceCodeVerifier: pending.codeVerifier,
+      expectedState: pending.state,
     });
-    acceptTokens(login, tokens);
+    acceptTokens(pending, tokens);
   } catch (e) {
     log.error("Sign-in failed:", e);
   }
@@ -273,7 +273,7 @@ export function startAuth() {
     setEnvironment(environment),
   );
 
-  // Timers stand still during sleep, so the token may have expired on wake.
+  // Waking from sleep must not leave the user with an expired token.
   powerMonitor.on("resume", refresh);
 
   session = readStoredSession();

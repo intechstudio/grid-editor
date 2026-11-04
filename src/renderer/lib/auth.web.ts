@@ -62,7 +62,7 @@ export function createWebAuth() {
       return;
     }
     try {
-      // The cached access token must go, or no refresh grant would be sent.
+      // Asks for a new ID token even while the access token is still valid.
       await refreshed.clearAccessToken();
       await refreshed.getAccessToken();
       if (refreshed === client) {
