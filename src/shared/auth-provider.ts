@@ -13,9 +13,9 @@ export function authProviderFor(environment: string): AuthProvider {
       }
     : {
         issuer:
-          import.meta.env.VITE_AUTH_ISSUER_DEV ?? configuration.AUTH_ISSUER_DEV,
+          import.meta.env.VITE_AUTH_ISSUER_DEV || configuration.AUTH_ISSUER_DEV,
         clientId:
-          import.meta.env.VITE_AUTH_CLIENT_ID_DEV ??
+          import.meta.env.VITE_AUTH_CLIENT_ID_DEV ||
           configuration.AUTH_CLIENT_ID_DEV,
       };
 }

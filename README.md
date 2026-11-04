@@ -111,4 +111,4 @@ Targets are defined in `wrangler.jsonc`, the workflows in `.github/workflows/clo
 - when firestore security settings are changed, they shouls be either emulated locally or pushed to the appropiate project environment
 - passing auth is through `oidc`
 - sign-in follows the `PUBLIC_APP_ENV` of the loaded Profile Cloud build, and only local and PR preview builds are `development`. The web build keeps no settings across the sign-in redirect, so point it at such a build with `VITE_PROFILE_CLOUD_URL`
-- the seed generates the `grid-editor` client id per Logto database, so point a dev build at your own with `VITE_AUTH_CLIENT_ID_DEV`, and at a hosted Logto with `VITE_AUTH_ISSUER_DEV`. Both are read at build time, the `configuration.json` values stay the defaults
+- the seed generates the `grid-editor` client id per Logto database, so point a dev build at your own with `VITE_AUTH_CLIENT_ID_DEV`, and at a hosted Logto with `VITE_AUTH_ISSUER_DEV` in the form `https://host/oidc`, with no trailing slash. Both are read at build time, the `configuration.json` values stay the defaults

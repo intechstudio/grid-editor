@@ -52,7 +52,9 @@ let discovered:
 let oidc: typeof OpenIdClient;
 
 function errorSummary(e: any) {
-  return [e?.code, e?.message].filter(Boolean).join(" ");
+  return [...new Set([e?.error, e?.code, e?.cause?.code, e?.message])]
+    .filter(Boolean)
+    .join(" ");
 }
 
 async function discover(from: AuthProvider) {
@@ -89,6 +91,20 @@ function sessionFile() {
   return path.join(app.getPath("userData"), "auth.bin");
 }
 
+function temporarySessionFile() {
+  return `${sessionFile()}.tmp`;
+}
+
+// Signing out must complete for the user even if the file cannot be removed.
+function removeSessionFile() {
+  try {
+    fs.rmSync(sessionFile(), { force: true });
+    fs.rmSync(temporarySessionFile(), { force: true });
+  } catch (e) {
+    log.warn("Could not remove the stored auth session:", errorSummary(e));
+  }
+}
+
 function canEncrypt() {
   return (
     safeStorage.isEncryptionAvailable() &&
@@ -107,7 +123,7 @@ function readStoredSession(): Session | undefined {
     );
   } catch (e) {
     log.warn("Discarding unreadable auth session:", e);
-    fs.rmSync(sessionFile(), { force: true });
+    removeSessionFile();
     return undefined;
   }
 }
@@ -117,18 +133,22 @@ function writeStoredSession({ issuer, clientId, refreshToken }: Session) {
     if (!canEncrypt()) {
       log.warn("No OS keychain available, sign-in lasts until the app quits");
       // An earlier account must not come back on the next launch.
-      fs.rmSync(sessionFile(), { force: true });
-      return;
+      removeSessionFile();
+      return true;
     }
+    // A crash mid-write must not cost the user their sign-in.
     fs.writeFileSync(
-      sessionFile(),
+      temporarySessionFile(),
       safeStorage.encryptString(
         JSON.stringify({ issuer, clientId, refreshToken }),
       ),
       { mode: 0o600 },
     );
+    fs.renameSync(temporarySessionFile(), sessionFile());
+    return true;
   } catch (e) {
     log.warn("Could not store the auth session:", errorSummary(e));
+    return false;
   }
 }
 
@@ -136,7 +156,7 @@ function dropSession() {
   sessionEpoch++;
   clearTimeout(refreshTimer);
   session = undefined;
-  fs.rmSync(sessionFile(), { force: true });
+  removeSessionFile();
   publish({ event: "logout" });
 }
 
@@ -158,7 +178,10 @@ function acceptTokens(
     refreshToken,
     idToken,
   };
-  writeStoredSession(session);
+  // After a new sign-in, the previous account must not come back on the next launch.
+  if (!writeStoredSession(session) && !currentRefreshToken) {
+    removeSessionFile();
+  }
   publish({ event: "login", providerId: "oidc", idToken });
   scheduleRefresh(tokens.claims()!.exp * 1000 - REFRESH_MARGIN_MS - Date.now());
 }
@@ -273,9 +296,11 @@ export async function handleAuthDeeplink(url: URL) {
       pkceCodeVerifier: pending.codeVerifier,
       expectedState: pending.state,
     });
-    if (epoch === sessionEpoch && isSameAuthProvider(pending, provider)) {
-      acceptTokens(pending, tokens);
+    if (epoch !== sessionEpoch || !isSameAuthProvider(pending, provider)) {
+      log.warn("Discarding a sign-in overtaken by another session change");
+      return;
     }
+    acceptTokens(pending, tokens);
   } catch (e) {
     log.error("Sign-in failed:", errorSummary(e));
   }

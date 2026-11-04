@@ -6,6 +6,7 @@ const CALLBACK_PATH = "/auth/callback";
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 30 * 1000;
 const REFRESH_RETRY_MS = 60 * 1000;
+const TOKENS_LOCK = "grid-editor-auth-tokens";
 
 type AuthChange =
   { event: "login"; providerId: "oidc"; idToken: string } | { event: "logout" };
@@ -50,9 +51,13 @@ export function createWebAuth() {
     scheduleRefresh(exp * 1000 - REFRESH_MARGIN_MS - Date.now());
   }
 
-  // Tabs share one rotating refresh token, so they must take turns spending it.
+  // Tabs share one rotating refresh token, so they must take turns changing it.
+  function inTurn<T>(task: () => Promise<T>) {
+    return navigator.locks.request(TOKENS_LOCK, task);
+  }
+
   function refresh() {
-    return navigator.locks.request("grid-editor-auth-refresh", refreshInTurn);
+    return inTurn(refreshInTurn);
   }
 
   async function refreshInTurn() {
@@ -114,7 +119,7 @@ export function createWebAuth() {
       }
       const authenticated = await restored.isAuthenticated();
       if (environment !== startedIn) {
-        await restored.clearAllTokens();
+        await inTurn(() => restored.clearAllTokens());
         publish({ event: "logout" });
         return;
       }
@@ -146,7 +151,9 @@ export function createWebAuth() {
     client = undefined;
     clearTimeout(refreshTimer);
     publish({ event: "logout" });
-    await ended?.signOut(`${window.location.origin}/`);
+    if (ended) {
+      await inTurn(() => ended.signOut(`${window.location.origin}/`));
+    }
   }
 
   async function setEnvironment(next: string) {
@@ -160,7 +167,7 @@ export function createWebAuth() {
     localStorage.setItem(ENVIRONMENT_KEY, next);
     if (previous) {
       publish({ event: "logout" });
-      await previous.clearAllTokens();
+      await inTurn(() => previous.clearAllTokens());
     }
   }
 
