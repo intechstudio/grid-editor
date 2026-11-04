@@ -24,7 +24,11 @@ export function createWebAuth() {
   }
 
   async function createClient(forEnvironment: string) {
-    const { default: LogtoClient, UserScope } = await import("@logto/browser");
+    const {
+      default: LogtoClient,
+      ReservedScope,
+      UserScope,
+    } = await import("@logto/browser");
     const { issuer, clientId } = authProviderFor(forEnvironment);
     if (!clientId) {
       throw new Error(`No client id configured for ${issuer}`);
@@ -32,7 +36,13 @@ export function createWebAuth() {
     return new LogtoClient({
       endpoint: issuer.replace(/\/oidc$/, ""),
       appId: clientId,
-      scopes: [UserScope.Email],
+      // No profile scope: Firebase rejects the null picture claim it adds.
+      includeReservedScopes: false,
+      scopes: [
+        ReservedScope.OpenId,
+        ReservedScope.OfflineAccess,
+        UserScope.Email,
+      ],
     });
   }
 

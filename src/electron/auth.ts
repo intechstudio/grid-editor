@@ -18,7 +18,8 @@ import {
 
 const REDIRECT_URI = "grid-editor://auth/callback";
 const POST_LOGOUT_REDIRECT_URI = "grid-editor://auth/logout";
-const SCOPE = "openid offline_access profile email";
+// No profile scope: Firebase rejects the null picture claim it adds.
+const SCOPE = "openid offline_access email";
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 30 * 1000;
 const REFRESH_RETRY_MS = 60 * 1000;
