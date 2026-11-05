@@ -15,5 +15,6 @@ export const categoryColors: Record<string, string> = {
   timer: "var(--category-timer)",
   function: "var(--category-function)",
   special: "var(--category-special)",
+  touch: "var(--category-touch)",
   deprecated: "var(--category-deprecated)",
 };

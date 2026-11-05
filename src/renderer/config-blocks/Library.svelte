@@ -256,17 +256,24 @@
 
   onMount(refresh);
 
-  // Lets the user install a row's missing bundled library and use it right
-  // away. An "Install all" would run this for each row in turn.
+  // Lets the user install a row's missing bundled library, or replace an
+  // outdated one, and use it right away. An "Install all" would run this
+  // for each row in turn.
   async function handleInstall(row: EditRow) {
     const status = rowStatus(row, files);
-    if (status.kind !== "missing" || typeof row.rejected !== "undefined") {
+    const library =
+      status.kind === "missing"
+        ? status.library
+        : status.kind === "present"
+          ? status.outdated
+          : undefined;
+    if (typeof library === "undefined" || typeof row.rejected !== "undefined") {
       return;
     }
     installing = row.file;
     installError = undefined;
     try {
-      await installLibrary(status.library, page.pageNumber, module);
+      await installLibrary(library, page.pageNumber, module);
     } catch (e) {
       installError = e instanceof Error ? e.message : String(e);
     } finally {
@@ -330,7 +337,22 @@
               >{duplicate}</span
             >
           {/if}
-          {#if status.kind === "present"}
+          {#if status.kind === "present" && status.outdated}
+            <div
+              class="flex flex-row items-center gap-2"
+              data-status="outdated"
+            >
+              <span class="text-xs text-warning"
+                >{row.file}.lua {status.version} on the module is older than the bundled
+                {status.outdated.version}</span
+              >
+              <MoltenPushButton
+                text={installing === row.file ? "Updating..." : "Update"}
+                disabled={typeof installing !== "undefined" || $action.invalid}
+                click={() => handleInstall(row)}
+              />
+            </div>
+          {:else if status.kind === "present"}
             <span class="text-xs text-gray-500" data-status="present"
               >{row.file}.lua is on the module{status.bundledVersion
                 ? ` · bundled ${status.bundledVersion}`
