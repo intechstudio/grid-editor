@@ -404,6 +404,29 @@ test("Z.zone takes the zone by position, and a short table leaves the defaults",
   expect(await run(`Z.zone(self,"f",2,{0,0,4,4},{})`)).toEqual(
     await run(`Z.fader(self,"f",0,0,4,4,{dir="xy"})`),
   );
+  // the output as a number (0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse,
+  // 5 Gamepad), mode and grab as numbers, and the earlier build's strings
+  expect(
+    await run(
+      `Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{0,16383},{1,1,50},{1,1,1})`,
+    ),
+  ).toEqual(
+    await run(
+      `Z.zone(self,"f","v",{0,0,1,9},{},{"midi","pb",2,7,0},{0,16383},{"rel",1,50},{1,1,"live"})`,
+    ),
+  );
+  expect(
+    await run(
+      `Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{0,16383},{1,1,50},{1,1,1})`,
+    ),
+  ).toEqual(
+    await run(
+      `Z.fader(self,"f",0,0,1,9,{msg="midi",cmd="pb",ch=2,num=7,rx=0,min=0,max=16383,mode="rel",sensitivity=1,spring=50,fingers=1,tap=1,grab="live"})`,
+    ),
+  );
+  expect(await run(`Z.zone(self,"f",0,{0,0,1,9},{},{4})`)).toEqual(
+    await run(`Z.fader(self,"f",0,0,1,9,{msg="mouse"})`),
+  );
   // a button is the type 3
   expect(await run(`Z.zone(self,"b",3,{0,0,2,2},{})`)).toEqual(
     await run(`Z.button(self,"b",0,0,2,2,{})`),

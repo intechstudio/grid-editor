@@ -18,6 +18,8 @@ import {
   type ZoneKind,
   type ZoneOptionValue,
   zoneKindList,
+  zoneOutputCode,
+  zoneOutputs,
   zoneRead,
   zoneOptionValue,
   zoneOptionSchema,
@@ -298,8 +300,8 @@ function luaValue(value: ZoneOptionValue): string {
   return typeof value === "string" ? luaString(value) : luaNumber(value);
 }
 
-// The positional form: `_Z.zone(self,"f1",2,{0,0,5,5},{255,0,0,1},
-// {"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`. After the
+// The positional form: `_Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},
+// {0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`. After the
 // name and the type come tables, each a group of the face: geometry, colour,
 // output, range, behaviour, capture. The options of a group are by position
 // (zonePositions); a table may end early, and what it leaves out is the
@@ -308,8 +310,16 @@ function luaValue(value: ZoneOptionValue): string {
 // fader, 2 XY pad, 3 button. The names are the editor's ("v", "h", "xy",
 // "button"), and an older line with the name as a string still reads.
 const ZONE_TYPES = ["v", "h", "xy", "button"];
+// The output is one number, the msg and the command together: 0 CC, 1 CC
+// 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5 Gamepad. A mode or a grab is a
+// number too: mode 0 abs, 1 rel; grab 0 focus, 1 live. An earlier build wrote
+// these as strings, and an output as ("midi","cc",ch,num,rx); they still read.
+const ENUM_CODES: { [key: string]: string[] } = {
+  mode: ["abs", "rel"],
+  grab: ["focus", "live"],
+};
 const zonePositions: string[][] = [
-  ["msg", "cmd", "ch", "num", "rx"],
+  ["out", "ch", "num", "rx"],
   ["min", "max"],
   ["mode", "sensitivity", "spring", "bmo", "group"],
   ["fingers", "tap", "grab"],
@@ -362,13 +372,36 @@ function readPositionalZone(reader: Reader): Zone | null {
     opt.col = col;
   }
   for (let g = 0; g < groups.length; g++) {
-    if (groups[g].length > zonePositions[g].length) {
+    // an output that starts with a string is the earlier five-slot form
+    const keys =
+      g === 0 && /^["']/.test(groups[0][0] ?? "")
+        ? ["msg", "cmd", "ch", "num", "rx"]
+        : zonePositions[g];
+    if (groups[g].length > keys.length) {
       return null;
     }
     for (let i = 0; i < groups[g].length; i++) {
-      const key = zonePositions[g][i];
+      const key = keys[i];
+      const raw = groups[g][i];
+      if (key === "out") {
+        const output = zoneOutputs[parseNumber(raw) ?? -1];
+        if (typeof output === "undefined") {
+          return null;
+        }
+        opt.msg = output.msg;
+        if (typeof output.cmd !== "undefined") {
+          opt.cmd = output.cmd;
+        }
+        continue;
+      }
       const schema = zoneOptionSchema.find((e) => e.key === key);
-      const value = schema ? literal(schema, groups[g][i]) : null;
+      const code = key in ENUM_CODES ? parseNumber(raw) : null;
+      const value =
+        code !== null
+          ? (ENUM_CODES[key][code] ?? null)
+          : schema
+            ? literal(schema, raw)
+            : null;
       if (value === null) {
         return null;
       }
@@ -506,13 +539,14 @@ export function zonesToLua(zones: Zone[]): string {
 
 // The zone line as the editor writes it, positional and fully defined:
 //
-//   _Z.zone(self,"f1",2,{0,0,5,5},{255,0,0,1},{"midi","cc",-1,-1,0},{0,127},
-//     {"abs",1,-1,0,0},{1,1,"focus"})
+//   _Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},{0,-1,-1,0},{0,127},{0,1,-1,0,0},
+//     {1,1,0})
 //
 // Name, type (0 vertical fader, 1 horizontal fader, 2 XY pad, 3 button), then a table per group of the face:
-// geometry (x, y, w, h), colour (r, g, b, a), output (msg, cmd, ch, num, rx),
-// range (min, max), behaviour (mode, sensitivity, spring, bmo, group) and
-// capture (fingers, tap, grab). Every slot is written with its value or the
+// geometry (x, y, w, h), colour (r, g, b), output (out, ch, num, rx), range
+// (min, max), behaviour (mode, sensitivity, spring, bmo, group) and capture
+// (fingers, tap, grab). `out` is the msg and the command as one number, mode
+// and grab are numbers too (zoneOutputs, ENUM_CODES). Every slot is written with its value or the
 // default, whether or not the zone's output uses it. Options this editor
 // doesn't know follow in a last table, as raw text.
 export function zoneToLua(zone: Zone): string {
@@ -526,6 +560,20 @@ export function zoneToLua(zone: Zone): string {
     }
   }
   const write = (key: string) => {
+    if (key === "out") {
+      const code = zoneOutputCode(zone);
+      if (code < 0) {
+        throw new Error(`Cannot write the output of "${zone.name}"`);
+      }
+      return String(code);
+    }
+    if (key in ENUM_CODES) {
+      const code = ENUM_CODES[key].indexOf(String(zoneOptionValue(zone, key)));
+      if (code < 0) {
+        throw new Error(`Cannot write the ${key} "${zone.opt[key]}"`);
+      }
+      return String(code);
+    }
     const schema = zoneOptionSchema.find((e) => e.key === key) as OptionSchema;
     const value = zoneOptionValue(zone, key);
     const isText = schema.type === "enum";

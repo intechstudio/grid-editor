@@ -99,11 +99,17 @@ export type Zone = {
 
 // Option schema. Ranges are inclusive. Integers and numbers without a range
 // are only checked for their type.
-export type OptionSchema = { key: string } & (
-  | { type: "enum"; values: readonly string[] }
-  | { type: "integer" | "number"; min?: number; max?: number }
-  | { type: "color" } // "red,green,blue", written as {red,green,blue}; -1 is auto
-);
+export type OptionSchema = { key: string } &
+  // `unavailable`: values the select lists but the zone can't take (dimmed)
+  (
+    | {
+        type: "enum";
+        values: readonly string[];
+        unavailable?: readonly string[];
+      }
+    | { type: "integer" | "number"; min?: number; max?: number }
+    | { type: "color" } // "red,green,blue", written as {red,green,blue}; -1 is auto
+  );
 
 // Block face sections, in display order (docs/zona-touch-zones.md, Block face).
 export type ZoneSection =
@@ -356,4 +362,25 @@ export function zoneOptionValue(
     default:
       return zoneOptionDefault(zone.kind, key);
   }
+}
+
+// The outputs a zone can have as one list, in the order of the number the line
+// writes for it: 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5 Gamepad.
+// The face shows it as one select (msg and cmd together).
+export const zoneOutputs: { msg: ZoneMsg; cmd?: ZoneCmd }[] = [
+  { msg: "midi", cmd: "cc" },
+  { msg: "midi", cmd: "cc14" },
+  { msg: "midi", cmd: "note" },
+  { msg: "midi", cmd: "pb" },
+  { msg: "mouse" },
+  { msg: "pad" },
+];
+
+// The number of the zone's output, -1 when its msg and command aren't one.
+export function zoneOutputCode(zone: Zone): number {
+  const msg = zoneOptionValue(zone, "msg");
+  const cmd = zoneOptionValue(zone, "cmd");
+  return zoneOutputs.findIndex((e) =>
+    msg === "midi" ? e.msg === msg && e.cmd === cmd : e.msg === msg,
+  );
 }

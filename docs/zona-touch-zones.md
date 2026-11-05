@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.22.0, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.23.0, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -16,10 +16,10 @@ The action strings are the only store. The editor reads every view from them: th
 -- Touch element, Setup. A Touch Zone block starts with the call that loads the
 -- library from the page folder as _Z, then one line per zone.
 _Z=gr("zona")
-_Z.zone(self,"f1",0,{0,0,1,9},{-1,-1,-1},{"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})
-_Z.zone(self,"f2",0,{1,0,1,9},{-1,-1,-1},{"midi","pb",-1,-1,0},{0,16383},{"abs",1,50,0,0},{1,1,"focus"})
-_Z.zone(self,"b1",3,{2,0,2,2},{255,0,0},{"midi","note",-1,-1,0},{0,127},{"abs",1,-1,1,1},{1,1,"focus"})
-_Z.zone(self,"p1",2,{4,0,5,5},{-1,-1,-1},{"mouse","cc",-1,1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})
+_Z.zone(self,"f1",0,{0,0,1,9},{-1,-1,-1},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})
+_Z.zone(self,"f2",0,{1,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,16383},{0,1,50,0,0},{1,1,0})
+_Z.zone(self,"b1",3,{2,0,2,2},{255,0,0},{2,-1,-1,0},{0,127},{0,1,-1,1,1},{1,1,0})
+_Z.zone(self,"p1",2,{4,0,5,5},{-1,-1,-1},{4,-1,1,0},{0,127},{0,1,-1,0,0},{1,1,0})
 
 -- Page folder on the module
 /00/zona.lua
@@ -36,7 +36,7 @@ The library is loaded under the global `_Z`. The touch blocks always write `_Z.`
 A zone line is positional. The name and the type come first, then one table per group of the face:
 
 ```
-_Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{msg,cmd,ch,num,rx},{min,max},{mode,sensitivity,spring,bmo,group},{fingers,tap,grab})
+_Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{out,ch,num,rx},{min,max},{mode,sensitivity,spring,bmo,group},{fingers,tap,grab})
 ```
 
 - `self` is the touch element. Setup passes it.
@@ -44,7 +44,11 @@ _Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{msg,cmd,ch,num,rx},{min,max},{mo
 - `type` is a number, to keep the line short: `0` vertical fader (`dir="v"`), `1` horizontal fader (`dir="h"`), `2` XY pad (`dir="xy"`) or `3` button. A line with the older names as strings (`"v"`, `"h"`, `"xy"`, `"button"`) still reads, in the library and in the editor.
 - Geometry `{x,y,w,h}` is in cells. `0,0` is the top left. `y` grows down.
 - Colour `{r,g,b}` is written like the Simple Color block's, without the alpha. -1 for a channel is the module's own colour.
-- Output `{msg,cmd,ch,num,rx}`, range `{min,max}`, behaviour `{mode,sensitivity,spring,bmo,group}` and capture `{fingers,tap,grab}` hold the options of section 4 by position.
+- Output `{out,ch,num,rx}`, range `{min,max}`, behaviour `{mode,sensitivity,spring,bmo,group}` and capture `{fingers,tap,grab}` hold the options of section 4 by position. Three of them are numbers to keep the line short:
+  - `out` is `msg` and `cmd` together: `0` CC, `1` CC 14-bit, `2` Note, `3` Pitch bend, `4` Mouse, `5` Gamepad.
+  - `mode` is `0` absolute or `1` relative.
+  - `grab` is `0` focus or `1` live.
+  - An earlier build wrote them as strings, with the output as `{"midi","cc",ch,num,rx}`. Such a line still runs and still reads, and is written again with numbers.
 - The editor writes every slot of every table, with the option's value or its default, so the line is fully defined. A slot the zone's output doesn't use holds its default and the library ignores it. The colour default is `{-1,-1,-1}`; Min and Max default to 0 and 127 (16383 for `cc14` and `pb`). The library accepts a table that ends early, or is empty, and takes the defaults for the rest.
 - Options the editor does not know are kept as raw `key=value` text in one last table. A known option with a value of the wrong type, a table with too many slots or an unknown `type` makes the line fail to parse.
 
@@ -235,7 +239,7 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 | `Z.def`, `Z.kind`                                                         | Option defaults and kind presets. The editor's copies must match them.          |
 | `Z.zs`, `Z.te`                                                            | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.22.0"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.23.0"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -275,7 +279,7 @@ The zone blocks share one face, `ZoneBlock.svelte`, and one header, `ZoneFace.sv
 The face is built from the option schema. It shows the name, then the sections Geometry, LED, Output, Resolution, Behaviour and Capture. The LED section (the colour) comes right under the Type select. The sections have no titles and cannot be collapsed; each is a block of fields. A section with no field for the zone's kind and output is not shown. The Geometry section starts with `ZoneGeometryPad.svelte`, a 9×9 cell box area: drag the box to move it, drag a corner to resize it. The box is focusable and takes the DOM focus when pressed (or when selected by a click on it in the preview); the resize corners show only while it has the focus, so the focus is visible. The keyboard shortcuts are scoped to the focused box, as the element button and the action list scope theirs (a `keydown` handler on the focusable node that ignores events from inputs, uses Ctrl or Cmd, and stops the event): Ctrl/Cmd+C copies the zone to the app clipboard (`ClipboardKey.ZONE`), Ctrl/Cmd+V pastes a copy beside the focused zone (to its right, else below, as Add Zone places a copy) or logs that there is no room, and Delete or Backspace removes the zone (a block keeps at least one; the editor logs that otherwise). Empty cells do nothing, so a zone is moved to its place and then resized. The box has its zone's colour (`col`, the module's colour for a channel at -1), and the other zones of the Setup are drawn dimmer. Clicking another zone of the same block selects it in the zone select; zones of other blocks are only shown. It sets X, Y, Width and Height together; the four number fields are hidden (`{#if false}` in `ZoneBlock.svelte`). The Setup is sent when the drag ends.
 
 - An enum is a select. The kind's default is selected when the line leaves the option out. Picking the default writes nothing. A value the schema does not know is listed as "value (unknown)" so the line is not rewritten until the user picks something.
-- The Output select titles its values by kind: MIDI; Mouse wheel, Mouse button or Mouse; Gamepad axis, Gamepad button or Gamepad. The Command select shows CC, Note and Pitch bend.
+- Output and Command are one select, Output, as they are one number in the line (section 3). It lists every output for every zone, in the order of that number: MIDI CC, MIDI 14, MIDI Note, MIDI Pitchbend, then Mouse wheel, Mouse button or Mouse, then Gamepad axis, Gamepad button or Gamepad, by the zone's reader. The ones the zone can't take are listed but dimmed and can't be picked: MIDI Note on a fader, MIDI Note and MIDI Pitchbend on an XY pad, MIDI Pitchbend on a button (the dimming needs the `disabled` option of `MeltSelect`, which grid-uikit has from 1.20261105.1743; `withOutput` refuses an unavailable output either way). Picking a command sets `msg="midi"`, the `cmd` and the command's range (`min=0`, `max` 127 or 16383); picking Mouse or Gamepad sets `msg` and drops the command. There is no separate Command field (`zoneFaceSections` shows the option `out` with its `unavailable` values, `withOutput` sets it).
 - A number is a combo with suggestions. Channel lists Auto and channels 1–16. The number field is titled CC, Note, Button or Axis by the output. It lists Auto and the CC names, the notes, the mouse buttons (Left, Right, Middle, no Auto), the axes (X Axis to RZ Axis) or Button 0–31. Resolution lists 7–14 with their ranges. Max offers 127 and 16383. 0/1 options offer Off and On, except Receive MIDI (`rx`), which is a checkbox. Button mode offers Momentary and Toggle. A field without suggestions shows its range in the title.
 - Auto placeholders show the resolved values: "auto (ch 1)", "auto (33)", "auto (X)". A mouse button shows "1 (Left)".
 - The colour field is `ColorEditor.svelte` (`main/user-interface/`), the colour editing of the Simple Color block as one component, which the Simple Color block uses too. In a zone it always uses the classic picker, with no picker style select, and without Alpha and its slider (the colour has no alpha). The Red, Green and Blue fields (with Auto, -1) show only outside minimalist mode. A Use Default Color button sets red, green and blue to -1, the page's default colour. The default colour is written as `{-1,-1,-1}`.

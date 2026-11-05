@@ -29,6 +29,9 @@ import {
   zoneCssColor,
   zoneFaceSections,
   zoneOptionSuggestions,
+  withOutput,
+  zoneOutputText,
+  enumOptions,
   optionPlaceholder,
   optionShownText,
   withOption,
@@ -44,37 +47,37 @@ const LIB = `_Z=gr("zona")`;
 // a new XY pad and a new button, as the editor writes them: positional, with a
 // table per group (geometry, colour, output, range, behaviour, capture)
 const XY = (name) =>
-  `_Z.zone(self,"${name}",2,{0,0,5,5},{-1,-1,-1},{"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`;
+  `_Z.zone(self,"${name}",2,{0,0,5,5},{-1,-1,-1},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`;
 const BTN = (name, x = 5) =>
-  `_Z.zone(self,"${name}",3,{${x},0,2,2},{-1,-1,-1},{"midi","note",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`;
+  `_Z.zone(self,"${name}",3,{${x},0,2,2},{-1,-1,-1},{2,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`;
 
 // The editor writes the positional form with every slot defined. The older
 // option-table lines still read and are written in the new form.
 test.each([
   [
     `_Z.fader(self,"f1",1,0,1,9,{mode="rel",sensitivity=0.5})`,
-    `_Z.zone(self,"f1",0,{1,0,1,9},{-1,-1,-1},{"midi","cc",-1,-1,0},{0,127},{"rel",0.5,-1,0,0},{1,1,"focus"})`,
+    `_Z.zone(self,"f1",0,{1,0,1,9},{-1,-1,-1},{0,-1,-1,0},{0,127},{1,0.5,-1,0,0},{1,1,0})`,
   ],
   [
     `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col={255,128,0,1},cmd="cc"})`,
-    `_Z.zone(self,"b1",3,{0,0,1,1},{255,128,0},{"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,3,2},{1,1,"focus"})`,
+    `_Z.zone(self,"b1",3,{0,0,1,1},{255,128,0},{0,-1,-1,0},{0,127},{0,1,-1,3,2},{1,1,0})`,
   ],
   [
     `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7,rx=1})`,
-    `_Z.zone(self,"p1",2,{0,0,9,9},{-1,-1,-1},{"midi","cc",3,7,1},{0,127},{"abs",1,-1,0,0},{3,1,"focus"})`,
+    `_Z.zone(self,"p1",2,{0,0,9,9},{-1,-1,-1},{0,3,7,1},{0,127},{0,1,-1,0,0},{3,1,0})`,
   ],
   [
     `_Z.fader(self,"p",0,0,4,4,{dir="xy",msg="mouse"})`,
-    `_Z.zone(self,"p",2,{0,0,4,4},{-1,-1,-1},{"mouse","cc",-1,1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`,
+    `_Z.zone(self,"p",2,{0,0,4,4},{-1,-1,-1},{4,-1,1,0},{0,127},{0,1,-1,0,0},{1,1,0})`,
   ],
   [
     `_Z.fader(self,"g",0,0,1,9,{msg="pad"})`,
-    `_Z.zone(self,"g",0,{0,0,1,9},{-1,-1,-1},{"pad","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`,
+    `_Z.zone(self,"g",0,{0,0,1,9},{-1,-1,-1},{5,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`,
   ],
   // the range follows the command
   [
     `_Z.fader(self,"f",0,0,1,9,{cmd="pb"})`,
-    `_Z.zone(self,"f",0,{0,0,1,9},{-1,-1,-1},{"midi","pb",-1,-1,0},{0,16383},{"abs",1,-1,0,0},{1,1,"focus"})`,
+    `_Z.zone(self,"f",0,{0,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,16383},{0,1,-1,0,0},{1,1,0})`,
   ],
 ])("a zone line is written positional and fully defined: %s", (line, full) => {
   expect(zoneToLua(parseZone(line))).toBe(full);
@@ -146,7 +149,7 @@ test("an option at its default is still written", () => {
     opt: { bmo: 1, msg: "midi", cmd: "note", ch: -1, num: -1, rx: 0 },
   };
   expect(zoneToLua(zone)).toBe(
-    `_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{"midi","note",-1,-1,0},{0,127},{"abs",1,-1,1,0},{1,1,"focus"})`,
+    `_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{2,-1,-1,0},{0,127},{0,1,-1,1,0},{1,1,0})`,
   );
 });
 
@@ -299,14 +302,14 @@ test("a mouse zone's face shows only the fields mouse uses", () => {
   expect(fields(`_Z.fader(self,"p1",0,0,4,4,{dir="xy",msg="mouse"})`)).toEqual([
     "dir",
     "col",
-    "msg",
+    "out",
     "tap",
     "sensitivity",
     "grab",
   ]);
   expect(fields(`_Z.button(self,"b1",0,0,2,2,{msg="mouse"})`)).toEqual([
     "col",
-    "msg",
+    "out",
     "num",
     "bmo",
     "group",
@@ -318,7 +321,7 @@ test("a gamepad zone's face shows its target and the value behaviour", () => {
   expect(fields(`_Z.fader(self,"f1",0,0,1,9,{msg="pad"})`)).toEqual([
     "dir",
     "col",
-    "msg",
+    "out",
     "num",
     "mode",
     "spring",
@@ -644,4 +647,109 @@ test("a colour has no alpha: red, green and blue, and an old fourth value is dro
   expect(
     issues([LIB, `_Z.button(self,"b",0,0,1,1,{col={300,0,0}})`]).length,
   ).toBe(1);
+});
+
+test("the output, mode and grab are numbers in the line, and the earlier strings still read", () => {
+  const out = (opt) =>
+    zoneToLua(parseZone(`_Z.fader(self,"f",0,0,1,9,{${opt}})`)).split("},{")[2];
+  // 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5 Gamepad
+  expect(out('cmd="cc"')).toBe("0,-1,-1,0");
+  expect(out('cmd="cc14"')).toBe("1,-1,-1,0");
+  expect(out('cmd="pb"')).toBe("3,-1,-1,0");
+  expect(out('msg="mouse"')).toBe("4,-1,1,0");
+  expect(out('msg="pad"')).toBe("5,-1,-1,0");
+  expect(
+    zoneToLua(parseZone(`_Z.button(self,"b",0,0,1,1,{})`)).split("},{")[2],
+  ).toBe("2,-1,-1,0");
+  // every output reads back as the same msg and command
+  for (const opt of ['cmd="cc14"', 'cmd="pb"', 'msg="mouse"', 'msg="pad"']) {
+    const zone = parseZone(`_Z.fader(self,"f",0,0,1,9,{${opt}})`);
+    const back = parseZone(zoneToLua(zone));
+    expect([back.opt.msg, back.opt.cmd]).toEqual([
+      zone.opt.msg ?? "midi",
+      zone.opt.msg ? undefined : zone.opt.cmd,
+    ]);
+  }
+  // mode and grab by number, and the earlier strings
+  const behaviour = parseZone(
+    `_Z.zone(self,"f",2,{0,0,4,4},{},{1,2,7,1},{},{1,1},{2,1,1})`,
+  );
+  expect(behaviour.opt).toMatchObject({
+    msg: "midi",
+    cmd: "cc14",
+    ch: 2,
+    num: 7,
+    rx: 1,
+    mode: "rel",
+    sensitivity: 1,
+    fingers: 2,
+    grab: "live",
+  });
+  const old = parseZone(
+    `_Z.zone(self,"f","xy",{0,0,4,4},{},{"midi","cc14",2,7,1},{},{"rel",1},{2,1,"live"})`,
+  );
+  expect(zoneToLua(old)).toBe(zoneToLua(behaviour));
+  // a number out of range is not a zone line
+  expect(parseZone(`_Z.zone(self,"f",0,{0,0,1,9},{},{9},{},{},{})`)).toBe(null);
+  expect(parseZone(`_Z.zone(self,"f",0,{0,0,1,9},{},{},{},{2},{})`)).toBe(null);
+});
+
+test("Output and Command are one select, listing every output and dimming the ones the zone can't take", () => {
+  const out = (line) => {
+    const zone = parseZone(line);
+    return zoneFaceSections(zone)
+      .flatMap((e) => e.options)
+      .find((e) => e.key === "out");
+  };
+  // all six are listed, in the order of the number the line writes
+  const all = ["0", "1", "2", "3", "4", "5"];
+  expect(out(`_Z.fader(self,"f",0,0,1,9,{})`).values).toEqual(all);
+  // what a kind and reader can't take is unavailable: a fader has no note,
+  // an XY pad no note or pitch bend, a button no pitch bend
+  expect(out(`_Z.fader(self,"f",0,0,1,9,{})`).unavailable).toEqual(["2"]);
+  expect(out(`_Z.fader(self,"p",0,0,4,4,{dir="xy"})`).unavailable).toEqual([
+    "2",
+    "3",
+  ]);
+  expect(out(`_Z.button(self,"b",0,0,1,1,{})`).unavailable).toEqual(["3"]);
+  // no Command field
+  expect(fields(`_Z.fader(self,"f",0,0,1,9,{cmd="pb"})`)).not.toContain("cmd");
+  // the titles: the commands, the reader's mouse and gamepad; the select gets
+  // the unavailable ones as disabled
+  const titles = (line, read) =>
+    enumOptions(out(line), "0", read).map((e) => [e.title, !!e.disabled]);
+  expect(titles(`_Z.fader(self,"f",0,0,1,9,{})`, "axis")).toEqual([
+    ["MIDI CC", false],
+    ["MIDI 14", false],
+    ["MIDI Note", true],
+    ["MIDI Pitchbend", false],
+    ["Mouse wheel", false],
+    ["Gamepad axis", false],
+  ]);
+  expect(titles(`_Z.button(self,"b",0,0,1,1,{})`, "gate")).toEqual([
+    ["MIDI CC", false],
+    ["MIDI 14", false],
+    ["MIDI Note", false],
+    ["MIDI Pitchbend", true],
+    ["Mouse button", false],
+    ["Gamepad button", false],
+  ]);
+  // picking one sets msg and command, and a command brings its range
+  const zone = parseZone(`_Z.fader(self,"f",0,0,1,9,{min=5,max=50})`);
+  expect(zoneOutputText(zone)).toBe("0");
+  const wide = withOutput(zone, "3");
+  expect(wide.opt).toMatchObject({
+    msg: "midi",
+    cmd: "pb",
+    min: 0,
+    max: 16383,
+  });
+  const mouse = withOutput(wide, "4");
+  expect(mouse.opt.msg).toBe("mouse");
+  expect(mouse.opt.cmd).toBeUndefined();
+  expect(zoneOutputText(mouse)).toBe("4");
+  // back to a command: its own range again
+  expect(withOutput(mouse, "0").opt).toMatchObject({ cmd: "cc", max: 127 });
+  // an output the zone can't take is not set
+  expect(withOutput(zone, "2")).toBe(zone);
 });

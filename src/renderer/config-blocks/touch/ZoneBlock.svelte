@@ -42,6 +42,8 @@
     optionLabel,
     optionPlaceholder,
     optionShownText,
+    withOutput,
+    zoneOutputText,
     optionText,
     withField,
     addedZone,
@@ -204,8 +206,11 @@
     fieldErrors = {};
   }
 
+  // The Output field shows the problems of its two options, msg and cmd.
   $: problemOf = (key: string) =>
-    fieldErrors[key] ?? problems.find((e) => e.key === key)?.message;
+    key === "out"
+      ? (problemOf("msg") ?? problemOf("cmd"))
+      : (fieldErrors[key] ?? problems.find((e) => e.key === key)?.message);
 
   function apply(key: string, result: { next?: Zone; error?: string }) {
     const next = result.next;
@@ -287,7 +292,9 @@
   }
 
   function setOption(schema: OptionSchema, text: string) {
-    if (zone !== null) {
+    if (zone !== null && schema.key === "out") {
+      apply("msg", { next: withOutput(zone, text) });
+    } else if (zone !== null) {
       apply(schema.key, withOption(zone, schema, text));
     }
   }
@@ -588,9 +595,11 @@
                 {schema}
                 read={zoneRead(zone)}
                 title={optionLabel(schema.key, zone)}
-                value={schema.type === "integer" || schema.type === "number"
-                  ? optionShownText(zone, schema)
-                  : optionText(zone.opt[schema.key])}
+                value={schema.key === "out"
+                  ? zoneOutputText(zone)
+                  : schema.type === "integer" || schema.type === "number"
+                    ? optionShownText(zone, schema)
+                    : optionText(zone.opt[schema.key])}
                 placeholder={placeholderOf(schema.key)}
                 problem={problemOf(schema.key)}
                 {autoColor}

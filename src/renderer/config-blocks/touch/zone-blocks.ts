@@ -10,9 +10,13 @@ import {
   type ZoneOptionValue,
   type ZoneRead,
   type ZoneSection,
+  zoneCmdValues,
+  zoneMsgValues,
   zoneOptionDefault,
   zoneOptionSchemaFor,
   zoneOptionShown,
+  zoneOutputCode,
+  zoneOutputs,
   zoneRead,
   zoneSections,
   zoneSends,
@@ -263,14 +267,73 @@ export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
   return zoneSections
     .map((section) => ({
       section,
-      options: zoneOptionSchemaFor(zone).filter(
-        (e) =>
-          e.section === section &&
-          e.reads.includes(zoneRead(zone)) &&
-          zoneOptionShown(e, msg, zone),
-      ),
+      options: zoneOptionSchemaFor(zone)
+        .filter(
+          (e) =>
+            e.section === section &&
+            e.reads.includes(zoneRead(zone)) &&
+            zoneOptionShown(e, msg, zone),
+        )
+        // The Output and the Command are one select, "out": the numbers of
+        // zoneOutputs the zone can have. The Command field is not shown.
+        .filter((e) => e.key !== "cmd")
+        .map((e) =>
+          e.key === "msg"
+            ? {
+                ...e,
+                key: "out",
+                values: zoneOutputs.map((_, i) => String(i)),
+                unavailable: zoneOutputs
+                  .map((_, i) => String(i))
+                  .filter((e) => !zoneOutputValues(zone).includes(e)),
+              }
+            : e,
+        ),
     }))
     .filter((e) => e.section === "geometry" || e.options.length > 0);
+}
+
+// The outputs a zone of this kind and reader can have, as the numbers of
+// zoneOutputs: the commands it can send, and the mouse and gamepad. The
+// select lists every output and dims the others.
+export function zoneOutputValues(zone: Zone): string[] {
+  const cmds: readonly string[] =
+    zoneRead(zone) === "point" ? ["cc", "cc14"] : zoneCmdValues[zone.kind];
+  const msgs: readonly string[] = zoneMsgValues[zone.kind];
+  return zoneOutputs
+    .map((e, i) => ({ e, i }))
+    .filter(({ e }) =>
+      e.msg === "midi"
+        ? msgs.includes("midi") && cmds.includes(e.cmd as string)
+        : msgs.includes(e.msg),
+    )
+    .map(({ i }) => String(i));
+}
+
+// The zone with an output picked: its number in zoneOutputs. A command brings
+// its own range, 0-127 or 0-16383 (CC 14-bit, pitch bend); the mouse and the
+// gamepad have no command.
+export function withOutput(zone: Zone, code: string): Zone {
+  const output = zoneOutputs[Number(code)];
+  if (typeof output === "undefined" || !zoneOutputValues(zone).includes(code)) {
+    return zone;
+  }
+  const opt: Record<string, ZoneOptionValue> = {
+    ...zone.opt,
+    msg: output.msg,
+  };
+  delete opt.cmd;
+  if (typeof output.cmd !== "undefined") {
+    opt.cmd = output.cmd;
+    opt.min = 0;
+    opt.max = output.cmd === "cc14" || output.cmd === "pb" ? 16383 : 127;
+  }
+  return { ...zone, opt };
+}
+
+// The number of the zone's output as the select's text.
+export function zoneOutputText(zone: Zone): string {
+  return String(zoneOutputCode(zone));
 }
 
 // Field text of an option: its value, or empty when the line leaves it out.
@@ -313,7 +376,7 @@ export function optionShownText(zone: Zone, schema: OptionSchema): string {
   return optionText(zoneOptionValue(zone, schema.key));
 }
 
-export type EnumOption = { title: string; value: string };
+export type EnumOption = { title: string; value: string; disabled?: boolean };
 
 // Select titles of enum values.
 const enumValueLabels: Record<string, Record<string, string>> = {
@@ -325,6 +388,13 @@ const enumValueLabels: Record<string, Record<string, string>> = {
   },
   msg: { midi: "MIDI" },
   cmd: { cc: "CC", cc14: "CC 14-bit", note: "Note", pb: "Pitch bend" },
+  // the Output select: each MIDI command by its full name
+  out: {
+    cc: "MIDI CC",
+    cc14: "MIDI 14",
+    note: "MIDI Note",
+    pb: "MIDI Pitchbend",
+  },
   mode: { abs: "Absolute", rel: "Relative" },
   grab: { focus: "Focus", live: "Live" },
 };
@@ -349,14 +419,25 @@ export function enumOptions(
     return [];
   }
   const labels: Record<string, string> = { ...enumValueLabels[schema.key] };
+  if (schema.key === "out") {
+    // the commands, then the mouse and the gamepad, named by the reader
+    zoneOutputs.forEach((e, i) => {
+      labels[String(i)] =
+        e.msg === "midi"
+          ? enumValueLabels.out[e.cmd as string]
+          : zoneKindTitles[e.msg][read ?? "axis"];
+    });
+  }
   if (schema.key === "msg" && typeof read !== "undefined") {
     for (const [msg, titles] of Object.entries(zoneKindTitles)) {
       labels[msg] = titles[read];
     }
   }
+  const unavailable = "unavailable" in schema ? (schema.unavailable ?? []) : [];
   const options = schema.values.map((e) => ({
     title: labels[e] ?? e,
     value: e,
+    ...(unavailable.includes(e) ? { disabled: true } : {}),
   }));
   if (value !== "" && !schema.values.includes(value)) {
     options.push({ title: `${value} (unknown)`, value });
@@ -577,6 +658,7 @@ export const optionLabels: Record<string, string> = {
   grab: "Capture",
   col: "Colour",
   msg: "Output",
+  out: "Output",
   cmd: "Command",
   ch: "Channel",
   num: "CC",

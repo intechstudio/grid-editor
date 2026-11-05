@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.22.0"
+local LIB_VERSION = "0.23.0"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -676,23 +676,33 @@ end
 
 -- The zone line, by position: the name, the type (0 vertical fader, 1
 -- horizontal fader, 2 XY pad, 3 button; the older names "v", "h", "xy" and
--- "button" work too),
--- then a table per group: cells {x, y, w, h}, colour {r, g, b}, output
--- {msg, cmd, ch, num, rx}, range {min, max}, behaviour {mode, sensitivity,
--- spring, bmo, group} and capture {fingers, tap, grab}. A slot left out takes
--- the default.
+-- "button" work too), then a table per group: cells {x, y, w, h}, colour
+-- {r, g, b}, output {out, ch, num, rx}, range {min, max}, behaviour {mode,
+-- sensitivity, spring, bmo, group} and capture {fingers, tap, grab}. out is
+-- the msg and the command: 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5
+-- Gamepad; mode is 0 abs, 1 rel; grab is 0 focus, 1 live. An earlier build's
+-- strings, and its output {msg, cmd, ch, num, rx}, work too. A slot left out
+-- takes the default.
 local TY = { [0] = "v", "h", "xy" }
+local OC = { [0] = { "midi", "cc" }, { "midi", "cc14" }, { "midi", "note" }, { "midi", "pb" }, { "mouse" }, { "pad" } }
+local MD = { [0] = "abs", "rel" }
+local GR = { [0] = "focus", "live" }
 
 function Z.zone(self, n, t, g, c, u, r, b, p)
   local k = (t == 3 or t == "button") and "button" or "fader"
   u, r, b, p, c = u or {}, r or {}, b or {}, p or {}, c or {}
+  -- out as a number, or the earlier build's {msg, cmd, ch, num, rx}
+  local m, i = OC[u[1]], 1
+  if not m then
+    m, i = { u[1], u[2] }, 2
+  end
   return add(self, n, g[1], g[2], g[3], g[4], {
     dir = k == "fader" and (TY[t] or t) or nil,
     col = { c[1] or -1, c[2] or -1, c[3] or -1 },
-    msg = u[1], cmd = u[2], ch = u[3], num = u[4], rx = u[5],
+    msg = m[1], cmd = m[2], ch = u[i + 1], num = u[i + 2], rx = u[i + 3],
     min = r[1], max = r[2],
-    mode = b[1], sensitivity = b[2], spring = b[3], bmo = b[4], group = b[5],
-    fingers = p[1], tap = p[2], grab = p[3],
+    mode = MD[b[1]] or b[1], sensitivity = b[2], spring = b[3], bmo = b[4], group = b[5],
+    fingers = p[1], tap = p[2], grab = GR[p[3]] or p[3],
   }, k)
 end
 
