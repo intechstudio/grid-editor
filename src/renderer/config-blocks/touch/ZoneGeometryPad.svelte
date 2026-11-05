@@ -195,6 +195,7 @@
   role="group"
   aria-label="Touch surface, 9 by 9 cells"
   data-geometry-pad
+  data-interactive
   on:pointermove={handleMove}
   on:pointerup={handleUp}
   on:pointercancel={handleUp}

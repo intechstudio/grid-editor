@@ -98,7 +98,10 @@
     </div>
   {/if}
   <BlockRow>
-    <div class="flex flex-grow min-w-28 h-28 items-center justify-center">
+    <div
+      class="flex flex-grow min-w-28 h-28 items-center justify-center"
+      data-interactive
+    >
       <svelte:component
         this={picker}
         color={pickerColor}

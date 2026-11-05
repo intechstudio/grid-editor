@@ -20,6 +20,7 @@
     removeActions,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
+  import { interactiveContextMenu } from "../../../_actions/interactive-context-menu.action";
   import { contextTarget, SvgIcon, IconButton } from "@intechstudio/grid-uikit";
   import Indentation from "./Indentation.svelte";
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
@@ -264,6 +265,7 @@
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
+    use:interactiveContextMenu
     use:contextTarget={{
       items: [
         {
