@@ -33,11 +33,10 @@
           typeof midi === "undefined" ? undefined : zoneOutputLabel(zone, midi),
         ) + (zones!.length > 1 ? ` · +${zones!.length - 1} more` : "")
       : "not a zone line";
-  // "red,green,blue,alpha"; a channel at -1 is the module's colour, not known here
+  // "red,green,blue"; a channel at -1 is the module's colour, not known here
   $: colour =
-    typeof zone?.opt.col === "string" &&
-    /^\d+,\d+,\d+,[\d.]+$/.test(zone.opt.col)
-      ? `rgba(${zone.opt.col})`
+    typeof zone?.opt.col === "string" && /^\d+,\d+,\d+$/.test(zone.opt.col)
+      ? `rgb(${zone.opt.col})`
       : undefined;
   $: faulty =
     zones === null ||

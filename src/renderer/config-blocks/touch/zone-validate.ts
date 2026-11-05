@@ -92,7 +92,7 @@ export function optionProblem(
   if (schema.type === "color") {
     return typeof value === "string" && colorValid(value)
       ? undefined
-      : "Use red, green, blue (-1 to 255) and alpha (0 to 1)";
+      : "Use red, green and blue (-1 to 255)";
   }
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return "Enter a number";
@@ -152,19 +152,12 @@ function geometryProblems(zone: Zone): ZoneProblem[] {
   return problems;
 }
 
-// "red,green,blue,alpha": whole colours -1 (auto) to 255, alpha 0 to 1.
+// "red,green,blue": whole colours -1 (auto) to 255.
 function colorValid(value: string): boolean {
   const parts = value.split(",");
-  if (parts.length !== 4) {
-    return false;
-  }
-  const [r, g, b, a] = parts;
   return (
-    [r, g, b].every(
-      (e) => /^-?\d+$/.test(e) && Number(e) >= -1 && Number(e) <= 255,
-    ) &&
-    /^\d*\.?\d+$/.test(a) &&
-    Number(a) <= 1
+    parts.length === 3 &&
+    parts.every((e) => /^-?\d+$/.test(e) && Number(e) >= -1 && Number(e) <= 255)
   );
 }
 

@@ -16,6 +16,7 @@ import {
   zoneRead,
   zoneSections,
   zoneSends,
+  zoneOptionValue,
 } from "./zone-model";
 import { parseZones, zonesOf, zonesToLua, zoneToLua } from "./zone-parse";
 import { type ZoneMidi, PAD_AXIS_NAMES } from "./zone-autos";
@@ -85,7 +86,7 @@ export function zoneCssColor(
   zone: Pick<Zone, "opt">,
   auto?: { red?: number; green?: number; blue?: number },
 ): string | undefined {
-  const [red, green, blue] = String(zone.opt.col ?? "-1,-1,-1,1")
+  const [red, green, blue] = String(zone.opt.col ?? "-1,-1,-1")
     .split(",")
     .map(Number);
   const channels = [
@@ -103,9 +104,9 @@ export function zoneTypeLabel(zone: Pick<Zone, "kind" | "opt">): string {
   return enumValueLabels.dir[zoneType(zone)];
 }
 
-// The zone as another type. The options the new type has no field for go (a
-// button's mode, a fader's spring), and so does a command it can't send; a
-// default name (f1, b1) becomes the next free one of the new kind.
+// The zone as another type. Every setting goes back to its default except the
+// position, the size and the colour; a default name (f1, b1) becomes the next
+// free one of the new kind.
 export function withZoneType(
   zone: Zone,
   type: string,
@@ -115,21 +116,10 @@ export function withZoneType(
     return zone;
   }
   const kind: ZoneKind = type === "button" ? "button" : "fader";
-  const next: Zone = { ...zone, kind, opt: { ...zone.opt } };
-  delete next.opt.dir;
-  const allowed = new Map(
-    zoneOptionSchemaFor(next)
-      .filter((e) => e.reads.includes(zoneRead(next)) || e.key === "dir")
-      .map((e) => [e.key, e]),
-  );
-  for (const [key, value] of Object.entries(next.opt)) {
-    const schema = allowed.get(key);
-    if (
-      typeof schema === "undefined" ||
-      (schema.type === "enum" && !schema.values.includes(String(value)))
-    ) {
-      delete next.opt[key];
-    }
+  const next: Zone = { ...zone, kind, opt: {} };
+  delete next.unknown;
+  if (typeof zone.opt.col !== "undefined") {
+    next.opt.col = zone.opt.col;
   }
   if (kind === "fader" && type !== "v") {
     next.opt.dir = type;
@@ -320,32 +310,19 @@ export function optionPlaceholder(zone: Zone, key: string): string {
 // What a number field shows: the option's value, or the default the library
 // uses when the line leaves it out, so the field is never empty.
 export function optionShownText(zone: Zone, schema: OptionSchema): string {
-  const value = zone.opt[schema.key];
-  if (typeof value !== "undefined") {
-    return String(value);
-  }
-  const sends = zoneSends(zone);
-  switch (schema.key) {
-    case "ch":
-      return "-1";
-    case "num":
-      return sends === "mouse" ? "1" : "-1";
-    case "min":
-      return "0";
-    case "max":
-      return sends === "cc14" || sends === "pb" ? "16383" : "127";
-    case "spring":
-      return "-1";
-    default:
-      return optionText(zoneOptionDefault(zone.kind, schema.key));
-  }
+  return optionText(zoneOptionValue(zone, schema.key));
 }
 
 export type EnumOption = { title: string; value: string };
 
 // Select titles of enum values.
 const enumValueLabels: Record<string, Record<string, string>> = {
-  dir: { v: "Vertical", h: "Horizontal", xy: "XY Pad", button: "Button" },
+  dir: {
+    v: "Vertical Fader",
+    h: "Horizontal Fader",
+    xy: "XY Pad",
+    button: "Button",
+  },
   msg: { midi: "MIDI" },
   cmd: { cc: "CC", cc14: "CC 14-bit", note: "Note", pb: "Pitch bend" },
   mode: { abs: "Absolute", rel: "Relative" },

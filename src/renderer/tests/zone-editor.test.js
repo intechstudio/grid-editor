@@ -10,6 +10,7 @@ import {
 import {
   surfaceIssues,
   validateSurface,
+  zoneProblems,
   zoneSendProblem,
 } from "../config-blocks/touch/zone-validate";
 import {
@@ -40,23 +41,79 @@ beforeAll(async () => {
 });
 
 const LIB = `_Z=gr("zona")`;
+// a new XY pad and a new button, as the editor writes them: positional, with a
+// table per group (geometry, colour, output, range, behaviour, capture)
+const XY = (name) =>
+  `_Z.zone(self,"${name}",2,{0,0,5,5},{-1,-1,-1},{"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`;
+const BTN = (name, x = 5) =>
+  `_Z.zone(self,"${name}",3,{${x},0,2,2},{-1,-1,-1},{"midi","note",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`;
 
+// The editor writes the positional form with every slot defined. The older
+// option-table lines still read and are written in the new form.
 test.each([
-  `_Z.fader(self,"f1",1,0,1,9,{mode="rel",sensitivity=0.5})`,
-  `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col={255,128,0,1},cmd="cc"})`,
-  `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7,rx=1})`,
-])("a zone line reads and writes back unchanged: %s", (line) => {
-  expect(zoneToLua(parseZone(line))).toBe(line);
+  [
+    `_Z.fader(self,"f1",1,0,1,9,{mode="rel",sensitivity=0.5})`,
+    `_Z.zone(self,"f1",0,{1,0,1,9},{-1,-1,-1},{"midi","cc",-1,-1,0},{0,127},{"rel",0.5,-1,0,0},{1,1,"focus"})`,
+  ],
+  [
+    `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col={255,128,0,1},cmd="cc"})`,
+    `_Z.zone(self,"b1",3,{0,0,1,1},{255,128,0},{"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,3,2},{1,1,"focus"})`,
+  ],
+  [
+    `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7,rx=1})`,
+    `_Z.zone(self,"p1",2,{0,0,9,9},{-1,-1,-1},{"midi","cc",3,7,1},{0,127},{"abs",1,-1,0,0},{3,1,"focus"})`,
+  ],
+  [
+    `_Z.fader(self,"p",0,0,4,4,{dir="xy",msg="mouse"})`,
+    `_Z.zone(self,"p",2,{0,0,4,4},{-1,-1,-1},{"mouse","cc",-1,1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`,
+  ],
+  [
+    `_Z.fader(self,"g",0,0,1,9,{msg="pad"})`,
+    `_Z.zone(self,"g",0,{0,0,1,9},{-1,-1,-1},{"pad","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`,
+  ],
+  // the range follows the command
+  [
+    `_Z.fader(self,"f",0,0,1,9,{cmd="pb"})`,
+    `_Z.zone(self,"f",0,{0,0,1,9},{-1,-1,-1},{"midi","pb",-1,-1,0},{0,16383},{"abs",1,-1,0,0},{1,1,"focus"})`,
+  ],
+])("a zone line is written positional and fully defined: %s", (line, full) => {
+  expect(zoneToLua(parseZone(line))).toBe(full);
+  // and reads back and writes the same
+  expect(zoneToLua(parseZone(full))).toBe(full);
+});
+
+test("a positional line may end a table early, and the rest is the default", () => {
+  const zone = parseZone(
+    `_Z.zone(self,"f1",1,{0,0,3,1},{},{"midi"},{},{"rel"},{})`,
+  );
+  expect(zone.kind).toBe("fader");
+  expect(zone.opt).toEqual({ dir: "h", msg: "midi", mode: "rel" });
+  // the type by name, as an earlier build wrote it, still reads
+  expect(
+    parseZone(`_Z.zone(self,"f1","h",{0,0,3,1},{},{},{},{},{})`).opt.dir,
+  ).toBe("h");
+  expect(parseZone(`_Z.zone(self,"f1",3,{0,0,3,1},{},{},{},{},{})`).kind).toBe(
+    "button",
+  );
+  // wrong shapes are not zone lines
+  for (const bad of [
+    `_Z.zone(self,"f1",9,{0,0,3,1},{},{},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3},{},{},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{1,2,3,4,5},{},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{},{"midi","cc",1,2,3,4},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{},{msg="midi"},{},{},{})`,
+  ]) {
+    expect(parseZone(bad)).toBe(null);
+  }
 });
 
 test("a colour is written like Simple Color, and the old hex text still reads", () => {
   expect(
     parseZone(`_Z.button(self,"b",0,0,1,1,{col={-1,64,255,0.5}})`).opt.col,
-  ).toBe("-1,64,255,0.5");
+  ).toBe("-1,64,255");
   const old = parseZone(`_Z.button(self,"b",0,0,1,1,{col="ff8000"})`);
-  expect(zoneToLua(old)).toBe(
-    `_Z.button(self,"b",0,0,1,1,{col={255,128,0,1}})`,
-  );
+  expect(zoneToLua(old)).toContain(`{255,128,0}`);
   expect(
     issues([LIB, `_Z.button(self,"b",0,0,1,1,{col={300,0,0,1}})`]).length,
   ).toBe(1);
@@ -69,10 +126,16 @@ test("an old line with a body is not a zone line", () => {
 
 test("an option the editor doesn't know is kept as written", () => {
   const line = `_Z.fader(self,"f",0,0,1,9,{glow=2,shape={1,2},tag="x"})`;
-  expect(zoneToLua(parseZone(line))).toBe(line);
+  // kept in a last table, as written
+  expect(zoneToLua(parseZone(line))).toMatch(
+    /,\{glow=2,shape=\{1,2\},tag="x"\}\)$/,
+  );
+  expect(parseZone(zoneToLua(parseZone(line))).unknown).toBe(
+    `glow=2,shape={1,2},tag="x"`,
+  );
 });
 
-test("options at their default are left out of the written line", () => {
+test("an option at its default is still written", () => {
   const zone = {
     name: "b",
     kind: "button",
@@ -80,16 +143,11 @@ test("options at their default are left out of the written line", () => {
     y: 0,
     w: 1,
     h: 1,
-    opt: {
-      bmo: 1,
-      msg: "midi",
-      cmd: "note",
-      ch: -1,
-      num: -1,
-      rx: 0,
-    },
+    opt: { bmo: 1, msg: "midi", cmd: "note", ch: -1, num: -1, rx: 0 },
   };
-  expect(zoneToLua(zone)).toBe(`_Z.button(self,"b",0,0,1,1,{bmo=1})`);
+  expect(zoneToLua(zone)).toBe(
+    `_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{"midi","note",-1,-1,0},{0,127},{"abs",1,-1,1,0},{1,1,"focus"})`,
+  );
 });
 
 // A touch Setup as [script], with its zones parsed the way the overlay does.
@@ -145,6 +203,38 @@ test("the CC and channel the editor shows are what the library sends", async () 
     shown.map((m) => [m.ch, m.type === "note" ? 144 : 176, m.nums[0], 127]),
   );
   expect(shown.map((m) => m.nums)).toEqual([[48], [49], [50, 51], [52]]);
+});
+
+test("the library treats a fully defined line like the short one", async () => {
+  const lines = [
+    `_Z.fader(self,"f1",0,0,1,9,{})`,
+    `_Z.button(self,"b1",1,0,2,2,{})`,
+    `_Z.fader(self,"p1",3,0,4,4,{dir="xy",cmd="cc14",ch=2})`,
+    `_Z.fader(self,"f2",8,0,1,9,{cmd="pb",spring=50})`,
+    `_Z.button(self,"b2",1,3,2,2,{msg="mouse",bmo=1})`,
+    `_Z.fader(self,"g1",7,0,1,9,{msg="pad",col={255,0,0,1}})`,
+  ];
+  const run = async (setup) => {
+    const vm = await createZonaVM({ gmx: 1, gmy: 2, gpc: 1 });
+    vm.setup(setup.join(" "));
+    const led = ["gln", "gld", "glx", "glp"].map((fn) => vm.calls(fn));
+    const touches = [
+      [50, 0],
+      [200, 100],
+      [796, 0],
+      [960, 0],
+      [200, 400],
+      [900, 500],
+    ].map(([x, y]) => {
+      vm.clear();
+      vm.touch([0, DOWN, x, y], [0, UP, x, y]);
+      return [vm.midi(), vm.calls("gmbs"), vm.calls("ggms")];
+    });
+    return { led, touches };
+  };
+  const full = lines.map((e) => zoneToLua(parseZone(e)));
+  expect(full[0]).not.toBe(lines[0]);
+  expect(await run(full)).toEqual(await run(lines));
 });
 
 test("the gamepad axes and buttons the editor shows are what the library sends", async () => {
@@ -274,40 +364,55 @@ test("an XY pad is a fader with the XY Pad direction", () => {
 });
 
 test("a new Touch Zone is a 5x5 XY pad and a new button is 2x2", () => {
-  expect(defaultZoneScript("fader", [])).toBe(
-    `_Z=gr("zona") _Z.fader(self,"f1",0,0,5,5,{dir="xy"})`,
-  );
-  expect(defaultZoneScript("button", [])).toBe(
-    `_Z=gr("zona") _Z.button(self,"b1",0,0,2,2,{})`,
-  );
+  expect(defaultZoneScript("fader", [])).toBe(`${LIB} ${XY("f1")}`);
+  expect(defaultZoneScript("button", [])).toBe(`${LIB} ${BTN("b1", 0)}`);
 });
 
-test("the Type select turns a fader into a button and back", () => {
+test("the Type select resets every setting but the position, size and colour", () => {
   const pad = parseZone(
-    `_Z.fader(self,"f1",0,0,5,5,{dir="xy",tap=0,cmd="cc14",ch=2})`,
+    `_Z.fader(self,"f1",2,1,5,4,{dir="xy",tap=0,cmd="cc14",ch=2,spring=50,col={255,128,0,1}})`,
   );
   expect(zoneType(pad)).toBe("xy");
   expect(zoneTypeLabel(pad)).toBe("XY Pad");
+  const opts = (zone) => parseZone(zoneToLua(zone)).opt;
   const button = withZoneType(pad, "button", [
     `_Z.button(self,"b1",0,0,1,1,{})`,
   ]);
-  // fader-only options go, the shared ones stay, a default name follows the kind
-  expect(zoneToLua(button)).toBe(
-    `_Z.button(self,"b2",0,0,5,5,{cmd="cc14",ch=2})`,
-  );
+  // a default name follows the kind; position, size and colour stay
+  expect([button.name, button.kind]).toEqual(["b2", "button"]);
+  expect([button.x, button.y, button.w, button.h]).toEqual([2, 1, 5, 4]);
+  expect(button.opt).toEqual({ col: "255,128,0" });
   expect(zoneType(button)).toBe("button");
+  // the settings are the button's defaults, and the block has no problems
+  expect(opts(button)).toEqual({
+    col: "255,128,0",
+    msg: "midi",
+    cmd: "note",
+    ch: -1,
+    num: -1,
+    rx: 0,
+    min: 0,
+    max: 127,
+    bmo: 0,
+    group: 0,
+    grab: "focus",
+  });
+  expect(zoneProblems(parseZone(zoneToLua(button)))).toEqual([]);
+  // another type: again only the type, position, size and colour
   const back = withZoneType(button, "h", []);
-  expect(zoneToLua(back)).toBe(
-    `_Z.fader(self,"f1",0,0,5,5,{dir="h",cmd="cc14",ch=2})`,
+  expect(back.name).toBe("f1");
+  expect(back.opt).toEqual({ col: "255,128,0", dir: "h" });
+  expect(opts(back)).toMatchObject({ dir: "h", cmd: "cc", ch: -1, spring: -1 });
+  // a type between faders resets too
+  const edited = parseZone(
+    `_Z.fader(self,"f1",0,0,2,2,{dir="h",cmd="pb",ch=3})`,
   );
-  // a note a fader can't send is dropped on the way
-  const note = parseZone(`_Z.button(self,"b1",0,0,1,1,{cmd="note",bmo=1})`);
-  expect(zoneToLua(withZoneType(note, "v", []))).toBe(
-    `_Z.fader(self,"f1",0,0,1,1,{})`,
-  );
+  expect(withZoneType(edited, "xy", []).opt).toEqual({ dir: "xy" });
+  // the same type changes nothing
+  expect(withZoneType(edited, "h", [])).toBe(edited);
 });
 
-const TWO = `_Z.fader(self,"f1",0,0,5,5,{dir="xy"}) _Z.button(self,"b1",5,0,2,2,{})`;
+const TWO = `${XY("f1")} ${BTN("b1")}`;
 
 test("one block defines several zones, read and written in order", () => {
   const zones = parseZones(TWO);
@@ -338,9 +443,7 @@ test("zone names are unique across a block and the Setup", () => {
     `Another zone is also named "b1"`,
   );
   // a pasted block renames each zone that collides
-  expect(uniqueZoneScript(TWO, [TWO])).toBe(
-    `_Z=gr("zona") _Z.fader(self,"f2",0,0,5,5,{dir="xy"}) _Z.button(self,"b2",5,0,2,2,{})`,
-  );
+  expect(uniqueZoneScript(TWO, [TWO])).toBe(`${LIB} ${XY("f2")} ${BTN("b2")}`);
 });
 
 test("the overlay draws every zone of a block and the autos count them", () => {
@@ -361,7 +464,7 @@ test("the overlay draws every zone of a block and the autos count them", () => {
 
 test("a zone's preview colour is its col, with the module's colour for -1", () => {
   const auto = { red: 10, green: 20, blue: 30 };
-  expect(zoneCssColor({ opt: { col: "255,128,0,1" } }, auto)).toBe(
+  expect(zoneCssColor({ opt: { col: "255,128,0" } }, auto)).toBe(
     "rgb(255,128,0)",
   );
   expect(zoneCssColor({ opt: { col: "-1,64,255,0.5" } }, auto)).toBe(
@@ -519,4 +622,26 @@ test("a number field is never empty, and shows the default when the line omits i
   );
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "spring")).toBe("-1");
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "sensitivity")).toBe("1");
+});
+
+test("a colour has no alpha: red, green and blue, and an old fourth value is dropped", () => {
+  const colour = (line) => zoneToLua(parseZone(line)).split("},{")[1];
+  // three values are written
+  expect(colour(`_Z.button(self,"b",0,0,1,1,{col={255,128,0}})`)).toBe(
+    "255,128,0",
+  );
+  // the alpha of an earlier build (in either form) is read and dropped
+  expect(colour(`_Z.button(self,"b",0,0,1,1,{col={255,128,0,0.5}})`)).toBe(
+    "255,128,0",
+  );
+  expect(
+    parseZone(`_Z.zone(self,"b",3,{0,0,1,1},{1,2,3,0.5},{},{},{},{})`).opt.col,
+  ).toBe("1,2,3");
+  expect(
+    parseZone(`_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{},{},{},{})`),
+  ).not.toBe(null);
+  // a channel out of range is still an error
+  expect(
+    issues([LIB, `_Z.button(self,"b",0,0,1,1,{col={300,0,0}})`]).length,
+  ).toBe(1);
 });

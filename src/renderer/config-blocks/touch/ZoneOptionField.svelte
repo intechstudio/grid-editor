@@ -82,17 +82,15 @@
   // The colour as the Simple Color block edits it: the four channels as text.
   // The picker keeps its own colour while it drags; the value moves the
   // channels only when it changes from elsewhere (undo, another view).
-  type Channels = { red: string; green: string; blue: string; alpha: string };
-  const NO_COLOR: Channels = { red: "-1", green: "-1", blue: "-1", alpha: "1" };
+  type Channels = { red: string; green: string; blue: string };
+  const NO_COLOR: Channels = { red: "-1", green: "-1", blue: "-1" };
   let channels: Channels = { ...NO_COLOR };
   let picked = "";
   $: if (schema.type === "color" && value !== picked) {
     picked = value;
-    const [red, green, blue, alpha] = value.split(",");
+    const [red, green, blue] = value.split(",");
     channels =
-      typeof alpha === "undefined"
-        ? { ...NO_COLOR }
-        : { red, green, blue, alpha };
+      typeof blue === "undefined" ? { ...NO_COLOR } : { red, green, blue };
   }
 
   const channelValid = (text: string) =>
@@ -144,11 +142,11 @@
 
   // The option is left out while the colour is the module's own.
   function report() {
-    const { red, green, blue, alpha } = channels;
+    const { red, green, blue } = channels;
     picked =
-      red === "-1" && green === "-1" && blue === "-1" && Number(alpha) === 1
+      red === "-1" && green === "-1" && blue === "-1"
         ? ""
-        : [red, green, blue, alpha].join(",");
+        : [red, green, blue].join(",");
     dispatch("input", picked);
   }
 

@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.19.2"
+local LIB_VERSION = "0.22.0"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -503,7 +503,7 @@ end
 -- uses goes
 local CC = setmetatable({}, { __mode = "v" })
 
--- the zone colour, {red, green, blue, alpha} as Simple Color writes it (-1 is
+-- the zone colour, {red, green, blue} as Simple Color writes it (-1 is
 -- the module's colour), as its curve: the minimum is black, so phase 0 is off.
 -- The old "rrggbb" text still works
 local function col(z, s)
@@ -512,7 +512,7 @@ local function col(z, s)
     s = { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 }
   end
   s = type(s) == "table" and s or { -1, -1, -1, 1 }
-  local x, y, w = color_curve({ { s[1], s[2], s[3], s[4] or 1 } })
+  local x, y, w = color_curve({ { s[1], s[2], s[3], 1 } })
   x = { 0, 0, 0, x[4] }
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
   local e = CC[k] or { x, y, w }
@@ -535,7 +535,7 @@ local function start(self)
   Z.ct, Z.lk, Z.lc, Z.R = {}, {}, {}, {}
 end
 
-function Z.zone(self, n, x, y, w, h, opt, kind)
+local function add(self, n, x, y, w, h, opt, kind)
   -- the first zone of a Setup run: a touch or a value sync since the last
   -- zone sealed the surface; before any, a name already used shows the
   -- Setup ran again
@@ -674,9 +674,32 @@ function Z.zone(self, n, x, y, w, h, opt, kind)
   return z
 end
 
+-- The zone line, by position: the name, the type (0 vertical fader, 1
+-- horizontal fader, 2 XY pad, 3 button; the older names "v", "h", "xy" and
+-- "button" work too),
+-- then a table per group: cells {x, y, w, h}, colour {r, g, b}, output
+-- {msg, cmd, ch, num, rx}, range {min, max}, behaviour {mode, sensitivity,
+-- spring, bmo, group} and capture {fingers, tap, grab}. A slot left out takes
+-- the default.
+local TY = { [0] = "v", "h", "xy" }
+
+function Z.zone(self, n, t, g, c, u, r, b, p)
+  local k = (t == 3 or t == "button") and "button" or "fader"
+  u, r, b, p, c = u or {}, r or {}, b or {}, p or {}, c or {}
+  return add(self, n, g[1], g[2], g[3], g[4], {
+    dir = k == "fader" and (TY[t] or t) or nil,
+    col = { c[1] or -1, c[2] or -1, c[3] or -1 },
+    msg = u[1], cmd = u[2], ch = u[3], num = u[4], rx = u[5],
+    min = r[1], max = r[2],
+    mode = b[1], sensitivity = b[2], spring = b[3], bmo = b[4], group = b[5],
+    fingers = p[1], tap = p[2], grab = p[3],
+  }, k)
+end
+
+-- the older form, the zone's options in a table: Z.fader(self, n, x, y, w, h, opt)
 for kind in pairs(Z.kind) do
   Z[kind] = function(self, n, x, y, w, h, opt)
-    return Z.zone(self, n, x, y, w, h, opt, kind)
+    return add(self, n, x, y, w, h, opt, kind)
   end
 end
 

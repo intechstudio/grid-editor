@@ -1,12 +1,13 @@
 // Touch block scripts (docs/zona-touch-zones.md, The zone line). The canonical lines, as the editor writes
 // them:
 //
-//   Z.fader(self,"f1",0,0,1,9,{res=10,mode="rel"})
+//   _Z.fader(self,"f1",0,0,1,9,{dir="v",min=0,max=127,mode="abs",...})
 //
 // This is the form GridScript.compressScript produces: no spaces, double
 // quotes, numbers in shortest form. Options are written in schema order and
-// only when they differ from the kind's default; options this editor doesn't
-// know are kept as raw `key=value` text after the known ones. Hand-written
+// all of them, each with its value or default, so the line is fully defined
+// (zoneWrittenOptions); options this editor doesn't know are kept as raw
+// `key=value` text after the known ones. Hand-written
 // lines with other spacing, option order or single quotes parse too, and
 // write back canonical. Anything else parses to null and the block shows it
 // as code.
@@ -17,7 +18,8 @@ import {
   type ZoneKind,
   type ZoneOptionValue,
   zoneKindList,
-  zoneOptionDefault,
+  zoneRead,
+  zoneOptionValue,
   zoneOptionSchema,
 } from "./zone-model";
 
@@ -148,6 +150,29 @@ class Reader {
     return depth === 0 && raw.length > 0 ? raw : null;
   }
 
+  // `{a,b,c}` as the raw text of each value, in order. A table with `name=`
+  // entries is not a list.
+  list(): string[] | null {
+    if (!this.eat("{")) {
+      return null;
+    }
+    const raws: string[] = [];
+    while (!this.eat("}")) {
+      const raw = this.value();
+      if (raw === null || /^[A-Za-z_]\w*\s*=(?!=)/.test(raw)) {
+        return null;
+      }
+      raws.push(raw);
+      if (!this.eat(",") && !this.eat(";")) {
+        if (!this.eat("}")) {
+          return null;
+        }
+        break;
+      }
+    }
+    return raws;
+  }
+
   // `{key=value,...}` as raw entries in the order found. Only `name=value`
   // entries: a positional or `[key]=` entry fails, and so does a repeated key.
   table(): { key: string; raw: string }[] | null {
@@ -199,25 +224,22 @@ function parseNumber(text: string): number | null {
 }
 
 const COLOR_TABLE =
-  /^\{\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(\d*\.?\d+)\s*\}$/;
+  /^\{\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*(?:,\s*\d*\.?\d+\s*)?\}$/;
 
-// A colour as the Simple Color block writes it, `{red, green, blue, alpha}`,
-// kept as "red,green,blue,alpha". The old "rrggbb" string still reads, as
-// that colour with alpha 1.
+// A colour as a table, `{red, green, blue}`, kept as "red,green,blue". A
+// fourth value (the alpha of an earlier build) is read and dropped. The old
+// "rrggbb" string still reads.
 function colorLiteral(raw: string): string | null {
   const table = COLOR_TABLE.exec(raw.trim());
   if (table !== null) {
-    return table.slice(1, 5).join(",");
+    return table.slice(1, 4).join(",");
   }
   const reader = new Reader(raw);
   const hex = reader.string();
   if (hex === null || !reader.atEnd() || !/^[0-9a-f]{6}$/i.test(hex)) {
     return null;
   }
-  return [0, 2, 4]
-    .map((i) => parseInt(hex.slice(i, i + 2), 16))
-    .concat(1)
-    .join(",");
+  return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
 }
 
 // A raw table value as the schema's type, or null when it is not a plain
@@ -276,39 +298,119 @@ function luaValue(value: ZoneOptionValue): string {
   return typeof value === "string" ? luaString(value) : luaNumber(value);
 }
 
-function writeOptions(
-  options: Options,
-  schema: OptionSchema[],
-  defaultOf: (key: string) => ZoneOptionValue | undefined,
-): string {
-  for (const key of Object.keys(options.opt)) {
-    if (!schema.some((e) => e.key === key)) {
-      throw new Error(`Unknown option "${key}": keep it in unknown`);
+// The positional form: `_Z.zone(self,"f1",2,{0,0,5,5},{255,0,0,1},
+// {"midi","cc",-1,-1,0},{0,127},{"abs",1,-1,0,0},{1,1,"focus"})`. After the
+// name and the type come tables, each a group of the face: geometry, colour,
+// output, range, behaviour, capture. The options of a group are by position
+// (zonePositions); a table may end early, and what it leaves out is the
+// default.
+// The type is a number in the line (shorter): 0 vertical fader, 1 horizontal
+// fader, 2 XY pad, 3 button. The names are the editor's ("v", "h", "xy",
+// "button"), and an older line with the name as a string still reads.
+const ZONE_TYPES = ["v", "h", "xy", "button"];
+const zonePositions: string[][] = [
+  ["msg", "cmd", "ch", "num", "rx"],
+  ["min", "max"],
+  ["mode", "sensitivity", "spring", "bmo", "group"],
+  ["fingers", "tap", "grab"],
+];
+
+function readPositionalZone(reader: Reader): Zone | null {
+  if (!reader.eat("(") || reader.identifier() !== "self" || !reader.eat(",")) {
+    return null;
+  }
+  const name = reader.string();
+  if (name === null || !reader.eat(",")) {
+    return null;
+  }
+  const code = reader.number();
+  const type = code !== null ? ZONE_TYPES[code] : reader.string();
+  if (
+    typeof type === "undefined" ||
+    type === null ||
+    !ZONE_TYPES.includes(type)
+  ) {
+    return null;
+  }
+  const tables: string[][] = [];
+  for (let i = 0; i < 6; i++) {
+    const list = reader.eat(",") ? reader.list() : null;
+    if (list === null) {
+      return null;
+    }
+    tables.push(list);
+  }
+  const [cells, color, ...groups] = tables;
+  const numbers = cells.map(parseNumber);
+  if (
+    cells.length !== 4 ||
+    numbers.some((e) => e === null) ||
+    color.length > 4
+  ) {
+    return null;
+  }
+  const kind: ZoneKind = type === "button" ? "button" : "fader";
+  const opt: Record<string, ZoneOptionValue> = {};
+  if (kind === "fader") {
+    opt.dir = type;
+  }
+  if (color.length > 0) {
+    const col = colorLiteral(`{${color.join(",")}}`);
+    if (col === null) {
+      return null;
+    }
+    opt.col = col;
+  }
+  for (let g = 0; g < groups.length; g++) {
+    if (groups[g].length > zonePositions[g].length) {
+      return null;
+    }
+    for (let i = 0; i < groups[g].length; i++) {
+      const key = zonePositions[g][i];
+      const schema = zoneOptionSchema.find((e) => e.key === key);
+      const value = schema ? literal(schema, groups[g][i]) : null;
+      if (value === null) {
+        return null;
+      }
+      opt[key] = value;
     }
   }
-  const parts: string[] = [];
-  for (const entry of schema) {
-    const { key } = entry;
-    const value = options.opt[key];
-    if (typeof value === "undefined") {
-      continue;
-    }
-    // the parser reads an enum or a colour only as a string, a number only
-    // as a number
-    const isText = entry.type === "enum" || entry.type === "color";
-    if (typeof value !== (isText ? "string" : "number")) {
-      throw new Error(`Option "${key}" must be a ${entry.type}`);
-    }
-    if (value !== defaultOf(key)) {
-      parts.push(
-        `${key}=${entry.type === "color" ? `{${value}}` : luaValue(value)}`,
-      );
+  // Every slot is always written, so a slot the zone's reader has no use for
+  // (a button's spring, a fader's fingers) holds its default and means
+  // nothing: it is not an option of this zone, and not a problem to report.
+  const read = zoneRead({ kind, opt });
+  for (const key of Object.keys(opt)) {
+    const schema = zoneOptionSchema.find((e) => e.key === key);
+    if (key !== "dir" && schema && !schema.reads.includes(read)) {
+      delete opt[key];
     }
   }
-  if (typeof options.unknown !== "undefined" && options.unknown.length > 0) {
-    parts.push(options.unknown);
+  // options this editor doesn't know travel in a last table, as before
+  let unknown: string | undefined;
+  if (reader.eat(",")) {
+    const entries = reader.table();
+    const rest =
+      entries === null ? null : readOptions(entries, zoneOptionSchema);
+    if (rest === null) {
+      return null;
+    }
+    Object.assign(opt, rest.opt);
+    unknown = rest.unknown;
   }
-  return `{${parts.join(",")}}`;
+  if (!reader.eat(")")) {
+    return null;
+  }
+  const [x, y, w, h] = numbers as number[];
+  return {
+    name,
+    kind,
+    x,
+    y,
+    w,
+    h,
+    opt,
+    ...(typeof unknown === "undefined" ? {} : { unknown }),
+  };
 }
 
 // One zone line from the reader's position; null when it isn't a zone line.
@@ -316,7 +418,10 @@ function readZone(reader: Reader): Zone | null {
   if (!reader.eat(ZONA_GLOBAL) || !reader.eat(".")) {
     return null;
   }
-  const kind = reader.identifier() as ZoneKind;
+  const kind = reader.identifier() as ZoneKind | "zone";
+  if (kind === "zone") {
+    return readPositionalZone(reader);
+  }
   if (
     !zoneKindList.includes(kind) ||
     !reader.eat("(") ||
@@ -399,13 +504,50 @@ export function zonesToLua(zones: Zone[]): string {
   return [ZONA_LOAD, ...zones.map(zoneToLua)].join(" ");
 }
 
+// The zone line as the editor writes it, positional and fully defined:
+//
+//   _Z.zone(self,"f1",2,{0,0,5,5},{255,0,0,1},{"midi","cc",-1,-1,0},{0,127},
+//     {"abs",1,-1,0,0},{1,1,"focus"})
+//
+// Name, type (0 vertical fader, 1 horizontal fader, 2 XY pad, 3 button), then a table per group of the face:
+// geometry (x, y, w, h), colour (r, g, b, a), output (msg, cmd, ch, num, rx),
+// range (min, max), behaviour (mode, sensitivity, spring, bmo, group) and
+// capture (fingers, tap, grab). Every slot is written with its value or the
+// default, whether or not the zone's output uses it. Options this editor
+// doesn't know follow in a last table, as raw text.
 export function zoneToLua(zone: Zone): string {
   if (!zoneKindList.includes(zone.kind)) {
     throw new Error(`Unknown zone kind "${zone.kind}"`);
   }
+  const known = new Set(zoneOptionSchema.map((e) => e.key));
+  for (const key of Object.keys(zone.opt)) {
+    if (!known.has(key)) {
+      throw new Error(`Unknown option "${key}": keep it in unknown`);
+    }
+  }
+  const write = (key: string) => {
+    const schema = zoneOptionSchema.find((e) => e.key === key) as OptionSchema;
+    const value = zoneOptionValue(zone, key);
+    const isText = schema.type === "enum";
+    if (
+      typeof value === "undefined" ||
+      typeof value !== (isText || schema.type === "color" ? "string" : "number")
+    ) {
+      throw new Error(`Option "${key}" must be a ${schema.type}`);
+    }
+    return typeof value === "string" ? luaString(value) : luaNumber(value);
+  };
   const cells = [zone.x, zone.y, zone.w, zone.h].map(luaNumber).join(",");
-  const options = writeOptions(zone, zoneOptionSchema, (key) =>
-    zoneOptionDefault(zone.kind, key),
-  );
-  return `${ZONA_GLOBAL}.${zone.kind}(self,${luaString(zone.name)},${cells},${options})`;
+  const colour = String(zoneOptionValue(zone, "col"));
+  const groups = zonePositions.map((keys) => `{${keys.map(write).join(",")}}`);
+  const unknown =
+    typeof zone.unknown !== "undefined" && zone.unknown.length > 0
+      ? `,{${zone.unknown}}`
+      : "";
+  const type = zone.kind === "button" ? "button" : (zone.opt.dir ?? "v");
+  const code = ZONE_TYPES.indexOf(String(type));
+  if (code < 0) {
+    throw new Error(`Unknown zone type "${type}"`);
+  }
+  return `${ZONA_GLOBAL}.zone(self,${luaString(zone.name)},${code},{${cells}},{${colour}},${groups.join(",")}${unknown})`;
 }

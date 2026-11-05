@@ -17,7 +17,7 @@ export type ZoneOptions = {
   sensitivity: number; // rel: drag factor; mouse: pointer sensitivity
   bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
   group: number; // gate: radio group 1-8, 0 none
-  col?: string; // zone colour "red,green,blue,alpha"; without it the module's default colour
+  col?: string; // zone colour "red,green,blue"; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default; gamepad: axis 0-5 or button 0-31, -1 auto (Setup order)
   rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
@@ -102,7 +102,7 @@ export type Zone = {
 export type OptionSchema = { key: string } & (
   | { type: "enum"; values: readonly string[] }
   | { type: "integer" | "number"; min?: number; max?: number }
-  | { type: "color" } // "red,green,blue,alpha", written as {red,green,blue,alpha}; -1 is auto
+  | { type: "color" } // "red,green,blue", written as {red,green,blue}; -1 is auto
 );
 
 // Block face sections, in display order (docs/zona-touch-zones.md, Block face).
@@ -330,4 +330,30 @@ export function zoneSends(zone: Zone): ZoneOptionValue | undefined {
     zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
   const msg = option("msg");
   return msg === "midi" ? option("cmd") : msg;
+}
+
+// The value a zone has for an option: the one its line sets, or what the
+// library uses when the line leaves it out. The default of a colour is the
+// module's own colour ({-1,-1,-1,1}); Min and Max follow the command.
+export function zoneOptionValue(
+  zone: Zone,
+  key: string,
+): ZoneOptionValue | undefined {
+  const set = zone.opt[key];
+  if (typeof set !== "undefined") {
+    return set;
+  }
+  const sends = zoneSends(zone);
+  switch (key) {
+    case "min":
+      return 0;
+    case "max":
+      return sends === "cc14" || sends === "pb" ? 16383 : 127;
+    case "num":
+      return sends === "mouse" ? 1 : -1;
+    case "col":
+      return "-1,-1,-1";
+    default:
+      return zoneOptionDefault(zone.kind, key);
+  }
 }

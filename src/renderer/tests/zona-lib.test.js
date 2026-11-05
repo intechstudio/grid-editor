@@ -366,3 +366,46 @@ test("a zone colour is a {red, green, blue, alpha} table, or the old hex text", 
   expect(await paint(`col={-1,-1,-1,1}`)).not.toEqual(table);
   expect(await paint(``)).toEqual(await paint(`col={-1,-1,-1,1}`));
 });
+
+test("Z.zone takes the zone by position, and a short table leaves the defaults", async () => {
+  const run = async (line) => {
+    const vm = await createZonaVM();
+    vm.setup(line);
+    const led = ["gln", "gld", "glx", "glp"].map((fn) => vm.calls(fn));
+    vm.clear();
+    vm.touch([0, DOWN, 50, 0], [0, UP, 50, 0]);
+    return { led, midi: vm.midi() };
+  };
+  const old = await run(`Z.fader(self,"f",0,0,1,9,{})`);
+  expect(old.midi.length).toBeGreaterThan(0);
+  // empty or missing tables are the defaults
+  expect(await run(`Z.zone(self,"f",0,{0,0,1,9},{},{},{},{},{})`)).toEqual(old);
+  expect(await run(`Z.zone(self,"f",0,{0,0,1,9},{})`)).toEqual(old);
+  // slots by position: the output, the range and the colour
+  expect(
+    await run(
+      `Z.zone(self,"f",0,{0,0,1,9},{255,0,0,1},{"midi","cc",2,40,0},{0,100})`,
+    ),
+  ).toEqual(
+    await run(
+      `Z.fader(self,"f",0,0,1,9,{col={255,0,0,1},msg="midi",cmd="cc",ch=2,num=40,rx=0,min=0,max=100})`,
+    ),
+  );
+  // the type by number (0 v, 1 h, 2 xy, 3 button), or by its older name
+  for (const [code, name] of [
+    [0, "v"],
+    [1, "h"],
+    [2, "xy"],
+  ]) {
+    expect(await run(`Z.zone(self,"f",${code},{0,0,4,4},{})`)).toEqual(
+      await run(`Z.zone(self,"f","${name}",{0,0,4,4},{})`),
+    );
+  }
+  expect(await run(`Z.zone(self,"f",2,{0,0,4,4},{})`)).toEqual(
+    await run(`Z.fader(self,"f",0,0,4,4,{dir="xy"})`),
+  );
+  // a button is the type 3
+  expect(await run(`Z.zone(self,"b",3,{0,0,2,2},{})`)).toEqual(
+    await run(`Z.button(self,"b",0,0,2,2,{})`),
+  );
+});
