@@ -275,14 +275,12 @@
   }
   .box {
     position: relative;
-    z-index: 2;
     border: 2px solid var(--zone);
     background-color: color-mix(in srgb, var(--zone) 35%, transparent);
     cursor: move;
   }
   /* another zone: dimmer, and the pointer goes through it to the pad */
   .other {
-    z-index: 1;
     pointer-events: none;
     border: 1px solid color-mix(in srgb, var(--zone) 60%, transparent);
     background-color: color-mix(in srgb, var(--zone) 18%, transparent);
