@@ -29,8 +29,10 @@ import {
   zoneFaceSections,
   zoneOptionSuggestions,
   optionPlaceholder,
+  optionShownText,
   withOption,
 } from "../config-blocks/touch/zone-blocks";
+import { zoneOptionSchemaFor } from "../config-blocks/touch/zone-model";
 import { overlayZones } from "../main/grid-layout/grid-modules/overlays/touch-zones";
 
 beforeAll(async () => {
@@ -490,4 +492,31 @@ test("a new MIDI command sets Min and Max to its range", () => {
     `_Z.fader(self,"f1",0,0,1,9,{cmd="cc14",min=10,max=100})`,
   );
   expect(withOption(same, cmd, "cc14").next.opt.max).toBe(100);
+});
+
+test("a number field is never empty, and shows the default when the line omits it", () => {
+  const zone = parseZone(`_Z.fader(self,"f1",0,0,1,9,{})`);
+  const schema = (key) => zoneOptionSchemaFor(zone).find((e) => e.key === key);
+  // empty text is an error, not "leave the option out"
+  for (const key of ["ch", "num", "min", "max", "sensitivity", "spring"]) {
+    expect(withOption(zone, schema(key), "  ").error).toBe("Required");
+  }
+  // an enum or a colour can still be left to its default
+  expect(withOption(zone, schema("mode"), "").error).toBeUndefined();
+  expect(withOption(zone, schema("col"), "").error).toBeUndefined();
+  const shown = (line, key) => {
+    const z = parseZone(line);
+    return optionShownText(
+      z,
+      zoneOptionSchemaFor(z).find((e) => e.key === key),
+    );
+  };
+  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "ch")).toBe("-1");
+  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{ch=3})`, "ch")).toBe("3");
+  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "max")).toBe("127");
+  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{cmd="cc14"})`, "max")).toBe(
+    "16383",
+  );
+  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "spring")).toBe("-1");
+  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "sensitivity")).toBe("1");
 });

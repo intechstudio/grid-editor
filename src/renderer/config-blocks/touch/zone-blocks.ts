@@ -317,6 +317,30 @@ export function optionPlaceholder(zone: Zone, key: string): string {
   return optionText(zoneOptionDefault(kind, key));
 }
 
+// What a number field shows: the option's value, or the default the library
+// uses when the line leaves it out, so the field is never empty.
+export function optionShownText(zone: Zone, schema: OptionSchema): string {
+  const value = zone.opt[schema.key];
+  if (typeof value !== "undefined") {
+    return String(value);
+  }
+  const sends = zoneSends(zone);
+  switch (schema.key) {
+    case "ch":
+      return "-1";
+    case "num":
+      return sends === "mouse" ? "1" : "-1";
+    case "min":
+      return "0";
+    case "max":
+      return sends === "cc14" || sends === "pb" ? "16383" : "127";
+    case "spring":
+      return "-1";
+    default:
+      return optionText(zoneOptionDefault(zone.kind, schema.key));
+  }
+}
+
 export type EnumOption = { title: string; value: string };
 
 // Select titles of enum values.
@@ -499,7 +523,11 @@ export function parseOptionText(
 ): { value?: ZoneOptionValue; error?: string } {
   const trimmed = text.trim();
   if (trimmed === "") {
-    return {};
+    // a number field is never empty: it shows the default, and the user types
+    // a value over it (an enum or a colour can be left to its default)
+    return schema.type === "integer" || schema.type === "number"
+      ? { error: "Required" }
+      : {};
   }
   if (schema.type === "enum") {
     return { value: trimmed };

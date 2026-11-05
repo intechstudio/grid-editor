@@ -41,6 +41,7 @@
     type ZoneField,
     optionLabel,
     optionPlaceholder,
+    optionShownText,
     optionText,
     withField,
     addedZone,
@@ -210,6 +211,12 @@
     const next = result.next;
     if (typeof next === "undefined") {
       fieldErrors = { ...fieldErrors, [key]: result.error ?? "Invalid" };
+      // the block is flagged invalid (as the MIDI block does), the script stays
+      dispatch("update-action", {
+        short: action.short,
+        script: action.script,
+        validationError: true,
+      });
       return;
     }
     const { [key]: _, ...rest } = fieldErrors;
@@ -581,7 +588,9 @@
                 {schema}
                 read={zoneRead(zone)}
                 title={optionLabel(schema.key, zone)}
-                value={optionText(zone.opt[schema.key])}
+                value={schema.type === "integer" || schema.type === "number"
+                  ? optionShownText(zone, schema)
+                  : optionText(zone.opt[schema.key])}
                 placeholder={placeholderOf(schema.key)}
                 problem={problemOf(schema.key)}
                 {autoColor}

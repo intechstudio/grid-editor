@@ -1,8 +1,10 @@
 <script lang="ts">
   // One option of a Touch block face, from its schema: a select for an enum,
   // a field with suggestions for a number, the colour editor of the Simple Color block for a
-  // colour. The empty value means "leave the option out" (the default: the
-  // placeholder, or the selected entry of a select).
+  // colour. A number field is never empty: it shows the option's value, or the
+  // default when the line leaves it out, and empty text is an error. Only an
+  // enum or a colour can be empty, meaning "leave the option out" (the default:
+  // the selected entry of a select).
   import { createEventDispatcher } from "svelte";
   import {
     Color,

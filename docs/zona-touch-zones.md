@@ -278,6 +278,10 @@ The face is built from the option schema. It shows the name, then the sections G
 
 The header shows `f1 · 0,0 1×9 · CC 32 ch 1`, with a colour dot when `col` is set. It turns red when the zone has a problem.
 
+### Empty fields
+
+No number field is ever empty. A field whose option the line leaves out shows the default the library uses (Channel and CC or Note number -1, Min 0, Max 127 or 16383, Spring -1, and the other options' defaults). The user types a value over it. Empty text is an error ("Required"): the field turns red and the block is flagged invalid like the MIDI block, so the module keeps the last valid script. A value equal to the option's default is not written to the line; Min and Max have no default, so they are always written once set. An enum is a select and always has a value, and the colour channels are validated as numbers from -1 to 255.
+
 ### Validation
 
 `zone-validate.ts` has three levels.
