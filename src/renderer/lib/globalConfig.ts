@@ -1,11 +1,12 @@
-// The Global Config block edits a single Lua assignment whose variables carry
-// their UI as a trailing block comment:
+// The Global Config block edits a list of Lua assignments, one variable per
+// line, each carrying its UI as a trailing block comment:
 //
-//   dim --[[slider,0,100]], mode --[[select,"absolute","relative"]] = 40, "absolute"
+//   dim = 256 --[[slider,0,1000]]
+//   mode = "relative" --[[select,"absolute","relative"]]
 //
 // Supported specs: slider,min,max[,step] | select,"a","b",... | toggle | input.
 // An input holds any Lua expression, kept as text.
-// Only the values after "=" are ever rewritten; names and specs stay verbatim.
+// Only the values are ever rewritten; names, specs and spacing stay verbatim.
 
 export type ConfigSpec =
   | { type: "slider"; min: number; max: number; step: number }
@@ -19,9 +20,12 @@ export type ConfigEntry = {
   value: number | string | boolean;
 };
 
+// A line of the script: blank lines stay as they are, variable lines keep
+// the text around their value.
+type ConfigLine = string | { prefix: string; suffix: string; index: number };
+
 export type ParsedConfig = {
-  // Script up to and including the "=" sign; kept verbatim on write.
-  head: string;
+  lines: ConfigLine[];
   entries: ConfigEntry[];
 };
 
@@ -145,98 +149,96 @@ function parseValue(spec: ConfigSpec, text: string) {
   }
 }
 
-// The Lua formatter may move the comma in front of a spec comment, as in
-// `dim, --[[slider,0,100]]`. A comment that starts a segment belongs to the
-// bare name before it.
-function attachTrailingSpecs(segments: string[] | null): string[] | null {
-  if (!segments) return null;
-  const out: string[] = [];
-  for (const segment of segments) {
-    const start = segment.search(/\S/);
-    const prev = out[out.length - 1];
-    if (
-      start >= 0 &&
-      segment.startsWith("--[[", start) &&
-      prev !== undefined &&
-      /^\s*[A-Za-z_][A-Za-z0-9_]*\s*$/.test(prev)
-    ) {
-      const end = skipComment(segment, start);
-      if (end >= 0) {
-        out[out.length - 1] = prev + segment.slice(start, end + 1);
-        const rest = segment.slice(end + 1);
-        if (rest.trim() !== "") out.push(rest);
-        continue;
-      }
-    }
-    out.push(segment);
-  }
-  return out;
-}
-
 export type ConfigResult =
   { ok: true; config: ParsedConfig } | { ok: false; error: string };
 
 const fail = (error: string): ConfigResult => ({ ok: false, error });
 
-// Explains the first reason the script can't be shown as controls.
-export function checkConfigScript(script: string): ConfigResult {
-  // Find the assignment "=" outside comments and strings.
-  let eq = -1;
-  for (let i = 0; i < script.length && eq < 0; i++) {
-    if (script.startsWith("--[[", i)) {
-      const end = skipComment(script, i);
-      if (end < 0) return fail("A --[[ comment is not closed with ]]");
+// Index where a top-level `--[[` comment starts, outside strings; -1 if none.
+function findSpecStart(text: string): number {
+  for (let i = 0; i < text.length; i++) {
+    if (text.startsWith("--[[", i)) return i;
+    if (text[i] === '"' || text[i] === "'") {
+      const end = skipString(text, i);
+      if (end < 0) return -2;
       i = end;
-    } else if (script[i] === '"' || script[i] === "'") {
-      return fail("Unexpected string before the = sign");
-    } else if (script[i] === "=") {
-      if (script[i + 1] === "=") return fail("Unexpected == before the = sign");
-      eq = i;
     }
   }
-  if (eq < 0) return fail("No assignment (name --[[spec]] = value) found");
-
-  const names = attachTrailingSpecs(splitTopLevel(script.slice(0, eq)));
-  const values = splitTopLevel(script.slice(eq + 1));
-  if (!names || !values) return fail("Unbalanced quotes or comments");
-  if (names.length !== values.length) {
-    return fail(
-      `${names.length} variable(s) but ${values.length} value(s) after =`,
-    );
-  }
-
-  const entries: ConfigEntry[] = [];
-  for (let i = 0; i < names.length; i++) {
-    const m = names[i].match(
-      /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*--\[\[([\s\S]*)\]\]\s*$/,
-    );
-    const label = m?.[1] ?? names[i].trim();
-    if (!m) {
-      return fail(`"${label}" needs a spec comment like --[[slider,0,100]]`);
-    }
-    const spec = parseSpec(m[2]);
-    if (!spec) {
-      return fail(
-        `${label}: invalid spec "${m[2]}" (slider,min,max[,step] needs min < max, step > 0; select needs quoted options; toggle takes no arguments)`,
-      );
-    }
-    const value = parseValue(spec, values[i]);
-    if (value === null) {
-      return fail(
-        `${label}: value ${values[i].trim() || "(empty)"} doesn't fit its ${spec.type} spec`,
-      );
-    }
-    entries.push({ name: m[1], spec, value });
-  }
-  if (new Set(entries.map((e) => e.name)).size !== entries.length) {
-    return fail("Variable names must be unique");
-  }
-
-  return { ok: true, config: { head: script.slice(0, eq + 1), entries } };
+  return -1;
 }
 
-// Null when the script is not a fully annotated config assignment, so the
-// block can fall back to the code editor.
+// Explains the first reason the script can't be shown as controls.
+export function checkConfigScript(script: string): ConfigResult {
+  const lines: ConfigLine[] = [];
+  const entries: ConfigEntry[] = [];
+
+  const rows = script.split("\n");
+  for (let n = 0; n < rows.length; n++) {
+    const row = rows[n].replace(/\r$/, "");
+    if (row.trim() === "") {
+      lines.push(row);
+      continue;
+    }
+    const where = rows.length > 1 ? `Line ${n + 1}: ` : "";
+
+    const head = row.match(/^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*=(?!=)/);
+    if (!head) {
+      return fail(`${where}expected "name = value --[[spec]]"`);
+    }
+    const name = head[2];
+    const rest = row.slice(head[0].length);
+
+    const specStart = findSpecStart(rest);
+    if (specStart === -2) return fail(`${where}${name}: unclosed quote`);
+    if (specStart < 0) {
+      return fail(
+        `${where}"${name}" needs a spec comment like --[[slider,0,100]] after its value`,
+      );
+    }
+    const specEnd = skipComment(rest, specStart);
+    if (specEnd < 0) {
+      return fail(`${where}${name}: the --[[ comment is not closed with ]]`);
+    }
+    if (rest.slice(specEnd + 1).trim() !== "") {
+      return fail(`${where}${name}: nothing may follow the spec comment`);
+    }
+
+    const specBody = rest.slice(specStart + 4, specEnd - 1);
+    const spec = parseSpec(specBody);
+    if (!spec) {
+      return fail(
+        `${where}${name}: invalid spec "${specBody}" (slider,min,max[,step] needs min < max, step > 0; select needs quoted options; toggle and input take no arguments)`,
+      );
+    }
+
+    const valueText = rest.slice(0, specStart);
+    const value = parseValue(spec, valueText);
+    if (value === null) {
+      return fail(
+        `${where}${name}: value ${valueText.trim() || "(empty)"} doesn't fit its ${spec.type} spec`,
+      );
+    }
+    if (entries.some((e) => e.name === name)) {
+      return fail(`${where}${name} is defined twice`);
+    }
+
+    const leading = valueText.length - valueText.trimStart().length;
+    const trailing = valueText.length - valueText.trimEnd().length;
+    lines.push({
+      prefix: head[0] + valueText.slice(0, leading),
+      suffix:
+        valueText.slice(valueText.length - trailing) + rest.slice(specStart),
+      index: entries.length,
+    });
+    entries.push({ name, spec, value });
+  }
+
+  if (entries.length === 0) return fail("No variables found");
+  return { ok: true, config: { lines, entries } };
+}
+
+// Null when the script is not a fully annotated config, so the block can
+// fall back to the code editor.
 export function parseConfigScript(script: string): ParsedConfig | null {
   const result = checkConfigScript(script);
   return result.ok ? result.config : null;
@@ -253,5 +255,11 @@ function valueToLua(entry: ConfigEntry): string {
 }
 
 export function configToLua(config: ParsedConfig): string {
-  return `${config.head} ${config.entries.map(valueToLua).join(", ")}`;
+  return config.lines
+    .map((line) =>
+      typeof line === "string"
+        ? line
+        : line.prefix + valueToLua(config.entries[line.index]) + line.suffix,
+    )
+    .join("\n");
 }

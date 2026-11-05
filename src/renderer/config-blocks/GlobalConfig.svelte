@@ -15,7 +15,8 @@
     documentationUrl:
       "https://docs.intech.studio/wiki/actions/variables/global-config",
     color: categoryColors["variables"],
-    defaultLua: `dim --[[slider,0,100]], mode --[[select,"absolute","relative"]], enabled --[[toggle]], offset --[[input]] = 40, "absolute", true, 0`,
+    defaultLua:
+      'dim=40 --[[slider,0,100]]mode="absolute" --[[select,"absolute","relative"]]enabled=true --[[toggle]]offset=0 --[[input]]',
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>`,
     selectable: true,
     movable: true,
@@ -31,7 +32,7 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import { GridAction, GridElement, GridEvent } from "./../runtime/runtime";
-  import { type ElementType } from "@intechstudio/grid-protocol";
+  import { GridScript, type ElementType } from "@intechstudio/grid-protocol";
   import {
     MeltSelect,
     MeltSlider,
@@ -62,7 +63,9 @@
 
   // Null when the script is not a fully annotated config, which can only be
   // edited as code.
-  $: checked = checkConfigScript($action.script);
+  // The module keeps the script compressed (no newlines); the controls work
+  // on the expanded form that the code editor shows.
+  $: checked = checkConfigScript(GridScript.expandScript($action.script));
   $: config = (checked.ok ? checked.config : null) as ParsedConfig | null;
   $: configError = checked.ok ? "" : checked.error;
   $: showControls = locked && config !== null;
@@ -96,7 +99,7 @@
     adjusted = true;
     dispatch("update-action", {
       short: information.short,
-      script: configToLua(next),
+      script: GridScript.compressScript(configToLua(next)),
       validationError: false,
     });
     // A slider syncs when the drag is committed, not on every step.

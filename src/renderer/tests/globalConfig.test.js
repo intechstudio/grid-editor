@@ -1,7 +1,8 @@
-import { test, expect, describe } from "vitest";
+import { GridScript, initLuaFormatter } from "@intechstudio/grid-protocol";
+import { test, expect, describe, beforeAll } from "vitest";
 import { configToLua, parseConfigScript } from "../lib/globalConfig";
 
-const SCRIPT = `dim --[[slider,0,100]], mode --[[select,"absolute","relative"]] = 40, "absolute"`;
+const SCRIPT = `dim = 40 --[[slider,0,100]]\nmode = "absolute" --[[select,"absolute","relative"]]`;
 
 describe("parseConfigScript", () => {
   test("reads names, specs and values", () => {
@@ -22,55 +23,53 @@ describe("parseConfigScript", () => {
 
   test("toggle and slider step", () => {
     const c = parseConfigScript(
-      "a --[[toggle]], b --[[slider,0,1,0.1]] = true, 0.5",
+      "a = true --[[toggle]]\nb = 0.5 --[[slider,0,1,0.1]]",
     );
     expect(c.entries.map((e) => e.value)).toEqual([true, 0.5]);
     expect(c.entries[1].spec.step).toBe(0.1);
   });
 
-  test("commas and ]] inside select options", () => {
-    const c = parseConfigScript(`m --[[select,"a,b","c]]d"]] = "c]]d"`);
+  test("commas and ]] inside select options and values", () => {
+    const c = parseConfigScript(`m = "c]]d" --[[select,"a,b","c]]d"]]`);
     expect(c.entries[0].spec.options).toEqual(["a,b", "c]]d"]);
     expect(c.entries[0].value).toBe("c]]d");
   });
 
-  test("formatter moved the comma before the spec", () => {
-    const c = parseConfigScript(
-      `dim, --[[slider,0,100]]\n  mode --[[select,"absolute","relative"]] = 40, "absolute"`,
-    );
-    expect(c.entries.map((e) => [e.name, e.value])).toEqual([
-      ["dim", 40],
-      ["mode", "absolute"],
-    ]);
-  });
-
-  test("trailing spec before = after a moved comma", () => {
-    const c = parseConfigScript("a, --[[toggle]] = true");
-    expect(c.entries[0].name).toBe("a");
-  });
-
   test("input keeps any expression as text", () => {
     const c = parseConfigScript(
-      `a --[[input]], b --[[toggle]] = math.max(1, 2), true`,
+      `a = math.max(1, 2) --[[input]]\nb = true --[[toggle]]`,
     );
     expect(c.entries[0].value).toBe("math.max(1, 2)");
     c.entries[0].value = "";
-    expect(configToLua(c)).toBe(`a --[[input]], b --[[toggle]] = nil, true`);
+    expect(configToLua(c)).toBe(`a = nil --[[input]]\nb = true --[[toggle]]`);
+  });
+
+  test("input value may contain a string with --", () => {
+    const c = parseConfigScript(`a = "x --[[y" --[[input]]`);
+    expect(c.entries[0].value).toBe('"x --[[y"');
+  });
+
+  test("blank lines are kept", () => {
+    const script = `a = 1 --[[slider,0,5]]\n\nb = true --[[toggle]]\n`;
+    expect(configToLua(parseConfigScript(script))).toBe(script);
   });
 
   test.each([
     "x = 1",
-    "x --[[slider,0,100]] = 1, 2",
-    "x --[[slider,0,100]] = abc",
-    "x --[[select,a]] = 'a'",
-    'x --[[select,"a"]] = "b"',
-    "x --[[toggle]] = 1",
-    "x --[[slider,5,1]] = 3",
-    "x --[[bogus]] = 3",
-    "x --[[toggle]], x --[[toggle]] = true, true",
+    "x = 1 --[[slider,0,100]] extra",
+    "x = abc --[[slider,0,100]]",
+    "x = 'a' --[[select,a]]",
+    'x = "b" --[[select,"a"]]',
+    "x = 1 --[[toggle]]",
+    "x = 3 --[[slider,5,1]]",
+    "x = 3 --[[bogus]]",
+    "x = true --[[toggle]]\nx = false --[[toggle]]",
+    "x = 1 --[[slider,0,9]\ny = 2",
+    "x = 1 --[[slider,0,9]], y = 2",
     "x --[[toggle]]",
     "print('hi')",
-  ])("not a config: %s", (script) => {
+    "",
+  ])("not a config: %j", (script) => {
     expect(parseConfigScript(script)).toBeNull();
   });
 });
@@ -80,13 +79,67 @@ describe("configToLua", () => {
     expect(configToLua(parseConfigScript(SCRIPT))).toBe(SCRIPT);
   });
 
-  test("rewrites only values", () => {
-    const c = parseConfigScript(SCRIPT);
+  test("rewrites only values, keeping spacing", () => {
+    const c = parseConfigScript(
+      `dim  =  40   --[[slider,0,100]]\nmode = "absolute" --[[select,"absolute","relative"]]`,
+    );
     c.entries[0].value = 7;
     c.entries[1].value = "relative";
-    expect(configToLua(c)).toBe(
-      `dim --[[slider,0,100]], mode --[[select,"absolute","relative"]] = 7, "relative"`,
+    const out = configToLua(c);
+    expect(out).toBe(
+      `dim  =  7   --[[slider,0,100]]\nmode = "relative" --[[select,"absolute","relative"]]`,
     );
-    expect(parseConfigScript(configToLua(c)).entries[1].value).toBe("relative");
+    expect(parseConfigScript(out).entries[1].value).toBe("relative");
+  });
+});
+
+// The module stores the script compressed; the block works on the expanded form.
+describe("stored (compressed) script", () => {
+  beforeAll(async () => {
+    await initLuaFormatter();
+  });
+
+  const SOURCE = [
+    `dim = 40 --[[slider,0,100]]`,
+    `mode = "absolute" --[[select,"absolute","relative"]]`,
+    `enabled = true --[[toggle]]`,
+    `offset = 0 --[[input]]`,
+  ].join("\n");
+
+  test("compressed form is a single line", () => {
+    expect(GridScript.compressScript(SOURCE)).not.toContain("\n");
+  });
+
+  test("parses after expanding", () => {
+    const stored = GridScript.compressScript(SOURCE);
+    const c = parseConfigScript(GridScript.expandScript(stored));
+    expect(c.entries.map((e) => [e.name, e.value])).toEqual([
+      ["dim", 40],
+      ["mode", "absolute"],
+      ["enabled", true],
+      ["offset", "0"],
+    ]);
+  });
+
+  test("an edit survives compress and expand", () => {
+    const c = parseConfigScript(
+      GridScript.expandScript(GridScript.compressScript(SOURCE)),
+    );
+    c.entries[0].value = 75;
+    c.entries[2].value = false;
+    const stored = GridScript.compressScript(configToLua(c));
+    const again = parseConfigScript(GridScript.expandScript(stored));
+    expect(again.entries.map((e) => e.value)).toEqual([
+      75,
+      "absolute",
+      false,
+      "0",
+    ]);
+  });
+
+  test("the default script parses", () => {
+    const stored = `dim=40 --[[slider,0,100]]mode="absolute" --[[select,"absolute","relative"]]enabled=true --[[toggle]]offset=0 --[[input]]`;
+    expect(stored).toBe(GridScript.compressScript(SOURCE));
+    expect(parseConfigScript(GridScript.expandScript(stored))).not.toBeNull();
   });
 });
