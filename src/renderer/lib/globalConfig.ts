@@ -4,6 +4,10 @@
 //   dim = 256 --[[slider,0,1000]]
 //   mode = "relative" --[[select,"absolute","relative"]]
 //
+// A second block comment after the spec is an optional description shown
+// under the name: `dim = 40 --[[slider,0,100]] --[[Dims all the LEDs]]`.
+// (Scripts are stored on one line, so a `--` line comment can't be used.)
+//
 // Supported specs: slider,min,max[,step] | select,"a","b",... | toggle | input.
 // An input holds any Lua expression, kept as text.
 // Only the values are ever rewritten; names, specs and spacing stay verbatim.
@@ -18,6 +22,7 @@ export type ConfigEntry = {
   name: string;
   spec: ConfigSpec;
   value: number | string | boolean;
+  description?: string;
 };
 
 // A line of the script: blank lines stay as they are, variable lines keep
@@ -199,8 +204,21 @@ export function checkConfigScript(script: string): ConfigResult {
     if (specEnd < 0) {
       return fail(`${where}${name}: the --[[ comment is not closed with ]]`);
     }
-    if (rest.slice(specEnd + 1).trim() !== "") {
-      return fail(`${where}${name}: nothing may follow the spec comment`);
+    // Optional description: one more block comment, then the end of the line.
+    // Plain text, so an apostrophe in it is not a quote.
+    let description: string | undefined;
+    const after = rest.slice(specEnd + 1).trim();
+    if (after !== "") {
+      if (!after.startsWith("--[[") || !after.endsWith("]]")) {
+        return fail(
+          `${where}${name}: only a description comment --[[text]] may follow the spec`,
+        );
+      }
+      const text = after.slice(4, -2);
+      if (text.includes("]]")) {
+        return fail(`${where}${name}: the description may not contain ]]`);
+      }
+      description = text.trim() || undefined;
     }
 
     const specBody = rest.slice(specStart + 4, specEnd - 1);
@@ -230,7 +248,7 @@ export function checkConfigScript(script: string): ConfigResult {
         valueText.slice(valueText.length - trailing) + rest.slice(specStart),
       index: entries.length,
     });
-    entries.push({ name, spec, value });
+    entries.push({ name, spec, value, description });
   }
 
   if (entries.length === 0) return fail("No variables found");

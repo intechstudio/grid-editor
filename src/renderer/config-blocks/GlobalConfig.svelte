@@ -16,7 +16,7 @@
       "https://docs.intech.studio/wiki/actions/variables/global-config",
     color: categoryColors["variables"],
     defaultLua:
-      'dim=40 --[[slider,0,100]]mode="absolute" --[[select,"absolute","relative"]]enabled=true --[[toggle]]offset=0 --[[input]]',
+      'dim=40 --[[slider,0,100]]--[[Dims all the LEDs]]mode="absolute" --[[select,"absolute","relative"]]--[[How the value is applied]]enabled=true --[[toggle]]--[[Turns the effect on or off]]offset=0 --[[input]]--[[Added to every value]]',
     blockIcon: `<svg class="stroke-icon" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>`,
     selectable: true,
     movable: true,
@@ -276,61 +276,70 @@
       <div class="flex flex-col" data-testid="global-config-controls">
         {#each config.entries as entry, i (entry.name)}
           <div
-            class="grid grid-cols-[25%_1fr] gap-3 items-center py-3 border-b border-background-soft last:border-b-0"
+            class="flex flex-col gap-1 py-3 border-b border-background-soft last:border-b-0"
           >
-            <span
-              class="text-sm text-foreground truncate"
-              title={entry.name}
-              data-testid="global-config-name">{entry.name}</span
-            >
-            {#if entry.spec.type === "select"}
-              <MeltSelect
-                size="full"
-                options={entry.spec.options.map((o) => ({
-                  title: o,
-                  value: o,
-                }))}
-                bind:target={values[i]}
-              />
-            {:else if entry.spec.type === "toggle"}
-              <div>
-                <Toggle
-                  testid={"global-config-" + entry.name}
-                  title={values[i] ? "On" : "Off"}
-                  bind:value={values[i]}
+            <div class="grid grid-cols-[25%_1fr] gap-3 items-center">
+              <span
+                class="text-sm text-foreground truncate"
+                title={entry.name}
+                data-testid="global-config-name">{entry.name}</span
+              >
+              {#if entry.spec.type === "select"}
+                <MeltSelect
+                  size="full"
+                  options={entry.spec.options.map((o) => ({
+                    title: o,
+                    value: o,
+                  }))}
+                  bind:target={values[i]}
                 />
-              </div>
-            {:else if entry.spec.type === "slider"}
-              <div class="flex flex-row items-center gap-3">
-                <div class="slider-fill flex-grow min-w-0">
-                  <MeltSlider
-                    bind:target={values[i]}
-                    min={entry.spec.min}
-                    max={entry.spec.max}
-                    step={entry.spec.step}
-                    on:commit={() => dispatch("sync")}
+              {:else if entry.spec.type === "toggle"}
+                <div>
+                  <Toggle
+                    testid={"global-config-" + entry.name}
+                    title={values[i] ? "On" : "Off"}
+                    bind:value={values[i]}
                   />
                 </div>
-                <span
-                  class="w-12 text-right text-sm tabular-nums text-foreground-muted"
-                  >{values[i]}</span
+              {:else if entry.spec.type === "slider"}
+                <div class="flex flex-row items-center gap-3">
+                  <div class="slider-fill flex-grow min-w-0">
+                    <MeltSlider
+                      bind:target={values[i]}
+                      min={entry.spec.min}
+                      max={entry.spec.max}
+                      step={entry.spec.step}
+                      on:commit={() => dispatch("sync")}
+                    />
+                  </div>
+                  <span
+                    class="w-12 text-right text-sm tabular-nums text-foreground-muted"
+                    >{values[i]}</span
+                  >
+                </div>
+              {:else if entry.spec.type === "input"}
+                <div
+                  class="border border-black flex items-center w-full"
+                  data-testid="global-config-input"
                 >
-              </div>
-            {:else if entry.spec.type === "input"}
-              <div
-                class="border border-black flex items-center flex-grow h-full"
-                data-testid="global-config-input"
+                  <LineEditor
+                    value={entry.value}
+                    restrictScopeTo={elementType}
+                    availableCharacters={Infinity}
+                    luals
+                    lualsExpressionOnly
+                    on:input={(e) => (values[i] = e.detail.script ?? "")}
+                    on:change={() => dispatch("sync")}
+                  />
+                </div>
+              {/if}
+            </div>
+            {#if entry.description}
+              <span
+                class="text-xs text-foreground-muted break-words"
+                data-testid="global-config-description"
+                >{entry.description}</span
               >
-                <LineEditor
-                  value={entry.value}
-                  restrictScopeTo={elementType}
-                  availableCharacters={Infinity}
-                  luals
-                  lualsExpressionOnly
-                  on:input={(e) => (values[i] = e.detail.script ?? "")}
-                  on:change={() => dispatch("sync")}
-                />
-              </div>
             {/if}
           </div>
         {/each}

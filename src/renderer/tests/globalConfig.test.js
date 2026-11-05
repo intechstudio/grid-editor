@@ -49,6 +49,23 @@ describe("parseConfigScript", () => {
     expect(c.entries[0].value).toBe('"x --[[y"');
   });
 
+  test("optional description", () => {
+    const script = `dim = 40 --[[slider,0,100]] --[[Dims all the LEDs, it's quick]]\nb = true --[[toggle]]`;
+    const c = parseConfigScript(script);
+    expect(c.entries[0].description).toBe("Dims all the LEDs, it's quick");
+    expect(c.entries[1].description).toBeUndefined();
+    c.entries[0].value = 5;
+    expect(configToLua(c)).toBe(script.replace("40", "5"));
+  });
+
+  test.each([
+    "a = 1 --[[slider,0,9]] -- text",
+    "a = 1 --[[slider,0,9]] --[[x]] --[[y]]",
+    "a = 1 --[[slider,0,9]] text --[[x]]",
+  ])("bad description: %s", (script) => {
+    expect(parseConfigScript(script)).toBeNull();
+  });
+
   test("blank lines are kept", () => {
     const script = `a = 1 --[[slider,0,5]]\n\nb = true --[[toggle]]\n`;
     expect(configToLua(parseConfigScript(script))).toBe(script);
@@ -100,11 +117,23 @@ describe("stored (compressed) script", () => {
   });
 
   const SOURCE = [
-    `dim = 40 --[[slider,0,100]]`,
-    `mode = "absolute" --[[select,"absolute","relative"]]`,
-    `enabled = true --[[toggle]]`,
-    `offset = 0 --[[input]]`,
+    `dim = 40 --[[slider,0,100]] --[[Dims all the LEDs]]`,
+    `mode = "absolute" --[[select,"absolute","relative"]] --[[How the value is applied]]`,
+    `enabled = true --[[toggle]] --[[Turns the effect on or off]]`,
+    `offset = 0 --[[input]] --[[Added to every value]]`,
   ].join("\n");
+
+  test("descriptions survive compress and expand", () => {
+    const c = parseConfigScript(
+      GridScript.expandScript(GridScript.compressScript(SOURCE)),
+    );
+    expect(c.entries.map((e) => e.description)).toEqual([
+      "Dims all the LEDs",
+      "How the value is applied",
+      "Turns the effect on or off",
+      "Added to every value",
+    ]);
+  });
 
   test("compressed form is a single line", () => {
     expect(GridScript.compressScript(SOURCE)).not.toContain("\n");
@@ -138,7 +167,7 @@ describe("stored (compressed) script", () => {
   });
 
   test("the default script parses", () => {
-    const stored = `dim=40 --[[slider,0,100]]mode="absolute" --[[select,"absolute","relative"]]enabled=true --[[toggle]]offset=0 --[[input]]`;
+    const stored = `dim=40 --[[slider,0,100]]--[[Dims all the LEDs]]mode="absolute" --[[select,"absolute","relative"]]--[[How the value is applied]]enabled=true --[[toggle]]--[[Turns the effect on or off]]offset=0 --[[input]]--[[Added to every value]]`;
     expect(stored).toBe(GridScript.compressScript(SOURCE));
     expect(parseConfigScript(GridScript.expandScript(stored))).not.toBeNull();
   });
