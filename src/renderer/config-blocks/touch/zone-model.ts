@@ -107,13 +107,13 @@ export type OptionSchema = { key: string } & (
 
 // Block face sections, in display order (docs/zona-touch-zones.md, Block face).
 export type ZoneSection =
-  "geometry" | "output" | "resolution" | "led" | "behaviour" | "capture";
+  "geometry" | "led" | "output" | "resolution" | "behaviour" | "capture";
 
 export const zoneSections: ZoneSection[] = [
   "geometry",
+  "led",
   "output",
   "resolution",
-  "led",
   "behaviour",
   "capture",
 ];
@@ -292,11 +292,22 @@ export function zoneOptionSchemaFor(
 }
 
 // Whether a zone with this output shows (and the library uses) the option.
+// Sensitivity also needs relative mode, except for the mouse: absolute mode
+// takes the finger's position as it is, and a mouse zone has no Mode.
 export function zoneOptionShown(
   schema: ZoneOptionSchema,
   msg: ZoneOptionValue | undefined,
+  zone?: Pick<Zone, "kind" | "opt">,
 ): boolean {
-  return !schema.hide?.includes(msg as ZoneMsg);
+  if (schema.hide?.includes(msg as ZoneMsg)) {
+    return false;
+  }
+  return !(
+    schema.key === "sensitivity" &&
+    typeof zone !== "undefined" &&
+    msg !== "mouse" &&
+    (zone.opt.mode ?? zoneOptionDefault(zone.kind, "mode")) !== "rel"
+  );
 }
 
 // What a zone of this kind uses when the line leaves the option out: the

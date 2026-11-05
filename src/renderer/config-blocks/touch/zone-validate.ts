@@ -256,7 +256,7 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   const msg = option(zone, "msg");
   const options = optionProblems(
     zone.opt,
-    zoneOptionSchemaFor(zone).filter((e) => zoneOptionShown(e, msg)),
+    zoneOptionSchemaFor(zone).filter((e) => zoneOptionShown(e, msg, zone)),
   );
   problems.push(...options);
   const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));

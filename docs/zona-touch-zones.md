@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.19.0, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.19.2, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -13,10 +13,9 @@ The action strings are the only store. The editor reads every view from them: th
 ## 2. Where things run
 
 ```lua
--- System element, Setup. Loads the library from the page folder as _Z.
+-- Touch element, Setup. A Touch Zone block starts with the call that loads the
+-- library from the page folder as _Z, then one line per zone.
 _Z=gr("zona")
-
--- Touch element, Setup. One line per zone.
 _Z.fader(self,"f1",0,0,1,9,{})
 _Z.fader(self,"f2",1,0,1,9,{cmd="pb",spring=50})
 _Z.button(self,"b1",2,0,2,2,{bmo=1,group=1,col={255,0,0,1}})
@@ -26,7 +25,9 @@ _Z.fader(self,"p1",4,0,5,5,{dir="xy",msg="mouse"})
 /00/zona.lua
 ```
 
-The Library block is on `stable` already. It is not part of this branch. This branch adds `zona` to the editor's list of bundled libraries, so the Library block offers it and can install it.
+Every Touch Zone block loads the library itself: its script starts with `_Z=gr("zona")`. The module caches the library, so each block can load it and the zones of all blocks share one surface. The block writes the call each time it writes its script, and reads a script without it (from before the block loaded the library) as the same block. The Library block is no longer needed for ZONA. `zona` stays in the editor's list of bundled libraries, so the Library block still offers it.
+
+The page folder must hold the editor's version of `zona.lua`. The block reads the folder, and while the module has no copy or an older one it dims and disables all its controls and shows an Install library (or Update library) button, which writes the editor's copy and runs the Setups again. A module the editor can't read, such as a virtual one, is not blocked.
 
 The library is loaded under the global `_Z`. The touch blocks always write `_Z.`.
 
@@ -75,10 +76,10 @@ The editor's schema is in `zone-model.ts`. The library's defaults are in `Z.def`
 Meaning of each option:
 
 - `dir`: which way a fader runs. `v`: bottom is min. `h`: left is min.
-- `min`, `max`: the value range. Without them the range is 0–127, or 0–16383 for `cc14` and `pb`.
+- `min`, `max`: the value range. Without them the range is 0–127, or 0–16383 for `cc14` and `pb`. When the user picks another `cmd`, the editor writes `min=0` and the command's `max` (127, or 16383 for `cc14` and `pb`), replacing the old range.
 - `dir`: `v` and `h` are a fader, bottom to top or left to right. `xy` is an XY pad with two sources, x and y. In the table, "xy" means a fader with `dir="xy"`.
 - `mode`: how the finger moves the value. `abs` jumps to the finger. `rel` adds the finger's movement times `sensitivity`.
-- `sensitivity`: for `rel`, the drag factor. For a mouse zone, the move multiplier. The option was called `speed` before 0.16.0; the library still reads it when `sensitivity` is absent, and the editor shows it as an unknown option.
+- `sensitivity`: for `rel`, the drag factor. For a mouse zone, the move multiplier. The face shows it only in `rel` mode, and for mouse output. The option was called `speed` before 0.16.0; the library still reads it when `sensitivity` is absent, and the editor shows it as an unknown option.
 - `bmo`: the button mode, as Grid's Button Mode block. 0 momentary, 1 toggle, n gives n+1 steps.
 - `spring`: -1 is off (the default). 0 to 100 makes a fader or XY rest at that percent of its range and return there on release: 0 is the minimum, 50 the centre, 100 the maximum. The editor suggests Off, 0%, 50% and 100%. Before library 0.19.0 the option was 0 or 1 (1 the centre); a line with `spring=1` still returns to the centre.
 - `group`: radio group 1–8. 0 is none.
@@ -196,7 +197,7 @@ Removing the last zone line leaves the previous surface running until the page r
 
 ### LEDs
 
-Three fixed phase levels: floor 16, dim 110, top 255. Cells no zone covers are black. A zone's cells are at least the floor. Lit cells are at top while a finger holds the zone and at dim after.
+Fixed phase levels: floor 16, dim 110, top 255. A vertical or horizontal fader has a dimmer floor, 8, so its background stands out from the lit part. Cells no zone covers are black. A zone's cells are at least the floor. Lit cells are at top while a finger holds the zone and at dim after.
 
 - Fader: a fill from the min end with a partial edge cell.
 - Button: the step level, 0 off at the floor to 1 on.
@@ -228,7 +229,7 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 | `Z.def`, `Z.kind`                           | Option defaults and kind presets. The editor's copies must match them.          |
 | `Z.zs`, `Z.te`                              | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.19.0"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.19.2"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -265,7 +266,7 @@ The zone blocks share one face, `ZoneBlock.svelte`, and one header, `ZoneFace.sv
 
 ### Block face
 
-The face is built from the option schema. It shows the name, then the sections Geometry, Output, Resolution, LED, Behaviour and Capture. The sections have no titles and cannot be collapsed; each is a block of fields. A section with no field for the zone's kind and output is not shown. The Geometry section starts with `ZoneGeometryPad.svelte`, a 9×9 cell box area: drag the box to move it, drag a corner to resize it. The box is focusable and takes the DOM focus when pressed (or when selected by a click on it in the preview); the resize corners show only while it has the focus, so the focus is visible. The keyboard shortcuts are scoped to the focused box, as the element button and the action list scope theirs (a `keydown` handler on the focusable node that ignores events from inputs, uses Ctrl or Cmd, and stops the event): Ctrl/Cmd+C copies the zone to the app clipboard (`ClipboardKey.ZONE`), Ctrl/Cmd+V pastes a copy beside the focused zone (to its right, else below, as Add Zone places a copy) or logs that there is no room, and Delete or Backspace removes the zone (a block keeps at least one; the editor logs that otherwise). Empty cells do nothing, so a zone is moved to its place and then resized. The box has its zone's colour (`col`, the module's colour for a channel at -1), and the other zones of the Setup are drawn dimmer. Clicking another zone of the same block selects it in the zone select; zones of other blocks are only shown. It sets X, Y, Width and Height together; the four number fields are hidden (`{#if false}` in `ZoneBlock.svelte`). The Setup is sent when the drag ends.
+The face is built from the option schema. It shows the name, then the sections Geometry, LED, Output, Resolution, Behaviour and Capture. The LED section (the colour) comes right under the Type select. The sections have no titles and cannot be collapsed; each is a block of fields. A section with no field for the zone's kind and output is not shown. The Geometry section starts with `ZoneGeometryPad.svelte`, a 9×9 cell box area: drag the box to move it, drag a corner to resize it. The box is focusable and takes the DOM focus when pressed (or when selected by a click on it in the preview); the resize corners show only while it has the focus, so the focus is visible. The keyboard shortcuts are scoped to the focused box, as the element button and the action list scope theirs (a `keydown` handler on the focusable node that ignores events from inputs, uses Ctrl or Cmd, and stops the event): Ctrl/Cmd+C copies the zone to the app clipboard (`ClipboardKey.ZONE`), Ctrl/Cmd+V pastes a copy beside the focused zone (to its right, else below, as Add Zone places a copy) or logs that there is no room, and Delete or Backspace removes the zone (a block keeps at least one; the editor logs that otherwise). Empty cells do nothing, so a zone is moved to its place and then resized. The box has its zone's colour (`col`, the module's colour for a channel at -1), and the other zones of the Setup are drawn dimmer. Clicking another zone of the same block selects it in the zone select; zones of other blocks are only shown. It sets X, Y, Width and Height together; the four number fields are hidden (`{#if false}` in `ZoneBlock.svelte`). The Setup is sent when the drag ends.
 
 - An enum is a select. The kind's default is selected when the line leaves the option out. Picking the default writes nothing. A value the schema does not know is listed as "value (unknown)" so the line is not rewritten until the user picks something.
 - The Output select titles its values by kind: MIDI; Mouse wheel, Mouse button or Mouse; Gamepad axis, Gamepad button or Gamepad. The Command select shows CC, Note and Pitch bend.
@@ -276,8 +277,6 @@ The face is built from the option schema. It shows the name, then the sections G
 - Every edit writes the whole line back with `zoneToLua`. A value the validator rejects is sent as an invalid action, so the module keeps the last valid line. The face never writes a line it could not parse.
 
 The header shows `f1 · 0,0 1×9 · CC 32 ch 1`, with a colour dot when `col` is set. It turns red when the zone has a problem.
-
-The first zone block of the Setup shows a warning when no Library block that runs before it loads `_Z`. The editor loads the System Setup and the Setups of lower-numbered elements to find out. The message is "Add a Library block that loads zona (_Z) above the zones or in the System Setup".
 
 ### Validation
 

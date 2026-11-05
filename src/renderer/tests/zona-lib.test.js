@@ -328,7 +328,8 @@ test("every zone lights its cells and the others stay dark", async () => {
   }
   const cellsAt = (n) => [...phase].filter(([, p]) => p === n).map(([i]) => i);
   const zoneCells = [...column(0), ...column(1)].sort((a, b) => a - b);
-  expect(cellsAt(16).sort((a, b) => a - b)).toEqual(zoneCells);
+  // a vertical fader's background is at the dimmer floor, 8
+  expect(cellsAt(8).sort((a, b) => a - b)).toEqual(zoneCells);
   expect(cellsAt(0).length).toBe(81 - zoneCells.length);
   vm.clear();
   vm.touch([1, DOWN, 150, 0]);

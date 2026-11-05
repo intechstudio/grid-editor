@@ -23,6 +23,10 @@ import {
 
 // The global the touch blocks call (docs/zona-touch-zones.md, Where things run).
 export const ZONA_GLOBAL = "_Z";
+// The first thing in a zone block's script: it loads the library on the module.
+// `gr` is the short name of library_load; the module caches the library, so
+// every block can load it.
+export const ZONA_LOAD = `${ZONA_GLOBAL}=gr("zona")`;
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*/;
 const NUMBER =
@@ -48,6 +52,14 @@ class Reader {
     }
     this.i += token.length;
     return true;
+  }
+
+  mark(): number {
+    return this.i;
+  }
+
+  reset(mark: number) {
+    this.i = mark;
   }
 
   atEnd(): boolean {
@@ -345,10 +357,28 @@ export function parseZone(script: string): Zone | null {
   return zone !== null && reader.atEnd() ? zone : null;
 }
 
+// The `_Z=gr("zona")` that starts a block's script. Optional on reading, so
+// a script from before the block loaded the library itself still parses (and
+// gets it the next time the block writes it).
+function readLoad(reader: Reader) {
+  const mark = reader.mark();
+  if (!(
+    reader.eat(ZONA_GLOBAL) &&
+    reader.eat("=") &&
+    reader.identifier() === "gr" &&
+    reader.eat("(") &&
+    reader.string() === "zona" &&
+    reader.eat(")")
+  )) {
+    reader.reset(mark);
+  }
+}
+
 // The zone block's script: one or more zone lines, one after the other. Null
 // when any part of it is not a zone line.
 export function parseZones(script: string): Zone[] | null {
   const reader = new Reader(script);
+  readLoad(reader);
   const zones: Zone[] = [];
   do {
     const zone = readZone(reader);
@@ -366,7 +396,7 @@ export function zonesOf(scripts: string[]): Zone[] {
 }
 
 export function zonesToLua(zones: Zone[]): string {
-  return zones.map(zoneToLua).join(" ");
+  return [ZONA_LOAD, ...zones.map(zoneToLua)].join(" ");
 }
 
 export function zoneToLua(zone: Zone): string {

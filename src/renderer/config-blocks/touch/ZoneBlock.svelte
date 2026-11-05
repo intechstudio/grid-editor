@@ -15,6 +15,7 @@
     MeltRadio,
     MeltSelect,
     MoltenInput,
+    MoltenPushButton,
   } from "@intechstudio/grid-uikit";
   import { tick } from "svelte";
   import { get } from "svelte/store";
@@ -28,11 +29,9 @@
     GridEvent,
   } from "../../runtime/runtime";
   import { type OptionSchema, type Zone, zoneRead } from "./zone-model";
-  import { parseZones, zonesOf, zonesToLua } from "./zone-parse";
+  import { ZONA_GLOBAL, parseZones, zonesOf, zonesToLua } from "./zone-parse";
   import { zoneNumsText, zoneOutputLabel } from "./zone-autos";
   import { Grid } from "../../lib/_utils";
-  import { globalsLoadedBefore } from "../../lib/library";
-  import { libraryIssue, loadSetupsBefore } from "./zone-library";
   import {
     surfaceIssues,
     zoneProblems,
@@ -58,8 +57,12 @@
   } from "./zone-blocks";
   import ZoneOptionField from "./ZoneOptionField.svelte";
   import ZoneGeometryPad from "./ZoneGeometryPad.svelte";
+  import LibraryRequirement from "../components/LibraryRequirement.svelte";
 
   export let action: GridAction;
+
+  // The module has no copy, or an older one, of the library the zones need.
+  let libraryBlocked = false;
 
   // The whole touch Setup, for issues that depend on other blocks.
   const event = action.parent as GridEvent;
@@ -146,20 +149,6 @@
             ),
         )
       : [];
-  // The first zone of the Setup tells when no Library block that runs before
-  // it loads zona. Not shown until the earlier Setups are loaded.
-  $: isFirstZone =
-    $event.config.find((e) => parseZones(e.script) !== null)?.id === action.id;
-  let libraryRequested = false;
-  let libraryKnown = false;
-  $: if (isFirstZone && !libraryRequested) {
-    libraryRequested = true;
-    loadSetupsBefore(event).then(() => (libraryKnown = true));
-  }
-  $: library =
-    isFirstZone && libraryKnown && $event
-      ? libraryIssue(globalsLoadedBefore(action))
-      : undefined;
   // What the zone sends, for the Output section: "auto (…)" placeholders show
   // the resolved channel (1-based, as the label) and number.
   // The zones before this one count for the autos: the event is a
@@ -443,159 +432,174 @@
   bind:clientWidth={containerWidth}
   class="flex flex-col w-full px-4 py-2 pointer-events-auto gap-2"
 >
+  <LibraryRequirement
+    {action}
+    file="zona"
+    global={ZONA_GLOBAL}
+    bind:blocked={libraryBlocked}
+  />
   {#if zone !== null && zones !== null}
-    <div class="flex flex-col gap-1">
-      <div class="flex flex-row gap-2 items-center">
-        <div class="flex flex-grow h-fit min-w-0" data-zone-name-field>
-          {#if editingName}
-            <MoltenInput
-              bind:this={nameInput}
-              target={zone.name}
-              on:input={(e) => {
-                if (e.detail.value !== zone?.name) {
-                  setField("name", e.detail.value);
-                }
-              }}
-              on:change={finishRename}
-              on:blur={finishRename}
-              on:keydown={(e) => {
-                if (e.detail?.key === "Enter" || e.detail?.key === "Escape") {
-                  finishRename();
-                }
-              }}
-            />
-          {:else}
-            {#key JSON.stringify(zoneOptions)}
-              <MeltSelect options={zoneOptions} bind:target={picked} />
-            {/key}
-          {/if}
-        </div>
-        <div class="flex flex-row items-center gap-2">
-          <IconButton
-            on:click={() => (editingName = !editingName)}
-            iconPath="edit"
-            compact
-            tooltipText="Rename zone"
-            ariaLabel="Rename zone"
-          />
-          <IconButton
-            on:click={handleAddZone}
-            iconData={addIcon}
-            compact
-            tooltipText="Add zone"
-            ariaLabel="Add zone"
-          />
-          <IconButton
-            on:click={handleRemoveZone}
-            iconPath="remove"
-            disabled={zones.length < 2}
-            compact
-            tooltipText="Remove zone"
-            ariaLabel="Remove zone"
-          />
-        </div>
-      </div>
-      {#if problemOf("name")}
-        <span class="text-xs text-error">{problemOf("name")}</span>
-      {/if}
-    </div>
-    {#each [...(library ? [library] : []), ...zoneIssues] as issue}
-      <span
-        class="text-sm"
-        class:text-error={issue.level === "error"}
-        class:text-warning={issue.level === "warning"}
-        data-zone-issue={issue.level}
-        >{zones.length > 1 && issue.zone
-          ? `${issue.zone}: `
-          : ""}{issue.message}{issue.message === sendProblem
-          ? ". The Setup is not sent until this is fixed."
-          : ""}</span
-      >
-    {/each}
-    {#each sections as { section, options } (section)}
-      <Block>
-        {#if section === "geometry"}
-          <ZoneGeometryPad
-            x={zone.x}
-            y={zone.y}
-            w={zone.w}
-            h={zone.h}
-            invalid={GEOMETRY.some((e) => typeof problemOf(e) !== "undefined")}
-            color={zoneCssColor(zone, autoColor)}
-            {others}
-            on:select={(e) => selectZone(e.detail.index)}
-            on:copy={handleCopyZone}
-            on:paste={handlePasteZone}
-            on:delete={handleDeleteZone}
-            on:change={(e) => setGeometry(e.detail)}
-            on:end={sync}
-          />
-          <!-- The type is picked under the preview of the zone. -->
-          {#if isWide}
-            <BlockRow>
-              <MeltRadio
-                options={typeOptions}
-                bind:target={typeTarget}
-                orientation="horizontal"
-                style="button"
-                size="full"
+    <div
+      class="flex flex-col gap-2"
+      class:opacity-50={libraryBlocked}
+      inert={libraryBlocked}
+      data-zone-controls
+    >
+      <div class="flex flex-col gap-1">
+        <div class="flex flex-row gap-2 items-center">
+          <div class="flex flex-grow h-fit min-w-0" data-zone-name-field>
+            {#if editingName}
+              <MoltenInput
+                bind:this={nameInput}
+                target={zone.name}
+                on:input={(e) => {
+                  if (e.detail.value !== zone?.name) {
+                    setField("name", e.detail.value);
+                  }
+                }}
+                on:change={finishRename}
+                on:blur={finishRename}
+                on:keydown={(e) => {
+                  if (e.detail?.key === "Enter" || e.detail?.key === "Escape") {
+                    finishRename();
+                  }
+                }}
               />
-            </BlockRow>
-          {:else}
-            <ZoneOptionField
-              schema={zoneTypeSchema}
-              read={zoneRead(zone)}
-              title="Type"
-              value={zoneType(zone)}
-              on:input={(e) => setType(e.detail)}
-              on:change={sync}
+            {:else}
+              {#key JSON.stringify(zoneOptions)}
+                <MeltSelect options={zoneOptions} bind:target={picked} />
+              {/key}
+            {/if}
+          </div>
+          <div class="flex flex-row items-center gap-2">
+            <IconButton
+              on:click={() => (editingName = !editingName)}
+              iconPath="edit"
+              compact
+              tooltipText="Rename zone"
+              ariaLabel="Rename zone"
             />
-          {/if}
-          <!-- The X, Y, Width and Height fields are hidden: the pad sets them. -->
-          {#if false}
-            <BlockRow even>
-              {#each GEOMETRY as field}
-                <div class="flex flex-col">
-                  <MeltCombo
-                    title={GEOMETRY_TITLES[field]}
-                    value={String(zone?.[field])}
-                    validator={fieldValid(field)}
-                    valueInfoEnabled={false}
-                    on:input={(e) => setField(field, e.detail.value)}
-                    on:change={sync}
-                  />
-                  {#if problemOf(field)}
-                    <span class="text-xs text-error">{problemOf(field)}</span>
-                  {/if}
-                </div>
-              {/each}
-            </BlockRow>
-          {/if}
-        {/if}
-        <div class="grid grid-cols-2 gap-2">
-          {#each options.filter((e) => e.key !== "dir") as schema (schema.key)}
-            <ZoneOptionField
-              {schema}
-              read={zoneRead(zone)}
-              title={optionLabel(schema.key, zone)}
-              value={optionText(zone.opt[schema.key])}
-              placeholder={placeholderOf(schema.key)}
-              problem={problemOf(schema.key)}
-              {autoColor}
-              suggestions={zoneOptionSuggestions(zone, schema.key, midi)}
-              validator={optionValid(schema)}
-              on:input={(e) => setOption(schema, e.detail)}
-              on:change={sync}
+            <IconButton
+              on:click={handleAddZone}
+              iconData={addIcon}
+              compact
+              tooltipText="Add zone"
+              ariaLabel="Add zone"
             />
-          {/each}
+            <IconButton
+              on:click={handleRemoveZone}
+              iconPath="remove"
+              disabled={zones.length < 2}
+              compact
+              tooltipText="Remove zone"
+              ariaLabel="Remove zone"
+            />
+          </div>
         </div>
-        {#if section === "output" && typeof midi !== "undefined"}
-          <span class="text-xs text-gray-400" data-zone-midi
-            >Sends {zoneOutputLabel(zone, midi)}</span
-          >
+        {#if problemOf("name")}
+          <span class="text-xs text-error">{problemOf("name")}</span>
         {/if}
-      </Block>
-    {/each}
+      </div>
+      {#each zoneIssues as issue}
+        <span
+          class="text-sm"
+          class:text-error={issue.level === "error"}
+          class:text-warning={issue.level === "warning"}
+          data-zone-issue={issue.level}
+          >{zones.length > 1 && issue.zone
+            ? `${issue.zone}: `
+            : ""}{issue.message}{issue.message === sendProblem
+            ? ". The Setup is not sent until this is fixed."
+            : ""}</span
+        >
+      {/each}
+      {#each sections as { section, options } (section)}
+        <Block>
+          {#if section === "geometry"}
+            <ZoneGeometryPad
+              x={zone.x}
+              y={zone.y}
+              w={zone.w}
+              h={zone.h}
+              invalid={GEOMETRY.some(
+                (e) => typeof problemOf(e) !== "undefined",
+              )}
+              color={zoneCssColor(zone, autoColor)}
+              {others}
+              on:select={(e) => selectZone(e.detail.index)}
+              on:copy={handleCopyZone}
+              on:paste={handlePasteZone}
+              on:delete={handleDeleteZone}
+              on:change={(e) => setGeometry(e.detail)}
+              on:end={sync}
+            />
+            <!-- The type is picked under the preview of the zone. -->
+            {#if isWide}
+              <BlockRow>
+                <MeltRadio
+                  options={typeOptions}
+                  bind:target={typeTarget}
+                  orientation="horizontal"
+                  style="button"
+                  size="full"
+                />
+              </BlockRow>
+            {:else}
+              <ZoneOptionField
+                schema={zoneTypeSchema}
+                read={zoneRead(zone)}
+                title="Type"
+                value={zoneType(zone)}
+                on:input={(e) => setType(e.detail)}
+                on:change={sync}
+              />
+            {/if}
+            <!-- The X, Y, Width and Height fields are hidden: the pad sets them. -->
+            {#if false}
+              <BlockRow even>
+                {#each GEOMETRY as field}
+                  <div class="flex flex-col">
+                    <MeltCombo
+                      title={GEOMETRY_TITLES[field]}
+                      value={String(zone?.[field])}
+                      validator={fieldValid(field)}
+                      valueInfoEnabled={false}
+                      on:input={(e) => setField(field, e.detail.value)}
+                      on:change={sync}
+                    />
+                    {#if problemOf(field)}
+                      <span class="text-xs text-error">{problemOf(field)}</span>
+                    {/if}
+                  </div>
+                {/each}
+              </BlockRow>
+            {/if}
+          {/if}
+          <div class="grid grid-cols-2 gap-2">
+            {#each options.filter((e) => e.key !== "dir") as schema (schema.key)}
+              <ZoneOptionField
+                {schema}
+                read={zoneRead(zone)}
+                title={optionLabel(schema.key, zone)}
+                value={optionText(zone.opt[schema.key])}
+                placeholder={placeholderOf(schema.key)}
+                problem={problemOf(schema.key)}
+                {autoColor}
+                suggestions={zoneOptionSuggestions(zone, schema.key, midi)}
+                validator={optionValid(schema)}
+                on:input={(e) => setOption(schema, e.detail)}
+                on:change={sync}
+              />
+            {/each}
+          </div>
+          {#if section === "output" && typeof midi !== "undefined"}
+            <span class="text-xs text-gray-400" data-zone-midi
+              >Sends {zoneOutputLabel(zone, midi)}</span
+            >
+          {/if}
+        </Block>
+      {/each}
+    </div>
   {:else}
     <div class="flex flex-col gap-2">
       <span class="text-sm text-warning">

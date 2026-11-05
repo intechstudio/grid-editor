@@ -245,7 +245,7 @@ export function defaultZone(kind: ZoneKind, scripts: string[]): Zone {
 }
 
 export function defaultZoneScript(kind: ZoneKind, scripts: string[]): string {
-  return zoneToLua(defaultZone(kind, scripts));
+  return zonesToLua([defaultZone(kind, scripts)]);
 }
 
 // Untoggled header: "f1 · 0,0 1×9", with what it sends when known:
@@ -277,7 +277,7 @@ export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
         (e) =>
           e.section === section &&
           e.reads.includes(zoneRead(zone)) &&
-          zoneOptionShown(e, msg),
+          zoneOptionShown(e, msg, zone),
       ),
     }))
     .filter((e) => e.section === "geometry" || e.options.length > 0);
@@ -298,7 +298,12 @@ export function optionPlaceholder(zone: Zone, key: string): string {
     return "0";
   }
   if (key === "max") {
-    return "127 or 16383";
+    const sends = zoneSends(zone);
+    return sends === "cc14" || sends === "pb"
+      ? "16383"
+      : sends === "cc" || sends === "note"
+        ? "127"
+        : "127 or 16383";
   }
   if (key === "ch" || key === "num") {
     return "auto";
@@ -428,26 +433,31 @@ export function zoneOptionSuggestions(
           })),
         ];
       }
-      if (sends === "cc") {
+      if (sends === "cc" || sends === "cc14") {
+        // a 14-bit CC is a pair, the number and the number + 32
         return [
           {
             value: "-1",
             info: typeof auto === "number" ? `Auto (${auto})` : "Auto",
           },
-          ...Object.entries(midiCC as Record<string, string>).map(
-            ([value, info]) => ({ value, info }),
-          ),
+          ...Object.entries(midiCC as Record<string, string>)
+            .filter(([value]) => sends === "cc" || Number(value) < 32)
+            .map(([value, info]) => ({ value, info })),
         ];
       }
       return [];
     }
     case "min":
       return [{ value: "0", info: "Lowest" }];
-    case "max":
-      return [
-        { value: "127", info: "7 bit" },
-        { value: "16383", info: "14 bit" },
-      ];
+    case "max": {
+      const bit7 = { value: "127", info: "7 bit" };
+      const bit14 = { value: "16383", info: "14 bit" };
+      return sends === "cc14" || sends === "pb"
+        ? [bit14]
+        : sends === "cc" || sends === "note"
+          ? [bit7]
+          : [bit7, bit14];
+    }
     case "spring":
       return [
         { value: "-1", info: "Off" },
@@ -518,6 +528,12 @@ export function withOption<T extends { opt: Record<string, ZoneOptionValue> }>(
     delete opt[schema.key];
   } else {
     opt[schema.key] = value;
+  }
+  // A new MIDI command brings its own range: Min and Max are set to it, 0-127
+  // (CC, Note) or 0-16383 (CC 14-bit, pitch bend), replacing the old one's.
+  if (schema.key === "cmd" && value !== target.opt.cmd) {
+    opt.min = 0;
+    opt.max = value === "cc14" || value === "pb" ? 16383 : 127;
   }
   return { next: { ...target, opt } };
 }

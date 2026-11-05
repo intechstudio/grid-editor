@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.19.0"
+local LIB_VERSION = "0.19.2"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -34,7 +34,9 @@ Z.kind = {
 
 -- LED phases (0-255) of a zone cell, fixed: LF floor when unlit, LT lit while
 -- touched, LD lit after (release, RX, Z.set). The zone curve's minimum is black.
-local LF, LD, LT = 16, 110, 255
+-- LB is the floor of a vertical or horizontal fader: its background is dimmer,
+-- so the part below the value stands out.
+local LF, LB, LD, LT = 16, 8, 110, 255
 
 Z.zs = {}
 Z.ct = {}
@@ -419,7 +421,7 @@ local function paint(z)
   -- whole cell, so glp 0 is dark
   -- fingers: a crosshair per held finger at top, the highest level per cell;
   -- none held: finger 1's at dim
-  local f = LF
+  local f = z.o.read == "axis" and LB or LF
   local h = t and LT or LD
   if z.o.read == "point" then
     for _, o in ipairs(z.os) do

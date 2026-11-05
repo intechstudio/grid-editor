@@ -27,6 +27,9 @@ import {
   placedCopy,
   zoneCssColor,
   zoneFaceSections,
+  zoneOptionSuggestions,
+  optionPlaceholder,
+  withOption,
 } from "../config-blocks/touch/zone-blocks";
 import { overlayZones } from "../main/grid-layout/grid-modules/overlays/touch-zones";
 
@@ -106,7 +109,7 @@ test("two zones with the same name are an error", () => {
 });
 
 test("an option out of range is an error on its zone", () => {
-  expect(issues([LIB, fader("a", 0, "sensitivity=20")])).toEqual([
+  expect(issues([LIB, fader("a", 0, 'mode="rel",sensitivity=20')])).toEqual([
     { zone: "a", level: "error", message: "Use 0.01 to 10" },
   ]);
 });
@@ -203,16 +206,16 @@ const fields = (line) =>
 test("a mouse zone's face shows only the fields mouse uses", () => {
   expect(fields(`_Z.fader(self,"p1",0,0,4,4,{dir="xy",msg="mouse"})`)).toEqual([
     "dir",
+    "col",
     "msg",
     "tap",
-    "col",
     "sensitivity",
     "grab",
   ]);
   expect(fields(`_Z.button(self,"b1",0,0,2,2,{msg="mouse"})`)).toEqual([
+    "col",
     "msg",
     "num",
-    "col",
     "bmo",
     "group",
     "grab",
@@ -222,14 +225,24 @@ test("a mouse zone's face shows only the fields mouse uses", () => {
 test("a gamepad zone's face shows its target and the value behaviour", () => {
   expect(fields(`_Z.fader(self,"f1",0,0,1,9,{msg="pad"})`)).toEqual([
     "dir",
+    "col",
     "msg",
     "num",
-    "col",
     "mode",
-    "sensitivity",
     "spring",
     "grab",
   ]);
+});
+
+test("sensitivity shows in relative mode, and always for the mouse", () => {
+  // absolute mode takes the finger's position as it is
+  expect(fields(`_Z.fader(self,"f1",0,0,1,9,{})`)).not.toContain("sensitivity");
+  expect(fields(`_Z.fader(self,"f1",0,0,1,9,{mode="rel"})`)).toContain(
+    "sensitivity",
+  );
+  expect(
+    fields(`_Z.fader(self,"p1",0,0,4,4,{dir="xy",msg="mouse"})`),
+  ).toContain("sensitivity");
 });
 
 test("the header names the mouse output", () => {
@@ -260,10 +273,10 @@ test("an XY pad is a fader with the XY Pad direction", () => {
 
 test("a new Touch Zone is a 5x5 XY pad and a new button is 2x2", () => {
   expect(defaultZoneScript("fader", [])).toBe(
-    `_Z.fader(self,"f1",0,0,5,5,{dir="xy"})`,
+    `_Z=gr("zona") _Z.fader(self,"f1",0,0,5,5,{dir="xy"})`,
   );
   expect(defaultZoneScript("button", [])).toBe(
-    `_Z.button(self,"b1",0,0,2,2,{})`,
+    `_Z=gr("zona") _Z.button(self,"b1",0,0,2,2,{})`,
   );
 });
 
@@ -300,7 +313,12 @@ test("one block defines several zones, read and written in order", () => {
     ["f1", "fader"],
     ["b1", "button"],
   ]);
-  expect(zonesToLua(zones)).toBe(TWO);
+  // the block's script starts with the call that loads the library
+  expect(zonesToLua(zones)).toBe(`_Z=gr("zona") ${TWO}`);
+  // the call is optional on reading, so older scripts still parse
+  expect(parseZones(`_Z=gr("zona") ${TWO}`).length).toBe(2);
+  expect(parseZones(`_Z=gr("zona")${TWO}`).length).toBe(2);
+  expect(parseZones(`_Z=gr("other") ${TWO}`)).toBe(null);
   // compressed scripts carry no space between the lines
   expect(parseZones(TWO.replace(") _Z", ")_Z")).length).toBe(2);
   expect(parseZones(`${TWO} end`)).toBe(null);
@@ -319,7 +337,7 @@ test("zone names are unique across a block and the Setup", () => {
   );
   // a pasted block renames each zone that collides
   expect(uniqueZoneScript(TWO, [TWO])).toBe(
-    `_Z.fader(self,"f2",0,0,5,5,{dir="xy"}) _Z.button(self,"b2",5,0,2,2,{})`,
+    `_Z=gr("zona") _Z.fader(self,"f2",0,0,5,5,{dir="xy"}) _Z.button(self,"b2",5,0,2,2,{})`,
   );
 });
 
@@ -417,4 +435,59 @@ test("a pasted zone goes beside the focused one, with no 1x1 fallback", () => {
   // no room beside it: nothing, the editor logs a message
   const tall = z("f1", 0, 0, 9, 9);
   expect(placedCopy(copied, tall, [tall])).toBeUndefined();
+});
+
+test("Max suggests 127 for CC and 16383 for CC 14-bit", () => {
+  const max = (line) =>
+    zoneOptionSuggestions(parseZone(line), "max").map((e) => e.value);
+  expect(max(`_Z.fader(self,"f1",0,0,1,9,{})`)).toEqual(["127"]);
+  expect(max(`_Z.fader(self,"f1",0,0,1,9,{cmd="cc14"})`)).toEqual(["16383"]);
+  expect(max(`_Z.fader(self,"f1",0,0,1,9,{cmd="pb"})`)).toEqual(["16383"]);
+  expect(
+    optionPlaceholder(parseZone(`_Z.fader(self,"f1",0,0,1,9,{})`), "max"),
+  ).toBe("127");
+  expect(
+    optionPlaceholder(
+      parseZone(`_Z.fader(self,"f1",0,0,1,9,{cmd="cc14"})`),
+      "max",
+    ),
+  ).toBe("16383");
+});
+
+test("the CC number suggests Auto (-1) for CC, CC 14-bit and Note", () => {
+  const nums = (opt) =>
+    zoneOptionSuggestions(
+      parseZone(`_Z.fader(self,"f1",0,0,1,9,{${opt}})`),
+      "num",
+      { ch: 0, nums: [32] },
+    ).map((e) => e.value);
+  expect(nums("")[0]).toBe("-1");
+  expect(nums('cmd="note"')[0]).toBe("-1");
+  // a 14-bit CC offers the numbers that have a partner 32 above
+  const wide = nums('cmd="cc14"');
+  expect(wide[0]).toBe("-1");
+  expect(wide.length).toBe(33);
+  expect(wide.at(-1)).toBe("31");
+});
+
+test("a new MIDI command sets Min and Max to its range", () => {
+  const cmd = {
+    key: "cmd",
+    type: "enum",
+    values: ["cc", "cc14", "note", "pb"],
+  };
+  const zone = parseZone(`_Z.fader(self,"f1",0,0,1,9,{min=10,max=100,ch=2})`);
+  const wide = withOption(zone, cmd, "cc14").next;
+  expect(wide.opt).toEqual({ ch: 2, cmd: "cc14", min: 0, max: 16383 });
+  expect(withOption(wide, cmd, "cc").next.opt).toMatchObject({
+    min: 0,
+    max: 127,
+  });
+  expect(withOption(wide, cmd, "pb").next.opt.max).toBe(16383);
+  expect(withOption(wide, cmd, "note").next.opt.max).toBe(127);
+  // picking the same command again keeps a custom range
+  const same = parseZone(
+    `_Z.fader(self,"f1",0,0,1,9,{cmd="cc14",min=10,max=100})`,
+  );
+  expect(withOption(same, cmd, "cc14").next.opt.max).toBe(100);
 });
