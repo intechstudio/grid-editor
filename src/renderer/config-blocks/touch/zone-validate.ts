@@ -8,6 +8,7 @@ import {
   type OptionSchema,
   type Zone,
   type ZoneOptionValue,
+  zoneLabels,
   zoneRead,
   zoneOptionDefault,
   zoneOptionSchemaFor,
@@ -69,8 +70,9 @@ function firmwareNameProblem(name: string): string | undefined {
 // The name sits in a string that compressScript would rewrite if it were a
 // firmware human name (docs/zona-touch-zones.md, The zone line).
 export function zoneNameProblem(name: string): string | undefined {
+  // a zone needn't have a name: the editor shows the type and a number
   if (name.length === 0) {
-    return "Enter a zone name";
+    return undefined;
   }
   return identifierProblem(name) ?? firmwareNameProblem(name);
 }
@@ -165,13 +167,6 @@ function option(zone: Zone, key: string) {
   return zone.opt[key] ?? zoneOptionDefault(zone.kind, key);
 }
 
-// Bits of the value as the library uses them: 14 for pitch bend and a
-// 14-bit CC.
-function resOf(zone: Zone): number {
-  const sends = zoneSends(zone);
-  return sends === "pb" || sends === "cc14" ? 14 : 7;
-}
-
 // An explicit num keeps every number the zone sends in 0-127: a 14-bit CC
 // sends its LSB on num+32 (num 0-31), an xy its y on num+1. A gamepad zone
 // keeps to the axes 0-5 or the buttons 0-31.
@@ -194,8 +189,10 @@ function numProblems(zone: Zone): ZoneProblem[] {
           : "Use -1 (auto) or an axis 0 to 5";
     return [{ key: "num", message }];
   }
-  const wide = msg === "cc" && resOf(zone) > 7;
-  const max = (wide ? 31 : 127) - (xy ? 1 : 0);
+  // an NRPN number is 14-bit
+  const nrpn = msg === "nrpn" || msg === "nrpn14";
+  const wide = msg === "cc14";
+  const max = (nrpn ? 16383 : wide ? 31 : 127) - (xy ? 1 : 0);
   if (num <= max) {
     return [];
   }
@@ -245,14 +242,18 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
 // `zones` are its parsed zone blocks.
 export function validateSurface(zones: Zone[]): ZoneIssue[] {
   const issues: ZoneIssue[] = [];
-  for (const zone of zones) {
+  const labels = zoneLabels(zones);
+  zones.forEach((zone, i) => {
     for (const { message } of zoneProblems(zone)) {
-      issues.push({ zone: zone.name, level: "error", message });
+      issues.push({ zone: labels[i], level: "error", message });
     }
-  }
+  });
   const seen = new Set<string>();
   const reported = new Set<string>();
   for (const { name } of zones) {
+    if (name === "") {
+      continue;
+    }
     if (seen.has(name) && !reported.has(name)) {
       reported.add(name);
       issues.push({
@@ -282,7 +283,8 @@ export function zoneSendProblem(
 ): string | undefined {
   const names = zonesOf(eventScripts).map((e) => e.name);
   const duplicate = (parseZones(script) ?? []).find(
-    (zone) => names.filter((e) => e === zone.name).length > 1,
+    (zone) =>
+      zone.name !== "" && names.filter((e) => e === zone.name).length > 1,
   );
   return typeof duplicate === "undefined"
     ? undefined

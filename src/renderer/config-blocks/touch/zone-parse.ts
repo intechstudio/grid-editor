@@ -1,16 +1,14 @@
-// Touch block scripts (docs/zona-touch-zones.md, The zone line). The canonical lines, as the editor writes
-// them:
+// Touch block scripts (docs/zona-touch-zones.md, The zone line). The lines, as
+// the editor writes them, are chains: a constructor with the cells, then a call
+// for each thing that isn't the default, in a fixed order:
 //
-//   _Z.fader(self,"f1",0,0,1,9,{dir="v",min=0,max=127,mode="abs",...})
+//   _Z.xy(0,0,5,5).n("p1").col(255,0,0).gms(-1,176,40,-1,1).spr("50%")
 //
 // This is the form GridScript.compressScript produces: no spaces, double
-// quotes, numbers in shortest form. Options are written in schema order and
-// all of them, each with its value or default, so the line is fully defined
-// (zoneWrittenOptions); options this editor doesn't know are kept as raw
-// `key=value` text after the known ones. Hand-written
-// lines with other spacing, option order or single quotes parse too, and
-// write back canonical. Anything else parses to null and the block shows it
-// as code.
+// quotes, numbers in shortest form. The calls may come in any order when a
+// line is read. The earlier positional line (_Z.zone) and option-table lines
+// (_Z.fader, _Z.button) still read, and are written back as chains. Anything
+// else parses to null and the block shows it as code.
 
 import {
   type OptionSchema,
@@ -18,8 +16,10 @@ import {
   type ZoneKind,
   type ZoneOptionValue,
   zoneKindList,
-  zoneOutputCode,
+  zoneOptionDefault,
+  zoneOptionShown,
   zoneOutputs,
+  type ZoneOptionSchema,
   zoneRead,
   zoneOptionValue,
   zoneOptionSchema,
@@ -152,6 +152,30 @@ class Reader {
     return depth === 0 && raw.length > 0 ? raw : null;
   }
 
+  // `(a,b,c)` as the raw text of each argument, in order.
+  args(): string[] | null {
+    if (!this.eat("(")) {
+      return null;
+    }
+    const raws: string[] = [];
+    if (this.eat(")")) {
+      return raws;
+    }
+    for (;;) {
+      const raw = this.value();
+      if (raw === null) {
+        return null;
+      }
+      raws.push(raw);
+      if (this.eat(")")) {
+        return raws;
+      }
+      if (!this.eat(",")) {
+        return null;
+      }
+    }
+  }
+
   // `{a,b,c}` as the raw text of each value, in order. A table with `name=`
   // entries is not a list.
   list(): string[] | null {
@@ -258,23 +282,24 @@ function literal(schema: OptionSchema, raw: string): ZoneOptionValue | null {
   return parseNumber(raw);
 }
 
-type Options = { opt: Record<string, ZoneOptionValue>; unknown?: string };
+type Options = { opt: Record<string, ZoneOptionValue> };
 
+// The options of an option-table line. The range and the host-MIDI switch of
+// earlier builds are dropped (the range follows the command, host MIDI is
+// always on); an option this editor doesn't know makes the line not a zone
+// line.
 function readOptions(
   entries: { key: string; raw: string }[],
   schema: OptionSchema[],
 ): Options | null {
   const opt: Record<string, ZoneOptionValue> = {};
-  const unknown: string[] = [];
   for (const { key, raw } of entries) {
-    // the range of an earlier build is dropped: it follows the command
-    if (key === "min" || key === "max") {
+    if (key === "min" || key === "max" || key === "rx") {
       continue;
     }
     const known = schema.find((e) => e.key === key);
     if (typeof known === "undefined") {
-      unknown.push(`${key}=${raw}`);
-      continue;
+      return null;
     }
     const value = literal(known, raw);
     if (value === null) {
@@ -282,7 +307,7 @@ function readOptions(
     }
     opt[key] = value;
   }
-  return unknown.length > 0 ? { opt, unknown: unknown.join(",") } : { opt };
+  return { opt };
 }
 
 function luaString(text: string): string {
@@ -298,10 +323,6 @@ function luaNumber(value: number): string {
     throw new Error(`Cannot write ${value} as a Lua number`);
   }
   return String(value);
-}
-
-function luaValue(value: ZoneOptionValue): string {
-  return typeof value === "string" ? luaString(value) : luaNumber(value);
 }
 
 // The positional form: `_Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},
@@ -397,6 +418,9 @@ function readPositionalZone(reader: Reader): Zone | null {
     for (let i = 0; i < groups[g].length; i++) {
       const key = keys[i];
       const raw = groups[g][i];
+      if (key === "rx") {
+        continue; // host MIDI is always on
+      }
       if (key === "out") {
         const output = zoneOutputs[parseNumber(raw) ?? -1];
         if (typeof output === "undefined") {
@@ -432,8 +456,6 @@ function readPositionalZone(reader: Reader): Zone | null {
       delete opt[key];
     }
   }
-  // options this editor doesn't know travel in a last table, as before
-  let unknown: string | undefined;
   if (reader.eat(",")) {
     const entries = reader.table();
     const rest =
@@ -442,22 +464,173 @@ function readPositionalZone(reader: Reader): Zone | null {
       return null;
     }
     Object.assign(opt, rest.opt);
-    unknown = rest.unknown;
   }
   if (!reader.eat(")")) {
     return null;
   }
   const [x, y, w, h] = numbers as number[];
-  return {
-    name,
+  return { name, kind, x, y, w, h, opt };
+}
+
+// The chain: a constructor with the cells (v and h faders, an XY pad, a
+// button), then calls that each set one thing. A call this editor doesn't know,
+// or one with arguments that don't fit, makes the line not a zone line.
+const CONSTRUCTORS: { [name: string]: { kind: ZoneKind; dir?: string } } = {
+  v: { kind: "fader", dir: "v" },
+  h: { kind: "fader", dir: "h" },
+  xy: { kind: "fader", dir: "xy" },
+  b: { kind: "button" },
+};
+
+// MIDI by gms(ch, cmd, p1, p2, mode): the command is 144 (note), 224 (pitch
+// bend) or 176 (a CC), and mode 1, 2, 3 make a 14-bit CC, an NRPN and an NRPN
+// with a 14-bit value.
+function midiCommand(cmd: number, mode: number, kind: ZoneKind): string | null {
+  if (cmd === 144 || cmd === 128) {
+    return "note";
+  }
+  if (cmd === 224) {
+    return "pb";
+  }
+  if (cmd !== -1 && cmd !== 176) {
+    return null;
+  }
+  if (mode === 0) {
+    return cmd === -1 && kind === "button" ? "note" : "cc";
+  }
+  return ["cc", "cc14", "nrpn", "nrpn14"][mode] ?? null;
+}
+
+// One call of the chain applied to the zone; false when it doesn't fit.
+function applyCall(zone: Zone, call: string, raws: string[]): boolean {
+  const num = (i: number) =>
+    i < raws.length ? parseNumber(raws[i]) : undefined;
+  const nums = raws.map(parseNumber);
+  if (nums.some((e) => e === null) && call !== "n" && call !== "spr") {
+    return false;
+  }
+  const opt = zone.opt;
+  switch (call) {
+    case "n": {
+      const reader = new Reader(raws[0] ?? "");
+      const name = reader.string();
+      if (raws.length !== 1 || name === null || !reader.atEnd()) {
+        return false;
+      }
+      zone.name = name;
+      return true;
+    }
+    case "col": {
+      if (raws.length > 3) {
+        return false;
+      }
+      opt.col = [0, 1, 2].map((i) => num(i) ?? -1).join(",");
+      return true;
+    }
+    case "gms": {
+      const cmd = midiCommand(num(1) ?? -1, num(4) ?? 0, zone.kind);
+      if (cmd === null || raws.length > 5) {
+        return false;
+      }
+      opt.msg = "midi";
+      opt.cmd = cmd;
+      opt.ch = num(0) ?? -1;
+      opt.num = num(2) ?? -1;
+      return true;
+    }
+    case "mo": {
+      opt.msg = "mouse";
+      opt.num = num(0) ?? -1;
+      delete opt.cmd;
+      return raws.length <= 1;
+    }
+    case "ga": {
+      opt.msg = "pad";
+      opt.num = num(0) ?? -1;
+      delete opt.cmd;
+      return raws.length <= 1;
+    }
+    case "mode":
+      opt.mode = num(0) === 1 ? "rel" : "abs";
+      return raws.length === 1;
+    case "sens":
+      opt.sensitivity = num(0) ?? 1;
+      return raws.length === 1;
+    case "spr": {
+      // "50%" or 50
+      const value = /^\s*["'](-?\d+)\s*%?["']\s*$/.exec(raws[0] ?? "");
+      const spring = value !== null ? Number(value[1]) : num(0);
+      if (
+        raws.length !== 1 ||
+        spring === null ||
+        typeof spring === "undefined"
+      ) {
+        return false;
+      }
+      opt.spring = spring;
+      return true;
+    }
+    case "cap":
+      opt.grab = num(0) === 1 ? "live" : "focus";
+      return raws.length === 1;
+    case "fing":
+      opt.fingers = num(0) ?? 1;
+      return raws.length === 1;
+    case "tog":
+      opt.bmo = num(0) ?? 0;
+      return raws.length === 1;
+    case "grp":
+      opt.group = num(0) ?? 0;
+      return raws.length === 1;
+    case "tap":
+      opt.tap = num(0) ?? 1;
+      return raws.length === 1;
+    default:
+      return false;
+  }
+}
+
+function readChain(reader: Reader, name: string): Zone | null {
+  const cells = reader.args()?.map(parseNumber);
+  if (
+    typeof cells === "undefined" ||
+    cells.length !== 4 ||
+    cells.some((e) => e === null)
+  ) {
+    return null;
+  }
+  const { kind, dir } = CONSTRUCTORS[name];
+  const [x, y, w, h] = cells as number[];
+  const zone: Zone = {
+    name: "",
     kind,
     x,
     y,
     w,
     h,
-    opt,
-    ...(typeof unknown === "undefined" ? {} : { unknown }),
+    opt: typeof dir === "undefined" ? {} : { dir },
   };
+  while (reader.eat(".")) {
+    const call = reader.identifier();
+    const raws = reader.args();
+    if (call === null || raws === null || !applyCall(zone, call, raws)) {
+      return null;
+    }
+  }
+  dropUnused(zone);
+  return zone;
+}
+
+// A call a zone has no use for (a button's .spr, a fader's .fing) is not an
+// option of this zone and not a problem to report.
+function dropUnused(zone: Zone) {
+  const read = zoneRead(zone);
+  for (const key of Object.keys(zone.opt)) {
+    const schema = zoneOptionSchema.find((e) => e.key === key);
+    if (key !== "dir" && schema && !schema.reads.includes(read)) {
+      delete zone.opt[key];
+    }
+  }
 }
 
 // One zone line from the reader's position; null when it isn't a zone line.
@@ -465,10 +638,14 @@ function readZone(reader: Reader): Zone | null {
   if (!reader.eat(ZONA_GLOBAL) || !reader.eat(".")) {
     return null;
   }
-  const kind = reader.identifier() as ZoneKind | "zone";
-  if (kind === "zone") {
+  const word = reader.identifier() ?? "";
+  if (word === "zone") {
     return readPositionalZone(reader);
   }
+  if (word in CONSTRUCTORS) {
+    return readChain(reader, word);
+  }
+  const kind = word as ZoneKind;
   if (
     !zoneKindList.includes(kind) ||
     !reader.eat("(") ||
@@ -551,17 +728,14 @@ export function zonesToLua(zones: Zone[]): string {
   return [ZONA_LOAD, ...zones.map(zoneToLua)].join(" ");
 }
 
-// The zone line as the editor writes it, positional and fully defined:
+// The zone line as the editor writes it: the constructor with the cells, the
+// name (when the zone has one), then a call for each thing that isn't the
+// default and that the zone uses, in this order:
 //
-//   _Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})
+//   _Z.xy(0,0,5,5).n("p1").col(255,0,0).gms(-1,176,40,-1,1).spr("50%")
 //
-// Name, type (0 vertical fader, 1 horizontal fader, 2 XY pad, 3 button), then a table per group of the face:
-// geometry (x, y, w, h), colour (r, g, b), output (out, ch, num, rx),
-// behaviour (mode, sensitivity, spring, bmo, group) and capture
-// (fingers, tap, grab). `out` is the msg and the command as one number, mode
-// and grab are numbers too (zoneOutputs, ENUM_CODES). Every slot is written with its value or the
-// default, whether or not the zone's output uses it. Options this editor
-// doesn't know follow in a last table, as raw text.
+// .n, .col, the output (.gms for MIDI, .mo for the mouse, .ga for the
+// gamepad), then .mode, .sens, .spr, .tog, .grp, .fing, .tap and .cap.
 export function zoneToLua(zone: Zone): string {
   if (!zoneKindList.includes(zone.kind)) {
     throw new Error(`Unknown zone kind "${zone.kind}"`);
@@ -569,46 +743,90 @@ export function zoneToLua(zone: Zone): string {
   const known = new Set(zoneOptionSchema.map((e) => e.key));
   for (const key of Object.keys(zone.opt)) {
     if (!known.has(key)) {
-      throw new Error(`Unknown option "${key}": keep it in unknown`);
+      throw new Error(`Unknown option "${key}"`);
     }
   }
-  const write = (key: string) => {
-    if (key === "out") {
-      const code = zoneOutputCode(zone);
-      if (code < 0) {
-        throw new Error(`Cannot write the output of "${zone.name}"`);
-      }
-      return String(code);
-    }
-    if (key in ENUM_CODES) {
-      const code = ENUM_CODES[key].indexOf(String(zoneOptionValue(zone, key)));
-      if (code < 0) {
-        throw new Error(`Cannot write the ${key} "${zone.opt[key]}"`);
-      }
-      return String(code);
-    }
-    const schema = zoneOptionSchema.find((e) => e.key === key) as OptionSchema;
+  const read = zoneRead(zone);
+  const msg = zoneOptionValue(zone, "msg");
+  // the value of an option the zone uses and the line doesn't leave at its
+  // default, or undefined
+  const given = (key: string) => {
+    const schema = zoneOptionSchema.find(
+      (e) => e.key === key,
+    ) as ZoneOptionSchema;
     const value = zoneOptionValue(zone, key);
-    const isText = schema.type === "enum";
-    if (
-      typeof value === "undefined" ||
-      typeof value !== (isText || schema.type === "color" ? "string" : "number")
-    ) {
-      throw new Error(`Option "${key}" must be a ${schema.type}`);
-    }
-    return typeof value === "string" ? luaString(value) : luaNumber(value);
+    const used =
+      schema.reads.includes(read) && zoneOptionShown(schema, msg, zone);
+    return used && value !== zoneOptionDefault(zone.kind, key)
+      ? value
+      : undefined;
   };
-  const cells = [zone.x, zone.y, zone.w, zone.h].map(luaNumber).join(",");
-  const colour = String(zoneOptionValue(zone, "col"));
-  const groups = zonePositions.map((keys) => `{${keys.map(write).join(",")}}`);
-  const unknown =
-    typeof zone.unknown !== "undefined" && zone.unknown.length > 0
-      ? `,{${zone.unknown}}`
-      : "";
-  const type = zone.kind === "button" ? "button" : (zone.opt.dir ?? "v");
-  const code = ZONE_TYPES.indexOf(String(type));
-  if (code < 0) {
-    throw new Error(`Unknown zone type "${type}"`);
+  const constructor =
+    zone.kind === "button" ? "b" : String(zone.opt.dir ?? "v");
+  if (!(constructor in CONSTRUCTORS)) {
+    throw new Error(`Unknown zone type "${constructor}"`);
   }
-  return `${ZONA_GLOBAL}.zone(self,${luaString(zone.name)},${code},{${cells}},{${colour}},${groups.join(",")}${unknown})`;
+  let line = `${ZONA_GLOBAL}.${constructor}(${[zone.x, zone.y, zone.w, zone.h]
+    .map(luaNumber)
+    .join(",")})${zone.name === "" ? "" : `.n(${luaString(zone.name)})`}`;
+  const col = String(zoneOptionValue(zone, "col"));
+  if (col !== "-1,-1,-1") {
+    line += `.col(${col})`;
+  }
+  const ch = Number(zoneOptionValue(zone, "ch"));
+  const num = Number(zoneOptionValue(zone, "num"));
+  const cmd = String(zoneOptionValue(zone, "cmd"));
+  if (msg === "mouse") {
+    line += `.mo(${num === 1 || num < 0 ? "" : num})`;
+  } else if (msg === "pad") {
+    line += `.ga(${num < 0 ? "" : num})`;
+  } else if (
+    cmd !== zoneOptionDefault(zone.kind, "cmd") ||
+    ch !== -1 ||
+    num !== -1
+  ) {
+    const code = {
+      cc: [176, 0],
+      cc14: [176, 1],
+      note: [144, 0],
+      pb: [224, 0],
+      nrpn: [176, 2],
+      nrpn14: [176, 3],
+    }[cmd];
+    if (typeof code === "undefined") {
+      throw new Error(`Unknown command "${cmd}"`);
+    }
+    line += `.gms(${ch},${code[0]},${num},-1${code[1] > 0 ? `,${code[1]}` : ""})`;
+  }
+  if (given("mode") === "rel") {
+    line += ".mode(1)";
+  }
+  const sens = given("sensitivity");
+  if (typeof sens === "number") {
+    line += `.sens(${luaNumber(sens)})`;
+  }
+  const spring = given("spring");
+  if (typeof spring === "number" && spring >= 0) {
+    line += `.spr("${luaNumber(spring)}%")`;
+  }
+  const bmo = given("bmo");
+  if (typeof bmo === "number") {
+    line += `.tog(${luaNumber(bmo)})`;
+  }
+  const group = given("group");
+  if (typeof group === "number") {
+    line += `.grp(${luaNumber(group)})`;
+  }
+  const fingers = given("fingers");
+  if (typeof fingers === "number") {
+    line += `.fing(${luaNumber(fingers)})`;
+  }
+  const tap = given("tap");
+  if (typeof tap === "number") {
+    line += `.tap(${luaNumber(tap)})`;
+  }
+  if (given("grab") === "live") {
+    line += ".cap(1)";
+  }
+  return line;
 }

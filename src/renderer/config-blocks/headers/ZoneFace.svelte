@@ -8,7 +8,7 @@
   import type { GridAction, GridEvent } from "../../runtime/runtime";
   import { parseZones } from "../touch/zone-parse";
   import { zoneProblems, zoneSendProblem } from "../touch/zone-validate";
-  import { zoneHeaderText } from "../touch/zone-blocks";
+  import { blockZoneLabels, zoneHeaderText } from "../touch/zone-blocks";
   import { zoneOutputLabel } from "../touch/zone-autos";
   import { Grid } from "../../lib/_utils";
 
@@ -20,6 +20,15 @@
 
   $: zones = parseZones($action.script);
   $: zone = zones?.[0] ?? null;
+  // its name, or the type and a number among the Setup's zones without a name
+  $: label =
+    zones === null
+      ? ""
+      : blockZoneLabels(
+          $event.config.map((e) => e.script),
+          $event.config.findIndex((e) => e.id === action.id),
+          zones,
+        )[0];
   // The zones before this one count for the autos: the event is a
   // dependency (the extra arguments are only reactive dependencies).
   $: midi = zoneMidiOf($action, $event);
@@ -31,6 +40,7 @@
       ? zoneHeaderText(
           zone,
           typeof midi === "undefined" ? undefined : zoneOutputLabel(zone, midi),
+          label,
         ) + (zones!.length > 1 ? ` · +${zones!.length - 1} more` : "")
       : "not a zone line";
   // "red,green,blue"; a channel at -1 is the module's colour, not known here

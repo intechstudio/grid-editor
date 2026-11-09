@@ -1,7 +1,10 @@
 // What the touch zones overlay draws (docs/zona-touch-zones.md, Overlay), derived from the touch
 // Setup's actions on every change: no store of its own, no write path.
 
-import type { Zone } from "../../../../config-blocks/touch/zone-model";
+import {
+  type Zone,
+  zoneLabels,
+} from "../../../../config-blocks/touch/zone-model";
 import { parseZones } from "../../../../config-blocks/touch/zone-parse";
 import { surfaceIssues } from "../../../../config-blocks/touch/zone-validate";
 import { ZONA_GRID_SIZE, zonaCellEdgePct } from "../devices/zona-grid";
@@ -17,6 +20,8 @@ export type ZoneRect = {
 
 export type OverlayZone = {
   zone: Zone;
+  label: string; // its name, or the type and a number (zoneLabels)
+  shortLabel: string; // the same, short enough to draw on the zone
   actionId: string; // the zone block, for selecting it
   index: number; // the zone's place in its block, which may define several
   rect: ZoneRect; // percent of the touch surface
@@ -48,15 +53,20 @@ export function overlayZones(
   selectedIds: string[] = [],
 ): OverlayZone[] {
   const issues = surfaceIssues(actions.map((e) => e.script));
+  const parsed = actions.map((e) => parseZones(e.script) ?? []);
+  const labels = zoneLabels(parsed.flat());
+  const shortLabels = zoneLabels(parsed.flat(), true);
   const zones: OverlayZone[] = [];
-  for (const action of actions) {
-    (parseZones(action.script) ?? []).forEach((zone, index) => {
-      const levels = issues
-        .filter((e) => e.zone === zone.name)
-        .map((e) => e.level);
+  let at = 0;
+  actions.forEach((action, a) => {
+    parsed[a].forEach((zone, index) => {
+      const label = labels[at];
+      const levels = issues.filter((e) => e.zone === label).map((e) => e.level);
       const group = Number(zone.opt.group ?? 0);
       zones.push({
         zone,
+        label,
+        shortLabel: shortLabels[at++],
         actionId: action.id,
         index,
         rect: zoneRect(zone),
@@ -69,6 +79,6 @@ export function overlayZones(
         highlighted: selectedIds.includes(action.id),
       });
     });
-  }
+  });
   return zones;
 }

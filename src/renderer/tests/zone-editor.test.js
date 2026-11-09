@@ -35,8 +35,12 @@ import {
   optionPlaceholder,
   optionShownText,
   withOption,
+  blockZoneLabels,
 } from "../config-blocks/touch/zone-blocks";
-import { zoneOptionSchemaFor } from "../config-blocks/touch/zone-model";
+import {
+  zoneLabels,
+  zoneOptionSchemaFor,
+} from "../config-blocks/touch/zone-model";
 import { overlayZones } from "../main/grid-layout/grid-modules/overlays/touch-zones";
 
 beforeAll(async () => {
@@ -44,86 +48,139 @@ beforeAll(async () => {
 });
 
 const LIB = `_Z=gr("zona")`;
-// a new XY pad and a new button, as the editor writes them: positional, with a
-// table per group (geometry, colour, output, range, behaviour, capture)
-const XY = (name) =>
-  `_Z.zone(self,"${name}",2,{0,0,5,5},{-1,-1,-1},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})`;
-const BTN = (name, x = 5) =>
-  `_Z.zone(self,"${name}",3,{${x},0,2,2},{-1,-1,-1},{2,-1,-1,0},{0,1,-1,0,0},{1,1,0})`;
+// a new XY pad and a new button, as the editor writes them: a chain with the
+// cells and the name, and a call only for what isn't the default
+const XY = (name) => `_Z.xy(0,0,5,5).n("${name}")`;
+const BTN = (name, x = 5) => `_Z.b(${x},0,2,2).n("${name}")`;
 
-// The editor writes the positional form with every slot defined. The older
-// option-table lines still read and are written in the new form.
+// The editor writes a chain: the constructor with the cells, the name, then a
+// call for each thing that isn't the default. The earlier option-table lines
+// still read and are written as chains.
 test.each([
   [
     `_Z.fader(self,"f1",1,0,1,9,{mode="rel",sensitivity=0.5})`,
-    `_Z.zone(self,"f1",0,{1,0,1,9},{-1,-1,-1},{0,-1,-1,0},{1,0.5,-1,0,0},{1,1,0})`,
+    `_Z.v(1,0,1,9).n("f1").mode(1).sens(0.5)`,
   ],
   [
     `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col={255,128,0,1},cmd="cc"})`,
-    `_Z.zone(self,"b1",3,{0,0,1,1},{255,128,0},{0,-1,-1,0},{0,1,-1,3,2},{1,1,0})`,
+    `_Z.b(0,0,1,1).n("b1").col(255,128,0).gms(-1,176,-1,-1).tog(3).grp(2)`,
   ],
   [
-    `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7,rx=1})`,
-    `_Z.zone(self,"p1",2,{0,0,9,9},{-1,-1,-1},{0,3,7,1},{0,1,-1,0,0},{3,1,0})`,
+    `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7})`,
+    `_Z.xy(0,0,9,9).n("p1").gms(3,176,7,-1).fing(3)`,
   ],
+  // a mouse zone writes only what mouse uses, a gamepad zone what it uses
   [
     `_Z.fader(self,"p",0,0,4,4,{dir="xy",msg="mouse"})`,
-    `_Z.zone(self,"p",2,{0,0,4,4},{-1,-1,-1},{4,-1,1,0},{0,1,-1,0,0},{1,1,0})`,
+    `_Z.xy(0,0,4,4).n("p").mo()`,
   ],
   [
-    `_Z.fader(self,"g",0,0,1,9,{msg="pad"})`,
-    `_Z.zone(self,"g",0,{0,0,1,9},{-1,-1,-1},{5,-1,-1,0},{0,1,-1,0,0},{1,1,0})`,
+    `_Z.button(self,"b",0,0,1,1,{msg="mouse",num=2})`,
+    `_Z.b(0,0,1,1).n("b").mo(2)`,
   ],
-  // the range follows the command
+  [`_Z.fader(self,"g",0,0,1,9,{msg="pad"})`, `_Z.v(0,0,1,9).n("g").ga()`],
+  [
+    `_Z.fader(self,"g",0,0,1,9,{msg="pad",num=3})`,
+    `_Z.v(0,0,1,9).n("g").ga(3)`,
+  ],
+  // the output is .gms(ch, cmd, p1, p2, mode) as the Midi block sends it
   [
     `_Z.fader(self,"f",0,0,1,9,{cmd="pb"})`,
-    `_Z.zone(self,"f",0,{0,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,1,-1,0,0},{1,1,0})`,
+    `_Z.v(0,0,1,9).n("f").gms(-1,224,-1,-1)`,
   ],
-])("a zone line is written positional and fully defined: %s", (line, full) => {
-  expect(zoneToLua(parseZone(line))).toBe(full);
+  [
+    `_Z.fader(self,"f",0,0,1,9,{cmd="cc14"})`,
+    `_Z.v(0,0,1,9).n("f").gms(-1,176,-1,-1,1)`,
+  ],
+  [
+    `_Z.fader(self,"f",0,0,1,9,{cmd="nrpn14",num=300,spring=50})`,
+    `_Z.v(0,0,1,9).n("f").gms(-1,176,300,-1,3).spr("50%")`,
+  ],
+  [
+    `_Z.button(self,"b",0,0,1,1,{cmd="note",ch=2})`,
+    `_Z.b(0,0,1,1).n("b").gms(2,144,-1,-1)`,
+  ],
+  [
+    `_Z.fader(self,"h",0,0,9,1,{dir="h",grab="live"})`,
+    `_Z.h(0,0,9,1).n("h").cap(1)`,
+  ],
+  // the defaults are left out
+  [`_Z.button(self,"b",0,0,1,1,{})`, `_Z.b(0,0,1,1).n("b")`],
+])("a zone line is written as a chain: %s", (line, chain) => {
+  expect(zoneToLua(parseZone(line))).toBe(chain);
   // and reads back and writes the same
-  expect(zoneToLua(parseZone(full))).toBe(full);
+  expect(zoneToLua(parseZone(chain))).toBe(chain);
 });
 
-test("a positional line may end a table early, and the rest is the default", () => {
-  // cells, colour, output, behaviour, capture
-  const zone = parseZone(`_Z.zone(self,"f1",1,{0,0,3,1},{},{0},{1},{})`);
-  expect(zone.kind).toBe("fader");
-  expect(zone.opt).toEqual({ dir: "h", msg: "midi", cmd: "cc", mode: "rel" });
-  // the type by name, as an earlier build wrote it, still reads
-  expect(
-    parseZone(`_Z.zone(self,"f1","h",{0,0,3,1},{},{},{},{})`).opt.dir,
-  ).toBe("h");
-  expect(parseZone(`_Z.zone(self,"f1",3,{0,0,3,1},{},{},{},{})`).kind).toBe(
-    "button",
+test("the calls of a chain may come in any order, and all are read", () => {
+  const zone = parseZone(
+    `_Z.xy(0,0,5,5).cap(1).spr("25%").fing(2).gms(2,176,7,-1,2).col(1,2,3).mode(1).sens(2).n("p")`,
   );
-  // wrong shapes are not zone lines
+  expect(zone).toMatchObject({ name: "p", kind: "fader", w: 5 });
+  expect(zone.opt).toEqual({
+    dir: "xy",
+    grab: "live",
+    spring: 25,
+    fingers: 2,
+    msg: "midi",
+    cmd: "nrpn",
+    ch: 2,
+    num: 7,
+    col: "1,2,3",
+    mode: "rel",
+    sensitivity: 2,
+  });
+  // written in the fixed order
+  expect(zoneToLua(zone)).toBe(
+    `_Z.xy(0,0,5,5).n("p").col(1,2,3).gms(2,176,7,-1,2).mode(1).sens(2).spr("25%").fing(2).cap(1)`,
+  );
+  // spring by number, and an unnamed zone reads with an empty name
+  expect(parseZone(`_Z.v(0,0,1,9).spr(50)`).opt.spring).toBe(50);
+  expect(parseZone(`_Z.v(0,0,1,9)`).name).toBe("");
+  // zones follow each other, with or without a space
+  expect(parseZones(`_Z.v(0,0,1,9).n("a")_Z.b(1,0,1,1).n("b")`).length).toBe(2);
+});
+
+test("a line that isn't a chain of known calls is not a zone line", () => {
   for (const bad of [
-    `_Z.zone(self,"f1",9,{0,0,3,1},{},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3},{},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{1,2,3,4,5},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{},{0,1,2,3,4,5,6},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{},{msg="midi"},{},{})`,
+    `_Z.q(0,0,1,9)`,
+    `_Z.v(0,0,1)`,
+    `_Z.v(0,0,1,9).nope(1)`,
+    `_Z.v(0,0,1,9).n(f1)`,
+    `_Z.v(0,0,1,9).n("a","b")`,
+    `_Z.v(0,0,1,9).gms(-1,99,-1,-1)`,
+    `_Z.v(0,0,1,9).gms(-1,176,-1,-1,1,2)`,
+    `_Z.v(0,0,1,9).col(1,2,3,4)`,
+    `_Z.v(0,0,1,9).spr("half")`,
+    `_Z.v(0,0,1,9)..n("a")`,
   ]) {
-    expect(parseZone(bad)).toBe(null);
+    expect(parseZone(bad), bad).toBe(null);
   }
 });
 
-test("a range in an older line is dropped: it follows the command", () => {
-  // the six-table layout of an earlier build, with {min, max} after the output
-  const old = parseZone(
-    `_Z.zone(self,"f1",0,{0,0,1,9},{},{0,-1,-1,0},{10,100},{0,1,-1,0,0},{1,1,0})`,
+test("the earlier positional and option-table lines still read, as chains", () => {
+  const positional = parseZone(
+    `_Z.zone(self,"f",2,{0,0,4,4},{255,0,0},{1,2,7,1},{1,1},{2,1,1})`,
   );
-  expect(old.opt).not.toHaveProperty("min");
-  expect(old.opt).not.toHaveProperty("max");
-  expect(old.opt.mode).toBe("abs");
-  expect(zoneToLua(old)).not.toContain("{10,100}");
-  // the option-table form: min and max are dropped, not kept as unknown
-  const legacy = parseZone(`_Z.fader(self,"f",0,0,1,9,{min=10,max=100,ch=2})`);
+  expect(zoneToLua(positional)).toBe(
+    `_Z.xy(0,0,4,4).n("f").col(255,0,0).gms(2,176,7,-1,1).mode(1).fing(2).cap(1)`,
+  );
+  // the strings of an earlier build, and the range table of an older layout
+  const strings = parseZone(
+    `_Z.zone(self,"f","xy",{0,0,4,4},{255,0,0},{"midi","cc14",2,7,1},{0,127},{"rel",1},{2,1,"live"})`,
+  );
+  expect(zoneToLua(strings)).toBe(zoneToLua(positional));
+  // a range or the host-MIDI switch of an earlier build is dropped, not kept
+  const legacy = parseZone(
+    `_Z.fader(self,"f",0,0,1,9,{min=10,max=100,rx=0,ch=2})`,
+  );
   expect(legacy.opt).toEqual({ ch: 2 });
-  expect(legacy.unknown).toBeUndefined();
-  expect(zoneToLua(legacy)).not.toMatch(/min|100/);
+  expect(zoneToLua(legacy)).toBe(`_Z.v(0,0,1,9).n("f").gms(2,176,-1,-1)`);
+  // an option the editor doesn't know is not a zone line
+  expect(parseZone(`_Z.fader(self,"f",0,0,1,9,{glow=2})`)).toBe(null);
+  // a number out of range is not a zone line
+  expect(parseZone(`_Z.zone(self,"f",0,{0,0,1,9},{},{9},{},{})`)).toBe(null);
+  expect(parseZone(`_Z.zone(self,"f",0,{0,0,1,9},{},{},{2},{})`)).toBe(null);
 });
 
 test("a colour is written like Simple Color, and the old hex text still reads", () => {
@@ -131,7 +188,7 @@ test("a colour is written like Simple Color, and the old hex text still reads", 
     parseZone(`_Z.button(self,"b",0,0,1,1,{col={-1,64,255,0.5}})`).opt.col,
   ).toBe("-1,64,255");
   const old = parseZone(`_Z.button(self,"b",0,0,1,1,{col="ff8000"})`);
-  expect(zoneToLua(old)).toContain(`{255,128,0}`);
+  expect(zoneToLua(old)).toContain(`.col(255,128,0)`);
   expect(
     issues([LIB, `_Z.button(self,"b",0,0,1,1,{col={300,0,0,1}})`]).length,
   ).toBe(1);
@@ -140,32 +197,6 @@ test("a colour is written like Simple Color, and the old hex text still reads", 
 test("an old line with a body is not a zone line", () => {
   expect(parseZone(`_Z.fader("f1",0,0,1,9,{},function(self)`)).toBe(null);
   expect(parseZone("end)")).toBe(null);
-});
-
-test("an option the editor doesn't know is kept as written", () => {
-  const line = `_Z.fader(self,"f",0,0,1,9,{glow=2,shape={1,2},tag="x"})`;
-  // kept in a last table, as written
-  expect(zoneToLua(parseZone(line))).toMatch(
-    /,\{glow=2,shape=\{1,2\},tag="x"\}\)$/,
-  );
-  expect(parseZone(zoneToLua(parseZone(line))).unknown).toBe(
-    `glow=2,shape={1,2},tag="x"`,
-  );
-});
-
-test("an option at its default is still written", () => {
-  const zone = {
-    name: "b",
-    kind: "button",
-    x: 0,
-    y: 0,
-    w: 1,
-    h: 1,
-    opt: { bmo: 1, msg: "midi", cmd: "note", ch: -1, num: -1, rx: 0 },
-  };
-  expect(zoneToLua(zone)).toBe(
-    `_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{2,-1,-1,0},{0,1,-1,1,0},{1,1,0})`,
-  );
 });
 
 // A touch Setup as [script], with its zones parsed the way the overlay does.
@@ -378,12 +409,15 @@ test("an XY pad is a fader with the XY Pad direction", () => {
   // an XY pad sends CCs only, 7 or 14 bit
   expect(
     issues([LIB, `_Z.fader(self,"p",0,0,4,4,{dir="xy",cmd="pb"})`]),
-  ).toEqual([{ zone: "p", level: "error", message: "Use one of cc, cc14" }]);
+  ).toEqual([
+    { zone: "p", level: "error", message: "Use one of cc, cc14, nrpn, nrpn14" },
+  ]);
 });
 
 test("a new Touch Zone is a 5x5 XY pad and a new button is 2x2", () => {
-  expect(defaultZoneScript("fader", [])).toBe(`${LIB} ${XY("f1")}`);
-  expect(defaultZoneScript("button", [])).toBe(`${LIB} ${BTN("b1", 0)}`);
+  // no name: the editor shows the type and a number
+  expect(defaultZoneScript("fader", [])).toBe(`${LIB} _Z.xy(0,0,5,5)`);
+  expect(defaultZoneScript("button", [])).toBe(`${LIB} _Z.b(0,0,2,2)`);
 });
 
 test("the Type select resets every setting but the position, size and colour", () => {
@@ -396,29 +430,19 @@ test("the Type select resets every setting but the position, size and colour", (
   const button = withZoneType(pad, "button", [
     `_Z.button(self,"b1",0,0,1,1,{})`,
   ]);
-  // a default name follows the kind; position, size and colour stay
-  expect([button.name, button.kind]).toEqual(["b2", "button"]);
+  // the name, position, size and colour stay
+  expect([button.name, button.kind]).toEqual(["f1", "button"]);
   expect([button.x, button.y, button.w, button.h]).toEqual([2, 1, 5, 4]);
   expect(button.opt).toEqual({ col: "255,128,0" });
   expect(zoneType(button)).toBe("button");
-  // the settings are the button's defaults, and the block has no problems
-  expect(opts(button)).toEqual({
-    col: "255,128,0",
-    msg: "midi",
-    cmd: "note",
-    ch: -1,
-    num: -1,
-    rx: 0,
-    bmo: 0,
-    group: 0,
-    grab: "focus",
-  });
+  // the settings are the button's defaults: the line is only the colour
+  expect(zoneToLua(button)).toBe(`_Z.b(2,1,5,4).n("f1").col(255,128,0)`);
   expect(zoneProblems(parseZone(zoneToLua(button)))).toEqual([]);
   // another type: again only the type, position, size and colour
   const back = withZoneType(button, "h", []);
   expect(back.name).toBe("f1");
   expect(back.opt).toEqual({ col: "255,128,0", dir: "h" });
-  expect(opts(back)).toMatchObject({ dir: "h", cmd: "cc", ch: -1, spring: -1 });
+  expect(zoneToLua(back)).toBe(`_Z.h(2,1,5,4).n("f1").col(255,128,0)`);
   // a type between faders resets too
   const edited = parseZone(
     `_Z.fader(self,"f1",0,0,2,2,{dir="h",cmd="pb",ch=3})`,
@@ -529,7 +553,7 @@ test("Add Zone copies the selected zone to its right, else below, else a 1x1 but
     1,
     1,
   ]);
-  expect(button.name).toBe("b1");
+  expect(button.name).toBe("");
   // nothing free at all
   const all = z("f1", 0, 0, 9, 9);
   expect(addedZone(all, [all])).toBeUndefined();
@@ -598,70 +622,24 @@ test("a number field is never empty, and shows the default when the line omits i
 });
 
 test("a colour has no alpha: red, green and blue, and an old fourth value is dropped", () => {
-  const colour = (line) => zoneToLua(parseZone(line)).split("},{")[1];
+  const colour = (line) =>
+    zoneToLua(parseZone(line)).match(/\.col\(([^)]*)\)/)?.[1];
   // three values are written
   expect(colour(`_Z.button(self,"b",0,0,1,1,{col={255,128,0}})`)).toBe(
     "255,128,0",
   );
-  // the alpha of an earlier build (in either form) is read and dropped
+  expect(colour(`_Z.b(0,0,1,1).col(255,128,0)`)).toBe("255,128,0");
+  // the alpha of an earlier build (in any form) is read and dropped
   expect(colour(`_Z.button(self,"b",0,0,1,1,{col={255,128,0,0.5}})`)).toBe(
     "255,128,0",
   );
   expect(
-    parseZone(`_Z.zone(self,"b",3,{0,0,1,1},{1,2,3,0.5},{},{},{},{})`).opt.col,
+    parseZone(`_Z.zone(self,"b",3,{0,0,1,1},{1,2,3,0.5},{},{},{})`).opt.col,
   ).toBe("1,2,3");
-  expect(
-    parseZone(`_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{},{},{},{})`),
-  ).not.toBe(null);
+  // the module's own colour is the default: no call
+  expect(colour(`_Z.b(0,0,1,1).col(-1,-1,-1)`)).toBeUndefined();
   // a channel out of range is still an error
-  expect(
-    issues([LIB, `_Z.button(self,"b",0,0,1,1,{col={300,0,0}})`]).length,
-  ).toBe(1);
-});
-
-test("the output, mode and grab are numbers in the line, and the earlier strings still read", () => {
-  const out = (opt) =>
-    zoneToLua(parseZone(`_Z.fader(self,"f",0,0,1,9,{${opt}})`)).split("},{")[2];
-  // 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5 Gamepad
-  expect(out('cmd="cc"')).toBe("0,-1,-1,0");
-  expect(out('cmd="cc14"')).toBe("1,-1,-1,0");
-  expect(out('cmd="pb"')).toBe("3,-1,-1,0");
-  expect(out('msg="mouse"')).toBe("4,-1,1,0");
-  expect(out('msg="pad"')).toBe("5,-1,-1,0");
-  expect(
-    zoneToLua(parseZone(`_Z.button(self,"b",0,0,1,1,{})`)).split("},{")[2],
-  ).toBe("2,-1,-1,0");
-  // every output reads back as the same msg and command
-  for (const opt of ['cmd="cc14"', 'cmd="pb"', 'msg="mouse"', 'msg="pad"']) {
-    const zone = parseZone(`_Z.fader(self,"f",0,0,1,9,{${opt}})`);
-    const back = parseZone(zoneToLua(zone));
-    expect([back.opt.msg, back.opt.cmd]).toEqual([
-      zone.opt.msg ?? "midi",
-      zone.opt.msg ? undefined : zone.opt.cmd,
-    ]);
-  }
-  // mode and grab by number, and the earlier strings
-  const behaviour = parseZone(
-    `_Z.zone(self,"f",2,{0,0,4,4},{},{1,2,7,1},{},{1,1},{2,1,1})`,
-  );
-  expect(behaviour.opt).toMatchObject({
-    msg: "midi",
-    cmd: "cc14",
-    ch: 2,
-    num: 7,
-    rx: 1,
-    mode: "rel",
-    sensitivity: 1,
-    fingers: 2,
-    grab: "live",
-  });
-  const old = parseZone(
-    `_Z.zone(self,"f","xy",{0,0,4,4},{},{"midi","cc14",2,7,1},{},{"rel",1},{2,1,"live"})`,
-  );
-  expect(zoneToLua(old)).toBe(zoneToLua(behaviour));
-  // a number out of range is not a zone line
-  expect(parseZone(`_Z.zone(self,"f",0,{0,0,1,9},{},{9},{},{},{})`)).toBe(null);
-  expect(parseZone(`_Z.zone(self,"f",0,{0,0,1,9},{},{},{},{2},{})`)).toBe(null);
+  expect(issues([LIB, `_Z.b(0,0,1,1).n("b").col(300,0,0)`]).length).toBe(1);
 });
 
 test("Output and Command are one select, listing every output and dimming the ones the zone can't take", () => {
@@ -671,8 +649,9 @@ test("Output and Command are one select, listing every output and dimming the on
       .flatMap((e) => e.options)
       .find((e) => e.key === "out");
   };
-  // all six are listed, in the order of the number the line writes
-  const all = ["0", "1", "2", "3", "4", "5"];
+  // all are listed: the MIDI ones (CC, 14-bit, Note, Pitch bend, NRPN, NRPN
+  // 14-bit), then the mouse and the gamepad
+  const all = ["0", "1", "2", "3", "6", "7", "4", "5"];
   expect(out(`_Z.fader(self,"f",0,0,1,9,{})`).values).toEqual(all);
   // what a kind and reader can't take is unavailable: a fader has no note,
   // an XY pad no note or pitch bend, a button no pitch bend
@@ -693,6 +672,8 @@ test("Output and Command are one select, listing every output and dimming the on
     ["MIDI 14", false],
     ["MIDI Note", true],
     ["MIDI Pitchbend", false],
+    ["MIDI NRPN", false],
+    ["MIDI NRPN 14", false],
     ["Mouse wheel", false],
     ["Gamepad axis", false],
   ]);
@@ -701,6 +682,8 @@ test("Output and Command are one select, listing every output and dimming the on
     ["MIDI 14", false],
     ["MIDI Note", false],
     ["MIDI Pitchbend", true],
+    ["MIDI NRPN", false],
+    ["MIDI NRPN 14", false],
     ["Mouse button", false],
     ["Gamepad button", false],
   ]);
@@ -717,4 +700,68 @@ test("Output and Command are one select, listing every output and dimming the on
   expect(withOutput(mouse, "0").opt).toMatchObject({ cmd: "cc", ch: 3 });
   // an output the zone can't take is not set
   expect(withOutput(zone, "2")).toBe(zone);
+});
+
+test("a zone needs no name: the editor shows the type and a number", () => {
+  // a zone without a name has none in the line, and reads back without one
+  const bare = parseZone(`_Z.xy(0,0,5,5)`);
+  expect(bare.name).toBe("");
+  expect(zoneToLua(bare)).toBe(`_Z.xy(0,0,5,5)`);
+  expect(zoneToLua({ ...bare, name: "p1" })).toBe(`_Z.xy(0,0,5,5).n("p1")`);
+  // the names as shown: the type and the number among the zones of that type
+  // that have none; a name of its own is kept and takes no number
+  const zones = parseZones(
+    `${LIB} _Z.xy(0,0,2,2) _Z.v(2,0,1,9) _Z.xy(3,0,2,2).n("pad") _Z.xy(5,0,2,2) _Z.b(7,0,1,1)`,
+  );
+  expect(zoneLabels(zones)).toEqual([
+    "XY Pad 1",
+    "Vertical Fader 1",
+    "pad",
+    "XY Pad 2",
+    "Button 1",
+  ]);
+  expect(zoneLabels(zones, true)).toEqual(["xy1", "v1", "pad", "xy2", "b1"]);
+  // the block's zones count the other blocks' zones of the Setup
+  const scripts = [
+    `${LIB} _Z.xy(0,0,2,2)`,
+    `${LIB} _Z.xy(2,0,2,2) _Z.xy(4,0,2,2)`,
+  ];
+  expect(blockZoneLabels(scripts, 1, parseZones(scripts[1]))).toEqual([
+    "XY Pad 2",
+    "XY Pad 3",
+  ]);
+  // unnamed zones never collide, and name rules apply to a name when there is one
+  expect(zoneProblems(bare)).toEqual([]);
+  expect(zoneSendProblem(scripts[1], [scripts[0], scripts[1]])).toBeUndefined();
+  expect(surfaceIssues([`${LIB} _Z.xy(0,0,2,2) _Z.xy(2,0,2,2)`])).toEqual([]);
+  expect(
+    surfaceIssues([`_Z.xy(0,0,2,2).n("a") _Z.xy(2,0,2,2).n("a")`]).map(
+      (e) => e.message,
+    ),
+  ).toEqual([`Another zone is also named "a"`]);
+  // an issue of an unnamed zone names it as shown
+  expect(
+    surfaceIssues([`_Z.v(0,0,1,9) _Z.xy(2,0,4,4).cap(0).ga(9)`]).map(
+      (e) => e.zone,
+    ),
+  ).toEqual(["XY Pad 1"]);
+  // a pasted block with no names has nothing to rename
+  expect(uniqueZoneScript(scripts[1], [scripts[0], scripts[1]])).toBe(
+    scripts[1],
+  );
+  // a copy of a zone with no name has none
+  const small = parseZone(`_Z.xy(0,0,2,2)`);
+  expect(placedCopy(small, small, [small]).name).toBe("");
+});
+
+test("the overlay labels unnamed zones by type and number", () => {
+  const setup = [
+    { id: "a", script: `${LIB} _Z.xy(0,0,2,2) _Z.v(2,0,1,9)` },
+    { id: "b", script: `${LIB} _Z.xy(3,0,2,2).n("p")` },
+  ];
+  expect(overlayZones(setup).map((e) => [e.label, e.shortLabel])).toEqual([
+    ["XY Pad 1", "xy1"],
+    ["Vertical Fader 1", "v1"],
+    ["p", "p"],
+  ]);
 });

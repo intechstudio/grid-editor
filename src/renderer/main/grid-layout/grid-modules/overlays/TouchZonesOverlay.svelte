@@ -111,10 +111,10 @@
       class:warning={zone.issue === "warning"}
       style="left: {zone.rect.left}%; top: {zone.rect.top}%; width: {zone.rect
         .width}%; height: {zone.rect.height}%;"
-      data-zone={zone.zone.name}
+      data-zone={zone.label}
       data-issue={zone.issue ?? ""}
       data-highlighted={zone.highlighted}
-      title={`${zone.zone.name} (${zone.zone.kind})`}
+      title={`${zone.label} (${zone.zone.kind})`}
       on:click|stopPropagation={() => select(zone)}
     >
       <div
@@ -124,7 +124,7 @@
         <div class="icon [&_svg]:stroke-current">
           <SvgIcon scale={0.9} iconData={zoneIcon(zone.zone)} />
         </div>
-        <span class="name">{zone.zone.name}</span>
+        <span class="name">{zone.shortLabel}</span>
       </div>
       {#if typeof zone.group !== "undefined"}
         <span

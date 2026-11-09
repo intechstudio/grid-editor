@@ -92,6 +92,8 @@ export async function createZonaVM(env = {}) {
     function el:tev() return el.cur[2] end
     function el:txv() return el.cur[3] end
     function el:tyv() return el.cur[4] end
+    el.type = "touch"
+    ele = { [0] = el }
     function el:ind() return 0 end
     function el:txma(v) rec("txma", v) end
     function el:tyma(v) rec("tyma", v) end
@@ -99,6 +101,35 @@ export async function createZonaVM(env = {}) {
     Z = require("zona")
     -- the global editor-written lines use (the Library block's row)
     _Z = Z
+    -- the older call forms many tests use, built with the chain
+    local function legacy(kind)
+      return function(self, n, x, y, w, h, o)
+        o = o or {}
+        local k = kind == "button" and "b" or (o.dir == "xy" and "xy" or o.dir == "h" and "h" or "v")
+        local c = Z[k](x, y, w, h)
+        if n then c.n(n) end
+        if type(o.col) == "table" then c.col(o.col[1], o.col[2], o.col[3]) end
+        if o.msg == "mouse" then
+          c.mo(o.num)
+        elseif o.msg == "pad" then
+          c.ga(o.num)
+        elseif o.msg or o.cmd or o.ch or o.num then
+          local cmd = o.cmd or (kind == "button" and "note" or "cc")
+          local cn = cmd == "note" and 144 or cmd == "pb" and 224 or 176
+          local mode = cmd == "cc14" and 1 or cmd == "nrpn" and 2 or cmd == "nrpn14" and 3 or 0
+          c.gms(o.ch or -1, cn, o.num or -1, -1, mode)
+        end
+        if o.mode == "rel" then c.mode(1) end
+        if o.sensitivity then c.sens(o.sensitivity) end
+        if o.spring then c.spr(o.spring) end
+        if o.grab == "live" then c.cap(1) end
+        if o.fingers then c.fing(o.fingers) end
+        if o.bmo then c.tog(o.bmo) end
+        if o.group then c.grp(o.group) end
+        if o.tap then c.tap(o.tap) end
+      end
+    end
+    Z.fader, Z.button = legacy("fader"), legacy("button")
   `);
 
   return {

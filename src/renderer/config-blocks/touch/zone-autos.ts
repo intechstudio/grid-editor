@@ -1,4 +1,4 @@
-// What a zone sends (docs/zona-touch-zones.md, Outputs): the zone's MIDI identity, mirroring Z.zone in
+// What a zone sends (docs/zona-touch-zones.md, Outputs): the zone's MIDI identity, mirroring build in
 // content/libraries/zona.lua.
 
 import type { Zone } from "./zone-model";
@@ -11,12 +11,12 @@ function readerOf(zone: Zone): string {
 
 export type ZonePosition = { dx: number; dy: number; page: number };
 
-// What a zone sends (Z.zone in zona.lua): cc14 is a CC pair, MSB on each
+// What a zone sends (build in zona.lua): cc14 is a CC pair, MSB on each
 // number and LSB on number+32; pb is pitch bend (no number); axis and button
 // are gamepad targets (ch unused).
 export type ZoneMidi = {
   ch: number;
-  type: "note" | "cc" | "cc14" | "pb" | "axis" | "button";
+  type: "note" | "cc" | "cc14" | "pb" | "nrpn" | "nrpn14" | "axis" | "button";
   nums: number[]; // one per source: x and y on an xy pad
   fingers: number; // xy: finger k sends on channel ch+k-1 (mod 16)
 };
@@ -68,7 +68,14 @@ export function zoneMidi(
   if (msg === "pad") {
     return zonePad(zones, index);
   }
-  const type = msg === "pb" || msg === "note" || msg === "cc14" ? msg : "cc";
+  const type =
+    msg === "pb" ||
+    msg === "note" ||
+    msg === "cc14" ||
+    msg === "nrpn" ||
+    msg === "nrpn14"
+      ? msg
+      : "cc";
   let base = 0;
   for (const before of zones.slice(0, index)) {
     base += readerOf(before) === "point" ? 2 : 1;
@@ -133,7 +140,15 @@ export function zoneMidiLabel(midi: ZoneMidi | null): string {
   const nums = midi.nums
     .map((n) => (midi.type === "cc14" ? `${n}/${n + 32}` : String(n)))
     .join(", ");
-  return `${midi.type === "note" ? "Note" : "CC"} ${nums} ${ch}`;
+  const name =
+    midi.type === "note"
+      ? "Note"
+      : midi.type === "nrpn"
+        ? "NRPN"
+        : midi.type === "nrpn14"
+          ? "NRPN 14-bit"
+          : "CC";
+  return `${name} ${nums} ${ch}`;
 }
 
 // ggms axes by number

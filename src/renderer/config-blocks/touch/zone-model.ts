@@ -20,7 +20,6 @@ export type ZoneOptions = {
   col?: string; // zone colour "red,green,blue"; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default; gamepad: axis 0-5 or button 0-31, -1 auto (Setup order)
-  rx: 0 | 1; // 1: host MIDI on the zone's identity sets its value
   spring: number; // fader, xy: -1 off, or 0-100: the % of the range the value returns to on release (50 is the centre)
   fingers: number; // xy pad: contacts it takes at once, 1-5; finger k on channel ch+k-1
   tap: 0 | 1; // mouse xy pad: 1 a short touch that barely moves clicks left
@@ -34,7 +33,7 @@ export type ZoneMsg = "midi" | "mouse" | "pad";
 
 // The MIDI command of a "midi" zone: per kind (zoneCmdValues), the default
 // from Z.kind.
-export type ZoneCmd = "cc" | "cc14" | "note" | "pb";
+export type ZoneCmd = "cc" | "cc14" | "note" | "pb" | "nrpn" | "nrpn14";
 
 export const zoneDefaults: ZoneOptions = {
   dir: "v",
@@ -45,7 +44,6 @@ export const zoneDefaults: ZoneOptions = {
   group: 0,
   ch: -1,
   num: -1,
-  rx: 0,
   spring: -1,
   fingers: 1,
   tap: 1,
@@ -76,16 +74,15 @@ export const zoneMsgValues: Record<ZoneKind, readonly ZoneMsg[]> = {
 };
 
 export const zoneCmdValues: Record<ZoneKind, readonly ZoneCmd[]> = {
-  fader: ["cc", "cc14", "pb"],
-  button: ["note", "cc", "cc14"],
+  fader: ["cc", "cc14", "pb", "nrpn", "nrpn14"],
+  button: ["note", "cc", "cc14", "nrpn", "nrpn14"],
 };
 
 export const zoneKindList = Object.keys(zoneKinds) as ZoneKind[];
 
 export type ZoneOptionValue = string | number;
 
-// A zone line (zone-parse.ts). `opt` holds the options the line sets,
-// `unknown` the ones this editor doesn't know, as raw `key=value` text.
+// A zone line (zone-parse.ts). `opt` holds the options the line sets.
 export type Zone = {
   name: string;
   kind: ZoneKind;
@@ -94,7 +91,6 @@ export type Zone = {
   w: number;
   h: number;
   opt: Record<string, ZoneOptionValue>;
-  unknown?: string;
 };
 
 // Option schema. Ranges are inclusive. Integers and numbers without a range
@@ -240,15 +236,6 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     section: "output",
   },
   {
-    key: "rx",
-    type: "integer",
-    min: 0,
-    max: 1,
-    reads: ALL_READS,
-    hide: MOUSE_PAD,
-    section: "output",
-  },
-  {
     key: "tap",
     type: "integer",
     min: 0,
@@ -266,6 +253,8 @@ export function zoneOptionSchemaFor(
   zone: Pick<Zone, "kind" | "opt">,
 ): ZoneOptionSchema[] {
   const { kind } = zone;
+  const cmd = zone.opt.cmd ?? zoneKinds[kind].cmd;
+  const nrpn = cmd === "nrpn" || cmd === "nrpn14";
   return zoneOptionSchema.map((e) =>
     e.key === "msg"
       ? { ...e, values: zoneMsgValues[kind] }
@@ -273,10 +262,17 @@ export function zoneOptionSchemaFor(
         ? {
             ...e,
             values:
-              zoneRead(zone) === "point" ? ["cc", "cc14"] : zoneCmdValues[kind],
+              zoneRead(zone) === "point"
+                ? ["cc", "cc14", "nrpn", "nrpn14"]
+                : zoneCmdValues[kind],
           }
-        : e.key === "num" && kind !== "button"
-          ? { ...e, hide: MOUSE }
+        : e.key === "num"
+          ? {
+              ...e,
+              // an NRPN number is 14-bit
+              ...(nrpn && e.type === "integer" ? { max: 16383 } : {}),
+              ...(kind !== "button" ? { hide: MOUSE } : {}),
+            }
           : e,
   );
 }
@@ -344,9 +340,11 @@ export function zoneOptionValue(
   }
 }
 
-// The outputs a zone can have as one list, in the order of the number the line
-// writes for it: 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5 Gamepad.
-// The face shows it as one select (msg and cmd together).
+// The outputs a zone can have as one list, numbered: 0 CC, 1 CC 14-bit, 2 Note,
+// 3 Pitch bend, 4 Mouse, 5 Gamepad, 6 NRPN, 7 NRPN with a 14-bit value. (The
+// numbers are the earlier line form's; the chain form names them with .gms,
+// .mo and .ga.) The face shows it as one select (msg and cmd together), in
+// the order of zoneOutputOrder.
 export const zoneOutputs: { msg: ZoneMsg; cmd?: ZoneCmd }[] = [
   { msg: "midi", cmd: "cc" },
   { msg: "midi", cmd: "cc14" },
@@ -354,6 +352,8 @@ export const zoneOutputs: { msg: ZoneMsg; cmd?: ZoneCmd }[] = [
   { msg: "midi", cmd: "pb" },
   { msg: "mouse" },
   { msg: "pad" },
+  { msg: "midi", cmd: "nrpn" },
+  { msg: "midi", cmd: "nrpn14" },
 ];
 
 // The number of the zone's output, -1 when its msg and command aren't one.
@@ -363,4 +363,48 @@ export function zoneOutputCode(zone: Zone): number {
   return zoneOutputs.findIndex((e) =>
     msg === "midi" ? e.msg === msg && e.cmd === cmd : e.msg === msg,
   );
+}
+
+// The order the Output select lists the outputs in: the MIDI ones, then the
+// mouse and the gamepad.
+export const zoneOutputOrder = [0, 1, 2, 3, 6, 7, 4, 5];
+
+// What the Type select calls each type, and the short form the overlay uses.
+export const zoneTypeTitles: Record<string, string> = {
+  v: "Vertical Fader",
+  h: "Horizontal Fader",
+  xy: "XY Pad",
+  button: "Button",
+};
+const zoneTypeShort: Record<string, string> = {
+  v: "v",
+  h: "h",
+  xy: "xy",
+  button: "b",
+};
+
+// The type of a zone: v, h, xy or button.
+export function zoneTypeOf(zone: Pick<Zone, "kind" | "opt">): string {
+  if (zone.kind === "button") {
+    return "button";
+  }
+  return zone.opt.dir === "h" || zone.opt.dir === "xy" ? zone.opt.dir : "v";
+}
+
+// The names of the zones of a Setup, in order, as the editor shows them: the
+// zone's own name, or for a zone without one the type and its number among
+// the zones of that type that have no name ("XY Pad 2", or "xy2" when
+// short). A zone with no name has none in the line.
+export function zoneLabels(zones: Zone[], short = false): string[] {
+  const count: Record<string, number> = {};
+  return zones.map((zone) => {
+    if (zone.name !== "") {
+      return zone.name;
+    }
+    const type = zoneTypeOf(zone);
+    count[type] = (count[type] ?? 0) + 1;
+    return short
+      ? `${zoneTypeShort[type]}${count[type]}`
+      : `${zoneTypeTitles[type]} ${count[type]}`;
+  });
 }

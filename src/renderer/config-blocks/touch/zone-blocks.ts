@@ -16,10 +16,13 @@ import {
   zoneOptionSchemaFor,
   zoneOptionShown,
   zoneOutputCode,
+  zoneOutputOrder,
   zoneOutputs,
   zoneRead,
   zoneSections,
+  zoneLabels,
   zoneSends,
+  zoneTypeTitles,
   zoneOptionValue,
 } from "./zone-model";
 import { parseZones, zonesOf, zonesToLua, zoneToLua } from "./zone-parse";
@@ -109,30 +112,22 @@ export function zoneTypeLabel(zone: Pick<Zone, "kind" | "opt">): string {
 }
 
 // The zone as another type. Every setting goes back to its default except the
-// position, the size and the colour; a default name (f1, b1) becomes the next
-// free one of the new kind.
+// name, the position, the size and the colour.
 export function withZoneType(
   zone: Zone,
   type: string,
-  otherScripts: string[],
+  _otherScripts: string[] = [],
 ): Zone {
   if (!ZONE_TYPES.includes(type) || type === zoneType(zone)) {
     return zone;
   }
   const kind: ZoneKind = type === "button" ? "button" : "fader";
   const next: Zone = { ...zone, kind, opt: {} };
-  delete next.unknown;
   if (typeof zone.opt.col !== "undefined") {
     next.opt.col = zone.opt.col;
   }
   if (kind === "fader" && type !== "v") {
     next.opt.dir = type;
-  }
-  if (
-    kind !== zone.kind &&
-    new RegExp(`^${NAME_PREFIX[zone.kind]}\\d+$`).test(zone.name)
-  ) {
-    next.name = defaultZoneName(kind, otherScripts);
   }
   return next;
 }
@@ -184,7 +179,11 @@ export function placedCopy(
     return undefined;
   }
   const free = cellsFree(zones);
-  const name = freeName(source.kind, new Set(zones.map((e) => e.name)));
+  // a copy of a zone with a name gets the next free one; no name stays none
+  const name =
+    source.name === ""
+      ? ""
+      : freeName(source.kind, new Set(zones.map((e) => e.name)));
   for (const [nx, ny] of [
     [x + w, y],
     [x, y + h],
@@ -206,12 +205,11 @@ export function addedZone(selected: Zone, zones: Zone[]): Zone | undefined {
     return copy;
   }
   const free = cellsFree(zones);
-  const used = new Set(zones.map((e) => e.name));
   for (let ny = 0; ny < GRID; ny++) {
     for (let nx = 0; nx < GRID; nx++) {
       if (free(nx, ny, 1, 1)) {
         return {
-          name: freeName("button", used),
+          name: "",
           kind: "button",
           x: nx,
           y: ny,
@@ -225,10 +223,11 @@ export function addedZone(selected: Zone, zones: Zone[]): Zone | undefined {
   return undefined;
 }
 
-export function defaultZone(kind: ZoneKind, scripts: string[]): Zone {
+// A new zone has no name: the editor shows the type and a number.
+export function defaultZone(kind: ZoneKind, _scripts: string[]): Zone {
   const [w, h] = DEFAULT_CELLS[kind];
   return {
-    name: defaultZoneName(kind, scripts),
+    name: "",
     kind,
     x: 0,
     y: 0,
@@ -243,9 +242,14 @@ export function defaultZoneScript(kind: ZoneKind, scripts: string[]): string {
 }
 
 // Untoggled header: "f1 · 0,0 1×9", with what it sends when known:
-// "f1 · 0,0 1×9 · CC 32 ch 1" (zoneOutputLabel).
-export function zoneHeaderText(zone: Zone, midi?: string): string {
-  const text = `${zone.name} · ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
+// "f1 · 0,0 1×9 · CC 32 ch 1" (zoneOutputLabel). `label` is the zone's name
+// as the editor shows it (zoneLabels): its own, or the type and a number.
+export function zoneHeaderText(
+  zone: Zone,
+  midi?: string,
+  label?: string,
+): string {
+  const text = `${label ?? zone.name} · ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
   return typeof midi === "undefined" ? text : `${text} · ${midi}`;
 }
 
@@ -282,9 +286,9 @@ export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
             ? {
                 ...e,
                 key: "out",
-                values: zoneOutputs.map((_, i) => String(i)),
-                unavailable: zoneOutputs
-                  .map((_, i) => String(i))
+                values: zoneOutputOrder.map(String),
+                unavailable: zoneOutputOrder
+                  .map(String)
                   .filter((e) => !zoneOutputValues(zone).includes(e)),
               }
             : e,
@@ -298,7 +302,9 @@ export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
 // select lists every output and dims the others.
 export function zoneOutputValues(zone: Zone): string[] {
   const cmds: readonly string[] =
-    zoneRead(zone) === "point" ? ["cc", "cc14"] : zoneCmdValues[zone.kind];
+    zoneRead(zone) === "point"
+      ? ["cc", "cc14", "nrpn", "nrpn14"]
+      : zoneCmdValues[zone.kind];
   const msgs: readonly string[] = zoneMsgValues[zone.kind];
   return zoneOutputs
     .map((e, i) => ({ e, i }))
@@ -367,20 +373,24 @@ export type EnumOption = { title: string; value: string; disabled?: boolean };
 
 // Select titles of enum values.
 const enumValueLabels: Record<string, Record<string, string>> = {
-  dir: {
-    v: "Vertical Fader",
-    h: "Horizontal Fader",
-    xy: "XY Pad",
-    button: "Button",
-  },
+  dir: zoneTypeTitles,
   msg: { midi: "MIDI" },
-  cmd: { cc: "CC", cc14: "CC 14-bit", note: "Note", pb: "Pitch bend" },
+  cmd: {
+    cc: "CC",
+    cc14: "CC 14-bit",
+    note: "Note",
+    pb: "Pitch bend",
+    nrpn: "NRPN",
+    nrpn14: "NRPN 14-bit",
+  },
   // the Output select: each MIDI command by its full name
   out: {
     cc: "MIDI CC",
     cc14: "MIDI 14",
     note: "MIDI Note",
     pb: "MIDI Pitchbend",
+    nrpn: "MIDI NRPN",
+    nrpn14: "MIDI NRPN 14",
   },
   mode: { abs: "Absolute", rel: "Relative" },
   grab: { focus: "Focus", live: "Live" },
@@ -502,6 +512,15 @@ export function zoneOptionSuggestions(
           })),
         ];
       }
+      if (sends === "nrpn" || sends === "nrpn14") {
+        // an NRPN number is 0-16383
+        return [
+          {
+            value: "-1",
+            info: typeof auto === "number" ? `Auto (${auto})` : "Auto",
+          },
+        ];
+      }
       if (sends === "cc" || sends === "cc14") {
         // a 14-bit CC is a pair, the number and the number + 32
         return [
@@ -523,7 +542,6 @@ export function zoneOptionSuggestions(
         { value: "50", info: "50% (centre)" },
         { value: "100", info: "100% (maximum)" },
       ];
-    case "rx":
     case "tap":
       return OFF_ON;
     case "bmo":
@@ -630,7 +648,6 @@ export const optionLabels: Record<string, string> = {
   cmd: "Command",
   ch: "Channel",
   num: "CC",
-  rx: "Receive MIDI",
   tap: "Tap to click",
 };
 
@@ -642,7 +659,13 @@ export function optionLabel(key: string, zone?: Zone): string {
     if (sends === "pad") {
       return zone.kind === "button" ? "Button" : "Axis";
     }
-    return sends === "note" ? "Note" : sends === "mouse" ? "Button" : "CC";
+    return sends === "note"
+      ? "Note"
+      : sends === "mouse"
+        ? "Button"
+        : sends === "nrpn" || sends === "nrpn14"
+          ? "NRPN"
+          : "CC";
   }
   return optionLabels[key] ?? key;
 }
@@ -659,7 +682,8 @@ export function uniqueZoneScript(script: string, others: string[]): string {
   const used = new Set(zonesOf(others).map((e) => e.name));
   let renamed = false;
   const next = zones.map((zone) => {
-    if (!used.has(zone.name)) {
+    // a zone with no name can't collide
+    if (zone.name === "" || !used.has(zone.name)) {
       used.add(zone.name);
       return zone;
     }
@@ -669,4 +693,22 @@ export function uniqueZoneScript(script: string, others: string[]): string {
     return { ...zone, name };
   });
   return renamed ? zonesToLua(next) : script;
+}
+
+// The names of the zones of the block at `index` among a Setup's action
+// scripts, as the editor shows them (zoneLabels), with `zones` standing for
+// that block's own zones. Without a name of its own a zone is the type and its
+// number among the zones of that type that have no name, in the whole Setup.
+export function blockZoneLabels(
+  scripts: string[],
+  index: number,
+  zones: Zone[],
+  short = false,
+): string[] {
+  const before = zonesOf(scripts.slice(0, index));
+  const after = zonesOf(scripts.slice(index + 1));
+  return zoneLabels([...before, ...zones, ...after], short).slice(
+    before.length,
+    before.length + zones.length,
+  );
 }

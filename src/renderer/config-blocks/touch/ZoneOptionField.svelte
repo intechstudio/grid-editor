@@ -8,7 +8,6 @@
   import { createEventDispatcher } from "svelte";
   import {
     Color,
-    MeltCheckbox,
     MeltCombo,
     MeltSelect,
     MoltenPushButton,
@@ -56,16 +55,6 @@
   }
 
   $: options = enumOptions(schema, value, read);
-
-  // 0/1 options shown as a checkbox instead of an Off/On field.
-  const CHECKBOXES = ["rx"];
-  $: isCheckbox = schema.type !== "enum" && CHECKBOXES.includes(schema.key);
-  $: isChecked = shown === "1";
-  function handleCheck(on: boolean) {
-    const next = on ? "1" : "0";
-    dispatch("input", next);
-    dispatch("change", next);
-  }
 
   // A field with suggestions shows its values there, not as "(min–max)".
   $: range =
@@ -202,12 +191,6 @@
         click={handleUseDefaultColor}
       />
     </div>
-  {:else if isCheckbox}
-    <MeltCheckbox
-      target={isChecked}
-      {title}
-      on:change={(e) => handleCheck(e.detail)}
-    />
   {:else}
     <MeltCombo
       title={`${title}${range}`}

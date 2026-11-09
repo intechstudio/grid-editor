@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.26.0, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.27.1, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -14,12 +14,12 @@ The action strings are the only store. The editor reads every view from them: th
 
 ```lua
 -- Touch element, Setup. A Touch Zone block starts with the call that loads the
--- library from the page folder as _Z, then one line per zone.
+-- library from the page folder as _Z, then one chain per zone.
 _Z=gr("zona")
-_Z.zone(self,"f1",0,{0,0,1,9},{-1,-1,-1},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})
-_Z.zone(self,"f2",0,{1,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,16383},{0,1,50,0,0},{1,1,0})
-_Z.zone(self,"b1",3,{2,0,2,2},{255,0,0},{2,-1,-1,0},{0,1,-1,1,1},{1,1,0})
-_Z.zone(self,"p1",2,{4,0,5,5},{-1,-1,-1},{4,-1,1,0},{0,1,-1,0,0},{1,1,0})
+_Z.v(0,0,1,9).n("f1")
+_Z.v(1,0,1,9).n("f2").gms(-1,224,-1,-1).spr("50%")
+_Z.b(2,0,2,2).n("b1").col(255,0,0).tog(1).grp(1)
+_Z.xy(4,0,5,5).n("p1").mo()
 
 -- Page folder on the module
 /00/zona.lua
@@ -33,28 +33,37 @@ The library is loaded under the global `_Z`. The touch blocks always write `_Z.`
 
 ## 3. The zone line
 
-A zone line is positional. The name and the type come first, then one table per group of the face:
+A zone line is a chain: a constructor with the cells, then a call for each thing that is not the default.
 
 ```
-_Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{out,ch,num,rx},{mode,sensitivity,spring,bmo,group},{fingers,tap,grab})
+_Z.xy(0,0,5,5).n("p1").col(255,0,0).gms(-1,176,40,-1,1).spr("50%")
 ```
 
-- `self` is the touch element. Setup passes it.
-- `name` is a string. It must be a Lua identifier, not a Lua keyword, and not a firmware function name in either its human or short form. The last rule exists because the editor sends scripts through `compressScript`, which rewrites firmware names inside strings too.
-- `type` is a number, to keep the line short: `0` vertical fader (`dir="v"`), `1` horizontal fader (`dir="h"`), `2` XY pad (`dir="xy"`) or `3` button. A line with the older names as strings (`"v"`, `"h"`, `"xy"`, `"button"`) still reads, in the library and in the editor.
-- Geometry `{x,y,w,h}` is in cells. `0,0` is the top left. `y` grows down.
-- Colour `{r,g,b}` is written like the Simple Color block's, without the alpha. -1 for a channel is the module's own colour.
-- Output `{out,ch,num,rx}`, behaviour `{mode,sensitivity,spring,bmo,group}` and capture `{fingers,tap,grab}` hold the options of section 4 by position. Three of them are numbers to keep the line short:
-  - `out` is `msg` and `cmd` together: `0` CC, `1` CC 14-bit, `2` Note, `3` Pitch bend, `4` Mouse, `5` Gamepad.
-  - `mode` is `0` absolute or `1` relative.
-  - `grab` is `0` focus or `1` live.
-  - An earlier build wrote them as strings, with the output as `{"midi","cc",ch,num,rx}`. Such a line still runs and still reads, and is written again with numbers.
-- The editor writes every slot of every table, with the option's value or its default, so the line is fully defined. A slot the zone's output doesn't use holds its default and the library ignores it. The colour default is `{-1,-1,-1}`; Min and Max default to 0 and 127 (16383 for `cc14` and `pb`). The library accepts a table that ends early, or is empty, and takes the defaults for the rest.
-- Options the editor does not know are kept as raw `key=value` text in one last table. A known option with a value of the wrong type, a table with too many slots or an unknown `type` makes the line fail to parse.
+The constructors are `_Z.v(x,y,w,h)` (vertical fader), `_Z.h(x,y,w,h)` (horizontal fader), `_Z.xy(x,y,w,h)` (XY pad) and `_Z.b(x,y,w,h)` (button). The cells are `x`, `y`, `w`, `h`: `0,0` is the top left, `y` grows down. There is no `self`: the library finds the touch element itself (the element of type `touch`). Each call returns the zone, so calls chain, and a zone is complete after every call: the constructor builds it with the defaults and each call that follows sets one thing and builds that zone again, in place. There is no closing call. The calls act on the zone just constructed.
 
-The older form, `_Z.fader(self,"f1",x,y,w,h,{key=value,...})` and `_Z.button(...)`, still runs on the module and still parses in the editor. The editor writes it back in the positional form the next time the block changes.
+| Call                      | Arguments                                                                                             | Default (omitted)                                            |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `.n("name")`              | the zone's name, a string                                                                             | none: the editor writes it only when the user names the zone |
+| `.col(r,g,b)`             | colour, -1 for a channel is the module's own                                                          | the module's colour                                          |
+| `.gms(ch,cmd,p1,p2,mode)` | MIDI, as `self:gms` of the Midi block; `ch` and `p1` -1 are auto, `p2` is the zone's value (write -1) | a fader: `(-1,176,-1,-1,0)`, a button: `(-1,144,-1,-1,0)`    |
+| `.mo(btn)`                | the mouse; a button zone presses `btn` (1 left, 2 right, 4 middle)                                    | left                                                         |
+| `.ga(n)`                  | the gamepad axis or button `n`, -1 auto                                                               | -1                                                           |
+| `.mode(m)`                | `0` absolute, `1` relative                                                                            | 0                                                            |
+| `.sens(n)`                | sensitivity                                                                                           | 1                                                            |
+| `.spr("50%")`             | the position a fader or XY returns to on release, `"0%"` to `"100%"` or a number                      | off                                                          |
+| `.tog(n)`                 | a button's steps, 0 momentary, 1 toggle                                                               | 0                                                            |
+| `.grp(n)`                 | a button's radio group, 0 none                                                                        | 0                                                            |
+| `.fing(n)`                | the fingers of an XY pad, 1 to 5                                                                      | 1                                                            |
+| `.tap(t)`                 | tap to click of a mouse XY pad, 0 or 1                                                                | 1                                                            |
+| `.cap(c)`                 | `0` focus, `1` live                                                                                   | 0                                                            |
 
-The editor writes the line in the form `compressScript` produces: no spaces, double quotes, numbers in shortest form. A hand-written line with other spacing or single quotes parses too, and is written back in the canonical form. Anything else parses to null and the block shows the line as text and never rewrites it.
+- `name` must be a Lua identifier, not a Lua keyword, and not a firmware function name in either its human or short form. The last rule exists because the editor sends scripts through `compressScript`, which rewrites firmware names inside strings too.
+- `.gms`: `cmd` 144 is a note (128 too), 224 pitch bend, 176 a CC, and `mode` makes a CC `1` a 14-bit pair (the number and the number plus 32), `2` an NRPN and `3` an NRPN with a 14-bit value. The firmware's `gms` takes four arguments and does no encoding; the fifth, `mode`, belongs to `self:gms` in `simplemidi.lua`, and the library encodes the same way (see Outputs).
+- `.gms`, `.mo` and `.ga` replace each other: the last one wins.
+- The value range follows the command: 0–127 for a CC, a note and a 7-bit NRPN, 0–16383 for a 14-bit CC, pitch bend and a 14-bit NRPN, -128 to 127 for a gamepad axis. Host MIDI is always on: a CC, a 14-bit CC and pitch bend zone follow the host's messages on the identity it sends (there is no option for it).
+- The editor writes the calls in a fixed order, skipping what is the default: `.n`, `.col`, the output (`.gms`, `.mo` or `.ga`), `.mode`, `.sens`, `.spr`, `.tog`, `.grp`, `.fing`, `.tap`, `.cap`. It reads them in any order. A call a zone has no use for (`.spr` on a button) is dropped when read. A call the editor doesn't know, or one with arguments that don't fit, makes the line fail to parse, and the block shows it as code and never rewrites it. A zone without `.n` has no name (see Names below).
+
+Earlier line forms still run in the editor's reading, not on the module. The positional `_Z.zone(self,"f1",2,{...},...)` and the option-table `_Z.fader(self,"f1",x,y,w,h,{key=value,...})` and `_Z.button(...)` parse and are written back as chains the next time the block changes. The module's library 0.27.0 has only the chain: a profile written with an older line needs its blocks edited once (or sent again) after the library is updated. An option the editor doesn't know in an option-table line, a range (`min`, `max`) and `rx` of earlier builds are dropped or make the line not a zone line.
 
 `parseZone` and `zoneToLua` live in `zone-parse.ts`. The library has no timer: there is no tick line and no Timer block.
 
@@ -77,13 +86,12 @@ The editor's schema is in `zone-model.ts`. The library's defaults are in `Z.def`
 | `cmd`         | all        | Output    | fader `cc`, button `note`         | fader: `cc`, `cc14`, `pb`; button: `note`, `cc`, `cc14`; XY pad: `cc`, `cc14` | mouse, pad         |
 | `ch`          | all        | Output    | -1 (auto)                         | -1–15                                                                         | mouse, pad         |
 | `num`         | all        | Output    | -1 (auto)                         | -1–127                                                                        | mouse on fader, xy |
-| `rx`          | all        | Output    | 0                                 | 0–1                                                                           | mouse, pad         |
 | `tap`         | xy         | Output    | 1                                 | 0–1                                                                           | midi, pad          |
 
 Meaning of each option:
 
 - `dir`: which way a fader runs. `v`: bottom is min. `h`: left is min.
-- There is no range option. The value range is the command's: 0–127 for `cc` and `note`, 0–16383 for `cc14` and `pb` (a gamepad axis is -128–127). An older line with a range (`min`, `max`, or the `{min,max}` table of library 0.25.0) still runs and reads; the range is ignored and dropped when the line is written again.
+- There is no range option. The value range is the command's: 0–127 for `cc`, `note` and `nrpn`, 0–16383 for `cc14`, `pb` and `nrpn14` (a gamepad axis is -128–127). An older line with a range (`min`, `max`, or the `{min,max}` table) reads in the editor, and the range is dropped when the line is written again.
 - `dir`: `v` and `h` are a fader, bottom to top or left to right. `xy` is an XY pad with two sources, x and y. In the table, "xy" means a fader with `dir="xy"`.
 - `mode`: how the finger moves the value. `abs` jumps to the finger. `rel` adds the finger's movement times `sensitivity`.
 - `sensitivity`: for `rel`, the drag factor. For a mouse zone, the move multiplier. The face shows it only in `rel` mode, and for mouse output. The option was called `speed` before 0.16.0; the library still reads it when `sensitivity` is absent, and the editor shows it as an unknown option.
@@ -94,15 +102,14 @@ Meaning of each option:
 - `grab`: `focus` keeps a contact in the zone it landed on. `live` lets a contact move between live zones.
 - `col`: the zone colour, written like the Simple Color block's colour: `{red, green, blue}`, such as `{255,128,0}`. There is no alpha: an older line with a fourth value still reads, and the value is dropped when the line is written again. A channel of -1 is the module's own colour for it. The old `"rrggbb"` text still works (library 0.19.0) and the editor rewrites it as a table.
 - `msg`: the output. `midi`, `mouse` or `pad` (gamepad).
-- `cmd`: the MIDI command of a `midi` zone: `cc` (7-bit), `cc14` (14-bit pair), `note` or `pb`. The `res` option (bits, 7–14) was removed in 0.17.0; a line with `cmd="cc"` and `res` above 7 still sends a 14-bit pair, and the editor shows `res` as an unknown option.
+- `cmd`: the MIDI command of a `midi` zone: `cc` (7-bit), `cc14` (14-bit pair), `note`, `pb`, `nrpn` (7-bit value) or `nrpn14` (14-bit value). In a line this is `.gms(ch, cmd, p1, p2, mode)`: `cmd` 176 with `mode` 0, 1, 2, 3 is `cc`, `cc14`, `nrpn`, `nrpn14`; 144 is `note`; 224 is `pb`. The `res` option of earlier builds is gone.
 - `ch`: MIDI channel 0–15. -1 is auto.
-- `num`: the CC or note number. For a mouse button, the button (1 left, 2 right, 4 middle; 1 when left out). For a gamepad, the axis 0–5 or the button 0–31. -1 is auto.
-- `rx`: 1 makes the zone follow host MIDI on its own identity.
+- `num`: the CC or note number, or the NRPN number (0–16383). For a mouse button, the button (1 left, 2 right, 4 middle; 1 when left out). For a gamepad, the axis 0–5 or the button 0–31. -1 is auto.
 - `tap`: on a mouse XY, 1 makes a short touch click the left button.
 
 Extra rules the validator applies:
 
-- An explicit `num` must keep every number on the wire in range: a 14-bit CC 0–31 (XY 0–30), a 7-bit XY 0–126, a gamepad axis 0–5 (XY 0–4), a gamepad button 0–31.
+- An explicit `num` must keep every number on the wire in range: a 14-bit CC 0–31 (XY 0–30), an NRPN 0–16383 (XY 0–16382), a 7-bit XY 0–126, a gamepad axis 0–5 (XY 0–4), a gamepad button 0–31.
 - `spring` on a button is an error. `fingers` on a fader or button is an error.
 - The geometry must be whole numbers, at least 1×1, inside the 9×9 grid.
 
@@ -114,12 +121,14 @@ A zone runs on press, on a value change and on release. A value run sends the so
 
 ### MIDI
 
-| `cmd`  | Wire format                                                                                                  |
-| ------ | ------------------------------------------------------------------------------------------------------------ |
-| `cc`   | 7-bit CC. A range wider than 127 is scaled to 0–127.                                                         |
-| `cc14` | 14-bit CC pair: MSB on `num`, LSB on `num+32`. The auto number wraps at 32. The range is 0–16383 by default. |
-| `note` | Note on (144) with the value as velocity, scaled to 0–127 when the range is wider. Value 0 is the note off.  |
-| `pb`   | Pitch bend (224), always 14-bit. The centre is 8192.                                                         |
+| `cmd`    | Wire format                                                                                                                |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `cc`     | 7-bit CC. A range wider than 127 is scaled to 0–127.                                                                       |
+| `cc14`   | 14-bit CC pair: MSB on `num`, LSB on `num+32`. The auto number wraps at 32. The range is 0–16383 by default.               |
+| `note`   | Note on (144) with the value as velocity, scaled to 0–127 when the range is wider. Value 0 is the note off.                |
+| `pb`     | Pitch bend (224), always 14-bit. The centre is 8192.                                                                       |
+| `nrpn`   | NRPN with a 7-bit value, as `simplemidi.lua` sends mode 2: CC 99 is `num // 128`, CC 98 is `num % 128`, CC 6 is the value. |
+| `nrpn14` | NRPN with a 14-bit value, mode 3: the same number, then CC 6 is `value // 128` and CC 38 is `value % 128`.                 |
 
 A button with `cmd="cc"` sends its step value as a CC. With `cmd="cc14"` it sends a 14-bit pair.
 
@@ -137,11 +146,11 @@ A duplicate filter per source holds the last value on the wire. A value is sent 
 - Each move is sent at once. Each axis sends its whole steps, clamped to -127…127, and keeps the fraction. A bigger move is cut.
 - **Tap to click** (`tap=1`, XY): a touch with less than 30 sensor units of travel sends `gmbs(1,1)` then `gmbs(1,0)` on lift, in the same scan. The firmware must send them as two USB reports (`grid_usb_macro_tx_flush` in grid-fw splits a press and a release of one button); older firmware merges them into one report and the host sees no click. The touch must also be shorter than 0.2 s, timed with `os.clock()` between down and up. This needs firmware whose `os.clock` returns real time. The clock is read only on a tap zone. A contact that slid in under `grab="live"` never taps. A tap does not click while a mouse button zone holds the left button, so a drag lock stays.
 - Leaving a zone, another group member turning on, a Setup re-run, `Z.set` on a group member and `Z.unload` release a held mouse button.
-- A mouse zone has no value. `rx` and `Z.set` skip it.
+- A mouse zone has no value. `Z.set` skips it.
 
 ### Gamepad
 
-`msg="pad"`. Finger 1 only. The library sets `fingers=1` and `rx=0`, and the axis range is -128 to 127.
+`msg="pad"`. Finger 1 only. The library sets `fingers=1`, and the axis range is -128 to 127.
 
 - **Fader and XY**: axes. The travel maps to -128…127. `ggms(axis, pos)`. An XY sends x on `num` and y on `num+1`. `mode`, `sensitivity`, `spring` and `grab` apply. An XY with `spring=50` is a joystick centred on 0.
 - **Button**: `ggbs(button, 1)` on any step but the first, `ggbs(button, 0)` on the first. It follows `bmo` and groups like a note.
@@ -162,13 +171,13 @@ With `fingers` above 1, finger k sends on channel `(ch + k - 1) % 16` with the s
 
 ### Setup and going live
 
-The first zone line of a Setup run releases the previous surface (held zones send their release, a held mouse button is released), remembers the element in `Z.te`, and sets `self:txma(1023)`, `self:tyma(1023)` and `self.touch_cb = Z.touch`.
+The first constructor of a Setup run releases the previous surface (held zones send their release, a held mouse button is released), finds the touch element (the `ele` entry of type `touch`), remembers it in `Z.te`, and sets `txma(1023)`, `tyma(1023)` and `touch_cb = Z.touch` on it.
 
-Every zone line adds its zone to the surface and goes live at once: `rx` identities are registered, the zone is painted, and every cell no zone covers is set dark. The LEDs are right after Setup, without a touch.
+Every constructor adds its zone to the surface and goes live at once: its host-MIDI identities are registered, the zone is painted, and every cell no zone covers is set dark. The LEDs are right after Setup, without a touch. Each call of the chain builds that zone again in place (its fields are derived again, its host-MIDI identities replaced, its own cells painted); the free cells are not darkened again, because a call can't change the cells. A constructor costs about 15,000 to 25,000 Lua VM instructions with a few zones there, and a call 1,000 to 3,500.
 
-A zone line starts a new run when the surface was sealed since the last zone line: a touch, a host message that matched an `rx` identity, or `Z.set` seals it (`Z.op` is nil). Before any of those, a zone line whose name is already on the surface also starts a new run. That handles a Setup that runs again before anything touched the old one. It also means a duplicate name inside one Setup drops the zones before it. The editor treats a duplicate name as an error that stops the send. A Setup that runs again with its first zone renamed, and nothing touched in between, adds to the old surface until a touch seals it.
+A constructor starts a new run when the surface was sealed since the last one: a touch, a host message that matched a zone's identity, or `Z.set` seals it (`Z.op` is nil). Before any of those, a Setup that ran again shows by a zone of the same kind and cells already on the surface: the constructor releases and drops the surface and starts it anew from this zone. A name that is already on the surface, given by `.n`, shows it too (the zone was moved, say): the surface is built anew from this zone (the zones before it are released and dropped, this zone is built again, the free cells are darkened). The editor treats a duplicate name as an error that stops the send. Two zones of the same kind on the very same cells are taken as one Setup run again.
 
-If some zone has `rx=1`, the library sets `self.midirx_cb = Z.rx`. A `midirx_cb` the user's own Setup code set before the first zone line is kept and called after the library's handling. If no zone has `rx=1`, the library leaves `midirx_cb` as it found it.
+If some zone sends a CC, a 14-bit CC or pitch bend, the library sets `self.midirx_cb = Z.rx` (host MIDI is always on; the mouse, the gamepad and NRPN zones have no host identity). A `midirx_cb` the user's own Setup code set before the first zone is kept and called after the library's handling. If no zone has a host identity, the library leaves `midirx_cb` as it found it.
 
 Removing the last zone line leaves the previous surface running until the page reloads. No zone line runs to drop it.
 
@@ -190,11 +199,11 @@ Removing the last zone line leaves the previous surface running until the page r
 - `min` and `max` below are the command's range (0 and 127, or 0 and 16383), and -128 and 127 for a gamepad axis. The value is `min + round(position * (2^bits - 1)) * (max - min) / (2^bits - 1)`, rounded.
 - Steps: the step values are `min`, then `min + trunc((max - min) / bmo)` added bmo times. With `bmo=0` the second value is `max`. The firmware's own stepping differs for some ranges. That is noted in the code.
 - Groups: a press that turns a group member on turns the other members of the group off first. They send their off value. Every member can be off.
-- Spring: the zone rests at position 0.5 per axis and sends nothing at start. On release it returns to 0.5 at once. `rx` and `Z.set` put the value where they say.
+- Spring: the zone rests at position 0.5 per axis and sends nothing at start. On release it returns to 0.5 at once. Host MIDI and `Z.set` put the value where they say.
 
 ### Host MIDI and Z.set
 
-`rx=1` registers the identities the zone sends: each source's channel, command and number, both CCs of a 14-bit pair, pitch bend on its channel. On an XY with fingers only finger 1's channel is registered.
+A zone that sends a CC, a 14-bit CC or pitch bend registers the identities it sends: each source's channel, command and number, both CCs of a 14-bit pair, pitch bend on its channel. On an XY with fingers only finger 1's channel is registered.
 
 `Z.rx` handles host MIDI only (header 13). Note off and velocity 0 are 0. A 14-bit CC applies the MSB at once and the LSB refines it. Pitch bend is LSB then MSB. A 7-bit message into a wider range is scaled up. NRPN is not decoded. A button takes the nearest step; an "on" for a group member turns the others off. The value is set without sending, the glide target is cleared, and the duplicate filter is updated. The zone repaints on the next tick. RX is ignored while any finger holds the zone.
 
@@ -210,7 +219,7 @@ Fixed phase levels: floor 16, dim 110, top 255. A vertical or horizontal fader h
 - XY paint cost: a crosshair is lit only in the two columns and the two rows around it, so the library computes only those cells (about 30 of 81 on a 9×9 pad) and returns the cells the last paint lit to the floor. The crosshair position is rounded to 1/8 cell, and a move that stays in the same 1/8 step (with the same fingers and held state) paints nothing; the MIDI or mouse output is not limited by this. The LED index of a cell is looked up once per surface (`Z.la`). From library 0.26.0. Before it, every cell was recomputed and written for each finger on every move: about 14,400 Lua VM instructions per move for a 9×9 pad with two fingers, about 4,800 now (the test `the work per move stays small` counts them).
 - A mouse fader or XY shows the finger at top while held and sits at the floor after.
 - `col={r,g,b}` goes through the firmware's `color_curve`. The curve's minimum is replaced by black, so phase 0 is off. Without `col` the module's default colour is used, as for a channel of -1. Zones with the same colour share one curve.
-- The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after `rx` or `Z.set` changed a value. Overlapping zones: the last zone covering a cell owns it.
+- The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after host MIDI or `Z.set` changed a value. Overlapping zones: the last zone covering a cell owns it.
 - The LED index of a cell is `glag(<touch element index>, x + y*9)`, looked up when a cell is written.
 
 ### No timer
@@ -223,20 +232,18 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 
 ## 7. Library API
 
-| Name                                                                      | What it does                                                                    |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `Z.zone(self, name, type, cells, col, output, range, behaviour, capture)` | Adds a zone, by position (section 3).                                           |
-| `Z.fader(self, name, x, y, w, h, opt)`                                    | Adds a fader zone, the older form with an option table.                         |
-| `Z.button(self, name, x, y, w, h, opt)`                                   | Adds a button zone, the older form with an option table.                        |
-| `Z.zone(self, name, x, y, w, h, opt, kind)`                               | The function behind the two. An unknown kind is a fader. `opt.read` is ignored. |
-| `Z.touch(self, id, evt, x, y)`                                            | The touch callback. The first zone sets it.                                     |
-| `Z.rx(self, header, event)`                                               | The MIDI receive callback. Set when a zone has `rx=1`.                          |
-| `Z.set(name, value, src)`                                                 | Sets a zone's value without sending.                                            |
-| `Z.unload()`                                                              | Releases everything and gives the element's callbacks back.                     |
-| `Z.def`, `Z.kind`                                                         | Option defaults and kind presets. The editor's copies must match them.          |
-| `Z.zs`, `Z.te`                                                            | The zones, the touch element. Internal, but reachable.                          |
+| Name                                                              | What it does                                                                    |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `Z.v(x,y,w,h)`, `Z.h(x,y,w,h)`, `Z.xy(x,y,w,h)`, `Z.b(x,y,w,h)`   | Add a zone and return the chain (section 3). The module has `_Z` for `Z`.       |
+| `.n .col .gms .mo .ga .mode .sens .spr .cap .fing .tog .grp .tap` | The calls of the chain. Each sets one thing and builds the zone again in place. |
+| `Z.touch(self, id, evt, x, y)`                                    | The touch callback. The first zone sets it.                                     |
+| `Z.rx(self, header, event)`                                       | The MIDI receive callback. Set when a zone has a host identity.                 |
+| `Z.set(name, value, src)`                                         | Sets a zone's value without sending.                                            |
+| `Z.unload()`                                                      | Releases everything and gives the element's callbacks back.                     |
+| `Z.def`, `Z.kind`                                                 | Option defaults and kind presets. The editor's copies must match them.          |
+| `Z.zs`, `Z.te`                                                    | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.26.0"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.27.1"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -262,14 +269,14 @@ Two blocks in the new `touch` category. The category has its own colour, `--cate
 
 | Short | Name         | Element    | Event | Line                                                                                   |
 | ----- | ------------ | ---------- | ----- | -------------------------------------------------------------------------------------- |
-| `zfd` | Touch Zone   | touch      | Setup | `_Z.zone(self,"f1",2,{0,0,5,5},...)`                                                   |
+| `zfd` | Touch Zone   | touch      | Setup | `_Z.xy(0,0,5,5).n("f1")`                                                               |
 | `zbt` | Touch Button | deprecated | Setup | `_Z.button(self,"b1",0,0,2,2,{})` (not offered; kept so saved configs keep their face) |
 
 Both declare `moduleTypes: [ZONA]`, so other modules never see them. They are single, toggleable blocks with a fixed name. Each links to `https://docs.intech.studio/wiki/actions/touch/touch-zones` with an anchor per block.
 
-A new zone gets the next free name of its kind (`f1`, `b1`, then `f2` and so on) and starts at cell 0,0. A new Touch Zone (block `zfd`) is one XY pad zone of 5×5 cells (`dir="xy"`); a zone changed to the Button type keeps its geometry. The library's own defaults (`dir="v"`) don't change. The picker asks the block for this through `defaultLuaIn(scripts)`.
+A new zone has no name and starts at cell 0,0. A new Touch Zone (block `zfd`) is one XY pad zone of 5×5 cells (`dir="xy"`); a zone changed to the Button type keeps its geometry. The library's own defaults (`dir="v"`) don't change. The picker asks the block for this through `defaultLuaIn(scripts)`.
 
-The zone blocks share one face, `ZoneBlock.svelte`, and one header, `ZoneFace.svelte`. The block files `TouchFader.svelte` and `TouchButton.svelte` only pick the kind; `TouchButton.svelte` is a deprecated block that stays for saved configs. The block is named Touch Zone and uses the XY icon. One block defines one or more zones, one `_Z.fader` or `_Z.button` line each, written one after the other in the block's script. A zone select at the top of the face picks the zone the fields edit; each entry is the zone's name and its type (`f1 (XY Pad)`). Three icon buttons sit beside it, as in the element name row: a pencil swaps the select for the zone's name to rename it (Enter, Escape or leaving the field ends it), the plus adds a zone (a copy of the selected one with the next free name, placed to its right, else below it, where its cells are on the surface and free of every zone of the Setup; otherwise a 1×1 button with the default options on the first free cell, reading left to right and top to bottom; when no cell is free the editor logs that there is no room), and the minus deletes the selected one (a block keeps at least one). There is no separate Name field. The untoggled header shows the first zone and `+N more`. Zone names stay unique across the whole Setup, so an edit that repeats one is an error, and a pasted block renames the zones that collide. Its Type select, under the position preview, is Vertical Fader, Horizontal Fader, XY Pad or Button. The three directions are a fader (`dir`); Button writes a `_Z.button` line. Changing the type resets every setting to its default except the position, the size and the colour, and renames a default name (`f1`, `b1`) to the next free one of the new kind. A slot the new type has no use for (a button's `spring`, a fader's `fingers`) is written as its default and does not read back as an option of the zone, so it is never reported as a problem.
+The zone blocks share one face, `ZoneBlock.svelte`, and one header, `ZoneFace.svelte`. The block files `TouchFader.svelte` and `TouchButton.svelte` only pick the kind; `TouchButton.svelte` is a deprecated block that stays for saved configs. The block is named Touch Zone and uses the XY icon. One block defines one or more zones, one chain each, written one after the other in the block's script. A zone select at the top of the face picks the zone the fields edit; each entry is the zone's name and its type (`f1 (XY Pad)`) when the zone has a name, and the type and a number when it has none (see Names). Three icon buttons sit beside it, as in the element name row: a pencil swaps the select for the zone's name to rename it (Enter, Escape or leaving the field ends it), the plus adds a zone (a copy of the selected one, with the next free name if it has one, placed to its right, else below it, where its cells are on the surface and free of every zone of the Setup; otherwise a 1×1 button with the default options on the first free cell, reading left to right and top to bottom; when no cell is free the editor logs that there is no room), and the minus deletes the selected one (a block keeps at least one). There is no separate Name field. The untoggled header shows the first zone and `+N more`. A name is optional. Names stay unique across the whole Setup, so an edit that repeats one is an error, and a pasted block renames the named zones that collide. Its Type select, under the position preview, is Vertical Fader, Horizontal Fader, XY Pad or Button. The three directions are a fader (`dir`); Button writes a `_Z.b` chain. Changing the type resets every setting to its default except the name, the position, the size and the colour. A call the new type has no use for (a button's `.spr`, a fader's `.fing`) is dropped when a line is read, so it is never reported as a problem.
 
 ### Block face
 
@@ -287,7 +294,7 @@ The header shows `f1 · 0,0 1×9 · CC 32 ch 1`, with a colour dot when `col` is
 
 ### Empty fields
 
-No number field is ever empty. A field whose option the line leaves out shows the default the library uses (Channel and CC or Note number -1, Min 0, Max 127 or 16383, Spring -1, and the other options' defaults). The user types a value over it. Empty text is an error ("Required"): the field turns red and the block is flagged invalid like the MIDI block, so the module keeps the last valid script. Every option is written, so a value equal to the default is written too. An enum is a select and always has a value, and the colour channels are validated as numbers from -1 to 255.
+No number field is ever empty. A field whose option the line leaves out shows the default the library uses (Channel and CC, Note or NRPN number -1, Spring -1, and the other options' defaults). The user types a value over it. Empty text is an error ("Required"): the field turns red and the block is flagged invalid like the MIDI block, so the module keeps the last valid script. A value equal to the option's default is not written to the line: the chain has a call only for what isn't the default. An enum is a select and always has a value, and the colour channels are validated as numbers from -1 to 255.
 
 ### Validation
 
@@ -329,16 +336,20 @@ The control name overlay draws the zones on a touch element instead of a name. `
 - `DynamicWrapper.svelte` re-evaluates validity when the event changes.
 - `wasmoon` 1.16.0 is a dev dependency, for the Lua VM tests.
 
+### Names
+
+A zone has no name unless the user gives it one (the pencil next to the select). The line has no `.n` then. The editor shows an unnamed zone as its type and its number among the zones of that type that have no name, counted over the whole touch Setup in order: Vertical Fader 1, Horizontal Fader 1, XY Pad 1, XY Pad 2, Button 1. The select, the header, the issue lines and the pad preview use that; the overlay on the module drawing uses a short form (`v1`, `h1`, `xy1`, `b1`). A zone with a name keeps it and takes no number. The rename field shows the shown name as its placeholder, and an empty name removes the name. An unnamed zone can't be found by `Z.set(name, …)`, and two unnamed zones never count as a duplicate. The numbers change when zones are added, removed or reordered; a zone that other code addresses should have a name.
+
 ## 10. Tests
 
 `npx vitest run` on these files passes: 78 tests in `zona-lib.test.js`, `zone-editor.test.js`, `picker-filter.test.js` and `library.test.js`.
 
-- `zona-vm.js`: a Lua VM (wasmoon, Lua 5.4) that loads `compressScript(zona.lua)`, the text that reaches the module. Firmware globals are stubs that record their calls. `glag` is the ZONA's serpentine lookup. `color_curve` follows the firmware's. The firmware runs Lua 5.5, so code 5.5 rejects can pass here.
-- `zona-lib.test.js`: the header and version, the compressed size under 21504 bytes, defaults equal to `zone-model.ts`, a fader's CC, a button's note, a toggle, pitch bend, an XY's two CCs, mouse moves sent at once and cut at 127, tap to click and its limit, the mouse wheel, mouse buttons and drag lock, gamepad axes, joystick and button, host MIDI setting a value, a Setup re-run, `Z.unload`, LEDs painted at Setup, and 16 zones within 92 KB of Lua memory.
-- `zone-editor.test.js`: round trips of zone lines, old body lines not parsing, unknown options kept, lines written fully defined and read back the same, the library treating a full line like the short one, surface issues, the CC and channel the editor shows equal to what the library sends, the same for gamepad, overlay rectangles, face fields per output, and the mouse labels.
+- `zona-vm.js`: a Lua VM (wasmoon, Lua 5.4) that loads `compressScript(zona.lua)`, the text that reaches the module. Firmware globals are stubs that record their calls. It has a fake touch element (type `touch`, in `ele`) with the firmware's touch queue, and `Z.fader`/`Z.button` shims that build the older option-table calls with the chain, so many tests read as before. `glag` is the ZONA's serpentine lookup. `color_curve` follows the firmware's. The firmware runs Lua 5.5, so code 5.5 rejects can pass here.
+- `zona-lib.test.js`: the header and version, the compressed size under 23552 bytes, defaults equal to `zone-model.ts`, a fader's CC, a button's note, a toggle, pitch bend, an XY's two CCs, mouse moves sent at once and cut at 127, tap to click and its limit, the mouse wheel, mouse buttons and drag lock, gamepad axes, joystick and button, host MIDI setting a value, a Setup re-run, `Z.unload`, LEDs painted at Setup, 16 zones within 108 KB of Lua memory, the chain (no `self`, complete after every call, any order, equal to the option table, `gms` as the Midi block sends it including NRPN, spring by percentage, host MIDI always on, a Setup that runs again, an instruction budget so a call rebuilds only its zone, and the call names surviving `compressScript`), the XY paint (every cell equal to the plain formula, nothing under 1/8 cell, an instruction budget) and the touch queue.
+- `zone-editor.test.js`: round trips of zone chains, old body lines not parsing, chains read in any order, lines that are not chains of known calls, the earlier positional and option-table lines still reading, the chain the editor writes behaving like the older line in the library, surface issues, the CC and channel the editor shows equal to what the library sends, the same for gamepad, overlay rectangles, face fields per output, and the mouse labels.
 - `picker-filter.test.js`: `isAllowedIn`.
 
-Measured on 2026-10-28: the source is 22,669 bytes, the compressed file 17,914 bytes.
+The compressed file is about 22,000 bytes with library 0.27.0; the test ceilings are 23,552 bytes compressed and 108 KB of Lua memory for the library and 16 zones in the VM (98.9 KB measured).
 
 ## 11. Files
 

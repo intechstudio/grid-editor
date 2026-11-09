@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.26.0"
+local LIB_VERSION = "0.27.1"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -18,14 +18,13 @@ Z.def = {
   group = 0,
   ch = -1,
   num = -1,
-  rx = 0,
   spring = -1,
   fingers = 1,
   tap = 1,
 }
 
 -- read: the kind's reader and painter, not an option; msg: what it sends
--- ("midi": the cmd, "cc", "cc14", "note" or "pb"; "mouse": wheel, button or pointer
+-- ("midi": the cmd, "cc", "cc14", "note", "pb", "nrpn" or "nrpn14"; "mouse": wheel, button or pointer
 -- by kind; "pad": gamepad axis, button or two axes)
 Z.kind = {
   fader = { read = "axis", msg = "midi", cmd = "cc" },
@@ -97,6 +96,15 @@ local function snd(z, k)
       ggms(p, w)
     elseif z.m == 2 then
       gms(ch, 224, w % 128, w // 128)
+    elseif z.m > 3 then -- NRPN: the number, then the value (7 or 14 bits)
+      gms(ch, 176, 99, p // 128)
+      gms(ch, 176, 98, p % 128)
+      if z.m == 4 then
+        gms(ch, 176, 6, w)
+      else
+        gms(ch, 176, 6, w // 128)
+        gms(ch, 176, 38, w % 128)
+      end
     elseif z.m == 1 then
       gms(ch, 176, p, w // 128)
       gms(ch, 176, p + 32, w % 128)
@@ -581,14 +589,9 @@ end
 local CC = setmetatable({}, { __mode = "v" })
 
 -- the zone colour, {red, green, blue} as Simple Color writes it (-1 is
--- the module's colour), as its curve: the minimum is black, so phase 0 is off.
--- The old "rrggbb" text still works
+-- the module's colour), as its curve: the minimum is black, so phase 0 is off
 local function col(z, s)
-  local c = tonumber(type(s) == "string" and s or "", 16)
-  if c then
-    s = { math.floor(c / 65536), math.floor(c / 256) % 256, c % 256, 1 }
-  end
-  s = type(s) == "table" and s or { -1, -1, -1, 1 }
+  s = s or { -1, -1, -1 }
   local x, y, w = color_curve({ { s[1], s[2], s[3], 1 } })
   x = { 0, 0, 0, x[4] }
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
@@ -612,54 +615,88 @@ local function start(self)
   Z.ct, Z.lk, Z.lc, Z.la, Z.R = {}, {}, {}, {}, {}
 end
 
-local function add(self, n, x, y, w, h, opt, kind)
-  -- the first zone of a Setup run: a touch or a value sync since the last
-  -- zone sealed the surface; before any, a name already used shows the
-  -- Setup ran again
-  for _, q in ipairs(Z.zs) do
-    if q.n == n then
-      Z.op = nil
-      break
+-- the touch element: the ZONA has one, and the library finds it itself
+local function te()
+  for i = 0, #ele do
+    if ele[i].type == "touch" then
+      return ele[i]
     end
   end
-  if not Z.op then
+end
+
+-- the cells no zone covers are dark
+local function dark()
+  local d = { { 0, 0, 0, 1 }, { 0, 0, 0, 1 }, { 0, 0, 0, 1 } }
+  for e = 0, 80 do
+    if not own(e) then
+      lit(e, 0, d, 0)
+    end
+  end
+end
+
+-- a zone that takes the live grab turns it on for the surface
+local function live()
+  Z.lv = nil
+  for _, q in ipairs(Z.zs) do
+    if q.o.grab == "live" then
+      Z.lv = 1
+    end
+  end
+end
+
+-- the host MIDI identities a zone sends (a 14-bit pair on both CCs), so the
+-- host's messages set its value. The mouse, the gamepad and NRPN have none.
+local function reg(z)
+  if z.m and z.m < 3 then
+    for _, k in ipairs(SR[z.o.read]) do
+      local pk = k == "y" and z.py or z.p
+      local r = { z = z, s = k, m = z.m, p = pk }
+      Z.R[z.m == 2 and ky(z.ch, 224, 0) or ky(z.ch, z.cmd, pk)] = r
+      if z.m == 1 then
+        Z.R[ky(z.ch, 176, pk + 32)] = r
+      end
+    end
+    Z.te.midirx_cb = Z.rx
+  end
+end
+
+-- Builds the zone of the handle g (kd the kind, op the options set so far, gm
+-- the cells, nm the name), or builds it again in place of `old`: every call of
+-- the chain does, so a zone is complete after each one. The first zone of a
+-- Setup run starts the surface: a touch or a value sync since the last zone
+-- sealed it.
+local function build(g, old)
+  if not old and not Z.op then
     drop()
-    start(self)
+    start(te())
     Z.op = 1
   end
-  local o = setmetatable({}, KM[kind] or KM.fader)
-  for k, val in pairs(opt or {}) do
+  local o = setmetatable({}, KM[g.kd])
+  for k, val in pairs(g.op) do
     o[k] = val
   end
-  if o.spring == 1 then
-    o.spring = 50 -- the old option was 1: the centre
-  end
-  if o.speed and rawget(o, "sensitivity") == nil then
-    o.sensitivity = o.speed -- the old name of the option
-  end
   o.read = nil -- from the kind, never an option
-  o.min, o.max = nil, nil -- the range follows the command, never an option
   if o.dir == "xy" then
     o.read = "point"
   end
   local m = o.msg == "midi" and o.cmd or o.msg
-  if m == "cc" and (o.res or 7) > 7 then
-    m = "cc14" -- the old res option
-  end
   local ms = m == "mouse" or nil
-  -- steps: 7 bits, 14 for pitch bend and a 14-bit CC, 8 for the gamepad
-  o.res = (m == "pb" or m == "cc14") and 14 or m == "pad" and 8 or 7
+  -- steps: 7 bits, 14 for pitch bend, a 14-bit CC and a 14-bit NRPN, 8 for the
+  -- gamepad
+  o.res = (m == "pb" or m == "cc14" or m == "nrpn14") and 14 or m == "pad" and 8 or 7
   if ms then
     -- finger 1 only, no centre to return to; any toggle is a drag lock
     o.fingers, o.spring, o.bmo = 1, -1, math.min(o.bmo, 1)
   elseif m == "pad" then
-    -- finger 1 only; the full axis range, centred on 0
-    o.fingers, o.rx, o.min, o.max = 1, 0, -128, 127
+    o.fingers = 1 -- finger 1 only
   end
   -- CC slot: xy 2, others 1. Gamepad autos: the axes (xy 2, fader 1) and
   -- buttons of the gamepad zones before, counted apart
   local b, ga, gb = 0, 0, 0
   for _, q in ipairs(Z.zs) do
+    if q == old then
+      break
+    end
     local r = q.o.read
     local c = r == "point" and 2 or 1
     b = b + c
@@ -669,8 +706,12 @@ local function add(self, n, x, y, w, h, opt, kind)
       ga = ga + c
     end
   end
-  local mi = o.min or 0
-  local ma = o.max or (o.res > 7 and 16383 or 127)
+  -- the range follows the command: 7 bits, 14 above, and a gamepad axis -128
+  -- to 127
+  local mi, ma = 0, o.res > 7 and 16383 or 127
+  if m == "pad" then
+    mi, ma = -128, 127
+  end
   -- editor step values; firmware has more if floor(range/bmo)*(bmo+1)<=range
   local sv = { mi }
   if o.read == "gate" then
@@ -684,7 +725,8 @@ local function add(self, n, x, y, w, h, opt, kind)
   end
   -- MIDI identity, autos as before: ch from module row and page, num from
   -- module column and slot (% 32 for a 14-bit pair), xy y on the next one.
-  -- m: nil mouse, 0 7-bit, 1 14-bit CC pair, 2 pitch bend, 3 gamepad
+  -- m: nil mouse, 0 7-bit, 1 14-bit CC pair, 2 pitch bend, 3 gamepad, 4 NRPN,
+  -- 5 NRPN with a 14-bit value
   local z14 = m == "cc14"
   local p, py = o.num, o.num + 1
   if p < 0 and m == "pad" then
@@ -695,14 +737,22 @@ local function add(self, n, x, y, w, h, opt, kind)
     py = (p + 1) % 128 % (z14 and 32 or 128)
     p = p % 128 % (z14 and 32 or 128)
   end
+  local x, y, w, h = g.gm[1], g.gm[2], g.gm[3], g.gm[4]
   local z = {
-    n = n,
+    n = g.nm,
+    ty = g.ty,
     o = o,
     ch = o.ch < 0 and (gmy() * 4 + gpc()) % 16 or o.ch,
     cmd = m == "note" and 144 or 176,
     p = p,
     py = py,
-    m = m == "pb" and 2 or z14 and 1 or m == "pad" and 3 or not ms and 0 or nil,
+    m = m == "pb" and 2
+      or z14 and 1
+      or m == "pad" and 3
+      or m == "nrpn" and 4
+      or m == "nrpn14" and 5
+      or not ms and 0
+      or nil,
     ms = ms,
     w = ms and { v = 0, x = 0, y = 0 }, -- mouse: the move to send (mv)
     a = {
@@ -725,74 +775,148 @@ local function add(self, n, x, y, w, h, opt, kind)
   z.os = { z } -- the zone and its fingers' states (fg)
   rest(z)
   col(z, o.col)
-  Z.zs[#Z.zs + 1] = z
-  if o.grab == "live" then
-    Z.lv = 1
-  end
-  -- rx=1: the identities the zone sends, a 14-bit pair on both CCs
-  if o.rx == 1 and z.m then
-    for _, k in ipairs(SR[o.read]) do
-      local pk = k == "y" and z.py or z.p
-      local r = { z = z, s = k, m = z.m, p = pk }
-      Z.R[z.m == 2 and ky(z.ch, 224, 0) or ky(z.ch, z.cmd, pk)] = r
-      if z.m == 1 then
-        Z.R[ky(z.ch, 176, pk + 32)] = r
+  if old then
+    for i, q in ipairs(Z.zs) do
+      if q == old then
+        Z.zs[i] = z
       end
     end
-    self.midirx_cb = Z.rx
+    for k, r in pairs(Z.R) do
+      if r.z == old then
+        Z.R[k] = nil
+      end
+    end
+  else
+    Z.zs[#Z.zs + 1] = z
   end
+  live()
+  reg(z)
   paint(z)
-  -- the cells no zone covers are dark
-  local d = { { 0, 0, 0, 1 }, { 0, 0, 0, 1 }, { 0, 0, 0, 1 } }
-  for e = 0, 80 do
-    if not own(e) then
-      lit(e, 0, d, 0)
+  if not old then
+    dark()
+  end
+  g.zn = z
+end
+
+-- The zone as a chain: _Z.xy(x, y, w, h).n("p1").col(255, 0, 0).spr("50%").
+-- A constructor builds the zone with the defaults and every method that
+-- follows sets one thing and builds it again (only that zone, in place), so
+-- there is no closing call. The methods act on the zone just constructed.
+local M = {}
+local cur
+
+local function again()
+  build(cur, cur.zn)
+  return M
+end
+
+local function set(k, v)
+  cur.op[k] = v
+  return again()
+end
+
+local function ctor(kind, dir)
+  return function(x, y, w, h)
+    -- a zone of the same kind and cells on the surface of this Setup run
+    -- shows the Setup ran again (a zone needn't have a name)
+    local ty = kind .. (dir or "")
+    for _, q in ipairs(Z.zs) do
+      if q.ty == ty and q.c[1] == x and q.c[2] == y and q.c[3] == w and q.c[4] == h then
+        Z.op = nil
+        break
+      end
+    end
+    cur = { kd = kind, op = { dir = dir }, gm = { x, y, w, h }, ty = ty }
+    build(cur)
+    return M
+  end
+end
+Z.v, Z.h, Z.xy, Z.b = ctor("fader", "v"), ctor("fader", "h"), ctor("fader", "xy"), ctor("button")
+
+-- the name; one that another zone has means the Setup ran again, and the
+-- surface is built anew from this zone
+function M.n(s)
+  cur.nm = s
+  local z = cur.zn
+  for _, q in ipairs(Z.zs) do
+    if q ~= z and q.n == s then
+      rl()
+      Z.zs, Z.ct, Z.R = { z }, {}, {}
+      again()
+      dark()
+      return M
     end
   end
-  return z
+  return again()
 end
 
--- The zone line, by position: the name, the type (0 vertical fader, 1
--- horizontal fader, 2 XY pad, 3 button; the older names "v", "h", "xy" and
--- "button" work too), then a table per group: cells {x, y, w, h}, colour
--- {r, g, b}, output {out, ch, num, rx}, behaviour {mode, sensitivity, spring,
--- bmo, group} and capture {fingers, tap, grab}. The range is the command's: 0-127,
--- or 0-16383 for CC 14-bit and pitch bend. out is
--- the msg and the command: 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5
--- Gamepad; mode is 0 abs, 1 rel; grab is 0 focus, 1 live. An earlier build's
--- strings, and its output {msg, cmd, ch, num, rx}, work too. A slot left out
--- takes the default.
-local TY = { [0] = "v", "h", "xy" }
-local OC = { [0] = { "midi", "cc" }, { "midi", "cc14" }, { "midi", "note" }, { "midi", "pb" }, { "mouse" }, { "pad" } }
-local MD = { [0] = "abs", "rel" }
-local GR = { [0] = "focus", "live" }
-
-function Z.zone(self, n, t, g, c, u, b, p, q)
-  local k = (t == 3 or t == "button") and "button" or "fader"
-  -- the earlier layout had a range table {min, max} before the behaviour
-  if q then
-    b, p = p, q
-  end
-  u, b, p, c = u or {}, b or {}, p or {}, c or {}
-  -- out as a number, or the earlier build's {msg, cmd, ch, num, rx}
-  local m, i = OC[u[1]], 1
-  if not m then
-    m, i = { u[1], u[2] }, 2
-  end
-  return add(self, n, g[1], g[2], g[3], g[4], {
-    dir = k == "fader" and (TY[t] or t) or nil,
-    col = { c[1] or -1, c[2] or -1, c[3] or -1 },
-    msg = m[1], cmd = m[2], ch = u[i + 1], num = u[i + 2], rx = u[i + 3],
-    mode = MD[b[1]] or b[1], sensitivity = b[2], spring = b[3], bmo = b[4], group = b[5],
-    fingers = p[1], tap = p[2], grab = GR[p[3]] or p[3],
-  }, k)
+function M.col(r, g, b)
+  return set("col", { r or -1, g or -1, b or -1 })
 end
 
--- the older form, the zone's options in a table: Z.fader(self, n, x, y, w, h, opt)
-for kind in pairs(Z.kind) do
-  Z[kind] = function(self, n, x, y, w, h, opt)
-    return add(self, n, x, y, w, h, opt, kind)
-  end
+-- MIDI, as self:gms(ch, cmd, p1, p2, mode) of the Midi block: -1 is auto, p2
+-- is the zone's value. cmd 144 is a note, 224 pitch bend, 176 a CC, and mode
+-- 1 a 14-bit CC pair, 2 NRPN, 3 NRPN with a 14-bit value
+function M.gms(ch, cmd, p1, p2, mode)
+  cmd, mode = cmd or -1, mode or 0
+  local m = (cmd == 144 or cmd == 128) and "note"
+    or cmd == 224 and "pb"
+    or (cmd == -1 and mode == 0) and (cur.kd == "button" and "note" or "cc")
+    or mode == 1 and "cc14"
+    or mode == 2 and "nrpn"
+    or mode == 3 and "nrpn14"
+    or "cc"
+  cur.op.msg, cur.op.cmd, cur.op.ch, cur.op.num = "midi", m, ch or -1, p1 or -1
+  return again()
+end
+
+-- the mouse: a button zone presses the button b (1 left, 2 right, 4 middle)
+function M.mo(b)
+  cur.op.msg, cur.op.num = "mouse", b or -1
+  return again()
+end
+
+-- the gamepad: the axis or the button n, -1 is auto
+function M.ga(n)
+  cur.op.msg, cur.op.num = "pad", n or -1
+  return again()
+end
+
+-- 0 absolute, 1 relative
+function M.mode(m)
+  return set("mode", m == 1 and "rel" or "abs")
+end
+
+function M.sens(n)
+  return set("sensitivity", n)
+end
+
+-- the position it returns to on release, "50%" or 50; off by default
+function M.spr(s)
+  -- (no "?" in the pattern: compressScript drops it)
+  return set("spring", type(s) == "string" and tonumber(s:match("%d+")) or s)
+end
+
+-- 0 focus, 1 live
+function M.cap(c)
+  return set("grab", c == 1 and "live" or "focus")
+end
+
+function M.fing(n)
+  return set("fingers", n)
+end
+
+-- the steps of a button, 0 momentary
+function M.tog(n)
+  return set("bmo", n)
+end
+
+function M.grp(n)
+  return set("group", n)
+end
+
+function M.tap(t)
+  return set("tap", t)
 end
 
 -- repaints the zones a touch or a value sync changed. A finger repaints its

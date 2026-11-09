@@ -28,7 +28,12 @@
     GridAction,
     GridEvent,
   } from "../../runtime/runtime";
-  import { type OptionSchema, type Zone, zoneRead } from "./zone-model";
+  import {
+    type OptionSchema,
+    type Zone,
+    zoneLabels,
+    zoneRead,
+  } from "./zone-model";
   import { ZONA_GLOBAL, parseZones, zonesOf, zonesToLua } from "./zone-parse";
   import { zoneNumsText, zoneOutputLabel } from "./zone-autos";
   import { Grid } from "../../lib/_utils";
@@ -53,6 +58,7 @@
     zoneCssColor,
     zoneType,
     zoneTypeLabel,
+    blockZoneLabels,
     zoneTypeSchema,
     zoneOptionSuggestions,
     withOption,
@@ -125,8 +131,22 @@
     }
   }
 
+  // The zones' names as shown: their own, or for one without a name the type
+  // and its number among the Setup's zones without a name ("XY Pad 2"). The
+  // event is a dependency (the other blocks' zones count).
+  $: labels = labelsOf($event, zones);
+  function labelsOf(..._dependencies: unknown[]): string[] {
+    return blockZoneLabels(
+      event.config.map((e) => e.script),
+      event.config.findIndex((e) => e.id === action.id),
+      zones ?? [],
+    );
+  }
+
+  // A zone with a name shows it and its type ("f1 (XY Pad)"); one without
+  // shows the type and number, which are the name.
   $: zoneOptions = (zones ?? []).map((e, i) => ({
-    title: `${e.name} (${zoneTypeLabel(e)})`,
+    title: e.name === "" ? labels[i] : `${e.name} (${zoneTypeLabel(e)})`,
     value: i,
   }));
 
@@ -145,9 +165,9 @@
     zones !== null
       ? surfaceIssues($event.config.map((e) => e.script)).filter(
           (e) =>
-            zones!.some((z) => z.name === e.zone) &&
+            labels.includes(e.zone ?? "") &&
             !(
-              e.zone === zone?.name &&
+              e.zone === labels[selected] &&
               problems.some((p) => p.message === e.message)
             ),
         )
@@ -183,15 +203,22 @@
 
   // The other zones of the Setup, in this block and in the others, for the
   // pad's preview. This block's carry their index, so a click selects them.
+  $: otherLabels = zoneLabels([
+    ...zonesOf(
+      $event.config.filter((e) => e.id !== action.id).map((e) => e.script),
+    ),
+    ...(zones ?? []),
+  ]);
   $: others = [
     ...zonesOf(
       $event.config.filter((e) => e.id !== action.id).map((e) => e.script),
     ).map((e) => ({ zone: e, index: undefined as number | undefined })),
     ...(zones ?? []).map((e, i) => ({ zone: e, index: i })),
   ]
+    .map((e, i) => ({ ...e, label: otherLabels[i] }))
     .filter((e) => e.index !== selected)
-    .map(({ zone: e, index }) => ({
-      name: e.name,
+    .map(({ zone: e, index, label }) => ({
+      name: label,
       x: e.x,
       y: e.y,
       w: e.w,
@@ -252,7 +279,11 @@
     }
     // Red right away for a name another zone has. Only the red state uses
     // this text; the issue line above the fields says why.
-    if (key === "name" && otherZoneNames().includes(result.next.name)) {
+    if (
+      key === "name" &&
+      result.next.name !== "" &&
+      otherZoneNames().includes(result.next.name)
+    ) {
       return "duplicate";
     }
     return zoneProblems(result.next).find((e) => e.key === key)?.message;
@@ -466,6 +497,7 @@
               <MoltenInput
                 bind:this={nameInput}
                 target={zone.name}
+                placeholder={labels[selected] ?? ""}
                 on:input={(e) => {
                   if (e.detail.value !== zone?.name) {
                     setField("name", e.detail.value);
