@@ -113,13 +113,12 @@ export type OptionSchema = { key: string } &
 
 // Block face sections, in display order (docs/zona-touch-zones.md, Block face).
 export type ZoneSection =
-  "geometry" | "led" | "output" | "resolution" | "behaviour" | "capture";
+  "geometry" | "led" | "output" | "behaviour" | "capture";
 
 export const zoneSections: ZoneSection[] = [
   "geometry",
   "led",
   "output",
-  "resolution",
   "behaviour",
   "capture",
 ];
@@ -147,21 +146,6 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     values: ["v", "h", "xy"],
     reads: CONTINUOUS,
     section: "geometry",
-  },
-  // min/max have no default here: the library takes 0 and 127, or 16383 for cc14 and pb
-  {
-    key: "min",
-    type: "integer",
-    reads: ALL_READS,
-    hide: MOUSE_PAD,
-    section: "resolution",
-  },
-  {
-    key: "max",
-    type: "integer",
-    reads: ALL_READS,
-    hide: MOUSE_PAD,
-    section: "resolution",
   },
   {
     key: "mode",
@@ -317,7 +301,7 @@ export function zoneOptionShown(
 }
 
 // What a zone of this kind uses when the line leaves the option out: the
-// kind preset over the defaults. undefined for min and max.
+// kind preset over the defaults.
 export function zoneOptionDefault(
   kind: ZoneKind,
   key: string,
@@ -340,7 +324,7 @@ export function zoneSends(zone: Zone): ZoneOptionValue | undefined {
 
 // The value a zone has for an option: the one its line sets, or what the
 // library uses when the line leaves it out. The default of a colour is the
-// module's own colour ({-1,-1,-1,1}); Min and Max follow the command.
+// module's own colour ({-1,-1,-1}).
 export function zoneOptionValue(
   zone: Zone,
   key: string,
@@ -351,10 +335,6 @@ export function zoneOptionValue(
   }
   const sends = zoneSends(zone);
   switch (key) {
-    case "min":
-      return 0;
-    case "max":
-      return sends === "cc14" || sends === "pb" ? 16383 : 127;
     case "num":
       return sends === "mouse" ? 1 : -1;
     case "col":

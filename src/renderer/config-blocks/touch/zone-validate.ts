@@ -172,36 +172,6 @@ function resOf(zone: Zone): number {
   return sends === "pb" || sends === "cc14" ? 14 : 7;
 }
 
-// min and max as the library uses them: 0 and 127, or 16383 above res 7.
-// A zone that sends MIDI keeps them in 0-16383 (the wire range).
-function rangeProblems(zone: Zone): ZoneProblem[] {
-  const min = zone.opt.min ?? 0;
-  const max = zone.opt.max ?? (resOf(zone) > 7 ? 16383 : 127);
-  if (typeof min !== "number" || typeof max !== "number") {
-    return [];
-  }
-  const outside = (["min", "max"] as const).filter(
-    (key) =>
-      typeof zone.opt[key] !== "undefined" &&
-      (Number(zone.opt[key]) < 0 || Number(zone.opt[key]) > 16383),
-  );
-  if (outside.length > 0) {
-    return outside.map((key) => ({
-      key,
-      message: "Use 0 to 16383 when the zone sends MIDI",
-    }));
-  }
-  if (min < max) {
-    return [];
-  }
-  return [
-    {
-      key: typeof zone.opt.max !== "undefined" ? "max" : "min",
-      message: `Max (${max}) must be above min (${min})`,
-    },
-  ];
-}
-
 // An explicit num keeps every number the zone sends in 0-127: a 14-bit CC
 // sends its LSB on num+32 (num 0-31), an xy its y on num+1. A gamepad zone
 // keeps to the axes 0-5 or the buttons 0-31.
@@ -253,10 +223,7 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   );
   problems.push(...options);
   const bad = (keys: string[]) => options.some((e) => keys.includes(e.key));
-  // a mouse or gamepad zone has no value range; a mouse zone's num is a button
-  if (msg !== "mouse" && msg !== "pad" && !bad(["min", "max", "msg", "cmd"])) {
-    problems.push(...rangeProblems(zone));
-  }
+  // a mouse zone's num is a button
   if (msg !== "mouse" && !bad(["num", "msg", "cmd"])) {
     problems.push(...numProblems(zone));
   }

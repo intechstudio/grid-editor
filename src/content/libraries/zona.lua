@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.25.0"
+local LIB_VERSION = "0.26.0"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -638,6 +638,7 @@ local function add(self, n, x, y, w, h, opt, kind)
     o.sensitivity = o.speed -- the old name of the option
   end
   o.read = nil -- from the kind, never an option
+  o.min, o.max = nil, nil -- the range follows the command, never an option
   if o.dir == "xy" then
     o.read = "point"
   end
@@ -754,8 +755,9 @@ end
 -- The zone line, by position: the name, the type (0 vertical fader, 1
 -- horizontal fader, 2 XY pad, 3 button; the older names "v", "h", "xy" and
 -- "button" work too), then a table per group: cells {x, y, w, h}, colour
--- {r, g, b}, output {out, ch, num, rx}, range {min, max}, behaviour {mode,
--- sensitivity, spring, bmo, group} and capture {fingers, tap, grab}. out is
+-- {r, g, b}, output {out, ch, num, rx}, behaviour {mode, sensitivity, spring,
+-- bmo, group} and capture {fingers, tap, grab}. The range is the command's: 0-127,
+-- or 0-16383 for CC 14-bit and pitch bend. out is
 -- the msg and the command: 0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse, 5
 -- Gamepad; mode is 0 abs, 1 rel; grab is 0 focus, 1 live. An earlier build's
 -- strings, and its output {msg, cmd, ch, num, rx}, work too. A slot left out
@@ -765,9 +767,13 @@ local OC = { [0] = { "midi", "cc" }, { "midi", "cc14" }, { "midi", "note" }, { "
 local MD = { [0] = "abs", "rel" }
 local GR = { [0] = "focus", "live" }
 
-function Z.zone(self, n, t, g, c, u, r, b, p)
+function Z.zone(self, n, t, g, c, u, b, p, q)
   local k = (t == 3 or t == "button") and "button" or "fader"
-  u, r, b, p, c = u or {}, r or {}, b or {}, p or {}, c or {}
+  -- the earlier layout had a range table {min, max} before the behaviour
+  if q then
+    b, p = p, q
+  end
+  u, b, p, c = u or {}, b or {}, p or {}, c or {}
   -- out as a number, or the earlier build's {msg, cmd, ch, num, rx}
   local m, i = OC[u[1]], 1
   if not m then
@@ -777,7 +783,6 @@ function Z.zone(self, n, t, g, c, u, r, b, p)
     dir = k == "fader" and (TY[t] or t) or nil,
     col = { c[1] or -1, c[2] or -1, c[3] or -1 },
     msg = m[1], cmd = m[2], ch = u[i + 1], num = u[i + 2], rx = u[i + 3],
-    min = r[1], max = r[2],
     mode = MD[b[1]] or b[1], sensitivity = b[2], spring = b[3], bmo = b[4], group = b[5],
     fingers = p[1], tap = p[2], grab = GR[p[3]] or p[3],
   }, k)

@@ -47,37 +47,37 @@ const LIB = `_Z=gr("zona")`;
 // a new XY pad and a new button, as the editor writes them: positional, with a
 // table per group (geometry, colour, output, range, behaviour, capture)
 const XY = (name) =>
-  `_Z.zone(self,"${name}",2,{0,0,5,5},{-1,-1,-1},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`;
+  `_Z.zone(self,"${name}",2,{0,0,5,5},{-1,-1,-1},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})`;
 const BTN = (name, x = 5) =>
-  `_Z.zone(self,"${name}",3,{${x},0,2,2},{-1,-1,-1},{2,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`;
+  `_Z.zone(self,"${name}",3,{${x},0,2,2},{-1,-1,-1},{2,-1,-1,0},{0,1,-1,0,0},{1,1,0})`;
 
 // The editor writes the positional form with every slot defined. The older
 // option-table lines still read and are written in the new form.
 test.each([
   [
     `_Z.fader(self,"f1",1,0,1,9,{mode="rel",sensitivity=0.5})`,
-    `_Z.zone(self,"f1",0,{1,0,1,9},{-1,-1,-1},{0,-1,-1,0},{0,127},{1,0.5,-1,0,0},{1,1,0})`,
+    `_Z.zone(self,"f1",0,{1,0,1,9},{-1,-1,-1},{0,-1,-1,0},{1,0.5,-1,0,0},{1,1,0})`,
   ],
   [
     `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col={255,128,0,1},cmd="cc"})`,
-    `_Z.zone(self,"b1",3,{0,0,1,1},{255,128,0},{0,-1,-1,0},{0,127},{0,1,-1,3,2},{1,1,0})`,
+    `_Z.zone(self,"b1",3,{0,0,1,1},{255,128,0},{0,-1,-1,0},{0,1,-1,3,2},{1,1,0})`,
   ],
   [
     `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7,rx=1})`,
-    `_Z.zone(self,"p1",2,{0,0,9,9},{-1,-1,-1},{0,3,7,1},{0,127},{0,1,-1,0,0},{3,1,0})`,
+    `_Z.zone(self,"p1",2,{0,0,9,9},{-1,-1,-1},{0,3,7,1},{0,1,-1,0,0},{3,1,0})`,
   ],
   [
     `_Z.fader(self,"p",0,0,4,4,{dir="xy",msg="mouse"})`,
-    `_Z.zone(self,"p",2,{0,0,4,4},{-1,-1,-1},{4,-1,1,0},{0,127},{0,1,-1,0,0},{1,1,0})`,
+    `_Z.zone(self,"p",2,{0,0,4,4},{-1,-1,-1},{4,-1,1,0},{0,1,-1,0,0},{1,1,0})`,
   ],
   [
     `_Z.fader(self,"g",0,0,1,9,{msg="pad"})`,
-    `_Z.zone(self,"g",0,{0,0,1,9},{-1,-1,-1},{5,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`,
+    `_Z.zone(self,"g",0,{0,0,1,9},{-1,-1,-1},{5,-1,-1,0},{0,1,-1,0,0},{1,1,0})`,
   ],
   // the range follows the command
   [
     `_Z.fader(self,"f",0,0,1,9,{cmd="pb"})`,
-    `_Z.zone(self,"f",0,{0,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,16383},{0,1,-1,0,0},{1,1,0})`,
+    `_Z.zone(self,"f",0,{0,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,1,-1,0,0},{1,1,0})`,
   ],
 ])("a zone line is written positional and fully defined: %s", (line, full) => {
   expect(zoneToLua(parseZone(line))).toBe(full);
@@ -86,29 +86,44 @@ test.each([
 });
 
 test("a positional line may end a table early, and the rest is the default", () => {
-  const zone = parseZone(
-    `_Z.zone(self,"f1",1,{0,0,3,1},{},{"midi"},{},{"rel"},{})`,
-  );
+  // cells, colour, output, behaviour, capture
+  const zone = parseZone(`_Z.zone(self,"f1",1,{0,0,3,1},{},{0},{1},{})`);
   expect(zone.kind).toBe("fader");
-  expect(zone.opt).toEqual({ dir: "h", msg: "midi", mode: "rel" });
+  expect(zone.opt).toEqual({ dir: "h", msg: "midi", cmd: "cc", mode: "rel" });
   // the type by name, as an earlier build wrote it, still reads
   expect(
-    parseZone(`_Z.zone(self,"f1","h",{0,0,3,1},{},{},{},{},{})`).opt.dir,
+    parseZone(`_Z.zone(self,"f1","h",{0,0,3,1},{},{},{},{})`).opt.dir,
   ).toBe("h");
-  expect(parseZone(`_Z.zone(self,"f1",3,{0,0,3,1},{},{},{},{},{})`).kind).toBe(
+  expect(parseZone(`_Z.zone(self,"f1",3,{0,0,3,1},{},{},{},{})`).kind).toBe(
     "button",
   );
   // wrong shapes are not zone lines
   for (const bad of [
-    `_Z.zone(self,"f1",9,{0,0,3,1},{},{},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3},{},{},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{1,2,3,4,5},{},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{},{"midi","cc",1,2,3,4},{},{},{})`,
-    `_Z.zone(self,"f1",0,{0,0,3,1},{},{msg="midi"},{},{},{})`,
+    `_Z.zone(self,"f1",9,{0,0,3,1},{},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3},{},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{1,2,3,4,5},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{},{0,1,2,3,4,5,6},{},{})`,
+    `_Z.zone(self,"f1",0,{0,0,3,1},{},{msg="midi"},{},{})`,
   ]) {
     expect(parseZone(bad)).toBe(null);
   }
+});
+
+test("a range in an older line is dropped: it follows the command", () => {
+  // the six-table layout of an earlier build, with {min, max} after the output
+  const old = parseZone(
+    `_Z.zone(self,"f1",0,{0,0,1,9},{},{0,-1,-1,0},{10,100},{0,1,-1,0,0},{1,1,0})`,
+  );
+  expect(old.opt).not.toHaveProperty("min");
+  expect(old.opt).not.toHaveProperty("max");
+  expect(old.opt.mode).toBe("abs");
+  expect(zoneToLua(old)).not.toContain("{10,100}");
+  // the option-table form: min and max are dropped, not kept as unknown
+  const legacy = parseZone(`_Z.fader(self,"f",0,0,1,9,{min=10,max=100,ch=2})`);
+  expect(legacy.opt).toEqual({ ch: 2 });
+  expect(legacy.unknown).toBeUndefined();
+  expect(zoneToLua(legacy)).not.toMatch(/min|100/);
 });
 
 test("a colour is written like Simple Color, and the old hex text still reads", () => {
@@ -149,7 +164,7 @@ test("an option at its default is still written", () => {
     opt: { bmo: 1, msg: "midi", cmd: "note", ch: -1, num: -1, rx: 0 },
   };
   expect(zoneToLua(zone)).toBe(
-    `_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{2,-1,-1,0},{0,127},{0,1,-1,1,0},{1,1,0})`,
+    `_Z.zone(self,"b",3,{0,0,1,1},{-1,-1,-1},{2,-1,-1,0},{0,1,-1,1,0},{1,1,0})`,
   );
 });
 
@@ -394,8 +409,6 @@ test("the Type select resets every setting but the position, size and colour", (
     ch: -1,
     num: -1,
     rx: 0,
-    min: 0,
-    max: 127,
     bmo: 0,
     group: 0,
     grab: "focus",
@@ -545,23 +558,6 @@ test("a pasted zone goes beside the focused one, with no 1x1 fallback", () => {
   expect(placedCopy(copied, tall, [tall])).toBeUndefined();
 });
 
-test("Max suggests 127 for CC and 16383 for CC 14-bit", () => {
-  const max = (line) =>
-    zoneOptionSuggestions(parseZone(line), "max").map((e) => e.value);
-  expect(max(`_Z.fader(self,"f1",0,0,1,9,{})`)).toEqual(["127"]);
-  expect(max(`_Z.fader(self,"f1",0,0,1,9,{cmd="cc14"})`)).toEqual(["16383"]);
-  expect(max(`_Z.fader(self,"f1",0,0,1,9,{cmd="pb"})`)).toEqual(["16383"]);
-  expect(
-    optionPlaceholder(parseZone(`_Z.fader(self,"f1",0,0,1,9,{})`), "max"),
-  ).toBe("127");
-  expect(
-    optionPlaceholder(
-      parseZone(`_Z.fader(self,"f1",0,0,1,9,{cmd="cc14"})`),
-      "max",
-    ),
-  ).toBe("16383");
-});
-
 test("the CC number suggests Auto (-1) for CC, CC 14-bit and Note", () => {
   const nums = (opt) =>
     zoneOptionSuggestions(
@@ -578,33 +574,11 @@ test("the CC number suggests Auto (-1) for CC, CC 14-bit and Note", () => {
   expect(wide.at(-1)).toBe("31");
 });
 
-test("a new MIDI command sets Min and Max to its range", () => {
-  const cmd = {
-    key: "cmd",
-    type: "enum",
-    values: ["cc", "cc14", "note", "pb"],
-  };
-  const zone = parseZone(`_Z.fader(self,"f1",0,0,1,9,{min=10,max=100,ch=2})`);
-  const wide = withOption(zone, cmd, "cc14").next;
-  expect(wide.opt).toEqual({ ch: 2, cmd: "cc14", min: 0, max: 16383 });
-  expect(withOption(wide, cmd, "cc").next.opt).toMatchObject({
-    min: 0,
-    max: 127,
-  });
-  expect(withOption(wide, cmd, "pb").next.opt.max).toBe(16383);
-  expect(withOption(wide, cmd, "note").next.opt.max).toBe(127);
-  // picking the same command again keeps a custom range
-  const same = parseZone(
-    `_Z.fader(self,"f1",0,0,1,9,{cmd="cc14",min=10,max=100})`,
-  );
-  expect(withOption(same, cmd, "cc14").next.opt.max).toBe(100);
-});
-
 test("a number field is never empty, and shows the default when the line omits it", () => {
   const zone = parseZone(`_Z.fader(self,"f1",0,0,1,9,{})`);
   const schema = (key) => zoneOptionSchemaFor(zone).find((e) => e.key === key);
   // empty text is an error, not "leave the option out"
-  for (const key of ["ch", "num", "min", "max", "sensitivity", "spring"]) {
+  for (const key of ["ch", "num", "sensitivity", "spring"]) {
     expect(withOption(zone, schema(key), "  ").error).toBe("Required");
   }
   // an enum or a colour can still be left to its default
@@ -619,10 +593,6 @@ test("a number field is never empty, and shows the default when the line omits i
   };
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "ch")).toBe("-1");
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{ch=3})`, "ch")).toBe("3");
-  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "max")).toBe("127");
-  expect(shown(`_Z.fader(self,"f1",0,0,1,9,{cmd="cc14"})`, "max")).toBe(
-    "16383",
-  );
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "spring")).toBe("-1");
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "sensitivity")).toBe("1");
 });
@@ -735,21 +705,16 @@ test("Output and Command are one select, listing every output and dimming the on
     ["Gamepad button", false],
   ]);
   // picking one sets msg and command, and a command brings its range
-  const zone = parseZone(`_Z.fader(self,"f",0,0,1,9,{min=5,max=50})`);
+  const zone = parseZone(`_Z.fader(self,"f",0,0,1,9,{ch=3})`);
   expect(zoneOutputText(zone)).toBe("0");
   const wide = withOutput(zone, "3");
-  expect(wide.opt).toMatchObject({
-    msg: "midi",
-    cmd: "pb",
-    min: 0,
-    max: 16383,
-  });
+  expect(wide.opt).toMatchObject({ msg: "midi", cmd: "pb", ch: 3 });
   const mouse = withOutput(wide, "4");
   expect(mouse.opt.msg).toBe("mouse");
   expect(mouse.opt.cmd).toBeUndefined();
   expect(zoneOutputText(mouse)).toBe("4");
-  // back to a command: its own range again
-  expect(withOutput(mouse, "0").opt).toMatchObject({ cmd: "cc", max: 127 });
+  // back to a command
+  expect(withOutput(mouse, "0").opt).toMatchObject({ cmd: "cc", ch: 3 });
   // an output the zone can't take is not set
   expect(withOutput(zone, "2")).toBe(zone);
 });

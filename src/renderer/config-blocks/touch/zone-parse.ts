@@ -267,6 +267,10 @@ function readOptions(
   const opt: Record<string, ZoneOptionValue> = {};
   const unknown: string[] = [];
   for (const { key, raw } of entries) {
+    // the range of an earlier build is dropped: it follows the command
+    if (key === "min" || key === "max") {
+      continue;
+    }
     const known = schema.find((e) => e.key === key);
     if (typeof known === "undefined") {
       unknown.push(`${key}=${raw}`);
@@ -301,9 +305,9 @@ function luaValue(value: ZoneOptionValue): string {
 }
 
 // The positional form: `_Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},
-// {0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`. After the
+// {0,-1,-1,0},{0,1,-1,0,0},{1,1,0})`. After the
 // name and the type come tables, each a group of the face: geometry, colour,
-// output, range, behaviour, capture. The options of a group are by position
+// output, behaviour, capture. The options of a group are by position
 // (zonePositions); a table may end early, and what it leaves out is the
 // default.
 // The type is a number in the line (shorter): 0 vertical fader, 1 horizontal
@@ -320,7 +324,6 @@ const ENUM_CODES: { [key: string]: string[] } = {
 };
 const zonePositions: string[][] = [
   ["out", "ch", "num", "rx"],
-  ["min", "max"],
   ["mode", "sensitivity", "spring", "bmo", "group"],
   ["fingers", "tap", "grab"],
 ];
@@ -342,13 +345,24 @@ function readPositionalZone(reader: Reader): Zone | null {
   ) {
     return null;
   }
+  // the geometry, the colour, then the groups (output, behaviour, capture);
+  // the earlier layout had a range table {min, max} after the output, which
+  // is dropped: the range follows the command
   const tables: string[][] = [];
-  for (let i = 0; i < 6; i++) {
+  for (;;) {
+    const mark = reader.mark();
     const list = reader.eat(",") ? reader.list() : null;
     if (list === null) {
-      return null;
+      reader.reset(mark);
+      break;
     }
     tables.push(list);
+  }
+  if (tables.length === 6) {
+    tables.splice(3, 1);
+  }
+  if (tables.length !== 5) {
+    return null;
   }
   const [cells, color, ...groups] = tables;
   const numbers = cells.map(parseNumber);
@@ -539,12 +553,11 @@ export function zonesToLua(zones: Zone[]): string {
 
 // The zone line as the editor writes it, positional and fully defined:
 //
-//   _Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},{0,-1,-1,0},{0,127},{0,1,-1,0,0},
-//     {1,1,0})
+//   _Z.zone(self,"f1",2,{0,0,5,5},{255,0,0},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})
 //
 // Name, type (0 vertical fader, 1 horizontal fader, 2 XY pad, 3 button), then a table per group of the face:
-// geometry (x, y, w, h), colour (r, g, b), output (out, ch, num, rx), range
-// (min, max), behaviour (mode, sensitivity, spring, bmo, group) and capture
+// geometry (x, y, w, h), colour (r, g, b), output (out, ch, num, rx),
+// behaviour (mode, sensitivity, spring, bmo, group) and capture
 // (fingers, tap, grab). `out` is the msg and the command as one number, mode
 // and grab are numbers too (zoneOutputs, ENUM_CODES). Every slot is written with its value or the
 // default, whether or not the zone's output uses it. Options this editor

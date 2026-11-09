@@ -383,12 +383,10 @@ test("Z.zone takes the zone by position, and a short table leaves the defaults",
   expect(await run(`Z.zone(self,"f",0,{0,0,1,9},{})`)).toEqual(old);
   // slots by position: the output, the range and the colour
   expect(
-    await run(
-      `Z.zone(self,"f",0,{0,0,1,9},{255,0,0,1},{"midi","cc",2,40,0},{0,100})`,
-    ),
+    await run(`Z.zone(self,"f",0,{0,0,1,9},{255,0,0,1},{"midi","cc",2,40,0})`),
   ).toEqual(
     await run(
-      `Z.fader(self,"f",0,0,1,9,{col={255,0,0,1},msg="midi",cmd="cc",ch=2,num=40,rx=0,min=0,max=100})`,
+      `Z.fader(self,"f",0,0,1,9,{col={255,0,0,1},msg="midi",cmd="cc",ch=2,num=40,rx=0})`,
     ),
   );
   // the type by number (0 v, 1 h, 2 xy, 3 button), or by its older name
@@ -407,25 +405,33 @@ test("Z.zone takes the zone by position, and a short table leaves the defaults",
   // the output as a number (0 CC, 1 CC 14-bit, 2 Note, 3 Pitch bend, 4 Mouse,
   // 5 Gamepad), mode and grab as numbers, and the earlier build's strings
   expect(
-    await run(
-      `Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{0,16383},{1,1,50},{1,1,1})`,
-    ),
+    await run(`Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{1,1,50},{1,1,1})`),
   ).toEqual(
     await run(
-      `Z.zone(self,"f","v",{0,0,1,9},{},{"midi","pb",2,7,0},{0,16383},{"rel",1,50},{1,1,"live"})`,
+      `Z.zone(self,"f","v",{0,0,1,9},{},{"midi","pb",2,7,0},{"rel",1,50},{1,1,"live"})`,
     ),
   );
   expect(
-    await run(
-      `Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{0,16383},{1,1,50},{1,1,1})`,
-    ),
+    await run(`Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{1,1,50},{1,1,1})`),
   ).toEqual(
     await run(
-      `Z.fader(self,"f",0,0,1,9,{msg="midi",cmd="pb",ch=2,num=7,rx=0,min=0,max=16383,mode="rel",sensitivity=1,spring=50,fingers=1,tap=1,grab="live"})`,
+      `Z.fader(self,"f",0,0,1,9,{msg="midi",cmd="pb",ch=2,num=7,rx=0,mode="rel",sensitivity=1,spring=50,fingers=1,tap=1,grab="live"})`,
     ),
   );
   expect(await run(`Z.zone(self,"f",0,{0,0,1,9},{},{4})`)).toEqual(
     await run(`Z.fader(self,"f",0,0,1,9,{msg="mouse"})`),
+  );
+  // the layout of an earlier build had a range table {min, max} after the
+  // output: it is ignored, the range follows the command
+  expect(
+    await run(
+      `Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{10,100},{1,1,50},{1,1,1})`,
+    ),
+  ).toEqual(
+    await run(`Z.zone(self,"f",0,{0,0,1,9},{},{3,2,7,0},{1,1,50},{1,1,1})`),
+  );
+  expect(await run(`Z.fader(self,"f",0,0,1,9,{min=10,max=100})`)).toEqual(
+    await run(`Z.fader(self,"f",0,0,1,9,{})`),
   );
   // a button is the type 3
   expect(await run(`Z.zone(self,"b",3,{0,0,2,2},{})`)).toEqual(
@@ -435,7 +441,7 @@ test("Z.zone takes the zone by position, and a short table leaves the defaults",
 
 // The xy pad paints only the cells around each crosshair, in 1/8 cell steps.
 describe("the xy pad paint", () => {
-  const SETUP = `Z.zone(self,"p",2,{0,0,9,9},{},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{2,1,0})`;
+  const SETUP = `Z.zone(self,"p",2,{0,0,9,9},{},{0,-1,-1,0},{0,1,-1,0,0},{2,1,0})`;
   const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
   // the last phase written to each LED, from a recorded call list
   const phases = (vm, from = new Map()) => {
@@ -538,7 +544,7 @@ describe("the xy pad paint", () => {
 });
 
 describe("the touch queue", () => {
-  const SETUP = `Z.zone(self,"p",2,{0,0,9,9},{},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`;
+  const SETUP = `Z.zone(self,"p",2,{0,0,9,9},{},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})`;
   const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
   const moves = [
     [200, 300],

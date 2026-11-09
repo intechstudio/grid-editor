@@ -325,8 +325,6 @@ export function withOutput(zone: Zone, code: string): Zone {
   delete opt.cmd;
   if (typeof output.cmd !== "undefined") {
     opt.cmd = output.cmd;
-    opt.min = 0;
-    opt.max = output.cmd === "cc14" || output.cmd === "pb" ? 16383 : 127;
   }
   return { ...zone, opt };
 }
@@ -346,17 +344,6 @@ export function optionPlaceholder(zone: Zone, key: string): string {
   const kind = zone.kind;
   if (key === "num" && zoneMsg(zone) === "mouse") {
     return "1 (Left)";
-  }
-  if (key === "min") {
-    return "0";
-  }
-  if (key === "max") {
-    const sends = zoneSends(zone);
-    return sends === "cc14" || sends === "pb"
-      ? "16383"
-      : sends === "cc" || sends === "note"
-        ? "127"
-        : "127 or 16383";
   }
   if (key === "ch" || key === "num") {
     return "auto";
@@ -529,17 +516,6 @@ export function zoneOptionSuggestions(
       }
       return [];
     }
-    case "min":
-      return [{ value: "0", info: "Lowest" }];
-    case "max": {
-      const bit7 = { value: "127", info: "7 bit" };
-      const bit14 = { value: "16383", info: "14 bit" };
-      return sends === "cc14" || sends === "pb"
-        ? [bit14]
-        : sends === "cc" || sends === "note"
-          ? [bit7]
-          : [bit7, bit14];
-    }
     case "spring":
       return [
         { value: "-1", info: "Off" },
@@ -615,12 +591,6 @@ export function withOption<T extends { opt: Record<string, ZoneOptionValue> }>(
   } else {
     opt[schema.key] = value;
   }
-  // A new MIDI command brings its own range: Min and Max are set to it, 0-127
-  // (CC, Note) or 0-16383 (CC 14-bit, pitch bend), replacing the old one's.
-  if (schema.key === "cmd" && value !== target.opt.cmd) {
-    opt.min = 0;
-    opt.max = value === "cc14" || value === "pb" ? 16383 : 127;
-  }
   return { next: { ...target, opt } };
 }
 
@@ -647,8 +617,6 @@ export function withField(
 // Field titles of the options.
 export const optionLabels: Record<string, string> = {
   dir: "Direction",
-  min: "Min",
-  max: "Max",
   mode: "Mode",
   sensitivity: "Sensitivity",
   bmo: "Button mode",

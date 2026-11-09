@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.25.0, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.26.0, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -16,10 +16,10 @@ The action strings are the only store. The editor reads every view from them: th
 -- Touch element, Setup. A Touch Zone block starts with the call that loads the
 -- library from the page folder as _Z, then one line per zone.
 _Z=gr("zona")
-_Z.zone(self,"f1",0,{0,0,1,9},{-1,-1,-1},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})
+_Z.zone(self,"f1",0,{0,0,1,9},{-1,-1,-1},{0,-1,-1,0},{0,1,-1,0,0},{1,1,0})
 _Z.zone(self,"f2",0,{1,0,1,9},{-1,-1,-1},{3,-1,-1,0},{0,16383},{0,1,50,0,0},{1,1,0})
-_Z.zone(self,"b1",3,{2,0,2,2},{255,0,0},{2,-1,-1,0},{0,127},{0,1,-1,1,1},{1,1,0})
-_Z.zone(self,"p1",2,{4,0,5,5},{-1,-1,-1},{4,-1,1,0},{0,127},{0,1,-1,0,0},{1,1,0})
+_Z.zone(self,"b1",3,{2,0,2,2},{255,0,0},{2,-1,-1,0},{0,1,-1,1,1},{1,1,0})
+_Z.zone(self,"p1",2,{4,0,5,5},{-1,-1,-1},{4,-1,1,0},{0,1,-1,0,0},{1,1,0})
 
 -- Page folder on the module
 /00/zona.lua
@@ -36,7 +36,7 @@ The library is loaded under the global `_Z`. The touch blocks always write `_Z.`
 A zone line is positional. The name and the type come first, then one table per group of the face:
 
 ```
-_Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{out,ch,num,rx},{min,max},{mode,sensitivity,spring,bmo,group},{fingers,tap,grab})
+_Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{out,ch,num,rx},{mode,sensitivity,spring,bmo,group},{fingers,tap,grab})
 ```
 
 - `self` is the touch element. Setup passes it.
@@ -44,7 +44,7 @@ _Z.zone(self,"<name>",<type>,{x,y,w,h},{r,g,b},{out,ch,num,rx},{min,max},{mode,s
 - `type` is a number, to keep the line short: `0` vertical fader (`dir="v"`), `1` horizontal fader (`dir="h"`), `2` XY pad (`dir="xy"`) or `3` button. A line with the older names as strings (`"v"`, `"h"`, `"xy"`, `"button"`) still reads, in the library and in the editor.
 - Geometry `{x,y,w,h}` is in cells. `0,0` is the top left. `y` grows down.
 - Colour `{r,g,b}` is written like the Simple Color block's, without the alpha. -1 for a channel is the module's own colour.
-- Output `{out,ch,num,rx}`, range `{min,max}`, behaviour `{mode,sensitivity,spring,bmo,group}` and capture `{fingers,tap,grab}` hold the options of section 4 by position. Three of them are numbers to keep the line short:
+- Output `{out,ch,num,rx}`, behaviour `{mode,sensitivity,spring,bmo,group}` and capture `{fingers,tap,grab}` hold the options of section 4 by position. Three of them are numbers to keep the line short:
   - `out` is `msg` and `cmd` together: `0` CC, `1` CC 14-bit, `2` Note, `3` Pitch bend, `4` Mouse, `5` Gamepad.
   - `mode` is `0` absolute or `1` relative.
   - `grab` is `0` focus or `1` live.
@@ -62,30 +62,28 @@ The editor writes the line in the form `compressScript` produces: no spaces, dou
 
 The editor's schema is in `zone-model.ts`. The library's defaults are in `Z.def` and `Z.kind` in `zona.lua`. A test checks that the two match. "Kinds" says which kinds show the option. "Hidden for" says which outputs hide it on the face. The library ignores an option its output does not use.
 
-| Key           | Applies to | Section    | Default                                                  | Range                                                                         | Hidden for         |
-| ------------- | ---------- | ---------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------ |
-| `dir`         | fader      | Geometry   | `v`                                                      | `v`, `h`, `xy`                                                                |                    |
-| `min`         | all        | Resolution | none; the library uses 0                                 | integer                                                                       | mouse, pad         |
-| `max`         | all        | Resolution | none; the library uses 127, or 16383 for `cc14` and `pb` | integer                                                                       | mouse, pad         |
-| `mode`        | fader, xy  | Behaviour  | `abs`                                                    | `abs`, `rel`                                                                  | mouse              |
-| `sensitivity` | fader, xy  | Behaviour  | 1                                                        | 0.01–10                                                                       |                    |
-| `bmo`         | button     | Behaviour  | 0                                                        | 0–127                                                                         |                    |
-| `spring`      | fader, xy  | Behaviour  | -1                                                       | -1, 0–100                                                                     | mouse              |
-| `group`       | button     | Behaviour  | 0                                                        | 0–8                                                                           |                    |
-| `fingers`     | xy         | Capture    | 1                                                        | 1–5                                                                           | mouse, pad         |
-| `grab`        | all        | Capture    | `focus`                                                  | `focus`, `live`                                                               |                    |
-| `col`         | all        | LED        | none; the module's default colour                        | `{r,g,b}`                                                                     |                    |
-| `msg`         | all        | Output     | `midi`                                                   | `midi`, `mouse`, `pad`                                                        |                    |
-| `cmd`         | all        | Output     | fader `cc`, button `note`                                | fader: `cc`, `cc14`, `pb`; button: `note`, `cc`, `cc14`; XY pad: `cc`, `cc14` | mouse, pad         |
-| `ch`          | all        | Output     | -1 (auto)                                                | -1–15                                                                         | mouse, pad         |
-| `num`         | all        | Output     | -1 (auto)                                                | -1–127                                                                        | mouse on fader, xy |
-| `rx`          | all        | Output     | 0                                                        | 0–1                                                                           | mouse, pad         |
-| `tap`         | xy         | Output     | 1                                                        | 0–1                                                                           | midi, pad          |
+| Key           | Applies to | Section   | Default                           | Range                                                                         | Hidden for         |
+| ------------- | ---------- | --------- | --------------------------------- | ----------------------------------------------------------------------------- | ------------------ |
+| `dir`         | fader      | Geometry  | `v`                               | `v`, `h`, `xy`                                                                |                    |
+| `mode`        | fader, xy  | Behaviour | `abs`                             | `abs`, `rel`                                                                  | mouse              |
+| `sensitivity` | fader, xy  | Behaviour | 1                                 | 0.01–10                                                                       |                    |
+| `bmo`         | button     | Behaviour | 0                                 | 0–127                                                                         |                    |
+| `spring`      | fader, xy  | Behaviour | -1                                | -1, 0–100                                                                     | mouse              |
+| `group`       | button     | Behaviour | 0                                 | 0–8                                                                           |                    |
+| `fingers`     | xy         | Capture   | 1                                 | 1–5                                                                           | mouse, pad         |
+| `grab`        | all        | Capture   | `focus`                           | `focus`, `live`                                                               |                    |
+| `col`         | all        | LED       | none; the module's default colour | `{r,g,b}`                                                                     |                    |
+| `msg`         | all        | Output    | `midi`                            | `midi`, `mouse`, `pad`                                                        |                    |
+| `cmd`         | all        | Output    | fader `cc`, button `note`         | fader: `cc`, `cc14`, `pb`; button: `note`, `cc`, `cc14`; XY pad: `cc`, `cc14` | mouse, pad         |
+| `ch`          | all        | Output    | -1 (auto)                         | -1–15                                                                         | mouse, pad         |
+| `num`         | all        | Output    | -1 (auto)                         | -1–127                                                                        | mouse on fader, xy |
+| `rx`          | all        | Output    | 0                                 | 0–1                                                                           | mouse, pad         |
+| `tap`         | xy         | Output    | 1                                 | 0–1                                                                           | midi, pad          |
 
 Meaning of each option:
 
 - `dir`: which way a fader runs. `v`: bottom is min. `h`: left is min.
-- `min`, `max`: the value range. Without them the range is 0–127, or 0–16383 for `cc14` and `pb`. When the user picks another `cmd`, the editor writes `min=0` and the command's `max` (127, or 16383 for `cc14` and `pb`), replacing the old range.
+- There is no range option. The value range is the command's: 0–127 for `cc` and `note`, 0–16383 for `cc14` and `pb` (a gamepad axis is -128–127). An older line with a range (`min`, `max`, or the `{min,max}` table of library 0.25.0) still runs and reads; the range is ignored and dropped when the line is written again.
 - `dir`: `v` and `h` are a fader, bottom to top or left to right. `xy` is an XY pad with two sources, x and y. In the table, "xy" means a fader with `dir="xy"`.
 - `mode`: how the finger moves the value. `abs` jumps to the finger. `rel` adds the finger's movement times `sensitivity`.
 - `sensitivity`: for `rel`, the drag factor. For a mouse zone, the move multiplier. The face shows it only in `rel` mode, and for mouse output. The option was called `speed` before 0.16.0; the library still reads it when `sensitivity` is absent, and the editor shows it as an unknown option.
@@ -104,8 +102,6 @@ Meaning of each option:
 
 Extra rules the validator applies:
 
-- `min` must be below `max`. Pitch bend counts as 14-bit.
-- `min` and `max` must be in 0–16383 when the zone sends MIDI.
 - An explicit `num` must keep every number on the wire in range: a 14-bit CC 0–31 (XY 0–30), a 7-bit XY 0–126, a gamepad axis 0–5 (XY 0–4), a gamepad button 0–31.
 - `spring` on a button is an error. `fingers` on a fader or button is an error.
 - The geometry must be whole numbers, at least 1×1, inside the 9×9 grid.
@@ -145,7 +141,7 @@ A duplicate filter per source holds the last value on the wire. A value is sent 
 
 ### Gamepad
 
-`msg="pad"`. Finger 1 only. The library sets `fingers=1`, `rx=0`, `min=-128`, `max=127`.
+`msg="pad"`. Finger 1 only. The library sets `fingers=1` and `rx=0`, and the axis range is -128 to 127.
 
 - **Fader and XY**: axes. The travel maps to -128…127. `ggms(axis, pos)`. An XY sends x on `num` and y on `num+1`. `mode`, `sensitivity`, `spring` and `grab` apply. An XY with `spring=50` is a joystick centred on 0.
 - **Button**: `ggbs(button, 1)` on any step but the first, `ggbs(button, 0)` on the first. It follows `bmo` and groups like a note.
@@ -178,7 +174,7 @@ Removing the last zone line leaves the previous surface running until the page r
 
 ### Touch routing
 
-`Z.touch(self, id, evt, x, y)` is the touch callback. `id` is a contact slot 0–4. `evt` 4 is down, 1 is move, 5 is up. 3 and 7 are treated as up. 9 is a tap in one scan: the library runs a down then an up at the same point. From library 0.25.0 the callback also takes the events queued behind the one it was given: it calls `self:touch_pop()` and reads `tid`, `tev`, `txv` and `tyv`, as the firmware's own event loop does, until the queue is empty, and paints once. Every event still sends its output, and the LEDs show the newest position, so a slow paint makes the next one cover more events instead of falling behind. A firmware without `touch_pop` on the element gets one event per callback, as before.
+`Z.touch(self, id, evt, x, y)` is the touch callback. `id` is a contact slot 0–4. `evt` 4 is down, 1 is move, 5 is up. 3 and 7 are treated as up. 9 is a tap in one scan: the library runs a down then an up at the same point. From library 0.26.0 the callback also takes the events queued behind the one it was given: it calls `self:touch_pop()` and reads `tid`, `tev`, `txv` and `tyv`, as the firmware's own event loop does, until the queue is empty, and paints once. Every event still sends its output, and the LEDs show the newest position, so a slow paint makes the next one cover more events instead of falling behind. A firmware without `touch_pop` on the element gets one event per callback, as before.
 
 - A down finds the first zone, in definition order, that contains the point.
 - **The first contact owns a zone.** A contact landing on a held zone is ignored until it lifts. An XY with `fingers` above 1 gives a new contact the lowest free finger number instead, up to `fingers`.
@@ -191,7 +187,7 @@ Removing the last zone line leaves the previous surface running until the page r
 ### Values
 
 - The position inside the zone is 0–1 per axis. For a vertical fader 0 is the bottom. For an XY y 0 is the bottom.
-- The value is `min + round(position * (2^bits - 1)) * (max - min) / (2^bits - 1)`, rounded.
+- `min` and `max` below are the command's range (0 and 127, or 0 and 16383), and -128 and 127 for a gamepad axis. The value is `min + round(position * (2^bits - 1)) * (max - min) / (2^bits - 1)`, rounded.
 - Steps: the step values are `min`, then `min + trunc((max - min) / bmo)` added bmo times. With `bmo=0` the second value is `max`. The firmware's own stepping differs for some ranges. That is noted in the code.
 - Groups: a press that turns a group member on turns the other members of the group off first. They send their off value. Every member can be off.
 - Spring: the zone rests at position 0.5 per axis and sends nothing at start. On release it returns to 0.5 at once. `rx` and `Z.set` put the value where they say.
@@ -211,7 +207,7 @@ Fixed phase levels: floor 16, dim 110, top 255. A vertical or horizontal fader h
 - Fader: a fill from the min end with a partial edge cell.
 - Button: the step level, 0 off at the floor to 1 on.
 - XY: a soft crosshair, normalised so its brightest cell is at the lit level. With fingers: one crosshair per held finger at top, the highest level per cell. With none held, finger 1's at dim.
-- XY paint cost: a crosshair is lit only in the two columns and the two rows around it, so the library computes only those cells (about 30 of 81 on a 9×9 pad) and returns the cells the last paint lit to the floor. The crosshair position is rounded to 1/8 cell, and a move that stays in the same 1/8 step (with the same fingers and held state) paints nothing; the MIDI or mouse output is not limited by this. The LED index of a cell is looked up once per surface (`Z.la`). From library 0.25.0. Before it, every cell was recomputed and written for each finger on every move: about 14,400 Lua VM instructions per move for a 9×9 pad with two fingers, about 4,800 now (the test `the work per move stays small` counts them).
+- XY paint cost: a crosshair is lit only in the two columns and the two rows around it, so the library computes only those cells (about 30 of 81 on a 9×9 pad) and returns the cells the last paint lit to the floor. The crosshair position is rounded to 1/8 cell, and a move that stays in the same 1/8 step (with the same fingers and held state) paints nothing; the MIDI or mouse output is not limited by this. The LED index of a cell is looked up once per surface (`Z.la`). From library 0.26.0. Before it, every cell was recomputed and written for each finger on every move: about 14,400 Lua VM instructions per move for a 9×9 pad with two fingers, about 4,800 now (the test `the work per move stays small` counts them).
 - A mouse fader or XY shows the finger at top while held and sits at the floor after.
 - `col={r,g,b}` goes through the firmware's `color_curve`. The curve's minimum is replaced by black, so phase 0 is off. Without `col` the module's default colour is used, as for a channel of -1. Zones with the same colour share one curve.
 - The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after `rx` or `Z.set` changed a value. Overlapping zones: the last zone covering a cell owns it.
@@ -240,7 +236,7 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 | `Z.def`, `Z.kind`                                                         | Option defaults and kind presets. The editor's copies must match them.          |
 | `Z.zs`, `Z.te`                                                            | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.25.0"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.26.0"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -277,11 +273,11 @@ The zone blocks share one face, `ZoneBlock.svelte`, and one header, `ZoneFace.sv
 
 ### Block face
 
-The face is built from the option schema. It shows the name, then the sections Geometry, LED, Output, Resolution, Behaviour and Capture. The LED section (the colour) comes right under the Type select. The sections have no titles and cannot be collapsed; each is a block of fields. A section with no field for the zone's kind and output is not shown. The Geometry section starts with `ZoneGeometryPad.svelte`, a 9×9 cell box area: drag the box to move it, drag a corner to resize it. The box is focusable and takes the DOM focus when pressed (or when selected by a click on it in the preview); the resize corners show only while it has the focus, so the focus is visible. The keyboard shortcuts are scoped to the focused box, as the element button and the action list scope theirs (a `keydown` handler on the focusable node that ignores events from inputs, uses Ctrl or Cmd, and stops the event): Ctrl/Cmd+C copies the zone to the app clipboard (`ClipboardKey.ZONE`), Ctrl/Cmd+V pastes a copy beside the focused zone (to its right, else below, as Add Zone places a copy) or logs that there is no room, and Delete or Backspace removes the zone (a block keeps at least one; the editor logs that otherwise). Empty cells do nothing, so a zone is moved to its place and then resized. The box has its zone's colour (`col`, the module's colour for a channel at -1), and the other zones of the Setup are drawn dimmer. Clicking another zone of the same block selects it in the zone select; zones of other blocks are only shown. It sets X, Y, Width and Height together; the four number fields are hidden (`{#if false}` in `ZoneBlock.svelte`). The Setup is sent when the drag ends.
+The face is built from the option schema. It shows the name, then the sections Geometry, LED, Output, Behaviour and Capture. The LED section (the colour) comes right under the Type select. The sections have no titles and cannot be collapsed; each is a block of fields. A section with no field for the zone's kind and output is not shown. The Geometry section starts with `ZoneGeometryPad.svelte`, a 9×9 cell box area: drag the box to move it, drag a corner to resize it. The box is focusable and takes the DOM focus when pressed (or when selected by a click on it in the preview); the resize corners show only while it has the focus, so the focus is visible. The keyboard shortcuts are scoped to the focused box, as the element button and the action list scope theirs (a `keydown` handler on the focusable node that ignores events from inputs, uses Ctrl or Cmd, and stops the event): Ctrl/Cmd+C copies the zone to the app clipboard (`ClipboardKey.ZONE`), Ctrl/Cmd+V pastes a copy beside the focused zone (to its right, else below, as Add Zone places a copy) or logs that there is no room, and Delete or Backspace removes the zone (a block keeps at least one; the editor logs that otherwise). Empty cells do nothing, so a zone is moved to its place and then resized. The box has its zone's colour (`col`, the module's colour for a channel at -1), and the other zones of the Setup are drawn dimmer. Clicking another zone of the same block selects it in the zone select; zones of other blocks are only shown. It sets X, Y, Width and Height together; the four number fields are hidden (`{#if false}` in `ZoneBlock.svelte`). The Setup is sent when the drag ends.
 
 - An enum is a select. The kind's default is selected when the line leaves the option out. Picking the default writes nothing. A value the schema does not know is listed as "value (unknown)" so the line is not rewritten until the user picks something.
-- Output and Command are one select, Output, as they are one number in the line (section 3). It lists every output for every zone, in the order of that number: MIDI CC, MIDI 14, MIDI Note, MIDI Pitchbend, then Mouse wheel, Mouse button or Mouse, then Gamepad axis, Gamepad button or Gamepad, by the zone's reader. The ones the zone can't take are listed but dimmed and can't be picked: MIDI Note on a fader, MIDI Note and MIDI Pitchbend on an XY pad, MIDI Pitchbend on a button (the dimming needs the `disabled` option of `MeltSelect`, which grid-uikit has from 1.20261105.1743; `withOutput` refuses an unavailable output either way). Picking a command sets `msg="midi"`, the `cmd` and the command's range (`min=0`, `max` 127 or 16383); picking Mouse or Gamepad sets `msg` and drops the command. There is no separate Command field (`zoneFaceSections` shows the option `out` with its `unavailable` values, `withOutput` sets it).
-- A number is a combo with suggestions. Channel lists Auto and channels 1–16. The number field is titled CC, Note, Button or Axis by the output. It lists Auto and the CC names, the notes, the mouse buttons (Left, Right, Middle, no Auto), the axes (X Axis to RZ Axis) or Button 0–31. Resolution lists 7–14 with their ranges. Max offers 127 and 16383. 0/1 options offer Off and On, except Receive MIDI (`rx`), which is a checkbox. Button mode offers Momentary and Toggle. A field without suggestions shows its range in the title.
+- Output and Command are one select, Output, as they are one number in the line (section 3). It lists every output for every zone, in the order of that number: MIDI CC, MIDI 14, MIDI Note, MIDI Pitchbend, then Mouse wheel, Mouse button or Mouse, then Gamepad axis, Gamepad button or Gamepad, by the zone's reader. The ones the zone can't take are listed but dimmed and can't be picked: MIDI Note on a fader, MIDI Note and MIDI Pitchbend on an XY pad, MIDI Pitchbend on a button (the dimming needs the `disabled` option of `MeltSelect`, which grid-uikit has from 1.20261105.1743; `withOutput` refuses an unavailable output either way). Picking a command sets `msg="midi"` and the `cmd`; picking Mouse or Gamepad sets `msg` and drops the command. There is no separate Command field (`zoneFaceSections` shows the option `out` with its `unavailable` values, `withOutput` sets it).
+- A number is a combo with suggestions. Channel lists Auto and channels 1–16. The number field is titled CC, Note, Button or Axis by the output. It lists Auto and the CC names, the notes, the mouse buttons (Left, Right, Middle, no Auto), the axes (X Axis to RZ Axis) or Button 0–31. 0/1 options offer Off and On, except Receive MIDI (`rx`), which is a checkbox. Button mode offers Momentary and Toggle. A field without suggestions shows its range in the title.
 - Auto placeholders show the resolved values: "auto (ch 1)", "auto (33)", "auto (X)". A mouse button shows "1 (Left)".
 - The colour field is `ColorEditor.svelte` (`main/user-interface/`), the colour editing of the Simple Color block as one component, which the Simple Color block uses too. In a zone it always uses the classic picker, with no picker style select, and without Alpha and its slider (the colour has no alpha). The Red, Green and Blue fields (with Auto, -1) show only outside minimalist mode. A Use Default Color button sets red, green and blue to -1, the page's default colour. The default colour is written as `{-1,-1,-1}`.
 - The Output section ends with "Sends …": `CC 32 ch 1`, `CC 1/33 ch 1` (14-bit), `CC 34, 35 ch 1` (XY), `CC 32, 33 ch 1–3` (fingers), `Note 36 ch 1`, `PB ch 1`, `Mouse`, `Mouse wheel`, `Mouse Left`, `Gamepad X`, `Gamepad Y, Z`, `Gamepad button 0`. Channels are 1-based.
