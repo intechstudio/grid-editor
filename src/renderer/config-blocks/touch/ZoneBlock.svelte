@@ -59,6 +59,8 @@
     zoneType,
     zoneTypeLabel,
     blockZoneLabels,
+    zoneOptionChoices,
+    resetZone,
     zoneTypeSchema,
     zoneOptionSuggestions,
     withOption,
@@ -434,6 +436,17 @@
     dispatch("sync");
   }
 
+  // Reset Zone (the zone's context menu on the preview): every setting back to
+  // its default, the type, name, position and size kept.
+  function handleResetZone() {
+    if (zones === null || zone === null) {
+      return;
+    }
+    fieldErrors = {};
+    commit(zones.map((e, i) => (i === selected ? resetZone(e) : e)));
+    sync();
+  }
+
   // Delete removes the focused zone; a block keeps at least one.
   function handleDeleteZone() {
     if (zones !== null && zones.length < 2) {
@@ -576,6 +589,7 @@
               on:copy={handleCopyZone}
               on:paste={handlePasteZone}
               on:delete={handleDeleteZone}
+              on:reset={handleResetZone}
               on:change={(e) => setGeometry(e.detail)}
               on:end={sync}
             />
@@ -627,6 +641,10 @@
                 {schema}
                 read={zoneRead(zone)}
                 title={optionLabel(schema.key, zone)}
+                choices={zoneOptionChoices(zone, schema.key)}
+                wide={(schema.key === "out" &&
+                  !options.some((e) => e.key === "mode")) ||
+                  schema.key === "tap"}
                 value={schema.key === "out"
                   ? zoneOutputText(zone)
                   : schema.type === "integer" || schema.type === "number"

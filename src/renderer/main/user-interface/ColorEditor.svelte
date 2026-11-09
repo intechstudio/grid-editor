@@ -155,5 +155,10 @@
         {preProcessor}
       />
     {/each}
+    <!-- Something inline after the three fields, such as a Reset button; it
+         goes with the fields, so it is not there without them. -->
+    {#if showChannels}
+      <slot name="channels-end" />
+    {/if}
   </BlockRow>
 </color-editor>

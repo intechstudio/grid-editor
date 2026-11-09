@@ -36,6 +36,8 @@ import {
   optionShownText,
   withOption,
   blockZoneLabels,
+  zoneOptionChoices,
+  resetZone,
 } from "../config-blocks/touch/zone-blocks";
 import {
   zoneLabels,
@@ -260,7 +262,7 @@ test("the library treats a fully defined line like the short one", async () => {
     `_Z.button(self,"b1",1,0,2,2,{})`,
     `_Z.fader(self,"p1",3,0,4,4,{dir="xy",cmd="cc14",ch=2})`,
     `_Z.fader(self,"f2",8,0,1,9,{cmd="pb",spring=50})`,
-    `_Z.button(self,"b2",1,3,2,2,{msg="mouse",bmo=1})`,
+    `_Z.button(self,"b2",1,3,2,2,{msg="mouse",num=2})`,
     `_Z.fader(self,"g1",7,0,1,9,{msg="pad",col={255,0,0,1}})`,
   ];
   const run = async (setup) => {
@@ -349,16 +351,16 @@ test("a mouse zone's face shows only the fields mouse uses", () => {
     "dir",
     "col",
     "out",
-    "tap",
+    // Sensitivity and Tap to click are both behaviour, side by side
     "sensitivity",
+    "tap",
     "grab",
   ]);
+  // no Button mode and no Radio group: a mouse button is pressed while touched
   expect(fields(`_Z.button(self,"b1",0,0,2,2,{msg="mouse"})`)).toEqual([
     "col",
     "out",
     "num",
-    "bmo",
-    "group",
     "grab",
   ]);
 });
@@ -367,9 +369,10 @@ test("a gamepad zone's face shows its target and the value behaviour", () => {
   expect(fields(`_Z.fader(self,"f1",0,0,1,9,{msg="pad"})`)).toEqual([
     "dir",
     "col",
+    // Mode is next to the Output, in the same row
     "out",
-    "num",
     "mode",
+    "num",
     "spring",
     "grab",
   ]);
@@ -389,7 +392,7 @@ test("sensitivity shows in relative mode, and always for the mouse", () => {
 test("the header names the mouse output", () => {
   const label = (line) => zoneOutputLabel(parseZone(line), null);
   expect(label(`_Z.fader(self,"p1",0,0,4,4,{dir="xy",msg="mouse"})`)).toBe(
-    "Mouse",
+    "Mouse move",
   );
   expect(label(`_Z.fader(self,"f1",0,0,1,9,{msg="mouse"})`)).toBe(
     "Mouse wheel",
@@ -573,10 +576,18 @@ test("a pasted zone goes beside the focused one, with no 1x1 fallback", () => {
     3,
     3,
   ]);
-  // no room on the right: below
+  // no room on the right: the beginning of the next line, aligned left (not
+  // under the zone)
   const wideAnchor = z("f1", 5, 0, 4, 3);
   const below = placedCopy(copied, wideAnchor, [wideAnchor]);
-  expect([below.x, below.y]).toEqual([5, 3]);
+  expect([below.x, below.y]).toEqual([0, 3]);
+  // the left of that line is taken: as far left as there is room, else the
+  // lines after it
+  const blocker = z("g", 0, 3, 2, 3);
+  expect(placedCopy(copied, wideAnchor, [wideAnchor, blocker]).x).toBe(2);
+  const full = z("g", 0, 3, 9, 3);
+  const later = placedCopy(copied, wideAnchor, [wideAnchor, full]);
+  expect([later.x, later.y]).toEqual([0, 6]);
   // no room beside it: nothing, the editor logs a message
   const tall = z("f1", 0, 0, 9, 9);
   expect(placedCopy(copied, tall, [tall])).toBeUndefined();
@@ -642,50 +653,67 @@ test("a colour has no alpha: red, green and blue, and an old fourth value is dro
   expect(issues([LIB, `_Z.b(0,0,1,1).n("b").col(300,0,0)`]).length).toBe(1);
 });
 
-test("Output and Command are one select, listing every output and dimming the ones the zone can't take", () => {
+test("Output and Command are one select, listing only the outputs the zone can take", () => {
   const out = (line) => {
     const zone = parseZone(line);
     return zoneFaceSections(zone)
       .flatMap((e) => e.options)
       .find((e) => e.key === "out");
   };
-  // all are listed: the MIDI ones (CC, 14-bit, Note, Pitch bend, NRPN, NRPN
-  // 14-bit), then the mouse and the gamepad
-  const all = ["0", "1", "2", "3", "6", "7", "4", "5"];
-  expect(out(`_Z.fader(self,"f",0,0,1,9,{})`).values).toEqual(all);
-  // what a kind and reader can't take is unavailable: a fader has no note,
-  // an XY pad no note or pitch bend, a button no pitch bend
-  expect(out(`_Z.fader(self,"f",0,0,1,9,{})`).unavailable).toEqual(["2"]);
-  expect(out(`_Z.fader(self,"p",0,0,4,4,{dir="xy"})`).unavailable).toEqual([
-    "2",
+  // the MIDI ones (CC, 14-bit, Note, Pitch bend, NRPN, NRPN 14-bit), then the
+  // mouse and the gamepad; what a kind and reader can't take is not listed: a
+  // fader has no note, an XY pad no note or pitch bend, a button no pitch bend
+  expect(out(`_Z.fader(self,"f",0,0,1,9,{})`).values).toEqual([
+    "0",
+    "1",
     "3",
+    "6",
+    "7",
+    "4",
+    "5",
   ]);
-  expect(out(`_Z.button(self,"b",0,0,1,1,{})`).unavailable).toEqual(["3"]);
+  expect(out(`_Z.fader(self,"p",0,0,4,4,{dir="xy"})`).values).toEqual([
+    "0",
+    "1",
+    "6",
+    "7",
+    "4",
+    "5",
+  ]);
+  expect(out(`_Z.button(self,"b",0,0,1,1,{})`).values).toEqual([
+    "0",
+    "1",
+    "2",
+    "6",
+    "7",
+    "4",
+    "5",
+  ]);
+  // an output the line has but the zone can't take (written by hand) is
+  // listed, so the select shows it
+  expect(out(`_Z.fader(self,"f",0,0,1,9,{cmd="note"})`).values).toContain("2");
   // no Command field
   expect(fields(`_Z.fader(self,"f",0,0,1,9,{cmd="pb"})`)).not.toContain("cmd");
-  // the titles: the commands, the reader's mouse and gamepad; the select gets
-  // the unavailable ones as disabled
+  // the titles: the commands, the reader's mouse and gamepad
   const titles = (line, read) =>
-    enumOptions(out(line), "0", read).map((e) => [e.title, !!e.disabled]);
+    enumOptions(out(line), "0", read).map((e) => e.title);
   expect(titles(`_Z.fader(self,"f",0,0,1,9,{})`, "axis")).toEqual([
-    ["MIDI CC", false],
-    ["MIDI 14", false],
-    ["MIDI Note", true],
-    ["MIDI Pitchbend", false],
-    ["MIDI NRPN", false],
-    ["MIDI NRPN 14", false],
-    ["Mouse wheel", false],
-    ["Gamepad axis", false],
+    "MIDI CC",
+    "MIDI 14",
+    "MIDI Pitchbend",
+    "MIDI NRPN",
+    "MIDI NRPN 14",
+    "Mouse wheel",
+    "Gamepad axis",
   ]);
   expect(titles(`_Z.button(self,"b",0,0,1,1,{})`, "gate")).toEqual([
-    ["MIDI CC", false],
-    ["MIDI 14", false],
-    ["MIDI Note", false],
-    ["MIDI Pitchbend", true],
-    ["MIDI NRPN", false],
-    ["MIDI NRPN 14", false],
-    ["Mouse button", false],
-    ["Gamepad button", false],
+    "MIDI CC",
+    "MIDI 14",
+    "MIDI Note",
+    "MIDI NRPN",
+    "MIDI NRPN 14",
+    "Mouse button",
+    "Gamepad button",
   ]);
   // picking one sets msg and command, and a command brings its range
   const zone = parseZone(`_Z.fader(self,"f",0,0,1,9,{ch=3})`);
@@ -764,4 +792,86 @@ test("the overlay labels unnamed zones by type and number", () => {
     ["Vertical Fader 1", "v1"],
     ["p", "p"],
   ]);
+});
+
+test("an XY pad shows Spring and Fingers in one row, and Sensitivity after them in relative mode", () => {
+  expect(fields(`_Z.xy(0,0,4,4)`)).toEqual([
+    "dir",
+    "col",
+    "out",
+    "mode",
+    "ch",
+    "num",
+    "spring",
+    "fingers",
+    "grab",
+  ]);
+  expect(fields(`_Z.xy(0,0,4,4).mode(1)`)).toEqual([
+    "dir",
+    "col",
+    "out",
+    "mode",
+    "ch",
+    "num",
+    "spring",
+    "fingers",
+    "sensitivity",
+    "grab",
+  ]);
+});
+
+test("the button of a mouse button zone is a row of buttons, Left by default", () => {
+  const choices = (line, key = "num") => {
+    const zone = parseZone(line);
+    return zoneOptionChoices(zone, key);
+  };
+  expect(choices(`_Z.b(0,0,1,1).mo()`)).toEqual([
+    { title: "Left", value: 1 },
+    { title: "Middle", value: 4 },
+    { title: "Right", value: 2 },
+  ]);
+  // no other output or option has them
+  expect(choices(`_Z.b(0,0,1,1)`)).toBeUndefined();
+  expect(choices(`_Z.b(0,0,1,1).ga()`)).toBeUndefined();
+  expect(choices(`_Z.b(0,0,1,1).mo()`, "bmo")).toBeUndefined();
+  // Left is the default: no number in the line, and Right and Middle are written
+  expect(zoneToLua(parseZone(`_Z.b(0,0,1,1).mo()`))).toBe(`_Z.b(0,0,1,1).mo()`);
+  expect(zoneToLua(parseZone(`_Z.b(0,0,1,1).mo(1)`))).toBe(
+    `_Z.b(0,0,1,1).mo()`,
+  );
+  expect(zoneToLua(parseZone(`_Z.b(0,0,1,1).mo(2)`))).toBe(
+    `_Z.b(0,0,1,1).mo(2)`,
+  );
+  expect(zoneToLua(parseZone(`_Z.b(0,0,1,1).mo(4)`))).toBe(
+    `_Z.b(0,0,1,1).mo(4)`,
+  );
+});
+
+test("a mouse button zone writes no Button mode and no Radio group", () => {
+  const zone = parseZone(
+    `_Z.button(self,"b",0,0,1,1,{msg="mouse",bmo=1,group=2})`,
+  );
+  expect(zoneToLua(zone)).toBe(`_Z.b(0,0,1,1).n("b").mo()`);
+  // a note or CC button keeps them
+  expect(
+    zoneToLua(parseZone(`_Z.button(self,"b",0,0,1,1,{bmo=1,group=2})`)),
+  ).toBe(`_Z.b(0,0,1,1).n("b").tog(1).grp(2)`);
+});
+
+test("Reset Zone puts every setting back and keeps the type, name, position and size", () => {
+  const zone = parseZone(
+    `_Z.xy(2,1,5,4).n("p1").col(255,0,0).gms(3,176,7,-1,1).mode(1).sens(2).spr("50%").fing(3).cap(1)`,
+  );
+  const reset = resetZone(zone);
+  expect(zoneToLua(reset)).toBe(`_Z.xy(2,1,5,4).n("p1")`);
+  expect(zoneType(reset)).toBe("xy");
+  // a button, and a fader that has no direction
+  expect(
+    zoneToLua(resetZone(parseZone(`_Z.b(0,0,2,2).col(1,2,3).mo(2)`))),
+  ).toBe(`_Z.b(0,0,2,2)`);
+  expect(zoneToLua(resetZone(parseZone(`_Z.h(0,0,9,1).spr("0%")`)))).toBe(
+    `_Z.h(0,0,9,1)`,
+  );
+  // the zone given is not changed
+  expect(zone.opt.col).toBe("255,0,0");
 });

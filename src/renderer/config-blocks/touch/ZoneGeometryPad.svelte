@@ -3,6 +3,7 @@
   // move it, drag a corner to resize it. Empty cells do nothing. It reports whole cells; the X, Y, Width and Height fields next to it
   // show and set the same numbers.
   import { createEventDispatcher, tick } from "svelte";
+  import { contextTarget } from "@intechstudio/grid-uikit";
 
   export let x: number;
   export let y: number;
@@ -33,7 +34,9 @@
   type Box = { x: number; y: number; w: number; h: number };
   type Drag =
     | { kind: "move"; from: Box; col: number; row: number }
-    | { kind: "span"; col: number; row: number };
+    | { kind: "span"; col: number; row: number }
+    // an edge: one axis only, the opposite edge (cell `fixed`) stays
+    | { kind: "edge"; axis: "x" | "y"; fixed: number; from: Box };
 
   let pad: HTMLElement;
   // The zone's box. It takes the DOM focus when pressed, and the resize
@@ -79,6 +82,10 @@
   }
 
   function begin(e: PointerEvent, next: Drag) {
+    // a drag is the primary button's; the right button opens the zone's menu
+    if (e.button !== 0) {
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     boxElement?.focus();
@@ -100,6 +107,24 @@
     });
   }
 
+  // The middle of an edge: that axis alone is resized, the opposite edge stays
+  // where it is and the other axis is not touched.
+  function handleEdgeStart(e: PointerEvent, side: "n" | "e" | "s" | "w") {
+    begin(e, {
+      kind: "edge",
+      axis: side === "e" || side === "w" ? "x" : "y",
+      fixed:
+        side === "e"
+          ? box.x
+          : side === "w"
+            ? box.x + box.w - 1
+            : side === "s"
+              ? box.y
+              : box.y + box.h - 1,
+      from: { ...box },
+    });
+  }
+
   function handleMove(e: PointerEvent) {
     if (drag === null) {
       return;
@@ -111,6 +136,20 @@
         x: clamp(drag.from.x + col - drag.col, 0, SIZE - drag.from.w),
         y: clamp(drag.from.y + row - drag.row, 0, SIZE - drag.from.h),
       });
+    } else if (drag.kind === "edge") {
+      report(
+        drag.axis === "x"
+          ? {
+              ...drag.from,
+              x: Math.min(drag.fixed, col),
+              w: Math.abs(col - drag.fixed) + 1,
+            }
+          : {
+              ...drag.from,
+              y: Math.min(drag.fixed, row),
+              h: Math.abs(row - drag.fixed) + 1,
+            },
+      );
     } else {
       report({
         x: Math.min(drag.col, col),
@@ -223,6 +262,16 @@
   {/each}
   <div
     bind:this={boxElement}
+    data-context-menu
+    on:contextmenu|stopPropagation
+    use:contextTarget={{
+      items: [
+        {
+          text: ["Reset Zone"],
+          handler: () => dispatch("reset"),
+        },
+      ],
+    }}
     role="button"
     aria-label="Selected zone"
     tabindex="0"
@@ -253,6 +302,26 @@
       role="presentation"
       class="corner se"
       on:pointerdown={(e) => handleCornerStart(e, true, true)}
+    ></div>
+    <div
+      role="presentation"
+      class="corner edge-n"
+      on:pointerdown={(e) => handleEdgeStart(e, "n")}
+    ></div>
+    <div
+      role="presentation"
+      class="corner edge-e"
+      on:pointerdown={(e) => handleEdgeStart(e, "e")}
+    ></div>
+    <div
+      role="presentation"
+      class="corner edge-s"
+      on:pointerdown={(e) => handleEdgeStart(e, "s")}
+    ></div>
+    <div
+      role="presentation"
+      class="corner edge-w"
+      on:pointerdown={(e) => handleEdgeStart(e, "w")}
     ></div>
   </div>
 </div>
@@ -305,7 +374,7 @@
     outline: none;
     box-shadow: 0 0 0 2px var(--foreground);
   }
-  /* the corners show only while the zone has the focus */
+  /* the corners and edge handles show only while the zone has the focus */
   .corner {
     display: none;
     position: absolute;
@@ -335,5 +404,26 @@
     right: -0.3rem;
     bottom: -0.3rem;
     cursor: nwse-resize;
+  }
+  /* the handles in the middle of the edges resize along one axis */
+  .edge-n {
+    top: -0.3rem;
+    left: calc(50% - 0.3rem);
+    cursor: ns-resize;
+  }
+  .edge-s {
+    bottom: -0.3rem;
+    left: calc(50% - 0.3rem);
+    cursor: ns-resize;
+  }
+  .edge-e {
+    right: -0.3rem;
+    top: calc(50% - 0.3rem);
+    cursor: ew-resize;
+  }
+  .edge-w {
+    left: -0.3rem;
+    top: calc(50% - 0.3rem);
+    cursor: ew-resize;
   }
 </style>

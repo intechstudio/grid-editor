@@ -9,8 +9,10 @@
   import {
     Color,
     MeltCombo,
+    MeltRadio,
     MeltSelect,
     MoltenPushButton,
+    Toggle,
   } from "@intechstudio/grid-uikit";
   import ColorEditor from "../../main/user-interface/ColorEditor.svelte";
   import {
@@ -18,12 +20,21 @@
     ColorPickerModel,
   } from "../../runtime/app-helper.store";
   import type { OptionSchema, ZoneRead } from "./zone-model";
-  import { enumOptions, type OptionSuggestion } from "./zone-blocks";
+  import {
+    enumOptions,
+    type OptionChoice,
+    type OptionSuggestion,
+  } from "./zone-blocks";
 
   export let schema: OptionSchema;
   // what the zone reads, which names its mouse output in the Output select
   export let read: ZoneRead | undefined = undefined;
   export let title: string;
+  // the field takes the whole row (the colour always does)
+  export let wide = false;
+  // A few values shown as a row of buttons, one to pick (the button of a mouse
+  // button zone); the first is the default. Without them, the field.
+  export let choices: OptionChoice[] | undefined = undefined;
   export let value: string;
   export let placeholder = "";
   export let problem: string | undefined = undefined;
@@ -55,6 +66,41 @@
   }
 
   $: options = enumOptions(schema, value, read);
+
+  // The picked button: the option's value, or the first button when it has
+  // none (-1 or out of the choices). Only a pick by the user is reported.
+  let choice = 0;
+  let lastChoice = 0;
+  $: if (typeof choices !== "undefined") {
+    const next = choices.some((e) => e.value === Number(shown))
+      ? Number(shown)
+      : choices[0].value;
+    if (next !== lastChoice) {
+      lastChoice = next;
+      choice = next;
+    }
+  }
+  $: if (typeof choices !== "undefined" && choice !== lastChoice) {
+    lastChoice = choice;
+    dispatch("input", String(choice));
+    dispatch("change", String(choice));
+  }
+
+  // Options shown as a toggle: the text of its on and its off state. Tap to
+  // click is 1 or 0; Capture focus is on for focus (the default) and off for
+  // live.
+  const TOGGLES: { [key: string]: { on: string; off: string } } = {
+    tap: { on: "1", off: "0" },
+    grab: { on: "focus", off: "live" },
+  };
+  $: isToggle = schema.key in TOGGLES;
+  let toggled = false;
+  $: toggled = isToggle && shown === TOGGLES[schema.key].on;
+  function handleToggle() {
+    const next = toggled ? TOGGLES[schema.key].on : TOGGLES[schema.key].off;
+    dispatch("input", next);
+    dispatch("change", next);
+  }
 
   // A field with suggestions shows its values there, not as "(min–max)".
   $: range =
@@ -162,8 +208,32 @@
   }
 </script>
 
-<div class="flex flex-col" class:col-span-2={schema.type === "color"}>
-  {#if schema.type === "enum"}
+<div
+  class="flex flex-col"
+  class:col-span-2={schema.type === "color" ||
+    wide ||
+    typeof choices !== "undefined"}
+  class:justify-end={isToggle}
+>
+  {#if isToggle}
+    <div class="py-2">
+      <Toggle
+        bind:value={toggled}
+        {title}
+        testid={`zone-${schema.key}`}
+        on:change={handleToggle}
+      />
+    </div>
+  {:else if typeof choices !== "undefined"}
+    <span class="choices-title">{title}</span>
+    <MeltRadio
+      options={choices}
+      bind:target={choice}
+      orientation="horizontal"
+      style="button"
+      size="full"
+    />
+  {:else if schema.type === "enum"}
     <MeltSelect {title} {options} bind:target={selected} size="full" />
   {:else if schema.type === "color"}
     <!-- The classic picker, without alpha: the zone takes the colour's red,
@@ -183,14 +253,18 @@
           e.detail.validationError,
         )}
       on:sync={() => dispatch("change", picked)}
-    />
-    <div class="self-start">
-      <MoltenPushButton
-        text="Use Default Color"
-        disabled={isDefaultColor}
-        click={handleUseDefaultColor}
-      />
-    </div>
+    >
+      <!-- in the row of the three fields, at the foot of their inputs, as wide
+           as it is (the fields share the rest of the row); the minimalist mode
+           leaves the fields out, and the button with them -->
+      <div slot="channels-end" class="flex flex-col justify-end !flex-none">
+        <MoltenPushButton
+          text="Reset"
+          disabled={isDefaultColor}
+          click={handleUseDefaultColor}
+        />
+      </div>
+    </ColorEditor>
   {:else}
     <MeltCombo
       title={`${title}${range}`}
@@ -207,3 +281,13 @@
     <span class="text-xs text-error">{problem}</span>
   {/if}
 </div>
+
+<style>
+  /* the title of a row of buttons, like the title of a field */
+  .choices-title {
+    color: var(--foreground);
+    font-size: 0.875em;
+    line-height: 1.25em;
+    margin-bottom: 0.25em;
+  }
+</style>

@@ -171,7 +171,7 @@ const MOUSE_BUTTON_NAMES: Record<number, string> = {
 
 // What a zone sends, for its header and the Output section: the MIDI
 // (zoneMidiLabel), "Gamepad X", "Gamepad X, Y" (xy), "Gamepad button 0", or
-// "Mouse" (xy), "Mouse wheel" (fader), "Mouse Left" (button by num, 1
+// "Mouse move" (xy), "Mouse wheel" (fader), "Mouse Left" (button by num, 1
 // without one; another: "Mouse button 3").
 export function zoneOutputLabel(zone: Zone, midi: ZoneMidi | null): string {
   if (midi?.type === "axis") {
@@ -187,7 +187,7 @@ export function zoneOutputLabel(zone: Zone, midi: ZoneMidi | null): string {
     return "Mouse wheel";
   }
   if (readerOf(zone) === "point") {
-    return "Mouse";
+    return "Mouse move";
   }
   const num = Number(option(zone, "num"));
   const button = num > 0 ? num : 1;

@@ -132,6 +132,13 @@ export function withZoneType(
   return next;
 }
 
+// The zone with every setting at its default, its type, name, position and
+// size kept (the colour and the output go back too).
+export function resetZone(zone: Zone): Zone {
+  const dir = zone.opt.dir;
+  return { ...zone, opt: typeof dir === "undefined" ? {} : { dir } };
+}
+
 const GRID = 9;
 
 // Whether cells are on the surface and free of every one of `zones`.
@@ -184,12 +191,23 @@ export function placedCopy(
     source.name === ""
       ? ""
       : freeName(source.kind, new Set(zones.map((e) => e.name)));
-  for (const [nx, ny] of [
-    [x + w, y],
-    [x, y + h],
-  ]) {
-    if (free(nx, ny, source.w, source.h)) {
-      return { ...source, opt: { ...source.opt }, name, x: nx, y: ny };
+  const copy = (nx: number, ny: number): Zone => ({
+    ...source,
+    opt: { ...source.opt },
+    name,
+    x: nx,
+    y: ny,
+  });
+  // to its right, else at the beginning of the next line below it (the first
+  // row under it), as far left as there is room there, then the lines after
+  if (free(x + w, y, source.w, source.h)) {
+    return copy(x + w, y);
+  }
+  for (let ny = y + h; ny + source.h <= GRID; ny++) {
+    for (let nx = 0; nx + source.w <= GRID; nx++) {
+      if (free(nx, ny, source.w, source.h)) {
+        return copy(nx, ny);
+      }
     }
   }
   return undefined;
@@ -279,17 +297,23 @@ export function zoneFaceSections(zone: Zone): ZoneFaceSection[] {
             zoneOptionShown(e, msg, zone),
         )
         // The Output and the Command are one select, "out": the numbers of
-        // zoneOutputs the zone can have. The Command field is not shown.
+        // zoneOutputs the zone can have (the others are not listed). The
+        // Command field is not shown.
         .filter((e) => e.key !== "cmd")
         .map((e) =>
           e.key === "msg"
             ? {
                 ...e,
                 key: "out",
-                values: zoneOutputOrder.map(String),
-                unavailable: zoneOutputOrder
+                // only the outputs the zone can take, and the one it has even if
+                // it can't (a line written by hand), so the select shows it
+                values: zoneOutputOrder
                   .map(String)
-                  .filter((e) => !zoneOutputValues(zone).includes(e)),
+                  .filter(
+                    (e) =>
+                      zoneOutputValues(zone).includes(e) ||
+                      e === String(zoneOutputCode(zone)),
+                  ),
               }
             : e,
         ),
@@ -398,7 +422,7 @@ const enumValueLabels: Record<string, Record<string, string>> = {
 
 // What a mouse or gamepad zone of each kind is, as its Output title.
 const zoneKindTitles: Record<string, Record<ZoneRead, string>> = {
-  mouse: { axis: "Mouse wheel", gate: "Mouse button", point: "Mouse" },
+  mouse: { axis: "Mouse wheel", gate: "Mouse button", point: "Mouse move" },
   pad: { axis: "Gamepad axis", gate: "Gamepad button", point: "Gamepad" },
 };
 
@@ -450,6 +474,26 @@ const OFF_ON: OptionSuggestion[] = [
 ];
 
 // gmbs buttons, no auto: a mouse button presses Left without num.
+// The buttons a mouse button zone can press, as a button-style radio group:
+// Left (1) is the default, then Middle (4) and Right (2).
+export type OptionChoice = { title: string; value: number };
+const MOUSE_BUTTON_CHOICES: OptionChoice[] = [
+  { title: "Left", value: 1 },
+  { title: "Middle", value: 4 },
+  { title: "Right", value: 2 },
+];
+
+// The option as a few buttons to pick from instead of a field: the button of a
+// mouse button zone. Undefined for every other option.
+export function zoneOptionChoices(
+  zone: Zone,
+  key: string,
+): OptionChoice[] | undefined {
+  return key === "num" && zoneSends(zone) === "mouse"
+    ? MOUSE_BUTTON_CHOICES
+    : undefined;
+}
+
 const MOUSE_BUTTONS: OptionSuggestion[] = [
   { value: "1", info: "Left" },
   { value: "2", info: "Right" },
@@ -641,7 +685,7 @@ export const optionLabels: Record<string, string> = {
   spring: "Spring to",
   fingers: "Fingers (one channel each)",
   group: "Radio group",
-  grab: "Capture",
+  grab: "Capture focus",
   col: "Colour",
   msg: "Output",
   out: "Output",
