@@ -81,6 +81,17 @@ export async function createZonaVM(env = {}) {
     _now = 0
     function os.clock() return _now end
     el = {}
+    -- the firmware's touch queue: touch_pop loads the next queued event, which
+    -- tid, tev, txv and tyv read (events.lua)
+    _q = {}
+    function el:touch_pop()
+      el.cur = table.remove(_q, 1)
+      return el.cur ~= nil
+    end
+    function el:tid() return el.cur[1] end
+    function el:tev() return el.cur[2] end
+    function el:txv() return el.cur[3] end
+    function el:tyv() return el.cur[4] end
     function el:ind() return 0 end
     function el:txma(v) rec("txma", v) end
     function el:tyma(v) rec("tyma", v) end
@@ -102,6 +113,13 @@ export async function createZonaVM(env = {}) {
     touch(...steps) {
       for (const [id, evt, x, y] of steps) {
         lua.doStringSync(`el:touch_cb(${id},${evt},${x},${y})`);
+      }
+    },
+    // Queues touch events behind the one touch_cb is given, as the firmware
+    // does when events come faster than the callback runs.
+    queue(...steps) {
+      for (const [id, evt, x, y] of steps) {
+        lua.doStringSync(`_q[#_q+1] = {${id},${evt},${x},${y}}`);
       }
     },
     // An incoming MIDI message {ch, cmd, p1, p2}, from the host by default

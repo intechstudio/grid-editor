@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.23.0, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.25.0, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -178,7 +178,7 @@ Removing the last zone line leaves the previous surface running until the page r
 
 ### Touch routing
 
-`Z.touch(self, id, evt, x, y)` is the touch callback. `id` is a contact slot 0–4. `evt` 4 is down, 1 is move, 5 is up. 3 and 7 are treated as up. 9 is a tap in one scan: the library runs a down then an up at the same point.
+`Z.touch(self, id, evt, x, y)` is the touch callback. `id` is a contact slot 0–4. `evt` 4 is down, 1 is move, 5 is up. 3 and 7 are treated as up. 9 is a tap in one scan: the library runs a down then an up at the same point. From library 0.25.0 the callback also takes the events queued behind the one it was given: it calls `self:touch_pop()` and reads `tid`, `tev`, `txv` and `tyv`, as the firmware's own event loop does, until the queue is empty, and paints once. Every event still sends its output, and the LEDs show the newest position, so a slow paint makes the next one cover more events instead of falling behind. A firmware without `touch_pop` on the element gets one event per callback, as before.
 
 - A down finds the first zone, in definition order, that contains the point.
 - **The first contact owns a zone.** A contact landing on a held zone is ignored until it lifts. An XY with `fingers` above 1 gives a new contact the lowest free finger number instead, up to `fingers`.
@@ -211,6 +211,7 @@ Fixed phase levels: floor 16, dim 110, top 255. A vertical or horizontal fader h
 - Fader: a fill from the min end with a partial edge cell.
 - Button: the step level, 0 off at the floor to 1 on.
 - XY: a soft crosshair, normalised so its brightest cell is at the lit level. With fingers: one crosshair per held finger at top, the highest level per cell. With none held, finger 1's at dim.
+- XY paint cost: a crosshair is lit only in the two columns and the two rows around it, so the library computes only those cells (about 30 of 81 on a 9×9 pad) and returns the cells the last paint lit to the floor. The crosshair position is rounded to 1/8 cell, and a move that stays in the same 1/8 step (with the same fingers and held state) paints nothing; the MIDI or mouse output is not limited by this. The LED index of a cell is looked up once per surface (`Z.la`). From library 0.25.0. Before it, every cell was recomputed and written for each finger on every move: about 14,400 Lua VM instructions per move for a 9×9 pad with two fingers, about 4,800 now (the test `the work per move stays small` counts them).
 - A mouse fader or XY shows the finger at top while held and sits at the floor after.
 - `col={r,g,b}` goes through the firmware's `color_curve`. The curve's minimum is replaced by black, so phase 0 is off. Without `col` the module's default colour is used, as for a channel of -1. Zones with the same colour share one curve.
 - The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after `rx` or `Z.set` changed a value. Overlapping zones: the last zone covering a cell owns it.
@@ -239,7 +240,7 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 | `Z.def`, `Z.kind`                                                         | Option defaults and kind presets. The editor's copies must match them.          |
 | `Z.zs`, `Z.te`                                                            | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.23.0"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.25.0"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -337,7 +338,7 @@ The control name overlay draws the zones on a touch element instead of a name. `
 `npx vitest run` on these files passes: 78 tests in `zona-lib.test.js`, `zone-editor.test.js`, `picker-filter.test.js` and `library.test.js`.
 
 - `zona-vm.js`: a Lua VM (wasmoon, Lua 5.4) that loads `compressScript(zona.lua)`, the text that reaches the module. Firmware globals are stubs that record their calls. `glag` is the ZONA's serpentine lookup. `color_curve` follows the firmware's. The firmware runs Lua 5.5, so code 5.5 rejects can pass here.
-- `zona-lib.test.js`: the header and version, the compressed size under 20480 bytes, defaults equal to `zone-model.ts`, a fader's CC, a button's note, a toggle, pitch bend, an XY's two CCs, mouse moves sent at once and cut at 127, tap to click and its limit, the mouse wheel, mouse buttons and drag lock, gamepad axes, joystick and button, host MIDI setting a value, a Setup re-run, `Z.unload`, LEDs painted at Setup, and 16 zones within 92 KB of Lua memory.
+- `zona-lib.test.js`: the header and version, the compressed size under 21504 bytes, defaults equal to `zone-model.ts`, a fader's CC, a button's note, a toggle, pitch bend, an XY's two CCs, mouse moves sent at once and cut at 127, tap to click and its limit, the mouse wheel, mouse buttons and drag lock, gamepad axes, joystick and button, host MIDI setting a value, a Setup re-run, `Z.unload`, LEDs painted at Setup, and 16 zones within 92 KB of Lua memory.
 - `zone-editor.test.js`: round trips of zone lines, old body lines not parsing, unknown options kept, lines written fully defined and read back the same, the library treating a full line like the short one, surface issues, the CC and channel the editor shows equal to what the library sends, the same for gamepad, overlay rectangles, face fields per output, and the mouse labels.
 - `picker-filter.test.js`: `isAllowedIn`.
 
@@ -423,7 +424,7 @@ The RFC went through eight revisions. These ideas were in it at some point and a
 
 - Six feedback round test profiles and their findings. The owner review replaced the next pass with a cut list.
 - A phase 0 hardware spike list.
-- Tick cost, heap and Setup budget figures measured on the module. Only the two test ceilings remain in the code: 20480 bytes compressed and 92 KB of Lua memory for 16 zones in the VM.
+- Tick cost, heap and Setup budget figures measured on the module. Only the two test ceilings remain in the code: 21504 bytes compressed and 92 KB of Lua memory for 16 zones in the VM.
 - The RFC's section numbers were cited in code comments. Those comments now point at this document.
 
 **Stretch goals never built**

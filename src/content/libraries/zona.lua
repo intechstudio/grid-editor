@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.23.0"
+local LIB_VERSION = "0.25.0"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -44,6 +44,7 @@ Z.op = nil -- the surface is still being built by its Setup run
 -- per cell x+y*9: last colour key, last phase; Z.el: the LEDs' owner index
 Z.lk = {}
 Z.lc = {}
+Z.la = {}
 Z.el = 0
 Z.R = {}
 
@@ -364,18 +365,29 @@ P.off = function()
   return 0
 end
 
--- the crosshair's position in cells, once per paint
+-- the crosshair's position in cells, once per paint, in steps of 1/8 cell: a
+-- smaller move doesn't repaint the pad
 local function pt(z)
   local c = z.c
-  local x, y = z.q.x * (c[3] - 1), (1 - z.q.y) * (c[4] - 1)
+  local x = math.floor(z.q.x * (c[3] - 1) * 8 + 0.5) / 8
+  local y = math.floor((1 - z.q.y) * (c[4] - 1) * 8 + 0.5) / 8
   z.cx, z.cy, z.cm = x, y, 2 - math.abs(x - math.floor(x + 0.5)) - math.abs(y - math.floor(y + 0.5))
 end
 
--- LED x of cell e, looked up only when it is written
+-- LED x of cell e, looked up once (Z.la) and only when it is written
+local function led(e)
+  local x = Z.la[e]
+  if not x then
+    x = glag(Z.el, e) or e
+    Z.la[e] = x
+  end
+  return x
+end
+
 local function lit(e, k, cc, ph)
   local x
   if Z.lk[e] ~= k then
-    x = glag(Z.el, e) or e
+    x = led(e)
     Z.lk[e] = k
     local u = table.unpack
     gln(x, 1, u(cc[1]))
@@ -383,7 +395,7 @@ local function lit(e, k, cc, ph)
     glx(x, 1, u(cc[3]))
   end
   if Z.lc[e] ~= ph then
-    x = x or glag(Z.el, e) or e
+    x = x or led(e)
     Z.lc[e] = ph
     glp(x, 1, ph)
   end
@@ -411,6 +423,68 @@ local function hd(z)
   end
 end
 
+-- the xy pad: a crosshair is lit only in the two columns and the two rows
+-- around it (the other cells are at the floor), so only those cells are
+-- computed, and the cells the last paint lit that no crosshair lights now go
+-- back to the floor. pv: the cells lit by the last paint, pw: a table kept to
+-- build the next one (no new table per paint). Cell k is x + y * width.
+local function paintpt(z, t, f, h, p)
+  local c = z.c
+  local w, m = c[3], c[4]
+  local nw, pv = z.pw or {}, z.pv
+  if not pv then
+    -- the first paint writes every cell
+    pv = {}
+    for k = 0, w * m - 1 do
+      pv[k] = true
+    end
+  end
+  if p == P.point then
+    for _, o in ipairs(z.os) do
+      if o.k > 0 or not t and o == z then
+        -- the level of a cell is (wx + wy) / cm: wx is 1 - dx on the column
+        -- left of the crosshair and dx on the one right of it (0 on the
+        -- others), wy the same for the rows (P.point, by columns and rows)
+        local x, y = math.floor(o.cx), math.floor(o.cy)
+        local dx, dy, cm = o.cx - x, o.cy - y, o.cm
+        for i = math.max(0, x), math.min(w - 1, x + 1) do
+          local wx = i == x and 1 - dx or dx
+          for j = 0, m - 1 do
+            local wy = j == y and 1 - dy or j == y + 1 and dy or 0
+            local v, k = (wx + wy) / cm, i + j * w
+            if v > (nw[k] or 0) then
+              nw[k] = v
+            end
+          end
+        end
+        for j = math.max(0, y), math.min(m - 1, y + 1) do
+          local v = (j == y and 1 - dy or dy) / cm
+          for i = 0, w - 1 do
+            if i < x or i > x + 1 then
+              local k = i + j * w
+              if v > (nw[k] or 0) then
+                nw[k] = v
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  for k, v in pairs(nw) do
+    lit(c[1] + k % w + (c[2] + k // w) * 9, z.ck, z.cc, math.floor(f + v * (h - f) + 0.5))
+  end
+  for k in pairs(pv) do
+    if not nw[k] then
+      lit(c[1] + k % w + (c[2] + k // w) * 9, z.ck, z.cc, f)
+    end
+  end
+  z.pv, z.pw = nw, pv
+  for k in pairs(pv) do
+    pv[k] = nil
+  end
+end
+
 local function paint(z)
   z.dt = nil
   local t = hd(z)
@@ -424,24 +498,27 @@ local function paint(z)
   local f = z.o.read == "axis" and LB or LF
   local h = t and LT or LD
   if z.o.read == "point" then
+    -- nothing to paint while no crosshair moved (a step is 1/8 cell), no
+    -- finger came or went, and the held state is the same
+    local d = not z.pv or z.lh ~= t
     for _, o in ipairs(z.os) do
       pt(o)
+      local a = o.k > 0 or not t and o == z
+      if o.la ~= a or a and (o.lx ~= o.cx or o.ly ~= o.cy) then
+        d = true
+      end
+      o.la, o.lx, o.ly = a, o.cx, o.cy
     end
+    z.lh = t
+    if d then
+      paintpt(z, t, f, h, p)
+    end
+    return
   end
   for j = 0, c[4] - 1 do
     for i = 0, c[3] - 1 do
       local e = c[1] + i + (c[2] + j) * 9
-      local v = 0
-      if z.fs then
-        for _, o in ipairs(z.os) do
-          if o.k > 0 or not t and o == z then
-            v = math.max(v, p(o, i, j, n))
-          end
-        end
-      else
-        v = p(z, i, j, n)
-      end
-      lit(e, z.ck, z.cc, math.floor(f + v * (h - f) + 0.5))
+      lit(e, z.ck, z.cc, math.floor(f + p(z, i, j, n) * (h - f) + 0.5))
     end
   end
 end
@@ -532,7 +609,7 @@ local function start(self)
   Z.uc = u ~= Z.rx and u or nil
   self.midirx_cb = Z.uc
   Z.lv = nil
-  Z.ct, Z.lk, Z.lc, Z.R = {}, {}, {}, {}
+  Z.ct, Z.lk, Z.lc, Z.la, Z.R = {}, {}, {}, {}, {}
 end
 
 local function add(self, n, x, y, w, h, opt, kind)
@@ -783,13 +860,26 @@ local function route(id, evt, x, y)
   end
 end
 
-function Z.touch(self, id, evt, x, y)
-  Z.op = nil
+local function event(id, evt, x, y)
   if evt == 9 then -- tap: down and up in one scan
     route(id, 4, x, y)
     evt = 5
   end
   route(id, evt, x, y)
+end
+
+-- The touch callback takes the event it is given and then the ones queued
+-- behind it (the firmware pops the queue the same way, one callback each), and
+-- paints once, so the LEDs show the newest position and a slow paint makes the
+-- next one cover more events instead of falling behind. Every event still
+-- sends its output.
+function Z.touch(self, id, evt, x, y)
+  Z.op = nil
+  event(id, evt, x, y)
+  local pop = self.touch_pop
+  while pop and pop(self) do
+    event(self:tid(), self:tev(), self:txv(), self:tyv())
+  end
   refresh()
 end
 
@@ -839,7 +929,7 @@ end
 -- after a new one is loaded.
 function Z.unload()
   drop()
-  Z.lk, Z.lc, Z.op = {}, {}, nil
+  Z.lk, Z.lc, Z.la, Z.op = {}, {}, {}, nil
   local e = Z.te
   if e and e.touch_cb == Z.touch then
     e.touch_cb = nil

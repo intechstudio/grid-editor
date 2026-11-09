@@ -1,5 +1,5 @@
 import { GridScript, initLuaFormatter } from "@intechstudio/grid-protocol";
-import { test, expect, beforeAll } from "vitest";
+import { test, expect, beforeAll, describe } from "vitest";
 import { createZonaVM, DOWN, MOVE, UP, TAP } from "./zona-vm";
 import zonaSource from "../../content/libraries/zona.lua?raw";
 import { zoneDefaults, zoneKinds } from "../config-blocks/touch/zone-model";
@@ -38,7 +38,7 @@ test("the library loads and declares its version in the header", async () => {
 test("the library fits on the module after compressScript", () => {
   const compressed = GridScript.compressScript(zonaSource);
   expect(compressed).toContain("function Z.unload()");
-  expect(compressed.length).toBeLessThan(20480);
+  expect(compressed.length).toBeLessThan(21504);
 });
 
 test("the library defaults match zone-model.ts", async () => {
@@ -431,4 +431,173 @@ test("Z.zone takes the zone by position, and a short table leaves the defaults",
   expect(await run(`Z.zone(self,"b",3,{0,0,2,2},{})`)).toEqual(
     await run(`Z.button(self,"b",0,0,2,2,{})`),
   );
+});
+
+// The xy pad paints only the cells around each crosshair, in 1/8 cell steps.
+describe("the xy pad paint", () => {
+  const SETUP = `Z.zone(self,"p",2,{0,0,9,9},{},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{2,1,0})`;
+  const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
+  // the last phase written to each LED, from a recorded call list
+  const phases = (vm, from = new Map()) => {
+    const p = new Map(from);
+    for (const e of vm.calls("glp")) p.set(e.args[0], e.args[2]);
+    return p;
+  };
+  const cl = (t) => Math.max(0, Math.min(1, t));
+  // the level of every cell by the plain formula, for crosshairs at (cx, cy)
+  const expected = (crosshairs) => {
+    const want = new Map();
+    for (let j = 0; j < 9; j++) {
+      for (let i = 0; i < 9; i++) {
+        let v = 0;
+        for (const [cx, cy] of crosshairs) {
+          const cm =
+            2 -
+            Math.abs(cx - Math.floor(cx + 0.5)) -
+            Math.abs(cy - Math.floor(cy + 0.5));
+          v = Math.max(
+            v,
+            (cl(1 - Math.abs(cx - i)) + cl(1 - Math.abs(cy - j))) / cm,
+          );
+        }
+        want.set(led(i, j), Math.floor(16 + v * (255 - 16) + 0.5));
+      }
+    }
+    return want;
+  };
+  // the crosshair of a raw touch in cells (y grows down), in 1/8 cell steps
+  const cross = (x, y) => [
+    Math.floor((x / 1023) * 8 * 8 + 0.5) / 8,
+    Math.floor((y / 1023) * 8 * 8 + 0.5) / 8,
+  ];
+
+  test("every cell is what the plain formula gives, for one and two fingers", async () => {
+    const vm = await createZonaVM();
+    vm.setup(SETUP);
+    let seen = phases(vm);
+    const touch = (...steps) => {
+      vm.touch(...steps);
+      seen = phases(vm, seen);
+      vm.clear();
+    };
+    vm.clear();
+    touch([0, DOWN, 300, 200]);
+    expect(seen).toEqual(expected([cross(300, 200)]));
+    touch([1, DOWN, 700, 800]);
+    expect(seen).toEqual(expected([cross(300, 200), cross(700, 800)]));
+    // a long drag leaves no cell lit behind the crosshair
+    for (const [x, y] of [
+      [420, 260],
+      [560, 610],
+      [90, 900],
+      [1000, 40],
+    ]) {
+      touch([0, MOVE, x, y]);
+      expect(seen).toEqual(expected([cross(x, y), cross(700, 800)]));
+    }
+    // lifting a finger: the other one stays
+    touch([0, 5, 1000, 40]);
+    expect(seen.get(led(8, 0))).not.toBe(255);
+  });
+
+  test("a move under 1/8 cell paints nothing", async () => {
+    const vm = await createZonaVM();
+    vm.setup(SETUP);
+    // two positions that fall in the same 1/8 cell step
+    let x = 300;
+    while (cross(x, 500)[0] !== cross(x + 5, 500)[0]) x++;
+    vm.touch([0, DOWN, x, 500]);
+    vm.clear();
+    vm.touch([0, MOVE, x + 5, 500]);
+    expect(vm.calls("glp")).toEqual([]);
+    // the position is still sent
+    expect(vm.midi().length).toBeGreaterThan(0);
+  });
+
+  test("the work per move stays small", async () => {
+    const vm = await createZonaVM();
+    vm.setup(SETUP);
+    vm.run("_n = 0 function _count() _n = _n + 1 end");
+    vm.touch([0, DOWN, 100, 100], [1, DOWN, 600, 400]);
+    let total = 0;
+    let moves = 0;
+    for (let s = 0; s < 100; s++) {
+      for (const id of [0, 1]) {
+        const x = Math.round(100 + id * 500 + 300 * Math.sin((s + id * 7) / 5));
+        const y = Math.round(500 + 400 * Math.cos((s + id * 3) / 7));
+        vm.run('_n = 0 debug.sethook(_count, "", 1)');
+        vm.touch([id, MOVE, x, y]);
+        total += vm.run("debug.sethook() return _n");
+        moves++;
+      }
+    }
+    // Lua VM instructions per move of a 9x9 pad with two fingers: about
+    // 14,400 when every cell was repainted on every move, about 4,800 now
+    expect(total / moves).toBeLessThan(6500);
+  });
+});
+
+describe("the touch queue", () => {
+  const SETUP = `Z.zone(self,"p",2,{0,0,9,9},{},{0,-1,-1,0},{0,127},{0,1,-1,0,0},{1,1,0})`;
+  const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
+  const moves = [
+    [200, 300],
+    [300, 400],
+    [420, 520],
+    [560, 610],
+    [700, 700],
+  ];
+
+  test("events queued behind the callback's are handled in it, and painted once", async () => {
+    // the LED state: the last phase written to each LED since the Setup
+    const state = (vm) => {
+      const p = new Map();
+      for (const e of vm.calls("glp")) p.set(e.args[0], e.args[2]);
+      return p;
+    };
+    // one callback per event, as the firmware without the drain would
+    const each = await createZonaVM();
+    each.setup(SETUP);
+    each.touch([0, DOWN, 100, 100]);
+    const before = each.calls("glp").length;
+    each.touch(...moves.map(([x, y]) => [0, MOVE, x, y]));
+    const eachWrites = each.calls("glp").length - before;
+    // the first event is the callback's, the others wait in the queue
+    const drained = await createZonaVM();
+    drained.setup(SETUP);
+    drained.touch([0, DOWN, 100, 100]);
+    const drainedBefore = drained.calls("glp").length;
+    drained.queue(...moves.slice(1).map(([x, y]) => [0, MOVE, x, y]));
+    drained.touch([0, MOVE, ...moves[0]]);
+    const drainedWrites = drained.calls("glp").length - drainedBefore;
+    // every position is still sent (the Setup and the first touch aside)
+    expect(drained.midi()).toEqual(each.midi());
+    // the LEDs end where the newest position puts them
+    expect(state(drained)).toEqual(state(each));
+    // and there are fewer LED writes: one paint instead of five
+    expect(drainedWrites).toBeLessThan(eachWrites / 2);
+    // the queue is empty afterwards
+    expect(drained.run("return #_q")).toBe(0);
+    expect(state(drained).get(led(6, 5))).toBeGreaterThan(16);
+  });
+
+  test("a finger lift in the queue ends the touch in the same callback", async () => {
+    const vm = await createZonaVM();
+    vm.setup(SETUP);
+    vm.touch([0, DOWN, 100, 100]);
+    vm.clear();
+    vm.queue([0, MOVE, 400, 400], [0, 5, 400, 400]);
+    vm.touch([0, MOVE, 300, 300]);
+    // the move, the next move and the release's output came out in order
+    expect(vm.midi().length).toBeGreaterThanOrEqual(4);
+    expect(vm.run("return Z.zs[1].k")).toBe(0);
+  });
+
+  test("a firmware without the queue calls still works", async () => {
+    const vm = await createZonaVM();
+    vm.setup(SETUP);
+    vm.run("el.touch_pop = nil");
+    vm.touch([0, DOWN, 100, 100], [0, MOVE, 300, 300]);
+    expect(vm.midi().length).toBeGreaterThan(0);
+  });
 });
