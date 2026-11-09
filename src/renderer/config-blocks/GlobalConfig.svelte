@@ -40,12 +40,8 @@
     Toggle,
   } from "@intechstudio/grid-uikit";
 
-  import { Modal } from "../main/modals/modal.store";
-  import { activeMonacoSession } from "../main/modals/monaco-session.store";
-  import Monaco from "../main/modals/Monaco.svelte";
-  import CodeEditor from "../main/user-interface/CodeEditor.svelte";
   import LineEditor from "../main/user-interface/LineEditor.svelte";
-  import CommitStatus from "../main/user-interface/CommitStatus.svelte";
+  import CodeEditorPanel from "./components/CodeEditorPanel.svelte";
   import { appSettings } from "../runtime/app-helper.store";
   import { runtime_manager } from "../runtime/runtime-manager.store";
   import {
@@ -68,7 +64,9 @@
   $: checked = checkConfigScript(GridScript.expandScript($action.script));
   $: config = (checked.ok ? checked.config : null) as ParsedConfig | null;
   $: configError = checked.ok ? "" : checked.error;
-  $: showControls = locked && config !== null;
+  // Minimalist mode has no code view: the controls are always shown.
+  $: minimalist = $appSettings.persistent.userLevelMinimalist === true;
+  $: showControls = (locked || minimalist) && config !== null;
 
   // After a control edit, remind the user that the module only keeps the
   // change once the page is stored. Hidden again when nothing is unsaved.
@@ -113,59 +111,13 @@
   // match the config, which makes this a no-op.
   $: pushValues(values);
 
-  // --- Code editor mode: same behavior as the Code block ---
+  // --- Code editor mode: the shared panel used by the Code block ---
 
-  let codeEditor: CodeEditor;
-  let commitButton: HTMLElement;
-  let commitEnabled = false;
-  let errorMessage = "";
-
-  function handleKeydown(e: KeyboardEvent) {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-      e.preventDefault();
-      e.stopPropagation();
-      commitButton?.querySelector("button")?.click();
-    }
-  }
+  let inlineDirty = false;
+  let editingInModal = false;
 
   $: elementType = ((action.parent as GridEvent)?.parent as GridElement)
     ?.type as ElementType;
-
-  $: editingInModal = $activeMonacoSession?.action === action;
-  $: inlineDirty = commitEnabled || errorMessage !== "";
-
-  let hadError = false;
-  $: {
-    const hasError = errorMessage !== "";
-    if (hasError !== hadError) {
-      hadError = hasError;
-      dispatch("update-action", {
-        short: action.information.short,
-        script: action.script,
-        validationError: hasError,
-      });
-    }
-  }
-
-  onDestroy(() => {
-    if (hadError) {
-      dispatch("update-action", {
-        short: action.information.short,
-        script: action.synced,
-        validationError: false,
-      });
-    }
-  });
-
-  let wasEditingInModal = false;
-  $: {
-    if (wasEditingInModal && !editingInModal) {
-      codeEditor?.reset();
-    }
-    wasEditingInModal = editingInModal;
-  }
-
-  $: editDisabled = !!$activeMonacoSession && $activeMonacoSession.dirty;
 
   // Uncommitted code edits would be lost when the editor goes away, so the
   // block can only lock once they are committed or discarded.
@@ -174,113 +126,55 @@
   function toggleLock() {
     locked = !locked;
   }
-
-  async function open_monaco() {
-    const session = $activeMonacoSession;
-    if (session) {
-      if (session.action === action) {
-        return;
-      }
-      if (session.dirty) {
-        return;
-      }
-      session.close();
-    }
-
-    new Modal.Window(Monaco, Modal.Snap.GridLayout, {
-      disableClickOutside: true,
-      disableEscapeClose: true,
-      showAsUnique: true,
-    }).show({
-      monaco_action: action,
-      initial_value: inlineDirty ? codeEditor?.getValue() : undefined,
-    });
-  }
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<global-config
-  class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto"
-  on:keydown={handleKeydown}
-  tabindex="-1"
->
-  <div
-    class="w-full flex flex-col"
-    class:grayscale={editingInModal}
-    class:opacity-50={editingInModal}
-  >
-    <div
-      class="flex flex-row gap-2 mb-2"
-      class:flex-wrap={!showControls}
-      class:items-center={!showControls}
-      class:items-start={showControls}
-    >
-      {#if !showControls}
-        <CommitStatus {commitEnabled} />
-      {:else}
+<global-config class="w-full flex flex-col">
+  {#if showControls && config}
+    <div class="relative w-full flex flex-col p-4 pb-2 pointer-events-auto">
+      <div class="flex flex-row gap-2 mb-2 items-center">
         <div class="flex flex-col min-w-0 flex-1">
-          <div class="text-sm text-foreground">
-            Adjust the configuration with the controls below.
-          </div>
-          <!-- Line is always reserved so the warning doesn't shift the layout -->
-          <div
-            class="text-sm text-orange-500 min-h-5"
-            data-testid="global-config-store"
-          >
+          <!-- One message at a time; the height is reserved so nothing shifts -->
+          <div class="flex min-h-5 items-center">
             {#if adjusted && unsaved}
-              Press <span class="text-green-500 font-semibold">Store</span> to apply
-              this change to the module.
+              <div class="text-warning" data-testid="global-config-store">
+                Warning: Store your changes to apply changes to the module.
+              </div>
+            {:else}
+              <div class="text-foreground">
+                Adjust the configuration with the controls below.
+              </div>
             {/if}
           </div>
         </div>
-      {/if}
-      {#if !showControls}
-        <div class="flex-grow"></div>
-      {/if}
-      <div
-        class="flex flex-row flex-wrap justify-end gap-2 items-center"
-        class:shrink-0={showControls}
-      >
-        {#if !showControls}
-          <MoltenPushButton
-            click={open_monaco}
-            disabled={editDisabled}
-            text={"Open Editor"}
-          />
-          <MoltenPushButton
-            click={() => codeEditor.reset()}
-            disabled={!inlineDirty || editingInModal}
-            text={"Discard"}
-          />
-          <div bind:this={commitButton} class="contents">
+        {#if !minimalist}
+          <div class="shrink-0">
             <MoltenPushButton
-              click={() => codeEditor.commit()}
-              disabled={!commitEnabled || editingInModal}
-              text={"Commit"}
-              style={"accept"}
+              click={toggleLock}
+              disabled={lockDisabled}
+              text={"Configure"}
             />
           </div>
         {/if}
-        <!-- Smaller in the locked view, where it is secondary to the controls -->
-        <div class:text-xs={showControls}>
-          <MoltenPushButton
-            click={toggleLock}
-            disabled={lockDisabled || config === null}
-            text={locked ? "Unlock" : "Lock"}
-          />
-        </div>
       </div>
-    </div>
 
-    {#if showControls && config}
-      <div class="flex flex-col" data-testid="global-config-controls">
+      <div
+        class="flex flex-col border-t border-background-soft"
+        data-testid="global-config-controls"
+      >
         {#each config.entries as entry, i (entry.name)}
           <div
             class="flex flex-col gap-1 py-3 border-b border-background-soft last:border-b-0"
           >
+            {#if entry.description}
+              <span
+                class="text-foreground-muted break-words"
+                data-testid="global-config-description"
+                >{entry.description}</span
+              >
+            {/if}
             <div class="grid grid-cols-[25%_1fr] gap-3 items-center">
               <span
-                class="text-sm text-foreground truncate"
+                class="text-foreground truncate"
                 title={entry.name}
                 data-testid="global-config-name">{entry.name}</span
               >
@@ -303,23 +197,24 @@
                 </div>
               {:else if entry.spec.type === "slider"}
                 <div class="flex flex-row items-center gap-3">
-                  <div class="slider-fill flex-grow min-w-0">
+                  <div class="flex-grow min-w-0">
                     <MeltSlider
                       bind:target={values[i]}
                       min={entry.spec.min}
                       max={entry.spec.max}
                       step={entry.spec.step}
+                      fill
                       on:commit={() => dispatch("sync")}
                     />
                   </div>
                   <span
-                    class="w-12 text-right text-sm tabular-nums text-foreground-muted"
+                    class="w-12 text-right tabular-nums text-foreground-muted"
                     >{values[i]}</span
                   >
                 </div>
               {:else if entry.spec.type === "input"}
                 <div
-                  class="border border-black flex items-center w-full"
+                  class="border border-background-soft flex items-center w-full"
                   data-testid="global-config-input"
                 >
                   <LineEditor
@@ -334,64 +229,31 @@
                 </div>
               {/if}
             </div>
-            {#if entry.description}
-              <span
-                class="text-xs text-foreground-muted break-words"
-                data-testid="global-config-description"
-                >{entry.description}</span
-              >
-            {/if}
           </div>
         {/each}
       </div>
-    {:else}
-      {#if config === null}
-        <div class="text-sm text-warning mb-2">
-          No controls for this script: {configError}
-        </div>
-      {/if}
-      <div class="w-full border border-background-soft bg-background-muted">
-        <CodeEditor
-          bind:this={codeEditor}
-          bind:commitEnabled
-          bind:errorMessage
-          {action}
-          name={$action.name}
-          restrictScope={elementType}
-          readOnly={editingInModal}
-          lineCount={$appSettings.persistent.codeEditorDefaultLines}
-          lineNumbers={false}
-          wordWrap={false}
-          luals
+    </div>
+  {:else}
+    {#if config === null}
+      <div class="text-warning px-4 pt-4" data-testid="global-config-error">
+        No controls for this script: {configError}
+      </div>
+    {/if}
+    <CodeEditorPanel
+      {action}
+      showOpenEditor={false}
+      showDiscard={false}
+      bind:inlineDirty
+      bind:editingInModal
+      on:update-action
+    >
+      <div slot="actions" class:hidden={minimalist && config !== null}>
+        <MoltenPushButton
+          click={toggleLock}
+          disabled={lockDisabled || config === null}
+          text={"Save"}
         />
       </div>
-
-      {#if errorMessage}
-        <div
-          class="text-left text-sm text-error whitespace-pre-line max-h-24 overflow-y-auto mt-2"
-        >
-          {errorMessage}
-        </div>
-      {/if}
-    {/if}
-  </div>
-
-  {#if editingInModal && !showControls}
-    <div
-      class="absolute inset-0 flex items-center justify-center pointer-events-auto"
-    >
-      <span
-        class="text-lg font-bold text-foreground-muted [text-shadow:0_0_6px_var(--background),0_0_6px_var(--background),0_0_6px_var(--background),0_0_12px_var(--background),0_0_12px_var(--background)]"
-      >
-        Currently open in editor window!
-      </span>
-    </div>
+    </CodeEditorPanel>
   {/if}
 </global-config>
-
-<style>
-  /* The uikit slider caps itself at 200px; let it fill the row */
-  .slider-fill :global(span.container) {
-    max-width: none !important;
-  }
-</style>
