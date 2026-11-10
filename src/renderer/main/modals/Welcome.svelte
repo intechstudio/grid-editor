@@ -155,6 +155,21 @@
       </section>
 
       <section class="flex min-w-0 flex-col gap-3">
+        <h2 class="m-0 text-xl text-foreground">
+          Try out how to work efficiently and fast with AI and Grid
+        </h2>
+        <!-- Stands out from the theme's accent: the button's accept style is
+             built from these three variables, so all are overridden here -->
+        <div
+          style="--accent: #7c5cff; --accent-muted: color-mix(in srgb, var(--accent), var(--shadow) 30%); --accent-soft: color-mix(in srgb, var(--accent), var(--shadow) 50%);"
+        >
+          <MoltenPushButton
+            text="DOCS: Grid AI guide - build configs faster with AI"
+            style="accept"
+            click={() => openExternal(configuration.DOCUMENTATION_GRID_AI_URL)}
+          />
+        </div>
+
         <div class="flex items-baseline justify-between gap-3">
           <h2 class="m-0 text-xl text-foreground">Latest release</h2>
         </div>
