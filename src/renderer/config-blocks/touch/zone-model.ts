@@ -19,6 +19,8 @@ export type ZoneOptions = {
   col?: string; // zone colour "red,green,blue", with ",alpha" (0-1) when it is not 1; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default; gamepad: axis 0-5 or button 0-31, -1 auto (Setup order)
+  chy: number; // xy pad, MIDI: the y's channel 0-15, -1 the channel of x
+  numy: number; // xy pad, MIDI: the y's number, -1 the number of x + 1
   spring: number; // fader, xy: -1 off, or 0-100: the % of the range the value returns to on release (50 is the centre)
   fingers: number; // xy pad: contacts it takes at once, 1-5; finger k on channel ch+k-1
   tap: 0 | 1; // mouse xy pad: 1 a short touch that barely moves clicks left
@@ -42,6 +44,8 @@ export const zoneDefaults: ZoneOptions = {
   bmo: 0,
   ch: -1,
   num: -1,
+  chy: -1,
+  numy: -1,
   spring: -1,
   fingers: 1,
   tap: 1,
@@ -227,6 +231,24 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     section: "output",
   },
   {
+    key: "chy",
+    type: "integer",
+    min: -1,
+    max: 15,
+    reads: ["point"],
+    hide: MOUSE_PAD,
+    section: "output",
+  },
+  {
+    key: "numy",
+    type: "integer",
+    min: -1,
+    max: 127,
+    reads: ["point"],
+    hide: MOUSE_PAD,
+    section: "output",
+  },
+  {
     key: "tap",
     type: "integer",
     min: 0,
@@ -257,12 +279,12 @@ export function zoneOptionSchemaFor(
                 ? ["cc", "cc14", "nrpn", "nrpn14"]
                 : zoneCmdValues[kind],
           }
-        : e.key === "num"
+        : e.key === "num" || e.key === "numy"
           ? {
               ...e,
               // an NRPN number is 14-bit
               ...(nrpn && e.type === "integer" ? { max: 16383 } : {}),
-              ...(kind !== "button" ? { hide: MOUSE } : {}),
+              ...(kind !== "button" && e.key === "num" ? { hide: MOUSE } : {}),
             }
           : e,
   );

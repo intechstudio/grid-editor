@@ -16,6 +16,7 @@ export type ZonePosition = { dx: number; dy: number; page: number };
 // are gamepad targets (ch unused).
 export type ZoneMidi = {
   ch: number;
+  ych?: number; // xy: the channel of y, when it is not the channel of x
   type: "note" | "cc" | "cc14" | "pb" | "nrpn" | "nrpn14" | "axis" | "button";
   nums: number[]; // one per source: x and y on an xy pad
   fingers: number; // xy: finger k sends on channel ch+k-1 (mod 16)
@@ -83,13 +84,20 @@ export function zoneMidi(
   // xy: y on the next number, an auto one wrapped like the auto itself
   const auto = (n: number) => mod(n, 128) % (type === "cc14" ? 32 : 128);
   const num = Number(option(zone, "num"));
-  const [x, y] =
+  const [x, autoY] =
     num < 0
       ? [auto(32 + pos.dx * 16 + base), auto(32 + pos.dx * 16 + base + 1)]
       : [num, num + 1];
+  // y has a channel and a number of its own when the zone sets them
+  const numy = Number(option(zone, "numy"));
+  const y = numy >= 0 ? numy : autoY;
   const ch = Number(option(zone, "ch"));
+  const chx = ch < 0 ? mod(pos.dy * 4 + pos.page, 16) : ch;
+  const chy = Number(option(zone, "chy"));
   return {
-    ch: ch < 0 ? mod(pos.dy * 4 + pos.page, 16) : ch,
+    ch: chx,
+    ych:
+      readerOf(zone) === "point" && chy >= 0 && chy !== chx ? chy : undefined,
     type,
     nums: type === "pb" ? [] : readerOf(zone) === "point" ? [x, y] : [x],
     fingers: readerOf(zone) === "point" ? Number(option(zone, "fingers")) : 1,
@@ -113,9 +121,9 @@ export function zoneMidiAt(
 }
 
 // 1-based channel or range: "1", "1–3", "15–16, 1" (fingers wrap at 16).
-function channels(midi: ZoneMidi): string {
-  const first = midi.ch + 1;
-  const last = mod(midi.ch + midi.fingers - 1, 16) + 1;
+function channels(midi: ZoneMidi, ch = midi.ch): string {
+  const first = ch + 1;
+  const last = mod(ch + midi.fingers - 1, 16) + 1;
   if (midi.fingers <= 1) {
     return String(first);
   }
@@ -134,21 +142,30 @@ export function zoneMidiLabel(midi: ZoneMidi | null): string {
     return "no MIDI";
   }
   const ch = `ch ${channels(midi)}`;
+  const ych = typeof midi.ych === "number" ? channels(midi, midi.ych) : null;
   if (midi.type === "pb") {
-    return `PB ${ch}`;
+    return ych === null ? `PB ${ch}` : `PB ${ch} / ${ych}`;
   }
   const nums = midi.nums
-    .map((n) => (midi.type === "cc14" ? `${n}/${n + 32}` : String(n)))
+    .map((n, i) => {
+      const text = midi.type === "cc14" ? `${n}/${n + 32}` : String(n);
+      return i === 1 && ych !== null ? `${text} ch ${ych}` : text;
+    })
     .join(", ");
-  const name =
-    midi.type === "note"
-      ? "Note"
-      : midi.type === "nrpn"
-        ? "NRPN"
-        : midi.type === "nrpn14"
-          ? "NRPN 14-bit"
-          : "CC";
-  return `${name} ${nums} ${ch}`;
+  if (ych !== null) {
+    return `${nameOf(midi)} ${nums.replace(", ", ` ${ch}, `)}`;
+  }
+  return `${nameOf(midi)} ${nums} ${ch}`;
+}
+
+function nameOf(midi: ZoneMidi): string {
+  return midi.type === "note"
+    ? "Note"
+    : midi.type === "nrpn"
+      ? "NRPN"
+      : midi.type === "nrpn14"
+        ? "NRPN 14-bit"
+        : "CC";
 }
 
 // ggms axes by number

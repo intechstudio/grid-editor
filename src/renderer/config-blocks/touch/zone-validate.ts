@@ -198,17 +198,39 @@ function numProblems(zone: Zone): ZoneProblem[] {
   // an NRPN number is 14-bit
   const nrpn = msg === "nrpn" || msg === "nrpn14";
   const wide = msg === "cc14";
-  const max = (nrpn ? 16383 : wide ? 31 : 127) - (xy ? 1 : 0);
+  // y goes on num+1 unless it has a number of its own
+  const nextY = xy && Number(option(zone, "numy")) < 0;
+  const max = (nrpn ? 16383 : wide ? 31 : 127) - (nextY ? 1 : 0);
   if (num <= max) {
     return [];
   }
   const why = [
     wide ? "a 14-bit CC sends its LSB on num+32" : "",
-    xy ? "y goes on num+1" : "",
+    nextY ? "y goes on num+1" : "",
   ]
     .filter((e) => e !== "")
     .join(", ");
   return [{ key: "num", message: `Use -1 (auto) or 0 to ${max}: ${why}` }];
+}
+
+// The number of y, when the zone sets one: a 14-bit CC sends its LSB on
+// numy+32.
+function numyProblems(zone: Zone): ZoneProblem[] {
+  const numy = Number(option(zone, "numy"));
+  const msg = zoneSends(zone);
+  if (numy < 0 || msg === "pb" || msg === "pad" || msg === "mouse") {
+    return [];
+  }
+  const max =
+    msg === "cc14" ? 31 : msg === "nrpn" || msg === "nrpn14" ? 16383 : 127;
+  return numy <= max
+    ? []
+    : [
+        {
+          key: "numy",
+          message: `Use -1 (num+1) or 0 to ${max}${msg === "cc14" ? ": a 14-bit CC sends its LSB on num+32" : ""}`,
+        },
+      ];
 }
 
 export function zoneProblems(zone: Zone): ZoneProblem[] {
@@ -229,6 +251,9 @@ export function zoneProblems(zone: Zone): ZoneProblem[] {
   // a mouse zone's num is a button
   if (msg !== "mouse" && !bad(["num", "msg", "cmd"])) {
     problems.push(...numProblems(zone));
+  }
+  if (zoneRead(zone) === "point" && !bad(["numy", "msg", "cmd"])) {
+    problems.push(...numyProblems(zone));
   }
   // the library ignores spring on a button
   if (zone.kind === "button" && typeof zone.opt.spring !== "undefined") {

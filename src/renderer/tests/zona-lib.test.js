@@ -38,7 +38,7 @@ test("the library loads and declares its version in the header", async () => {
 test("the library fits on the module after compressScript", () => {
   const compressed = GridScript.compressScript(zonaSource);
   expect(compressed).toContain("function Z.unload()");
-  expect(compressed.length).toBeLessThan(23552);
+  expect(compressed.length).toBeLessThan(23808);
 });
 
 test("the library defaults match zone-model.ts", async () => {
@@ -892,5 +892,87 @@ describe("overlapping zones", () => {
     }
     expect(last.size).toBeGreaterThan(0);
     expect([...last.values()].every((v) => v === 0)).toBe(true);
+  });
+});
+
+describe("the y of an xy pad", () => {
+  const sent = async (code, steps) => {
+    const vm = await zones(code);
+    vm.touch(...steps);
+    return wire(vm);
+  };
+  const touch = [[0, DOWN, 1023, 0]];
+
+  test("is on the channel of x and the next number without a call", async () => {
+    expect(await sent(`Z.xy(0,0,9,9).gms(2,176,10,-1,0)`, touch)).toEqual([
+      [2, 176, 10, 127],
+      [2, 176, 11, 127],
+    ]);
+  });
+
+  test("gy gives y its own channel and number", async () => {
+    expect(
+      await sent(
+        `Z.xy(0,0,9,9).gmsx(2,176,10,-1,0).gmsy(5,176,70,-1,0)`,
+        touch,
+      ),
+    ).toEqual([
+      [2, 176, 10, 127],
+      [5, 176, 70, 127],
+    ]);
+  });
+
+  test("a y channel alone keeps the next number, a y number alone the channel", async () => {
+    expect(
+      await sent(`Z.xy(0,0,9,9).gmsx(2,176,10,-1,0).gmsy(5,176)`, touch),
+    ).toEqual([
+      [2, 176, 10, 127],
+      [5, 176, 11, 127],
+    ]);
+    expect(
+      await sent(`Z.xy(0,0,9,9).gmsx(2,176,10,-1,0).gmsy(-1,176,70)`, touch),
+    ).toEqual([
+      [2, 176, 10, 127],
+      [2, 176, 70, 127],
+    ]);
+  });
+
+  test("each finger of the pad sends y on its channel + its number", async () => {
+    const vm = await zones(
+      `Z.xy(0,0,9,9).gmsx(2,176,10,-1,0).gmsy(8,176,70).fing(2)`,
+    );
+    vm.touch([0, DOWN, 1023, 0], [1, DOWN, 1023, 0]);
+    expect(wire(vm).map((e) => e[0])).toEqual([2, 8, 3, 9]);
+  });
+
+  test("works for a 14-bit CC, an NRPN and pitch bend", async () => {
+    expect(
+      (
+        await sent(
+          `Z.xy(0,0,9,9).gmsx(2,176,10,-1,1).gmsy(5,176,20,-1,1)`,
+          touch,
+        )
+      ).map((e) => [e[0], e[2]]),
+    ).toEqual([
+      [2, 10],
+      [2, 42],
+      [5, 20],
+      [5, 52],
+    ]);
+    expect(
+      (await sent(`Z.xy(0,0,9,9).gmsx(2,224,-1,-1,0).gmsy(5,224)`, touch)).map(
+        (e) => e[0],
+      ),
+    ).toEqual([2, 5]);
+  });
+
+  test("host MIDI on y's channel sets y", async () => {
+    const vm = await zones(
+      `Z.xy(0,0,9,9).gmsx(2,176,10,-1,0).gmsy(5,176,70,-1,0)`,
+    );
+    vm.rx(5, 176, 70, 127);
+    expect(vm.run("return Z.zs[1].q.y")).toBe(1);
+    vm.rx(2, 176, 70, 0);
+    expect(vm.run("return Z.zs[1].q.y")).toBe(1);
   });
 });

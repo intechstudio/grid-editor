@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.28.3"
+local LIB_VERSION = "0.29.1"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -17,6 +17,8 @@ Z.def = {
   bmo = 0,
   ch = -1,
   num = -1,
+  chy = -1,
+  numy = -1,
   spring = -1,
   fingers = 1,
   tap = 1,
@@ -84,12 +86,16 @@ local function wv(z, k)
 end
 
 -- the zone's MIDI or gamepad target for source k, once per value (z.l,
--- cleared by a press); y is on num+1, a 14-bit LSB on num+32
+-- cleared by a press); y is on num+1 and the channel unless the zone sets
+-- them, a 14-bit LSB on num+32
 local function snd(z, k)
   local w = wv(z, k)
   if z.m and z.l[k] ~= w then
     z.l[k] = w
-    local ch, p = z.ch, k == "y" and z.py or z.p
+    local ch, p = z.ch, z.p
+    if k == "y" then
+      ch, p = z.yc, z.py
+    end
     if z.m == 3 and z.o.read == "gate" then
       ggbs(p, w)
     elseif z.m == 3 then
@@ -268,6 +274,7 @@ local function fg(z, i)
   z.fm = z.fm or { __index = z } -- one metatable for the zone's fingers
   local o = setmetatable({
     ch = (z.ch + i - 1) % 16,
+    yc = (z.yc + i - 1) % 16,
     k = 0,
     l = {},
     u = { v = mi, x = mi, y = mi },
@@ -596,7 +603,8 @@ end
 -- the layers no zone paints on are dark (layer 2 only needs its phase at 0,
 -- and only once a zone has used it: Z.u2)
 local function dark()
-  local d = { { 0, 0, 0, 1 }, { 0, 0, 0, 1 }, { 0, 0, 0, 1 } }
+  local b = { 0, 0, 0, 1 }
+  local d = { b, b, b }
   for e = 0, 80 do
     local m = Z.ow[e] or 0
     if m & 1 == 0 then
@@ -624,11 +632,14 @@ end
 local function reg(z)
   if z.m and z.m < 3 then
     for _, k in ipairs(SR[z.o.read]) do
-      local pk = k == "y" and z.py or z.p
+      local pk, ch = z.p, z.ch
+      if k == "y" then
+        pk, ch = z.py, z.yc
+      end
       local r = { z = z, s = k, m = z.m, p = pk }
-      Z.R[z.m == 2 and ky(z.ch, 224, 0) or ky(z.ch, z.cmd, pk)] = r
+      Z.R[z.m == 2 and ky(ch, 224, 0) or ky(ch, z.cmd, pk)] = r
       if z.m == 1 then
-        Z.R[ky(z.ch, 176, pk + 32)] = r
+        Z.R[ky(ch, 176, pk + 32)] = r
       end
     end
     Z.te.midirx_cb = Z.rx
@@ -712,6 +723,9 @@ local function build(g, old)
     py = (p + 1) % 128 % (z14 and 32 or 128)
     p = p % 128 % (z14 and 32 or 128)
   end
+  if o.numy >= 0 then
+    py = o.numy
+  end
   local x, y, w, h = g.gm[1], g.gm[2], g.gm[3], g.gm[4]
   local z = {
     n = g.nm,
@@ -748,6 +762,7 @@ local function build(g, old)
     c = { x, y, w, h },
   }
   z.os = { z } -- the zone and its fingers' states (fg)
+  z.yc = o.chy < 0 and z.ch or o.chy
   rest(z)
   col(z, o.col)
   if old then
@@ -852,6 +867,15 @@ function M.gms(ch, cmd, p1, p2, mode)
     or mode == 3 and "nrpn14"
     or "cc"
   cur.op.msg, cur.op.cmd, cur.op.ch, cur.op.num = "midi", m, ch or -1, p1 or -1
+  return again()
+end
+
+-- gms for the x of an xy pad, and gms for its y with the same arguments: the
+-- channel and number of y (-1: those of x, number + 1). The command, p2 and
+-- mode of y are those of x.
+M.gmsx = M.gms
+function M.gmsy(ch, _, p1)
+  cur.op.chy, cur.op.numy = ch or -1, p1 or -1
   return again()
 end
 

@@ -16,6 +16,7 @@ import {
 import {
   zoneMidi,
   zoneMidiAt,
+  zoneMidiLabel,
   zoneOutputLabel,
 } from "../config-blocks/touch/zone-autos";
 import {
@@ -38,6 +39,7 @@ import {
   blockZoneLabels,
   zoneOptionChoices,
   resetZone,
+  optionLabel,
 } from "../config-blocks/touch/zone-blocks";
 import {
   zoneLabels,
@@ -813,6 +815,8 @@ test("an XY pad shows Spring and Fingers in one row, and Sensitivity after them 
     "mode",
     "ch",
     "num",
+    "chy",
+    "numy",
     "spring",
     "fingers",
     "grab",
@@ -824,6 +828,8 @@ test("an XY pad shows Spring and Fingers in one row, and Sensitivity after them 
     "mode",
     "ch",
     "num",
+    "chy",
+    "numy",
     "spring",
     "fingers",
     "sensitivity",
@@ -899,4 +905,90 @@ test("Reset Zone puts every setting back and keeps the type, name, position and 
   );
   // the zone given is not changed
   expect(zone.opt.col).toBe("255,0,0");
+});
+
+test("an XY pad has a channel and a number for y, written as .gmsx and .gmsy", () => {
+  const line = (code) => zoneToLua(parseZone(code));
+  // not written while they are the defaults: the plain gms
+  expect(line(`_Z.xy(0,0,4,4).gms(2,176,10,-1)`)).toBe(
+    `_Z.xy(0,0,4,4).gms(2,176,10,-1)`,
+  );
+  // read and written in any order, gmsx for x once y has a call of its own
+  expect(line(`_Z.xy(0,0,4,4).gmsy(5,176,70,-1).gms(2,176,10,-1)`)).toBe(
+    `_Z.xy(0,0,4,4).gmsx(2,176,10,-1).gmsy(5,176,70,-1)`,
+  );
+  expect(line(`_Z.xy(0,0,4,4).gmsx(2,176,10,-1).gmsy(5,176,70,-1)`)).toBe(
+    `_Z.xy(0,0,4,4).gmsx(2,176,10,-1).gmsy(5,176,70,-1)`,
+  );
+  const zone = parseZone(`_Z.xy(0,0,4,4).gmsy(5)`);
+  expect(zone.opt.chy).toBe(5);
+  expect(zone.opt.numy).toBe(-1);
+  expect(line(`_Z.xy(0,0,4,4).gmsy(5)`)).toBe(
+    `_Z.xy(0,0,4,4).gmsx(-1,176,-1,-1).gmsy(5,176,-1,-1)`,
+  );
+  expect(line(`_Z.xy(0,0,4,4).gmsy(-1,176,70)`)).toBe(
+    `_Z.xy(0,0,4,4).gmsx(-1,176,-1,-1).gmsy(-1,176,70,-1)`,
+  );
+  // the command and mode are those of x, and are written for y too
+  expect(line(`_Z.xy(0,0,4,4).gms(-1,176,10,-1,1).gmsy(5,176,20,-1,1)`)).toBe(
+    `_Z.xy(0,0,4,4).gmsx(-1,176,10,-1,1).gmsy(5,176,20,-1,1)`,
+  );
+  // y with another command than x is not a zone line
+  expect(parseZone(`_Z.xy(0,0,4,4).gms(-1,176,10,-1,1).gmsy(5,176,20)`)).toBe(
+    null,
+  );
+  expect(parseZone(`_Z.xy(0,0,4,4).gmsy(5,224)`)).toBe(null);
+  // a pad that is not MIDI, or a zone that isn't an xy, has no use for it
+  expect(line(`_Z.xy(0,0,4,4).mo().gmsy(5,176,70)`)).not.toContain(".gmsy");
+  expect(line(`_Z.v(0,0,1,4).gmsy(5,176,70)`)).not.toContain(".gmsy");
+  expect(parseZone(`_Z.xy(0,0,4,4).gmsy(1,2,3,4,5,6)`)).toBe(null);
+});
+
+test("the fields of x and y are titled and shown for a MIDI xy pad only", () => {
+  const xy = parseZone(`_Z.xy(0,0,4,4)`);
+  expect(optionLabel("ch", xy)).toBe("X Channel");
+  expect(optionLabel("num", xy)).toBe("X CC");
+  expect(optionLabel("chy", xy)).toBe("Y Channel");
+  expect(optionLabel("numy", xy)).toBe("Y CC");
+  const nrpn = parseZone(`_Z.xy(0,0,4,4).gms(-1,176,-1,-1,2)`);
+  expect(optionLabel("numy", nrpn)).toBe("Y NRPN");
+  // a fader keeps the plain titles
+  const fader = parseZone(`_Z.v(0,0,1,4)`);
+  expect(optionLabel("ch", fader)).toBe("Channel");
+  expect(optionLabel("num", fader)).toBe("CC");
+  const keys = (code) =>
+    zoneFaceSections(parseZone(code))
+      .flatMap((e) => e.options)
+      .map((e) => e.key);
+  expect(keys(`_Z.xy(0,0,4,4)`)).toContain("numy");
+  expect(keys(`_Z.xy(0,0,4,4).mo()`)).not.toContain("numy");
+  expect(keys(`_Z.xy(0,0,4,4).ga()`)).not.toContain("chy");
+  expect(keys(`_Z.v(0,0,1,4)`)).not.toContain("chy");
+});
+
+test("y's own channel and number show in what the pad sends", () => {
+  const label = (code) =>
+    zoneMidiLabel(zoneMidi([parseZone(code)], 0, { dx: 0, dy: 0, page: 0 }));
+  expect(label(`_Z.xy(0,0,4,4).gms(2,176,10,-1)`)).toBe("CC 10, 11 ch 3");
+  expect(label(`_Z.xy(0,0,4,4).gmsx(2,176,10,-1).gmsy(5,176,70,-1)`)).toBe(
+    "CC 10 ch 3, 70 ch 6",
+  );
+  expect(label(`_Z.xy(0,0,4,4).gmsx(2,176,10,-1).gmsy(-1,176,70,-1)`)).toBe(
+    "CC 10, 70 ch 3",
+  );
+  expect(label(`_Z.xy(0,0,4,4).gmsx(2,224,-1,-1).gmsy(5,224)`)).toBe(
+    "PB ch 3 / 6",
+  );
+});
+
+test("y's number is checked on its own", () => {
+  const problems = (code) => zoneProblems(parseZone(code)).map((e) => e.key);
+  expect(problems(`_Z.xy(0,0,4,4).gms(-1,176,127,-1)`)).toContain("num");
+  // y has its own number, so x may be 127
+  expect(
+    problems(`_Z.xy(0,0,4,4).gmsx(-1,176,127,-1).gmsy(-1,176,5,-1)`),
+  ).toEqual([]);
+  expect(
+    problems(`_Z.xy(0,0,4,4).gmsx(-1,176,1,-1,1).gmsy(-1,176,40,-1,1)`),
+  ).toContain("numy");
 });

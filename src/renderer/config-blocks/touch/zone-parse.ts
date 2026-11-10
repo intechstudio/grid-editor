@@ -537,6 +537,20 @@ function applyCall(zone: Zone, call: string, raws: string[]): boolean {
       );
       return true;
     }
+    // y of an xy pad: the channel and number of its own. The command is the
+    // pad's (the editor has one command for x and y), so another one is not
+    // a zone line (readChain).
+    case "gmsy": {
+      const cmd = midiCommand(num(1) ?? -1, num(4) ?? 0, zone.kind);
+      if (cmd === null || raws.length > 5) {
+        return false;
+      }
+      yCommand.set(zone, cmd);
+      opt.chy = num(0) ?? -1;
+      opt.numy = num(2) ?? -1;
+      return true;
+    }
+    case "gmsx":
     case "gms": {
       const cmd = midiCommand(num(1) ?? -1, num(4) ?? 0, zone.kind);
       if (cmd === null || raws.length > 5) {
@@ -599,6 +613,9 @@ function applyCall(zone: Zone, call: string, raws: string[]): boolean {
   }
 }
 
+// The command a zone's .gmsy call gave, to compare with its own at the end.
+const yCommand = new WeakMap<Zone, string>();
+
 function readChain(reader: Reader, name: string): Zone | null {
   const cells = reader.args()?.map(parseNumber);
   if (
@@ -625,6 +642,13 @@ function readChain(reader: Reader, name: string): Zone | null {
     if (call === null || raws === null || !applyCall(zone, call, raws)) {
       return null;
     }
+  }
+  const yCmd = yCommand.get(zone);
+  if (
+    typeof yCmd !== "undefined" &&
+    yCmd !== (zone.opt.cmd ?? zoneOptionDefault(zone.kind, "cmd"))
+  ) {
+    return null;
   }
   dropUnused(zone);
   return zone;
@@ -785,6 +809,9 @@ export function zoneToLua(zone: Zone): string {
   const ch = Number(zoneOptionValue(zone, "ch"));
   const num = Number(zoneOptionValue(zone, "num"));
   const cmd = String(zoneOptionValue(zone, "cmd"));
+  // an xy pad's y on its own channel and number (given: the zone uses them)
+  const yGiven =
+    typeof given("chy") !== "undefined" || typeof given("numy") !== "undefined";
   if (msg === "mouse") {
     line += `.mo(${num === 1 || num < 0 ? "" : num})`;
   } else if (msg === "pad") {
@@ -792,7 +819,8 @@ export function zoneToLua(zone: Zone): string {
   } else if (
     cmd !== zoneOptionDefault(zone.kind, "cmd") ||
     ch !== -1 ||
-    num !== -1
+    num !== -1 ||
+    yGiven
   ) {
     const code = {
       cc: [176, 0],
@@ -805,7 +833,14 @@ export function zoneToLua(zone: Zone): string {
     if (typeof code === "undefined") {
       throw new Error(`Unknown command "${cmd}"`);
     }
-    line += `.gms(${ch},${code[0]},${num},-1${code[1] > 0 ? `,${code[1]}` : ""})`;
+    // the same arguments for both axes; an xy pad with a y of its own says
+    // which is which
+    const rest = `${code[0]},${num},-1${code[1] > 0 ? `,${code[1]}` : ""}`;
+    line += `.${yGiven ? "gmsx" : "gms"}(${ch},${rest})`;
+    if (yGiven) {
+      const numy = Number(zoneOptionValue(zone, "numy"));
+      line += `.gmsy(${zoneOptionValue(zone, "chy")},${code[0]},${numy},-1${code[1] > 0 ? `,${code[1]}` : ""})`;
+    }
   }
   if (given("mode") === "rel") {
     line += ".mode(1)";

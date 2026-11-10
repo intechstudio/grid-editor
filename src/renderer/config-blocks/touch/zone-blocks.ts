@@ -417,6 +417,12 @@ export function optionPlaceholder(zone: Zone, key: string): string {
   if (key === "num" && zoneMsg(zone) === "mouse") {
     return "1 (Left)";
   }
+  if (key === "chy") {
+    return "same as X";
+  }
+  if (key === "numy") {
+    return "X + 1";
+  }
   if (key === "ch" || key === "num") {
     return "auto";
   }
@@ -552,6 +558,27 @@ export function zoneOptionSuggestions(
 ): OptionSuggestion[] {
   const sends = zoneSends(zone);
   switch (key) {
+    case "chy":
+      return [
+        {
+          value: "-1",
+          info: midi ? `Same as X (channel ${midi.ch + 1})` : "Same as X",
+        },
+        ...Array.from({ length: 16 }, (_, i) => ({
+          value: String(i),
+          info: `Channel ${i + 1}`,
+        })),
+      ];
+    case "numy": {
+      // the numbers of x, with the auto one for what y takes without one
+      const list = zoneOptionSuggestions(zone, "num", midi);
+      const y = midi?.nums[1];
+      return list.map((e, i) =>
+        i === 0 && e.value === "-1"
+          ? { ...e, info: typeof y === "number" ? `X + 1 (${y})` : "X + 1" }
+          : e,
+      );
+    }
     case "ch":
       return [
         {
@@ -725,26 +752,43 @@ export const optionLabels: Record<string, string> = {
   cmd: "Command",
   ch: "Channel",
   num: "CC",
+  chy: "Y Channel",
+  numy: "Y CC",
   tap: "Tap to click",
 };
 
 // The field title; the number is a CC, a note, a mouse button or a gamepad
 // axis or button, by what the zone sends.
 export function optionLabel(key: string, zone?: Zone): string {
-  if (key === "num" && typeof zone !== "undefined") {
+  if ((key === "num" || key === "numy") && typeof zone !== "undefined") {
     const sends = zoneSends(zone);
     if (sends === "pad") {
       return zone.kind === "button" ? "Button" : "Axis";
     }
-    return sends === "note"
-      ? "Note"
-      : sends === "mouse"
-        ? "Button"
-        : sends === "nrpn" || sends === "nrpn14"
-          ? "NRPN"
-          : "CC";
+    const name =
+      sends === "note"
+        ? "Note"
+        : sends === "mouse"
+          ? "Button"
+          : sends === "nrpn" || sends === "nrpn14"
+            ? "NRPN"
+            : "CC";
+    // an xy pad has the number and the channel of x and of y
+    return key === "numy" ? `Y ${name}` : xyMidi(zone) ? `X ${name}` : name;
+  }
+  if (key === "ch" && typeof zone !== "undefined" && xyMidi(zone)) {
+    return "X Channel";
   }
   return optionLabels[key] ?? key;
+}
+
+// An xy pad that sends MIDI: x and y have a channel and a number each.
+function xyMidi(zone: Zone): boolean {
+  return (
+    zoneRead(zone) === "point" &&
+    zoneSends(zone) !== "mouse" &&
+    zoneSends(zone) !== "pad"
+  );
 }
 
 // A zone line pasted, dropped or loaded next to these scripts: when its name

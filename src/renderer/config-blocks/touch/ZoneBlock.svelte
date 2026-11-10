@@ -35,7 +35,7 @@
     zoneRead,
   } from "./zone-model";
   import { ZONA_GLOBAL, parseZones, zonesOf, zonesToLua } from "./zone-parse";
-  import { zoneNumsText, zoneOutputLabel } from "./zone-autos";
+  import { zoneNumsText } from "./zone-autos";
   import { Grid } from "../../lib/_utils";
   import {
     surfaceIssues,
@@ -187,8 +187,15 @@
     if (midi && key === "ch") {
       return `${text} (ch ${midi.ch + 1})`;
     }
+    if (midi && key === "chy") {
+      return `${text} (ch ${(midi.ych ?? midi.ch) + 1})`;
+    }
+    // an xy pad has a field for the number of x and one for y's
+    if (midi && key === "numy" && midi.nums.length > 1) {
+      return `${text} (${midi.nums[1]})`;
+    }
     if (midi && key === "num" && midi.nums.length > 0) {
-      return `${text} (${zoneNumsText(midi)})`;
+      return `${text} (${zone !== null && zoneRead(zone) === "point" ? midi.nums[0] : zoneNumsText(midi)})`;
     }
     return text;
   };
@@ -661,11 +668,6 @@
               />
             {/each}
           </div>
-          {#if section === "output" && typeof midi !== "undefined"}
-            <span class="text-xs text-gray-400" data-zone-midi
-              >Sends {zoneOutputLabel(zone, midi)}</span
-            >
-          {/if}
         </Block>
       {/each}
     </div>
