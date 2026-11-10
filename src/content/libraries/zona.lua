@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.27.1"
+local LIB_VERSION = "0.28.1"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -44,6 +44,7 @@ Z.op = nil -- the surface is still being built by its Setup run
 Z.lk = {}
 Z.lc = {}
 Z.la = {}
+Z.ow = {} -- per cell: the layers its zones paint on (bit 1: layer 1, 2: layer 2)
 Z.el = 0
 Z.R = {}
 
@@ -217,14 +218,6 @@ local function inside(z, x, y)
   return x >= a[1] and x <= a[2] and y >= a[3] and y <= a[4]
 end
 
-local function find(x, y)
-  for _, z in ipairs(Z.zs) do
-    if inside(z, x, y) then
-      return z
-    end
-  end
-end
-
 -- deadband (2 raw units), clamp
 local function pos(z, c, x, y)
   if c.x and math.abs(x - c.x) <= 2 and math.abs(y - c.y) <= 2 then
@@ -307,8 +300,9 @@ local function fg(z, i)
 end
 
 -- the first contact owns a zone: another one is ignored until it lifts. An
--- xy with fingers > 1 gives a new contact the lowest free finger instead
-local function take(id, c, z, x, y, e)
+-- xy with fingers > 1 gives a new contact the lowest free finger instead.
+-- Returns the contact's state over the zone, or nothing if the zone is held
+local function take(z, x, y, e)
   local t = z.k == 0 and z
   if z.k > 0 and z.o.read == "point" then
     for i = 2, z.o.fingers do
@@ -320,21 +314,18 @@ local function take(id, c, z, x, y, e)
     end
   end
   if not t then
-    Z.ct[id] = false
     return
   end
   z = t
-  c.z = z
-  c.p = {}
-  c.x = nil
   -- a finger sliding in doesn't tap; the clock runs only for a tap zone
-  c.d, c.t = 0, not e and z.ms and z.o.tap == 1 and os.clock() or nil
+  local c = { z = z, p = {}, d = 0, t = not e and z.ms and z.o.tap == 1 and os.clock() or nil }
   z.k = 1
   gate(z, 1)
   c.m = e and "abs" or z.o.mode
   pos(z, c, x, y)
   c.m = z.o.mode
   run(z, "g")
+  return c
 end
 
 -- spring: back to the spring position on release
@@ -392,34 +383,35 @@ local function led(e)
   return x
 end
 
-local function lit(e, k, cc, ph)
-  local x
-  if Z.lk[e] ~= k then
+-- cell e on layer l (1 or 2; the firmware adds the layers of an LED, so zones
+-- that overlap paint on different layers and their colours mix); the caches
+-- are by e + 100 * l
+local function lit(e, k, cc, ph, l)
+  l = l or 1
+  local i, x = e + 100 * l
+  if Z.lk[i] ~= k then
     x = led(e)
-    Z.lk[e] = k
+    Z.lk[i] = k
     local u = table.unpack
-    gln(x, 1, u(cc[1]))
-    gld(x, 1, u(cc[2]))
-    glx(x, 1, u(cc[3]))
+    gln(x, l, u(cc[1]))
+    gld(x, l, u(cc[2]))
+    glx(x, l, u(cc[3]))
   end
-  if Z.lc[e] ~= ph then
+  if Z.lc[i] ~= ph then
     x = x or led(e)
-    Z.lc[e] = ph
-    glp(x, 1, ph)
+    Z.lc[i] = ph
+    glp(x, l, ph)
   end
 end
 
--- zone painting cell e (the last one, as painted)
-local function own(e)
-  local o
-  for _, z in ipairs(Z.zs) do
-    local c = z.c
-    local i, j = e % 9 - c[1], e // 9 - c[2]
-    if i >= 0 and j >= 0 and i < c[3] and j < c[4] then
-      o = z
+-- z covers its cells, on its layer
+local function claim(z)
+  local c = z.c
+  for j = c[2], c[2] + c[4] - 1 do
+    for i = c[1], c[1] + c[3] - 1 do
+      Z.ow[i + j * 9] = (Z.ow[i + j * 9] or 0) | z.lr
     end
   end
-  return o
 end
 
 -- held by any finger
@@ -480,11 +472,11 @@ local function paintpt(z, t, f, h, p)
     end
   end
   for k, v in pairs(nw) do
-    lit(c[1] + k % w + (c[2] + k // w) * 9, z.ck, z.cc, math.floor(f + v * (h - f) + 0.5))
+    lit(c[1] + k % w + (c[2] + k // w) * 9, z.ck, z.cc, math.floor(f + v * (h - f) + 0.5), z.lr)
   end
   for k in pairs(pv) do
     if not nw[k] then
-      lit(c[1] + k % w + (c[2] + k // w) * 9, z.ck, z.cc, f)
+      lit(c[1] + k % w + (c[2] + k // w) * 9, z.ck, z.cc, f, z.lr)
     end
   end
   z.pv, z.pw = nw, pv
@@ -525,8 +517,7 @@ local function paint(z)
   end
   for j = 0, c[4] - 1 do
     for i = 0, c[3] - 1 do
-      local e = c[1] + i + (c[2] + j) * 9
-      lit(e, z.ck, z.cc, math.floor(f + p(z, i, j, n) * (h - f) + 0.5))
+      lit(c[1] + i + (c[2] + j) * 9, z.ck, z.cc, math.floor(f + p(z, i, j, n) * (h - f) + 0.5), z.lr)
     end
   end
 end
@@ -612,7 +603,7 @@ local function start(self)
   Z.uc = u ~= Z.rx and u or nil
   self.midirx_cb = Z.uc
   Z.lv = nil
-  Z.ct, Z.lk, Z.lc, Z.la, Z.R = {}, {}, {}, {}, {}
+  Z.ct, Z.lk, Z.lc, Z.la, Z.R, Z.ow = {}, {}, {}, {}, {}, {}
 end
 
 -- the touch element: the ZONA has one, and the library finds it itself
@@ -624,12 +615,18 @@ local function te()
   end
 end
 
--- the cells no zone covers are dark
+-- the layers no zone paints on are dark (layer 2 only needs its phase at 0,
+-- and only once a zone has used it: Z.u2)
 local function dark()
   local d = { { 0, 0, 0, 1 }, { 0, 0, 0, 1 }, { 0, 0, 0, 1 } }
   for e = 0, 80 do
-    if not own(e) then
+    local m = Z.ow[e] or 0
+    if m & 1 == 0 then
       lit(e, 0, d, 0)
+    end
+    if Z.u2 and m & 2 == 0 and Z.lc[e + 200] ~= 0 then
+      Z.lc[e + 200] = 0
+      glp(led(e), 2, 0)
     end
   end
 end
@@ -778,7 +775,7 @@ local function build(g, old)
   if old then
     for i, q in ipairs(Z.zs) do
       if q == old then
-        Z.zs[i] = z
+        Z.zs[i], z.lr = z, old.lr
       end
     end
     for k, r in pairs(Z.R) do
@@ -787,7 +784,16 @@ local function build(g, old)
       end
     end
   else
+    -- layer 2 when a zone on layer 1 overlaps it
+    z.lr = 1
+    for _, q in ipairs(Z.zs) do
+      local a = q.c
+      if q.lr == 1 and x < a[1] + a[3] and a[1] < x + w and y < a[2] + a[4] and a[2] < y + h then
+        z.lr, Z.u2 = 2, 1
+      end
+    end
     Z.zs[#Z.zs + 1] = z
+    claim(z)
   end
   live()
   reg(z)
@@ -841,7 +847,8 @@ function M.n(s)
   for _, q in ipairs(Z.zs) do
     if q ~= z and q.n == s then
       rl()
-      Z.zs, Z.ct, Z.R = { z }, {}, {}
+      Z.zs, Z.ct, Z.R, Z.ow, z.lr = { z }, {}, {}, {}, 1
+      claim(z)
       again()
       dark()
       return M
@@ -934,14 +941,16 @@ local function refresh()
   end
 end
 
+-- A finger takes every zone under it, so zones can overlap and all send:
+-- Z.ct[id] is its list of contacts, one per zone it holds. dead: it left a
+-- button, so it takes none after
 -- ends: 5 up, 3 suppressed, 7 unsuppressed up
 local function route(id, evt, x, y)
-  local c = Z.ct[id]
+  local l = Z.ct[id]
   if evt == 4 or evt == 5 or evt == 3 or evt == 7 then
     Z.ct[id] = nil
-    if c and c.z then
+    for _, c in ipairs(l or {}) do
       local z = c.z
-      c.z = nil
       lift(z)
       -- a mouse xy: a short touch that barely moved clicks left on lift,
       -- unless a mouse button zone holds left (a drag lock stays)
@@ -960,30 +969,33 @@ local function route(id, evt, x, y)
     end
   end
   if evt == 4 then
-    c = { p = {} }
-    Z.ct[id] = c
-    local z = find(x, y)
-    if z then
-      take(id, c, z, x, y)
-    end
-  elseif evt == 1 and c then
-    local z = c.z
-    -- leaving: buttons release (or live), faders and xy clamp
-    if z and not inside(z, x, y) and (z.o.grab == "live" or z.o.read == "gate") then
-      c.z = nil
-      lift(z)
-      if z.o.grab ~= "live" then
-        Z.ct[id] = false
-        return
+    l = {}
+    Z.ct[id] = l
+    for _, z in ipairs(Z.zs) do
+      if inside(z, x, y) then
+        l[#l + 1] = take(z, x, y)
       end
-      z = nil
     end
-    if z then
-      pos(z, c, x, y)
-    elseif Z.lv then
-      z = find(x, y)
-      if z and z.o.grab == "live" then
-        take(id, c, z, x, y, 1)
+  elseif evt == 1 and l then
+    -- leaving: buttons release (or live), faders and xy clamp
+    local i = 1
+    while i <= #l do
+      local c = l[i]
+      local z = c.z
+      if not inside(z, x, y) and (z.o.grab == "live" or z.o.read == "gate") then
+        lift(z)
+        table.remove(l, i)
+        l.dead = l.dead or z.o.grab ~= "live"
+      else
+        pos(z, c, x, y)
+        i = i + 1
+      end
+    end
+    if Z.lv and #l == 0 and not l.dead then
+      for _, z in ipairs(Z.zs) do
+        if z.o.grab == "live" and inside(z, x, y) then
+          l[#l + 1] = take(z, x, y, 1)
+        end
       end
     end
   end
@@ -1058,7 +1070,11 @@ end
 -- after a new one is loaded.
 function Z.unload()
   drop()
-  Z.lk, Z.lc, Z.la, Z.op = {}, {}, {}, nil
+  for e = 0, Z.u2 and 80 or -1 do
+    glp(led(e), 2, 0)
+  end
+  Z.u2 = nil
+  Z.lk, Z.lc, Z.la, Z.ow, Z.op = {}, {}, {}, {}, nil
   local e = Z.te
   if e and e.touch_cb == Z.touch then
     e.touch_cb = nil

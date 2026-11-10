@@ -772,3 +772,122 @@ describe("the chain", () => {
     }
   });
 });
+
+describe("overlapping zones", () => {
+  const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
+  const both = `Z.xy(0,0,9,9).n("p") Z.b(0,0,9,9).n("b")`;
+
+  test("a touch over both reaches both, and both release", async () => {
+    const vm = await built(both);
+    vm.touch([0, DOWN, 500, 500], [0, MOVE, 600, 400], [0, UP, 600, 400]);
+    const sent = wire(vm);
+    // the xy: x and y CCs; the button: note on, then off
+    expect(sent.filter((e) => e[1] === 176).length).toBeGreaterThan(0);
+    expect(sent.filter((e) => e[1] === 144)).toEqual([
+      [0, 144, 34, 127],
+      [0, 144, 34, 0],
+    ]);
+  });
+
+  test("a touch over only one reaches only that one", async () => {
+    const vm = await built(`Z.xy(0,0,9,9).n("p") Z.b(0,0,3,3).n("b")`);
+    vm.touch([0, DOWN, 900, 900], [0, UP, 900, 900]);
+    expect(wire(vm).filter((e) => e[1] === 144)).toEqual([]);
+    vm.clear();
+    vm.touch([0, DOWN, 100, 100], [0, UP, 100, 100]);
+    expect(wire(vm).filter((e) => e[1] === 144).length).toBe(2);
+  });
+
+  // what the firmware shows on a cell: the layers added (each is its colour
+  // times its phase), cut at full
+  const shown = (vm, x, y) => {
+    const rgb = [0, 0, 0];
+    for (const layer of [1, 2]) {
+      const cs = vm
+        .calls("glx")
+        .filter((e) => e.args[0] === led(x, y) && e.args[1] === layer);
+      const ps = vm
+        .calls("glp")
+        .filter((e) => e.args[0] === led(x, y) && e.args[1] === layer);
+      if (!cs.length || !ps.length) continue;
+      const c = cs[cs.length - 1].args.slice(2, 5);
+      const p = ps[ps.length - 1].args[2];
+      for (let i = 0; i < 3; i++) rgb[i] += Math.floor((c[i] * p) / 255);
+    }
+    return rgb.map((v) => Math.min(v, 255));
+  };
+  // the Setup's own paint stays in the call list
+  async function built(code) {
+    const vm = await createZonaVM();
+    vm.setup(code);
+    return vm;
+  }
+  const layers = (vm) =>
+    vm.run("local t = {} for i, z in ipairs(Z.zs) do t[i] = z.lr end return t");
+
+  test("zones that overlap are on different layers, the others on layer 1", async () => {
+    const a = await built(
+      `Z.b(0,0,3,3).n("b") Z.xy(0,0,9,9).n("p") Z.b(6,6,3,3).n("c")`,
+    );
+    expect(layers(a)).toEqual([1, 2, 1]);
+    const b = await built(`Z.b(0,0,3,3).n("b") Z.b(5,5,3,3).n("c")`);
+    expect(layers(b)).toEqual([1, 1]);
+  });
+
+  test("a shared cell shows the colours of both zones added", async () => {
+    const vm = await built(
+      `Z.b(0,0,9,9).n("b").col(0,0,200) Z.xy(0,0,9,9).n("p").col(200,0,0)`,
+    );
+    vm.touch([0, DOWN, 500, 500]);
+    // the button is held (255) and the crosshair is on (4,4): red and blue
+    expect(shown(vm, 4, 4)).toEqual([200, 0, 200]);
+    // a cell away from the crosshair: the button's blue, the xy's floor red
+    const far = shown(vm, 0, 0);
+    expect(far[2]).toBe(200);
+    expect(far[0]).toBeLessThan(20);
+    expect(far[1]).toBe(0);
+  });
+
+  test("the order of the zones doesn't change the mix", async () => {
+    const a = await built(
+      `Z.b(0,0,9,9).n("b").col(0,0,200) Z.xy(0,0,9,9).n("p").col(200,0,0)`,
+    );
+    const b = await built(
+      `Z.xy(0,0,9,9).n("p").col(200,0,0) Z.b(0,0,9,9).n("b").col(0,0,200)`,
+    );
+    for (const vm of [a, b]) vm.touch([0, DOWN, 500, 500]);
+    expect(shown(b, 4, 4)).toEqual(shown(a, 4, 4));
+    expect(shown(b, 0, 0)).toEqual(shown(a, 0, 0));
+  });
+
+  test("a sum above full is cut at full", async () => {
+    const vm = await built(
+      `Z.b(0,0,9,9).n("b").col(200,200,0) Z.xy(0,0,9,9).n("p").col(200,0,200)`,
+    );
+    vm.touch([0, DOWN, 500, 500]);
+    expect(shown(vm, 4, 4)).toEqual([255, 200, 200]);
+  });
+
+  test("a zone rebuilt by a chained call keeps its layer and its mix", async () => {
+    const vm = await built(
+      `Z.b(0,0,9,9).n("b").col(0,0,200) Z.xy(0,0,9,9).n("p").col(200,0,0).col(200,0,0)`,
+    );
+    expect(layers(vm)).toEqual([1, 2]);
+    vm.touch([0, DOWN, 500, 500]);
+    expect(shown(vm, 4, 4)).toEqual([200, 0, 200]);
+  });
+
+  test("a surface built again without overlaps clears layer 2", async () => {
+    const vm = await createZonaVM();
+    vm.setup(`Z.b(0,0,9,9).n("b") Z.xy(0,0,9,9).n("p")`);
+    vm.clear();
+    vm.setup(`Z.b(0,0,3,3).n("b") Z.b(5,5,3,3).n("c")`);
+    // the last phase written to each LED on layer 2
+    const last = new Map();
+    for (const e of vm.calls("glp")) {
+      if (e.args[1] === 2) last.set(e.args[0], e.args[2]);
+    }
+    expect(last.size).toBeGreaterThan(0);
+    expect([...last.values()].every((v) => v === 0)).toBe(true);
+  });
+});

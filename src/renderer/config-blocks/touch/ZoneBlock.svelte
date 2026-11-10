@@ -539,19 +539,20 @@
               ariaLabel="Rename zone"
             />
             <IconButton
-              on:click={handleAddZone}
-              iconData={addIcon}
-              compact
-              tooltipText="Add zone"
-              ariaLabel="Add zone"
-            />
-            <IconButton
               on:click={handleRemoveZone}
               iconPath="remove"
               disabled={zones.length < 2}
               compact
               tooltipText="Remove zone"
               ariaLabel="Remove zone"
+            />
+            <IconButton
+              on:click={handleAddZone}
+              iconData={addIcon}
+              style="accept"
+              compact
+              tooltipText="Add zone"
+              ariaLabel="Add zone"
             />
           </div>
         </div>

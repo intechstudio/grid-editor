@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.27.1, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.28.1, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -219,7 +219,7 @@ Fixed phase levels: floor 16, dim 110, top 255. A vertical or horizontal fader h
 - XY paint cost: a crosshair is lit only in the two columns and the two rows around it, so the library computes only those cells (about 30 of 81 on a 9×9 pad) and returns the cells the last paint lit to the floor. The crosshair position is rounded to 1/8 cell, and a move that stays in the same 1/8 step (with the same fingers and held state) paints nothing; the MIDI or mouse output is not limited by this. The LED index of a cell is looked up once per surface (`Z.la`). From library 0.26.0. Before it, every cell was recomputed and written for each finger on every move: about 14,400 Lua VM instructions per move for a 9×9 pad with two fingers, about 4,800 now (the test `the work per move stays small` counts them).
 - A mouse fader or XY shows the finger at top while held and sits at the floor after.
 - `col={r,g,b}` goes through the firmware's `color_curve`. The curve's minimum is replaced by black, so phase 0 is off. Without `col` the module's default colour is used, as for a channel of -1. Zones with the same colour share one curve.
-- The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after host MIDI or `Z.set` changed a value. Overlapping zones: the last zone covering a cell owns it.
+- The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after host MIDI or `Z.set` changed a value. Overlapping zones: a touch reaches every zone under the finger, so a button and an XY pad on the same cells both send. A zone that overlaps an earlier zone paints on LED layer 2, the others on layer 1, and the firmware adds the layers of an LED, so a shared cell shows both colours, each at its own level (a red XY crosshair over a lit blue button gives purple) with one LED call per change, as without overlap. Two layers are all there are: a third zone over the same cells shares layer 2 with the second, and the later one's paint wins there.
 - The LED index of a cell is `glag(<touch element index>, x + y*9)`, looked up when a cell is written.
 
 ### No timer
@@ -243,7 +243,7 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 | `Z.def`, `Z.kind`                                                 | Option defaults and kind presets. The editor's copies must match them.          |
 | `Z.zs`, `Z.te`                                                    | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.27.1"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.28.1"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -348,11 +348,11 @@ A zone has no name unless the user gives it one (the pencil next to the select).
 `npx vitest run` on these files passes: 78 tests in `zona-lib.test.js`, `zone-editor.test.js`, `picker-filter.test.js` and `library.test.js`.
 
 - `zona-vm.js`: a Lua VM (wasmoon, Lua 5.4) that loads `compressScript(zona.lua)`, the text that reaches the module. Firmware globals are stubs that record their calls. It has a fake touch element (type `touch`, in `ele`) with the firmware's touch queue, and `Z.fader`/`Z.button` shims that build the older option-table calls with the chain, so many tests read as before. `glag` is the ZONA's serpentine lookup. `color_curve` follows the firmware's. The firmware runs Lua 5.5, so code 5.5 rejects can pass here.
-- `zona-lib.test.js`: the header and version, the compressed size under 23552 bytes, defaults equal to `zone-model.ts`, a fader's CC, a button's note, a toggle, pitch bend, an XY's two CCs, mouse moves sent at once and cut at 127, tap to click and its limit, the mouse wheel, mouse buttons and drag lock, gamepad axes, joystick and button, host MIDI setting a value, a Setup re-run, `Z.unload`, LEDs painted at Setup, 16 zones within 108 KB of Lua memory, the chain (no `self`, complete after every call, any order, equal to the option table, `gms` as the Midi block sends it including NRPN, spring by percentage, host MIDI always on, a Setup that runs again, an instruction budget so a call rebuilds only its zone, and the call names surviving `compressScript`), the XY paint (every cell equal to the plain formula, nothing under 1/8 cell, an instruction budget) and the touch queue.
+- `zona-lib.test.js`: the header and version, the compressed size under 23552 bytes, defaults equal to `zone-model.ts`, a fader's CC, a button's note, a toggle, pitch bend, an XY's two CCs, mouse moves sent at once and cut at 127, tap to click and its limit, the mouse wheel, mouse buttons and drag lock, gamepad axes, joystick and button, host MIDI setting a value, a Setup re-run, `Z.unload`, LEDs painted at Setup, 16 zones within 108 KB of Lua memory, the chain (no `self`, complete after every call, any order, equal to the option table, `gms` as the Midi block sends it including NRPN, spring by percentage, host MIDI always on, a Setup that runs again, an instruction budget so a call rebuilds only its zone, and the call names surviving `compressScript`), overlapping zones (both send, shared cells mix their colours), the XY paint (every cell equal to the plain formula, nothing under 1/8 cell, an instruction budget) and the touch queue.
 - `zone-editor.test.js`: round trips of zone chains, old body lines not parsing, chains read in any order, lines that are not chains of known calls, the earlier positional and option-table lines still reading, the chain the editor writes behaving like the older line in the library, surface issues, the CC and channel the editor shows equal to what the library sends, the same for gamepad, overlay rectangles, face fields per output, and the mouse labels.
 - `picker-filter.test.js`: `isAllowedIn`.
 
-The compressed file is about 22,000 bytes with library 0.27.0; the test ceilings are 23,552 bytes compressed and 108 KB of Lua memory for the library and 16 zones in the VM (98.9 KB measured).
+The compressed file is about 23,500 bytes with library 0.28.1; the test ceilings are 23,552 bytes compressed and 108 KB of Lua memory for the library and 16 zones in the VM (98.9 KB measured).
 
 ## 11. Files
 
