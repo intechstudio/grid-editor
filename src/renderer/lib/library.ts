@@ -366,6 +366,8 @@ export async function installLibrary(
   library: BundledLibrary,
   pageNumber: number,
   module: GridModule,
+  // Called after each written chunk with the share written, 0 to 100.
+  onProgress?: (percent: number) => void,
 ): Promise<void> {
   const folder = pageNumberToFolderPath(pageNumber);
   if (!(await pageFolderExists(pageNumber, module))) {
@@ -376,6 +378,7 @@ export async function installLibrary(
     GridScript.compressScript(library.source),
     module,
     WRITE_CHUNK_SIZE,
+    (current, total) => onProgress?.(Math.round((current / total) * 100)),
   );
   await invalidateLuaModule(`${folder}${library.file}`, module);
   await rerunSetups(library.global, module);

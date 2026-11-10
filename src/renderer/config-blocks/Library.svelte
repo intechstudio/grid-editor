@@ -243,6 +243,7 @@
   }
 
   let installing: string | undefined = undefined;
+  let progress = 0;
   let installError: string | undefined = undefined;
 
   // Shows the user which of the block's libraries are on the module.
@@ -271,9 +272,15 @@
       return;
     }
     installing = row.file;
+    progress = 0;
     installError = undefined;
     try {
-      await installLibrary(library, page.pageNumber, module);
+      await installLibrary(
+        library,
+        page.pageNumber,
+        module,
+        (percent) => (progress = percent),
+      );
     } catch (e) {
       installError = e instanceof Error ? e.message : String(e);
     } finally {
@@ -347,7 +354,9 @@
                 {status.outdated.version}</span
               >
               <MoltenPushButton
-                text={installing === row.file ? "Updating..." : "Update"}
+                text={installing === row.file
+                  ? `Updating... ${progress}%`
+                  : "Update"}
                 disabled={typeof installing !== "undefined" || $action.invalid}
                 click={() => handleInstall(row)}
               />
@@ -364,7 +373,9 @@
                 >{row.file}.lua is missing in {folder}</span
               >
               <MoltenPushButton
-                text={installing === row.file ? "Installing..." : "Install"}
+                text={installing === row.file
+                  ? `Installing... ${progress}%`
+                  : "Install"}
                 disabled={typeof installing !== "undefined" || $action.invalid}
                 click={() => handleInstall(row)}
               />

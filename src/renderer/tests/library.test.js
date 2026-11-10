@@ -292,6 +292,7 @@ describe("installLibrary", () => {
       expect.any(String),
       module,
       expect.any(Number),
+      expect.any(Function),
     );
     expect(invalidateLuaModule).toHaveBeenCalledWith("/02/test", module);
     const lua = module.execLUAImmediateAndEvalaute.mock.calls[0][0];

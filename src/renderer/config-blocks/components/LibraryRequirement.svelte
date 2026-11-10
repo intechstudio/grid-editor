@@ -57,6 +57,7 @@
   $: blocked = typeof replacement !== "undefined";
 
   let installing = false;
+  let progress = 0;
   let installError: string | undefined = undefined;
 
   async function refresh() {
@@ -73,9 +74,15 @@
       return;
     }
     installing = true;
+    progress = 0;
     installError = undefined;
     try {
-      await installLibrary(replacement, page.pageNumber, module);
+      await installLibrary(
+        replacement,
+        page.pageNumber,
+        module,
+        (percent) => (progress = percent),
+      );
     } catch (e) {
       installError = e instanceof Error ? e.message : String(e);
     } finally {
@@ -100,7 +107,9 @@
     </span>
     <div class="self-start">
       <MoltenPushButton
-        text={installing ? (isUpdate ? "Updating..." : "Installing...") : label}
+        text={installing
+          ? `${isUpdate ? "Updating" : "Installing"}... ${progress}%`
+          : label}
         disabled={installing}
         click={handleInstall}
       />
