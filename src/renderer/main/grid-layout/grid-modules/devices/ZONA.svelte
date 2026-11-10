@@ -1,6 +1,7 @@
 <script lang="ts">
   import Led from "../elements/Led.svelte";
   import { GridModule, GridRuntime } from "../../../../runtime/runtime.js";
+  import { ZONA_GRID_SIZE, zonaCellCenterPct } from "./zona-grid";
 
   export let moduleWidth;
   export let id = "ZONA";
@@ -12,10 +13,9 @@
 
   let [dx, dy] = [device?.dx, device?.dy];
 
-  const gridSize = 9;
-  const pctPositions = Array.from(
-    { length: gridSize },
-    (_, i) => ((i + 0.5) / gridSize) * 100,
+  const gridSize = ZONA_GRID_SIZE;
+  const pctPositions = Array.from({ length: gridSize }, (_, i) =>
+    zonaCellCenterPct(i),
   );
   const segments = Array.from({ length: gridSize - 1 }, (_, i) => i);
 

@@ -31,21 +31,22 @@
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import {
-    Block,
     BlockRow,
-    BlockColumn,
     MeltCombo,
     MeltSelect,
     MeltCheckbox,
-    MeltSlider,
     SliderColorPicker,
     SquareColorPicker,
     CircleColorPicker,
     ColorLayerSelector,
     type LayerClickDetail,
+    type MeltComboData,
   } from "@intechstudio/grid-uikit";
 
   import { GridScript } from "@intechstudio/grid-protocol";
+  import ColorEditor, {
+    colorPickerOptions,
+  } from "../main/user-interface/ColorEditor.svelte";
   import { Script } from "./_script_parsers.js";
   import { GridAction } from "./../runtime/runtime";
   import { get } from "svelte/store";
@@ -145,11 +146,15 @@
     [ColorPickerModel.Circle, CircleColorPicker],
   ]);
 
-  const options = [
-    { title: "RGB", value: ColorPickerModel.Circle },
-    { title: "Classic", value: ColorPickerModel.Square },
-    { title: "HSL", value: ColorPickerModel.Slider },
-  ];
+  const options = colorPickerOptions;
+
+  function channelOf(channel: MeltComboData) {
+    return {
+      value: channel.value,
+      suggestions: channel.suggestions ?? [],
+      validator: channel.validator?.func ?? (() => true),
+    };
+  }
 
   function getGradient(colors: SimpleColor.Color[]) {
     const array = [
@@ -169,12 +174,15 @@
 </script>
 
 <config-led-color class="flex flex-col gap-4 w-full p-2 pointer-events-auto">
-  <MeltSelect
-    bind:target={$appSettings.persistent.colorPicker}
-    {options}
-    disabled={false}
-    size={"full"}
-  />
+  <div class="flex flex-row justify-end">
+    <MeltSelect
+      title="Picker style"
+      style="chip"
+      bind:target={$appSettings.persistent.colorPicker}
+      {options}
+      disabled={false}
+    />
+  </div>
   {#if $appSettings.persistent.userLevelMinimalist == false}
     <BlockRow even>
       <MeltCombo
@@ -223,82 +231,42 @@
     on:remove-layer={handleRemoveLayer}
     on:layer-click={handleLayerClicked}
   />
-  <BlockRow>
-    <div class="flex flex-grow min-w-28 h-28 items-center justify-center">
-      <svelte:component
-        this={colorPickerComponent.get($appSettings.persistent.colorPicker)}
-        color={$data.pickerColor}
-        on:input={(e) => {
-          const { color } = e.detail;
-          data.updatePickerColor(color);
-          sendData($data);
-        }}
-        on:change={(e) => {
-          dispatch("sync");
-        }}
-      />
-    </div>
-
-    <BlockColumn>
-      <MeltCombo
-        title="Alpha"
-        value={$data[SimpleColor.Channel.ALPHA].value}
-        validator={$data[SimpleColor.Channel.ALPHA].validator.func}
-        suggestions={[
-          ...$data[SimpleColor.Channel.ALPHA].suggestions,
-          { value: "1", info: "Default" },
-          { value: "0", info: "Transparent" },
-        ]}
-        on:input={(e) => {
-          const { value, validationError } = e.detail;
-          data.updateRGBAChannelValue(
-            action,
-            value,
-            validationError,
-            SimpleColor.Channel.ALPHA,
-          );
-          sendData($data);
-        }}
-        on:change={() => dispatch("sync")}
-        postProcessor={GridScript.shortify}
-        preProcessor={GridScript.humanize}
-      />
-      <Block>
-        <MeltSlider
-          target={$data.alphaSliderValue}
-          min={0}
-          max={1}
-          step={0.01}
-          on:change={(e) => {
-            const { value } = e.detail;
-            data.updateAlphaSliderValue(value);
-            sendData($data);
-          }}
-          on:commit={() => {
-            dispatch("sync");
-          }}
-        /></Block
-      >
-    </BlockColumn>
-  </BlockRow>
-  <BlockRow even>
-    {#each [SimpleColor.Channel.RED, SimpleColor.Channel.GREEN, SimpleColor.Channel.BLUE] as channel}
-      <MeltCombo
-        title={channel.charAt(0).toUpperCase() + channel.slice(1)}
-        value={$data[channel].value}
-        validator={$data[channel].validator.func}
-        suggestions={$data[channel].suggestions}
-        on:input={(e) => {
-          const { value, validationError } = e.detail;
-          data.updateRGBAChannelValue(action, value, validationError, channel);
-          sendData($data);
-        }}
-        on:change={() => dispatch("sync")}
-        postProcessor={GridScript.shortify}
-        preProcessor={GridScript.humanize}
-      />
-    {/each}
-  </BlockRow>
+  <ColorEditor
+    pickerColor={$data.pickerColor}
+    red={channelOf($data.red)}
+    green={channelOf($data.green)}
+    blue={channelOf($data.blue)}
+    alpha={{
+      ...channelOf($data[SimpleColor.Channel.ALPHA]),
+      suggestions: [
+        ...($data[SimpleColor.Channel.ALPHA].suggestions ?? []),
+        { value: "1", info: "Default" },
+        { value: "0", info: "Transparent" },
+      ],
+    }}
+    alphaSliderValue={$data.alphaSliderValue}
+    preProcessor={GridScript.humanize}
+    postProcessor={GridScript.shortify}
+    on:pick={(e) => {
+      data.updatePickerColor(e.detail.color);
+      sendData($data);
+    }}
+    on:channel={(e) => {
+      const { channel, value, validationError } = e.detail;
+      data.updateRGBAChannelValue(
+        action,
+        value,
+        validationError,
+        channel as SimpleColor.Channel,
+      );
+      sendData($data);
+    }}
+    on:alpha-slider={(e) => {
+      data.updateAlphaSliderValue(e.detail.value);
+      sendData($data);
+    }}
+    on:sync={() => dispatch("sync")}
+  />
 
   {#if $appSettings.persistent.userLevelMinimalist == false}
     <MeltCheckbox

@@ -21,6 +21,7 @@ import type {
   GridPage,
 } from "../runtime/runtime";
 import testSource from "../../content/libraries/test.lua?raw";
+import zonaSource from "../../content/libraries/zona.lua?raw";
 
 export type LibraryRow = {
   global: string; // "_Test"
@@ -79,6 +80,7 @@ function bundle(file: string, source: string): BundledLibrary {
 
 // Libraries the editor ships and can install on the module.
 export const bundledLibraries: readonly BundledLibrary[] = [
+  bundle("zona", zonaSource),
   bundle("test", testSource),
 ];
 
@@ -148,6 +150,17 @@ export function globalForFile(
   return findBundledLibrary(file)?.global;
 }
 
+// Orders two x.y.z versions: negative when a is older than b.
+export function compareVersions(a: string, b: string): number {
+  const [x, y] = [a, b].map((e) => e.split(".").map(Number));
+  for (let i = 0; i < 3; i++) {
+    if (x[i] !== y[i]) {
+      return x[i] - y[i];
+    }
+  }
+  return 0;
+}
+
 export type LibrarySuggestion = { value: string; info: string };
 
 // Offers the bundled libraries the user can install and the libraries on
@@ -176,7 +189,13 @@ export function librarySuggestions(
 export type LibraryRowStatus =
   // The module can't be asked: the bundled version, when there is one.
   | { kind: "unknown"; version?: string }
-  | { kind: "present"; version: string; bundledVersion?: string }
+  // On the module; `outdated` is the bundled copy that replaces an older one.
+  | {
+      kind: "present";
+      version: string;
+      bundledVersion?: string;
+      outdated?: BundledLibrary;
+    }
   | { kind: "missing"; library: BundledLibrary }
   // Missing on the module and the editor has no copy to install.
   | { kind: "unavailable"; message: string }
@@ -213,6 +232,10 @@ export function libraryRowStatus(
       bundledVersion:
         bundled && bundled.version !== header.version
           ? bundled.version
+          : undefined,
+      outdated:
+        bundled && compareVersions(header.version, bundled.version) < 0
+          ? bundled
           : undefined,
     };
   }
@@ -338,11 +361,13 @@ async function pageFolderExists(
 }
 
 // Lets the user install a bundled library that is missing from the page
-// folder and use it right away.
+// folder, or replace an older copy of it, and use it right away.
 export async function installLibrary(
   library: BundledLibrary,
   pageNumber: number,
   module: GridModule,
+  // Called after each written chunk with the share written, 0 to 100.
+  onProgress?: (percent: number) => void,
 ): Promise<void> {
   const folder = pageNumberToFolderPath(pageNumber);
   if (!(await pageFolderExists(pageNumber, module))) {
@@ -353,6 +378,7 @@ export async function installLibrary(
     GridScript.compressScript(library.source),
     module,
     WRITE_CHUNK_SIZE,
+    (current, total) => onProgress?.(Math.round((current / total) * 100)),
   );
   await invalidateLuaModule(`${folder}${library.file}`, module);
   await rerunSetups(library.global, module);
