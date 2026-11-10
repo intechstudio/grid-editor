@@ -46,6 +46,9 @@
   export let blue: ColorChannel;
   export let alpha: ColorChannel | undefined = undefined;
   export let alphaSliderValue: number | undefined = undefined;
+  // Only the alpha slider, standing next to the picker and as tall as it,
+  // without the Alpha field (it reports through `alpha-slider` as the other).
+  export let verticalAlpha = false;
   // The select of the picker style. It sets the app setting, so the choice is
   // kept and every colour editor uses it, as in the Simple Color block.
   export let showPickerSelect = false;
@@ -110,7 +113,19 @@
       />
     </div>
 
-    {#if alpha}
+    {#if verticalAlpha}
+      <div class="flex h-28 items-center" data-interactive>
+        <MeltSlider
+          orientation="vertical"
+          target={alphaSliderValue as number}
+          min={0}
+          max={1}
+          step={0.01}
+          on:change={(e) => dispatch("alpha-slider", { value: e.detail.value })}
+          on:commit={() => dispatch("sync")}
+        />
+      </div>
+    {:else if alpha}
       <BlockColumn>
         <MeltCombo
           title="Alpha"

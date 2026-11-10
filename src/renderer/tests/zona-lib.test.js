@@ -764,6 +764,18 @@ describe("the chain", () => {
   });
 });
 
+test("a colour's alpha reaches the LED curve, 1 when it is left out", async () => {
+  const alpha = async (code) => {
+    const vm = await createZonaVM();
+    vm.setup(code);
+    const g = vm.calls("glx").filter((e) => e.args[1] === 1);
+    return Number(g[g.length - 1].args[5]);
+  };
+  expect(await alpha(`Z.b(0,0,1,1).col(255,0,0)`)).toBe(1);
+  expect(await alpha(`Z.b(0,0,1,1).col(255,0,0,0.5)`)).toBe(0.5);
+  expect(await alpha(`Z.b(0,0,1,1).col(-1,-1,-1,0.25)`)).toBe(0.25);
+});
+
 describe("overlapping zones", () => {
   const led = (x, y) => y * 9 + (y % 2 === 0 ? 8 - x : x);
   const both = `Z.xy(0,0,9,9).n("p") Z.b(0,0,9,9).n("b")`;

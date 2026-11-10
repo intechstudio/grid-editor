@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.28.2"
+local LIB_VERSION = "0.28.3"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -561,7 +561,7 @@ local CC = setmetatable({}, { __mode = "v" })
 -- the module's colour), as its curve: the minimum is black, so phase 0 is off
 local function col(z, s)
   s = s or { -1, -1, -1 }
-  local x, y, w = color_curve({ { s[1], s[2], s[3], 1 } })
+  local x, y, w = color_curve({ { s[1], s[2], s[3], s[4] or 1 } })
   x = { 0, 0, 0, x[4] }
   local k = table.concat(x, ",") .. ";" .. table.concat(y, ",") .. ";" .. table.concat(w, ",")
   local e = CC[k] or { x, y, w }
@@ -835,8 +835,8 @@ function M.n(s)
   return again()
 end
 
-function M.col(r, g, b)
-  return set("col", { r or -1, g or -1, b or -1 })
+function M.col(r, g, b, a)
+  return set("col", { r or -1, g or -1, b or -1, a or 1 })
 end
 
 -- MIDI, as self:gms(ch, cmd, p1, p2, mode) of the Midi block: -1 is auto, p2

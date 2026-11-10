@@ -154,12 +154,18 @@ function geometryProblems(zone: Zone): ZoneProblem[] {
   return problems;
 }
 
-// "red,green,blue": whole colours -1 (auto) to 255.
+// "red,green,blue" with an optional ",alpha": whole colours -1 (auto) to 255,
+// the alpha 0 to 1.
 function colorValid(value: string): boolean {
   const parts = value.split(",");
+  const alpha = parts[3];
   return (
-    parts.length === 3 &&
-    parts.every((e) => /^-?\d+$/.test(e) && Number(e) >= -1 && Number(e) <= 255)
+    (parts.length === 3 || parts.length === 4) &&
+    parts
+      .slice(0, 3)
+      .every((e) => /^-?\d+$/.test(e) && Number(e) >= -1 && Number(e) <= 255) &&
+    (typeof alpha === "undefined" ||
+      (/^\d*\.?\d+$/.test(alpha) && Number(alpha) <= 1))
   );
 }
 

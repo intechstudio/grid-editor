@@ -250,15 +250,22 @@ function parseNumber(text: string): number | null {
 }
 
 const COLOR_TABLE =
-  /^\{\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*(?:,\s*\d*\.?\d+\s*)?\}$/;
+  /^\{\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*(?:,\s*(\d*\.?\d+)\s*)?\}$/;
 
-// A colour as a table, `{red, green, blue}`, kept as "red,green,blue". A
-// fourth value (the alpha of an earlier build) is read and dropped. The old
-// "rrggbb" string still reads.
+// The channels as the option's text: the alpha only when it is not 1.
+function withAlpha(channels: string[], alpha: number | null): string {
+  return alpha === null || alpha === 1
+    ? channels.join(",")
+    : [...channels, String(alpha)].join(",");
+}
+
+// A colour as a table, `{red, green, blue}` or with an alpha, kept as
+// "red,green,blue" or "red,green,blue,alpha"; an alpha of 1 is not kept. The
+// old "rrggbb" string still reads.
 function colorLiteral(raw: string): string | null {
   const table = COLOR_TABLE.exec(raw.trim());
   if (table !== null) {
-    return table.slice(1, 4).join(",");
+    return withAlpha(table.slice(1, 4), parseNumber(table[4] ?? "1"));
   }
   const reader = new Reader(raw);
   const hex = reader.string();
@@ -521,10 +528,13 @@ function applyCall(zone: Zone, call: string, raws: string[]): boolean {
       return true;
     }
     case "col": {
-      if (raws.length > 3) {
+      if (raws.length > 4 || (num(3) ?? 1) < 0 || (num(3) ?? 1) > 1) {
         return false;
       }
-      opt.col = [0, 1, 2].map((i) => num(i) ?? -1).join(",");
+      opt.col = withAlpha(
+        [0, 1, 2].map((i) => String(num(i) ?? -1)),
+        num(3) ?? 1,
+      );
       return true;
     }
     case "gms": {
@@ -769,7 +779,7 @@ export function zoneToLua(zone: Zone): string {
     .map(luaNumber)
     .join(",")})${zone.name === "" ? "" : `.n(${luaString(zone.name)})`}`;
   const col = String(zoneOptionValue(zone, "col"));
-  if (col !== "-1,-1,-1") {
+  if (col !== "-1,-1,-1" && col !== "-1,-1,-1,1") {
     line += `.col(${col})`;
   }
   const ch = Number(zoneOptionValue(zone, "ch"));

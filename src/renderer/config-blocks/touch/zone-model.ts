@@ -16,7 +16,7 @@ export type ZoneOptions = {
   mode: "abs" | "rel";
   sensitivity: number; // rel: drag factor; mouse: pointer sensitivity
   bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
-  col?: string; // zone colour "red,green,blue"; without it the module's default colour
+  col?: string; // zone colour "red,green,blue", with ",alpha" (0-1) when it is not 1; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default; gamepad: axis 0-5 or button 0-31, -1 auto (Setup order)
   spring: number; // fader, xy: -1 off, or 0-100: the % of the range the value returns to on release (50 is the centre)
@@ -102,7 +102,7 @@ export type OptionSchema = { key: string } &
         unavailable?: readonly string[];
       }
     | { type: "integer" | "number"; min?: number; max?: number }
-    | { type: "color" } // "red,green,blue", written as {red,green,blue}; -1 is auto
+    | { type: "color" } // "red,green,blue[,alpha]"; -1 is auto, alpha 1 is left out
   );
 
 // Block face sections, in display order (docs/zona-touch-zones.md, Block face).

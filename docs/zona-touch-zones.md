@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.28.2, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.28.3, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -44,7 +44,7 @@ The constructors are `_Z.v(x,y,w,h)` (vertical fader), `_Z.h(x,y,w,h)` (horizont
 | Call                      | Arguments                                                                                             | Default (omitted)                                            |
 | ------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | `.n("name")`              | the zone's name, a string                                                                             | none: the editor writes it only when the user names the zone |
-| `.col(r,g,b)`             | colour, -1 for a channel is the module's own                                                          | the module's colour                                          |
+| `.col(r,g,b,a)`           | colour, -1 for a channel is the module's own; the optional alpha a (0 to 1) dims it                   | the module's colour, alpha 1                                 |
 | `.gms(ch,cmd,p1,p2,mode)` | MIDI, as `self:gms` of the Midi block; `ch` and `p1` -1 are auto, `p2` is the zone's value (write -1) | a fader: `(-1,176,-1,-1,0)`, a button: `(-1,144,-1,-1,0)`    |
 | `.mo(btn)`                | the mouse; a button zone presses `btn` (1 left, 2 right, 4 middle)                                    | left                                                         |
 | `.ga(n)`                  | the gamepad axis or button `n`, -1 auto                                                               | -1                                                           |
@@ -214,7 +214,7 @@ Fixed phase levels: floor 16, dim 110, top 255. A vertical or horizontal fader h
 - XY: a soft crosshair, normalised so its brightest cell is at the lit level. With fingers: one crosshair per held finger at top, the highest level per cell. With none held, finger 1's at dim.
 - XY paint cost: a crosshair is lit only in the two columns and the two rows around it, so the library computes only those cells (about 30 of 81 on a 9×9 pad) and returns the cells the last paint lit to the floor. The crosshair position is rounded to 1/8 cell, and a move that stays in the same 1/8 step (with the same fingers and held state) paints nothing; the MIDI or mouse output is not limited by this. The LED index of a cell is looked up once per surface (`Z.la`). From library 0.26.0. Before it, every cell was recomputed and written for each finger on every move: about 14,400 Lua VM instructions per move for a 9×9 pad with two fingers, about 4,800 now (the test `the work per move stays small` counts them).
 - A mouse fader or XY shows the finger at top while held and sits at the floor after.
-- `col={r,g,b}` goes through the firmware's `color_curve`. The curve's minimum is replaced by black, so phase 0 is off. Without `col` the module's default colour is used, as for a channel of -1. Zones with the same colour share one curve.
+- `.col(r,g,b,a)` goes through the firmware's `color_curve`, with the alpha as its fourth value (the editor leaves it out at 1). The curve's minimum is replaced by black, so phase 0 is off. Without `col` the module's default colour is used, as for a channel of -1. Zones with the same colour share one curve.
 - The library paints only dirty zones and sends only changed cells. Painting happens when a zone line runs, after each touch event, and after host MIDI or `Z.set` changed a value. Overlapping zones: a touch reaches every zone under the finger, so a button and an XY pad on the same cells both send. A zone that overlaps an earlier zone paints on LED layer 2, the others on layer 1, and the firmware adds the layers of an LED, so a shared cell shows both colours, each at its own level (a red XY crosshair over a lit blue button gives purple) with one LED call per change, as without overlap. Two layers are all there are: a third zone over the same cells shares layer 2 with the second, and the later one's paint wins there.
 - The LED index of a cell is `glag(<touch element index>, x + y*9)`, looked up when a cell is written.
 
@@ -239,7 +239,7 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 | `Z.def`, `Z.kind`                                               | Option defaults and kind presets. The editor's copies must match them.          |
 | `Z.zs`, `Z.te`                                                  | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.28.2"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.28.3"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 

@@ -188,7 +188,7 @@ test("the earlier positional and option-table lines still read, as chains", () =
 test("a colour is written like Simple Color, and the old hex text still reads", () => {
   expect(
     parseZone(`_Z.button(self,"b",0,0,1,1,{col={-1,64,255,0.5}})`).opt.col,
-  ).toBe("-1,64,255");
+  ).toBe("-1,64,255,0.5");
   const old = parseZone(`_Z.button(self,"b",0,0,1,1,{col="ff8000"})`);
   expect(zoneToLua(old)).toContain(`.col(255,128,0)`);
   expect(
@@ -638,25 +638,30 @@ test("a number field is never empty, and shows the default when the line omits i
   expect(shown(`_Z.fader(self,"f1",0,0,1,9,{})`, "sensitivity")).toBe("1");
 });
 
-test("a colour has no alpha: red, green and blue, and an old fourth value is dropped", () => {
+test("a colour has an alpha only when it is not 1", () => {
   const colour = (line) =>
     zoneToLua(parseZone(line)).match(/\.col\(([^)]*)\)/)?.[1];
-  // three values are written
+  // three values are written while the alpha is 1
   expect(colour(`_Z.button(self,"b",0,0,1,1,{col={255,128,0}})`)).toBe(
     "255,128,0",
   );
   expect(colour(`_Z.b(0,0,1,1).col(255,128,0)`)).toBe("255,128,0");
-  // the alpha of an earlier build (in any form) is read and dropped
+  expect(colour(`_Z.b(0,0,1,1).col(255,128,0,1)`)).toBe("255,128,0");
+  // any other alpha is kept, in every form
+  expect(colour(`_Z.b(0,0,1,1).col(255,128,0,0.5)`)).toBe("255,128,0,0.5");
   expect(colour(`_Z.button(self,"b",0,0,1,1,{col={255,128,0,0.5}})`)).toBe(
-    "255,128,0",
+    "255,128,0,0.5",
   );
   expect(
     parseZone(`_Z.zone(self,"b",3,{0,0,1,1},{1,2,3,0.5},{},{},{})`).opt.col,
-  ).toBe("1,2,3");
-  // the module's own colour is the default: no call
+  ).toBe("1,2,3,0.5");
+  // the alpha alone, on the module's own colour, is written too
+  expect(colour(`_Z.b(0,0,1,1).col(-1,-1,-1,0.25)`)).toBe("-1,-1,-1,0.25");
+  // the module's own colour at full alpha is the default: no call
   expect(colour(`_Z.b(0,0,1,1).col(-1,-1,-1)`)).toBeUndefined();
-  // a channel out of range is still an error
-  expect(issues([LIB, `_Z.b(0,0,1,1).n("b").col(300,0,0)`]).length).toBe(1);
+  expect(colour(`_Z.b(0,0,1,1).col(-1,-1,-1,1)`)).toBeUndefined();
+  // an alpha out of 0-1 is not a zone line
+  expect(parseZone(`_Z.b(0,0,1,1).col(1,2,3,2)`)).toBe(null);
 });
 
 test("Output and Command are one select, listing only the outputs the zone can take", () => {

@@ -117,15 +117,22 @@
   // The colour as the Simple Color block edits it: the four channels as text.
   // The picker keeps its own colour while it drags; the value moves the
   // channels only when it changes from elsewhere (undo, another view).
-  type Channels = { red: string; green: string; blue: string };
-  const NO_COLOR: Channels = { red: "-1", green: "-1", blue: "-1" };
+  type Channels = { red: string; green: string; blue: string; alpha: string };
+  const NO_COLOR: Channels = {
+    red: "-1",
+    green: "-1",
+    blue: "-1",
+    alpha: "1",
+  };
   let channels: Channels = { ...NO_COLOR };
   let picked = "";
   $: if (schema.type === "color" && value !== picked) {
     picked = value;
-    const [red, green, blue] = value.split(",");
+    const [red, green, blue, alpha] = value.split(",");
     channels =
-      typeof blue === "undefined" ? { ...NO_COLOR } : { red, green, blue };
+      typeof blue === "undefined"
+        ? { ...NO_COLOR }
+        : { red, green, blue, alpha: alpha ?? "1" };
   }
 
   const channelValid = (text: string) =>
@@ -168,21 +175,29 @@
   // The red, green and blue at -1: the page's default colour, which leaves
   // the option out.
   $: isDefaultColor =
-    channels.red === "-1" && channels.green === "-1" && channels.blue === "-1";
+    channels.red === "-1" &&
+    channels.green === "-1" &&
+    channels.blue === "-1" &&
+    channels.alpha === "1";
   function handleUseDefaultColor() {
-    channels = { ...channels, red: "-1", green: "-1", blue: "-1" };
+    channels = { ...NO_COLOR };
     report();
     dispatch("change", picked);
   }
 
   // The option is left out while the colour is the module's own.
   function report() {
-    const { red, green, blue } = channels;
+    const { red, green, blue, alpha } = channels;
     picked =
-      red === "-1" && green === "-1" && blue === "-1"
+      red === "-1" && green === "-1" && blue === "-1" && alpha === "1"
         ? ""
-        : [red, green, blue].join(",");
+        : [red, green, blue, ...(alpha === "1" ? [] : [alpha])].join(",");
     dispatch("input", picked);
+  }
+
+  function handleAlpha(alpha: number) {
+    channels = { ...channels, alpha: String(Math.round(alpha * 100) / 100) };
+    report();
   }
 
   function handlePick(color: Color.HSL) {
@@ -236,10 +251,13 @@
   {:else if schema.type === "enum"}
     <MeltSelect {title} {options} bind:target={selected} size="full" />
   {:else if schema.type === "color"}
-    <!-- The classic picker, without alpha: the zone takes the colour's red,
-         green and blue, and the minimalist mode leaves out their fields. -->
+    <!-- The classic picker with a vertical alpha slider beside it; the
+         minimalist mode leaves out the red, green and blue fields. -->
     <ColorEditor
       pickerStyle={ColorPickerModel.Square}
+      verticalAlpha
+      alphaSliderValue={Number(channels.alpha)}
+      on:alpha-slider={(e) => handleAlpha(e.detail.value)}
       showChannels={!$appSettings.persistent.userLevelMinimalist}
       {pickerColor}
       {red}
