@@ -13,6 +13,8 @@
   export let invalid = false;
   // The zone's colour as a CSS colour; without one the box is blue.
   export let color: string | undefined = undefined;
+  // The zone's alpha (0 to 1): it fades the box's fill, not its border.
+  export let alpha = 1;
   // The other zones of the surface, drawn dimmer. They take no input, except
   // a zone with an `index` (one of this block's zones): a click on it reports
   // "select".
@@ -23,6 +25,7 @@
     w: number;
     h: number;
     color?: string;
+    alpha?: number;
     index?: number;
   }[] = [];
 
@@ -256,7 +259,7 @@
       title={other.name}
       style="grid-column: {other.box.x + 1} / span {other.box
         .w}; grid-row: {other.box.y + 1} / span {other.box
-        .h}; --zone: {other.color ?? '#6b7aff'};"
+        .h}; --zone: {other.color ?? '#6b7aff'}; --alpha: {other.alpha ?? 1};"
     ></div>
   {/each}
   <div
@@ -278,7 +281,7 @@
     class="box"
     class:invalid
     data-geometry-box
-    style="--zone: {color ?? '#6b7aff'}; grid-column: {box.x +
+    style="--zone: {color ?? '#6b7aff'}; --alpha: {alpha}; grid-column: {box.x +
       1} / span {box.w}; grid-row: {box.y + 1} / span {box.h};"
     on:pointerdown={handleMoveStart}
   >
@@ -345,14 +348,22 @@
   .box {
     position: relative;
     border: 2px solid var(--zone);
-    background-color: color-mix(in srgb, var(--zone) 35%, transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--zone) calc(35% * var(--alpha, 1)),
+      transparent
+    );
     cursor: move;
   }
   /* another zone: dimmer, and the pointer goes through it to the pad */
   .other {
     pointer-events: none;
     border: 1px solid color-mix(in srgb, var(--zone) 60%, transparent);
-    background-color: color-mix(in srgb, var(--zone) 18%, transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--zone) calc(18% * var(--alpha, 1)),
+      transparent
+    );
   }
   .box.invalid {
     border-color: var(--error, #ef4444);
@@ -367,7 +378,11 @@
     cursor: pointer;
   }
   .other.selectable:hover {
-    background-color: color-mix(in srgb, var(--zone) 35%, transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--zone) calc(35% * var(--alpha, 1)),
+      transparent
+    );
   }
   /* the selected zone keeps its white border and handles, focus or not, so
      editing the fields never changes how the zone looks */

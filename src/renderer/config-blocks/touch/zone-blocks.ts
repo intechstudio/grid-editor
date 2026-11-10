@@ -106,6 +106,12 @@ export function zoneCssColor(
     : undefined;
 }
 
+// The zone colour's alpha (0 to 1): the 4th value of `col`, 1 without one.
+export function zoneAlpha(zone: Pick<Zone, "opt">): number {
+  const alpha = Number(String(zone.opt.col ?? "").split(",")[3] ?? 1);
+  return Number.isFinite(alpha) ? Math.min(1, Math.max(0, alpha)) : 1;
+}
+
 // The type as the Type select titles it: "XY Pad", "Button".
 export function zoneTypeLabel(zone: Pick<Zone, "kind" | "opt">): string {
   return enumValueLabels.dir[zoneType(zone)];

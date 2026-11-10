@@ -56,6 +56,7 @@
     enumOptions,
     withZoneType,
     zoneCssColor,
+    zoneAlpha,
     zoneType,
     zoneTypeLabel,
     blockZoneLabels,
@@ -233,6 +234,7 @@
       w: e.w,
       h: e.h,
       color: zoneCssColor(e, autoColor),
+      alpha: zoneAlpha(e),
       index,
     }));
 
@@ -592,6 +594,7 @@
                 (e) => typeof problemOf(e) !== "undefined",
               )}
               color={zoneCssColor(zone, autoColor)}
+              alpha={zoneAlpha(zone)}
               {others}
               on:select={(e) => selectZone(e.detail.index)}
               on:copy={handleCopyZone}
