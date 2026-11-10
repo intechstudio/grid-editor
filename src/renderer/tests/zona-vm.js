@@ -125,7 +125,6 @@ export async function createZonaVM(env = {}) {
         if o.grab == "live" then c.cap(1) end
         if o.fingers then c.fing(o.fingers) end
         if o.bmo then c.tog(o.bmo) end
-        if o.group then c.grp(o.group) end
         if o.tap then c.tap(o.tap) end
       end
     end

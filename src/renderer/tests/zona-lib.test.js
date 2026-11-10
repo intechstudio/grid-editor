@@ -195,7 +195,7 @@ test("a mouse fader scrolls up when dragged towards its max", async () => {
 
 test("a mouse button presses while held; toggle is a drag lock", async () => {
   const vm = await zones(
-    `Z.button(self,"b",2,0,2,2,{msg="mouse",num=2}) Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1,group=1}) Z.button(self,"a",6,0,2,2,{group=1})`,
+    `Z.button(self,"b",2,0,2,2,{msg="mouse",num=2}) Z.button(self,"t",4,0,2,2,{msg="mouse",bmo=1})`,
   );
   vm.touch([0, DOWN, 300, 100], [0, UP, 300, 100]);
   vm.touch([0, TAP, 500, 100], [0, TAP, 500, 100]);
@@ -206,14 +206,6 @@ test("a mouse button presses while held; toggle is a drag lock", async () => {
     [1, 0],
   ]);
   expect(wire(vm)).toEqual([]);
-  // another button of its group, set from the host, releases the lock
-  vm.clear();
-  vm.touch([0, TAP, 500, 100]);
-  vm.run(`Z.set("a",127)`);
-  expect(mouse(vm, "gmbs")).toEqual([
-    [1, 1],
-    [1, 0],
-  ]);
 });
 
 test("running Setup again releases a drag-locked mouse button", async () => {
@@ -758,7 +750,6 @@ describe("the chain", () => {
       "cap",
       "fing",
       "tog",
-      "grp",
       "tap",
     ]) {
       const line = `_Z.v(0,0,1,9).${call}(1)`;

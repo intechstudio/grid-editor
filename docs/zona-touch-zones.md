@@ -1,6 +1,6 @@
 # ZONA touch zones
 
-Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.28.1, written 2026-10-29.
+Branch `feat/zona-sandbox` (PR #1672), library `zona.lua` 0.28.2, written 2026-10-29.
 
 This document describes what the code on the branch does. It replaces `docs/zona-zones-rfc.md`. Section 13 lists what the RFC had and the code does not.
 
@@ -18,7 +18,7 @@ The action strings are the only store. The editor reads every view from them: th
 _Z=gr("zona")
 _Z.v(0,0,1,9).n("f1")
 _Z.v(1,0,1,9).n("f2").gms(-1,224,-1,-1).spr("50%")
-_Z.b(2,0,2,2).n("b1").col(255,0,0).tog(1).grp(1)
+_Z.b(2,0,2,2).n("b1").col(255,0,0).tog(1)
 _Z.xy(4,0,5,5).n("p1").mo()
 
 -- Page folder on the module
@@ -52,7 +52,6 @@ The constructors are `_Z.v(x,y,w,h)` (vertical fader), `_Z.h(x,y,w,h)` (horizont
 | `.sens(n)`                | sensitivity                                                                                           | 1                                                            |
 | `.spr("50%")`             | the position a fader or XY returns to on release, `"0%"` to `"100%"` or a number                      | off                                                          |
 | `.tog(n)`                 | a button's steps, 0 momentary, 1 toggle                                                               | 0                                                            |
-| `.grp(n)`                 | a button's radio group, 0 none                                                                        | 0                                                            |
 | `.fing(n)`                | the fingers of an XY pad, 1 to 5                                                                      | 1                                                            |
 | `.tap(t)`                 | tap to click of a mouse XY pad, 0 or 1                                                                | 1                                                            |
 | `.cap(c)`                 | `0` focus, `1` live                                                                                   | 0                                                            |
@@ -61,7 +60,7 @@ The constructors are `_Z.v(x,y,w,h)` (vertical fader), `_Z.h(x,y,w,h)` (horizont
 - `.gms`: `cmd` 144 is a note (128 too), 224 pitch bend, 176 a CC, and `mode` makes a CC `1` a 14-bit pair (the number and the number plus 32), `2` an NRPN and `3` an NRPN with a 14-bit value. The firmware's `gms` takes four arguments and does no encoding; the fifth, `mode`, belongs to `self:gms` in `simplemidi.lua`, and the library encodes the same way (see Outputs).
 - `.gms`, `.mo` and `.ga` replace each other: the last one wins.
 - The value range follows the command: 0–127 for a CC, a note and a 7-bit NRPN, 0–16383 for a 14-bit CC, pitch bend and a 14-bit NRPN, -128 to 127 for a gamepad axis. Host MIDI is always on: a CC, a 14-bit CC and pitch bend zone follow the host's messages on the identity it sends (there is no option for it).
-- The editor writes the calls in a fixed order, skipping what is the default: `.n`, `.col`, the output (`.gms`, `.mo` or `.ga`), `.mode`, `.sens`, `.spr`, `.tog`, `.grp`, `.fing`, `.tap`, `.cap`. It reads them in any order. A call a zone has no use for (`.spr` on a button) is dropped when read. A call the editor doesn't know, or one with arguments that don't fit, makes the line fail to parse, and the block shows it as code and never rewrites it. A zone without `.n` has no name (see Names below).
+- The editor writes the calls in a fixed order, skipping what is the default: `.n`, `.col`, the output (`.gms`, `.mo` or `.ga`), `.mode`, `.sens`, `.spr`, `.tog`, `.fing`, `.tap`, `.cap`. It reads them in any order. A call a zone has no use for (`.spr` on a button) is dropped when read. A call the editor doesn't know, or one with arguments that don't fit, makes the line fail to parse, and the block shows it as code and never rewrites it. A zone without `.n` has no name (see Names below).
 
 Earlier line forms still run in the editor's reading, not on the module. The positional `_Z.zone(self,"f1",2,{...},...)` and the option-table `_Z.fader(self,"f1",x,y,w,h,{key=value,...})` and `_Z.button(...)` parse and are written back as chains the next time the block changes. The module's library 0.27.0 has only the chain: a profile written with an older line needs its blocks edited once (or sent again) after the library is updated. An option the editor doesn't know in an option-table line, a range (`min`, `max`) and `rx` of earlier builds are dropped or make the line not a zone line.
 
@@ -78,7 +77,6 @@ The editor's schema is in `zone-model.ts`. The library's defaults are in `Z.def`
 | `sensitivity` | fader, xy  | Behaviour | 1                                 | 0.01–10                                                                       |                    |
 | `bmo`         | button     | Behaviour | 0                                 | 0–127                                                                         | mouse              |
 | `spring`      | fader, xy  | Behaviour | -1                                | -1, 0–100                                                                     | mouse              |
-| `group`       | button     | Behaviour | 0                                 | 0–8                                                                           | mouse              |
 | `fingers`     | xy         | Behaviour | 1                                 | 1–5                                                                           | mouse, pad         |
 | `grab`        | all        | Capture   | `focus`                           | `focus`, `live`                                                               |                    |
 | `col`         | all        | LED       | none; the module's default colour | `{r,g,b}`                                                                     |                    |
@@ -97,7 +95,6 @@ Meaning of each option:
 - `sensitivity`: for `rel`, the drag factor. For a mouse zone, the move multiplier. The face shows it only in `rel` mode, and for mouse output. The option was called `speed` before 0.16.0; the library still reads it when `sensitivity` is absent, and the editor shows it as an unknown option.
 - `bmo`: the button mode, as Grid's Button Mode block. 0 momentary, 1 toggle, n gives n+1 steps.
 - `spring`: -1 is off (the default). 0 to 100 makes a fader or XY rest at that percent of its range and return there on release: 0 is the minimum, 50 the centre, 100 the maximum. The editor suggests Off, 0%, 50% and 100%. Before library 0.19.0 the option was 0 or 1 (1 the centre); a line with `spring=1` still returns to the centre.
-- `group`: radio group 1–8. 0 is none.
 - `fingers`: how many contacts an XY takes at once.
 - `grab`: `focus` keeps a contact in the zone it landed on. `live` lets a contact move between live zones.
 - `col`: the zone colour, written like the Simple Color block's colour: `{red, green, blue}`, such as `{255,128,0}`. There is no alpha: an older line with a fourth value still reads, and the value is dropped when the line is written again. A channel of -1 is the module's own colour for it. The old `"rrggbb"` text still works (library 0.19.0) and the editor rewrites it as a table.
@@ -142,10 +139,10 @@ A duplicate filter per source holds the last value on the wire. A value is sent 
 
 - **XY**: a trackpad. The pointer moves by the finger's movement, one step per sensor unit, times `sensitivity`. `gmms(1, dx)` and `gmms(2, dy)`. Sensor y grows down, like the pointer.
 - **Fader**: the wheel. One step per 32 sensor units, times `sensitivity`. `gmms(3, step)`. Dragging toward the fader's max sends positive steps.
-- **Button**: `gmbs(num, 1)` on touch, `gmbs(num, 0)` on lift. `num` 1 left, 2 right, 4 middle. No auto: without `num` it is left. `bmo=1` is a drag lock: press on one touch, release on the next. The editor shows no Button mode and no Radio group for a mouse button zone and writes neither (a line from an older build or by hand that has `.tog` still runs as a drag lock).
+- **Button**: `gmbs(num, 1)` on touch, `gmbs(num, 0)` on lift. `num` 1 left, 2 right, 4 middle. No auto: without `num` it is left. `bmo=1` is a drag lock: press on one touch, release on the next. The editor shows no Button mode for a mouse button zone and writes none (a line from an older build or by hand that has `.tog` still runs as a drag lock).
 - Each move is sent at once. Each axis sends its whole steps, clamped to -127…127, and keeps the fraction. A bigger move is cut.
 - **Tap to click** (`tap=1`, XY): a touch with less than 30 sensor units of travel sends `gmbs(1,1)` then `gmbs(1,0)` on lift, in the same scan. The firmware must send them as two USB reports (`grid_usb_macro_tx_flush` in grid-fw splits a press and a release of one button); older firmware merges them into one report and the host sees no click. The touch must also be shorter than 0.2 s, timed with `os.clock()` between down and up. This needs firmware whose `os.clock` returns real time. The clock is read only on a tap zone. A contact that slid in under `grab="live"` never taps. A tap does not click while a mouse button zone holds the left button, so a drag lock stays.
-- Leaving a zone, another group member turning on, a Setup re-run, `Z.set` on a group member and `Z.unload` release a held mouse button.
+- Leaving a zone, a Setup re-run and `Z.unload` release a held mouse button.
 - A mouse zone has no value. `Z.set` skips it.
 
 ### Gamepad
@@ -153,7 +150,7 @@ A duplicate filter per source holds the last value on the wire. A value is sent 
 `msg="pad"`. Finger 1 only. The library sets `fingers=1`, and the axis range is -128 to 127.
 
 - **Fader and XY**: axes. The travel maps to -128…127. `ggms(axis, pos)`. An XY sends x on `num` and y on `num+1`. `mode`, `sensitivity`, `spring` and `grab` apply. An XY with `spring=50` is a joystick centred on 0.
-- **Button**: `ggbs(button, 1)` on any step but the first, `ggbs(button, 0)` on the first. It follows `bmo` and groups like a note.
+- **Button**: `ggbs(button, 1)` on any step but the first, `ggbs(button, 0)` on the first. It follows `bmo` like a note.
 
 ### Autos
 
@@ -198,14 +195,13 @@ Removing the last zone line leaves the previous surface running until the page r
 - The position inside the zone is 0–1 per axis. For a vertical fader 0 is the bottom. For an XY y 0 is the bottom.
 - `min` and `max` below are the command's range (0 and 127, or 0 and 16383), and -128 and 127 for a gamepad axis. The value is `min + round(position * (2^bits - 1)) * (max - min) / (2^bits - 1)`, rounded.
 - Steps: the step values are `min`, then `min + trunc((max - min) / bmo)` added bmo times. With `bmo=0` the second value is `max`. The firmware's own stepping differs for some ranges. That is noted in the code.
-- Groups: a press that turns a group member on turns the other members of the group off first. They send their off value. Every member can be off.
 - Spring: the zone rests at position 0.5 per axis and sends nothing at start. On release it returns to 0.5 at once. Host MIDI and `Z.set` put the value where they say.
 
 ### Host MIDI and Z.set
 
 A zone that sends a CC, a 14-bit CC or pitch bend registers the identities it sends: each source's channel, command and number, both CCs of a 14-bit pair, pitch bend on its channel. On an XY with fingers only finger 1's channel is registered.
 
-`Z.rx` handles host MIDI only (header 13). Note off and velocity 0 are 0. A 14-bit CC applies the MSB at once and the LSB refines it. Pitch bend is LSB then MSB. A 7-bit message into a wider range is scaled up. NRPN is not decoded. A button takes the nearest step; an "on" for a group member turns the others off. The value is set without sending, the glide target is cleared, and the duplicate filter is updated. The zone repaints on the next tick. RX is ignored while any finger holds the zone.
+`Z.rx` handles host MIDI only (header 13). Note off and velocity 0 are 0. A 14-bit CC applies the MSB at once and the LSB refines it. Pitch bend is LSB then MSB. A 7-bit message into a wider range is scaled up. NRPN is not decoded. A button takes the nearest step. The value is set without sending, the glide target is cleared, and the duplicate filter is updated. The zone repaints on the next tick. RX is ignored while any finger holds the zone.
 
 `Z.set(name, value, src)` sets a zone's value the same way, for user code. Without `src` it sets `v`, or `x` on an XY. `src="y"` sets y. Mouse zones and held zones are skipped.
 
@@ -232,18 +228,18 @@ The library has no timer, no tick, and no glide or ease. Everything runs from th
 
 ## 7. Library API
 
-| Name                                                              | What it does                                                                    |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `Z.v(x,y,w,h)`, `Z.h(x,y,w,h)`, `Z.xy(x,y,w,h)`, `Z.b(x,y,w,h)`   | Add a zone and return the chain (section 3). The module has `_Z` for `Z`.       |
-| `.n .col .gms .mo .ga .mode .sens .spr .cap .fing .tog .grp .tap` | The calls of the chain. Each sets one thing and builds the zone again in place. |
-| `Z.touch(self, id, evt, x, y)`                                    | The touch callback. The first zone sets it.                                     |
-| `Z.rx(self, header, event)`                                       | The MIDI receive callback. Set when a zone has a host identity.                 |
-| `Z.set(name, value, src)`                                         | Sets a zone's value without sending.                                            |
-| `Z.unload()`                                                      | Releases everything and gives the element's callbacks back.                     |
-| `Z.def`, `Z.kind`                                                 | Option defaults and kind presets. The editor's copies must match them.          |
-| `Z.zs`, `Z.te`                                                    | The zones, the touch element. Internal, but reachable.                          |
+| Name                                                            | What it does                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `Z.v(x,y,w,h)`, `Z.h(x,y,w,h)`, `Z.xy(x,y,w,h)`, `Z.b(x,y,w,h)` | Add a zone and return the chain (section 3). The module has `_Z` for `Z`.       |
+| `.n .col .gms .mo .ga .mode .sens .spr .cap .fing .tog .tap`    | The calls of the chain. Each sets one thing and builds the zone again in place. |
+| `Z.touch(self, id, evt, x, y)`                                  | The touch callback. The first zone sets it.                                     |
+| `Z.rx(self, header, event)`                                     | The MIDI receive callback. Set when a zone has a host identity.                 |
+| `Z.set(name, value, src)`                                       | Sets a zone's value without sending.                                            |
+| `Z.unload()`                                                    | Releases everything and gives the element's callbacks back.                     |
+| `Z.def`, `Z.kind`                                               | Option defaults and kind presets. The editor's copies must match them.          |
+| `Z.zs`, `Z.te`                                                  | The zones, the touch element. Internal, but reachable.                          |
 
-The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.28.1"`. The Library block reads these.
+The file starts with `local LIB_NAME = "_Z"` and `local LIB_VERSION = "0.28.2"`. The Library block reads these.
 
 ## 8. Firmware functions the library uses
 
@@ -327,7 +323,7 @@ Three new fields on `ActionBlockInformation`: `elementTypes`, `eventTypes` and `
 
 ### Overlay
 
-The control name overlay draws the zones on a touch element instead of a name. `TouchZonesOverlay.svelte` loads the touch Setup when needed and retries a failed load after two seconds. `overlayZones` in `touch-zones.ts` turns the Setup's actions into rectangles in percent of the surface, in definition order. Each shows the zone's name and kind icon, a group badge, a red or yellow outline for an error or warning, and a highlight while its block is selected. Cells outside the grid are clipped. Clicking a zone shows the touch Setup when needed and selects the block. The overlay does not write.
+The control name overlay draws the zones on a touch element instead of a name. `TouchZonesOverlay.svelte` loads the touch Setup when needed and retries a failed load after two seconds. `overlayZones` in `touch-zones.ts` turns the Setup's actions into rectangles in percent of the surface, in definition order. Each shows the zone's name and kind icon, a red or yellow outline for an error or warning, and a highlight while its block is selected. Cells outside the grid are clipped. Clicking a zone shows the touch Setup when needed and selects the block. The overlay does not write.
 
 `zona-grid.ts` holds the 9×9 cell maths. `ZONA.svelte` uses it too.
 
@@ -405,7 +401,7 @@ The RFC went through eight revisions. These ideas were in it at some point and a
 
 - Zone hooks as virtual events (revision 1).
 - Touch Knob (`zkn`): an angle reader, an arc painter, a `drag` option.
-- Touch Group (`zgr`) with an `empty` option. Groups are the button's `group` option now.
+- Touch Group (`zgr`) with an `empty` option. There are no groups: the button's `group` option was removed, and an old `.grp(n)` or `group=` still reads and is dropped.
 - Touch Utility (`zut`) and the mapping mode for MIDI learn: a window on the utility button, letting one message stream through. It needs a clock, which the library no longer has.
 - Touch Start (`_Z.start(self)`), the picker's `keepLast` rule and the order warnings around it. The first zone line does its work now.
 - Touch End and zone bodies: `_Z.fader(…,{opt},function(self) … end)`. A zone had ordinary blocks inside, with `self` as the zone. Gone with it: the getters `v x y g d dx dy step f`, `glc` and `glp` on zones, the body picker rules (`bodyAccepts`), the hidden MIDI block in bodies, the getter suggestions in Mouse and Gamepad blocks, Simple Color and Simple Intensity overriding `col`, and the start run that ran each body once.

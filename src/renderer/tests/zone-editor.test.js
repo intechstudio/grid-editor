@@ -64,8 +64,8 @@ test.each([
     `_Z.v(1,0,1,9).n("f1").mode(1).sens(0.5)`,
   ],
   [
-    `_Z.button(self,"b1",0,0,1,1,{bmo=3,group=2,col={255,128,0,1},cmd="cc"})`,
-    `_Z.b(0,0,1,1).n("b1").col(255,128,0).gms(-1,176,-1,-1).tog(3).grp(2)`,
+    `_Z.button(self,"b1",0,0,1,1,{bmo=3,col={255,128,0,1},cmd="cc"})`,
+    `_Z.b(0,0,1,1).n("b1").col(255,128,0).gms(-1,176,-1,-1).tog(3)`,
   ],
   [
     `_Z.fader(self,"p1",0,0,9,9,{dir="xy",fingers=3,ch=3,num=7})`,
@@ -853,15 +853,29 @@ test("the button of a mouse button zone is a row of buttons, Left by default", (
   );
 });
 
-test("a mouse button zone writes no Button mode and no Radio group", () => {
-  const zone = parseZone(
-    `_Z.button(self,"b",0,0,1,1,{msg="mouse",bmo=1,group=2})`,
-  );
+test("a mouse button zone writes no Button mode", () => {
+  const zone = parseZone(`_Z.button(self,"b",0,0,1,1,{msg="mouse",bmo=1})`);
   expect(zoneToLua(zone)).toBe(`_Z.b(0,0,1,1).n("b").mo()`);
-  // a note or CC button keeps them
-  expect(
-    zoneToLua(parseZone(`_Z.button(self,"b",0,0,1,1,{bmo=1,group=2})`)),
-  ).toBe(`_Z.b(0,0,1,1).n("b").tog(1).grp(2)`);
+  // a note or CC button keeps it
+  expect(zoneToLua(parseZone(`_Z.button(self,"b",0,0,1,1,{bmo=1})`))).toBe(
+    `_Z.b(0,0,1,1).n("b").tog(1)`,
+  );
+});
+
+test("the removed radio group still reads and is dropped", () => {
+  const written = `_Z.b(0,0,1,1).n("b").tog(1)`;
+  for (const line of [
+    `_Z.button(self,"b",0,0,1,1,{bmo=1,group=2})`,
+    `_Z.b(0,0,1,1).n("b").tog(1).grp(2)`,
+    `_Z.zone(self,"b",3,{0,0,1,1},{},{},{0,1,-1,1,2},{})`,
+  ]) {
+    const zone = parseZone(line);
+    expect(zone).not.toBeNull();
+    expect(zone.opt.group).toBeUndefined();
+  }
+  expect(zoneToLua(parseZone(`_Z.b(0,0,1,1).n("b").tog(1).grp(2)`))).toBe(
+    written,
+  );
 });
 
 test("Reset Zone puts every setting back and keeps the type, name, position and size", () => {

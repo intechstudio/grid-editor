@@ -16,7 +16,6 @@ export type ZoneOptions = {
   mode: "abs" | "rel";
   sensitivity: number; // rel: drag factor; mouse: pointer sensitivity
   bmo: number; // gate: 0 momentary, 1 toggle, n = n+1 steps (button mode)
-  group: number; // gate: radio group 1-8, 0 none
   col?: string; // zone colour "red,green,blue"; without it the module's default colour
   ch: number; // MIDI channel 0-15, -1 auto (module row and page)
   num: number; // CC or note number 0-127, -1 auto (module column and slot); xy: y on num+1; mouse button: the button, 1 left by default; gamepad: axis 0-5 or button 0-31, -1 auto (Setup order)
@@ -41,7 +40,6 @@ export const zoneDefaults: ZoneOptions = {
   mode: "abs",
   sensitivity: 1,
   bmo: 0,
-  group: 0,
   ch: -1,
   num: -1,
   spring: -1,
@@ -148,15 +146,6 @@ export const zoneOptionSchema: ZoneOptionSchema[] = [
     type: "integer",
     min: 0,
     max: 127,
-    reads: ["gate"],
-    hide: MOUSE,
-    section: "behaviour",
-  },
-  {
-    key: "group",
-    type: "integer",
-    min: 0,
-    max: 8,
     reads: ["gate"],
     hide: MOUSE,
     section: "behaviour",

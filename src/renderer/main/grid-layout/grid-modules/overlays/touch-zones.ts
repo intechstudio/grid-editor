@@ -26,7 +26,6 @@ export type OverlayZone = {
   index: number; // the zone's place in its block, which may define several
   rect: ZoneRect; // percent of the touch surface
   issue?: "error" | "warning"; // the worst surface issue naming the zone
-  group?: number; // radio group badge, when > 0
   highlighted: boolean; // its block is selected
 };
 
@@ -62,7 +61,6 @@ export function overlayZones(
     parsed[a].forEach((zone, index) => {
       const label = labels[at];
       const levels = issues.filter((e) => e.zone === label).map((e) => e.level);
-      const group = Number(zone.opt.group ?? 0);
       zones.push({
         zone,
         label,
@@ -75,7 +73,6 @@ export function overlayZones(
           : levels.includes("warning")
             ? "warning"
             : undefined,
-        group: group > 0 ? group : undefined,
         highlighted: selectedIds.includes(action.id),
       });
     });

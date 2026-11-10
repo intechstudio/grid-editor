@@ -1,7 +1,7 @@
 <script lang="ts">
   // The ZONA's touch zones in the control name overlay (docs/zona-touch-zones.md, Overlay): one
-  // rectangle per zone line of the touch Setup, with its name, kind icon, group
-  // badge and issue outline, highlighted while its block is selected.
+  // rectangle per zone line of the touch Setup, with its name, kind icon
+  // and issue outline, highlighted while its block is selected.
   // Read-only: clicking a zone selects its block.
   import { tick } from "svelte";
   import { EventType, EventTypeToNumber } from "@intechstudio/grid-protocol";
@@ -126,13 +126,6 @@
         </div>
         <span class="name">{zone.shortLabel}</span>
       </div>
-      {#if typeof zone.group !== "undefined"}
-        <span
-          class="badge absolute top-0.5 right-0.5"
-          style="transform: rotate({labelRotation}deg);"
-          data-group={zone.group}>G{zone.group}</span
-        >
-      {/if}
     </button>
   {/each}
 </touch-zones>
@@ -167,11 +160,5 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .badge {
-    font-size: 0.75em;
-    padding: 0 3px;
-    border-radius: 3px;
-    background-color: color-mix(in srgb, var(--foreground) 20%, transparent);
   }
 </style>

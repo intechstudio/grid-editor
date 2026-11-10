@@ -294,7 +294,7 @@ function readOptions(
 ): Options | null {
   const opt: Record<string, ZoneOptionValue> = {};
   for (const { key, raw } of entries) {
-    if (key === "min" || key === "max" || key === "rx") {
+    if (key === "min" || key === "max" || key === "rx" || key === "group") {
       continue;
     }
     const known = schema.find((e) => e.key === key);
@@ -418,8 +418,8 @@ function readPositionalZone(reader: Reader): Zone | null {
     for (let i = 0; i < groups[g].length; i++) {
       const key = keys[i];
       const raw = groups[g][i];
-      if (key === "rx") {
-        continue; // host MIDI is always on
+      if (key === "rx" || key === "group") {
+        continue; // host MIDI is always on; the radio group is gone
       }
       if (key === "out") {
         const output = zoneOutputs[parseNumber(raw) ?? -1];
@@ -580,8 +580,7 @@ function applyCall(zone: Zone, call: string, raws: string[]): boolean {
       opt.bmo = num(0) ?? 0;
       return raws.length === 1;
     case "grp":
-      opt.group = num(0) ?? 0;
-      return raws.length === 1;
+      return raws.length === 1; // the radio group is gone; an old line still reads
     case "tap":
       opt.tap = num(0) ?? 1;
       return raws.length === 1;
@@ -735,7 +734,7 @@ export function zonesToLua(zones: Zone[]): string {
 //   _Z.xy(0,0,5,5).n("p1").col(255,0,0).gms(-1,176,40,-1,1).spr("50%")
 //
 // .n, .col, the output (.gms for MIDI, .mo for the mouse, .ga for the
-// gamepad), then .mode, .sens, .spr, .tog, .grp, .fing, .tap and .cap.
+// gamepad), then .mode, .sens, .spr, .tog, .fing, .tap and .cap.
 export function zoneToLua(zone: Zone): string {
   if (!zoneKindList.includes(zone.kind)) {
     throw new Error(`Unknown zone kind "${zone.kind}"`);
@@ -812,10 +811,6 @@ export function zoneToLua(zone: Zone): string {
   const bmo = given("bmo");
   if (typeof bmo === "number") {
     line += `.tog(${luaNumber(bmo)})`;
-  }
-  const group = given("group");
-  if (typeof group === "number") {
-    line += `.grp(${luaNumber(group)})`;
   }
   const fingers = given("fingers");
   if (typeof fingers === "number") {

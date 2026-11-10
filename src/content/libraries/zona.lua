@@ -1,5 +1,5 @@
 local LIB_NAME = "_Z"
-local LIB_VERSION = "0.28.1"
+local LIB_VERSION = "0.28.2"
 
 -- ZONA touch zones (docs/zona-touch-zones.md). Short names only: compressScript
 -- rewrites human names, also in strings and comments. Lua 5.5: no assignments
@@ -15,7 +15,6 @@ Z.def = {
   mode = "abs",
   sensitivity = 1,
   bmo = 0,
-  group = 0,
   ch = -1,
   num = -1,
   spring = -1,
@@ -230,21 +229,6 @@ local function pos(z, c, x, y)
   rd[z.o.read](z, c, x, y)
 end
 
-local function off(z, r)
-  for _, o in ipairs(Z.zs) do
-    if o ~= z and o.o.group == z.o.group and o.o.read == "gate" and o.st > 0 then
-      o.st = 0
-      o.u.v = o.sv[1]
-      o.dt = 1
-      if r then
-        run(o, "g")
-      else
-        mb(o, 0) -- a sync releases a mouse button too
-      end
-    end
-  end
-end
-
 -- a press (gate: a new step) clears the duplicate filter
 local function gate(z, g)
   z.dt = 1
@@ -259,9 +243,6 @@ local function gate(z, g)
     st = g
   elseif g == 1 then
     st = (st + 1) % #z.sv
-  end
-  if z.o.group > 0 and st > 0 then
-    off(z, 1)
   end
   if g == 1 and st ~= z.st then
     z.l = {}
@@ -543,9 +524,6 @@ local function sy(z, s, v, w)
       end
     end
     z.st, z.u.v = b - 1, z.sv[b]
-    if b > 1 and z.o.group > 0 then
-      off(z)
-    end
   else
     s = s == "g" and (z.o.read == "point" and "x" or "v") or s
     local q = cl((v - z.mi) / (z.ma - z.mi))
@@ -916,10 +894,6 @@ end
 -- the steps of a button, 0 momentary
 function M.tog(n)
   return set("bmo", n)
-end
-
-function M.grp(n)
-  return set("group", n)
 end
 
 function M.tap(t)

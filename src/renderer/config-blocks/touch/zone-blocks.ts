@@ -635,14 +635,6 @@ export function zoneOptionSuggestions(
         { value: "0", info: "Momentary" },
         { value: "1", info: "Toggle" },
       ];
-    case "group":
-      return [
-        { value: "0", info: "None" },
-        ...Array.from({ length: 8 }, (_, i) => ({
-          value: String(i + 1),
-          info: `Group ${i + 1}`,
-        })),
-      ];
     case "fingers":
       return Array.from({ length: 5 }, (_, i) => ({
         value: String(i + 1),
@@ -726,7 +718,6 @@ export const optionLabels: Record<string, string> = {
   bmo: "Button mode",
   spring: "Spring to",
   fingers: "Fingers (one channel each)",
-  group: "Radio group",
   grab: "Capture focus",
   col: "Colour",
   msg: "Output",
