@@ -49,6 +49,7 @@
   "NOTIFICATION_JSON_URL": "https://raw.githubusercontent.com/intechstudio/grid-editor/stable/notification.json",
   "DOCUMENTATION_REFERENCEMANUAL_URL": "https://links.intech.studio/wiki",
   "DOCUMENTATION_DISCORDSERVER_URL": "https://links.intech.studio/discord",
+  "DOCUMENTATION_GRID_AI_URL": "https://docs.intech.studio/guides/grid/grid-ai/Grid-AI",
   "DOCUMENTATION_TROUBLESHOOTING_URL": "https://links.intech.studio/grid-troubleshoot",
   "DOCUMENTATION_MAINTENANCE_URL": "https://links.intech.studio/grid-maintanance",
   "DOCUMENTATION_ANALYTICS_POLICY_URL": "https://links.intech.studio/analytics",
