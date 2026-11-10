@@ -39,9 +39,8 @@
     | { kind: "edge"; axis: "x" | "y"; fixed: number; from: Box };
 
   let pad: HTMLElement;
-  // The zone's box. It takes the DOM focus when pressed, and the resize
-  // corners show only while it has it: the focus is what tells that the zone
-  // is the one an action (a shortcut, later) would apply to.
+  // The zone's box. It takes the DOM focus when pressed, so its shortcuts
+  // work; the border and resize handles show whether it has the focus or not.
   let boxElement: HTMLElement;
   let drag: Drag | null = null;
 
@@ -370,20 +369,18 @@
   .other.selectable:hover {
     background-color: color-mix(in srgb, var(--zone) 35%, transparent);
   }
-  .box:focus {
+  /* the selected zone keeps its white border and handles, focus or not, so
+     editing the fields never changes how the zone looks */
+  .box {
     outline: none;
     box-shadow: 0 0 0 2px var(--foreground);
   }
-  /* the corners and edge handles show only while the zone has the focus */
   .corner {
-    display: none;
+    display: block;
     position: absolute;
     width: 0.6rem;
     height: 0.6rem;
     background-color: var(--foreground);
-  }
-  .box:focus .corner {
-    display: block;
   }
   .nw {
     top: -0.3rem;
