@@ -423,36 +423,42 @@ test("a new Touch Zone is a 5x5 XY pad and a new button is 2x2", () => {
   expect(defaultZoneScript("button", [])).toBe(`${LIB} _Z.b(0,0,2,2)`);
 });
 
-test("the Type select resets every setting but the position, size and colour", () => {
+test("the Type select keeps the settings the new type has, and resets the output only when it must change", () => {
   const pad = parseZone(
-    `_Z.fader(self,"f1",2,1,5,4,{dir="xy",tap=0,cmd="cc14",ch=2,spring=50,col={255,128,0,1}})`,
+    `_Z.fader(self,"f1",2,1,5,4,{dir="xy",tap=0,cmd="cc14",ch=2,num=20,spring=50,col={255,128,0,1}})`,
   );
   expect(zoneType(pad)).toBe("xy");
   expect(zoneTypeLabel(pad)).toBe("XY Pad");
-  const opts = (zone) => parseZone(zoneToLua(zone)).opt;
-  const button = withZoneType(pad, "button", [
-    `_Z.button(self,"b1",0,0,1,1,{})`,
-  ]);
-  // the name, position, size and colour stay
+  const button = withZoneType(pad, "button", []);
+  // the name, position, size, colour and the output stay
   expect([button.name, button.kind]).toEqual(["f1", "button"]);
   expect([button.x, button.y, button.w, button.h]).toEqual([2, 1, 5, 4]);
-  expect(button.opt).toEqual({ col: "255,128,0" });
+  expect(button.opt).toEqual({
+    col: "255,128,0",
+    cmd: "cc14",
+    ch: 2,
+    num: 20,
+  });
   expect(zoneType(button)).toBe("button");
-  // the settings are the button's defaults: the line is only the colour
-  expect(zoneToLua(button)).toBe(`_Z.b(2,1,5,4).n("f1").col(255,128,0)`);
   expect(zoneProblems(parseZone(zoneToLua(button)))).toEqual([]);
-  // another type: again only the type, position, size and colour
+  // settings the button doesn't have (spring, tap) are gone; back to a fader
   const back = withZoneType(button, "h", []);
-  expect(back.name).toBe("f1");
-  expect(back.opt).toEqual({ col: "255,128,0", dir: "h" });
-  expect(zoneToLua(back)).toBe(`_Z.h(2,1,5,4).n("f1").col(255,128,0)`);
-  // a type between faders resets too
-  const edited = parseZone(
-    `_Z.fader(self,"f1",0,0,2,2,{dir="h",cmd="pb",ch=3})`,
-  );
-  expect(withZoneType(edited, "xy", []).opt).toEqual({ dir: "xy" });
+  expect(back.opt).toEqual({
+    col: "255,128,0",
+    dir: "h",
+    cmd: "cc14",
+    ch: 2,
+    num: 20,
+  });
+  // a command the new type can't send goes back to its default
+  const bend = parseZone(`_Z.fader(self,"f1",0,0,2,2,{dir="h",cmd="pb",ch=3})`);
+  expect(withZoneType(bend, "button", []).opt).toEqual({ ch: 3 });
+  expect(withZoneType(bend, "xy", []).opt).toEqual({ dir: "xy", ch: 3 });
+  // a default command stays what it was: a fader's CC is not the button's note
+  const fader = parseZone(`_Z.fader(self,"f1",0,0,2,2,{dir="h",ch=3})`);
+  expect(withZoneType(fader, "button", []).opt).toEqual({ cmd: "cc", ch: 3 });
   // the same type changes nothing
-  expect(withZoneType(edited, "h", [])).toBe(edited);
+  expect(withZoneType(bend, "h", [])).toBe(bend);
 });
 
 const TWO = `${XY("f1")} ${BTN("b1")}`;

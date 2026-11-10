@@ -111,8 +111,9 @@ export function zoneTypeLabel(zone: Pick<Zone, "kind" | "opt">): string {
   return enumValueLabels.dir[zoneType(zone)];
 }
 
-// The zone as another type. Every setting goes back to its default except the
-// name, the position, the size and the colour.
+// The zone as another type. The settings the new type also has stay; the
+// ones it doesn't have go back to their defaults, and so does the output
+// (msg, cmd, num) only when the new type can't send it.
 export function withZoneType(
   zone: Zone,
   type: string,
@@ -122,12 +123,53 @@ export function withZoneType(
     return zone;
   }
   const kind: ZoneKind = type === "button" ? "button" : "fader";
+  const oldRead = zoneRead(zone);
   const next: Zone = { ...zone, kind, opt: {} };
-  if (typeof zone.opt.col !== "undefined") {
-    next.opt.col = zone.opt.col;
-  }
   if (kind === "fader" && type !== "v") {
     next.opt.dir = type;
+  }
+  const newRead = zoneRead(next);
+  const schema = zoneOptionSchemaFor(next);
+  for (const [key, value] of Object.entries(zone.opt)) {
+    const option = schema.find((e) => e.key === key);
+    if (
+      key !== "dir" &&
+      key !== "cmd" &&
+      key !== "num" &&
+      typeof option !== "undefined" &&
+      option.reads.includes(newRead)
+    ) {
+      next.opt[key] = value;
+    }
+  }
+  // the command: kept when the new type sends it, written out when the new
+  // type's own default would otherwise change it
+  const cmd = zoneOptionValue(zone, "cmd");
+  const cmdSchema = schema.find((e) => e.key === "cmd");
+  if (
+    typeof cmd === "string" &&
+    cmdSchema?.type === "enum" &&
+    cmdSchema.values.includes(cmd)
+  ) {
+    if (cmd !== zoneOptionDefault(kind, "cmd")) {
+      next.opt.cmd = cmd;
+    }
+  }
+  // the number: what it means for a mouse or gamepad zone depends on the
+  // type, and a MIDI one must still be in range with the command
+  if (typeof zone.opt.num !== "undefined") {
+    const numSchema = zoneOptionSchemaFor(next).find((e) => e.key === "num");
+    const sends = zoneSends(next);
+    const max =
+      numSchema?.type === "integer" ? (numSchema.max ?? Infinity) : Infinity;
+    if (
+      (sends === "mouse" || sends === "pad"
+        ? newRead === oldRead && kind === zone.kind
+        : true) &&
+      (zone.opt.num as number) <= max
+    ) {
+      next.opt.num = zone.opt.num;
+    }
   }
   return next;
 }
