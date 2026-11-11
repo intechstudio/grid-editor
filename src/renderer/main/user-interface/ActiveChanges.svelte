@@ -23,6 +23,9 @@
   } from "../../runtime/getting-started-profile";
   import { profileLoadProgress } from "../../runtime/profileLoadProgress";
 
+  // Words shown fully uppercase in profile type titles (module names)
+  const UPPERCASE_WORDS = ["zona"];
+
   /**
    * Formats a profile type string for display
    * @example "getting-started" => "Getting Started"
@@ -30,7 +33,11 @@
   function formatProfileTypeTitle(type: string): string {
     return type
       .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) =>
+        UPPERCASE_WORDS.includes(word.toLowerCase())
+          ? word.toUpperCase()
+          : word.charAt(0).toUpperCase() + word.slice(1),
+      )
       .join(" ");
   }
 
