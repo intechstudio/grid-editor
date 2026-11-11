@@ -26,6 +26,12 @@
   // Words shown fully uppercase in profile type titles (module names)
   const UPPERCASE_WORDS = ["zona"];
 
+  // Module types whose "Clear to Default" also loads a profile, by module type.
+  // Other modules are only cleared to the firmware default.
+  const DEFAULT_PROFILE_BY_MODULE: Record<string, string> = {
+    ZONA: "zona-default",
+  };
+
   /**
    * Formats a profile type string for display
    * @example "getting-started" => "Getting Started"
@@ -153,6 +159,20 @@
     const ui = get(user_input);
     const profileType = $selectedProfileType;
 
+    // "Clear to Default" only: profiles to load after the clear, and the
+    // modules (dx,dy) they are loaded to
+    const defaultModules = profileType
+      ? []
+      : runtime.modules.filter((m) => DEFAULT_PROFILE_BY_MODULE[m.type]);
+    const defaultKeys = new Set(defaultModules.map((m) => `${m.dx},${m.dy}`));
+    const profileTypes = profileType
+      ? [profileType]
+      : [
+          ...new Set(
+            defaultModules.map((m) => DEFAULT_PROFILE_BY_MODULE[m.type]),
+          ),
+        ];
+
     const finish = () => {
       logger.set({
         type: "success",
@@ -160,7 +180,9 @@
         classname: "pageclear",
         message: profileType
           ? `Succesfully loaded ${profileType}!`
-          : `Page clear complete!`,
+          : defaultKeys.size > 0
+            ? `Page clear complete, default profile loaded!`
+            : `Page clear complete!`,
       });
       Analytics.track({
         event: "Page Config",
@@ -194,6 +216,8 @@
         profileLoadProgress.update((map) => {
           if (!map) return map;
           for (const key in map) {
+            // modules getting a default profile report their own progress
+            if (defaultKeys.has(key)) continue;
             map[key].operationTotal = 1;
             map[key].operationCompleted = 1;
           }
@@ -203,16 +227,20 @@
       })
       .then(() => {
         clearOverlays();
-        if (!profileType) {
+        // the profile load closes the overlay itself
+        if (profileTypes.length === 0) {
           moduleOverlay.close();
           profileLoadProgress.set(undefined);
         }
       })
       .then(() => {
-        if (!profileType) return;
+        if (profileTypes.length === 0) return;
         return import("../../runtime/getting-started-profile").then(
-          ({ loadGettingStartedProfiles }) =>
-            loadGettingStartedProfiles(runtime, profileType),
+          async ({ loadGettingStartedProfiles }) => {
+            for (const type of profileTypes) {
+              await loadGettingStartedProfiles(runtime, type);
+            }
+          },
         );
       })
       .then(finish)
