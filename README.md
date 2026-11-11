@@ -106,9 +106,9 @@ Targets are defined in `wrangler.jsonc`, the workflows in `.github/workflows/clo
 ## Grid Editor and Profile Cloud projects during development
 
 - handy firebase commands: `firebase logout`, `firebase login`, `firebase projects:list`, `firebase use THE-PROJECT-NAME`
-- the Grid Editor signs in through Logto (`AUTH_ISSUER_*` and `AUTH_CLIENT_ID_*` in `configuration.json`), the loaded Profile Cloud build picks the environment
+- the Grid Editor signs in through the identity provider over plain OIDC (`AUTH_ISSUER_*` and `AUTH_CLIENT_ID_*` in `configuration.json`), the loaded Profile Cloud build picks the environment. The provider is moving from Logto to Keycloak (decision 36 of the authentication rework): desktop sign-in will return through a loopback redirect on `127.0.0.1` instead of `grid-editor://auth/callback`, so the browser tab ends on a "signed in" page, and the web build will use `oauth4webapi` instead of `@logto/browser`
 - profile-cloud-dev is the profile cloud firebase project used by the Profile Cloud
 - when firestore security settings are changed, they shouls be either emulated locally or pushed to the appropiate project environment
 - passing auth is through `oidc`
 - sign-in follows the `PUBLIC_APP_ENV` of the loaded Profile Cloud build, and only local and PR preview builds are `development`. The web build keeps no settings across the sign-in redirect, so point it at such a build with `VITE_PROFILE_CLOUD_URL`
-- the seed generates the `grid-editor` client id per Logto database, so point a dev build at your own with `VITE_AUTH_CLIENT_ID_DEV`, and at a hosted Logto with `VITE_AUTH_ISSUER_DEV` in the form `https://host/oidc`, with no trailing slash. Both are read at build time, the `configuration.json` values stay the defaults
+- until the Keycloak switch: the seed generates the `grid-editor` client id per Logto database, so point a dev build at your own with `VITE_AUTH_CLIENT_ID_DEV`, and at a hosted Logto with `VITE_AUTH_ISSUER_DEV` in the form `https://host/oidc`, with no trailing slash. Both are read at build time, the `configuration.json` values stay the defaults. With Keycloak the client id is `grid-editor` everywhere, so `VITE_AUTH_CLIENT_ID_DEV` goes away, and the issuer takes the form `https://host/realms/intech`
