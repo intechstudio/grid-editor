@@ -1367,5 +1367,9 @@ app.on("activate", () => {
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
   stopLuaLSServer();
+  // Cmd+Q on macOS never reaches window-all-closed's cleanup, so the package
+  // manager utility process would be left alive and block exit.
+  restartPackageManagerOnShutdown = false;
+  stopPackageManager();
   app.quitting = true;
 });
