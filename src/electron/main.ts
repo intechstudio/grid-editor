@@ -1367,5 +1367,12 @@ app.on("activate", () => {
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
   stopLuaLSServer();
+  // Close the chokidar watcher explicitly. Left open, the fsevents native
+  // module's finalizer deadlocks during Node environment teardown on macOS
+  // (seen on Electron 42: main thread stuck in fse_instance_destroy), so the
+  // app never exits after `quit`.
+  configWatcher?.close();
+  configWatcher = undefined;
   app.quitting = true;
 });
+

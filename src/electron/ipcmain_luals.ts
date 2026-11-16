@@ -9,9 +9,10 @@ import path from "path";
 import fs from "fs";
 import { app } from "electron";
 import log from "electron-log";
+import { spawn, type ChildProcess } from "child_process";
 import WebSocket from "ws";
 import {
-  createServerProcess,
+  createProcessStreamConnection,
   createWebSocketConnection,
   forward,
 } from "vscode-ws-jsonrpc/server";
@@ -20,6 +21,10 @@ import type { IWebSocket } from "vscode-ws-jsonrpc/socket";
 const LUALS_PORT = 8089;
 
 let wss: any;
+// Tracked so they can be torn down on quit; otherwise the lua-language-server
+// children (one per connection) and open sockets can outlive the app.
+const lualsProcesses = new Set<ChildProcess>();
+const lualsSockets = new Set<any>();
 
 function getAssetsBase(): string {
   return app.isPackaged
@@ -75,6 +80,8 @@ export function startLuaLSServer() {
 
   wss!.on("connection", (ws: any) => {
     log.info("[LuaLS] Client connected");
+    lualsSockets.add(ws);
+    ws.on("close", () => lualsSockets.delete(ws));
 
     const socket: IWebSocket = {
       send: (content) =>
@@ -110,11 +117,20 @@ export function startLuaLSServer() {
 
     let serverConnection;
     try {
-      serverConnection = createServerProcess("LuaLS", binary, [
+      const serverProcess = spawn(binary, [
         "--stdio",
         `--logpath=${lualsLogPath}`,
         `--datapath=${lualsDataPath}`,
       ]);
+      lualsProcesses.add(serverProcess);
+      serverProcess.on("exit", () => lualsProcesses.delete(serverProcess));
+      serverProcess.on("error", (error) =>
+        log.error("[LuaLS] Process error:", error),
+      );
+      serverProcess.stderr?.on("data", (data) =>
+        log.warn(`[LuaLS] stderr: ${data}`),
+      );
+      serverConnection = createProcessStreamConnection(serverProcess);
     } catch (error) {
       log.error("[LuaLS] Failed to start lua-language-server:", error);
       ws.close();
@@ -137,6 +153,14 @@ export function startLuaLSServer() {
 }
 
 export function stopLuaLSServer() {
+  for (const ws of lualsSockets) {
+    ws.terminate();
+  }
+  lualsSockets.clear();
+  for (const proc of lualsProcesses) {
+    proc.kill("SIGKILL");
+  }
+  lualsProcesses.clear();
   if (wss) {
     wss.close();
     wss = undefined;
