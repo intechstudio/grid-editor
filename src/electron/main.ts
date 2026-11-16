@@ -1369,10 +1369,12 @@ app.on("activate", () => {
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
   stopLuaLSServer();
-  // Cmd+Q on macOS never reaches window-all-closed's cleanup, so the package
-  // manager utility process would be left alive and block exit.
-  restartPackageManagerOnShutdown = false;
-  stopPackageManager();
+  // Close the chokidar watcher explicitly. Left open, the fsevents native
+  // module's finalizer deadlocks during Node environment teardown on macOS
+  // (seen on Electron 42: main thread stuck in fse_instance_destroy), so the
+  // app never exits after `quit`.
+  configWatcher?.close();
+  configWatcher = undefined;
   app.quitting = true;
   log.info("[quit-debug] before-quit handler done");
 });
