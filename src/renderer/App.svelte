@@ -72,6 +72,16 @@
     name = $appSettings.persistent.helperName;
   }
 
+  let lastLoggedMessage: unknown;
+  const unsubscribeLoggerConsole = logger.subscribe((entry) => {
+    if (entry === lastLoggedMessage) return;
+    lastLoggedMessage = entry;
+    if (entry && get(appSettings).persistent.loggerToConsoleEnabled) {
+      console.log("[logger]", entry);
+    }
+  });
+  onDestroy(unsubscribeLoggerConsole);
+
   $: applyTheme($appSettings.persistent.theme);
   // On <html> (not #app) so body-portaled popovers inherit the UI scale too.
   $: document.documentElement.style.fontSize = `${$appSettings.persistent.fontSize}px`;
