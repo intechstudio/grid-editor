@@ -23,14 +23,9 @@
   } from "../../runtime/getting-started-profile";
   import { profileLoadProgress } from "../../runtime/profileLoadProgress";
 
-  // Words shown fully uppercase in profile type titles (module names)
-  const UPPERCASE_WORDS = ["zona"];
-
-  // Module types whose "Clear to Default" also loads a profile, by module type.
-  // Other modules are only cleared to the firmware default.
-  const DEFAULT_PROFILE_BY_MODULE: Record<string, string> = {
-    ZONA: "zona-default",
-  };
+  // Initially selected profile. Modules without a preset of this type are
+  // only cleared (firmware defaults).
+  const DEFAULT_PROFILE_TYPE = "fancy-defaults";
 
   /**
    * Formats a profile type string for display
@@ -39,11 +34,7 @@
   function formatProfileTypeTitle(type: string): string {
     return type
       .split("-")
-      .map((word) =>
-        UPPERCASE_WORDS.includes(word.toLowerCase())
-          ? word.toUpperCase()
-          : word.charAt(0).toUpperCase() + word.slice(1),
-      )
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   }
 
@@ -85,15 +76,18 @@
   }
 
   // Profile type selection for MeltSelect
-  const selectedProfileType = writable("");
+  const selectedProfileType = writable(DEFAULT_PROFILE_TYPE);
 
-  // Options for MeltSelect — "Clear to Default" always first, then profile types
+  // Options for MeltSelect — "Fancy Defaults" first, then the other profile
+  // types, with the plain firmware clear last
   const profileTypeOptions = [
-    { value: "", title: "Clear to Default" },
-    ...availableProfileTypes.map((type) => ({
-      value: type,
-      title: formatProfileTypeTitle(type),
-    })),
+    ...availableProfileTypes
+      .filter((type) => type === DEFAULT_PROFILE_TYPE)
+      .map((type) => ({ value: type, title: formatProfileTypeTitle(type) })),
+    { value: "", title: "Firmware Defaults" },
+    ...availableProfileTypes
+      .filter((type) => type !== DEFAULT_PROFILE_TYPE)
+      .map((type) => ({ value: type, title: formatProfileTypeTitle(type) })),
   ];
 
   $: {
@@ -159,20 +153,6 @@
     const ui = get(user_input);
     const profileType = $selectedProfileType;
 
-    // "Clear to Default" only: profiles to load after the clear, and the
-    // modules (dx,dy) they are loaded to
-    const defaultModules = profileType
-      ? []
-      : runtime.modules.filter((m) => DEFAULT_PROFILE_BY_MODULE[m.type]);
-    const defaultKeys = new Set(defaultModules.map((m) => `${m.dx},${m.dy}`));
-    const profileTypes = profileType
-      ? [profileType]
-      : [
-          ...new Set(
-            defaultModules.map((m) => DEFAULT_PROFILE_BY_MODULE[m.type]),
-          ),
-        ];
-
     const finish = () => {
       logger.set({
         type: "success",
@@ -180,9 +160,7 @@
         classname: "pageclear",
         message: profileType
           ? `Succesfully loaded ${profileType}!`
-          : defaultKeys.size > 0
-            ? `Page clear complete, default profile loaded!`
-            : `Page clear complete!`,
+          : `Page clear complete!`,
       });
       Analytics.track({
         event: "Page Config",
@@ -216,8 +194,6 @@
         profileLoadProgress.update((map) => {
           if (!map) return map;
           for (const key in map) {
-            // modules getting a default profile report their own progress
-            if (defaultKeys.has(key)) continue;
             map[key].operationTotal = 1;
             map[key].operationCompleted = 1;
           }
@@ -227,23 +203,23 @@
       })
       .then(() => {
         clearOverlays();
-        // the profile load closes the overlay itself
-        if (profileTypes.length === 0) {
+        if (!profileType) {
           moduleOverlay.close();
           profileLoadProgress.set(undefined);
         }
       })
       .then(() => {
-        if (profileTypes.length === 0) return;
+        if (!profileType) return;
         return import("../../runtime/getting-started-profile").then(
-          async ({ loadGettingStartedProfiles }) => {
-            for (const type of profileTypes) {
-              await loadGettingStartedProfiles(runtime, type);
-            }
-          },
+          ({ loadGettingStartedProfiles }) =>
+            loadGettingStartedProfiles(runtime, profileType),
         );
       })
-      .then(finish)
+      .then((loaded) => {
+        // the profile loader reports its own failure
+        if (loaded === false) return;
+        finish();
+      })
       .catch(fail);
   }
 

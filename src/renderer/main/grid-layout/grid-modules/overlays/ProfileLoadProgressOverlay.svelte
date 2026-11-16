@@ -16,7 +16,13 @@
   >
     <div class="flex flex-col items-center gap-2 text-sm">
       {#if !entry.available}
-        <span>Profile not available</span>
+        <span>No profile, cleared only</span>
+      {:else if entry.filePercent !== undefined}
+        <span>Uploading files... {entry.filePercent}%</span>
+        <div
+          class="w-5 h-5 border-2 rounded-full animate-spin"
+          style="border-color: var(--foreground); border-top-color: transparent;"
+        ></div>
       {:else if entry.operationTotal === 0}
         <span>Waiting...</span>
       {:else if entry.operationCompleted < entry.operationTotal}
