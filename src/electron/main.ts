@@ -752,6 +752,7 @@ function createWindow() {
   }
 
   mainWindow.on("close", async (evt) => {
+    log.info("[quit-debug] mainWindow close, quitting =", app.quitting);
     // when quit is terminal under darwin
     if (app.quitting) {
       mainWindow = null;
@@ -1338,6 +1339,7 @@ ipcMain.on("restartApp", (event, arg) => {
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
+  log.info("[quit-debug] window-all-closed");
   const keepRunning = store.get("alwaysRunInTheBackground");
 
   if (keepRunning === true) {
@@ -1372,4 +1374,13 @@ app.on("before-quit", (evt) => {
   restartPackageManagerOnShutdown = false;
   stopPackageManager();
   app.quitting = true;
+  log.info("[quit-debug] before-quit handler done");
+});
+
+app.on("will-quit", () => {
+  log.info("[quit-debug] will-quit");
+});
+
+app.on("quit", () => {
+  log.info("[quit-debug] quit");
 });
