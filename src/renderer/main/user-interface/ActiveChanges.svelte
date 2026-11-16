@@ -78,12 +78,12 @@
   // Profile type selection for MeltSelect
   const selectedProfileType = writable(DEFAULT_PROFILE_TYPE);
 
-  // Options for MeltSelect — "Clear To Default" (fancy-defaults) first, then the other profile
+  // Options for MeltSelect — "Clear to Default" (fancy-defaults) first, then the other profile
   // types, with the plain firmware clear last
   const profileTypeOptions = [
     ...availableProfileTypes
       .filter((type) => type === DEFAULT_PROFILE_TYPE)
-      .map((type) => ({ value: type, title: "Clear To Default" })),
+      .map((type) => ({ value: type, title: "Clear to Default" })),
     { value: "", title: "Firmware Defaults" },
     ...availableProfileTypes
       .filter((type) => type !== DEFAULT_PROFILE_TYPE)
