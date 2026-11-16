@@ -214,10 +214,25 @@ export function loadGettingStartedProfiles(
             loadProfile(profile, page, (status) => {
               profileLoadProgress.update((map) => {
                 if (!map) return map;
+                const total = status.total || 0;
+                const completed = status.completed || 0;
+                // a partially written file counts as a fraction of one file
+                const chunkFraction = status.fileChunkTotal
+                  ? (status.fileChunkCurrent ?? 0) / status.fileChunkTotal
+                  : 0;
                 map[key] = {
                   available: true,
-                  operationTotal: status.total || 0,
-                  operationCompleted: status.completed || 0,
+                  operationTotal: total,
+                  operationCompleted: completed,
+                  filePercent:
+                    status.phase === "files" && total > 0
+                      ? Math.min(
+                          100,
+                          Math.floor(
+                            ((completed + chunkFraction) / total) * 100,
+                          ),
+                        )
+                      : undefined,
                 };
                 return map;
               });
@@ -249,6 +264,7 @@ export function loadGettingStartedProfiles(
         },
         mandatory: false,
       });
+      return true;
     })
     .catch((error) => {
       moduleOverlay.close();
@@ -260,5 +276,6 @@ export function loadGettingStartedProfiles(
         classname: CLASSNAME,
         message: "Failed to load getting started profiles. Please try again.",
       });
+      return false;
     });
 }

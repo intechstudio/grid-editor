@@ -23,7 +23,7 @@ export const tooltip_content = {
     "Load the configuration of the selected preset onto the currently active control element.",
 
   configuration_header_clear:
-    "Clear all configurations of the currently active Page from Grid module memory.",
+    "Clear the currently active Page from Grid module memory and load the selected profile. Modules without that profile (and Firmware Defaults) are only cleared.",
   configuration_header_clear_dropdown:
     "Select the profile template to be loaded.",
   configuration_header_store:
