@@ -254,13 +254,15 @@
       {/key}
     </svelte:fragment>
   </MeltRadio>
-  <IconButton
-    on:click={handleAddVirtualEvent}
-    iconData={addIcon}
-    compact
-    tooltipText="Add virtual event"
-    ariaLabel="Add virtual event"
-  />
+  {#if $appSettings.persistent.userLevelMinimalist !== true}
+    <IconButton
+      on:click={handleAddVirtualEvent}
+      iconData={addIcon}
+      compact
+      tooltipText="Add virtual event"
+      ariaLabel="Add virtual event"
+    />
+  {/if}
   {#if isVirtualSelected}
     <div
       use:tooltip={{
