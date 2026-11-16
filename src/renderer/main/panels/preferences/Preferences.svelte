@@ -417,6 +417,10 @@
         bind:target={$appSettings.persistent.consoleErrorOverlayEnabled}
         title={"Enable console error overlay"}
       />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.loggerToConsoleEnabled}
+        title={"Mirror logger messages to console.log"}
+      />
       <BlockTitle>Additional developer content</BlockTitle>
       <MeltCheckbox
         bind:target={$appSettings.persistent.unreleasedVirtualModules}
