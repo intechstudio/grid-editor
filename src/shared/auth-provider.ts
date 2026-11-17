@@ -6,18 +6,13 @@ export interface AuthProvider {
 }
 
 export function authProviderFor(environment: string): AuthProvider {
-  return environment === "production"
-    ? {
-        issuer: configuration.AUTH_ISSUER_PROD,
-        clientId: configuration.AUTH_CLIENT_ID_PROD,
-      }
-    : {
-        issuer:
-          import.meta.env.VITE_AUTH_ISSUER_DEV || configuration.AUTH_ISSUER_DEV,
-        clientId:
-          import.meta.env.VITE_AUTH_CLIENT_ID_DEV ||
-          configuration.AUTH_CLIENT_ID_DEV,
-      };
+  return {
+    issuer:
+      environment === "production"
+        ? configuration.AUTH_ISSUER_PROD
+        : import.meta.env.VITE_AUTH_ISSUER_DEV || configuration.AUTH_ISSUER_DEV,
+    clientId: configuration.AUTH_CLIENT_ID,
+  };
 }
 
 export function isSameAuthProvider(a: AuthProvider, b: AuthProvider) {

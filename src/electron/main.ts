@@ -98,7 +98,7 @@ import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
 import { startLuaLSServer, stopLuaLSServer } from "./ipcmain_luals";
 import { store } from "./main-store";
-import { auth, startAuth, handleAuthDeeplink } from "./auth";
+import { auth, startAuth } from "./auth";
 import { iconBuffer, iconSize } from "./icon";
 import {
   firmware,
@@ -433,11 +433,6 @@ function handleDeeplinkReturnData(returnData: string) {
     // that isn't a deeplink at all — ignore it instead of crashing.
     return;
   }
-  if (url.protocol === "grid-editor:" && url.hostname === "auth") {
-    showMainWindow();
-    handleAuthDeeplink(url);
-    return;
-  }
   if (url.searchParams.get("config-link") !== null) {
     const configLink = url.searchParams.get("config-link");
     mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
@@ -707,6 +702,7 @@ function createWindow() {
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
   auth.mainWindow = mainWindow;
+  auth.showMainWindow = showMainWindow;
 
   updater.init(
     store.get("nightlyEditor"),

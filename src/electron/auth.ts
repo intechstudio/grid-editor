@@ -1,26 +1,21 @@
-import {
-  app,
-  ipcMain,
-  powerMonitor,
-  safeStorage,
-  shell,
-  type BrowserWindow,
-} from "electron";
+import { app, ipcMain, powerMonitor, safeStorage, shell } from "electron";
+import type { BrowserWindow } from "electron";
+import http from "http";
+import type { AddressInfo } from "net";
 import path from "path";
 import fs from "fs";
 import log from "electron-log";
-import type * as OpenIdClient from "openid-client";
+import type * as OAuth from "oauth4webapi";
 import {
   authProviderFor,
   isSameAuthProvider,
   type AuthProvider,
 } from "../shared/auth-provider";
 
-const REDIRECT_URI = "grid-editor://auth/callback";
-const POST_LOGOUT_REDIRECT_URI = "grid-editor://auth/logout";
+const CALLBACK_PATH = "/auth/callback";
 // No profile scope: Firebase rejects the null picture claim it adds.
 const SCOPE = "openid offline_access email";
-const REFRESH_MARGIN_MS = 5 * 60 * 1000;
+const REFRESH_MARGIN_MS = 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 30 * 1000;
 const REFRESH_RETRY_MS = 60 * 1000;
 
@@ -32,12 +27,22 @@ interface Session extends AuthProvider {
 interface PendingLogin extends AuthProvider {
   codeVerifier: string;
   state: string;
+  redirectUri: string;
+  listener: http.Server;
+}
+
+interface Discovered extends AuthProvider {
+  as: OAuth.AuthorizationServer;
+  client: OAuth.Client;
 }
 
 type AuthChange =
   { event: "login"; providerId: "oidc"; idToken: string } | { event: "logout" };
 
-export const auth: { mainWindow: BrowserWindow | null } = { mainWindow: null };
+export const auth: {
+  mainWindow: BrowserWindow | null;
+  showMainWindow: () => void;
+} = { mainWindow: null, showMainWindow: () => {} };
 
 let provider = authProviderFor("production");
 let session: Session | undefined;
@@ -48,9 +53,8 @@ let refreshTimer: NodeJS.Timeout | undefined;
 let refreshing = false;
 // Moves on whenever the session is replaced, so a late response cannot revive it.
 let sessionEpoch = 0;
-let discovered:
-  (AuthProvider & { config: OpenIdClient.Configuration }) | undefined;
-let oidc: typeof OpenIdClient;
+let discovered: Discovered | undefined;
+let oauth: typeof OAuth;
 
 function errorSummary(e: any) {
   return [...new Set([e?.error, e?.code, e?.cause?.code, e?.message])]
@@ -58,27 +62,26 @@ function errorSummary(e: any) {
     .join(" ");
 }
 
+// Lets a developer sign in against the provider on their own machine.
+function requestOptions(from: AuthProvider) {
+  return {
+    [oauth.allowInsecureRequests]:
+      new URL(from.issuer).hostname === "localhost",
+  };
+}
+
 async function discover(from: AuthProvider) {
-  const { issuer, clientId } = from;
-  if (!clientId) {
-    throw new Error(`No client id configured for ${issuer}`);
-  }
   // A broken auth dependency must only cost the user sign-in, not the whole app.
-  oidc ??= await import("openid-client");
+  oauth ??= await import("oauth4webapi");
   if (!discovered || !isSameAuthProvider(discovered, from)) {
-    const url = new URL(issuer);
-    const config = await oidc.discovery(
-      url,
-      clientId,
-      undefined,
-      oidc.None(),
-      url.hostname === "localhost"
-        ? { execute: [oidc.allowInsecureRequests] }
-        : undefined,
+    const issuer = new URL(from.issuer);
+    const as = await oauth.processDiscoveryResponse(
+      issuer,
+      await oauth.discoveryRequest(issuer, requestOptions(from)),
     );
-    discovered = { issuer, clientId, config };
+    discovered = { ...from, as, client: { client_id: from.clientId } };
   }
-  return discovered.config;
+  return discovered;
 }
 
 function publish(change: AuthChange) {
@@ -163,13 +166,13 @@ function dropSession() {
 
 function acceptTokens(
   from: AuthProvider,
-  tokens: OpenIdClient.TokenEndpointResponse &
-    OpenIdClient.TokenEndpointResponseHelpers,
+  tokens: OAuth.TokenEndpointResponse,
   currentRefreshToken?: string,
 ) {
   const refreshToken = tokens.refresh_token ?? currentRefreshToken;
   const idToken = tokens.id_token;
-  if (!refreshToken || !idToken) {
+  const claims = oauth.getValidatedIdTokenClaims(tokens);
+  if (!refreshToken || !idToken || !claims) {
     throw new Error("Token response is missing a refresh or ID token");
   }
   sessionEpoch++;
@@ -184,7 +187,7 @@ function acceptTokens(
     removeSessionFile();
   }
   publish({ event: "login", providerId: "oidc", idToken });
-  scheduleRefresh(tokens.claims()!.exp * 1000 - REFRESH_MARGIN_MS - Date.now());
+  scheduleRefresh(claims.exp * 1000 - REFRESH_MARGIN_MS - Date.now());
 }
 
 function scheduleRefresh(delay: number) {
@@ -205,8 +208,18 @@ async function refresh() {
   const epoch = sessionEpoch;
   refreshing = true;
   try {
-    const config = await discover(refreshed);
-    const tokens = await oidc.refreshTokenGrant(config, refreshed.refreshToken);
+    const { as, client } = await discover(refreshed);
+    const tokens = await oauth.processRefreshTokenResponse(
+      as,
+      client,
+      await oauth.refreshTokenGrantRequest(
+        as,
+        client,
+        oauth.None(),
+        refreshed.refreshToken,
+        requestOptions(refreshed),
+      ),
+    );
     if (epoch === sessionEpoch) {
       acceptTokens(refreshed, tokens, refreshed.refreshToken);
     }
@@ -226,41 +239,167 @@ async function refresh() {
   }
 }
 
-async function login() {
-  const config = await discover(provider);
-  const codeVerifier = oidc.randomPKCECodeVerifier();
-  const state = oidc.randomState();
-  pendingLogin = { ...provider, codeVerifier, state };
-  const authorizeUrl = oidc.buildAuthorizationUrl(config, {
-    redirect_uri: REDIRECT_URI,
-    scope: SCOPE,
-    prompt: "consent",
-    state,
-    code_challenge: await oidc.calculatePKCECodeChallenge(codeVerifier),
-    code_challenge_method: "S256",
+function cancelPendingLogin() {
+  pendingLogin?.listener.close();
+  pendingLogin = undefined;
+}
+
+function callbackPage(title: string, message: string) {
+  return `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>${title}</title></head>
+<body style="font-family: system-ui, sans-serif; text-align: center; margin-top: 20vh">
+<h1>${title}</h1>
+<p>${message}</p>
+</body>
+</html>`;
+}
+
+// Returns the browser tab to a finished page and the user to the editor.
+async function answerCallback(
+  pending: PendingLogin,
+  request: http.IncomingMessage,
+  response: http.ServerResponse,
+) {
+  const url = new URL(request.url ?? "/", pending.redirectUri);
+  if (url.pathname !== CALLBACK_PATH) {
+    response.writeHead(404).end();
+    return;
+  }
+  if (
+    pending !== pendingLogin ||
+    url.searchParams.get("state") !== pending.state
+  ) {
+    log.warn("Ignoring auth callback that matches no pending sign-in");
+    response.writeHead(400).end();
+    return;
+  }
+  cancelPendingLogin();
+  const signedIn = await completeLogin(pending, url);
+  response
+    .writeHead(signedIn ? 200 : 400, { "Content-Type": "text/html" })
+    .end(
+      signedIn
+        ? callbackPage(
+            "Signed in",
+            "You can close this tab and return to Grid Editor.",
+          )
+        : callbackPage(
+            "Sign-in failed",
+            "Return to Grid Editor and try again.",
+          ),
+    );
+  auth.showMainWindow();
+  if (process.platform === "darwin") {
+    app.focus({ steal: true });
+  }
+}
+
+async function completeLogin(pending: PendingLogin, url: URL) {
+  const epoch = sessionEpoch;
+  try {
+    const { as, client } = await discover(pending);
+    const parameters = oauth.validateAuthResponse(
+      as,
+      client,
+      url,
+      pending.state,
+    );
+    const tokens = await oauth.processAuthorizationCodeResponse(
+      as,
+      client,
+      await oauth.authorizationCodeGrantRequest(
+        as,
+        client,
+        oauth.None(),
+        parameters,
+        pending.redirectUri,
+        pending.codeVerifier,
+        requestOptions(pending),
+      ),
+      { requireIdToken: true },
+    );
+    if (epoch !== sessionEpoch || !isSameAuthProvider(pending, provider)) {
+      log.warn("Discarding a sign-in overtaken by another session change");
+      return false;
+    }
+    acceptTokens(pending, tokens);
+    return true;
+  } catch (e) {
+    log.error("Sign-in failed:", errorSummary(e));
+    return false;
+  }
+}
+
+// Receives the sign-in result for the length of one sign-in.
+async function listenForCallback() {
+  const listener = http.createServer();
+  await new Promise<void>((resolve, reject) => {
+    listener.once("error", reject);
+    listener.listen(0, "127.0.0.1", resolve);
   });
+  listener.unref();
+  const { port } = listener.address() as AddressInfo;
+  return { listener, redirectUri: `http://127.0.0.1:${port}${CALLBACK_PATH}` };
+}
+
+async function login() {
+  const { as } = await discover(provider);
+  cancelPendingLogin();
+  const { listener, redirectUri } = await listenForCallback();
+  const pending: PendingLogin = {
+    ...provider,
+    codeVerifier: oauth.generateRandomCodeVerifier(),
+    state: oauth.generateRandomState(),
+    redirectUri,
+    listener,
+  };
+  pendingLogin = pending;
+  listener.on("request", (request, response) =>
+    answerCallback(pending, request, response),
+  );
+  const authorizeUrl = new URL(as.authorization_endpoint!);
+  authorizeUrl.search = new URLSearchParams({
+    client_id: pending.clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: SCOPE,
+    state: pending.state,
+    code_challenge: await oauth.calculatePKCECodeChallenge(
+      pending.codeVerifier,
+    ),
+    code_challenge_method: "S256",
+  }).toString();
   await shell.openExternal(authorizeUrl.href);
 }
 
 async function logout() {
   const ended = session;
-  pendingLogin = undefined;
+  cancelPendingLogin();
   dropSession();
   if (!ended) {
     return;
   }
   try {
-    const config = await discover(ended);
-    oidc
-      .tokenRevocation(config, ended.refreshToken)
+    const { as, client } = await discover(ended);
+    oauth
+      .revocationRequest(
+        as,
+        client,
+        oauth.None(),
+        ended.refreshToken,
+        requestOptions(ended),
+      )
+      .then(oauth.processRevocationResponse)
       .catch((e) =>
         log.warn("Refresh token revocation failed:", errorSummary(e)),
       );
-    const endSessionUrl = oidc.buildEndSessionUrl(config, {
-      client_id: ended.clientId,
-      post_logout_redirect_uri: POST_LOGOUT_REDIRECT_URI,
-      ...(ended.idToken && { id_token_hint: ended.idToken }),
-    });
+    // Ends the browser session too, so the next sign-in can pick another account.
+    const endSessionUrl = new URL(as.end_session_endpoint!);
+    endSessionUrl.searchParams.set("client_id", ended.clientId);
+    if (ended.idToken) {
+      endSessionUrl.searchParams.set("id_token_hint", ended.idToken);
+    }
     await shell.openExternal(endSessionUrl.href);
   } catch (e) {
     log.warn(
@@ -273,37 +412,10 @@ async function logout() {
 function setEnvironment(environment: string) {
   provider = authProviderFor(environment);
   if (pendingLogin && !isSameAuthProvider(pendingLogin, provider)) {
-    pendingLogin = undefined;
+    cancelPendingLogin();
   }
   if (session && !isSameAuthProvider(session, provider)) {
     dropSession();
-  }
-}
-
-export async function handleAuthDeeplink(url: URL) {
-  if (url.pathname !== "/callback") {
-    return;
-  }
-  const pending = pendingLogin;
-  if (!pending || url.searchParams.get("state") !== pending.state) {
-    log.warn("Ignoring auth callback that matches no pending sign-in");
-    return;
-  }
-  pendingLogin = undefined;
-  const epoch = sessionEpoch;
-  try {
-    const config = await discover(pending);
-    const tokens = await oidc.authorizationCodeGrant(config, url, {
-      pkceCodeVerifier: pending.codeVerifier,
-      expectedState: pending.state,
-    });
-    if (epoch !== sessionEpoch || !isSameAuthProvider(pending, provider)) {
-      log.warn("Discarding a sign-in overtaken by another session change");
-      return;
-    }
-    acceptTokens(pending, tokens);
-  } catch (e) {
-    log.error("Sign-in failed:", errorSummary(e));
   }
 }
 

@@ -3,7 +3,6 @@ interface ImportMetaEnv {
   readonly VITE_BUILD_ENV: string;
   readonly VITE_PROFILE_CLOUD_URL?: string;
   readonly VITE_AUTH_ISSUER_DEV?: string;
-  readonly VITE_AUTH_CLIENT_ID_DEV?: string;
   readonly VITE_BRANCH_NAME: string;
 }
 

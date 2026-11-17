@@ -1,12 +1,35 @@
-import type LogtoClient from "@logto/browser";
-import { authProviderFor } from "../../shared/auth-provider";
+import type * as OAuth from "oauth4webapi";
+import {
+  authProviderFor,
+  isSameAuthProvider,
+  type AuthProvider,
+} from "../../shared/auth-provider";
 
 const ENVIRONMENT_KEY = "auth-environment";
+const SESSION_KEY = "auth-session";
+const PENDING_LOGIN_KEY = "auth-pending-login";
 const CALLBACK_PATH = "/auth/callback";
-const REFRESH_MARGIN_MS = 5 * 60 * 1000;
+// No profile scope: Firebase rejects the null picture claim it adds.
+const SCOPE = "openid offline_access email";
+const REFRESH_MARGIN_MS = 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 30 * 1000;
 const REFRESH_RETRY_MS = 60 * 1000;
 const TOKENS_LOCK = "grid-editor-auth-tokens";
+
+interface Session extends AuthProvider {
+  refreshToken: string;
+  idToken: string;
+}
+
+interface PendingLogin extends AuthProvider {
+  codeVerifier: string;
+  state: string;
+}
+
+interface Discovered extends AuthProvider {
+  as: OAuth.AuthorizationServer;
+  client: OAuth.Client;
+}
 
 type AuthChange =
   { event: "login"; providerId: "oidc"; idToken: string } | { event: "logout" };
@@ -15,50 +38,75 @@ export function createWebAuth() {
   const listeners: ((change: AuthChange) => void)[] = [];
   let current: AuthChange | null = null;
   let environment = localStorage.getItem(ENVIRONMENT_KEY);
-  let client: LogtoClient | undefined;
   let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  // Moves on whenever the session is replaced, so a late response cannot revive it.
+  let sessionEpoch = 0;
+  let discovered: Discovered | undefined;
+  let oauth: typeof OAuth;
 
   function publish(change: AuthChange) {
     current = change;
     listeners.forEach((listener) => listener(change));
   }
 
-  async function createClient(forEnvironment: string) {
-    const {
-      default: LogtoClient,
-      ReservedScope,
-      UserScope,
-    } = await import("@logto/browser");
-    const { issuer, clientId } = authProviderFor(forEnvironment);
-    if (!clientId) {
-      throw new Error(`No client id configured for ${issuer}`);
+  // Lets a developer sign in against the provider on their own machine.
+  function requestOptions(from: AuthProvider) {
+    return {
+      [oauth.allowInsecureRequests]:
+        new URL(from.issuer).hostname === "localhost",
+    };
+  }
+
+  async function discover(from: AuthProvider) {
+    oauth ??= await import("oauth4webapi");
+    if (!discovered || !isSameAuthProvider(discovered, from)) {
+      const issuer = new URL(from.issuer);
+      const as = await oauth.processDiscoveryResponse(
+        issuer,
+        await oauth.discoveryRequest(issuer, requestOptions(from)),
+      );
+      discovered = { ...from, as, client: { client_id: from.clientId } };
     }
-    return new LogtoClient({
-      endpoint: issuer.replace(/\/oidc$/, ""),
-      appId: clientId,
-      // No profile scope: Firebase rejects the null picture claim it adds.
-      includeReservedScopes: false,
-      scopes: [
-        ReservedScope.OpenId,
-        ReservedScope.OfflineAccess,
-        UserScope.Email,
-      ],
-    });
+    return discovered;
+  }
+
+  function readStored<T>(storage: Storage, key: string): T | undefined {
+    try {
+      return JSON.parse(storage.getItem(key) ?? "null") ?? undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  function redirectUri() {
+    return `${window.location.origin}${CALLBACK_PATH}`;
+  }
+
+  function acceptTokens(
+    from: AuthProvider,
+    tokens: OAuth.TokenEndpointResponse,
+    currentRefreshToken?: string,
+  ) {
+    const refreshToken = tokens.refresh_token ?? currentRefreshToken;
+    const idToken = tokens.id_token;
+    const claims = oauth.getValidatedIdTokenClaims(tokens);
+    if (!refreshToken || !idToken || !claims) {
+      throw new Error("Token response is missing a refresh or ID token");
+    }
+    const session: Session = {
+      issuer: from.issuer,
+      clientId: from.clientId,
+      refreshToken,
+      idToken,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    publish({ event: "login", providerId: "oidc", idToken });
+    scheduleRefresh(claims.exp * 1000 - REFRESH_MARGIN_MS - Date.now());
   }
 
   function scheduleRefresh(delay: number) {
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(refresh, Math.max(delay, MIN_REFRESH_DELAY_MS));
-  }
-
-  async function publishIdToken(from: LogtoClient) {
-    const { exp } = await from.getIdTokenClaims();
-    publish({
-      event: "login",
-      providerId: "oidc",
-      idToken: (await from.getIdToken())!,
-    });
-    scheduleRefresh(exp * 1000 - REFRESH_MARGIN_MS - Date.now());
   }
 
   // Tabs share one rotating refresh token, so they must take turns changing it.
@@ -70,29 +118,45 @@ export function createWebAuth() {
     return inTurn(refreshInTurn);
   }
 
+  function isRevoked(e: any) {
+    return e?.error === "invalid_grant" || e?.error === "invalid_client";
+  }
+
   async function refreshInTurn() {
-    const refreshed = client;
-    if (!refreshed) {
+    // Another tab may have refreshed or ended the session in the meantime.
+    const refreshed = readStored<Session>(localStorage, SESSION_KEY);
+    if (
+      !environment ||
+      !refreshed ||
+      !isSameAuthProvider(refreshed, authProviderFor(environment))
+    ) {
+      publish({ event: "logout" });
       return;
     }
-    const sentRefreshToken = await refreshed.getRefreshToken();
+    const epoch = sessionEpoch;
     try {
-      // Asks for a new ID token even while the access token is still valid.
-      await refreshed.clearAccessToken();
-      await refreshed.getAccessToken();
-      if (refreshed === client) {
-        await publishIdToken(refreshed);
+      const { as, client } = await discover(refreshed);
+      const tokens = await oauth.processRefreshTokenResponse(
+        as,
+        client,
+        await oauth.refreshTokenGrantRequest(
+          as,
+          client,
+          oauth.None(),
+          refreshed.refreshToken,
+          requestOptions(refreshed),
+        ),
+      );
+      if (epoch === sessionEpoch) {
+        acceptTokens(refreshed, tokens, refreshed.refreshToken);
       }
     } catch (e) {
-      if (refreshed !== client) {
+      if (epoch !== sessionEpoch) {
         return;
       }
-      const stillStored =
-        (await refreshed.getRefreshToken()) === sentRefreshToken;
-      if (isRevoked(e) && stillStored) {
+      if (isRevoked(e)) {
         console.warn("Auth session is no longer valid");
-        await refreshed.clearAllTokens();
-        client = undefined;
+        localStorage.removeItem(SESSION_KEY);
         publish({ event: "logout" });
       } else {
         console.warn("Auth refresh failed, retrying:", e);
@@ -101,68 +165,122 @@ export function createWebAuth() {
     }
   }
 
-  function isRevoked(e: any) {
-    return e?.code === "oidc.invalid_grant" || e?.code === "not_authenticated";
+  async function completeLogin(pending: PendingLogin, callbackUrl: URL) {
+    const { as, client } = await discover(pending);
+    const parameters = oauth.validateAuthResponse(
+      as,
+      client,
+      callbackUrl,
+      pending.state,
+    );
+    const tokens = await oauth.processAuthorizationCodeResponse(
+      as,
+      client,
+      await oauth.authorizationCodeGrantRequest(
+        as,
+        client,
+        oauth.None(),
+        parameters,
+        redirectUri(),
+        pending.codeVerifier,
+        requestOptions(pending),
+      ),
+      { requireIdToken: true },
+    );
+    acceptTokens(pending, tokens);
   }
 
   async function start() {
     const callbackUrl =
-      window.location.pathname === CALLBACK_PATH ? window.location.href : null;
+      window.location.pathname === CALLBACK_PATH
+        ? new URL(window.location.href)
+        : null;
     if (callbackUrl) {
       window.history.replaceState(null, "", "/");
     }
+    const pending = readStored<PendingLogin>(sessionStorage, PENDING_LOGIN_KEY);
+    sessionStorage.removeItem(PENDING_LOGIN_KEY);
     if (!environment) {
       publish({ event: "logout" });
       return;
     }
-    const startedIn = environment;
-    try {
-      const restored = await createClient(startedIn);
-      let signedIn = false;
-      if (callbackUrl) {
-        try {
-          await restored.handleSignInCallback(callbackUrl);
-          signedIn = true;
-        } catch (e) {
-          console.error("Sign-in failed:", e);
+    if (callbackUrl) {
+      try {
+        if (
+          !pending ||
+          !isSameAuthProvider(pending, authProviderFor(environment))
+        ) {
+          throw new Error("Auth callback matches no pending sign-in");
         }
-      }
-      const authenticated = await restored.isAuthenticated();
-      if (environment !== startedIn) {
-        await inTurn(() => restored.clearAllTokens());
-        publish({ event: "logout" });
+        await inTurn(() => completeLogin(pending, callbackUrl));
         return;
+      } catch (e) {
+        console.error("Sign-in failed:", e);
       }
-      if (!authenticated) {
-        publish({ event: "logout" });
-        return;
-      }
-      client = restored;
-      if (signedIn) {
-        await publishIdToken(restored);
-      } else {
-        await refresh();
-      }
-    } catch (e) {
-      console.error("Sign-in failed:", e);
-      publish({ event: "logout" });
     }
+    await refresh();
   }
 
   async function login() {
     environment ??= "production";
     localStorage.setItem(ENVIRONMENT_KEY, environment);
-    const signingIn = await createClient(environment);
-    await signingIn.signIn(`${window.location.origin}${CALLBACK_PATH}`);
+    const provider = authProviderFor(environment);
+    const { as } = await discover(provider);
+    const pending: PendingLogin = {
+      ...provider,
+      codeVerifier: oauth.generateRandomCodeVerifier(),
+      state: oauth.generateRandomState(),
+    };
+    sessionStorage.setItem(PENDING_LOGIN_KEY, JSON.stringify(pending));
+    const authorizeUrl = new URL(as.authorization_endpoint!);
+    authorizeUrl.search = new URLSearchParams({
+      client_id: pending.clientId,
+      redirect_uri: redirectUri(),
+      response_type: "code",
+      scope: SCOPE,
+      state: pending.state,
+      code_challenge: await oauth.calculatePKCECodeChallenge(
+        pending.codeVerifier,
+      ),
+      code_challenge_method: "S256",
+    }).toString();
+    window.location.assign(authorizeUrl);
   }
 
   async function logout() {
-    const ended = client;
-    client = undefined;
+    sessionEpoch++;
     clearTimeout(refreshTimer);
     publish({ event: "logout" });
-    if (ended) {
-      await inTurn(() => ended.signOut(`${window.location.origin}/`));
+    const ended = await inTurn(async () => {
+      const stored = readStored<Session>(localStorage, SESSION_KEY);
+      localStorage.removeItem(SESSION_KEY);
+      return stored;
+    });
+    if (!ended) {
+      return;
+    }
+    try {
+      const { as, client } = await discover(ended);
+      await oauth
+        .revocationRequest(
+          as,
+          client,
+          oauth.None(),
+          ended.refreshToken,
+          requestOptions(ended),
+        )
+        .then(oauth.processRevocationResponse)
+        .catch((e) => console.warn("Refresh token revocation failed:", e));
+      // Ends the browser session too, so the next sign-in can pick another account.
+      const endSessionUrl = new URL(as.end_session_endpoint!);
+      endSessionUrl.search = new URLSearchParams({
+        client_id: ended.clientId,
+        id_token_hint: ended.idToken,
+        post_logout_redirect_uri: `${window.location.origin}/`,
+      }).toString();
+      window.location.assign(endSessionUrl);
+    } catch (e) {
+      console.warn("Could not reach the auth provider to end the session:", e);
     }
   }
 
@@ -170,15 +288,14 @@ export function createWebAuth() {
     if (next === environment) {
       return;
     }
-    const previous = client;
-    client = undefined;
-    clearTimeout(refreshTimer);
     environment = next;
     localStorage.setItem(ENVIRONMENT_KEY, next);
-    if (previous) {
+    sessionEpoch++;
+    clearTimeout(refreshTimer);
+    if (current?.event !== "logout") {
       publish({ event: "logout" });
-      await inTurn(() => previous.clearAllTokens());
     }
+    await inTurn(async () => localStorage.removeItem(SESSION_KEY));
   }
 
   start();

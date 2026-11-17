@@ -60,10 +60,9 @@
   "PROFILE_CLOUD_URL_LOCAL": "package://profile-cloud/public",
   "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app",
   "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
-  "AUTH_ISSUER_DEV": "http://localhost:3001/oidc",
-  "AUTH_ISSUER_PROD": "https://auth.intech.studio/oidc",
-  "AUTH_CLIENT_ID_DEV": "38r8mztj8hd734bwcf6g5",
-  "AUTH_CLIENT_ID_PROD": "",
+  "AUTH_ISSUER_DEV": "http://localhost:3001/realms/intechstudio",
+  "AUTH_ISSUER_PROD": "https://auth.intech.studio/realms/intechstudio",
+  "AUTH_CLIENT_ID": "grid-editor",
   "RECOMMENDED_PACKAGES": {
     "package-photoshop": {
       "gitHubRepositoryOwner": "intechstudio",
