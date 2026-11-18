@@ -9,11 +9,6 @@
 <div class="text-white px-2">
   Signed in as: {$userStore?.email ?? ""}
 </div>
-{#if $userStore?.userName}
-  <div class="text-white px-2">
-    username: {$userStore.userName}
-  </div>
-{/if}
 
 <div class="flex justify-between">
   <button

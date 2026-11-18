@@ -105,7 +105,9 @@ const persistentDefaultValues = {
   firstLaunch: true,
   fontSize: 12,
   codeEditorDefaultLines: 7,
-  profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
+  profileCloudUrl:
+    import.meta.env.VITE_PROFILE_CLOUD_URL ??
+    configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
   nightlyFirmware: false,
   nightlyEditor: false,
@@ -249,7 +251,7 @@ function persistChangedSettings(store) {
   });
 }
 
-init_appsettings();
+export const appSettingsHydrated = init_appsettings();
 
 async function init_appsettings() {
   let request = [];
