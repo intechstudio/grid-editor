@@ -76,9 +76,11 @@ export namespace ConfigTour {
         return;
       }
 
-      // Create the tour popover component
+      // Mount on body, not inside the target: as a DOM child of the target,
+      // hovering the popover would trigger the target's hover handlers
+      // (e.g. the Store button's tooltip).
       this.component = mount(TourPopoverComponent, {
-        target: this.node,
+        target: document.body,
         props: {
           markdown: this.markdown,
           referenceElement: this.node,

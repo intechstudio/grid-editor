@@ -206,7 +206,7 @@
 <container>
   {#if visible}
     <div
-      class="text-white w-full flex flex-col
+      class="text-foreground w-full flex flex-col
   items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
       style="transform: rotate({counterRotation}deg); border-radius: var(--grid-rounding);"
     >
@@ -237,7 +237,7 @@
           </div>
         {:else}
           <div class="flex flex-row gap-2 items-center">
-            <span class="text-white">Fetching</span>
+            <span class="text-foreground">Fetching</span>
             <div class="flex flex-row">
               <span
                 >{Math.round(
@@ -245,7 +245,7 @@
                 )}%</span
               >
             </div>
-            <div class="fill-white opacity-75 animate-spin h-5 w-5">
+            <div class="fill-foreground opacity-75 animate-spin h-5 w-5">
               <svg
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"

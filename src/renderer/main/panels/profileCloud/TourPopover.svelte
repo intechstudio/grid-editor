@@ -24,6 +24,12 @@
   export let updateTrigger: Writable<number>;
   export let position: Grid.Position = Grid.Position.LEFT;
 
+  let popperInstance: any = undefined;
+
+  // Reposition on target size changes instead of re-mounting the popover,
+  // which would replay its fade-in transition.
+  $: if ($updateTrigger >= 0) popperInstance?.update();
+
   function handleClose() {
     configTour.clear();
   }
@@ -37,67 +43,71 @@
   }
 </script>
 
-{#key $updateTrigger}
-  <Popover isOpen={true} {referenceElement} placement={position} spaceAway={10}>
-    <div
-      class="p-2 rounded bg-popover-background text-foreground flex flex-col border gap-1 border-foreground-soft"
-      transition:fade|global={{
-        duration: 250,
-      }}
-    >
-      <div class="items-center justify-between flex">
-        <span class="text-foreground">Tour</span>
-        <button
-          on:click={handleClose}
-          class="hover:bg-popover-selection fill-foreground-muted p-1 rounded"
-        >
-          <SvgIcon iconPath={"close"} />
-        </button>
-      </div>
-      <div class="bg-background-muted text-foreground p-2 rounded mb-2">
-        <MarkdownContainer markdown={String(marked(markdown))} />
-      </div>
-      <div class="flex flex-row gap-2 self-end">
-        {#if $configTour && typeof $configTour.previous() !== "undefined"}
-          <MoltenPushButton
-            text={"Previous"}
-            snap={"auto"}
-            style={"normal"}
-            click={handlePreviousClicked}
-          />
-        {/if}
-
-        {#if $configTour && typeof $configTour.next() !== "undefined"}
-          <MoltenPushButton
-            text={"Next"}
-            snap={"auto"}
-            style={"accept"}
-            click={handleNextClicked}
-          />
-        {/if}
-
-        {#if $configTour && typeof $configTour.next() === "undefined"}
-          <MoltenPushButton
-            text={"Quit Tour"}
-            snap={"auto"}
-            style={"accept"}
-            click={handleClose}
-          />
-        {/if}
-      </div>
+<Popover
+  isOpen={true}
+  {referenceElement}
+  placement={position}
+  spaceAway={10}
+  bind:popperInstance
+>
+  <div
+    class="p-2 rounded bg-popover-background text-foreground flex flex-col border gap-1 border-foreground-soft"
+    transition:fade|global={{
+      duration: 250,
+    }}
+  >
+    <div class="items-center justify-between flex">
+      <span class="text-foreground">Tour</span>
+      <button
+        on:click={handleClose}
+        class="hover:bg-popover-selection fill-foreground-muted p-1 rounded"
+      >
+        <SvgIcon iconPath={"close"} />
+      </button>
     </div>
-    <div
-      transition:fade|global={{
-        duration: 250,
-      }}
-      class="tooltip-absolute"
-      id="arrow"
-      data-popper-arrow
-    >
-      <div class="tooltip-absolute" id="arrow_face"></div>
+    <div class="bg-background-muted text-foreground p-2 rounded mb-2">
+      <MarkdownContainer markdown={String(marked(markdown))} />
     </div>
-  </Popover>
-{/key}
+    <div class="flex flex-row gap-2 self-end">
+      {#if $configTour && typeof $configTour.previous() !== "undefined"}
+        <MoltenPushButton
+          text={"Previous"}
+          snap={"auto"}
+          style={"normal"}
+          click={handlePreviousClicked}
+        />
+      {/if}
+
+      {#if $configTour && typeof $configTour.next() !== "undefined"}
+        <MoltenPushButton
+          text={"Next"}
+          snap={"auto"}
+          style={"accept"}
+          click={handleNextClicked}
+        />
+      {/if}
+
+      {#if $configTour && typeof $configTour.next() === "undefined"}
+        <MoltenPushButton
+          text={"Quit Tour"}
+          snap={"auto"}
+          style={"accept"}
+          click={handleClose}
+        />
+      {/if}
+    </div>
+  </div>
+  <div
+    transition:fade|global={{
+      duration: 250,
+    }}
+    class="tooltip-absolute"
+    id="arrow"
+    data-popper-arrow
+  >
+    <div class="tooltip-absolute" id="arrow_face"></div>
+  </div>
+</Popover>
 
 <style global>
   .svelte-easy-popover .tooltip-absolute {
