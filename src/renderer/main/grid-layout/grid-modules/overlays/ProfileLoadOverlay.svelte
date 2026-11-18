@@ -175,31 +175,7 @@
     if (!page.isLoaded()) return false;
 
     const profile = GridProfileData.createFromCloudData(config);
-
-    // Build a Set of all available step names from profile
-    const profileStepNames = new Set<string>();
-    for (const preset of profile.presets) {
-      for (const event of preset.element.events) {
-        for (const action of event.config) {
-          if (action.name) {
-            profileStepNames.add(action.name);
-          }
-        }
-      }
-    }
-
-    // Collect all required tour actions
-    const currentStepNames = page.control_elements
-      .flatMap((e) =>
-        e.events.flatMap((e) => e.config.filter((e) => e.isTourStep())),
-      )
-      .map((e) => e.name);
-
-    // Check if all action names exist in profileStepNames
-    return (
-      currentStepNames.length > 0 &&
-      currentStepNames.every((e) => profileStepNames.has(e))
-    );
+    return configTour.hasTour(profile, module);
   }
 </script>
 
