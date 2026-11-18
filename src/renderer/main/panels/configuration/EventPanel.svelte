@@ -242,6 +242,7 @@
       {#key $element}
         <button
           class="absolute left-0 top-0 w-full h-full"
+          data-tour-event-type={value}
           on:mouseenter={() => handleMouseEnter(event)}
           on:mouseleave={handleMouseLeave}
           aria-label="Event preview"

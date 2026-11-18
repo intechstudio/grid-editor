@@ -379,7 +379,9 @@ export async function loadProfile(
           eventtype: ui.eventtype,
         });
       }
-      configTour.createTourFromProfile(profile, module);
+      configTour
+        .createTourFromProfile(profile, module)
+        .catch((e) => console.warn("Tour failed to start:", e));
       return Promise.resolve();
     })
     .catch((e) => {
