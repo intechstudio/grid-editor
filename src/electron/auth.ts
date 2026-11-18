@@ -13,6 +13,7 @@ import {
 } from "../shared/auth-provider";
 
 const CALLBACK_PATH = "/auth/callback";
+const SIGNED_OUT_PATH = "/auth/signed-out";
 // No profile scope: Firebase rejects the null picture claim it adds.
 const SCOPE = "openid offline_access email";
 const REFRESH_MARGIN_MS = 60 * 1000;
@@ -331,8 +332,8 @@ async function completeLogin(pending: PendingLogin, url: URL) {
   }
 }
 
-// Receives the sign-in result for the length of one sign-in.
-async function listenForCallback() {
+// Receives the browser back from the auth provider, once.
+async function listenOnLoopback(pathname: string) {
   const listener = http.createServer();
   await new Promise<void>((resolve, reject) => {
     listener.once("error", reject);
@@ -340,13 +341,13 @@ async function listenForCallback() {
   });
   listener.unref();
   const { port } = listener.address() as AddressInfo;
-  return { listener, redirectUri: `http://127.0.0.1:${port}${CALLBACK_PATH}` };
+  return { listener, redirectUri: `http://127.0.0.1:${port}${pathname}` };
 }
 
 async function login() {
   const { as } = await discover(provider);
   cancelPendingLogin();
-  const { listener, redirectUri } = await listenForCallback();
+  const { listener, redirectUri } = await listenOnLoopback(CALLBACK_PATH);
   const pending: PendingLogin = {
     ...provider,
     codeVerifier: oauth.generateRandomCodeVerifier(),
@@ -371,6 +372,27 @@ async function login() {
     code_challenge_method: "S256",
   }).toString();
   await shell.openExternal(authorizeUrl.href);
+}
+
+// Leaves the browser tab on a finished page after the provider signs the user out.
+async function showSignedOutPage() {
+  const { listener, redirectUri } = await listenOnLoopback(SIGNED_OUT_PATH);
+  listener.on("request", (request, response) => {
+    if (new URL(request.url ?? "/", redirectUri).pathname !== SIGNED_OUT_PATH) {
+      response.writeHead(404).end();
+      return;
+    }
+    response
+      .writeHead(200, { "Content-Type": "text/html" })
+      .end(
+        callbackPage(
+          "Signed out",
+          "You can close this tab and return to Grid Editor.",
+        ),
+      );
+    listener.close();
+  });
+  return redirectUri;
 }
 
 async function logout() {
@@ -400,6 +422,10 @@ async function logout() {
     if (ended.idToken) {
       endSessionUrl.searchParams.set("id_token_hint", ended.idToken);
     }
+    endSessionUrl.searchParams.set(
+      "post_logout_redirect_uri",
+      await showSignedOutPage(),
+    );
     await shell.openExternal(endSessionUrl.href);
   } catch (e) {
     log.warn(

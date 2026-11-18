@@ -39,6 +39,7 @@ export function createWebAuth() {
   let current: AuthChange | null = null;
   let environment = localStorage.getItem(ENVIRONMENT_KEY);
   let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  let refreshDueAt = 0;
   // Moves on whenever the session is replaced, so a late response cannot revive it.
   let sessionEpoch = 0;
   let discovered: Discovered | undefined;
@@ -106,7 +107,9 @@ export function createWebAuth() {
 
   function scheduleRefresh(delay: number) {
     clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(refresh, Math.max(delay, MIN_REFRESH_DELAY_MS));
+    delay = Math.max(delay, MIN_REFRESH_DELAY_MS);
+    refreshDueAt = Date.now() + delay;
+    refreshTimer = setTimeout(refresh, delay);
   }
 
   // Tabs share one rotating refresh token, so they must take turns changing it.
@@ -297,6 +300,17 @@ export function createWebAuth() {
     }
     await inTurn(async () => localStorage.removeItem(SESSION_KEY));
   }
+
+  // Waking from sleep must not leave the user with an expired token.
+  document.addEventListener("visibilitychange", () => {
+    if (
+      document.visibilityState === "visible" &&
+      current?.event === "login" &&
+      Date.now() >= refreshDueAt
+    ) {
+      refresh();
+    }
+  });
 
   start();
 
