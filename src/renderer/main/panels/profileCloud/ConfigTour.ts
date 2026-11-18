@@ -6,7 +6,8 @@ import {
   type Writable,
   get,
 } from "svelte/store";
-import TourPopoverComponent, { type TourPopover } from "./TourPopover.svelte";
+import TourModal from "./TourModal.svelte";
+import { Modal } from "../../modals/modal.store";
 import {
   GridAction,
   GridEvent,
@@ -15,7 +16,7 @@ import {
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
 import { Grid } from "../../../lib/_utils";
-import { mount, unmount, tick } from "svelte";
+import { tick } from "svelte";
 
 export namespace ConfigTour {
   export namespace Target {
@@ -42,11 +43,8 @@ export namespace ConfigTour {
     }
   }
 
-  class Step implements TourPopover.Content {
-    private component: TourPopoverComponent | null = null;
-    private resizeObserver: ResizeObserver | null = null;
-    private node: HTMLElement | null = null;
-    private updateTrigger: Writable<number> = writable(0);
+  class Step {
+    private window: Modal.Window<any, any> | null = null;
 
     constructor(
       public index: number,
@@ -55,59 +53,44 @@ export namespace ConfigTour {
     ) {}
 
     public async displayStep() {
+      let node: HTMLElement | null = null;
+
       switch (this.target.type) {
         case Target.Type.ACTION_BLOCK: {
           const target = this.target as Target.ActionBlockTarget;
           const event = target.action.parent as GridEvent;
           await user_input.displayEvent(event);
           await tick();
-          this.node = target.action.element;
+          node = target.action.element;
           break;
         }
         case Target.Type.STATIC_ELEMENT: {
           const target = this.target as Target.StaticElementTarget;
-          this.node = target.element;
+          node = target.element;
           break;
         }
       }
 
-      if (!this.node) {
+      if (!node) {
         console.warn("Step display failed: target node not found.");
         return;
       }
 
-      // Mount on body, not inside the target: as a DOM child of the target,
-      // hovering the popover would trigger the target's hover handlers
-      // (e.g. the Store button's tooltip).
-      this.component = mount(TourPopoverComponent, {
-        target: document.body,
-        props: {
-          markdown: this.markdown,
-          referenceElement: this.node,
-          updateTrigger: this.updateTrigger,
-          position: this.target.position,
-        },
+      // Non-blocking, anchored modal (no backdrop); closed via the tour
+      this.window = new Modal.Window(TourModal as any, Modal.Snap.Full, {
+        disableEscapeClose: true,
+        disableClickOutside: true,
       });
-
-      // Observe size changes
-      this.resizeObserver = new ResizeObserver(() => {
-        this.updateTrigger.update((n) => n + 1);
+      this.window.show({
+        markdown: this.markdown,
+        anchor: node,
+        position: this.target.position,
       });
-      this.resizeObserver.observe(this.node);
     }
 
     public destroyStep() {
-      if (this.component) {
-        unmount(this.component);
-        this.component = null;
-      }
-
-      if (this.resizeObserver && this.node) {
-        this.resizeObserver.disconnect();
-        this.resizeObserver = null;
-      }
-
-      this.node = null;
+      this.window?.close();
+      this.window = null;
     }
   }
 

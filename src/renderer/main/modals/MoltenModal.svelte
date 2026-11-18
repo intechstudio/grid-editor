@@ -20,6 +20,15 @@
   // since it's a raw DOM reference handed to us rather than something we
   // render ourselves. The browser handles recalculation on resize/scroll/etc.
   export let anchor: HTMLElement | undefined = undefined;
+  // When set together with `anchor`, the modal is placed on that side of the
+  // anchor (native CSS `position-area`, centered on the anchor, flipping to
+  // the opposite side when it doesn't fit) instead of the default anchored
+  // layout, which is always left of the anchor and vertically clamped.
+  export let placement: "left" | "right" | "top" | "bottom" | undefined =
+    undefined;
+  // false: no dimming layer, no focus steal, and the rest of the app stays
+  // interactive (e.g. for non-blocking guides like the config tour).
+  export let backdrop: boolean = true;
 
   const anchorName = `--molten-modal-anchor-${Math.random().toString(36).slice(2)}`;
 
@@ -54,7 +63,7 @@
     mounted = true;
     await tick();
 
-    if (modalManager.getTop() === data) {
+    if (backdrop && modalManager.getTop() === data) {
       // preventScroll: an anchored modal can render partially outside the
       // viewport (e.g. anchored near the bottom edge); focus()'s default
       // scroll-into-view behavior would otherwise scroll the whole
@@ -89,25 +98,32 @@
        containing block (or an ancestor of the anchor) - the real anchor
        lives elsewhere in the app's DOM tree, so it would otherwise be
        invalid and silently fall back to the top-left corner. -->
-  <div
-    class="z-40 absolute left-0 top-0 w-full h-full"
-    style="background-color: color-mix(in srgb, var(--background) 40%, transparent);"
-    on:mousedown|self={close}
-    aria-hidden="true"
-    transition:fade={{ duration: animationsDisabled ? 0 : 100 }}
-  ></div>
+  {#if backdrop}
+    <div
+      class="z-40 absolute left-0 top-0 w-full h-full"
+      style="background-color: color-mix(in srgb, var(--background) 40%, transparent);"
+      on:mousedown|self={close}
+      aria-hidden="true"
+      transition:fade={{ duration: animationsDisabled ? 0 : 100 }}
+    ></div>
+  {/if}
   <div
     bind:this={modalElement}
     on:keydown={onkeydown_handle}
     role="dialog"
-    aria-modal="true"
+    aria-modal={backdrop ? "true" : undefined}
     aria-label="Modal dialog"
     class="z-50 shadow-md
     rounded-xl max-h-screen bg-background text-foreground focus:outline-none {style}"
     class:snap-full={data.target === Modal.Snap.Full}
     class:snap-grid-layout={data.target === Modal.Snap.GridLayout}
     class:docked={data.target === Modal.Snap.GridLayout}
-    class:anchored={!!anchor}
+    class:anchored={!!anchor && !placement}
+    class:placed={!!anchor && !!placement}
+    class:placed-left={!!anchor && placement === "left"}
+    class:placed-right={!!anchor && placement === "right"}
+    class:placed-top={!!anchor && placement === "top"}
+    class:placed-bottom={!!anchor && placement === "bottom"}
     transition:scale={{ duration: animationsDisabled ? 0 : 150, start: 0.95 }}
     style="--width: {width}; border-color: var(--border); border-radius: var(--radius); {anchor
       ? `position-anchor: ${anchorName}; --height: ${height ?? '0px'};`
@@ -151,6 +167,39 @@
     right: calc(anchor(left) + 8px);
     left: auto;
     translate: none;
+  }
+
+  /* Side placement relative to the anchor. Overrides .snap-full's centered
+     top/left/translate; the margin is the gap to the anchor. */
+  .placed {
+    inset: auto;
+    translate: none;
+    margin: 8px;
+    max-width: calc(100vw - 16px);
+  }
+
+  .placed-left {
+    position-area: left;
+    align-self: anchor-center;
+    position-try-fallbacks: flip-inline;
+  }
+
+  .placed-right {
+    position-area: right;
+    align-self: anchor-center;
+    position-try-fallbacks: flip-inline;
+  }
+
+  .placed-top {
+    position-area: top;
+    justify-self: anchor-center;
+    position-try-fallbacks: flip-block;
+  }
+
+  .placed-bottom {
+    position-area: bottom;
+    justify-self: anchor-center;
+    position-try-fallbacks: flip-block;
   }
 
   .normal {
