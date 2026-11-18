@@ -15,7 +15,7 @@ import {
 } from "../../../runtime/runtime";
 import { user_input } from "../../../runtime/user-input.store";
 import { Grid } from "../../../lib/_utils";
-import { mount } from "svelte";
+import { mount, unmount, tick } from "svelte";
 
 export namespace ConfigTour {
   export namespace Target {
@@ -60,6 +60,7 @@ export namespace ConfigTour {
           const target = this.target as Target.ActionBlockTarget;
           const event = target.action.parent as GridEvent;
           await user_input.displayEvent(event);
+          await tick();
           this.node = target.action.element;
           break;
         }
@@ -95,7 +96,7 @@ export namespace ConfigTour {
 
     public destroyStep() {
       if (this.component) {
-        this.component.$destroy();
+        unmount(this.component);
         this.component = null;
       }
 
@@ -113,6 +114,14 @@ export namespace ConfigTour {
       public steps: Step[],
       public index: number,
     ) {}
+
+    public get current(): Step | undefined {
+      return this.steps[this.index];
+    }
+
+    public get active(): boolean {
+      return this.index >= 0 && typeof this.current !== "undefined";
+    }
 
     public next() {
       const { steps, index } = this;
@@ -146,11 +155,16 @@ export namespace ConfigTour {
     }
 
     public clear() {
-      const { steps, index } = get(this.internal);
-      const current = steps[index];
+      const { steps } = get(this.internal);
       this.set(Manager.defaultValue);
-      if (!current) return;
-      current.destroyStep();
+      // Destroy every step so no popover can be left orphaned
+      for (const step of steps) {
+        try {
+          step.destroyStep();
+        } catch (e) {
+          console.warn("Failed to destroy tour step:", e);
+        }
+      }
     }
 
     public registerStaticTarget(
@@ -168,6 +182,9 @@ export namespace ConfigTour {
       profile: GridProfileData,
       module: GridModule,
     ): Promise<void> {
+      // Remove any popover from a previous tour before replacing it
+      this.clear();
+
       const stepRegex =
         /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
 
@@ -271,7 +288,10 @@ export namespace ConfigTour {
     public async start() {
       const { steps, index } = get(this.internal);
       const first = steps[index];
-      first.displayStep();
+      if (!first) return;
+      await first.displayStep();
+      // Notify subscribers (e.g. action blocks) that the first step is active
+      this.internal.update((s) => s);
     }
   }
 }
