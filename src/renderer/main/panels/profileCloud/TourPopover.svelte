@@ -12,7 +12,6 @@
   import {
     MarkdownContainer,
     MoltenPushButton,
-    SvgIcon,
   } from "@intechstudio/grid-uikit";
   import { configTour } from "./ConfigTour";
   import { marked } from "marked";
@@ -29,6 +28,8 @@
   // Reposition on target size changes instead of re-mounting the popover,
   // which would replay its fade-in transition.
   $: if ($updateTrigger >= 0) popperInstance?.update();
+
+  $: isLastStep = !$configTour || typeof $configTour.next() === "undefined";
 
   function handleClose() {
     configTour.clear();
@@ -56,45 +57,34 @@
       duration: 250,
     }}
   >
-    <div class="items-center justify-between flex">
-      <span class="text-foreground">Tour</span>
-      <button
-        on:click={handleClose}
-        class="hover:bg-popover-selection fill-foreground-muted p-1 rounded"
-      >
-        <SvgIcon iconPath={"close"} />
-      </button>
-    </div>
-    <div class="bg-background-muted text-foreground p-2 rounded mb-2">
+    <div class="text-foreground mb-2">
       <MarkdownContainer markdown={String(marked(markdown))} />
     </div>
-    <div class="flex flex-row gap-2 self-end">
-      {#if $configTour && typeof $configTour.previous() !== "undefined"}
+    <div class="flex flex-row gap-2 items-center justify-between">
+      <MoltenPushButton
+        text={"Quit Tour"}
+        snap={"auto"}
+        style={isLastStep ? "accept" : "normal"}
+        click={handleClose}
+      />
+      <div class="flex flex-row gap-2">
         <MoltenPushButton
           text={"Previous"}
           snap={"auto"}
           style={"normal"}
+          disabled={!$configTour ||
+            typeof $configTour.previous() === "undefined"}
           click={handlePreviousClicked}
         />
-      {/if}
 
-      {#if $configTour && typeof $configTour.next() !== "undefined"}
         <MoltenPushButton
           text={"Next"}
           snap={"auto"}
-          style={"accept"}
+          style={isLastStep ? "normal" : "accept"}
+          disabled={isLastStep}
           click={handleNextClicked}
         />
-      {/if}
-
-      {#if $configTour && typeof $configTour.next() === "undefined"}
-        <MoltenPushButton
-          text={"Quit Tour"}
-          snap={"auto"}
-          style={"accept"}
-          click={handleClose}
-        />
-      {/if}
+      </div>
     </div>
   </div>
   <div

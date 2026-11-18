@@ -187,18 +187,30 @@ export namespace ConfigTour {
       // Remove any popover from a previous tour before replacing it
       this.clear();
 
-      const stepRegex =
-        /<!--\s*tour\s+step=(\d+)(?:\s+static="([^"]*)")?\s+text\[\[([\s\S]*?)\]\]\s*-->/g;
+      // Tour tags: `<!-- tour step=N [static="id"] [text[[inline text]]] -->`
+      // and `<!-- tour end -->`. A step's text is whatever sits between its
+      // tag and the next tour tag (or the end of the description). The
+      // optional inline `text[[...]]` is used only when that body is empty.
+      const tagRegex =
+        /<!--\s*tour\s+(?:step=(\d+)(?:\s+static="([^"]*)")?(?:\s+text\[\[([\s\S]*?)\]\])?\s*-->|end\s*-{0,2}>)/g;
+
+      const description = profile.description ?? "";
+      const tags = [...description.matchAll(tagRegex)];
 
       const actions = module.getTourTargets();
 
       const result: Step[] = [];
-      let match: RegExpExecArray | null;
 
-      while ((match = stepRegex.exec(profile.description)) !== null) {
+      for (let i = 0; i < tags.length; i++) {
+        const match = tags[i];
+        if (typeof match[1] === "undefined") continue; // `tour end`
+
         const index = parseInt(match[1], 10);
         const staticValue = match[2];
-        const rawText = match[3];
+        const bodyStart = (match.index ?? 0) + match[0].length;
+        const bodyEnd = tags[i + 1]?.index ?? description.length;
+        const body = description.slice(bodyStart, bodyEnd);
+        const rawText = body.trim() !== "" ? body : (match[3] ?? "");
         const text = rawText.trim().replace(/\r\n|\r/g, "\n");
 
         const type =
