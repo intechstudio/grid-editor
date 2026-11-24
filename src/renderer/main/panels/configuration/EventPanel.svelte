@@ -24,6 +24,7 @@
   import { draggedActions } from "../../_actions/move.action";
   import { removeActions } from "../../../runtime/operations";
   import { tooltip } from "../../_actions/tooltip";
+  import { minimalistEvents } from "./minimalist-events";
 
   export let element: GridElement;
 
@@ -58,15 +59,10 @@
       return;
     }
 
-    const withoutSetupAndTimer = element.events.filter(
-      (e) => e.getName() !== "Setup" && e.getName() !== "Timer",
-    );
-
     const prefiltered =
-      $appSettings.persistent.userLevelMinimalist === false ||
-      withoutSetupAndTimer.length === 0
+      $appSettings.persistent.userLevelMinimalist === false
         ? element.events
-        : withoutSetupAndTimer;
+        : minimalistEvents(element.events);
 
     const realOptions: EventPanelOption[] = prefiltered.map((e: GridEvent) =>
       Object({
@@ -258,13 +254,15 @@
       {/key}
     </svelte:fragment>
   </MeltRadio>
-  <IconButton
-    on:click={handleAddVirtualEvent}
-    iconData={addIcon}
-    compact
-    tooltipText="Add virtual event"
-    ariaLabel="Add virtual event"
-  />
+  {#if $appSettings.persistent.userLevelMinimalist !== true}
+    <IconButton
+      on:click={handleAddVirtualEvent}
+      iconData={addIcon}
+      compact
+      tooltipText="Add virtual event"
+      ariaLabel="Add virtual event"
+    />
+  {/if}
   {#if isVirtualSelected}
     <div
       use:tooltip={{

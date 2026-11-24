@@ -23,6 +23,10 @@
   } from "../../runtime/getting-started-profile";
   import { profileLoadProgress } from "../../runtime/profileLoadProgress";
 
+  // Initially selected profile. Modules without a preset of this type are
+  // only cleared (firmware defaults).
+  const DEFAULT_PROFILE_TYPE = "fancy-defaults";
+
   /**
    * Formats a profile type string for display
    * @example "getting-started" => "Getting Started"
@@ -72,15 +76,18 @@
   }
 
   // Profile type selection for MeltSelect
-  const selectedProfileType = writable("");
+  const selectedProfileType = writable(DEFAULT_PROFILE_TYPE);
 
-  // Options for MeltSelect — "Clear to Default" always first, then profile types
+  // Options for MeltSelect — "Clear to Default" (fancy-defaults) first, then the other profile
+  // types, with the plain firmware clear last
   const profileTypeOptions = [
-    { value: "", title: "Clear to Default" },
-    ...availableProfileTypes.map((type) => ({
-      value: type,
-      title: formatProfileTypeTitle(type),
-    })),
+    ...availableProfileTypes
+      .filter((type) => type === DEFAULT_PROFILE_TYPE)
+      .map((type) => ({ value: type, title: "Clear to Default" })),
+    { value: "", title: "Firmware Defaults" },
+    ...availableProfileTypes
+      .filter((type) => type !== DEFAULT_PROFILE_TYPE)
+      .map((type) => ({ value: type, title: formatProfileTypeTitle(type) })),
   ];
 
   $: {
@@ -208,7 +215,11 @@
             loadGettingStartedProfiles(runtime, profileType),
         );
       })
-      .then(finish)
+      .then((loaded) => {
+        // the profile loader reports its own failure
+        if (loaded === false) return;
+        finish();
+      })
       .catch(fail);
   }
 

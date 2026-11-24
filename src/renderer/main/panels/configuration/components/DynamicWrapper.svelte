@@ -20,6 +20,7 @@
     removeActions,
   } from "./../../../../runtime/operations";
   import { ConfigTour, configTour } from "../../profileCloud/ConfigTour";
+  import { interactiveContextMenu } from "../../../_actions/interactive-context-menu.action";
   import { contextTarget, SvgIcon, IconButton } from "@intechstudio/grid-uikit";
   import Indentation from "./Indentation.svelte";
   import EditableName from "../../../../config-blocks/components/EditableName.svelte";
@@ -48,6 +49,9 @@
   let toggled = false;
   let isEdit = false;
   let event = action.parent as GridEvent;
+  // Also on event changes: a block can be invalid because of another one
+  // (contextProblem, e.g. a duplicate zone name).
+  $: isValid = Boolean($event) && $action.isValid();
   let componentProps: Record<string, any> = {};
 
   onMount(() => {
@@ -255,12 +259,13 @@
   <carousel
     id="cfg-{index}"
     style="background-color: var(--background); color: var(--foreground); "
-    class="flex flex-grow min-w-0 h-auto min-h-[32px] {!$action.isValid()
+    class="flex flex-grow min-w-0 h-auto min-h-[32px] {!isValid
       ? 'border border-error'
       : ' '} cursor-pointer"
     class:opacity-20={$draggedActions.includes(action)}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
+    use:interactiveContextMenu
     use:contextTarget={{
       items: [
         {

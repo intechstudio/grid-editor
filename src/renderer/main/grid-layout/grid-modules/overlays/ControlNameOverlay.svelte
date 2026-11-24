@@ -7,6 +7,8 @@
   } from "./../../../../runtime/runtime";
   import { appSettings } from "../../../../runtime/app-helper.store";
   import { Grid } from "../../../../lib/_utils";
+  import { ElementType } from "@intechstudio/grid-protocol";
+  import TouchZonesOverlay from "./TouchZonesOverlay.svelte";
 
   export let visible = false;
   export let element: GridElement;
@@ -21,7 +23,13 @@
   );
 </script>
 
-{#if visible && $element.elementIndex !== 255}
+{#if visible && $element.type === ElementType.TOUCH}
+  <!-- the touch surface shows its zones instead of one element name -->
+  <TouchZonesOverlay
+    {element}
+    labelRotation={-totalRotation + $module?.rot * Grid.Rotation.R90}
+  />
+{:else if visible && $element.elementIndex !== 255}
   <container class="pointer-events-auto">
     <div
       class="control-name-overlay-bg flex w-full h-full items-center text-center p-1"

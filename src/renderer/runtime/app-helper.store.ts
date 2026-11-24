@@ -90,6 +90,7 @@ const persistentDefaultValues = {
   heartbeatDebugEnabled: false,
   messageIdDebugEnabled: false,
   consoleErrorOverlayEnabled: false,
+  loggerToConsoleEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,

@@ -4,6 +4,7 @@
     ActionData,
     GridEvent,
     EventData,
+    type GridElement,
   } from "./../../../../runtime/runtime";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
@@ -13,8 +14,16 @@
   import { Analytics } from "../../../../runtime/analytics.js";
   import { getAllComponents } from "../../../../lib/_configs";
   import { toggledBlocks } from "../Configuration";
-  import { NumberToEventType } from "@intechstudio/grid-protocol";
+  import {
+    NumberToEventType,
+    EventTypeToNumber,
+    type ElementType,
+    type ModuleType,
+  } from "@intechstudio/grid-protocol";
+  import { isAllowedIn } from "./ActionPickerFilter";
+  import { addActions } from "../../../../runtime/operations";
   import { isLibraryPlace } from "../../../../lib/library";
+  import type { Companion } from "../../../../config-blocks/ActionBlockInformation";
   import { onMount, onDestroy, tick } from "svelte";
   import {
     MoltenPushButton,
@@ -236,6 +245,16 @@
       comp = comp.filter((e) => e.information.short !== "lib");
     }
 
+    //Filter out components restricted to other element or event types, or
+    //to the top level of a real event (not a function body tab)
+    const pickerTarget = {
+      elementType: target.getInfo().element.type as ElementType,
+      eventType: eventString,
+      isVirtual: event.realEvent !== event,
+      moduleType: target.getInfo().module.type as ModuleType,
+    };
+    comp = comp.filter((e) => isAllowedIn(e.information, pickerTarget));
+
     //Filter out dev blocks
     if (!get(appSettings).persistent.allowDevBlocks) {
       comp = comp.filter((e) => !e.information.devOnly);
@@ -262,6 +281,7 @@
 
     //Sort components by category
     const sorting_array = [
+      "touch",
       "midi",
       "led",
       "hid",
@@ -310,7 +330,10 @@
   }
 
   function handleAddAction({ component }) {
-    let defaultScript = component.information.defaultLua;
+    let defaultScript =
+      component.information.defaultLuaIn?.(
+        $event.config.map((e) => e.script),
+      ) ?? component.information.defaultLua;
     defaultScript = replaceToLocalDefinition(
       defaultScript,
       "self:ind()",
@@ -337,8 +360,41 @@
       }
     }
 
+    const isReal = event.realEvent === event;
     onNewConfig({ configs, index });
     data.close();
+    // Only when the block landed: the insert runs synchronously inside
+    // onNewConfig (addActions → insert) and leaves the config unchanged when
+    // it fails (a full Setup).
+    if (isReal && event.config.includes(configs[0])) {
+      addCompanions(component.information.companions ?? []);
+    }
+  }
+
+  // Blocks that come with the added one (Touch Tick with the first zone),
+  // appended to the element's event of that type if missing.
+  // There is no undo history: each event is sent on its own.
+  async function addCompanions(companions: Companion[]) {
+    const element = event.parent as GridElement;
+    for (const { eventType, short, script } of companions) {
+      const target = element?.events.find(
+        (e) => e.type === EventTypeToNumber(eventType),
+      );
+      if (typeof target === "undefined") {
+        continue;
+      }
+      if (!target.isLoaded()) {
+        await target.load();
+      }
+      if (!target.config.some((e) => e.short === short)) {
+        // an explicit index: addActions without one calls an unbound push
+        await addActions(
+          target,
+          target.config.length,
+          new GridAction(target, new ActionData(short, script)),
+        );
+      }
+    }
   }
 
   function handleSearchValueChange(value) {
