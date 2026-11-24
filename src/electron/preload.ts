@@ -12,8 +12,13 @@ contextBridge.exposeInMainWorld("ctxProcess", {
 contextBridge.exposeInMainWorld("electron", {
   appPath: () => ipcRenderer.sendSync("get-app-path"),
   auth: {
-    onExternalResponse: (callback) =>
-      ipcRenderer.on("onExternalAuthResponse", callback),
+    login: () => ipcRenderer.invoke("auth:login"),
+    logout: () => ipcRenderer.invoke("auth:logout"),
+    getState: () => ipcRenderer.invoke("auth:state"),
+    setEnvironment: (environment) =>
+      ipcRenderer.invoke("auth:environment", environment),
+    onChanged: (callback) =>
+      ipcRenderer.on("auth:changed", (_event, change) => callback(change)),
   },
   library: {
     download: (targetFolder, packageToDownload) =>

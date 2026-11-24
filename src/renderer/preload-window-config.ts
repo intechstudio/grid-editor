@@ -10,6 +10,7 @@
  */
 
 import configuration from "../../configuration.json";
+import { createWebAuth } from "./lib/auth.web";
 import { version } from "../../package.json";
 
 configuration.EDITOR_VERSION = version;
@@ -64,9 +65,7 @@ if (
       onReceive: async () => {},
       onTransmit: async () => {},
     },
-    auth: {
-      onExternalResponse: async () => {},
-    },
+    auth: createWebAuth(),
     configs: {
       onExternalResponse: async () => {},
       startConfigsWatch: async () => {},

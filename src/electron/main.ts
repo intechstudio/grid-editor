@@ -98,6 +98,7 @@ import { websocket } from "./ipcmain_websocket";
 import { developerWebsocket } from "./developer_websocket";
 import { startLuaLSServer, stopLuaLSServer } from "./ipcmain_luals";
 import { store } from "./main-store";
+import { auth, startAuth } from "./auth";
 import { iconBuffer, iconSize } from "./icon";
 import {
   firmware,
@@ -432,10 +433,6 @@ function handleDeeplinkReturnData(returnData: string) {
     // that isn't a deeplink at all — ignore it instead of crashing.
     return;
   }
-  if (url.searchParams.get("credential") !== null) {
-    const credential = url.searchParams.get("credential");
-    mainWindow.webContents.send("onExternalAuthResponse", credential);
-  }
   if (url.searchParams.get("config-link") !== null) {
     const configLink = url.searchParams.get("config-link");
     mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
@@ -456,12 +453,14 @@ if (!gotTheLock) {
       if (mainWindow) {
         showMainWindow();
 
-        // Only treat the last arg as a deeplink when it's actually our
-        // protocol; a relaunch (resetAppSettings, restartApp) passes plain
-        // flags/paths that new URL() would reject.
-        const lastArg = commandLine.pop()?.toString();
-        if (lastArg && lastArg.startsWith("grid-editor://")) {
-          handleDeeplinkReturnData(lastArg);
+        // Only treat an arg as a deeplink when it's actually our protocol; a
+        // relaunch (resetAppSettings, restartApp) passes plain flags/paths
+        // that new URL() would reject.
+        const deeplink = commandLine.find((arg) =>
+          arg.startsWith("grid-editor://"),
+        );
+        if (deeplink) {
+          handleDeeplinkReturnData(deeplink);
         }
       }
     },
@@ -495,6 +494,7 @@ if (!gotTheLock) {
       create_tray();
     }
     createApplicationMenu();
+    startAuth();
     createWindow();
     protocol.handle("package", (req) => {
       let requestPath = req.url.substring("package://".length);
@@ -701,6 +701,8 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
+  auth.mainWindow = mainWindow;
+  auth.showMainWindow = showMainWindow;
 
   updater.init(
     store.get("nightlyEditor"),
