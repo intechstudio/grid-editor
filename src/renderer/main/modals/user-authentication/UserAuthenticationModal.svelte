@@ -9,6 +9,8 @@
   export let data: Modal.Instance;
 
   let loginError = "";
+  // macOS asks for keychain access when the editor saves the sign-in.
+  const showKeychainHint = ctxProcess.platform() == "darwin";
 
   function signIn() {
     loginError = "";
@@ -37,6 +39,12 @@
           snap="full"
           style="accept"
         />
+        {#if showKeychainHint}
+          <p class="text-foreground-muted text-sm">
+            To stay signed in between restarts, choose Always Allow when macOS
+            asks for keychain access.
+          </p>
+        {/if}
       </div>
     {/if}
   </div>
