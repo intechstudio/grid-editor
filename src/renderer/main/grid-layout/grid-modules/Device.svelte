@@ -371,6 +371,8 @@
             .findPage($user_input.pagenumber)
             .findElement(elementNumber)}
           class="w-full h-full absolute element activator-button"
+          data-tour-module-id={device.id}
+          data-tour-element-number={elementNumber}
           on:click={(e) => {
             selectElement(elementNumber);
             e.preventDefault();

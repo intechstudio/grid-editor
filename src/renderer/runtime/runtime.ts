@@ -376,16 +376,6 @@ export class ActionData extends NodeData {
     );
   }
 
-  public getTourIndex(): number | undefined {
-    const part = this.name?.split(".")[0];
-    const index = Number(part);
-    return Number.isFinite(index) ? index : undefined;
-  }
-
-  public isTourStep() {
-    return this.getTourIndex() !== undefined;
-  }
-
   public get information() {
     let result = GridAction.getInformation(this.short);
     return result;
@@ -455,14 +445,6 @@ export class GridAction extends RuntimeNode<ActionData> {
     }
 
     return result;
-  }
-
-  public isTourStep() {
-    return this.data.isTourStep();
-  }
-
-  public getTourIndex() {
-    return this.data.getTourIndex();
   }
 
   static getInformation(short: string): ActionBlockInformation {
@@ -682,10 +664,6 @@ export class EventData extends NodeData {
       module: { type: module?.type, dx: module?.dx, dy: module?.dy },
     };
   }
-
-  public getTourTargets() {
-    return this.config.filter((e) => e.isTourStep());
-  }
 }
 
 export class GridEvent extends RuntimeNode<EventData> {
@@ -713,10 +691,6 @@ export class GridEvent extends RuntimeNode<EventData> {
         type: GridOperationType.LOAD_SNIPPET,
       });
     }
-  }
-
-  public getTourTargets() {
-    return get(this._internal).getTourTargets();
   }
 
   public getInfo() {
@@ -1211,10 +1185,6 @@ export class ElementData extends NodeData {
     this.name = name;
   }
 
-  public getTourTargets() {
-    return this.events.flatMap((e) => e.getTourTargets());
-  }
-
   public isValid() {
     for (const event of this.events) {
       if (!event.isValid()) {
@@ -1250,10 +1220,6 @@ export class GridElement extends RuntimeNode<ElementData> {
     for (const event of elementEvents) {
       this.events.push(new GridEvent(this, new EventData(Number(event.value))));
     }
-  }
-
-  public getTourTargets() {
-    return get(this._internal).getTourTargets();
   }
 
   public resetName() {
@@ -1535,10 +1501,6 @@ export class PageData extends NodeData {
     this.pageNumber = index;
   }
 
-  public getTourTargets() {
-    return this.control_elements.flatMap((e) => e.getTourTargets());
-  }
-
   public isValid() {
     for (const element of this.control_elements) {
       if (!element.isValid()) {
@@ -1569,10 +1531,6 @@ export class GridPage extends RuntimeNode<PageData> {
         new GridElement(this, new ElementData(Number(index), element)),
       );
     }
-  }
-
-  public getTourTargets() {
-    return get(this._internal).getTourTargets();
   }
 
   public isProfileLoaded(profile: GridProfileData) {
@@ -1871,10 +1829,6 @@ export class ModuleData extends NodeData {
     this.pages = [];
   }
 
-  public getTourTargets() {
-    return this.pages.flatMap((e) => e.getTourTargets());
-  }
-
   public isValid() {
     for (const page of this.pages) {
       if (!page.isValid()) {
@@ -1900,10 +1854,6 @@ export class GridModule extends RuntimeNode<ModuleData> {
       new GridPage(this, this.type, new PageData(2)),
       new GridPage(this, this.type, new PageData(3)),
     ];
-  }
-
-  public getTourTargets() {
-    return get(this._internal).getTourTargets();
   }
 
   public isValid() {

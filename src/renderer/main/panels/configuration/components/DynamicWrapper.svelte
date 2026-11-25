@@ -46,7 +46,7 @@
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
   let ctrlIsDown = false;
-  let toggled = false;
+  let tourExpanded = false;
   let isEdit = false;
   let event = action.parent as GridEvent;
   // Also on event changes: a block can be invalid because of another one
@@ -56,7 +56,7 @@
 
   onMount(() => {
     action.toggled = action.information.toggleable
-      ? toggledBlocks.includes(action.short)
+      ? toggledBlocks.includes(action.short) || isActiveTourStep
       : true;
 
     const result = getComponentInformation(action.short);
@@ -87,11 +87,17 @@
     revertToSynced();
   }
 
-  $: {
-    const isActiveTourStep =
-      $configTour.current?.action.id === $action.id && $configTour.active;
-    if (!toggled && isActiveTourStep) {
-      toggled = true;
+  // Expand this block when the tour step pointing at it becomes active
+  $: isActiveTourStep =
+    $configTour.active &&
+    ($configTour.current?.target as any)?.action?.id === $action.id;
+
+  $: if (!isActiveTourStep) {
+    tourExpanded = false;
+  } else if (!tourExpanded) {
+    tourExpanded = true;
+    if (action.information.toggleable) {
+      action.toggled = true;
     }
   }
 
