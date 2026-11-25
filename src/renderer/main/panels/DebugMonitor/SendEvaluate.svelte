@@ -144,20 +144,20 @@
             ? "text-green-400"
             : status === "NACK"
               ? "text-red-400"
-              : "text-gray-400"}
+              : "text-foreground-muted"}
         >
           {pending ? "pending" : status}
         </span>
         {#if messageId !== null}
-          <span class="text-gray-400">id: {messageId}</span>
+          <span class="text-foreground-muted">id: {messageId}</span>
         {/if}
         {#if retries > 0}
-          <span class="text-gray-400">retries: {retries}</span>
+          <span class="text-foreground-muted">retries: {retries}</span>
         {/if}
       </div>
       {#if responseValues !== null}
         <pre
-          class="text-white whitespace-pre-wrap break-all select-text">{JSON.stringify(
+          class="text-foreground whitespace-pre-wrap break-all select-text">{JSON.stringify(
             responseValues,
             null,
             2,
