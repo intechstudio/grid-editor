@@ -104,6 +104,7 @@ import {
   firmware,
   findBootloaderPathNative,
   notifyBootloaderDetected,
+  notifyBootloaderRemoved,
   writeFirmwareToBootloader,
 } from "./src/firmware";
 import { updater, restartAfterUpdate, forceQuitForUpdate } from "./src/updater";
@@ -132,6 +133,21 @@ let mainWindow;
 // Bootloader detection service state
 let bootloaderDetectionTimeout: NodeJS.Timeout | null = null;
 let bootloaderDetectionRunning = false;
+let bootloaderDetectionRunId = 0;
+let bootloaderRecheckTimeout: NodeJS.Timeout | undefined;
+const BOOTLOADER_RECHECK_DELAY_MS = 1500;
+const BOOTLOADER_DETECTION_INTERVAL_MS = 1000;
+const BOOTLOADER_DETECTION_TIMEOUT_MS = 20000;
+
+// Lets the UI show a countdown while the service is looking for a bootloader.
+function sendBootloaderDetectionState(active: boolean, durationMs?: number) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("onBootloaderDetection", {
+      active,
+      durationMs,
+    });
+  }
+}
 
 /**
  * Bootloader VID/PID pairs, parsed once from configuration
@@ -189,21 +205,37 @@ function toHexVidPid(vid: number, pid: number) {
  * Checks for bootloader drive repeatedly until found or timeout
  */
 function startBootloaderDetectionService() {
+  // A new trigger (e.g. another USB connect) restarts the search with a full
+  // timeout instead of letting the old, partly used up countdown run on.
   if (bootloaderDetectionRunning) {
-    log.info("Bootloader detection service already running");
-    return;
+    log.info("Restarting bootloader detection service");
+    stopBootloaderDetectionService();
   }
 
   log.info("Starting bootloader detection service...");
   bootloaderDetectionRunning = true;
+  const runId = ++bootloaderDetectionRunId;
 
-  let delay = 1000;
+  const delay = BOOTLOADER_DETECTION_INTERVAL_MS;
   let totalDelay = 0;
 
+  // The last poll happens one interval after the timeout is exceeded
+  sendBootloaderDetectionState(
+    true,
+    BOOTLOADER_DETECTION_TIMEOUT_MS + BOOTLOADER_DETECTION_INTERVAL_MS,
+  );
+
   async function retryFind() {
-    if (!bootloaderDetectionRunning) return;
+    if (runId !== bootloaderDetectionRunId || !bootloaderDetectionRunning) {
+      return;
+    }
 
     let result = await findBootloaderPathNative();
+
+    // The service was stopped or restarted while we were looking
+    if (runId !== bootloaderDetectionRunId || !bootloaderDetectionRunning) {
+      return;
+    }
 
     if (result) {
       log.info("Bootloader drive detected successfully, stopping service");
@@ -213,7 +245,7 @@ function startBootloaderDetectionService() {
     }
 
     totalDelay += delay;
-    if (totalDelay > 8000) {
+    if (totalDelay > BOOTLOADER_DETECTION_TIMEOUT_MS) {
       log.info("Bootloader detection timeout reached");
       stopBootloaderDetectionService();
       return;
@@ -235,6 +267,7 @@ function stopBootloaderDetectionService() {
 
   log.info("Stopping bootloader detection service");
   bootloaderDetectionRunning = false;
+  sendBootloaderDetectionState(false);
 
   if (bootloaderDetectionTimeout) {
     clearTimeout(bootloaderDetectionTimeout);
@@ -288,6 +321,17 @@ function registerUsbHotplugListeners() {
   usb.addEventListener("disconnect", (event) => {
     const { vendorId, productId } = event.device;
     log.info("USB device disconnected:", toHexVidPid(vendorId, productId));
+
+    // The mass storage drive unmounts slightly after the USB disconnect, so
+    // give it a moment, then check whether a bootloader is still present.
+    clearTimeout(bootloaderRecheckTimeout);
+    bootloaderRecheckTimeout = setTimeout(async () => {
+      const result = await findBootloaderPathNative();
+      if (!result) {
+        log.info("No bootloader present after USB disconnect");
+        notifyBootloaderRemoved();
+      }
+    }, BOOTLOADER_RECHECK_DELAY_MS);
   });
 }
 

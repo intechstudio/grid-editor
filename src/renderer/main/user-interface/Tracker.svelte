@@ -64,6 +64,15 @@
       moduleOverlay.close();
     }
   }
+
+  function showFirmwareMismatchOverlay() {
+    const show = get(moduleOverlay) !== ModuleOverlay.Types.FIRMWARE_MISMATCH;
+    if (show) {
+      moduleOverlay.show(ModuleOverlay.Types.FIRMWARE_MISMATCH);
+    } else {
+      moduleOverlay.close();
+    }
+  }
 </script>
 
 <container class={$$props.class}>
@@ -82,6 +91,19 @@
         title="Name Overlay"
         on:change={showControlElementNameOverlay}
         value={$moduleOverlay === ModuleOverlay.Types.CONTROL_NAME}
+      />
+    </div>
+    <div
+      use:tooltip={{
+        placement: "top",
+        class: "w-60 p-4 z-10",
+        key: "configuration_firmware_mismatch",
+      }}
+    >
+      <Toggle
+        title="FW Info"
+        on:change={showFirmwareMismatchOverlay}
+        value={$moduleOverlay === ModuleOverlay.Types.FIRMWARE_MISMATCH}
       />
     </div>
     <div

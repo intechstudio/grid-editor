@@ -36,6 +36,15 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.on("onFirmwareUpdate", callback);
       return () => ipcRenderer.removeListener("onFirmwareUpdate", callback);
     },
+    onBootloaderRemoved: (callback) => {
+      ipcRenderer.on("onBootloaderRemoved", callback);
+      return () => ipcRenderer.removeListener("onBootloaderRemoved", callback);
+    },
+    onBootloaderDetection: (callback) => {
+      ipcRenderer.on("onBootloaderDetection", callback);
+      return () =>
+        ipcRenderer.removeListener("onBootloaderDetection", callback);
+    },
     findBootloaderPathNative: () =>
       ipcRenderer.invoke("findBootloaderPathNative"),
     writeFirmwareToBootloader: (firmwareData, filename) =>

@@ -30,6 +30,14 @@ export function notifyBootloaderDetected(info: BootloaderInfo) {
 }
 
 /**
+ * Tell the UI that a previously detected bootloader is no longer present
+ * (e.g. the module was unplugged or rebooted out of bootloader mode).
+ */
+export function notifyBootloaderRemoved() {
+  firmware.mainWindow?.webContents.send("onBootloaderRemoved");
+}
+
+/**
  * Find bootloader path using pure Node.js (no native dependencies).
  * Pure lookup — does not send any UI notification as a side effect.
  */

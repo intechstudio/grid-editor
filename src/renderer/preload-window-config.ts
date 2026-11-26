@@ -82,6 +82,8 @@ if (
     },
     firmware: {
       onFirmwareUpdate: async () => {},
+      onBootloaderDetection: async () => {},
+      onBootloaderRemoved: async () => {},
       findBootloaderPathNative: async () => {},
       writeFirmwareToBootloader: async () => {},
     },
