@@ -264,6 +264,11 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     });
   }
 
+  // Buffer cleanup removes elements by id, so raw elements need unique ones:
+  // with a shared id, finishing one request dropped every other queued one
+  // ("Instruction IMMEDIATE was removed from write buffer").
+  private rawElementId = 0;
+
   public sendRawDataToGrid(
     data: Uint8Array,
     options?: {
@@ -277,7 +282,7 @@ export class WriteBuffer implements Readable<WriteBufferData> {
     },
   ): Promise<any> {
     const bufferElement: BufferElement = {
-      id: 0,
+      id: ++this.rawElementId,
       virtual: options?.virtual ?? false,
       rawBytes: data,
       onRetry: options?.onRetry,

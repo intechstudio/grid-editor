@@ -2,7 +2,7 @@
   import CursorLog from "./user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./user-interface/Tracker.svelte";
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
-  import ModulConnectionDialog from "./user-interface/ModulConnectionDialog.svelte";
+  import DisconnectedModule from "./user-interface/DisconnectedModule.svelte";
   import { fade, blur, fly } from "svelte/transition";
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
@@ -124,13 +124,13 @@
           </div>
         </GridLayout>
 
-        {#if $runtime.modules.length == 0 && $appSettings.firmwareNotificationState === 0}
+        {#if $runtime.modules.length == 0}
           <div
             in:fade|global={{ duration: 1000 }}
             out:blur|global={{ duration: 150 }}
             class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
           >
-            <ModulConnectionDialog />
+            <DisconnectedModule />
           </div>
         {/if}
 

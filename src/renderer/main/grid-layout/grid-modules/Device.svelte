@@ -24,6 +24,7 @@
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import CalibrationOverlay from "./overlays/CalibrationOverlay.svelte";
+  import FirmwareMismatchOverlay from "./overlays/FirmwareMismatchOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
   //Underlays
@@ -454,6 +455,10 @@
         <CalibrationOverlay
           {device}
           visible={$moduleOverlay === ModuleOverlay.Types.CALIBRATION}
+        />
+        <FirmwareMismatchOverlay
+          {device}
+          visible={$moduleOverlay === ModuleOverlay.Types.FIRMWARE_MISMATCH}
         />
         {#if $moduleOverlay === ModuleOverlay.Types.PROFILE_DRAG && $profileCloudConfigDrag.type === device.type}
           <div class="absolute p-2 w-full h-full flex">

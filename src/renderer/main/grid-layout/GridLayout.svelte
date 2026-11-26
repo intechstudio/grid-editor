@@ -60,8 +60,18 @@
     calculateLayoutDimensions(rotation, value);
   }
 
+  // When the last module is removed the layout would collapse to 0x0 at once,
+  // while that module is still fading out. Its cell then anchors to the
+  // center point and visibly jumps. Keep the old size until the outro ends.
+  let lastOutroFinished = true;
+
   function calculateLayoutDimensions(rotation, scale) {
     const dim = getGridDimensions();
+    if (dim.columns > 0) {
+      lastOutroFinished = false;
+    } else if (width > 0 && !lastOutroFinished) {
+      return;
+    }
     rows = dim.rows;
     columns = dim.columns;
     // Account for gaps between modules (N modules = N-1 gaps)
@@ -158,6 +168,7 @@
   }
 
   function handleOutroEnd() {
+    lastOutroFinished = true;
     calculateLayoutDimensions(rotation, get(scale));
   }
 

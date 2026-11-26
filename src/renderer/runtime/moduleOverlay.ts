@@ -5,6 +5,7 @@ export namespace ModuleOverlay {
   export enum Types {
     CONTROL_NAME = "control-name-overlay",
     CALIBRATION = "calibration-overlay",
+    FIRMWARE_MISMATCH = "firmware-mismatch-overlay",
     PROFILE_LOAD = "profile-load-overlay",
     PRESET_LOAD = "preset-load-overlay",
     PROFILE_DRAG = "profile-drag-overlay",

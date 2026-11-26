@@ -37,6 +37,8 @@ export const tooltip_content = {
     "System Events are shared by all Grid modules and Each System Event serves a specific purpose (see the specific system event descriptions).",
   configuration_element_name:
     'Name your control element, by adding an "Element Name" field in Actions.',
+  configuration_firmware_mismatch:
+    "Show the bootloader information of modules with outdated firmware.",
   configuration_calibration:
     "Enable the calibration overlay to view and manage calibration settings for control elements.",
   configuration_selected_element:
