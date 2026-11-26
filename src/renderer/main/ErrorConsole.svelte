@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { get } from "svelte/store";
   import { fly, fade, slide } from "svelte/transition";
 
@@ -272,12 +273,12 @@
               <div class="ml-4 font-bold">{log.solution.message}</div>
 
               {#if log.solution.link !== undefined && log.solution.link !== ""}
-                <button
-                  on:click={solution(log.solution.link)}
-                  class="relative bg-background-soft mr-3 block hover:bg-background text-foreground ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-                >
-                  Find solution
-                </button>
+                <div class="mx-3">
+                  <MoltenPushButton
+                    text="Find solution"
+                    click={() => solution(log.solution.link)}
+                  />
+                </div>
               {/if}
             {/if}
           </div>
@@ -291,18 +292,12 @@
     >
       Reload the application using {text} or click
 
-      <button
-        on:click={refresh}
-        class="relative bg-background-soft mr-3 block hover:bg-background text-foreground ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-      >
-        Restart
-      </button>
-      <button
-        on:click={dismiss}
-        class="relative bg-background-soft mr-3 block hover:bg-background text-foreground ml-1 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-      >
-        Dismiss
-      </button>
+      <div class="mx-3 my-2">
+        <MoltenPushButton text="Restart" click={refresh} />
+      </div>
+      <div class="mr-3 my-2">
+        <MoltenPushButton text="Dismiss" style="outlined" click={dismiss} />
+      </div>
     </div>
   </div>
 {/if}
@@ -318,22 +313,21 @@
       <div use:copyContextMenu class="select-text">{notification.message}</div>
 
       {#if notification.link !== undefined && notification.link !== ""}
-        <button
-          on:click={solution(notification.link)}
-          class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-        >
-          Open Link
-        </button>
+        <div class="mx-3">
+          <MoltenPushButton
+            text="Open Link"
+            click={() => solution(notification.link)}
+          />
+        </div>
 
         {#if notification.dismissable === true}
-          <button
-            on:click={() => {
-              close_notification(index);
-            }}
-            class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-          >
-            Close
-          </button>
+          <div class="mr-3">
+            <MoltenPushButton
+              text="Close"
+              style="outlined"
+              click={() => close_notification(index)}
+            />
+          </div>
         {/if}
       {/if}
     </div>
